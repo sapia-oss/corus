@@ -1,0 +1,15 @@
+<HTML>
+<HEAD>
+<TITLE>Sapia Open Source</TITLE>
+</HEAD>
+
+<FRAMESET ROWS="80,*" BORDER="0">
+     <FRAME SRC="top.html" NAME="title" SCROLLING="NO"/>
+     <FRAMESET COLS="150,*" BORDER="0">
+         <FRAME SRC="leftmenu.html" NAME="sidebar"/>                    
+          <FRAME SRC="home.html" NAME="main"/>
+     </FRAMESET>
+    
+</FRAMESET>
+
+</HTML>
