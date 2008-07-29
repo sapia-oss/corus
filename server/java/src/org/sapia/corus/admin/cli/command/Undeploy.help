@@ -1,0 +1,19 @@
+<help>
+  <section title="Description">
+   <p>Undeploys a distribution from a given Corus server.</p>
+   <p/>
+   <p>- If remote processes corresponding to the given distribution are currently running, they are automatically terminated.</p>
+   <p>- If the processes could not be terminated, undeployment fails.</p>   
+  </section>
+  <section title="Syntax">
+    <p>undeploy -d distribution_name -v version [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- d: the name of the distribution to undeploy.</p>
+    <p/>
+    <p>- v: the version of the distribution to undeploy.</p>
+    <p/>
+    <p>- cluster: if specified, the given distribution will be undeployed cluster-wide.</p>
+  </section>
+</help>

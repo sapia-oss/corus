@@ -1,0 +1,35 @@
+<help>
+  <section title="Description">
+   <p>Allows managing port ranges.</p>
+  </section>
+  <section title="Syntax">
+    <p>port add -n range_name -min min_port -max max_port [-cluster]</p>
+    <p/>
+    <p>OR</p>
+    <p/>
+    <p>port del -n range_name [-f][-cluster]</p>
+    <p/>
+    <p>OR</p>
+    <p/>
+    <p>port ls [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- add: indicates that a port range is to be added.</p>
+    <p/>
+    <p>- del: indicates that a port range is to be deleted.</p>
+    <p/>
+    <p>- ls: lists all configured port ranges.</p>
+    <p/>
+    <p>- n: the name of the port range to add or delete.</p>
+    <p/>
+    <p>- min: the lowerbound port of the range to add.</p>
+    <p/>
+    <p>- max: the higherbound port of the range to add.</p>
+    <p/>
+    <p>- f: indicates that the port range should be forcefully remove (i.e.: even if 
+            corresponding ports are flagged as being active).</p>
+    <p/>
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
+  </section>
+</help>
