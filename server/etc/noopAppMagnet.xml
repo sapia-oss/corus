@@ -1,0 +1,15 @@
+<magnet xmlns="http://schemas.sapia-oss.org/magnet/core/"
+        name="NoopApplication" description="Noop app that does nothing">
+
+
+  <launcher type="java" name="noopApp" mainClass="org.sapia.corus.examples.NoopApplication"
+            default="test" isDaemon="false" waitTime="2000">
+      <profile name="test">
+          <classpath>
+					    <path directory="lib">
+					      <include pattern="*.jar" />
+					    </path>
+          </classpath>
+      </profile>
+  </launcher>
+</magnet>        
