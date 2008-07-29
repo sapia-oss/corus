@@ -1,0 +1,96 @@
+package org.sapia.corus.interop.soap;
+
+
+// Import of Sapia's utility classes
+// ---------------------------------
+import org.sapia.util.xml.confix.ObjectHandlerIF;
+
+// Import of Sun's JDK classes
+// ---------------------------
+import java.util.ArrayList;
+import java.util.List;
+
+
+/**
+ *
+ *
+ * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
+ * <dl>
+ * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">
+ *     Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
+ * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
+ *     <a href="http://www.sapia-oss.org/license.html" target="sapia-license">license page</a>
+ *     at the Sapia OSS web site</dd></dt>
+ * </dl>
+ */
+public class Body implements ObjectHandlerIF {
+  /////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////  INSTANCE ATTRIBUTES  /////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /** The objects contained in this body. */
+  private List _theObjects;
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////  CONSTRUCTORS  /////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Creates a new Body instance.
+   */
+  public Body() {
+    _theObjects = new ArrayList();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////  ACCESSOR METHODS  ///////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+  public List getObjects() {
+    return _theObjects;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////  MUTATOR METHODS  ///////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+  public void addObject(Object anObject) {
+    _theObjects.add(anObject);
+  }
+
+  public void removeObject(Object anObject) {
+    _theObjects.remove(anObject);
+  }
+
+  public void clearObjects() {
+    _theObjects.clear();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////  INTERACE IMPLEMENTATION  ///////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Handles the passed in object that was created for the element name passed in.
+   *
+   * @param anElementName The xml element name for which the object was created.
+   * @param anObject The object to handle.
+   */
+  public void handleObject(String anElementName, Object anObject) {
+    _theObjects.add(anObject);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////  OVERRIDEN METHODS  //////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Returns a string representation of this body.
+   *
+   * @return A string representation of this body.
+   */
+  public String toString() {
+    StringBuffer aBuffer = new StringBuffer(super.toString());
+    aBuffer.append("[objects=").append(_theObjects).append("]");
+
+    return aBuffer.toString();
+  }
+}

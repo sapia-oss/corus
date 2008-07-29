@@ -1,0 +1,19 @@
+<sapia:page title="Sapia Corus Interop - Mailing List" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+  <sapia:refreshMenu page="leftmenu.html" />
+
+  <sapia:sect1 title="Mailing List">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects"/>
+      <sapia:path name="corus" href="../home.html"/>
+      <sapia:path name="interop"/>
+    </sapia:section>
+
+    <sapia:sect2>
+      <p>The mailing list for this project is hosted on SourceForge; the email address is
+      <b>sapia-corus_users@lists.sourceforge.net</b>. You must 
+      <a href="http://lists.sourceforge.net/lists/listinfo/sapia-corus_users">subscribe</a>
+      prior to post messages.</p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>
