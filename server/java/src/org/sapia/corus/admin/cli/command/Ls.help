@@ -1,0 +1,19 @@
+<help>
+  <section title="Description">
+   <p>Lists the current distributions</p>
+  </section>
+  <section title="Syntax">
+    <p>ls [-d distribution_name][-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- d: specifies the name (or name pattern) of the distribution for which information should be displayed.</p>
+    <p/>
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
+  </section>
+  <section title="Examples">
+    <p>ls -d myapp</p>
+    <p/>
+    <p>ls -d *</p>
+  </section>      
+</help>

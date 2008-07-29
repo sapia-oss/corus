@@ -1,0 +1,16 @@
+<help>
+  <section title="Description">
+   <p>Deploys a distribution to a given Corus server.</p>
+  </section>
+  <section title="Syntax">
+    <p>deploy distribution_archive [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- distribution_archive: the path to the distribution archive to deploy - either an absolute path, or a path relative to the directory from which the command-line console was started.</p>
+    <p/>
+    <p>Note that this argument supports pattern matching: deploy *.zip, deploy dist/*.zip, etc.</p>
+    <p/>
+    <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
+  </section>
+</help>
