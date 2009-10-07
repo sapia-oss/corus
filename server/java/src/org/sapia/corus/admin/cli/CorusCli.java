@@ -1,5 +1,9 @@
 package org.sapia.corus.admin.cli;
 
+import java.net.UnknownHostException;
+import java.rmi.RemoteException;
+import java.util.Calendar;
+
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -9,7 +13,9 @@ import org.sapia.console.InputException;
 import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.admin.CorusFacade;
 import org.sapia.corus.admin.CorusFacadeImpl;
+import org.sapia.corus.exceptions.CorusException;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.util.Localhost;
 
 
 /**
@@ -45,26 +51,52 @@ public class CorusCli extends CommandConsole {
   }
 
   public static void main(String[] args) {
+    String host = null;
+    try{
+      host = Localhost.getLocalAddress().getHostAddress();
+    }catch(UnknownHostException e){}
+    int port = DEFAULT_PORT;
+
     try {
       CmdLine cmd = CmdLine.parse(args);
 
       //System.setProperty(Consts.LOG_LEVEL, "debug");      
-      String host = cmd.assertOption(HOST_OPT, true).getValue();
-      int    port = DEFAULT_PORT;
-
-      if (cmd.containsOption(PORT_OPT, true)) {
-        port = cmd.assertOption(PORT_OPT, true).asInt();
+      if(cmd.containsOption("help", false)){
+        help();
       }
-
-      CorusFacade fac = new CorusFacadeImpl(host, port);
-
-      CorusCli    cli = new CorusCli(fac);
-      cli.start();
+      else{
+        if(cmd.containsOption(HOST_OPT, true)){
+          host = cmd.assertOption(HOST_OPT, true).getValue();
+          if(host.equalsIgnoreCase("localhost")){
+            host = Localhost.getLocalAddress().getHostAddress();
+          }
+        }
+        else{
+          host = Localhost.getLocalAddress().getHostAddress();
+        }
+  
+        if (cmd.containsOption(PORT_OPT, true)) {
+          port = cmd.assertOption(PORT_OPT, true).asInt();
+        }
+  
+        CorusFacade fac = new CorusFacadeImpl(host, port);
+  
+        CorusCli    cli = new CorusCli(fac);
+        cli.start();
+      }
     } catch (InputException e) {
       System.out.println(e.getMessage());
       help();
     } catch (Exception e) {
       e.printStackTrace();
+      if(e instanceof CorusException && 
+         ((CorusException)e).getCause() != null && 
+         ((CorusException)e).getCause() instanceof RemoteException){
+        System.out.println("No server listening at " + host + ":" + port);
+      }
+      else{
+        e.printStackTrace();
+      }
     }
   }
 
@@ -83,10 +115,11 @@ public class CorusCli extends CommandConsole {
     System.out.println();
     System.out.println("Corus client command-line syntax:");
     System.out.println();
-    System.out.println("coruscli -h host -p port");
+    System.out.println("coruscli [-h <host>] [-p <port>]");
     System.out.println();
     System.out.println("where:");
-    System.out.println("  -h host of the corus server to which to connect.");
+    System.out.println("  -h host of the corus server to which to connect");
+    System.out.println("     (defaults to local address).");
     System.out.println();
     System.out.println("  -p specifies the port on which the corus server");
     System.out.println("     listens (defaults to 33000).");
@@ -115,6 +148,10 @@ public class CorusCli extends CommandConsole {
      */
     public void onStart(Console cons) {
       line(cons);
+      
+      Calendar cal = Calendar.getInstance();
+      int year = cal.get(Calendar.YEAR);
+      
       center(cons, "");
       center(cons, "Corus Command Line Interface");
       center(cons, "");
@@ -122,7 +159,7 @@ public class CorusCli extends CommandConsole {
       center(cons, "");
       center(cons, "Authorized Users Only");
       center(cons, "");
-      center(cons, "(c)2003 sapia-oss.org");
+      center(cons, "(c)2003-" + year + " sapia-oss.org");
       center(cons, "");
       line(cons);
       cons.println("");
@@ -139,8 +176,6 @@ public class CorusCli extends CommandConsole {
     static void center(Console cons, String text) {
       int margin = (80 - text.length()) / 2;
       cons.print("*");
-
-      StringBuffer b = new StringBuffer();
 
       for (int i = 0; i < (margin - 1); i++) {
         cons.print(" ");

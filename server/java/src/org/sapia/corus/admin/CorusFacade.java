@@ -1,29 +1,33 @@
 package org.sapia.corus.admin;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import org.sapia.corus.ClusterInfo;
-import org.sapia.corus.CorusException;
-import org.sapia.corus.LogicException;
+import org.sapia.corus.admin.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.admin.services.processor.ExecConfig;
+import org.sapia.corus.admin.services.processor.ProcStatus;
+import org.sapia.corus.admin.services.processor.Process;
 import org.sapia.corus.cron.CronJobInfo;
 import org.sapia.corus.cron.InvalidTimeException;
 import org.sapia.corus.deployer.ConcurrentDeploymentException;
-import org.sapia.corus.port.PortActiveException;
-import org.sapia.corus.port.PortRangeConflictException;
-import org.sapia.corus.port.PortRangeInvalidException;
-import org.sapia.corus.processor.ProcStatus;
-import org.sapia.corus.processor.Process;
+import org.sapia.corus.exceptions.CorusException;
+import org.sapia.corus.exceptions.LogicException;
+import org.sapia.corus.exceptions.PortActiveException;
+import org.sapia.corus.exceptions.PortRangeConflictException;
+import org.sapia.corus.exceptions.PortRangeInvalidException;
 import org.sapia.corus.util.ProgressQueue;
 import org.sapia.ubik.net.ServerAddress;
 
 
 /**
+ * This interface specifies a facade allowing to communicate with a 
+ * Corus server.
+ * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public interface CorusFacade {
   /**
@@ -39,7 +43,7 @@ public interface CorusFacade {
    *
    * @return a <code>Collection</code> of<code>ServerAddress</code>es.
    */
-  public Collection getServerAddresses();
+  public Collection<ServerAddress> getServerAddresses();
 
   /**
    * Returns the domain name of this instance's Corus server.
@@ -82,6 +86,31 @@ public interface CorusFacade {
    * @return a <code>ProgressQueue</code>.
    */
   public ProgressQueue undeploy(String distName, String version, ClusterInfo cluster);
+
+  
+  /**
+   * Deploys the exec configuration whose file name is given.
+   * @param fileName the name of the file of the execution configuration to deploy.
+   * @param cluster
+   */
+  public void deployExecConfig(String fileName, ClusterInfo cluster) throws IOException, CorusException;
+
+  /**
+   * Undeploys the exec configurations matching the given name. 
+   * @param name the name of the exec config to undeploy.
+   * @param cluster
+   */
+  public void undeployExecConfig(String name, ClusterInfo cluster);
+  
+  /**
+   * Returns the {@link ExecConfig}s in the system.
+   * @param cluster a {@link ClusterInfo} instance.
+   * @return
+   * @throws IOException
+   * @throws CorusException
+   */
+  public  Results getExecConfigs(ClusterInfo cluster) 
+    throws IOException, CorusException;
 
   /**
    * Returns the list of distributions.
@@ -129,7 +158,7 @@ public interface CorusFacade {
    *
    * @param cluster a <code>ClusterInfo</code> instance.
    * @return a <code>Results</code> instance containing <code>ServerAddress</code>es of <code>Process</code> instances.
-   * @see org.sapia.corus.processor.Process
+   * @see org.sapia.corus.admin.services.processor.Process
    */
   public Results getProcesses(ClusterInfo cluster);
 
@@ -140,7 +169,7 @@ public interface CorusFacade {
    * @param cluster a <code>ClusterInfo</code> instance.
    * 
    * @return a <code>Results</code> instance containing <code>ServerAddress</code>es of <code>Process</code> instances.
-   * @see org.sapia.corus.processor.Process
+   * @see org.sapia.corus.admin.services.processor.Process
    */
   public Results getProcesses(String distName, ClusterInfo cluster);
 
@@ -152,7 +181,7 @@ public interface CorusFacade {
    * @param cluster a <code>ClusterInfo</code> instance.
    * 
    * @return a <code>Results</code> instance containing <code>ServerAddress</code>es of <code>Process</code> instances.
-   * @see org.sapia.corus.processor.Process
+   * @see org.sapia.corus.admin.services.processor.Process
    */
   public Results getProcesses(String distName, String version, ClusterInfo cluster);
 
@@ -164,7 +193,7 @@ public interface CorusFacade {
    * @param profile the profile for which to return VM processes.
    * @param cluster a <code>ClusterInfo</code> instance.
    * @return a <code>Results</code> instance containing <code>ServerAddress</code>es of <code>Process</code> instances.
-   * @see org.sapia.corus.processor.Process
+   * @see org.sapia.corus.admin.services.processor.Process
    */
   public Results getProcesses(String distName, String version, String profile,
                               ClusterInfo cluster);
@@ -178,10 +207,69 @@ public interface CorusFacade {
    * @param processName the name of the VM for which to return process instances.
    * @param cluster a <code>ClusterInfo</code> instance.
    * @return a <code>Results</code> instance containing <code>ServerAddress</code>es of <code>Process</code> instances.
-   * @see org.sapia.corus.processor.Process
+   * @see org.sapia.corus.admin.services.processor.Process
    */
   public Results getProcesses(String distName, String version, String profile,
                               String processName, ClusterInfo cluster);
+
+  
+  /**
+   * Adds a given property to the Corus server.
+   * @param scope a {@link PropertyScope}
+   * @param name the name of the property to add.
+   * @param value the value of the property to add.
+   */
+  public void addProperty(PropertyScope scope, String name, String value, ClusterInfo cluster);
+  
+  /**
+   * @param scope a {@link PropertyScope}
+   * @return the {@link Properties} held within the Corus server.
+   */
+  public Results getProperties(PropertyScope scope, ClusterInfo cluster);
+  
+  /**
+   * @param scope a {@link PropertyScope}
+   * @param name the name of the property to remove.
+   */
+  public void removeProperty(PropertyScope scope, Arg name, ClusterInfo cluster);
+  
+  /**
+   * Adds the given tag to the Corus server.
+   * 
+   * @param tag a tag
+   * @param cluster
+   */
+  public void addTag(String tag, ClusterInfo cluster);
+
+  /**
+   * Adds the given tags to the Corus server.
+   *  
+   * @param tags a {@link Set} of tags.
+   * @param cluster
+   */
+  public void addTags(Set<String> tags, ClusterInfo cluster);
+  
+  /**
+   * Removes the given tag from the Corus server.
+   * @param tag a tag pattern.
+   */
+  public void removeTag(Arg tag, ClusterInfo cluster);
+  
+  /**
+   * The tags of the Corus server.
+   * 
+   * @return the a {@link List} of tags.
+   */
+  public Results getTags(ClusterInfo cluster);
+  
+  /**
+   * Starts process(es) corresponding to an existing execution configuration.
+   * 
+   * @param configName the name of an execution configuration
+   * @param cluster
+   * @return
+   */
+  public ProgressQueue exec(String configName, ClusterInfo cluster);
 
   /**
    * Starts process(es) corresponding to the passed in parameters.
@@ -226,7 +314,14 @@ public interface CorusFacade {
    * @return a <code>ProgressQueue</code>.
    */
   public ProgressQueue restart(ClusterInfo cluster);
-
+  
+  /**
+   * Restarts the process with the given process UD.
+   * @param pid a Corus process ID.
+   * @return a {@link ProgressQueue}
+   */
+  public void restart(String pid) throws LogicException;
+  
   /**
    * Kills the process(es) corresponding to the passed in parameters.
    *

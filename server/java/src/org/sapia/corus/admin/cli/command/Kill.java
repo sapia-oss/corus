@@ -7,11 +7,11 @@ import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.ClusterInfo;
-import org.sapia.corus.LogicException;
 import org.sapia.corus.admin.HostList;
 import org.sapia.corus.admin.Results;
 import org.sapia.corus.admin.cli.CliContext;
-import org.sapia.corus.processor.Process;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.exceptions.LogicException;
 
 
 /**
@@ -83,8 +83,10 @@ public class Kill extends CorusCliCommand {
   
       version = cmd.assertOption(CorusCliCommand.VERSION_OPT, true).getValue();
   
-      profile = cmd.assertOption(CorusCliCommand.PROFILE_OPT, true).getValue();
-  
+      if(cmd.containsOption(CorusCliCommand.PROFILE_OPT, true)){
+        profile = cmd.assertOption(CorusCliCommand.PROFILE_OPT, true).getValue();
+      }
+      
       if (cmd.containsOption(CorusCliCommand.VM_NAME_OPT, true)) {
         vmName = cmd.assertOption(CorusCliCommand.VM_NAME_OPT, true).getValue();
       }

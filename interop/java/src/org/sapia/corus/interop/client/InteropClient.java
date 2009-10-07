@@ -90,9 +90,9 @@ public class InteropClient implements Consts, Implementation {
   public static final int UNDEFINED_PORT = -1;
   static InteropClient    _instance;
   InteropProtocol         _proto;
-  boolean                 _dynamic              = System.getProperty(Consts.CORUS_PID) != null;
-  List                    _shutdownListeners    = new ArrayList();
-  List                    _statusListeners      = new ArrayList();
+  boolean                 _dynamic = System.getProperty(Consts.CORUS_PID) != null;
+  List<SoftReference<ShutdownListener>>      _shutdownListeners    = new ArrayList<SoftReference<ShutdownListener>>();
+  List<SoftReference<StatusRequestListener>> _statusListeners      = new ArrayList<SoftReference<StatusRequestListener>>();
   boolean                 _exitSystemOnShutdown = true;
   InteropClientThread     _thread;
   Log                     _log;
@@ -113,7 +113,7 @@ public class InteropClient implements Consts, Implementation {
         System.setProperty(CORUS_PROCESS_DIR, processDir);
         _log.debug("Renamed CORUS_PROCESS_DIR to : " + processDir);
       }
-      _statusListeners.add(new SoftReference(_listener = new ClientStatusListener()));
+      _statusListeners.add(new SoftReference<StatusRequestListener>(_listener = new ClientStatusListener()));
       redirectOutput();
       _log.debug("Starting interop client thread...");
 
@@ -264,7 +264,6 @@ public class InteropClient implements Consts, Implementation {
    * latter can cleanly shut down.
    */
   public synchronized void shutdown() {
-    boolean corusInitiated;
 
     if ((_thread != null) && (Thread.currentThread() == _thread)) {
       _log.info("corus server initiated a shutdown");
@@ -297,8 +296,8 @@ public class InteropClient implements Consts, Implementation {
     ShutdownListener listener;
 
     for (int i = 0; i < _shutdownListeners.size(); i++) {
-      SoftReference ref = (SoftReference) _shutdownListeners.get(i);
-      listener = (ShutdownListener) ref.get();
+      SoftReference<ShutdownListener> ref = _shutdownListeners.get(i);
+      listener = ref.get();
 
       if (listener == null) {
         _shutdownListeners.remove(i);
@@ -318,7 +317,7 @@ public class InteropClient implements Consts, Implementation {
    * @param listener a <code>ShutdownListener</code>.
    */
   public synchronized void addShutdownListener(ShutdownListener listener) {
-    _shutdownListeners.add(new SoftReference(listener));
+    _shutdownListeners.add(new SoftReference<ShutdownListener>(listener));
   }
 
   /**
@@ -330,7 +329,7 @@ public class InteropClient implements Consts, Implementation {
    * @param listener a <code>StatusRequestListener</code>.
    */
   public synchronized void addStatusRequestListener(StatusRequestListener listener) {
-    _statusListeners.add(new SoftReference(listener));
+    _statusListeners.add(new SoftReference<StatusRequestListener>(listener));
   }
 
   /**
@@ -343,7 +342,7 @@ public class InteropClient implements Consts, Implementation {
     StatusRequestListener listener;
 
     for (int i = 0; i < _statusListeners.size(); i++) {
-      SoftReference ref = (SoftReference) _statusListeners.get(i);
+      SoftReference<StatusRequestListener> ref = _statusListeners.get(i);
       listener = (StatusRequestListener) ref.get();
 
       if (listener == null) {

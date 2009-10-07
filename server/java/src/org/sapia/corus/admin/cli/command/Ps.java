@@ -6,17 +6,13 @@ import org.sapia.console.InputException;
 import org.sapia.console.table.Cell;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
-
 import org.sapia.corus.ClusterInfo;
-import org.sapia.corus.LogicException;
 import org.sapia.corus.admin.HostList;
 import org.sapia.corus.admin.Results;
 import org.sapia.corus.admin.cli.CliContext;
-import org.sapia.corus.processor.Process;
-
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.exceptions.LogicException;
 import org.sapia.ubik.net.ServerAddress;
-
-import java.util.List;
 
 
 /**
@@ -161,13 +157,14 @@ public class Ps extends CorusCliCommand {
     else{
       row.getCellAt(COL_OS_PID).append(proc.getOsPid() == null ? "n/a" : proc.getOsPid());
 
-      if(proc.getStatus() == Process.KILL_CONFIRMED || proc.getStatus() == Process.KILL_REQUESTED){
+      if(proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED || 
+         proc.getStatus() == Process.LifeCycleStatus.KILL_REQUESTED){
         row.getCellAt(COL_STATUS).append(TERMINATING);      
       }
-      else if(proc.getStatus() == Process.SUSPENDED){
+      else if(proc.getStatus() == Process.LifeCycleStatus.SUSPENDED){
         row.getCellAt(COL_STATUS).append(SUSPENDED);      
       }
-      else if(proc.getStatus() == Process.RESTARTING){
+      else if(proc.getStatus() == Process.LifeCycleStatus.RESTARTING){
         row.getCellAt(COL_STATUS).append(RESTART);    
       }
       else{
@@ -181,8 +178,6 @@ public class Ps extends CorusCliCommand {
     Table   procTable;
     Row     row;
     Row     headers;
-    Cell    cell;
-    Process vm;
 
     procTable = new Table(ctx.getConsole().out(), 1, 78);
     procTable.drawLine('=');

@@ -1,6 +1,6 @@
 package org.sapia.corus.db;
 
-import org.sapia.corus.Module;
+import org.sapia.corus.admin.Module;
 
 
 /**

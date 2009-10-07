@@ -1,9 +1,13 @@
 <help>
   <section title="Description">
-   <p>Deploys a distribution to a given Corus server.</p>
+   <p>Deploys a distribution or an execution configuration to a given Corus server.</p>
   </section>
   <section title="Syntax">
     <p>deploy distribution_archive [-cluster]</p>
+    <p/>
+    <p>or:</p>
+	<p/>
+    <p>deploy -e exec_config_file [-cluster]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -11,6 +15,14 @@
     <p/>
     <p>Note that this argument supports pattern matching: deploy *.zip, deploy dist/*.zip, etc.</p>
     <p/>
+    <p>- e: the path to an execution configuration file.</p>
+    <p/>
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Examples">
+    <p>deploy myDistribution.zip</p>
+    <p/>
+    <p>deploy -e myExecConfig.xml</p>
+    <p/>    
   </section>
 </help>

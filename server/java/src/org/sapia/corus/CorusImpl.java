@@ -1,19 +1,20 @@
 package org.sapia.corus;
 
+import java.io.InputStream;
 import java.rmi.RemoteException;
-import org.apache.log.Hierarchy;
-import org.sapia.corus.naming.JndiModule;
+import java.util.Properties;
 
+import org.apache.log.Hierarchy;
+import org.sapia.corus.admin.Corus;
+import org.sapia.corus.admin.services.naming.JndiModule;
+import org.sapia.corus.exceptions.CorusException;
+import org.sapia.corus.util.PropertyContainer;
 import org.sapia.soto.SotoContainer;
 import org.sapia.soto.util.Utils;
 import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.RemoteContextProvider;
-
 import org.sapia.util.text.MapContext;
 import org.sapia.util.text.SystemContext;
-
-import java.io.InputStream;
-import java.util.Properties;
 
 
 /**
@@ -41,14 +42,14 @@ public class CorusImpl implements Corus, RemoteContextProvider {
     return _domain;
   }
   
-  public static void init(Hierarchy h, InputStream config, String domain,
+  public static ServerContext init(Hierarchy h, InputStream config, String domain,
                           CorusTransport aTransport, String corusHome) throws java.io.IOException, Exception {
     _instance = new CorusImpl(domain);
     CorusRuntime.init(_instance, corusHome, aTransport);
     _cont = new SotoContainer();
     
     // loading default properties.
-    Properties props = new Properties();
+    final Properties props = new Properties();
     InputStream defaults = Thread.currentThread().getContextClassLoader().getResourceAsStream("org/sapia/corus/default.properties");
     if(defaults == null){
       throw new IllegalStateException("Resource 'org/sapia/corus/default.properties' not found");
@@ -63,7 +64,22 @@ public class CorusImpl implements Corus, RemoteContextProvider {
     tmp = Utils.replaceVars(new MapContext(props, new SystemContext(), false), config, "config/corus.properties");
     config.close();
     props.load(tmp);
-    _cont.load("org/sapia/corus/corus.conf", props);
+    
+    InternalServiceContext services = new InternalServiceContext();
+    ServerContext serverContext = new ServerContext(domain, corusHome,  services);
+    InitContext.attach(new PropertyContainer(){
+      public String getProperty(String name) {
+        return props.getProperty(name);
+      }
+    },
+    serverContext);
+    try{
+      _cont.load("org/sapia/corus/corus.conf", props);
+    }finally{
+      InitContext.unattach();
+    }
+    
+    return serverContext;
   }
   
   public static void start() throws Exception {
@@ -78,10 +94,11 @@ public class CorusImpl implements Corus, RemoteContextProvider {
     try {
       return _cont.lookup(module);
     } catch (Exception e) {
+      e.printStackTrace();
       throw new CorusException(e);
     }
   }
-
+  
   public static CorusImpl getInstance() {
     if (_instance == null) {
       throw new IllegalStateException("corus not initialized");

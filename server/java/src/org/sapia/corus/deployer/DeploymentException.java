@@ -1,6 +1,6 @@
 package org.sapia.corus.deployer;
 
-import org.sapia.corus.CorusException;
+import org.sapia.corus.exceptions.CorusException;
 
 
 /**

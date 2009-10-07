@@ -2,7 +2,6 @@ package org.sapia.corus.naming.example;
 
 import javax.naming.Context;
 
-import org.sapia.ubik.rmi.Consts;
 import org.sapia.ubik.rmi.naming.remote.discovery.DiscoveryHelper;
 import org.sapia.ubik.rmi.naming.remote.discovery.JndiDiscoListener;
 import org.sapia.ubik.rmi.server.Log;

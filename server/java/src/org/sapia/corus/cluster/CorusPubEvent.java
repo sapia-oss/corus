@@ -1,8 +1,8 @@
 package org.sapia.corus.cluster;
 
-import org.sapia.ubik.net.ServerAddress;
-
 import java.io.Serializable;
+
+import org.sapia.ubik.net.ServerAddress;
 
 
 /**

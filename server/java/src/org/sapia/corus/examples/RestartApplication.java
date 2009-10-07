@@ -1,10 +1,10 @@
 package org.sapia.corus.examples;
 
-import org.sapia.corus.interop.api.InteropLink;
-import org.sapia.corus.interop.api.ShutdownListener;
-
 import java.util.Iterator;
 import java.util.Map;
+
+import org.sapia.corus.interop.api.InteropLink;
+import org.sapia.corus.interop.api.ShutdownListener;
 
 
 /**
@@ -44,7 +44,7 @@ public class RestartApplication {
     InteropLink.getImpl().addShutdownListener(listener);
 
     try {
-      Thread.sleep(10000);
+      Thread.sleep(20000);
       InteropLink.getImpl().restart();
     } catch (Exception e) {
       e.printStackTrace();

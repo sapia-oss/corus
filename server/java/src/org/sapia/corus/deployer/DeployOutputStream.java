@@ -1,8 +1,8 @@
 package org.sapia.corus.deployer;
 
-import org.sapia.corus.util.ProgressQueue;
-
 import java.io.IOException;
+
+import org.sapia.corus.util.ProgressQueue;
 
 
 /**

@@ -2,10 +2,7 @@ package org.sapia.corus.interop;
 
 import java.io.Serializable;
 
-
 /**
- *
- *
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  * <dl>
  * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">
@@ -16,6 +13,9 @@ import java.io.Serializable;
  * </dl>
  */
 public class Param implements Serializable {
+  
+  static final long serialVersionUID = 1L;
+
   /////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////  INSTANCE ATTRIBUTES  /////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////////////////

@@ -5,12 +5,12 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.sapia.archie.NotFoundException;
 import org.sapia.corus.CorusRuntime;
-import org.sapia.corus.admin.CommandArg;
-import org.sapia.corus.admin.CommandArgParser;
-import org.sapia.corus.deployer.config.Distribution;
-import org.sapia.corus.deployer.config.ProcessConfig;
+import org.sapia.corus.admin.Arg;
+import org.sapia.corus.admin.ArgFactory;
+import org.sapia.corus.admin.services.deployer.Deployer;
+import org.sapia.corus.admin.services.deployer.dist.Distribution;
+import org.sapia.corus.admin.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.http.HttpContext;
 import org.sapia.corus.http.HttpExtension;
 import org.sapia.corus.http.HttpExtensionInfo;
@@ -54,10 +54,10 @@ public class DeployerExtension implements HttpExtension{
     outputDists(ctx, filterDists(ctx.getRequest()), false);
   }
   
-  private CommandArg arg(String name, Request r) throws IOException{
+  private Arg arg(String name, Request r) throws IOException{
     String value = r.getParameter(name);
     if(value != null){
-      return CommandArgParser.parse(value);
+      return ArgFactory.parse(value);
     }
     return null;
   }
@@ -105,8 +105,8 @@ public class DeployerExtension implements HttpExtension{
   }
   
   private List filterDists(Request req) throws IOException{
-    CommandArg d = arg(PARAM_DIST, req);
-    CommandArg v = arg(PARAM_VERSION, req);    
+    Arg d = arg(PARAM_DIST, req);
+    Arg v = arg(PARAM_VERSION, req);    
     
     List dists;
     if(d != null && v != null){

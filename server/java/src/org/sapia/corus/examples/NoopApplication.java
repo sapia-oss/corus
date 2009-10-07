@@ -1,10 +1,10 @@
 package org.sapia.corus.examples;
 
-import org.sapia.corus.interop.api.InteropLink;
-import org.sapia.corus.interop.api.ShutdownListener;
-
 import java.util.Iterator;
 import java.util.Map;
+
+import org.sapia.corus.interop.api.InteropLink;
+import org.sapia.corus.interop.api.ShutdownListener;
 
 
 

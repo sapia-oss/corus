@@ -2,6 +2,8 @@ package org.sapia.corus.processor;
 
 import junit.framework.TestCase;
 
+import org.sapia.corus.admin.services.processor.ActivePort;
+import org.sapia.corus.admin.services.processor.Process;
 import org.sapia.corus.port.TestPortManager;
 
 

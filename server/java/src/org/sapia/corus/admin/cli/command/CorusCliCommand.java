@@ -1,17 +1,16 @@
 package org.sapia.corus.admin.cli.command;
 
+import java.util.List;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.Command;
 import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
-
 import org.sapia.corus.ClusterInfo;
 import org.sapia.corus.admin.cli.CliContext;
 import org.sapia.corus.util.ProgressMsg;
 import org.sapia.corus.util.ProgressQueue;
-
-import java.util.List;
 
 
 /**
@@ -61,11 +60,22 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  protected ClusterInfo getClusterInfo(CliContext ctx){
-  	ClusterInfo info = new ClusterInfo(
-     ctx.getCommandLine().containsOption(CLUSTER_OPT, false)
-    );
-    return info;
+  protected ClusterInfo getClusterInfo(CliContext ctx) /*throws InputException*/{
+    /*if(ctx.getCommandLine().containsOption(CLUSTER_OPT, true)){
+      String clusterOpt = ctx.getCommandLine().assertOption(CLUSTER_OPT, true).getValue();
+      String[] tags = clusterOpt.split(",");
+      ClusterInfo info = new ClusterInfo(true);
+      for(int i = 0; i < tags.length; i++){
+        info.addTag(tags[i].trim());
+      }
+      return info;
+    }
+    else{*/
+    	ClusterInfo info = new ClusterInfo(
+       ctx.getCommandLine().containsOption(CLUSTER_OPT, false)
+      );
+      return info;
+    //}
   }
   
   protected void sleep(long millis) throws AbortException {

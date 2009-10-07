@@ -72,5 +72,10 @@ public class CacheDbMap implements DbMap{
   public Iterator values() {
     return _db.values();
   }
+  
+  public synchronized void clear() {
+    _cache.clear();
+    _db.clear();
+  }
 
 }

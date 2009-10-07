@@ -15,14 +15,14 @@ import java.util.Iterator;
  *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
  * </dl>
  */
-public interface DbMap {
+public interface DbMap<K, V> {
   /**
    * Puts the an object in this map, mapped to the given key.
    *
    * @param key the key of the passed in value.
    * @param value the value to persist.
    */
-  public void put(Object key, Object value);
+  public void put(K key, V value);
 
   /**
    * Removes the object that corresponds to the given key.
@@ -30,21 +30,21 @@ public interface DbMap {
    * @param key the key for which the corresponding object should be
    * removed.
    */
-  public void remove(Object key);
+  public void remove(K key);
 
   /**
    * Returns an iterator of this instance's values.
    *
    * @return an <code>Iterator</code>.
    */
-  public Iterator values();
+  public Iterator<V> values();
 
   /**
    * Returns an iterator of this instance's keys.
    *
    * @return an <code>Iterator</code>.
    */
-  public Iterator keys();
+  public Iterator<K> keys();
 
   /**
    * Closes this instance - releases all resources held by it.
@@ -58,5 +58,10 @@ public interface DbMap {
    * @return returns the object corresponding to the passed in key,
    * or <code>null</code> if no object could be found.
    */
-  public Object get(Object key);
+  public V get(K key);
+  
+  /**
+   * Clears this instance's values.
+   */
+  public void clear();
 }

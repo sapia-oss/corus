@@ -3,7 +3,6 @@ package org.sapia.corus.admin.cli.command;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
-
 import org.sapia.corus.ClusterInfo;
 import org.sapia.corus.admin.cli.CliContext;
 
@@ -17,11 +16,27 @@ import org.sapia.corus.admin.cli.CliContext;
  * </dl>
  */
 public class Exec extends CorusCliCommand {
-  /**
-   * @see CorusCliCommand#doExecute(CliContext)
-   */
+
+  public static final String OPT_EXEC_CONFIG = "e";
+  
   protected void doExecute(CliContext ctx)
                     throws AbortException, InputException {
+    
+    if(ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG, true)){
+      doExecuteConfig(ctx);
+    }
+    else{
+      doExecuteProcesses(ctx);
+    }
+    
+  }
+
+  private void doExecuteConfig(CliContext ctx) throws AbortException, InputException {
+    ClusterInfo cluster = getClusterInfo(ctx);
+    String configName = ctx.getCommandLine().assertOption(OPT_EXEC_CONFIG, true).getValue();
+    displayProgress(ctx.getCorus().exec(configName, cluster), ctx.getConsole());
+  } 
+  private void doExecuteProcesses(CliContext ctx) throws AbortException, InputException {
     String  dist      = null;
     String  version   = null;
     String  profile   = null;

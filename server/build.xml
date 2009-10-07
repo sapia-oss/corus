@@ -12,6 +12,7 @@
   <property name="project.extra-libraryDir"   value="${basedir}/extra-lib"/>  
   <property name="project.libraryDir"         value="${basedir}/lib"/>
   <property name="project.magnet-libraryDir"  value="${basedir}/magnetlib"/>
+  <property name="project.demo-libraryDir"    value="${basedir}/etc/demoApp/lib"/>
   <property name="project.binDir"             value="${basedir}/bin"/>
   <property name="project.distributionDir"    value="${basedir}/dist"/>
   <property name="project.distributionName"   value="sapia_corus"/>

@@ -10,6 +10,7 @@
 
 package org.sapia.corus.port;
 
+import org.sapia.corus.admin.services.port.PortRange;
 import org.sapia.corus.db.HashDbMap;
 
 /**
@@ -18,13 +19,8 @@ import org.sapia.corus.db.HashDbMap;
  */
 public class TestPortManager extends PortManagerImpl{
   
-  /** Creates a new instance of TestPortManager */
-  public TestPortManager() throws Exception{
-    init();
+  public TestPortManager() {
+    super(new PortRangeStore(new HashDbMap<String, PortRange>()));
   }
 
-  protected PortRangeStore newPortRangeStore(){
-    return new PortRangeStore(new HashDbMap());
-  }
-  
 }

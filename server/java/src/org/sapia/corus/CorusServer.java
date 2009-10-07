@@ -7,7 +7,7 @@ import java.util.Properties;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Priority;
-import org.apache.log.format.PatternFormatter;
+import org.apache.log.format.Formatter;
 import org.apache.log.output.io.rotate.RevolvingFileStrategy;
 import org.apache.log.output.io.rotate.RotateStrategyByTime;
 import org.apache.log.output.io.rotate.RotatingFileTarget;
@@ -15,6 +15,11 @@ import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.event.EventDispatcher;
+import org.sapia.corus.exceptions.CorusException;
+import org.sapia.corus.log.CompositeTarget;
+import org.sapia.corus.log.FormatterFactory;
+import org.sapia.corus.log.StdoutTarget;
+import org.sapia.corus.log.SyslogTarget;
 import org.sapia.soto.util.Utils;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Localhost;
@@ -33,10 +38,12 @@ public class CorusServer {
   public static final String PORT_OPT        = "p";
   public static final String DOMAIN_OPT      = "d";
   public static final String BIND_ADDR_OPT   = "a";
-  public static final String HTTP_TRANSPORT  = "http";
   public static final String DEBUG_VERBOSITY = "v";
   public static final String FILE            = "f";
   public static final String HELP            = "help";
+  public static final String PROP_SYSLOG_HOST     = "corus.server.syslog.host";
+  public static final String PROP_SYSLOG_PORT     = "corus.server.syslog.port";
+  public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
   
   public static void main(String[] args) {
     //System.setProperty(Consts.LOG_LEVEL, "debug");
@@ -114,7 +121,12 @@ public class CorusServer {
         port = Integer.parseInt(corusProps.getProperty(Consts.PROPERTY_CORUS_PORT));
       }
       
+      
+      /////////////// setting up logging //////////////////
+      
       Hierarchy h = Hierarchy.getDefaultHierarchy();
+      CompositeTarget logTarget = null;
+      
       Priority  p = Priority.DEBUG;
       
       if (cmd.containsOption(DEBUG_VERBOSITY, true)) {
@@ -129,8 +141,7 @@ public class CorusServer {
       h.setDefaultPriority(p);
       
       if (cmd.containsOption(FILE, false)) {
-        PatternFormatter     formatter = new PatternFormatter("%{time:yyyy.MM.dd'@'HH:mm:ss:SSS} %{priority}[%{category}]: %{message} %{throwable}" +
-          System.getProperty("line.separator"));
+        Formatter     formatter = FormatterFactory.createDefaultFormatter();
         RotateStrategyByTime strategy = new RotateStrategyByTime(1000 * 60 * 60 * 24);
         File                 logsDir  = new File(corusHome + File.separator +
           "logs");
@@ -143,8 +154,37 @@ public class CorusServer {
           5);
         RotatingFileTarget target = new RotatingFileTarget(formatter, strategy,
           fileStrategy);
-        h.setDefaultLogTarget(target);
+        if(logTarget == null){
+          logTarget = new CompositeTarget();
+        }
+        logTarget.addTarget(target);
       }
+      else{
+        Formatter formatter = FormatterFactory.createDefaultFormatter();
+        StdoutTarget target = new StdoutTarget(formatter);
+        if(logTarget == null){
+          logTarget = new CompositeTarget();
+        }
+        logTarget.addTarget(target);
+      }
+      
+      String syslogHost = corusProps.getProperty(PROP_SYSLOG_HOST); 
+      String syslogPort = corusProps.getProperty(PROP_SYSLOG_PORT);
+      String syslogProto = corusProps.getProperty(PROP_SYSLOG_PROTOCOL);
+      
+      if(syslogHost != null && syslogPort != null && syslogProto != null){
+        SyslogTarget target = new SyslogTarget(syslogProto, syslogHost, Integer.parseInt(syslogPort));
+        if(logTarget == null){
+          logTarget = new CompositeTarget();
+        }
+        logTarget.addTarget(target);
+      }
+      
+      if(logTarget != null){
+        h.setDefaultLogTarget(logTarget);
+      }
+      
+      /////////////// exporting server //////////////////
       
       if(cmd.containsOption(BIND_ADDR_OPT, true)){
         String pattern = cmd.assertOption(BIND_ADDR_OPT, true).getValue();
@@ -157,32 +197,21 @@ public class CorusServer {
       
       String host = Localhost.getLocalAddress().getHostAddress();
 
-      CorusTransport aTransport;
-      if (cmd.containsOption(HTTP_TRANSPORT, false)) {
-        System.setProperty(Consts.PROPERTY_CORUS_TRANSPORT, Consts.CORUS_TRANSPORT_HTTP);
-        aTransport = new HttpCorusTransport(host, port);
-      } else {
-        System.setProperty(Consts.PROPERTY_CORUS_TRANSPORT, Consts.CORUS_TRANSPORT_TCP);
-        aTransport = new TcpCorusTransport(host, port);
-      }
-      
-      
+      CorusTransport aTransport = new TcpCorusTransport(host, port);
+   
       // Initialize Corus, export it and start it
-      CorusImpl.init(h, new FileInputStream(aFilename), domain, aTransport, corusHome);
+      ServerContext context = CorusImpl.init(h, new FileInputStream(aFilename), domain, aTransport, corusHome);
       aTransport.exportObject(CorusImpl.getInstance());
       CorusImpl.start();
       
-      host = ((TCPAddress) aTransport.getServerAddress()).getHost();
-      /*
-      try{
-        host = Localhost.getLocalAddress().getHostAddress();
-      }catch(Exception e){
-      }*/
+      TCPAddress addr = ((TCPAddress) aTransport.getServerAddress());
       
-      System.out.println("Corus server started on: " + host + ":" + port +
+      context.setServerAddress(addr);
+      
+      System.out.println("Corus server started on: " + addr + ":" + port +
         ", domain: " + domain);
       
-      EventDispatcher dispatcher = (EventDispatcher) CorusRuntime.getCorus().lookup(EventDispatcher.ROLE);
+      EventDispatcher dispatcher = context.lookup(EventDispatcher.class);
       dispatcher.dispatch(new ServerStartedEvent(aTransport.getServerAddress()));
       
       Runtime.getRuntime().addShutdownHook(new ShutdownHook(h));

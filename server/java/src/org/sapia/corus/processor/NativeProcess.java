@@ -1,10 +1,10 @@
 package org.sapia.corus.processor;
 
-import org.sapia.console.CmdLine;
-import org.sapia.taskman.TaskContext;
-
 import java.io.File;
 import java.io.IOException;
+
+import org.sapia.console.CmdLine;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 
 /**
@@ -30,7 +30,7 @@ public interface NativeProcess {
    * @return the started process' PID, or <code>null</code> if a native PID
    * could not be returned.
    */
-  public String exec(TaskContext ctx, File baseDir, CmdLine cmd) throws IOException;
+  public String exec(TaskExecutionContext ctx, File baseDir, CmdLine cmd) throws IOException;
 
   /**
    * Kills the process corresponding to the given identifier.
@@ -39,5 +39,5 @@ public interface NativeProcess {
    * @param pid a process' OS-specific identifier.
    * @throws IOException
    */
-  public void kill(TaskContext ctx, String pid) throws IOException;
+  public void kill(TaskExecutionContext ctx, String pid) throws IOException;
 }

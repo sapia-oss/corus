@@ -5,8 +5,10 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.sapia.corus.LogicException;
-import org.sapia.corus.admin.CommandArgParser;
+import org.sapia.corus.admin.ArgFactory;
+import org.sapia.corus.admin.services.processor.DistributionInfo;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.exceptions.LogicException;
 
 
 /**
@@ -15,7 +17,7 @@ import org.sapia.corus.admin.CommandArgParser;
  */
 public class ProcessorStoreTest extends TestCase {
   
-  ProcessDB        db;
+  ProcessRepository        db;
   
   List procs = new ArrayList();
   
@@ -28,7 +30,7 @@ public class ProcessorStoreTest extends TestCase {
   }
   
   protected void setUp() throws Exception {
-    db = new TestProcessDB();
+    db = new TestProcessRepository();
     DistributionInfo dist1 = new DistributionInfo("test", "1.0", "test",
     "testVm");
     DistributionInfo dist2 = new DistributionInfo("test", "1.1", "test",
@@ -63,50 +65,50 @@ public class ProcessorStoreTest extends TestCase {
   public void testGetProcessExactNameAndVersion() throws Exception {
     
     super.assertEquals(4, db.getActiveProcesses().getProcesses().size());
-    super.assertEquals(3, db.getActiveProcesses().getProcesses(CommandArgParser.parse("test")).size());
+    super.assertEquals(3, db.getActiveProcesses().getProcesses(ArgFactory.parse("test")).size());
     super.assertEquals(2,
-                       db.getActiveProcesses().getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0")).size());
-    super.assertEquals(2,
-                       db.getActiveProcesses()
-                         .getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0"), "test").size());
+                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
     super.assertEquals(2,
                        db.getActiveProcesses()
-                         .getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0"), 
-                             "test", CommandArgParser.parse("testVm")).size());
+                         .getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"), "test").size());
+    super.assertEquals(2,
+                       db.getActiveProcesses()
+                         .getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"), 
+                             "test", ArgFactory.parse("testVm")).size());
     super.assertEquals(1,
-                       db.getActiveProcesses().getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.1")).size());
+                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.1")).size());
   }
   
   public void testGetProcessDistNamePattern() throws Exception{
-    super.assertEquals(4, db.getActiveProcesses().getProcesses(CommandArgParser.parse("*")).size());
-    super.assertEquals(3, db.getActiveProcesses().getProcesses(CommandArgParser.parse("test*")).size());    
+    super.assertEquals(4, db.getActiveProcesses().getProcesses(ArgFactory.parse("*")).size());
+    super.assertEquals(3, db.getActiveProcesses().getProcesses(ArgFactory.parse("test*")).size());    
   }
   
   public void testGetProcessDistNameVersionPattern() throws Exception{
-    super.assertEquals(2, db.getActiveProcesses().getProcesses(CommandArgParser.parse("*"), CommandArgParser.parse("*.0")).size());
-    super.assertEquals(4, db.getActiveProcesses().getProcesses(CommandArgParser.parse("*"), CommandArgParser.parse("*")).size());    
-    super.assertEquals(2, db.getActiveProcesses().getProcesses(CommandArgParser.parse("*"), CommandArgParser.parse("1.1")).size());
+    super.assertEquals(2, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*.0")).size());
+    super.assertEquals(4, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*")).size());    
+    super.assertEquals(2, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("1.1")).size());
   }
   
   public void testGetProcessDistNameVersionAndNamePattern() throws Exception{
     super.assertEquals(1, db.getActiveProcesses().getProcesses(
-        CommandArgParser.parse("*"), 
-        CommandArgParser.parse("*"), null, 
-        CommandArgParser.parse("other*")).size());    
+        ArgFactory.parse("*"), 
+        ArgFactory.parse("*"), null, 
+        ArgFactory.parse("other*")).size());    
     
     super.assertEquals(0, db.getActiveProcesses().getProcesses(
-        CommandArgParser.parse("*"), 
-        CommandArgParser.parse("*"), "someTest", 
-        CommandArgParser.parse("other*")).size());    
+        ArgFactory.parse("*"), 
+        ArgFactory.parse("*"), "someTest", 
+        ArgFactory.parse("other*")).size());    
     
     super.assertEquals(1, db.getActiveProcesses().getProcesses(
-        CommandArgParser.parse("*"), 
-        CommandArgParser.parse("*"), "test", 
-        CommandArgParser.parse("other*")).size());    
+        ArgFactory.parse("*"), 
+        ArgFactory.parse("*"), "test", 
+        ArgFactory.parse("other*")).size());    
   }    
 
   public void testRemoveProcess() throws Exception {
-    ProcessDB        db   = new TestProcessDB();
+    ProcessRepository        db   = new TestProcessRepository();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
@@ -121,24 +123,24 @@ public class ProcessorStoreTest extends TestCase {
   }
 
   public void testRemoveMultiProcess() throws Exception {
-    db.getActiveProcesses().removeProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0"));
+    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"));
     
     super.assertEquals(0,
-                       db.getActiveProcesses().getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0")).size());
+                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
   }
   
   public void testRemoveMultiProcessDistNamePattern() throws Exception {
-    db.getActiveProcesses().removeProcesses(CommandArgParser.parse("test*"), CommandArgParser.parse("1.0"));
+    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test*"), ArgFactory.parse("1.0"));
     
     super.assertEquals(0,
-                       db.getActiveProcesses().getProcesses(CommandArgParser.parse("test"), CommandArgParser.parse("1.0")).size());
+                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
   }  
 
   public void testRemoveMultiProcessDistNameVersionPattern() throws Exception {
-    db.getActiveProcesses().removeProcesses(CommandArgParser.parse("test*"), CommandArgParser.parse("1.*"));
+    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test*"), ArgFactory.parse("1.*"));
     
     super.assertEquals(1,
-                       db.getActiveProcesses().getProcesses(CommandArgParser.parse("*"), CommandArgParser.parse("*")).size());
+                       db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*")).size());
   }  
   
 }

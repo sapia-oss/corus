@@ -6,6 +6,7 @@ import javax.naming.NamingException;
 import org.sapia.corus.CorusRuntime;
 import org.sapia.corus.ModuleHelper;
 import org.sapia.corus.ServerStartedEvent;
+import org.sapia.corus.admin.services.naming.JndiModule;
 import org.sapia.corus.cluster.ClusterManager;
 import org.sapia.corus.event.EventDispatcher;
 import org.sapia.soto.Env;
@@ -59,7 +60,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
   ////////////////////////////////////////////////////////////////////*/
   
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return JndiModule.ROLE;

@@ -16,10 +16,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.ClusterInfo;
-import org.sapia.corus.Corus;
-import org.sapia.corus.CorusException;
-import org.sapia.corus.CorusRuntimeException;
-import org.sapia.corus.LogicException;
+import org.sapia.corus.admin.services.configurator.Configurator;
+import org.sapia.corus.admin.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.admin.services.deployer.Deployer;
+import org.sapia.corus.admin.services.deployer.dist.Distribution;
+import org.sapia.corus.admin.services.port.PortManager;
+import org.sapia.corus.admin.services.processor.ExecConfig;
+import org.sapia.corus.admin.services.processor.ProcStatus;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.admin.services.processor.Processor;
 import org.sapia.corus.cluster.ClusterInterceptor;
 import org.sapia.corus.cluster.ClusterManager;
 import org.sapia.corus.cron.CronJobInfo;
@@ -28,24 +33,22 @@ import org.sapia.corus.cron.InvalidTimeException;
 import org.sapia.corus.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.deployer.DeployOsAdapter;
 import org.sapia.corus.deployer.DeployOutputStream;
-import org.sapia.corus.deployer.Deployer;
 import org.sapia.corus.deployer.DeploymentMetadata;
-import org.sapia.corus.deployer.config.Distribution;
 import org.sapia.corus.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.deployer.transport.DeploymentClientFactory;
-import org.sapia.corus.port.PortActiveException;
-import org.sapia.corus.port.PortManager;
-import org.sapia.corus.port.PortRangeConflictException;
-import org.sapia.corus.port.PortRangeInvalidException;
-import org.sapia.corus.processor.ProcStatus;
-import org.sapia.corus.processor.Process;
-import org.sapia.corus.processor.Processor;
+import org.sapia.corus.exceptions.CorusException;
+import org.sapia.corus.exceptions.CorusRuntimeException;
+import org.sapia.corus.exceptions.LogicException;
+import org.sapia.corus.exceptions.PortActiveException;
+import org.sapia.corus.exceptions.PortRangeConflictException;
+import org.sapia.corus.exceptions.PortRangeInvalidException;
 import org.sapia.corus.util.ProgressMsg;
 import org.sapia.corus.util.ProgressQueue;
 import org.sapia.corus.util.ProgressQueueImpl;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
+import org.sapia.util.xml.ProcessingException;
 
 
 /**
@@ -53,11 +56,6 @@ import org.sapia.ubik.rmi.server.Hub;
  * Corus server (not meant to be used if client is outside de LAN).
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class CorusFacadeImpl implements CorusFacade {
   static final int             BUFSZ = 2048;
@@ -112,32 +110,20 @@ public class CorusFacadeImpl implements CorusFacade {
     }
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#getServerAddress()
-   */
   public synchronized ServerAddress getServerAddress() {
     return _addr;
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#getServerAddresses()
-   */
   public synchronized Collection getServerAddresses() {
     refresh();
     
     return Collections.unmodifiableSet(_otherHosts);
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#getDomain()
-   */
   public synchronized String getDomain() {
     return _domain;
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#deploy(String, ClusterInfo)
-   */
   public synchronized ProgressQueue deploy(final String fileName, final ClusterInfo cluster)
   throws IOException,
     ConcurrentDeploymentException,
@@ -145,13 +131,13 @@ public class CorusFacadeImpl implements CorusFacade {
     refresh();
     final ProgressQueueImpl queue = new ProgressQueueImpl();
     
-    if(CommandArgParser.isPattern(fileName)){
+    if(ArgFactory.isPattern(fileName)){
       Thread deployer = new Thread(new Runnable(){
           public void run() {
             try{
               Object[] baseDirAndFilePattern = split(fileName);
               File baseDir = (File)baseDirAndFilePattern[0];
-              CommandArg pattern = CommandArgParser.parse((String)baseDirAndFilePattern[1]);
+              Arg pattern = ArgFactory.parse((String)baseDirAndFilePattern[1]);
               File[] files = baseDir.listFiles();
               ProgressQueue tmp = null;
               int fileCount = 0;
@@ -162,15 +148,13 @@ public class CorusFacadeImpl implements CorusFacade {
                     fileCount++;
                     tmp = doDeploy(files[i].getAbsolutePath(), cluster);
                     while(tmp.hasNext()){
-                      List lst = tmp.fetchNext();
+                      List<ProgressMsg> lst = tmp.fetchNext();
                       for(int j = 0; j < lst.size(); j++){
                         ProgressMsg msg = (ProgressMsg)lst.get(j);
-                        System.out.println(msg.getMessage());
                         queue.addMsg(msg);
                       }
                     }
                   }catch(Exception e){
-                    e.printStackTrace();
                     queue.error(e);
                   }
                 }
@@ -253,21 +237,56 @@ public class CorusFacadeImpl implements CorusFacade {
     }
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#undeploy(String, String, ClusterInfo)
-   */
   public synchronized ProgressQueue undeploy(String distName, String version,
     ClusterInfo cluster) {
     refresh();
     ClusterInterceptor.clusterCurrentThread(cluster);
     
-    return getDeployer().undeploy(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version));
+    return getDeployer().undeploy(ArgFactory.parse(distName), 
+        ArgFactory.parse(version));
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#getDistributions(ClusterInfo)
-   */
+  public synchronized void deployExecConfig(String fileName, ClusterInfo cluster) 
+    throws IOException, CorusException{
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    FileInputStream fis = new FileInputStream(fileName); 
+    try{
+      ExecConfig conf = ExecConfig.newInstance(fis);
+      getProcessor().addExecConfig(conf);
+    }catch(ProcessingException e){
+      e.printStackTrace();
+      throw new CorusException(e);
+    }
+  }
+  
+  public synchronized void undeployExecConfig(String fileName, ClusterInfo cluster){
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getProcessor().removeExecConfig(ArgFactory.parse(fileName));
+  }
+
+  public synchronized Results getExecConfigs(ClusterInfo cluster) 
+  throws IOException, CorusException{
+    refresh();
+    
+    Results  res = new Results();
+    HostList lst = new HostList(_addr);
+
+    lst.addAll(getProcessor().getExecConfigs());
+    res.addResult(lst);
+    
+    if (cluster.isClustered() && (_otherHosts.size() > 0)) {
+      applyToCluster(res, Processor.class, "getExecConfigs", new Object[0],
+        new Class[0], cluster);
+    } else {
+      res.complete();
+    }
+    
+    return res;
+  }
+
+  
   public synchronized Results getDistributions(ClusterInfo cluster) {
     refresh();
     
@@ -295,7 +314,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getDeployer().getDistributions(CommandArgParser.parse(name)));
+    lst.addAll(getDeployer().getDistributions(ArgFactory.parse(name)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -320,8 +339,8 @@ public class CorusFacadeImpl implements CorusFacade {
     Distribution dist;
     
     try {
-      dist = getDeployer().getDistribution(CommandArgParser.parse(name),
-          CommandArgParser.parse(version));
+      dist = getDeployer().getDistribution(ArgFactory.parse(name),
+          ArgFactory.parse(version));
 
       lst.add(dist);
       res.addResult(lst);
@@ -380,7 +399,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(CommandArgParser.parse(distName)));
+    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -402,8 +421,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version)));
+    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
+        ArgFactory.parse(version)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -426,8 +445,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile));
+    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -451,8 +470,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile, CommandArgParser.parse(vmName)));
+    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile, ArgFactory.parse(vmName)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -506,7 +525,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(CommandArgParser.parse(distName)));
+    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -528,8 +547,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version)));
+    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
+        ArgFactory.parse(version)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -552,8 +571,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile));
+    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -577,8 +596,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile, CommandArgParser.parse(vmName)));
+    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile, ArgFactory.parse(vmName)));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -593,23 +612,99 @@ public class CorusFacadeImpl implements CorusFacade {
     
     return res;
   }
+
+  public synchronized void addTag(String tag, ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getConfigurator().addTag(tag);
+  }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#exec(String, String, String, int, ClusterInfo)
-   */
+  public synchronized void addTags(Set<String> tags, ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getConfigurator().addTags(tags);
+  }
+  
+  public synchronized void removeTag(Arg tag, ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getConfigurator().removeTag(tag);
+  }
+
+  public synchronized Results getTags(ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    refresh();
+    Results  res = new Results();
+    HostList lst = new HostList(_addr);
+    lst.addAll(getConfigurator().getTags());
+    res.addResult(lst);
+    
+    if (cluster.isClustered() && (_otherHosts.size() > 0)) {
+      applyToCluster(res, 
+          Configurator.class, 
+          "getTags", 
+          new Object[0],
+          new Class[0], 
+          cluster);
+    } else {
+      res.complete();
+    }
+    
+    return res;
+  }
+  
+  public synchronized void addProperty(PropertyScope scope, String name, String value,
+      ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getConfigurator().addProperty(scope, name, value);
+  }
+  
+  public synchronized void removeProperty(PropertyScope scope, Arg name,
+      ClusterInfo cluster) {
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    getConfigurator().removeProperty(scope, name);    
+  }
+  
+  public synchronized Results getProperties(PropertyScope scope, ClusterInfo cluster) {
+    refresh();
+    Results  res = new Results();
+    HostList lst = new HostList(_addr);
+    lst.addAll(getConfigurator().getPropertiesAsNameValuePairs(scope));
+    res.addResult(lst);
+    
+    if (cluster.isClustered() && (_otherHosts.size() > 0)) {
+      applyToCluster(res, 
+          Configurator.class, 
+          "getPropertiesAsNameValuePairs", 
+          new Object[]{scope},
+          new Class[]{PropertyScope.class}, 
+          cluster);
+    } else {
+      res.complete();
+    }
+    
+    return res;
+  }
+  
+  public synchronized ProgressQueue exec(String distName, ClusterInfo cluster){
+    refresh();
+    ClusterInterceptor.clusterCurrentThread(cluster);
+    return getProcessor().exec(distName);
+  }
+  
   public synchronized ProgressQueue exec(String distName, String version,
     String profile, int instances,
     ClusterInfo cluster) {
     refresh();
     ClusterInterceptor.clusterCurrentThread(cluster);
     
-    return getProcessor().exec(CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile, instances);
+    return getProcessor().exec(ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile, instances);
   }
   
-  /**
-   * @see org.sapia.corus.admin.CorusFacade#exec(String, String, String, String, int, ClusterInfo)
-   */
   public synchronized ProgressQueue exec(String distName, String version,
     String profile, String vmName,
     int instances, ClusterInfo cluster) {
@@ -617,9 +712,9 @@ public class CorusFacadeImpl implements CorusFacade {
     ClusterInterceptor.clusterCurrentThread(cluster);
     
     return getProcessor().exec(
-        CommandArgParser.parse(distName), 
-        CommandArgParser.parse(version), profile, 
-        CommandArgParser.parse(vmName), instances);
+        ArgFactory.parse(distName), 
+        ArgFactory.parse(version), profile, 
+        ArgFactory.parse(vmName), instances);
   }
   
   /**
@@ -641,7 +736,7 @@ public class CorusFacadeImpl implements CorusFacade {
     ClusterInterceptor.clusterCurrentThread(cluster);
     
     try {
-      getProcessor().kill(CommandArgParser.parse(distName), CommandArgParser.parse(version), profile, false);
+      getProcessor().kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, false);
     } catch (CorusException e) {
       // noop
     }
@@ -656,8 +751,8 @@ public class CorusFacadeImpl implements CorusFacade {
     ClusterInterceptor.clusterCurrentThread(cluster);
     
     try {
-      getProcessor().kill(CommandArgParser.parse(distName), 
-          CommandArgParser.parse(version), profile, CommandArgParser.parse(vmName), false);
+      getProcessor().kill(ArgFactory.parse(distName), 
+          ArgFactory.parse(version), profile, ArgFactory.parse(vmName), false);
     } catch (CorusException e) {
       // noop
     }
@@ -687,7 +782,7 @@ public class CorusFacadeImpl implements CorusFacade {
     ClusterInterceptor.clusterCurrentThread(cluster);
     
     try {
-      getProcessor().kill(CommandArgParser.parse(distName), CommandArgParser.parse(version), profile, true);
+      getProcessor().kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, true);
     } catch (CorusException e) {
       // noop
     }
@@ -702,8 +797,8 @@ public class CorusFacadeImpl implements CorusFacade {
     ClusterInterceptor.clusterCurrentThread(cluster);
     
     try {
-      getProcessor().kill(CommandArgParser.parse(distName), CommandArgParser.parse(version), 
-          profile, CommandArgParser.parse(vmName), true);
+      getProcessor().kill(ArgFactory.parse(distName), ArgFactory.parse(version), 
+          profile, ArgFactory.parse(vmName), true);
     } catch (CorusException e) {
       // noop
     }
@@ -719,6 +814,17 @@ public class CorusFacadeImpl implements CorusFacade {
       getProcessor().kill(vmId, true);
     } catch (CorusException e) {
       // noop
+    }
+  }
+  
+  public void restart(String pid) throws LogicException {
+    refresh();
+    try{
+      getProcessor().restartByAdmin(pid);
+    }catch(CorusException e){
+      if(e instanceof LogicException){
+        throw (LogicException)e;
+      }
     }
   }
   
@@ -864,6 +970,10 @@ public class CorusFacadeImpl implements CorusFacade {
     return (PortManager) lookup(PortManager.ROLE);
   }
   
+  protected Configurator getConfigurator(){
+    return (Configurator) lookup(Configurator.ROLE);
+  }
+  
   protected void applyToCluster(final Results res, final Class moduleInterface,
     final String methodName, final Object[] params,
     final Class[] sig, final ClusterInfo cluster) {
@@ -931,18 +1041,18 @@ public class CorusFacadeImpl implements CorusFacade {
   }
   
   static Object[] split(String fileName){
-    if(fileName.startsWith(CommandArgParser.PATTERN)){
+    if(fileName.startsWith(ArgFactory.PATTERN)){
       return new Object[]{new File(System.getProperty("user.dir")), fileName};
     }
     else{
-      String baseDirName = fileName.substring(0, fileName.indexOf(CommandArgParser.PATTERN));
+      String baseDirName = fileName.substring(0, fileName.indexOf(ArgFactory.PATTERN));
       int idx;
       if((idx = baseDirName.lastIndexOf("/")) > 0 || (idx = baseDirName.lastIndexOf("\\")) > 0){
         baseDirName = fileName.substring(0, idx);
         idx = idx+1;
       }
       else{
-        idx = fileName.indexOf(CommandArgParser.PATTERN);
+        idx = fileName.indexOf(ArgFactory.PATTERN);
       }
       File baseDir = new File(baseDirName);
      

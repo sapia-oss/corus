@@ -2,7 +2,8 @@ package org.sapia.corus.security;
 
 import java.rmi.Remote;
 
-import org.sapia.corus.Module;
+import org.sapia.corus.admin.Module;
+import org.sapia.corus.util.Property;
 
 /**
  * @author Yanick Duchesne
@@ -23,7 +24,7 @@ public interface SecurityModule extends Module, Remote{
    * 
    * @param patternList The pattern list of allowed hosts.
    */  
-  public void setAllowedHostPatterns(String patternList);
+  public void setAllowedHostPatterns(Property patternList);
 
   
   /**
@@ -32,5 +33,5 @@ public interface SecurityModule extends Module, Remote{
    * 
    * @param patternList The pattern list of denied hosts.
    */  
-  public void setDeniedHostPatterns(String patternList);
+  public void setDeniedHostPatterns(Property patternList);
 }

@@ -10,7 +10,7 @@ public class StartupLock {
   }
   
   public synchronized boolean authorize(){
-    if(System.currentTimeMillis() - _lastStartup > _interval){
+    if(System.currentTimeMillis() - _lastStartup >= _interval){
       _lastStartup = System.currentTimeMillis();
       return true;
     }

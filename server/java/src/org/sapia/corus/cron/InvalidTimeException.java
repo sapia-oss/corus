@@ -1,6 +1,6 @@
 package org.sapia.corus.cron;
 
-import org.sapia.corus.LogicException;
+import org.sapia.corus.exceptions.LogicException;
 
 
 /**

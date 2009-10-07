@@ -10,7 +10,6 @@
 
 package org.sapia.corus.admin.cli.command;
 
-import java.util.List;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
@@ -20,10 +19,10 @@ import org.sapia.console.table.Table;
 import org.sapia.corus.admin.HostList;
 import org.sapia.corus.admin.Results;
 import org.sapia.corus.admin.cli.CliContext;
-import org.sapia.corus.port.PortActiveException;
-import org.sapia.corus.port.PortRange;
-import org.sapia.corus.port.PortRangeConflictException;
-import org.sapia.corus.port.PortRangeInvalidException;
+import org.sapia.corus.admin.services.port.PortRange;
+import org.sapia.corus.exceptions.PortActiveException;
+import org.sapia.corus.exceptions.PortRangeConflictException;
+import org.sapia.corus.exceptions.PortRangeInvalidException;
 import org.sapia.ubik.net.ServerAddress;
 
 /**

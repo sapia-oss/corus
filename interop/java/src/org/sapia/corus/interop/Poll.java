@@ -1,6 +1,5 @@
 package org.sapia.corus.interop;
 
-
 /**
  * This class represents the <code>Poll</code> Corus interop request. This request is generated
  * by a process managed by a Corus server and it act as a heartbeat sent to the Corus
@@ -16,6 +15,9 @@ package org.sapia.corus.interop;
  * </dl>
  */
 public class Poll extends AbstractCommand {
+  
+  static final long serialVersionUID = 1L;
+
   /**
    * Creates a new Poll instance.
    */

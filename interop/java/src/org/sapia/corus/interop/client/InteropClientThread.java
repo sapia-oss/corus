@@ -9,7 +9,7 @@ import org.sapia.corus.interop.soap.FaultException;
 
 import java.io.IOException;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -92,7 +92,7 @@ class InteropClientThread extends Thread {
 	  }      
       if (_parent._proto != null) {
         try {
-          List response = Collections.EMPTY_LIST;
+          List<AbstractCommand> response = new ArrayList<AbstractCommand>();
           Status status = null;
           long currentTime = System.currentTimeMillis();
 

@@ -1,82 +1,70 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.LogicException;
-import org.sapia.corus.port.PortManager;
-import org.sapia.corus.processor.Process;
-import org.sapia.corus.processor.ProcessDB;
-import org.sapia.corus.processor.task.action.ActionFactory;
-import org.sapia.taskman.TaskContext;
-import org.sapia.ubik.net.TCPAddress;
-
+import org.sapia.corus.admin.services.port.PortManager;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.admin.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.exceptions.LogicException;
+import org.sapia.corus.processor.ProcessRepository;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 /**
  * This task suspends an active process.
  * 
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class SuspendTask extends ProcessTerminationTask {
   
-  public SuspendTask(TCPAddress dynSvrAddress, int httpPort, String requestor, String corusPid,
-                     ProcessDB db, int maxRetry, PortManager ports) {
-    super(dynSvrAddress, httpPort, requestor, corusPid, db, maxRetry, ports);
+  public SuspendTask(ProcessTerminationRequestor requestor, String corusPid, int maxRetry) {
+    super(requestor, corusPid, maxRetry);
   }
   
-  /**
-   * @see ProcessTerminationTask#onExec(TaskContext)
-   */
-  protected void onExec(TaskContext ctx) {
+  @Override
+  protected void onExec(TaskExecutionContext ctx) {
     try {
-      Process process = db().getActiveProcesses().getProcess(corusPid());
+      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+      Process process = processes.getActiveProcesses().getProcess(corusPid());
+      ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
       
-      if(ActionFactory.newAttemptKillAction(requestor(), db(), process, getRetryCount()).execute(ctx)){
-        abort();
+      if(strategy.attemptKill(ctx, requestor(), process, super.getExecutionCount())){
+        abort(ctx);
       }
-    } catch (LogicException e) {
+    } catch (Throwable e) {
       // no Vm for ID...
-      super.abort();
-      ctx.getTaskOutput().error(e);
+      super.abort(ctx);
+      ctx.error(e);
     }
   }  
 
-  /**
-   * @see org.sapia.corus.processor.task.ProcessTerminationTask#onKillConfirmed(org.sapia.taskman.TaskContext)
-   */
-  protected void onKillConfirmed(TaskContext ctx) {
+  @Override
+  protected void onKillConfirmed(TaskExecutionContext ctx) {
     try {
-      Process process = db().getActiveProcesses().getProcess(corusPid());
+      PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
+      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+      Process process = processes.getActiveProcesses().getProcess(corusPid());
       
-      process.releasePorts(getPorts());
+      process.releasePorts(ports);
 
-      synchronized (db()) {
-        process.setStatus(Process.SUSPENDED);        
-        db().getSuspendedProcesses().addProcess(process);
-        db().getActiveProcesses().removeProcess(process.getProcessID());
+      synchronized (processes) {
+        process.setStatus(Process.LifeCycleStatus.SUSPENDED);        
+        processes.getSuspendedProcesses().addProcess(process);
+        processes.getActiveProcesses().removeProcess(process.getProcessID());
       }
 
-      ctx.getTaskOutput().warning("Process '" + process.getProcessID() +
-                    "' put in suspended process queue.");
+      ctx.warn("Process '" + process.getProcessID() + "' put in suspended process queue.");
     } catch (LogicException e) {
-      ctx.getTaskOutput().error(e);
+      ctx.error(e);
     } finally {
-      super.abort();
+      super.abort(ctx);
     }
   }
   
-  /**
-   * @see org.sapia.corus.processor.task.ProcessTerminationTask#onMaxRetry(org.sapia.taskman.TaskContext)
-   */
-  protected boolean onMaxRetry(TaskContext ctx) {
-    if (ActionFactory.newForcefulKillAction(dynAddress(), httpPort(), requestor(), db(), corusPid(), -1, getPorts()).execute(ctx)) {
+  @Override
+  protected void onMaxExecutionReached(TaskExecutionContext ctx)
+      throws Throwable {
+    ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
+    
+    if (strategy.forcefulKill(ctx, requestor(), corusPid())) {
       onKillConfirmed(ctx);
-      return true;
-    } else {
-      return false;
-    }
+    } 
   }
 }

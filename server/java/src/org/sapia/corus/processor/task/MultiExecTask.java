@@ -1,88 +1,69 @@
 package org.sapia.corus.processor.task;
 
 import java.util.List;
+import java.util.Set;
 
-import org.sapia.corus.deployer.config.Distribution;
-import org.sapia.corus.deployer.config.ProcessConfig;
-import org.sapia.corus.port.PortManager;
-import org.sapia.corus.processor.ProcessDB;
+import org.sapia.corus.admin.services.configurator.Configurator;
+import org.sapia.corus.processor.ProcessRef;
+import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.processor.StartupLock;
-import org.sapia.corus.taskmanager.TaskManager;
-import org.sapia.taskman.Abortable;
-import org.sapia.taskman.Task;
-import org.sapia.taskman.TaskContext;
-import org.sapia.taskman.TaskOutput;
-import org.sapia.ubik.net.TCPAddress;
+import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
-public class MultiExecTask implements Task, Abortable{
+public class MultiExecTask extends Task{
   
-  private TCPAddress    _dynSvr;
-  private int           _httpPort;
-  private Distribution  _dist;
-  private List          _configs;
-  private String        _processName, _profile;  
-  private ProcessDB     _db;
-  private StartupLock   _lock;
-  private PortManager   _ports;
-  private TaskManager   _taskman;
-  private int _instances;
-  private int _configCount, _instanceCount;
+  private List<ProcessRef>  _processRefs;
+  private StartupLock       _lock;
   
   public MultiExecTask(
-      TCPAddress dynSvrAddress, 
-      int httpPort, 
-      ProcessDB db, 
       StartupLock lock,
-      Distribution dist, 
-      List configs,
-      String processName,
-      String profile,
-      PortManager ports,
-      TaskManager taskman,
-      int instances) {
-    _dynSvr    = dynSvrAddress;
-    _httpPort  = httpPort;
-    _db        = db;
-    _dist      = dist;
-    _configs   = configs;
-    _ports     = ports;
-    _lock      = lock;
-    _taskman   = taskman;
-    _processName = processName;
-    _profile   = profile;
-    _instances = instances;
+      List<ProcessRef> processRefs) {
+    _processRefs = processRefs;
+    _lock        = lock;
   }
   
-  public void exec(TaskContext ctx) {
-    TaskOutput out = ctx.getTaskOutput();
+  @Override
+  public Object execute(TaskExecutionContext ctx) throws Throwable {
+    ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+    Configurator configurator = ctx.getServerContext().getServices().lookup(Configurator.class);
     if(_lock.authorize()){
-      if(_configCount < _configs.size()){
-        ProcessConfig conf = (ProcessConfig)_configs.get(_configCount);
-        if(conf.isInvoke() && _processName == null){
-          out.warning("Process for: " + conf.getName() +
-          " must be invoked explicitly; not starting");
-          _configCount++;
+      Set<String> serverTags = configurator.getTags();
+      if(_processRefs.size() > 0){
+        ProcessRef processRef = _processRefs.remove(0);
+        ctx.info("Starting execution of process: " + processRef.toString());
+        Set<String> processTags = processRef.getDist().getTagSet();
+        processTags.addAll(processRef.getProcessConfig().getTagSet());
+        ctx.debug("Got server tags: " + serverTags);
+        ctx.debug("Got process tags: " + processTags);
+        if(processTags.size() > 0 && !serverTags.containsAll(processTags)){
+          ctx.warn(
+              "Not executing: " + processRef.getProcessConfig().getName() + 
+              " - process tags: " + processTags + 
+              " do not match server tags: " + serverTags);
         }
-        else if(_instanceCount < _instances){
-          out.info("Executing process instance #" + (_instanceCount+1) + " of: " + conf.getName() + 
-              " of distribution: " + _dist.getName() + ", " + _dist.getVersion() + ", " + conf.getName());
-          ExecTask      exec = new ExecTask(_dynSvr, _httpPort, _db, _dist, conf, _profile, _ports);
-          _taskman.execSyncTask("ExecProcessTask", exec);
-          _instanceCount++;
-          if(_instanceCount >= _instances){
-            _configCount++;
-            _instanceCount = 0;
+        else{
+          int instanceCount = processes.getProcessCountFor(processRef);
+          if(instanceCount < processRef.getInstanceCount()){
+            ctx.info("Executing process instance #" 
+                  + (instanceCount+1) + " of: " + processRef.getProcessConfig().getName() + " of distribution: " 
+                  + processRef.getDist().getName() + ", " + processRef.getDist().getVersion() + ", " + processRef.getProfile());
+            ExecTask exec = new ExecTask(processRef.getDist(), processRef.getProcessConfig(), processRef.getProfile());
+            ctx.getTaskManager().executeAndWait(exec);
           }
         }
       }
     }
     else{
-      out.debug("Not executing now; waiting for startup interval exhaustion");
+      ctx.debug("Not executing now; waiting for startup interval exhaustion");
     }
-  }
-  
-  public boolean isAborted() {
-    return _configCount >= _configs.size();
+    if(_processRefs.size() <= 0){
+      ctx.debug("Completed starting processes");
+      abort(ctx);
+    }
+    else{
+      ctx.debug("Still has these processes to start: " + _processRefs);
+    }
+    return null;
   }
   
 }

@@ -2,20 +2,19 @@ package org.sapia.corus.processor.task;
 
 import java.io.IOException;
 
-import org.sapia.corus.LogicException;
-import org.sapia.corus.admin.CommandArg;
-import org.sapia.corus.admin.CommandArgParser;
-import org.sapia.corus.deployer.DistributionStore;
-import org.sapia.corus.deployer.config.Distribution;
-import org.sapia.corus.deployer.config.ProcessConfig;
-import org.sapia.corus.port.PortManager;
-import org.sapia.corus.processor.Process;
-import org.sapia.corus.processor.ProcessDB;
+import org.sapia.corus.CorusRuntime;
+import org.sapia.corus.admin.Arg;
+import org.sapia.corus.admin.ArgFactory;
+import org.sapia.corus.admin.services.deployer.dist.Distribution;
+import org.sapia.corus.admin.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.admin.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.processor.ProcessInfo;
-import org.sapia.corus.processor.task.action.ActionFactory;
-import org.sapia.taskman.Task;
-import org.sapia.taskman.TaskContext;
-import org.sapia.ubik.net.TCPAddress;
+import org.sapia.corus.processor.ProcessRepository;
+import org.sapia.corus.processor.event.ProcessKilledEvent;
+import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 
 /**
@@ -23,124 +22,106 @@ import org.sapia.ubik.net.TCPAddress;
  * it immediately).
  * 
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class RestartTask extends ProcessTerminationTask {
-  private DistributionStore _dists;
-
-  public RestartTask(TCPAddress dynSvr, int httpPort, String requestor, ProcessDB db,
-                     DistributionStore dists, String corusPid, int maxRetry, PortManager ports) {
-    super(dynSvr, httpPort, requestor, corusPid, db, maxRetry, ports);
-    _dists = dists;
+  public RestartTask(
+      ProcessTerminationRequestor requestor,
+      String corusPid, int maxRetry) {
+    super(requestor, corusPid, maxRetry);
   }
   
-  /**
-   * @see org.sapia.corus.processor.task.ProcessTerminationTask#onExec(org.sapia.taskman.TaskContext)
-   */
-  protected void onExec(TaskContext ctx) {
+  @Override
+  protected void onExec(TaskExecutionContext ctx){
     try {
-      Process process = db().getActiveProcesses().getProcess(corusPid());
-      ActionFactory.newAttemptKillAction(requestor(), db(), process, getRetryCount()).execute(ctx);
-    } catch (LogicException e) {
+      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+      ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
+      Process process = processes.getActiveProcesses().getProcess(corusPid());
+      strategy.attemptKill(ctx, requestor(), process, super.getMaxExecution());
+    } catch (Throwable e) {
       // no Vm for ID...
-      ctx.getTaskOutput().error(e);
-      super.abort();
+      ctx.error(e);
+      super.abort(ctx);
     }
   }  
-
-  /**
-   * @see org.sapia.corus.processor.task.ProcessTerminationTask#onKillConfirmed(org.sapia.taskman.TaskContext)
-   */
-  protected void onKillConfirmed(TaskContext ctx) {
+  
+  @Override
+  protected void onKillConfirmed(TaskExecutionContext ctx) {
     try {
-      Process      process = db().getActiveProcesses().getProcess(corusPid());
+      DistributionDatabase dists = ctx.getServerContext().getServices().getDistributions();
+      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+      Process      process = processes.getActiveProcesses().getProcess(corusPid());
 
-      CommandArg nameArg = CommandArgParser.exact(process.getDistributionInfo().getName());
-      CommandArg versionArg = CommandArgParser.exact(process.getDistributionInfo().getVersion());      
-      Distribution dist = _dists.getDistribution(nameArg, versionArg);
+      Arg nameArg = ArgFactory.exact(process.getDistributionInfo().getName());
+      Arg versionArg = ArgFactory.exact(process.getDistributionInfo().getVersion());      
+      Distribution dist = dists.getDistribution(nameArg, versionArg);
       ProcessConfig conf = dist.getProcess(process.getDistributionInfo()
                                                   .getProcessName());
 
-      synchronized (db()) {
-        process.setStatus(Process.RESTARTING);        
-        db().getProcessesToRestart().addProcess(process);
-        db().getActiveProcesses().removeProcess(process.getProcessID());
+      synchronized (dists) {
+        process.setStatus(Process.LifeCycleStatus.RESTARTING);        
+        processes.getProcessesToRestart().addProcess(process);
+        processes.getActiveProcesses().removeProcess(process.getProcessID());
       }
 
-      ctx.getTaskOutput().warning("Process '" + process.getProcessID() +
+      ctx.warn("Process '" + process.getProcessID() +
                     "' will be restarted... ");
 
       synchronized (process) {
         process.releaseLock(this);
-        ProcessRestartTask restart = new ProcessRestartTask(dynAddress(), httpPort(), db(),
-                                                            process, dist, conf, getPorts());
+        ProcessRestartTask restart = new ProcessRestartTask(process, 
+                                                            dist, 
+                                                            conf);
         process.acquireLock(restart);
-        ctx.execAsyncNestedTask("RestartProcessTask", restart);
+        ctx.getTaskManager().execute(restart);
         
       }
-    } catch (LogicException e) {
-      ctx.getTaskOutput().error(e);
+    } catch (Exception e) {
+      ctx.error(e);
     } finally {
-      super.abort();
+      super.abort(ctx);
     }
   }
   
-  /**
-   * @see org.sapia.corus.processor.task.ProcessTerminationTask#onMaxRetry(org.sapia.taskman.TaskContext)
-   */
-  protected boolean onMaxRetry(TaskContext ctx) {
-    if (ActionFactory.newForcefulKillAction(dynAddress(), httpPort(), requestor(), db(), corusPid(), -1, getPorts()).execute(ctx)) {
+  
+  @Override
+  protected void onMaxExecutionReached(TaskExecutionContext ctx)
+      throws Throwable {
+    ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
+    if(strategy.forcefulKill(ctx, requestor(), corusPid())){
       onKillConfirmed(ctx);
-
-      return true;
-    } else {
-      return false;
     }
   }
 
-  protected static class ProcessRestartTask implements Task{
-    private TCPAddress    _dynSvr;
-    private int           _httpPort;
-    private ProcessDB     _db;
+  protected static class ProcessRestartTask extends Task{
     private Process       _process;
     private Distribution  _dist;
     private ProcessConfig _conf;
-    private PortManager   _ports;
 
-    public ProcessRestartTask(TCPAddress dynServerAddress, int httpPort, ProcessDB db,
-                              Process proc, Distribution dist,
-                              ProcessConfig conf,
-                              PortManager ports) {
-      _dynSvr = dynServerAddress;
-      _httpPort = httpPort;
+    public ProcessRestartTask(Process proc, 
+                              Distribution dist,
+                              ProcessConfig conf) {
       _process = proc;
       _dist    = dist;
       _conf    = conf;
-      _db      = db;
-      _ports   = ports;
     }
     
-    /**
-     * @see org.sapia.taskman.Task#exec(org.sapia.taskman.TaskContext)
-     */
-    public void exec(TaskContext ctx) {
+    @Override
+    public Object execute(TaskExecutionContext ctx) throws Throwable {
       try {
-        if(ActionFactory.newExecProcessAction(_dynSvr, _httpPort, _db, new ProcessInfo(_process, _dist, _conf, true), _ports).execute(ctx)){
-          _db.getProcessesToRestart().removeProcess(_process.getProcessID());
+        ProcessRepository repository = ctx.getServerContext().getServices().getProcesses();
+        ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
+        if(strategy.execProcess(ctx, new ProcessInfo(_process, _dist, _conf, true), CorusRuntime.getProcessProperties())){
+          repository.getProcessesToRestart().removeProcess(_process.getProcessID());
           _process.touch();
-          _process.setStatus(Process.ACTIVE);        
-          _db.getActiveProcesses().addProcess(_process);
+          _process.setStatus(Process.LifeCycleStatus.ACTIVE);        
+          repository.getActiveProcesses().addProcess(_process);
         }
       } catch(IOException e) {
-        ctx.getTaskOutput().error("Could not restart: " + _conf.getName(), e);
+        ctx.error("Could not restart: " + _conf.getName(), e);
       } finally {
         _process.releaseLock(this);
       }
+      return null;
     }
   }
 }

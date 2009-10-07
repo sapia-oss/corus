@@ -1,7 +1,7 @@
 <distribution name="demo" version="1.0">
   <process name="restartApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.RestartApplication"
-          cp="${user.dir}/lib/demo.jar;${user.dir}/jdom-1_0b9.jar;${user.dir}/lib/log4j-1_2_5.jar;${user.dir}/lib/Piccolo-1_0_3.jar;${user.dir}/lib/sapia_corus_iop.jar;${user.dir}/lib/sapia_utils-1_2.jar"
+          cp="${user.dir}/lib/demo.jar;${user.dir}/dom4j-1.6.jar;${user.dir}/lib/log4j-1_2_8.jar;${user.dir}/lib/sapia_corus_iop-1.6.2.jar;${user.dir}/lib/sapia_utils-1.6.jar"
           profile="test">
       <vmType>-client</vmType>
       <xoption  name="ms" value="16M" />
@@ -10,7 +10,7 @@
   
   <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.NoopApplication"
-          cp="${user.dir}/lib/demo.jar;${user.dir}/jdom-1_0b9.jar;${user.dir}/lib/log4j-1_2_5.jar;${user.dir}/lib/Piccolo-1_0_3.jar;${user.dir}/lib/sapia_corus_iop.jar;${user.dir}/lib/sapia_utils-1_2.jar"
+          cp="${user.dir}/lib/demo.jar;${user.dir}/dom4j-1.6.jar;${user.dir}/lib/log4j-1_2_8.jar;${user.dir}/lib/sapia_corus_iop-1.6.2.jar;${user.dir}/lib/sapia_utils-1.6.jar"
           profile="test">
       <vmType>-server</vmType>
       <xoption  name="ms" value="16M" />
@@ -19,7 +19,7 @@
   
   <process name="brokenApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.NotRespondingApplication"
-          cp="${user.dir}/lib/demo.jar;${user.dir}/jdom-1_0b9.jar;${user.dir}/lib/log4j-1_2_5.jar;${user.dir}/lib/Piccolo-1_0_3.jar;${user.dir}/lib/sapia_corus_iop.jar;${user.dir}/lib/sapia_utils-1_2.jar"
+          cp="${user.dir}/lib/demo.jar;${user.dir}/dom4j-1.6.jar;${user.dir}/lib/log4j-1_2_8.jar;${user.dir}/lib/sapia_corus_iop-1.6.2.jar;${user.dir}/lib/sapia_utils-1.6.jar"
           profile="test">
       <xoption  name="ms" value="16M" />
     </java>

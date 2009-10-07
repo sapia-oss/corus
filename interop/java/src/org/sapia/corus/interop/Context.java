@@ -8,12 +8,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.TreeSet;
-
 
 /**
- *
- *
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  * <dl>
  * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">
@@ -23,7 +19,9 @@ import java.util.TreeSet;
  *     at the Sapia OSS web site</dd></dt>
  * </dl>
  */
-public class Context implements Serializable, Comparator {
+public class Context implements Serializable, Comparator<Param> {
+  
+  static final long serialVersionUID = 1L;
   
   /////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////  INSTANCE ATTRIBUTES  /////////////////////////////////
@@ -33,7 +31,7 @@ public class Context implements Serializable, Comparator {
   private String _theName;
 
   /** The list of params of this context. */
-  private List _theParams;
+  private List<Param> _theParams;
 
   /////////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////  CONSTRUCTORS  /////////////////////////////////////
@@ -43,7 +41,7 @@ public class Context implements Serializable, Comparator {
    * Creates a new Context instance.
    */
   public Context() {
-    _theParams = new ArrayList();
+    _theParams = new ArrayList<Param>();
   }
 
   /**
@@ -51,7 +49,7 @@ public class Context implements Serializable, Comparator {
    */
   public Context(String aName) {
     _theName  = aName;
-    _theParams = new ArrayList();
+    _theParams = new ArrayList<Param>();
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +59,7 @@ public class Context implements Serializable, Comparator {
     return _theName;
   }
 
-  public List getParams() {
+  public List<Param> getParams() {
     Collections.sort(_theParams, this);
     return _theParams;
   }
@@ -99,9 +97,7 @@ public class Context implements Serializable, Comparator {
   /* (non-Javadoc)
    * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
    */
-  public int compare(Object anObject, Object anotherObject) {
-    Param param1 = (Param) anObject;
-    Param param2 = (Param) anotherObject;
+  public int compare(Param param1, Param param2) {
     return param1.getName().compareTo(param2.getName());
   }
 }

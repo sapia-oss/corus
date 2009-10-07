@@ -1,10 +1,10 @@
 package org.sapia.corus.db;
 
+import java.io.File;
+
 import org.sapia.corus.CorusRuntime;
 import org.sapia.corus.ModuleHelper;
 import org.sapia.ubik.net.TCPAddress;
-
-import java.io.File;
 
 
 /**
@@ -30,10 +30,8 @@ public class DbModuleImpl extends ModuleHelper implements DbModule{
     _dbDir = new File(dbDir);
   }
 
-  /**
-   * @see org.sapia.soto.Service#init()
-   */
-  public void init() throws Exception {
+  @Override
+  public void preInit() {
     if (_dbDir != null) {
       String aFilename = new StringBuffer(_dbDir.getAbsolutePath()).
               append(File.separator).append(CorusRuntime.getCorus().getDomain()).
@@ -55,13 +53,16 @@ public class DbModuleImpl extends ModuleHelper implements DbModule{
         throw new IllegalStateException("Could not make directory: " + _dbDir.getAbsolutePath());
       }
     }
-
-    _db = JdbmDb.open(_dbDir.getAbsolutePath() + File.separator + File.separator + "database");
+    
+    try{
+      _db = JdbmDb.open(_dbDir.getAbsolutePath() + File.separator + File.separator + "database");
+    }catch(Exception e){
+      throw new IllegalStateException("Could not open database", e);
+    }
   }
+  
+  public void init() throws Exception {}
 
-  /**
-   * @see org.sapia.soto.Service#dispose()
-   */
   public void dispose() {
     if (_db != null) {
       try{
@@ -75,7 +76,7 @@ public class DbModuleImpl extends ModuleHelper implements DbModule{
   ////////////////////////////////////////////////////////////////////*/
 
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return DbModule.ROLE;

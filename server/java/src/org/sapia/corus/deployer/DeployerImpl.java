@@ -1,13 +1,26 @@
 package org.sapia.corus.deployer;
 
-import org.sapia.corus.CorusException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.sapia.corus.CorusRuntime;
-import org.sapia.corus.LogicException;
 import org.sapia.corus.ModuleHelper;
 import org.sapia.corus.ServerStartedEvent;
-import org.sapia.corus.admin.CommandArg;
+import org.sapia.corus.admin.Arg;
+import org.sapia.corus.admin.services.deployer.Deployer;
+import org.sapia.corus.admin.services.deployer.DeployerConfiguration;
+import org.sapia.corus.admin.services.deployer.DeployerConfigurationImpl;
+import org.sapia.corus.admin.services.deployer.dist.Distribution;
+import org.sapia.corus.admin.services.processor.Processor;
 import org.sapia.corus.cluster.ClusterManager;
-import org.sapia.corus.deployer.config.Distribution;
+import org.sapia.corus.deployer.task.BuildDistTask;
+import org.sapia.corus.deployer.task.DeployTask;
+import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.AbstractDeploymentClient;
 import org.sapia.corus.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.deployer.transport.Deployment;
@@ -15,38 +28,26 @@ import org.sapia.corus.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
 import org.sapia.corus.event.EventDispatcher;
+import org.sapia.corus.exceptions.CorusException;
+import org.sapia.corus.exceptions.LogicException;
 import org.sapia.corus.http.HttpModule;
-import org.sapia.corus.processor.ProcessorExtension;
-import org.sapia.corus.taskmanager.TaskManager;
+import org.sapia.corus.taskmanager.core.TaskConfig;
+import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
+import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.util.IDGenerator;
 import org.sapia.corus.util.ProgressQueue;
 import org.sapia.corus.util.ProgressQueueImpl;
-import org.sapia.corus.util.ProgressQueueLogger;
-
+import org.sapia.corus.util.StringProperty;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.replication.ReplicationStrategy;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
  * This component implements the <code>Deployer</code> interface.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class DeployerImpl extends ModuleHelper implements Deployer,
   DeploymentConnector, Interceptor {
@@ -67,63 +68,51 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
   public static final String DEFAULT_TMP_DIR = CorusRuntime.getCorusHome() +
     java.io.File.separator + "tmp";
 
-  /**
-   * The default file lock timeout (2 minutes).
-   */
-  public static final long    DEFAULT_FILELOCK_TIMEOUT = 120000;
-  private String              _deployDir   = DEFAULT_DEPLOY_DIR;
-  private String              _tmpDir      = DEFAULT_TMP_DIR;
-  private Map                 _deployLocks = new HashMap();
-  private Map                 _tmpLocks    = new HashMap();
-  private DistributionStore   _store       = new DistributionStore();
+  
+  private DeployerConfigurationImpl _configuration = new DeployerConfigurationImpl();
+  
+  private Map<String, FileLock> _deployLocks = new HashMap<String, FileLock>();
   private DeploymentProcessor _processor;
-  private long                _timeout     = DEFAULT_FILELOCK_TIMEOUT;
+  private DistributionDatabase   _store;
 
-  /**
-   * @param deployDir the path to the deployment directory.
-   */
-  public void setDeployDir(String deployDir) {
-    _deployDir = deployDir;
+  
+  public DeployerConfiguration getConfiguration() {
+    return _configuration;
   }
-
-  /**
-   * @param tmpDir the path to the temporary directory.
-   */
-  public void setTempDir(String tmpDir) {
-    _tmpDir = tmpDir;
-  }
-
-  /**
-   * @param timeout the amount of time (in millis) that deployed files are locked before extraction.
-   */
-  public void setFileLockTimeout(long timeout) {
-    _timeout = timeout;
+  
+  public DeployerConfiguration createConfiguration(){
+    return _configuration;
   }
 
   /**
    * @see org.sapia.soto.Service#init()
    */
   public void init() throws Exception {
+    
+    _store = new DistributionDatabaseImpl();
+    
+    services().bind(DistributionDatabase.class, _store);
+    
     String pattern = CorusRuntime.getCorus().getDomain() + '_' +
       ((TCPAddress) CorusRuntime.getTransport().getServerAddress()).getPort();
 
-    if (_deployDir != null) {
-      _deployDir = _deployDir + File.separator + pattern;
+    if (_configuration.getDeployDir() != null) {
+      _configuration.setDeployDir(new StringProperty(_configuration.getDeployDir().getValue() + File.separator + pattern));
     } else {
-      _deployDir = DEFAULT_DEPLOY_DIR + File.separator + pattern;
+      _configuration.setDeployDir(new StringProperty(DEFAULT_DEPLOY_DIR + File.separator + pattern));
     }
 
-    if (_tmpDir != null) {
-      _tmpDir = _tmpDir + File.separator + pattern;
+    if (_configuration.getTempDir() != null) {
+      _configuration.setTempDir(new StringProperty(_configuration.getTempDir().getValue() + File.separator + pattern));
     } else {
-      _tmpDir = DEFAULT_TMP_DIR + File.separator + pattern;
+      _configuration.setTempDir(new StringProperty(DEFAULT_TMP_DIR + File.separator + pattern));
     }
 
-    File f = new File(new File(_deployDir).getAbsolutePath());
+    File f = new File(new File(_configuration.getDeployDir().getValue()).getAbsolutePath());
     f.mkdirs();
     assertFile(f);
 
-    f = new File(new File(_tmpDir).getAbsolutePath());
+    f = new File(new File(_configuration.getTempDir().getValue()).getAbsolutePath());
     f.mkdirs();
     assertFile(f);
 
@@ -131,18 +120,17 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
 
     logger().info("Initializing: rebuilding distribution objects");
 
-    TaskManager tm = (TaskManager) env().lookup(TaskManager.ROLE);
+    TaskManager tm = serverContext().lookup(TaskManager.class);
 
     try {
-      ProgressQueueLogger.transferMessages(_log,
-        tm.execSyncTask("BuildDistTask", new BuildDistTask(_deployDir, _store)));
+      tm.executeAndWait(new BuildDistTask(_configuration.getDeployDir().getValue(), getDistributionStore()));
     } catch (Throwable t) {
       throw new CorusException(t);
     }
 
     logger().info("Distribution objects succesfully rebuilt");
 
-    EventDispatcher disp = (EventDispatcher) CorusRuntime.getCorus().lookup(EventDispatcher.ROLE);
+    EventDispatcher disp = lookup(EventDispatcher.class);
     disp.addInterceptor(ServerStartedEvent.class, this);
   }
 
@@ -158,7 +146,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       logger().error("Could not start deployment processor", e);
     }
     try{
-      HttpModule module = (HttpModule)CorusRuntime.getCorus().lookup(HttpModule.ROLE);
+      HttpModule module = lookup(HttpModule.class);
       DeployerExtension ext = new DeployerExtension(this);
       module.addHttpExtension(ext);
     }catch (Exception e){
@@ -181,7 +169,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
   ////////////////////////////////////////////////////////////////////*/
 
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return Deployer.ROLE;
@@ -191,41 +179,45 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
                     Deployer INTERFACE IMPLEMENTATION
   ////////////////////////////////////////////////////////////////////*/
 
-  public Distribution getDistribution(CommandArg name, CommandArg version)
+  public Distribution getDistribution(Arg name, Arg version)
     throws LogicException {
-    return _store.getDistribution(name, version);
+    return getDistributionStore().getDistribution(name, version);
   }
 
-  public List getDistributions() {
-    return _store.getDistributions();
+  public List<Distribution> getDistributions() {
+    return getDistributionStore().getDistributions();
   }
 
-  public List getDistributions(CommandArg name) {
-    return _store.getDistributions(name);
+  public List<Distribution> getDistributions(Arg name) {
+    return getDistributionStore().getDistributions(name);
   }
   
-  public List getDistributions(CommandArg name, CommandArg version) {
-    return _store.getDistributions(name, version);
+  public List<Distribution> getDistributions(Arg name, Arg version) {
+    return getDistributionStore().getDistributions(name, version);
   }
 
-  public ProgressQueue undeploy(CommandArg distName, CommandArg version) {
+  public ProgressQueue undeploy(Arg distName, Arg version) {
+    ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
-      TaskManager tm = (TaskManager) env().lookup(TaskManager.ROLE);
+      TaskManager tm = (TaskManager) lookup(TaskManager.class);
+      Processor proc = lookup(Processor.class);
 
-      return tm.execSyncTask("UndeployTask",
-        new UndeployTask(_store, distName, version));
+      if(proc.getProcesses(distName, version).size() > 0){
+        throw new LogicException("Processes for selected configuration are currently running; kill them prior to undeploying");
+      }
+
+      TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
+      tm.executeAndWait(new UndeployTask(getDistributionStore(), distName, version), cfg);
     } catch (Throwable e) {
-      ProgressQueueImpl q = new ProgressQueueImpl();
-      q.error(e);
-
-      return q;
+      progress.error(e);
     }
+    return progress;
   }
 
   /**
    * @return this instance's <code>DistributionStore</code>.
    */
-  public DistributionStore getDistributionStore() {
+  public DistributionDatabase getDistributionStore() {
     return _store;
   }
 
@@ -255,8 +247,8 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       Set siblings;
 
       try {
-        siblings = ((ClusterManager) CorusRuntime.getCorus().lookup(ClusterManager.ROLE)).getHostAddresses();
-      } catch (CorusException e) {
+        siblings = lookup(ClusterManager.class).getHostAddresses();
+      } catch (RuntimeException e) {
         deployment.close();
         logger().error("Could not lookup ClusterManager while performing deployment",
           e);
@@ -289,7 +281,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
               addr = strat.selectNextSibling();
 
               try {
-                out = new ClusteredDeployOutputStreamImpl(_tmpDir +
+                out = new ClusteredDeployOutputStreamImpl(_configuration.getTempDir() +
                     File.separator + fileName, fileName, this,
                     new ClientDeployOutputStream(meta,
                       DeploymentClientFactory.newDeploymentClientFor(addr)));
@@ -303,7 +295,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
             // no remaining targets; deployment chain stops at this 
             // host
             else {
-              out = new DeployOutputStreamImpl(_tmpDir + File.separator +
+              out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
                   fileName, fileName, this);
             }
           } catch (FileNotFoundException e) {
@@ -335,11 +327,11 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
 					// no next host to deploy to; we have reached end of chain  
   				// - deployment stops here        	
           if ((addr = strat.selectNextSibling()) == null) {
-            out = new DeployOutputStreamImpl(_tmpDir + File.separator +
+            out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
                 fileName, fileName, this);
           } else {
 						// chaining deployment to next host.        	
-            out = new ClusteredDeployOutputStreamImpl(_tmpDir + File.separator +
+            out = new ClusteredDeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
                 fileName, fileName, this,
                 new ClientDeployOutputStream(meta,
                   DeploymentClientFactory.newDeploymentClientFor(addr)));
@@ -355,7 +347,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
     // deployment is not clustered		
     else {
       try {
-        out = new DeployOutputStreamImpl(_tmpDir + File.separator + fileName,
+        out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator + fileName,
             fileName, this);
       } catch (FileNotFoundException e) {
         deployment.close();
@@ -387,28 +379,31 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
   synchronized ProgressQueue unlockDeployFile(String fileName) {
     _log.info("Finished uploading " + fileName);
     releaseFileLock(_deployLocks, fileName);
-
+    ProgressQueue progress = new ProgressQueueImpl();
     try {
-      TaskManager tm = (TaskManager) env().lookup(TaskManager.ROLE);
-
-      return tm.execSyncTask("DeployTask",
-        new DeployTask(_store, fileName, _tmpDir, _deployDir));
+      TaskManager tm = lookup(TaskManager.class);
+      
+      tm.executeAndWait(
+        new DeployTask(
+            getDistributionStore(), 
+            fileName, 
+            _configuration.getTempDir().getValue(), 
+            _configuration.getDeployDir().getValue()),
+            TaskConfig.create(new TaskLogProgressQueue(progress)));
+      
     } catch (Throwable e) {
       _log.error("Could not deploy", e);
-
-      ProgressQueueImpl q = new ProgressQueueImpl();
-      q.error(e);
-
-      return q;
+      progress.error(e);
     }
+    return progress;
   }
 
-  private synchronized FileLock acquireFileLock(Map locks, String fileName)
+  private synchronized FileLock acquireFileLock(Map<String, FileLock> locks, String fileName)
     throws ConcurrentDeploymentException, InterruptedException {
     FileLock fLock = (FileLock) locks.get(fileName);
 
     if (fLock == null) {
-      fLock = new FileLock(fileName, _timeout);
+      fLock = new FileLock(fileName, _configuration.getFileLockTimeout().getLongValue());
       locks.put(fileName, fLock);
     }
 
@@ -429,11 +424,11 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
     f.mkdirs();
 
     if (!f.isDirectory()) {
-      throw new IllegalArgumentException(_deployDir + " not a directory");
+      throw new IllegalArgumentException(f.getAbsolutePath() + " not a directory");
     }
 
     if (!f.exists()) {
-      throw new IllegalArgumentException(_deployDir + " does not exist");
+      throw new IllegalArgumentException(f.getAbsolutePath() + " does not exist");
     }
   }
 }

@@ -1,9 +1,6 @@
 package org.sapia.corus.interop;
 
-
 /**
- *
- *
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  * <dl>
  * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">
@@ -14,6 +11,9 @@ package org.sapia.corus.interop;
  * </dl>
  */
 public class Shutdown extends AbstractCommand {
+  
+  static final long serialVersionUID = 1L;
+  
   /** Defines the entity that requested the shutdown. */
   private String _theRequestor;
 

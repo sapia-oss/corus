@@ -8,12 +8,27 @@
   <section title="Syntax">
     <p>undeploy -d distribution_name -v version [-cluster]</p>
     <p/>
+    <p>or:</p>
+    <p>undeploy -e exec_config_name [-cluster]</p>
+    <p/>
     <p>Where:</p>
     <p/>
     <p>- d: the name of the distribution to undeploy.</p>
     <p/>
     <p>- v: the version of the distribution to undeploy.</p>
     <p/>
+    <p>- e: the name of the execution configuration to undeploy.</p>
+    <p/>
     <p>- cluster: if specified, the given distribution will be undeployed cluster-wide.</p>
+  </section>
+  <section title="Examples">
+    <p>undeploy -d * -v *</p>
+    <p/>
+    <p>undeploy -d myDistribution -v 1.*</p>
+    <p/>
+    <p>undeploy -d myDistribution -v 1.*</p>
+    <p/>
+    <p>undeploy -e myConf</p>
+    <p/>    
   </section>
 </help>

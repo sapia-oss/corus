@@ -12,6 +12,7 @@ package org.sapia.corus.port;
 
 import java.util.Iterator;
 
+import org.sapia.corus.admin.services.port.PortRange;
 import org.sapia.corus.db.DbMap;
 
 /**
@@ -20,13 +21,13 @@ import org.sapia.corus.db.DbMap;
  */
 public class PortRangeStore {
   
-  private DbMap _ranges;
+  private DbMap<String, PortRange> _ranges;
   
-  public PortRangeStore(DbMap ranges) {
+  public PortRangeStore(DbMap<String, PortRange> ranges) {
     _ranges = ranges;
   }
   
-  public Iterator getPortRanges(){
+  public Iterator<PortRange> getPortRanges(){
     return _ranges.values();
   }
   
@@ -39,7 +40,7 @@ public class PortRangeStore {
   }
   
   public PortRange readRange(String name){
-    return (PortRange)_ranges.get(name);
+    return _ranges.get(name);
   }
   
   public void deleteRange(String name){

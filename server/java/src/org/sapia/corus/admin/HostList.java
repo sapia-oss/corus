@@ -10,18 +10,17 @@ import org.sapia.ubik.net.ServerAddress;
  * Encapsulates objects from a given host.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
-public class HostList extends ArrayList {
+public class HostList<T> extends ArrayList<T> {
+  
+  static final long serialVersionUID = 1L;
+  
   private ServerAddress _addr;
 
   /**
-   * Constructor for HostList.
-   * @param arg0
+   * @param addr the {@link ServerAddress} of the Corus server.
+   * @param capacity the capacity (and growth increment) if this instance's
+   * internal storage structure.
    */
   public HostList(ServerAddress addr, int capacity) {
     super(capacity);
@@ -29,20 +28,21 @@ public class HostList extends ArrayList {
   }
 
   /**
-   * Constructor for HostList.
-   * @param arg0
+   * Allows passing in a {@link Collection} of objects that
+   * will populate this instance.
+   * 
+   * @see #HostList(ServerAddress, int)
    */
-  public HostList(ServerAddress addr, Collection arg0) {
-    super(arg0);
+  public HostList(ServerAddress addr, Collection<T> objects) {
+    super(objects);
     _addr = addr;
   }
 
   /**
-   * Constructor for HostList.
+   * @see #HostList(ServerAddress, int)
    */
   public HostList(ServerAddress addr) {
-    super();
-    _addr = addr;
+    this(addr, 10);
   }
 
   /**

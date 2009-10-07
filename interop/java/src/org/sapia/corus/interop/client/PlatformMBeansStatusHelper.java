@@ -60,7 +60,7 @@ public class PlatformMBeansStatusHelper{
     
     /////// GC
     
-    List gcs = ManagementFactory.getGarbageCollectorMXBeans();
+    List<GarbageCollectorMXBean> gcs = ManagementFactory.getGarbageCollectorMXBeans();
 
     try{
       param("gc.count", getLongTotal(gcs, "getCollectionCount"), ctx);
@@ -110,7 +110,7 @@ public class PlatformMBeansStatusHelper{
     ctx.addParam(p);
   }
   
-  private static Object getLongTotal(List gcs, String getter) throws Exception{
+  private static Object getLongTotal(List<GarbageCollectorMXBean> gcs, String getter) throws Exception{
     long total = 0;
     for(int i = 0; i < gcs.size(); i++){
       GarbageCollectorMXBean gc = (GarbageCollectorMXBean)gcs.get(i);

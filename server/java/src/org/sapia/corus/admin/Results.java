@@ -3,35 +3,35 @@ package org.sapia.corus.admin;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
+ * An instance of this class aggregates {@link HostItem}s and {@link HostList}s.
+ * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
+//@SuppressWarnings
 public class Results {
   private List    _hostLists  = new ArrayList();
   private boolean _incomplete = true;
 
   /**
-   * Constructor for ResultList.
+   * @param list a {@link HostList}
    */
-  public Results() {
-  }
-
   synchronized void addResult(HostList list) {
     _hostLists.add(list);
     notify();
   }
 
+  /**
+   * @param item a {@link HostItem}
+   */
   synchronized void addResult(HostItem item) {
     _hostLists.add(item);
     notify();
   }
   
+  /**
+   * @return <code>true</code> if this instance contains other objects.
+   */
   public synchronized boolean hasNext() {
     if (_hostLists.size() > 0) {
       return true;
@@ -48,6 +48,10 @@ public class Results {
     return _hostLists.size() > 0;
   }
 
+  /**
+   * @return the next object that this instance contains (the returned object
+   * is removed from this instance).
+   */
   public Object next() {
     return _hostLists.remove(0);
   }

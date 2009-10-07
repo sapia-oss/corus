@@ -1,8 +1,8 @@
 package org.sapia.corus.db;
 
-import jdbm.JDBMRecordManager;
-
 import java.io.IOException;
+
+import jdbm.JDBMRecordManager;
 
 
 /**

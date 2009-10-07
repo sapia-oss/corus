@@ -55,13 +55,11 @@ public class ProgressQueueImpl implements ProgressQueue {
    * @see org.sapia.corus.util.ProgressQueue#addMsg(org.sapia.corus.util.ProgressMsg)
    */
   public synchronized void addMsg(ProgressMsg msg) {
-    if (_over) {
-      throw new IllegalStateException("progress queue is closed; cannot accept more input");
+    if (!_over) {
+      _msgs.add(msg);
+      handleMsg(msg);
+      notify();
     }
-
-    _msgs.add(msg);
-    handleMsg(msg);
-    notify();
   }
   
   /**

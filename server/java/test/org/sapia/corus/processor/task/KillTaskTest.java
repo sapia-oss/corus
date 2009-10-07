@@ -1,15 +1,14 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.LogicException;
-import org.sapia.corus.port.TestPortManager;
-import org.sapia.corus.processor.*;
-import org.sapia.corus.processor.Process;
-import org.sapia.corus.util.ProgressQueue;
-import org.sapia.corus.util.ProgressQueueImpl;
-
-import org.sapia.taskman.TaskContext;
-import org.sapia.ubik.net.TCPAddress;
-
+import org.sapia.corus.admin.services.processor.DistributionInfo;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.admin.services.processor.Processor;
+import org.sapia.corus.admin.services.processor.ProcessorConfigurationImpl;
+import org.sapia.corus.admin.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.exceptions.LogicException;
+import org.sapia.corus.processor.TestProcessor;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.util.PropertyFactory;
 
 /**
  * @author Yanick Duchesne
@@ -24,33 +23,30 @@ public class KillTaskTest extends BaseTaskTest{
     super(arg0);
   }
   
+  
   public void testKillFromCorusNotConfirmed() throws Exception {
-    ProcessDB        db   = new TestProcessDB();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
 
-    TestKill kill = new TestKill(Process.KILL_REQUESTOR_SERVER, db,
+    TestKill kill = new TestKill(ProcessTerminationRequestor.KILL_REQUESTOR_SERVER,
                                  proc.getProcessID());
-    _tm.execSyncTask("kill", kill);
-    _tm.execSyncTask("kill", kill);
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     super.assertTrue(kill.killed != true);
   }
-
+  
   public void testKillFromCorusConfirmed() throws Exception {
-    ProcessDB        db   = new TestProcessDB();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
-
-    TestKill kill = new TestKill(Process.KILL_REQUESTOR_SERVER, db,
-                                 proc.getProcessID());
+    
+    TestKill kill = new TestKill(
+        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
+        proc.getProcessID());
+    
     proc.confirmKilled();
-      
-    _tm.execSyncTask("kill", kill);
-    _tm.execSyncTask("kill", kill);    
-    _tm.execSyncTask("kill", kill);    
+
+    tm.executeAndWait(kill).get();  
     super.assertTrue(kill.killed);
 
     try {
@@ -64,27 +60,25 @@ public class KillTaskTest extends BaseTaskTest{
   }
 
   public void testKillMaxAttemptReached() throws Exception {
-    
-    ProcessDB        db   = new TestProcessDB();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
 
     Thread.sleep(1500);
 
-    ProgressQueue q = new ProgressQueueImpl();
+    TestKill kill = new TestKill(
+        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
+        proc.getProcessID());
 
-    TestKill      kill = new TestKill(Process.KILL_REQUESTOR_SERVER, db,
-                                      proc.getProcessID());
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     super.assertTrue(!kill.killed);
     super.assertTrue(!kill.restart);
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     super.assertTrue(!kill.killed);
     super.assertTrue(!kill.restart);
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     proc.confirmKilled();    
-    _tm.execSyncTask("kill", kill);    
+    tm.executeAndWait(kill).get();    
     super.assertTrue(kill.killed);
 
     try {
@@ -96,16 +90,20 @@ public class KillTaskTest extends BaseTaskTest{
   }
 
   public void testRestart() throws Exception {
-    ProcessDB        db   = new TestProcessDB();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
+    
+    TestProcessor processor = (TestProcessor)ctx.lookup(Processor.class);
+    ProcessorConfigurationImpl processorConf = (ProcessorConfigurationImpl)processor.getConfiguration();
+    processorConf.setRestartInterval(PropertyFactory.create(1));
+
     Thread.sleep(1500);
 
-    TestKill kill = new TestKill(Process.KILL_REQUESTOR_SERVER, db,
-                                 proc.getProcessID(), 500L);
+    TestKill kill = new TestKill(ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
+                                 proc.getProcessID());
     proc.confirmKilled();
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     super.assertTrue(kill.killed);
     super.assertTrue(kill.restart);
 
@@ -116,18 +114,18 @@ public class KillTaskTest extends BaseTaskTest{
       //ok
     }
   }
+  
 
   public void testRestartDenied() throws Exception {
-    ProcessDB        db   = new TestProcessDB();
     DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
     Process          proc = new Process(dist);
     db.getActiveProcesses().addProcess(proc);
     Thread.sleep(500);
 
-    TestKill kill = new TestKill(Process.KILL_REQUESTOR_SERVER, db,
-                                 proc.getProcessID(), 5000L);
+    TestKill kill = new TestKill(
+        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, proc.getProcessID());
     proc.confirmKilled();
-    _tm.execSyncTask("kill", kill);
+    tm.executeAndWait(kill).get();
     super.assertTrue(kill.killed);
     super.assertTrue(kill.restart == false);
 
@@ -143,39 +141,29 @@ public class KillTaskTest extends BaseTaskTest{
     boolean killed;
     boolean restart;
 
-    TestKill(String requestor, ProcessDB db, String vmId, int maxRetry) throws Exception{
-      super(new TCPAddress("localhost", 33000), 8080, requestor, vmId, db, maxRetry, 500, new TestPortManager());
+    TestKill(ProcessTerminationRequestor requestor, String vmId, int maxRetry) throws Exception{
+      super(requestor, vmId, maxRetry);
     }
     
-    TestKill(String requestor, ProcessDB db, String vmId) throws Exception{
-      super(new TCPAddress("localhost", 33000), 8080, requestor, vmId, db, 3, 500, new TestPortManager());
+    TestKill(ProcessTerminationRequestor requestor, String vmId) throws Exception{
+      super(requestor, vmId, 3);
     }
     
-    TestKill(String requestor, ProcessDB db, String vmId, long restartInterval) throws Exception{
-      super(new TCPAddress("localhost", 33000), 8080, requestor, vmId, db, 3, restartInterval, new TestPortManager());
-    }    
-    
-    /**
-     * @see org.sapia.corus.processor.task.KillTask#onKillConfirmed(org.sapia.taskman.TaskContext)
-     */
-    protected void onKillConfirmed(TaskContext ctx) {
+    @Override
+    protected void onKillConfirmed(TaskExecutionContext ctx) throws Throwable {
+      killed = true;
       super.onKillConfirmed(ctx);
+    }
+    
+    @Override
+    protected void onMaxExecutionReached(TaskExecutionContext ctx)
+        throws Throwable {
+      super.onMaxExecutionReached(ctx);
       killed = true;
     }
     
-    /**
-     * @see org.sapia.corus.processor.task.KillTask#onMaxRetry(org.sapia.taskman.TaskContext)
-     */
-    protected boolean onMaxRetry(TaskContext ctx) {
-      super.onMaxRetry(ctx);
-      killed = true;
-      return true;
-    }
-    
-    /**
-     * @see org.sapia.corus.processor.task.KillTask#onRestarted()
-     */
-    protected void onRestarted() {
+    @Override
+    protected void onRestarted(TaskExecutionContext ctx) {
       restart = true;
     }
     

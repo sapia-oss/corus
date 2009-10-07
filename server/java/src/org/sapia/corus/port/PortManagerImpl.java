@@ -16,12 +16,17 @@ import java.util.List;
 
 import org.sapia.corus.CorusRuntime;
 import org.sapia.corus.ModuleHelper;
+import org.sapia.corus.admin.services.port.PortManager;
+import org.sapia.corus.admin.services.port.PortRange;
 import org.sapia.corus.db.DbMap;
 import org.sapia.corus.db.DbModule;
+import org.sapia.corus.exceptions.PortActiveException;
+import org.sapia.corus.exceptions.PortRangeConflictException;
+import org.sapia.corus.exceptions.PortRangeInvalidException;
+import org.sapia.corus.exceptions.PortUnavailableException;
 import org.sapia.soto.Service;
 
 /**
- *
  * @author yduchesne
  */
 public class PortManagerImpl extends ModuleHelper implements Service, PortManager {
@@ -32,12 +37,16 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   public PortManagerImpl() {
   }
   
+  protected PortManagerImpl(PortRangeStore store){
+    _store = store;
+  }
+  
   public void init() throws Exception{
     _store = newPortRangeStore();
   }
   
   protected PortRangeStore newPortRangeStore() throws Exception{
-    DbMap ports = ((DbModule) CorusRuntime.getCorus().lookup(DbModule.ROLE)).getDbMap("ports");
+    DbMap<String, PortRange> ports = ((DbModule) CorusRuntime.getCorus().lookup(DbModule.ROLE)).getDbMap("ports");
     return new PortRangeStore(ports);
   }
   
@@ -75,7 +84,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     if(_store.containsRange(name)){
       throw new PortRangeConflictException("Port range already exists for: " + name);
     }
-    Iterator ranges = _store.getPortRanges();
+    Iterator<PortRange> ranges = _store.getPortRanges();
     while(ranges.hasNext()){
       PortRange existing = (PortRange)ranges.next();
       if(existing.isConflicting(range)){
@@ -106,9 +115,9 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     }
   }
   
-  public synchronized List getPortRanges(){
-    List lst = new ArrayList();
-    Iterator ranges = _store.getPortRanges();
+  public synchronized List<PortRange> getPortRanges(){
+    List<PortRange> lst = new ArrayList<PortRange>();
+    Iterator<PortRange> ranges = _store.getPortRanges();
     while(ranges.hasNext()){
       PortRange range = (PortRange)ranges.next();
       if(logger().isDebugEnabled()){

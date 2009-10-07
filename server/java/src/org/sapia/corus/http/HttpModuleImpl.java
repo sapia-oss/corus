@@ -29,7 +29,7 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
   }
   
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return ROLE;
@@ -57,8 +57,7 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
     
     addHttpExtension(new FileSystemExtension());
     addHttpExtension(new JmxExtension());    
-    SoapExtension ext = new SoapExtension();
-    ext.init();
+    SoapExtension ext = new SoapExtension(serverContext());
     addHttpExtension(ext);    
     
     _httpExt.start();

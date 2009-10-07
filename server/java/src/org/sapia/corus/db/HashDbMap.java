@@ -14,29 +14,33 @@ import java.util.Map;
  *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
  * </dl>
  */
-public class HashDbMap implements DbMap {
-  private Map _map = new HashMap();
+public class HashDbMap<K, V> implements DbMap<K, V> {
+  private Map<K, V> _map = new HashMap<K, V>();
 
   public void close() {
   }
 
-  public Object get(Object key) {
+  public V get(K key) {
     return _map.get(key);
   }
 
-  public Iterator keys() {
+  public Iterator<K> keys() {
     return _map.keySet().iterator();
   }
 
-  public void put(Object key, Object value) {
+  public void put(K key, V value) {
     _map.put(key, value);
   }
 
-  public void remove(Object key) {
+  public void remove(K key) {
     _map.remove(key);
   }
 
-  public Iterator values() {
+  public Iterator<V> values() {
     return _map.values().iterator();
+  }
+  
+  public void clear() {
+    _map.clear();
   }
 }

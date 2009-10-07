@@ -1,8 +1,8 @@
 package org.sapia.corus.util;
 
-import org.apache.log.Logger;
-
 import java.util.List;
+
+import org.apache.log.Logger;
 
 
 /**

@@ -1,9 +1,14 @@
 <help>
   <section title="Description">
-   <p>Executes processes "from" a deployed distribution.</p>
+   <p>Executes processes "from" a deployed distribution, or processes corresponding to a given 
+   execution configuration</p>
   </section>
   <section title="Syntax">
     <p>exec -d distribution_name -v version -p profile [-n process_name] [-i instances] [-cluster]</p>
+    <p/>
+    <p>or:</p>
+    <p/>
+    <p>exec -e exec_config_name [-cluster]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -16,6 +21,8 @@
     <p>- n: the name (or name pattern) of the process configurations for which processes should be started.</p>
     <p/>
     <p>- i: the number of processes to start.</p>
+    <p/>    
+    <p>- e: the name of the execution configuration whose corresponding processes should be started.</p>
     <p/>    
     <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
   </section>
@@ -32,5 +39,7 @@
     <p>exec -d myapp -v 1.* -n * -p qa</p>
     <p/>    
     <p>exec -d * -v * -n * -p qa</p>
+    <p/>    
+    <p>exec -e myExecConfig</p>
   </section>  
 </help>

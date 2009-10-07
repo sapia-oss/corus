@@ -1,17 +1,15 @@
 package org.sapia.corus.admin.cli.command;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.console.table.Cell;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
-
 import org.sapia.corus.admin.cli.CliContext;
-
 import org.sapia.ubik.net.TCPAddress;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 
 /**

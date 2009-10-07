@@ -3,7 +3,7 @@
    <p>Terminates processes corresponding to a deployed distribution.</p>
   </section>
   <section title="Syntax">
-    <p>kill -d distribution_name -v version -p profile [-n process_name] [-cluster]</p>
+    <p>kill -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
     <p/>
     <p>OR</p>
     <p/>
@@ -40,6 +40,8 @@
     <p>kill -d myapp -v 1.* -n * -p qa</p>
     <p/>    
     <p>kill -d * -v * -n * -p qa</p>
+    <p/>    
+    <p>kill -d * -v *</p>
     <p/>    
     <p>kill -op 22989 23101 23116</p>
   </section>    

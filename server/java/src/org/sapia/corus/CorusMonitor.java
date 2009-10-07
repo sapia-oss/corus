@@ -1,30 +1,25 @@
 package org.sapia.corus;
 
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.UnknownHostException;
+import java.util.List;
+
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
-
-import org.sapia.corus.taskmanager.TaskManager;
+import org.sapia.corus.admin.Corus;
+import org.sapia.corus.taskmanager.CorusTaskManager;
 import org.sapia.corus.util.ProgressMsg;
 import org.sapia.corus.util.ProgressQueue;
-
 import org.sapia.ubik.rmi.server.Hub;
-
-import java.lang.reflect.UndeclaredThrowableException;
-import java.util.List;
+import org.sapia.ubik.util.Localhost;
 
 
 /**
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class CorusMonitor {
-  public static final String HOST = "h";
+  public static final String HOST = "help";
   
   public static void main(String[] args) {
     int     port = CorusServer.DEFAULT_PORT;
@@ -32,13 +27,23 @@ public class CorusMonitor {
     
     CmdLine cmd = CmdLine.parse(args);
     
-    try {
-      host = cmd.assertOption(HOST, true).getValue();
-    } catch (InputException e) {
-      System.out.println("Host (-h) not specified");
-      help();
-      
-      return;
+    if(cmd.containsOption(HOST, false)){
+      try {
+        host = cmd.assertOption(HOST, true).getValue();
+      } catch (InputException e) {
+        System.out.println("Host (-h) not specified");
+        help();
+        
+        return;
+      }
+    }
+    else{
+      try{
+        host = Localhost.getLocalAddress().getHostAddress();
+      }catch(UnknownHostException e){
+        e.printStackTrace();
+        return;
+      }
     }
     
     CmdLine argsCmd = cmd.filterArgs();
@@ -69,21 +74,21 @@ public class CorusMonitor {
     } catch (InputException e) {
     }
     
-    Corus       corus;
-    TaskManager taskman;
+    Corus            corus;
+    CorusTaskManager taskman;
     
     try {
       corus     = (Corus) Hub.connect(host, port);
-      taskman   = (TaskManager) corus.lookup(TaskManager.ROLE);
+      taskman   = (CorusTaskManager) corus.lookup(CorusTaskManager.ROLE);
     } catch (Exception e) {
       e.printStackTrace();
       
       return;
     }
     
-    ProgressQueue queue = taskman.getProgressQueue(level);
-    List          msgs;
-    ProgressMsg   msg;
+    ProgressQueue       queue = taskman.getProgressQueue(level);
+    List<ProgressMsg>   msgs;
+    ProgressMsg         msg;
     display();
     System.out.println("Waiting for Corus server output...");
     System.out.println();
@@ -172,9 +177,7 @@ public class CorusMonitor {
   static void center(String text) {
     int margin = (80 - text.length()) / 2;
     System.out.print("*");
-    
-    StringBuffer b = new StringBuffer();
-    
+       
     for (int i = 0; i < (margin - 1); i++) {
       System.out.print(" ");
     }

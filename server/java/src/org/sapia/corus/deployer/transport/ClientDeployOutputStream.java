@@ -5,9 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-import org.sapia.corus.CorusRuntimeException;
 import org.sapia.corus.deployer.DeployOutputStream;
 import org.sapia.corus.deployer.DeploymentMetadata;
+import org.sapia.corus.exceptions.CorusRuntimeException;
 import org.sapia.corus.util.ProgressQueue;
 
 /**

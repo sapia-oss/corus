@@ -6,9 +6,9 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashSet;
 
-import org.sapia.corus.deployer.DeploymentMetadata;
-
 import junit.framework.TestCase;
+
+import org.sapia.corus.deployer.DeploymentMetadata;
 
 /**
  * @author Yanick Duchesne

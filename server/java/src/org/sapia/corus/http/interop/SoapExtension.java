@@ -2,22 +2,21 @@ package org.sapia.corus.http.interop;
 
 import java.util.List;
 
-import org.sapia.corus.CorusException;
-import org.sapia.corus.CorusRuntime;
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
+import org.sapia.corus.ServerContext;
+import org.sapia.corus.admin.services.processor.Processor;
+import org.sapia.corus.exceptions.CorusException;
 import org.sapia.corus.http.HttpContext;
 import org.sapia.corus.http.HttpExtension;
 import org.sapia.corus.http.HttpExtensionInfo;
-import org.sapia.corus.interop.helpers.RequestListener;
-import org.sapia.corus.interop.helpers.ServerStatelessSoapStreamHelper;
 import org.sapia.corus.interop.ConfirmShutdown;
 import org.sapia.corus.interop.Poll;
 import org.sapia.corus.interop.Process;
 import org.sapia.corus.interop.Restart;
 import org.sapia.corus.interop.Status;
-import org.sapia.corus.processor.Processor;
-
-import org.apache.log.Hierarchy;
-import org.apache.log.Logger;
+import org.sapia.corus.interop.helpers.RequestListener;
+import org.sapia.corus.interop.helpers.ServerStatelessSoapStreamHelper;
 
 
 /**
@@ -27,11 +26,6 @@ import org.apache.log.Logger;
  * <pre>http://localhost:33000/interoap/soap</pre>
  * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class SoapExtension implements HttpExtension, RequestListener {
   
@@ -39,11 +33,12 @@ public class SoapExtension implements HttpExtension, RequestListener {
   
   private ServerStatelessSoapStreamHelper _helper;
   private Logger                          _logger;
-  private Processor                       _processor;
+  private ServerContext                   _serverContext;
   
-  public SoapExtension() throws CorusException{
+  public SoapExtension(ServerContext serverContext) throws CorusException{
     _helper = new ServerStatelessSoapStreamHelper(this, "corus.server");
     _logger = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+    _serverContext = serverContext;
   }
   
   public HttpExtensionInfo getInfo() {
@@ -52,10 +47,6 @@ public class SoapExtension implements HttpExtension, RequestListener {
     info.setName("Corus Interop Link");
     info.setDescription("Call-back invoked by Corus processes, as described in the Corus Interoperability Specification");
     return info;
-  }
-  
-  public void init() throws Exception{
-    _processor = (Processor) CorusRuntime.getCorus().lookup(Processor.ROLE);    
   }
   
   public void process(HttpContext ctx) throws Exception {
@@ -77,7 +68,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     }
     
     _logger.info("Process: " + proc + " confirming shutdown");
-    _processor.getProcess(proc.getCorusPid()).confirmKilled();
+    _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid()).confirmKilled();
   }
   
   public synchronized List onPoll(Process proc, Poll poll)
@@ -88,7 +79,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     
     _logger.debug("Process: " + proc + " polling...");
     
-    return _processor.getProcess(proc.getCorusPid()).poll();
+    return _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid()).poll();
   }
   
   public synchronized void onRestart(Process proc, Restart restart)
@@ -98,7 +89,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     }
     
     _logger.debug("Process requested a restart: " + proc);
-    _processor.restart(proc.getCorusPid());
+    _serverContext.lookup(Processor.class).restart(proc.getCorusPid());
   }
   
   public synchronized List onStatus(Process proc, Status stat)
@@ -109,7 +100,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     
     _logger.debug("Status received for " + proc);
     
-    return _processor.getProcess(proc.getCorusPid()).status(stat);
+    return _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid()).status(stat);
   }
   
 }

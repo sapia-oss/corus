@@ -1,13 +1,13 @@
 package org.sapia.corus.cron;
 
-import fr.dyade.jdring.AlarmEntry;
-import fr.dyade.jdring.AlarmListener;
-
 import org.sapia.corus.CorusRuntime;
-import org.sapia.corus.admin.CommandArgParser;
-import org.sapia.corus.processor.Processor;
+import org.sapia.corus.admin.ArgFactory;
+import org.sapia.corus.admin.services.processor.Processor;
 import org.sapia.corus.util.ProgressQueue;
 import org.sapia.corus.util.ProgressQueueLogger;
+
+import fr.dyade.jdring.AlarmEntry;
+import fr.dyade.jdring.AlarmListener;
 
 
 /**
@@ -35,9 +35,9 @@ public class CronJob implements java.io.Serializable, AlarmListener {
   public void handleAlarm(AlarmEntry entry) {
     try {
       Processor     proc  = (Processor) CorusRuntime.getCorus().lookup(Processor.ROLE);
-      ProgressQueue queue = proc.exec(CommandArgParser.parse(_info.getDistribution()),
-                                      CommandArgParser.parse(_info.getVersion()), _info.getProfile(),
-                                      CommandArgParser.parse(_info.getVmName()), 1);
+      ProgressQueue queue = proc.exec(ArgFactory.parse(_info.getDistribution()),
+                                      ArgFactory.parse(_info.getVersion()), _info.getProfile(),
+                                      ArgFactory.parse(_info.getVmName()), 1);
       CronModuleImpl.instance.logger().info("executing schedule VM " + _info);
       ProgressQueueLogger.transferMessages(CronModuleImpl.instance.logger(), queue);
     } catch (Throwable t) {

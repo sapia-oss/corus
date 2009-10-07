@@ -9,9 +9,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.sapia.corus.CorusRuntime;
-import org.sapia.corus.LogicException;
-import org.sapia.corus.admin.CommandArg;
-import org.sapia.corus.admin.CommandArgParser;
+import org.sapia.corus.admin.Arg;
+import org.sapia.corus.admin.ArgFactory;
+import org.sapia.corus.admin.services.processor.Process;
+import org.sapia.corus.admin.services.processor.Processor;
+import org.sapia.corus.exceptions.LogicException;
 import org.sapia.corus.http.HttpContext;
 import org.sapia.corus.http.HttpExtension;
 import org.sapia.corus.http.HttpExtensionInfo;
@@ -71,10 +73,10 @@ public class ProcessorExtension implements HttpExtension{
     outputProcesses(ctx, filterProcesses(ctx.getRequest()), true);
   }  
   
-  private CommandArg arg(String name, Request r) throws IOException{
+  private Arg arg(String name, Request r) throws IOException{
     String value = r.getParameter(name);
     if(value != null){
-      return CommandArgParser.parse(value);
+      return ArgFactory.parse(value);
     }
     return null;
   }
@@ -155,9 +157,9 @@ public class ProcessorExtension implements HttpExtension{
   }
   
   private List filterProcesses(Request req) throws IOException{
-    CommandArg d = arg(PARAM_DIST, req);
-    CommandArg v = arg(PARAM_VERSION, req);    
-    CommandArg n = arg(PARAM_PROC, req);
+    Arg d = arg(PARAM_DIST, req);
+    Arg v = arg(PARAM_VERSION, req);    
+    Arg n = arg(PARAM_PROC, req);
     String i = req.getParameter(PARAM_ID);
     String p = req.getParameter(PARAM_PROFILE);
     

@@ -1,10 +1,8 @@
 package org.sapia.corus.cluster;
 
 import org.apache.log.Logger;
-
 import org.sapia.corus.ClusterInfo;
-import org.sapia.corus.Module;
-
+import org.sapia.corus.admin.Module;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.replication.ReplicationEvent;
 import org.sapia.ubik.rmi.server.Hub;

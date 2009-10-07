@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.Set;
 
 import org.apache.log.Logger;
-
 import org.sapia.corus.CorusRuntime;
 import org.sapia.corus.util.ProgressQueue;
 import org.sapia.corus.util.ProgressQueueLogger;

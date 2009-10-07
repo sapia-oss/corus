@@ -1,9 +1,9 @@
 package org.sapia.corus.cluster;
 
-import org.sapia.corus.Module;
-import org.sapia.ubik.mcast.EventChannel;
-
 import java.util.Set;
+
+import org.sapia.corus.admin.Module;
+import org.sapia.ubik.mcast.EventChannel;
 
 
 /**

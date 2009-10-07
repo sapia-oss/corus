@@ -1,5 +1,6 @@
 package org.sapia.corus.interop.client;
 
+import org.sapia.corus.interop.AbstractCommand;
 import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.soap.FaultException;
 
@@ -36,7 +37,7 @@ public interface InteropProtocol {
    * @throws IOException if a problem occurs while internally sending the request to
    * the corus server.
    */
-  public List poll() throws FaultException, IOException;
+  public List<AbstractCommand> poll() throws FaultException, IOException;
 
   /**
    * Sends the given status to the corus server to which this instance connects.
@@ -47,7 +48,7 @@ public interface InteropProtocol {
    * @throws IOException if a problem occurs while internally sending the request to
    * the corus server.
    */
-  public List sendStatus(Status stat) throws FaultException, IOException;
+  public List<AbstractCommand> sendStatus(Status stat) throws FaultException, IOException;
 
   /**
    * Polls the corus server and sends the given status to the corus
@@ -59,7 +60,7 @@ public interface InteropProtocol {
    * @throws IOException if a problem occurs while internally sending the request to
    * the corus server.
    */
-  public List pollAndSendStatus(Status stat) throws FaultException, IOException;
+  public List<AbstractCommand> pollAndSendStatus(Status stat) throws FaultException, IOException;
 
   /**
    * Sends a restart request to the corus server.

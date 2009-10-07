@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.ModuleHelper;
+import org.sapia.corus.util.Property;
 import org.sapia.soto.util.matcher.PathPattern;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
@@ -43,7 +44,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   private boolean _isRunning = false;
   
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return ROLE;
@@ -59,11 +60,11 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    * 
    * @param patternList The pattern list of allowed hosts.
    */  
-  public synchronized void setAllowedHostPatterns(String patternList) {
+  public synchronized void setAllowedHostPatterns(Property patternList) {
     _allowedPatterns.clear();
     
-    if (patternList != null && patternList.trim().length() > 0) {
-      String[] patterns = StringUtils.split(patternList, ',');
+    if (patternList != null && patternList.getValue().trim().length() > 0) {
+      String[] patterns = StringUtils.split(patternList.getValue(), ',');
       for (int i = 0; i < patterns.length; i++) {
         if (patterns[i].trim().equals("localhost")) {
           _allowedPatterns.add(PathPattern.parse(LOCALHOST, '.', false));
@@ -80,11 +81,11 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    * 
    * @param patternList The pattern list of denied hosts.
    */  
-  public synchronized void setDeniedHostPatterns(String patternList) {
+  public synchronized void setDeniedHostPatterns(Property patternList) {
     _deniedPatterns.clear();
     
-    if (patternList != null && patternList.trim().length() > 0) {
-      String[] patterns = StringUtils.split(patternList, ',');
+    if (patternList != null && patternList.getValue().trim().length() > 0) {
+      String[] patterns = StringUtils.split(patternList.getValue(), ',');
       for (int i = 0; i < patterns.length; i++) {
         if (patterns[i].trim().equals("localhost")) {
           _deniedPatterns.add(PathPattern.parse(LOCALHOST, '.', false));

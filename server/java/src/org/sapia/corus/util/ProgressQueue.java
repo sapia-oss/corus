@@ -28,7 +28,7 @@ public interface ProgressQueue extends java.rmi.Remote {
    *
    * @return a <code>List</code> of <code>ProgressMsg</code>.
    */
-  public List next();
+  public List<ProgressMsg> next();
   
   /**
    * Returns the list of pending messages held within this queue. 
@@ -39,7 +39,7 @@ public interface ProgressQueue extends java.rmi.Remote {
    * instances held within this instance - list will be empty if the <code>close()</code>
    * method has been concurrently called on this instance.
    */
-	public List fetchNext();
+	public List<ProgressMsg> fetchNext();
   
 
   /**

@@ -1,22 +1,22 @@
 package org.sapia.corus.event;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.soto.Service;
+import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
 
 /**
  * Implements the <code>EventDispatcher</code> interface.
  * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class EventDispatcherImpl extends MultiDispatcher implements EventDispatcher, Service{
-	
+  
+  private Logger logger = Hierarchy.getDefaultHierarchy().getLoggerFor("EventDispatcher");
+  
   /**
-   * @see org.sapia.corus.Module#getRoleName()
+   * @see org.sapia.corus.admin.Module#getRoleName()
    */
   public String getRoleName() {
     return ROLE;
@@ -36,5 +36,11 @@ public class EventDispatcherImpl extends MultiDispatcher implements EventDispatc
    * @see org.sapia.soto.Service#dispose()
    */
   public void dispose() {}
+  
+  @Override
+  public void addInterceptor(Class event, Interceptor it){
+    logger.debug("Adding interceptor: " + it + " for event type: " + event);
+    super.addInterceptor(event, it);
+  }
 
 }

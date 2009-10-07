@@ -16,6 +16,9 @@ package org.sapia.corus.interop;
  * </dl>
  */
 public class Restart extends AbstractCommand {
+  
+  static final long serialVersionUID = 1L;
+
   /**
    * Creates a new Restart instance.
    */
