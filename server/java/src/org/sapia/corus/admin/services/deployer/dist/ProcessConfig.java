@@ -27,7 +27,6 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   private boolean         _invoke;
   private List<Starter>     _starters             = new ArrayList<Starter>();
   private List<Port>        _ports                = new ArrayList<Port>();
-  private List<Dependency>  _dependencies         = new ArrayList<Dependency>();
   private int             _maxKillRetry           = -1;
   private int             _shutDownTimeout        = -1;
   private String          _name;
@@ -203,19 +202,20 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   }
   
   /**
-   * @return creates a {@link Dependency} and returns it.
-   */
-  public Dependency createDependency(){
-    Dependency d = new Dependency();
-    _dependencies.add(d);
-    return d;
-  }
-  
-  /**
    * @return the list of {@link Dependency} instances containes within this instance.
    */
-  public List<Dependency> getDependencies(){
-    return Collections.unmodifiableList(_dependencies);
+  public List<Dependency> getDependenciesFor(String profile){
+    List<Dependency> toReturn = new ArrayList<Dependency>();
+    
+    for(Starter st:_starters){
+      if(st.getProfile().equals(profile)){
+        for(Dependency dep:st.getDependencies()){
+          toReturn.add(dep);
+        }
+      }
+    }
+    
+    return toReturn;
   }
   
   /**
@@ -274,10 +274,6 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
     _starters.add(starter);
   }
   
-  List<Dependency> dependencies(){
-    return _dependencies;
-  }
-  
   public void handleObject(String elementName, Object starter)
   throws ConfigurationException {
     if (starter instanceof Starter) {
@@ -306,6 +302,20 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
     else{
       return false;
     }
+  }
+  
+  void init(String distName, String version){
+    for(Starter st: _starters){
+      for(Dependency dep:st.getDependencies()){
+        if(dep.getDist() == null)
+          dep.setDist(distName);
+        if(dep.getVersion() == null)
+          dep.getVersion();
+        if(dep.getProfile() == null)
+          dep.setProfile(st.getProfile());
+      }
+    }
+    
   }
   
   private Starter findFor(String profile) {

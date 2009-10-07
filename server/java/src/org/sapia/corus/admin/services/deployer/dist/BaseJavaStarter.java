@@ -21,9 +21,10 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected String _profile;
   protected String _corusHome = System.getProperty("corus.home");
   protected List<Property>   _vmProps   = new ArrayList<Property>();
-  protected List<Option>    _options    = new ArrayList<Option>();
-  protected List<XOption>   _xoptions   = new ArrayList<XOption>();
-
+  protected List<Option>     _options    = new ArrayList<Option>();
+  protected List<XOption>    _xoptions   = new ArrayList<XOption>();
+  private   List<Dependency> _dependencies = new ArrayList<Dependency>();
+  
   /**
    * Sets the Corus home.
    *
@@ -98,5 +99,28 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   
   public void setVmType(String aType) {
     _vmType = aType;
+  }
+  
+  /**
+   * Adds a dependency to this instance.
+   * 
+   * @param dep a {@link Dependency}
+   */
+  public void addDependency(Dependency dep){
+    if(dep.getProfile() == null){
+      dep.setProfile(_profile);
+    }
+    _dependencies.add(dep);
+  }
+  
+  public Dependency createDependency(){
+    Dependency dep = new Dependency();
+    dep.setProfile(_profile);
+    _dependencies.add(dep);
+    return dep;
+  }
+  
+  public List<Dependency> getDependencies() {
+    return new ArrayList<Dependency>(_dependencies);
   }
 }

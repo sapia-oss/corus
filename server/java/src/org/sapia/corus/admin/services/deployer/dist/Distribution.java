@@ -264,14 +264,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   
   public Object onCreate() throws ConfigurationException {
     for(ProcessConfig cfg:_processConfigs){
-      for(Dependency dep:cfg.dependencies()){
-        if(dep.getVersion() == null){
-          dep.setVersion(_version);
-        }
-        if(dep.getDist() == null){
-          dep.setDistribution(this.getName());
-        }
-      }
+      cfg.init(_name, _version);
     }
     return this;
   }

@@ -65,13 +65,14 @@ public class ProcessDependencyFilterTest extends TestCase {
     
     dependantProc = new ProcessConfig();
     dependantProc.setName("dep-proc");
-    Dependency dep = dependantProc.createDependency();
+    starter = new Java();
+    starter.setProfile("test");
+    Dependency dep = starter.createDependency();
     dep.setDist("maindist");
     dep.setVersion("1.0");
     dep.setProcess("mainproc");
     dep.setProfile("test");
-    starter = new Java();
-    starter.setProfile("test");
+
     dependantProc.addStarter(starter);
     dependantDist.addProcess(dependantProc);
     
@@ -82,17 +83,33 @@ public class ProcessDependencyFilterTest extends TestCase {
     
     dependantProc2 = new ProcessConfig();
     dependantProc2.setName("dep-proc2");
-    dep = dependantProc.createDependency();
+    
+    dep = starter.createDependency();
+    dep.setDist("maindist");
+    dep.setVersion("1.0");
+    dep.setProcess("mainproc");
+    dep.setProfile("test");
+
+/*    dep = dependantProc.createDependency();
     dep.setDist("maindist");
     dep.setVersion("1.0");
     // not setting profile
-    dep.setProcess("mainproc");
+    dep.setProcess("mainproc");*/
 
+    dep = starter.createDependency();
+    dep.setDist("maindist2");
+    dep.setVersion("1.0");
+    dep.setProcess("mainproc2");
+    dep.setProfile("test");
+
+    /*
     dep = dependantProc.createDependency();
     dep.setDist("maindist2");
     dep.setVersion("1.0");
     dep.setProcess("mainproc2");
     dep.setProfile("test");
+    */
+    
     starter = new Java();
     starter.setProfile("test");
     dependantProc2.addStarter(starter);

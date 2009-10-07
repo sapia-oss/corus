@@ -1,5 +1,7 @@
 package org.sapia.corus.admin.services.deployer.dist;
 
+import java.util.List;
+
 import org.sapia.console.CmdLine;
 import org.sapia.corus.exceptions.LogicException;
 
@@ -27,7 +29,12 @@ public interface Starter {
    * instance should be started.
    */  
   public String getProfile();
-
+  
+  /**
+   * @return this instances dependencies.
+   */
+  public List<Dependency> getDependencies();
+  
   /**
    * @param env an <code>Env</code> instance, holding the environment parameters
    * of the process whose command-line should be returned.

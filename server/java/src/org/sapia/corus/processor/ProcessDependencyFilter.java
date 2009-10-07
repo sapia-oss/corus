@@ -56,7 +56,7 @@ public class ProcessDependencyFilter {
       String defaultVersion, String defaultProfile, Deployer deployer,
       Processor processor) {
 
-    List<Dependency> deps = toFilter.getProcessConfig().getDependencies();
+    List<Dependency> deps = toFilter.getProcessConfig().getDependenciesFor(defaultProfile);
     if (deps.size() > 0) {
       for (Dependency dep : deps) {
         if (dep.getDist() != null) {

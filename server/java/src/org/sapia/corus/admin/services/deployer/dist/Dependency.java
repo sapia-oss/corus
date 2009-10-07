@@ -44,6 +44,25 @@ public class Dependency implements Serializable{
     this.process = process;
   }
   
+  public int hashCode(){
+    return 
+      dist.hashCode() ^ 
+      (version == null ? 0 : version.hashCode()) ^
+      (process == null ? 0 : process.hashCode());
+  }
+  
+  public boolean equals(Object other){
+    if(other instanceof Dependency){
+      Dependency otherDep = (Dependency)other;
+      return otherDep.getDist().equals(dist) && 
+             otherDep.getVersion().equals(version) &&
+             otherDep.getProcess().equals(process);
+    }
+    else{
+      return false;
+    }
+  }
+  
   public String toString(){
     return new StringBuilder("[")
       .append("dist=").append(dist).append(", ")
