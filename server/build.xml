@@ -91,12 +91,7 @@
 
   <!-- Compiles all the files of the ${project.sourceDir} and ${project.testDir} directories -->
   <target name="compile">
-    <javac destdir="${project.classesDir}" debug="true" classpathref="lib-classpath" excludes="**/CVS/**/*.java">
-        <src path="${project.sourceDir}" />
-        <src path="${project.testDir}" />
-    </javac>
-
-    <javac destdir="${project.classesDir}" debug="true" classpathref="lib-classpath" excludes="**/CVS/**/*.java">
+    <javac source="1.5" target="1.5" destdir="${project.classesDir}" debug="true" classpathref="lib-classpath" excludes="**/CVS/**/*.java">
         <src path="${project.sourceDir}" />
         <src path="${project.testDir}" />
     </javac>
@@ -251,7 +246,7 @@
     <makeVersionFile destDir="${project.classesDir}/META-INF" 
                      softwareName="Corus" 
                      version="${sapia.build.release.no}"/>
-    <javac srcdir="${project.sourceDir}"
+    <javac source="1.5" target="1.5" srcdir="${project.sourceDir}"
            destdir="${project.classesDir}" includes="version.java"/>
     <antcall target="dist"/>
 
@@ -411,103 +406,5 @@
       <param name="sapia.build.release.no" value="0.0" />
     </antcall>
   </target>
-  
-  <!-- ========================= NETBEANS ========================== -->
-  
-   <target name="compile-selected-files">
-    <fail unless="files">Must set property 'files'</fail>
-    <mkdir dir="${project.classesDir}"/>
-    <javac srcdir="${project.sourceDir}" destdir="${project.classesDir}" includes="${files}">
-      <classpath refid="lib-classpath"/>
-    </javac>
-  </target>
-  
-  <target name="run-selected-files" depends="compile" description="Run Single File">
-    <fail unless="classname">Must set property 'classname'</fail>
-    <java classname="${classname}" fork="true" dir=".">
-      <classpath>
-        <fileset dir="${project.libraryDir}">
-          <include name="**/*.jar" />
-        </fileset>      
-        <pathelement location="${project.classesDir}"/>      
-      </classpath>
-    </java>
-  </target>  
-  
-  <target name="run-selected-tests" depends="compile" description="Run Single Test">
-    <fail unless="classname">Must select some files in the IDE or set test.includes</fail>
-    <!--java classname="${classname}">
-      <classpath>
-        <fileset dir="${project.libraryDir}">
-          <include name="**/*.jar" />
-        </fileset>      
-        <pathelement location="${project.classesDir}"/>      
-      </classpath>
-    </java-->
-    <junit fork="yes" dir="${basedir}">
-        <classpath>
-            <path refid="test-classpath" />
-        </classpath>
-        <formatter type="plain" usefile="false"/>
-        <formatter type="xml"/>
-        <test name="${classname}Test" haltonfailure="yes" todir="${project.testResultDir}" />
-    </junit>      
-  </target>
-  
-  <target name="debug-selected-files" depends="compile" if="netbeans.home">
-    <fail unless="classname">Must set property 'classname'</fail>
-    <nbjpdastart name="${classname}" addressproperty="jpda.address" transport="dt_socket">
-      <classpath>
-        <fileset dir="${project.libraryDir}">
-          <include name="**/*.jar" />
-        </fileset>      
-        <pathelement location="${project.classesDir}"/>      
-      </classpath>
-      <sourcepath>
-        <pathelement location="${project.sourceDir}/" />
-      </sourcepath>
-    </nbjpdastart>
-    <java classname="${classname}" fork="true">
-      <jvmarg value="-Xdebug"/>
-      <jvmarg value="-Xnoagent"/>
-      <jvmarg value="-Djava.compiler=none"/>
-      <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
-      <classpath>
-        <fileset dir="${project.libraryDir}">
-          <include name="**/*.jar" />
-        </fileset>      
-        <pathelement location="${project.classesDir}"/>      
-      </classpath>
-    </java>
-  </target>                
-  
-  
-  <target name="debug-selected-tests" depends="compile" description="Run Single Test">
-    <fail unless="classname">Must select some files in the IDE or set test.includes</fail>
-    <nbjpdastart name="${classname}Test" addressproperty="jpda.address" transport="dt_socket">
-      <classpath>
-        <fileset dir="${project.libraryDir}">
-          <include name="**/*.jar" />
-        </fileset>      
-        <pathelement location="${project.classesDir}"/>      
-      </classpath>
-      <sourcepath>
-        <pathelement location="${project.sourceDir}/" />
-        <pathelement location="${project.testDir}/" />        
-      </sourcepath>      
-    </nbjpdastart>    
-    <junit fork="yes" dir="${basedir}">
-        <jvmarg value="-Xdebug"/>
-        <jvmarg value="-Xnoagent"/>
-        <jvmarg value="-Djava.compiler=none"/>
-        <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>    
-        <classpath>
-            <path refid="test-classpath" />
-        </classpath>
-        <formatter type="plain" usefile="false"/>
-        <formatter type="xml"/>
-        <test name="${classname}Test" haltonfailure="yes" todir="${project.testResultDir}" />
-    </junit>      
-  </target>      
   
 </project>
