@@ -77,7 +77,7 @@
     
   <!-- Compiles all the files of the ${project.sourceDir} and ${project.testDir} directories -->
   <target name="compile">
-    <javac destdir="${project.classesDir}" debug="true" classpathref="lib-classpath" excludes="**/CVS/**/*.java">
+    <javac destdir="${project.classesDir}" source="1.5" target="1.5" debug="true" classpathref="lib-classpath" excludes="**/CVS/**/*.java">
         <src path="${project.sourceDir}" />
         <src path="${project.testDir}" />
     </javac>
@@ -261,7 +261,7 @@
                      softwareName="Sapia Corus Interop"
                      version="${sapia.build.release.no}"/>
 
-    <javac srcdir="${project.sourceDir}"
+    <javac srcdir="${project.sourceDir}" source="1.5" target="1.5" 
            destdir="${project.classesDir}" includes="version.java"/>
     <antcall target="dist" />
 
