@@ -10,7 +10,6 @@
   <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.NoopApplication"
           profile="test">
-      <dependency process="restartApp" />             
       <vmType>-server</vmType>
       <xoption  name="ms" value="16M" />
     </java>
