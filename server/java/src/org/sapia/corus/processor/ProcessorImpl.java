@@ -202,7 +202,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       filter.filterDependencies(deployer, this);
       for(ProcessRef fp:filter.getFilteredProcesses()){
         q.info("Scheduling execution of process: " + fp);
-        ProcessRef copy = new ProcessRef(fp.getDist(), fp.getProcessConfig(), fp.getProfile(), 0);
+        ProcessRef copy = new ProcessRef(fp.getDist(), fp.getProcessConfig(), fp.getProfile());
         copy.setInstanceCount(instances);
         toStart.add(copy);
       }

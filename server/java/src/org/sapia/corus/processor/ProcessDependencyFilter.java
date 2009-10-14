@@ -1,7 +1,7 @@
 package org.sapia.corus.processor;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +17,7 @@ import org.sapia.corus.util.ProgressQueue;
 
 public class ProcessDependencyFilter {
 
-  private Set<ProcessRef> processes = new HashSet<ProcessRef>();
+  private Set<ProcessRef> rootProcesses = new HashSet<ProcessRef>();
   private ProgressQueue progress;
   private List<ProcessRef> filteredProcesses = new ArrayList<ProcessRef>();
 
@@ -31,34 +31,31 @@ public class ProcessDependencyFilter {
 
   public ProcessDependencyFilter addRootProcess(Distribution dist,
       ProcessConfig conf, String profile) {
-    this.processes.add(new ProcessRef(dist, conf, profile, processes.size()));
+    this.rootProcesses.add(new ProcessRef(dist, conf, profile));
     return this;
   }
 
   public void filterDependencies(Deployer deployer, Processor processor) {
-    List<ProcessRef> toSort = new ArrayList<ProcessRef>();
-    for (ProcessRef rootProcess : processes) {
-      doFilterDependencies(processes.size(), rootProcess, rootProcess.getDist()
+    DependencyGraphNode results = new DependencyGraphNode();
+    
+    for (ProcessRef rootProcess : rootProcesses) {
+      DependencyGraphNode root = new DependencyGraphNode(rootProcess);
+      doFilterDependencies(root, rootProcess.getDist()
           .getVersion(), rootProcess.getProfile(), deployer, processor);
+      results.add(root);
     }
-    toSort.addAll(processes);
-    Collections.sort(toSort);
-
-    List<ProcessRef> toReturn = new ArrayList<ProcessRef>();
-    for (ProcessRef ref : toSort) {
-      toReturn.add(ref);
-    }
+    Collection<ProcessRef> flattened = results.flatten();
     filteredProcesses.clear();
-    filteredProcesses.addAll(toReturn);
+    filteredProcesses.addAll(flattened);
   }
 
-  private void doFilterDependencies(int currentIndex, ProcessRef toFilter,
+  private void doFilterDependencies(DependencyGraphNode parentNode,
       String defaultVersion, String defaultProfile, Deployer deployer,
       Processor processor) {
 
-    List<Dependency> deps = toFilter.getProcessConfig().getDependenciesFor(defaultProfile);
+    List<Dependency> deps = parentNode.getProcessRef().getProcessConfig().getDependenciesFor(defaultProfile);
     if (deps.size() > 0) {
-      for (Dependency dep : deps) {
+      for (Dependency dep:deps) {
         if (dep.getDist() != null) {
           String currentVersion = dep.getVersion() != null ? dep.getVersion() : defaultVersion;
           String currentProfile = dep.getProfile() != null ? dep.getProfile() : defaultProfile;
@@ -73,10 +70,10 @@ public class ProcessDependencyFilter {
                       new StringArg(dist.getName()),
                       new StringArg(currentVersion), currentProfile,
                       new StringArg(dep.getProcess())).size() == 0) {
-                    ProcessRef ref = new ProcessRef(dist, depProcess,
-                        defaultProfile, currentIndex++);
-                    if (processes.add(ref)) {
-                      doFilterDependencies(currentIndex, ref, defaultVersion,
+                    ProcessRef ref = new ProcessRef(dist, depProcess, defaultProfile);
+                    DependencyGraphNode childNode = new DependencyGraphNode(ref);
+                    if (parentNode.add(ref)) {
+                      doFilterDependencies(childNode, defaultVersion,
                           defaultProfile, deployer, processor);
                     }
                   } else {
@@ -107,7 +104,7 @@ public class ProcessDependencyFilter {
         // no distribution specified
         else {
           progress.warning("No distribution specified for dependency "
-              + dep + " in " + toFilter.getDist());
+              + dep + " in " + parentNode.getProcessRef().getDist());
         }
       }
     }

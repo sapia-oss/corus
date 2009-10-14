@@ -90,7 +90,7 @@ public abstract class AbstractExecConfigStartTask extends Task{
     if(toStop.size() == 0){
       ctx.info("Did not find old processes");
       if(toStart.size() > 0){
-        ctx.info("Will be starting: " + toStart.size() + " processes");
+        ctx.info("Will be starting at least " + toStart.size() + " process(es)");
       }
       else{
         ctx.info("Did not find any processes to start");
@@ -125,7 +125,9 @@ public abstract class AbstractExecConfigStartTask extends Task{
     ExecNewProcessesTask exec = new ExecNewProcessesTask(lock, toStart);
     try{
       tm.executeAndWait(exec).get();
-    }catch(Throwable err){}
+    }catch(Throwable err){
+      err.printStackTrace();
+    }
   }
   
   //////////////////// BackgroundTaskListener interface /////////////////////

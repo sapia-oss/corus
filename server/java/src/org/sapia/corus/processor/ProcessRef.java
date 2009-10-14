@@ -3,20 +3,17 @@ package org.sapia.corus.processor;
 import org.sapia.corus.admin.services.deployer.dist.Distribution;
 import org.sapia.corus.admin.services.deployer.dist.ProcessConfig;
 
-public class ProcessRef implements Comparable<ProcessRef> {
+public class ProcessRef {
 
   private Distribution dist;
   private ProcessConfig processConf;
   private String profile;
-  private int index;
   private int instanceCount = 1;
 
-  public ProcessRef(Distribution dist, ProcessConfig conf, String profile,
-      int index) {
+  public ProcessRef(Distribution dist, ProcessConfig conf, String profile) {
     this.dist = dist;
     this.processConf = conf;
     this.profile = profile;
-    this.index = index;
   }
   
   public int getInstanceCount() {
@@ -55,10 +52,6 @@ public class ProcessRef implements Comparable<ProcessRef> {
     } else {
       return false;
     }
-  }
-
-  public int compareTo(ProcessRef other) {
-    return -(index - other.index);
   }
   
   @Override

@@ -83,37 +83,23 @@ public class ProcessDependencyFilterTest extends TestCase {
     
     dependantProc2 = new ProcessConfig();
     dependantProc2.setName("dep-proc2");
-    
+    starter = new Java();
+    starter.setProfile("test");
+    dependantProc2.addStarter(starter);
+    dependantDist2.addProcess(dependantProc2);
+
     dep = starter.createDependency();
     dep.setDist("maindist");
     dep.setVersion("1.0");
     dep.setProcess("mainproc");
     dep.setProfile("test");
 
-/*    dep = dependantProc.createDependency();
-    dep.setDist("maindist");
-    dep.setVersion("1.0");
-    // not setting profile
-    dep.setProcess("mainproc");*/
-
     dep = starter.createDependency();
     dep.setDist("maindist2");
     dep.setVersion("1.0");
     dep.setProcess("mainproc2");
     dep.setProfile("test");
 
-    /*
-    dep = dependantProc.createDependency();
-    dep.setDist("maindist2");
-    dep.setVersion("1.0");
-    dep.setProcess("mainproc2");
-    dep.setProfile("test");
-    */
-    
-    starter = new Java();
-    starter.setProfile("test");
-    dependantProc2.addStarter(starter);
-    dependantDist2.addProcess(dependantProc2);
     
     deployer.getDistributionDatabase().addDistribution(maindist);
     deployer.getDistributionDatabase().addDistribution(maindist2);
@@ -131,14 +117,8 @@ public class ProcessDependencyFilterTest extends TestCase {
     filter.addRootProcess(dependantDist, dependantProc, "test");
     filter.addRootProcess(dependantDist2, dependantProc2, "test");
     filter.filterDependencies(deployer, processor);
-  
-    /*
-    for(ProcessRef p:filter.getFilteredProcesses()){
-      System.out.println(p);
-    }*/
-    
-    assertEquals(maindist2, filter.getFilteredProcesses().get(0).getDist());
-    assertEquals(maindist, filter.getFilteredProcesses().get(1).getDist());
+    assertEquals(maindist, filter.getFilteredProcesses().get(0).getDist());
+    assertEquals(maindist2, filter.getFilteredProcesses().get(1).getDist());
     assertEquals(dependantDist2, filter.getFilteredProcesses().get(2).getDist());
     assertEquals(dependantDist, filter.getFilteredProcesses().get(3).getDist());
    

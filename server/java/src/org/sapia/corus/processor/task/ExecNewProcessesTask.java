@@ -65,6 +65,7 @@ public class ExecNewProcessesTask extends Task{
         try{
             dist = deployer.getDistribution(distName, version);
         }catch(LogicException e){
+          ctx.warn("Could not acquire distribution", e);
           // noop;
         }
         if(dist != null){
@@ -91,6 +92,12 @@ public class ExecNewProcessesTask extends Task{
 
     List<ProcessRef> filteredProcesses = filter.getFilteredProcesses();
     if(filteredProcesses.size() > 0){
+      
+      ctx.info("Dependencies have been resolved; will start the following processes");
+      for(ProcessRef ref : filteredProcesses){
+        ctx.info(ref.toString());
+      }
+      
       MultiExecTask exec = new MultiExecTask(lock, filteredProcesses);
       ctx.getTaskManager().executeBackground(
           exec, 
