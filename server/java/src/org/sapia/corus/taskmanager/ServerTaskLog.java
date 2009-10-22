@@ -45,6 +45,7 @@ public class ServerTaskLog implements TaskLog{
   }
 
   public synchronized void close() {
+    _delegate.close();
   }
   
   protected void handleMsg(ProgressMsg msg) {

@@ -30,8 +30,8 @@ public class ProcessDependencyFilter {
   }
 
   public ProcessDependencyFilter addRootProcess(Distribution dist,
-      ProcessConfig conf, String profile) {
-    this.rootProcesses.add(new ProcessRef(dist, conf, profile));
+      ProcessConfig conf, String profile, int instances) {
+    this.rootProcesses.add(new ProcessRef(dist, conf, profile).setRoot(true).setInstanceCount(instances));
     return this;
   }
 

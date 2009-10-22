@@ -114,8 +114,8 @@ public class ProcessDependencyFilterTest extends TestCase {
   }
   
   public void testSingleDependency(){
-    filter.addRootProcess(dependantDist, dependantProc, "test");
-    filter.addRootProcess(dependantDist2, dependantProc2, "test");
+    filter.addRootProcess(dependantDist, dependantProc, "test", 1);
+    filter.addRootProcess(dependantDist2, dependantProc2, "test", 1);
     filter.filterDependencies(deployer, processor);
     assertEquals(maindist, filter.getFilteredProcesses().get(0).getDist());
     assertEquals(maindist2, filter.getFilteredProcesses().get(1).getDist());

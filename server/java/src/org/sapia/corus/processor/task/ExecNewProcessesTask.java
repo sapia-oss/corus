@@ -71,7 +71,7 @@ public class ExecNewProcessesTask extends Task{
         if(dist != null){
           for(ProcessConfig conf: dist.getProcesses(processName)){
             if(conf.containsProfile(pd.getProfile())){
-              filter.addRootProcess(dist, conf, pd.getProfile());
+              filter.addRootProcess(dist, conf, pd.getProfile(), 1);
             }
             else{
               ctx.warn("No profile " + pd.getProfile() + " found for " + pd.getProfile());

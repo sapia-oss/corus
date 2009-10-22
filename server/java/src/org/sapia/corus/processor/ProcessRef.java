@@ -9,19 +9,30 @@ public class ProcessRef {
   private ProcessConfig processConf;
   private String profile;
   private int instanceCount = 1;
+  private boolean isRoot;
 
   public ProcessRef(Distribution dist, ProcessConfig conf, String profile) {
     this.dist = dist;
     this.processConf = conf;
     this.profile = profile;
   }
+
+  public ProcessRef setRoot(boolean isRoot) {
+    this.isRoot = isRoot;
+    return this;
+  }
+  
+  public boolean isRoot() {
+    return isRoot;
+  }
   
   public int getInstanceCount() {
     return instanceCount;
   }
   
-  public void setInstanceCount(int instanceCount){
+  public ProcessRef setInstanceCount(int instanceCount){
     this.instanceCount = instanceCount;
+    return this;
   }
   
   public void setInstances(int count){
@@ -52,6 +63,11 @@ public class ProcessRef {
     } else {
       return false;
     }
+  }
+  
+  public ProcessRef getCopy(){
+    ProcessRef c = new ProcessRef(dist, processConf, profile).setRoot(isRoot).setInstanceCount(instanceCount);
+    return c;
   }
   
   @Override

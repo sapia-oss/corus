@@ -194,7 +194,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         }
         else{
           for(ProcessConfig config:configs){
-            filter.addRootProcess(dist, config, profile);
+            filter.addRootProcess(dist, config, profile, instances);
           }
         }
       }
@@ -202,8 +202,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       filter.filterDependencies(deployer, this);
       for(ProcessRef fp:filter.getFilteredProcesses()){
         q.info("Scheduling execution of process: " + fp);
-        ProcessRef copy = new ProcessRef(fp.getDist(), fp.getProcessConfig(), fp.getProfile());
-        copy.setInstanceCount(instances);
+        ProcessRef copy = fp.getCopy();
         toStart.add(copy);
       }
       

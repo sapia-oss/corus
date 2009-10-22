@@ -14,6 +14,8 @@ public class MultiExecTask extends Task{
   
   private List<ProcessRef>  _processRefs;
   private StartupLock       _lock;
+  private ProcessRef        _current;
+  private int               _startedCount;
   
   public MultiExecTask(
       StartupLock lock,
@@ -28,27 +30,40 @@ public class MultiExecTask extends Task{
     Configurator configurator = ctx.getServerContext().getServices().lookup(Configurator.class);
     if(_lock.authorize()){
       Set<String> serverTags = configurator.getTags();
-      if(_processRefs.size() > 0){
-        ProcessRef processRef = _processRefs.remove(0);
-        ctx.info("Starting execution of process: " + processRef.toString());
-        Set<String> processTags = processRef.getDist().getTagSet();
-        processTags.addAll(processRef.getProcessConfig().getTagSet());
+      if(_processRefs.size() > 0 || _current != null){
+        if(_current == null){
+          _current = _processRefs.remove(0);
+          if(_current.isRoot()){
+            _startedCount = 0;
+          }
+          else{
+            _startedCount = processes.getProcessCountFor(_current);
+          }
+        }
+        ctx.info("Preparing execution of process: " + _current.toString() + "; started up to now: " + _startedCount + "; remaining: " + 
+            (_current.getInstanceCount() - _startedCount));
+        Set<String> processTags = _current.getDist().getTagSet();
+        processTags.addAll(_current.getProcessConfig().getTagSet());
         ctx.debug("Got server tags: " + serverTags);
         ctx.debug("Got process tags: " + processTags);
         if(processTags.size() > 0 && !serverTags.containsAll(processTags)){
           ctx.warn(
-              "Not executing: " + processRef.getProcessConfig().getName() + 
+              "Not executing: " + _current.getProcessConfig().getName() + 
               " - process tags: " + processTags + 
               " do not match server tags: " + serverTags);
         }
         else{
-          int instanceCount = processes.getProcessCountFor(processRef);
-          if(instanceCount < processRef.getInstanceCount()){
+          if(_startedCount < _current.getInstanceCount()){
             ctx.info("Executing process instance #" 
-                  + (instanceCount+1) + " of: " + processRef.getProcessConfig().getName() + " of distribution: " 
-                  + processRef.getDist().getName() + ", " + processRef.getDist().getVersion() + ", " + processRef.getProfile());
-            ExecTask exec = new ExecTask(processRef.getDist(), processRef.getProcessConfig(), processRef.getProfile());
+                  + (_startedCount+1) + " of " + _current.getInstanceCount() + ": " + _current.getProcessConfig().getName() + " of distribution: " 
+                  + _current.getDist().getName() + ", " + _current.getDist().getVersion() + ", " + _current.getProfile());
+            ExecTask exec = new ExecTask(_current.getDist(), _current.getProcessConfig(), _current.getProfile());
             ctx.getTaskManager().executeAndWait(exec);
+            _startedCount++;
+          }
+          else{
+            _current = null;
+            ctx.info("Execution of processes completed");
           }
         }
       }
@@ -56,12 +71,18 @@ public class MultiExecTask extends Task{
     else{
       ctx.debug("Not executing now; waiting for startup interval exhaustion");
     }
-    if(_processRefs.size() <= 0){
+    
+    if(_processRefs.size() == 0 && _current == null){
       ctx.debug("Completed starting processes");
       abort(ctx);
     }
     else{
-      ctx.debug("Still has these processes to start: " + _processRefs);
+      if(_current != null){
+        ctx.debug("Pending process instance to start: " + _current);
+      }
+      if(_processRefs.size() > 0){
+        ctx.debug("Still has these processes to start: " + _processRefs);
+      }
     }
     return null;
   }

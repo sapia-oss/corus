@@ -25,14 +25,14 @@ import org.sapia.corus.util.ProgressQueueImpl;
  */
 public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager, Remote{
   
-  private TaskManagerImpl _delegate; 
+  private InternalTaskManager _delegate; 
   private ProgressQueues _queues = new ProgressQueues();
 
   /**
    * @see org.sapia.soto.Service#init()
    */
   public void init() throws Exception {
-    _delegate = new TaskManagerImpl(logger(), serverContext());
+    _delegate = new InternalTaskManager(logger(), serverContext());
     serverContext().getServices().bind(TaskManager.class, this);
   }
 
