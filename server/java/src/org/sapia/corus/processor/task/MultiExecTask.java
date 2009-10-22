@@ -60,10 +60,15 @@ public class MultiExecTask extends Task{
             ExecTask exec = new ExecTask(_current.getDist(), _current.getProcessConfig(), _current.getProfile());
             ctx.getTaskManager().executeAndWait(exec);
             _startedCount++;
+            if(_startedCount >= _current.getInstanceCount()){
+              _current = null;
+              ctx.info("Process execution completed for: " + _current);
+
+            }
           }
           else{
             _current = null;
-            ctx.info("Execution of processes completed");
+            ctx.info("Process execution completed for: " + _current);
           }
         }
       }
