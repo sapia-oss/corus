@@ -70,11 +70,11 @@ public class ProcessDependencyFilter {
                       new StringArg(dist.getName()),
                       new StringArg(currentVersion), currentProfile,
                       new StringArg(dep.getProcess())).size() == 0) {
-                    ProcessRef ref = new ProcessRef(dist, depProcess, defaultProfile);
+                    ProcessRef ref = new ProcessRef(dist, depProcess, currentProfile);
                     DependencyGraphNode childNode = new DependencyGraphNode(ref);
                     if (parentNode.add(ref)) {
                       doFilterDependencies(childNode, defaultVersion,
-                          defaultProfile, deployer, processor);
+                          currentProfile, deployer, processor);
                     }
                   } else {
                     progress
@@ -84,7 +84,7 @@ public class ProcessDependencyFilter {
                   }
                 } else {
                   progress
-                      .warning("No profile found for dependency - distribution"
+                      .warning("Profile " + currentProfile + " not found for dependency - distribution"
                           + dist + ", process: " + depProcess);
                 }
               } else {
