@@ -2,12 +2,14 @@ package org.sapia.corus;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.UnknownHostException;
+import java.util.Calendar;
 import java.util.List;
 
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.admin.Corus;
+import org.sapia.corus.admin.CorusVersion;
 import org.sapia.corus.taskmanager.CorusTaskManager;
 import org.sapia.corus.util.ProgressMsg;
 import org.sapia.corus.util.ProgressQueue;
@@ -151,8 +153,12 @@ public class CorusMonitor {
   
   public static void display() {
     line();
+    
+    Calendar cal = Calendar.getInstance();
+    int year = cal.get(Calendar.YEAR);
+
     center("");
-    center("Corus Monitor");
+    center("Corus Monitor (" + CorusVersion.create().toString() + ")");
     center("");
     center("R E S T R I C T E D   A C C E S S");
     center("");
@@ -160,7 +166,7 @@ public class CorusMonitor {
     center("");
     center("Authorized Users Only");
     center("");
-    center("(c)2003 sapia-oss.org");
+    center("(c)2003-"+year+" sapia-oss.org");
     center("");
     line();
     System.out.println("");

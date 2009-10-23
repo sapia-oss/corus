@@ -13,18 +13,16 @@ import org.sapia.console.InputException;
 import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.admin.CorusFacade;
 import org.sapia.corus.admin.CorusFacadeImpl;
+import org.sapia.corus.admin.CorusVersion;
 import org.sapia.corus.exceptions.CorusException;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Localhost;
 
 
 /**
+ * This class is the entry point into the Corus command-line interface.
+ * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class CorusCli extends CommandConsole {
   public static final int    DEFAULT_PORT = 33000;
@@ -60,8 +58,11 @@ public class CorusCli extends CommandConsole {
     try {
       CmdLine cmd = CmdLine.parse(args);
 
-      //System.setProperty(Consts.LOG_LEVEL, "debug");      
-      if(cmd.containsOption("help", false)){
+      if(cmd.containsOption("ver", false)){
+        System.out.println("Corus client version: " + CorusVersion.create());
+        System.out.println("Java version: " + System.getProperty("java.version"));
+      }
+      else if(cmd.containsOption("help", false)){
         help();
       }
       else{
@@ -116,13 +117,20 @@ public class CorusCli extends CommandConsole {
     System.out.println("Corus client command-line syntax:");
     System.out.println();
     System.out.println("coruscli [-h <host>] [-p <port>]");
+    System.out.println("or");
+    System.out.println("coruscli -ver");
     System.out.println();
     System.out.println("where:");
-    System.out.println("  -h host of the corus server to which to connect");
-    System.out.println("     (defaults to local address).");
+    System.out.println("  -h    host of the corus server to which to connect");
+    System.out.println("        (defaults to local address).");
     System.out.println();
-    System.out.println("  -p specifies the port on which the corus server");
-    System.out.println("     listens (defaults to 33000).");
+    System.out.println("  -p    specifies the port on which the corus server");
+    System.out.println("        listens (defaults to 33000).");
+    System.out.println();
+    System.out.println("  -ver  indicates that the version of this command-line");
+    System.out.println("        is to be displayed in the terminal.");
+    System.out.println();
+    System.out.println("  -help displays this help.");
   }
 
   /*////////////////////////////////////////////////////////////////////
@@ -153,7 +161,7 @@ public class CorusCli extends CommandConsole {
       int year = cal.get(Calendar.YEAR);
       
       center(cons, "");
-      center(cons, "Corus Command Line Interface");
+      center(cons, "Corus Command Line Interface (" + CorusVersion.create().toString() + ")");
       center(cons, "");
       center(cons, "R E S T R I C T E D   A C C E S S");
       center(cons, "");

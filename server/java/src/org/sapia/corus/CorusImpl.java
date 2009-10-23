@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import org.apache.log.Hierarchy;
 import org.sapia.corus.admin.Corus;
+import org.sapia.corus.admin.CorusVersion;
 import org.sapia.corus.admin.services.naming.JndiModule;
 import org.sapia.corus.exceptions.CorusException;
 import org.sapia.corus.util.PropertyContainer;
@@ -23,21 +24,20 @@ import org.sapia.util.text.SystemContext;
  * provides a method to lookup any given module.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class CorusImpl implements Corus, RemoteContextProvider {
   private static SotoContainer  _cont;
-  private static CorusImpl _instance;
+  private static CorusImpl      _instance;
   private String                _domain;
 
   private CorusImpl(String domain) {
     _domain        = domain;
-    }
+  }
 
+  public String getVersion() {
+    return CorusVersion.create().toString();
+  }
+  
   public String getDomain() {
     return _domain;
   }

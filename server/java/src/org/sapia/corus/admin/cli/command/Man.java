@@ -42,6 +42,7 @@ public class Man extends CorusCliCommand{
     _commands.put("man", Man.class);
     _commands.put("status", Status.class);
     _commands.put("port", Port.class);
+    _commands.put("ver", Ver.class);
   }
   
   /**

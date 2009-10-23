@@ -10,6 +10,12 @@ import org.sapia.corus.exceptions.CorusException;
  */
 public interface Corus extends java.rmi.Remote {
 
+  
+  /**
+   * @return the version of the corus server.
+   */
+  public String getVersion();
+  
   /**
    * @return the domain of the Corus server.
    */

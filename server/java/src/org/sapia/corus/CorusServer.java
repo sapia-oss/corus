@@ -14,6 +14,7 @@ import org.apache.log.output.io.rotate.RotatingFileTarget;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.corus.admin.CorusVersion;
 import org.sapia.corus.event.EventDispatcher;
 import org.sapia.corus.exceptions.CorusException;
 import org.sapia.corus.log.CompositeTarget;
@@ -208,7 +209,7 @@ public class CorusServer {
       
       context.setServerAddress(addr);
       
-      System.out.println("Corus server started on: " + addr + ":" + port +
+      System.out.println("Corus server ("+CorusVersion.create()+") started on: " + addr + ":" + port +
         ", domain: " + domain);
       
       EventDispatcher dispatcher = context.lookup(EventDispatcher.class);

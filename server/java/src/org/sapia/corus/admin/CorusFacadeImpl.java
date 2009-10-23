@@ -61,7 +61,7 @@ public class CorusFacadeImpl implements CorusFacade {
   static final int             BUFSZ = 2048;
   static final long            RECONNECT_INTERVAL = 15000;
   protected long               _lastReconnect = System.currentTimeMillis();
-  protected Corus             _dyn;
+  protected Corus              _corus;
   protected ServerAddress      _addr;
   protected String             _domain;
   protected Map                _components    = new HashMap();
@@ -96,18 +96,23 @@ public class CorusFacadeImpl implements CorusFacade {
    */
   public synchronized void reconnect() throws CorusException {
     try {
-      _dyn = (Corus) Hub.connect(((TCPAddress) _addr).getHost(),
+      _corus = (Corus) Hub.connect(((TCPAddress) _addr).getHost(),
         ((TCPAddress) _addr).getPort());
-      _domain = _dyn.getDomain();
+      _domain = _corus.getDomain();
       _otherHosts.clear();
       _cachedStubs.clear();
       _components.clear();
       
-      ClusterManager mgr = (ClusterManager) _dyn.lookup(ClusterManager.ROLE);
+      ClusterManager mgr = (ClusterManager) _corus.lookup(ClusterManager.ROLE);
       _otherHosts.addAll(mgr.getHostAddresses());
     } catch (java.rmi.RemoteException e) {
       throw new CorusException(e);
     }
+  }
+  
+  public String getVersion() {
+    refresh();
+    return _corus.getVersion();
   }
   
   public synchronized ServerAddress getServerAddress() {
@@ -943,7 +948,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     if (toReturn == null) {
       try {
-        toReturn = _dyn.lookup(role);
+        toReturn = _corus.lookup(role);
       } catch (CorusException e) {
         throw new CorusRuntimeException(e);
       }

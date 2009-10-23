@@ -1,0 +1,11 @@
+<help>
+  <section title="Description">
+   <p>Displays the version of the server.</p>
+  </section>
+  <section title="Syntax">
+    <p>ver</p>
+  </section>
+  <section title="Note">
+    <p>This command takes no arguments</p>
+  </section>
+</help>

@@ -30,6 +30,12 @@ import org.sapia.ubik.net.ServerAddress;
  * @author Yanick Duchesne
  */
 public interface CorusFacade {
+  
+  /** 
+   * @return the server's version
+   */
+  public String getVersion();
+  
   /**
    * Returns the address of this instance's Corus server.
    *
