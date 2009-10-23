@@ -61,14 +61,13 @@ public class MultiExecTask extends Task{
             ctx.getTaskManager().executeAndWait(exec);
             _startedCount++;
             if(_startedCount >= _current.getInstanceCount()){
-              _current = null;
               ctx.info("Process execution completed for: " + _current);
-
+              _current = null;
             }
           }
           else{
-            _current = null;
             ctx.info("Process execution completed for: " + _current);
+            _current = null;
           }
         }
       }
