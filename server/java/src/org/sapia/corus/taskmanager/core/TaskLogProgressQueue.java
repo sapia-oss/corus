@@ -2,6 +2,11 @@ package org.sapia.corus.taskmanager.core;
 
 import org.sapia.corus.util.ProgressQueue;
 
+/**
+ * An instance of this class wraps a {@link ProgressQueue}, redirecting its output to it.
+ * @author yduchesne
+ *
+ */
 public class TaskLogProgressQueue implements TaskLog{
   
   private ProgressQueue progress;
