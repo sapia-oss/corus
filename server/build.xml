@@ -128,7 +128,27 @@
 
   <!-- Builds the distribution of this project -->
   <target name="dist">
-
+  	
+      <condition property="corus.version" value="${sapia.build.release.no}" else="undefined">
+        <and>
+          <isset property="sapia.build.release.no"/>
+        </and>
+      </condition>
+  	
+  	  <delete>
+	    <fileset dir="${project.classesDir}/org/sapia/corus">
+	      <include name="version.properties" />
+	  	</fileset>
+  	  </delete>
+	  <copy todir="${project.classesDir}/org/sapia/corus">
+	    <fileset dir="${basedir}/etc/build">
+	      <include name="version.properties" />
+	  	</fileset>
+	    <filterset>
+	      <filter token="VERSION" value="${corus.version}"/>
+	    </filterset>
+	  </copy>
+      
       <jar jarfile="${project.distributionDir}/${project.distributionName}.jar">
         <fileset dir="${project.classesDir}">
           <exclude name="**/CVS/*.*"/>
