@@ -23,8 +23,8 @@ public class Deploy extends CorusCliCommand {
     
     if(ctx.getCommandLine().isNextArg()){
       while(ctx.getCommandLine().hasNext()){
-        if(ctx.getCommandLine().isNextArg()){
-          CmdElement elem = ctx.getCommandLine().next();
+        CmdElement elem = ctx.getCommandLine().next();
+        if(elem instanceof Arg){
           deployDistribution(ctx, elem.getName());
         }
       }
