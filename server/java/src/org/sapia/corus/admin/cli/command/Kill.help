@@ -3,17 +3,19 @@
    <p>Terminates processes corresponding to a deployed distribution.</p>
   </section>
   <section title="Syntax">
-    <p>kill -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
+    <p>kill [-w] -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
     <p/>
     <p>OR</p>
     <p/>
-    <p>kill -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
+    <p>kill [-w] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
     <p/>
     <p>OR</p>
     <p/>
-    <p>kill -op os_pid [os_pid2 [os_pid3 [...]]]</p>
+    <p>kill [-w] -op os_pid [os_pid2 [os_pid3 [...]]]</p>
     <p/>
     <p>Where:</p>
+    <p/>
+    <p>- w: if specified, waits for process termination before given back control to user.</p>
     <p/>
     <p>- d: the name of the distribution for which to terminate processes.</p>
     <p/>

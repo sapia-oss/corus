@@ -3,7 +3,7 @@
    <p>Deploys a distribution or an execution configuration to a given Corus server.</p>
   </section>
   <section title="Syntax">
-    <p>deploy distribution_archive [-cluster]</p>
+    <p>deploy file [file2 [file3 [...]]] [-cluster]</p>
     <p/>
     <p>or:</p>
 	<p/>
@@ -11,7 +11,10 @@
     <p/>
     <p>Where:</p>
     <p/>
-    <p>- distribution_archive: the path to the distribution archive to deploy - either an absolute path, or a path relative to the directory from which the command-line console was started.</p>
+    <p>- file [file2 [file3 [...]]]: a single file, or a space-delimited list of files to deploy. 
+    If a file ends with the .xml extension, an execution configuration file is presumed - 
+    otherwise it is treated as a distribution archive. The files may consist of absolute paths 
+    or paths relative to the directory from which the command-line console was started.</p>
     <p/>
     <p>Note that this argument supports pattern matching: deploy *.zip, deploy dist/*.zip, etc.</p>
     <p/>

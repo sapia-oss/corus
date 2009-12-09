@@ -10,7 +10,6 @@ import org.sapia.console.Console;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
-import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.admin.CorusFacade;
 import org.sapia.corus.admin.CorusFacadeImpl;
 import org.sapia.corus.admin.CorusVersion;
@@ -31,7 +30,7 @@ public class CorusCli extends CommandConsole {
   protected CorusFacade     _corus;
 
   public CorusCli(CorusFacade corus) {
-    super(new ReflectCommandFactory().addPackage("org.sapia.corus.admin.cli.command"));
+    super(new CorusCommandFactory());
     super.setCommandListener(new CliConsoleListener());
     _corus = corus;
     
@@ -83,6 +82,7 @@ public class CorusCli extends CommandConsole {
         CorusFacade fac = new CorusFacadeImpl(host, port);
   
         CorusCli    cli = new CorusCli(fac);
+        
         cli.start();
       }
     } catch (InputException e) {
@@ -109,7 +109,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    return new CliContext(_corus);
+    return new CliContextImpl(_corus);
   }
 
   private static void help() {

@@ -21,21 +21,14 @@ import org.sapia.ubik.net.ServerAddress;
 
 /**
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class Status extends CorusCliCommand {
   private static final int COL_PID          = 0;
   private static final int COL_CONTEXT        = 1;
   private static final int COL_PARAM_NAME    = 2;
   private static final int COL_PARAM_VALUE   = 3;  
-  
-  /**
-   * @see CorusCliCommand#doExecute(CliContext)
-   */
+
+  @Override
   protected void doExecute(CliContext ctx)
                     throws AbortException, InputException {
     String  dist    = null;
@@ -118,9 +111,6 @@ public class Status extends CorusCliCommand {
   private void displayStatus(ProcStatus stat, CliContext ctx) {
     Table   procTable;
     Row     row;
-    List    vms;
-    Cell    cell;
-    Process vm;
 
     procTable = new Table(ctx.getConsole().out(), 4, 20);
     procTable.getTableMetaData().getColumnMetaDataAt(COL_PID).setWidth(15);
@@ -164,12 +154,9 @@ public class Status extends CorusCliCommand {
   }
 
   private void displayHeader(ServerAddress addr, CliContext ctx) {
-    Table   hostTable;
     Table   procTable;
     Row     row;
     Row     headers;
-    Cell    cell;
-    Process vm;
 
     procTable = new Table(ctx.getConsole().out(), 1, 78);
     procTable.drawLine('=');

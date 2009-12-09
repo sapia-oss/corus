@@ -18,7 +18,6 @@ import org.sapia.ubik.net.ServerAddress;
 
 public class Conf extends CorusCliCommand{
   
-  
   public static final String ARG_ADD = "add";
   public static final String ARG_DEL = "del";
   public static final String ARG_LS  = "ls";
@@ -40,8 +39,7 @@ public class Conf extends CorusCliCommand{
   }
   
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException{
     
     Op op = null;
     if(ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()){

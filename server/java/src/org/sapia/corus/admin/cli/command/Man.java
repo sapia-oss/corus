@@ -14,11 +14,6 @@ import org.sapia.corus.exceptions.CorusException;
 
 /**
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class Man extends CorusCliCommand{
   
@@ -35,7 +30,7 @@ public class Man extends CorusCliCommand{
     _commands.put("kill", Kill.class);
     _commands.put("ls", Ls.class);
     _commands.put("ps", Ps.class);
-    _commands.put("restart", Resume.class);
+    _commands.put("restart", Restart.class);
     _commands.put("resume", Resume.class);
     _commands.put("suspend", Suspend.class);
     _commands.put("undeploy", Undeploy.class);
@@ -44,12 +39,9 @@ public class Man extends CorusCliCommand{
     _commands.put("port", Port.class);
     _commands.put("ver", Ver.class);
   }
+
   
-  /**
-   * @see CorusCliCommand#doExecute(org.sapia.corus.admin.cli.CliContext)
-   */
-  protected void doExecute(CliContext ctx)
-  throws AbortException, InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     CmdLine cmd = ctx.getCommandLine();
     if(cmd.hasNext() && cmd.isNextArg()){
       Arg toDisplayHelp = cmd.assertNextArg();

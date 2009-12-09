@@ -11,8 +11,10 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.exceptions.LogicException;
 import org.sapia.corus.starter.Starter;
+import org.sapia.soto.util.TemplateContextMap;
 import org.sapia.util.text.MapContext;
 import org.sapia.util.text.SystemContext;
+import org.sapia.util.text.TemplateContextIF;
 import org.sapia.util.text.TemplateElementIF;
 import org.sapia.util.text.TemplateException;
 import org.sapia.util.text.TemplateFactory;
@@ -30,6 +32,7 @@ public class Java extends BaseJavaStarter {
   protected String _mainClass;
   protected String _args;
   protected String _mainArgs;
+  protected String _libDirs;
   
   public void setCorusHome(String home) {
     _corusHome = home;
@@ -56,6 +59,15 @@ public class Java extends BaseJavaStarter {
     _mainArgs = mainArgs;
   }
   
+  /**
+   * Sets the directories where libraries that should be part of
+   * the classpath are stored.
+   */
+  public void setLibDirs(String dirs) {
+    _libDirs = dirs;
+  }
+  
+  
   public CmdLine toCmdLine(Env env) throws LogicException {
     CmdLine cmd = new CmdLine();
     File javaHome = new File(_javaHome);
@@ -73,40 +85,57 @@ public class Java extends BaseJavaStarter {
     if (_mainClass == null) {
       throw new LogicException("'mainClass' not specified in corus.xml");
     }
+    
     Property prop = new Property();
     prop.setName(Starter.CORUS_JAVAPROC_MAIN_CLASS);
     prop.setValue(_mainClass);
     _vmProps.add(prop);
     
+    Map<String, String>  cmdLineVars = new HashMap<String, String>();
+    cmdLineVars.put("user.dir", env.getCommonDir());
+    MapContext      context = new MapContext(cmdLineVars, new SystemContext(), false);
+    
     for (int i = 0; i < _xoptions.size(); i++) {
-      cmd.addElement(((Param) _xoptions.get(i)).convert());
+      XOption opt = _xoptions.get(i);
+      String value = render(context, opt.getValue());
+      opt.setValue(value);
+      cmdLineVars.put(opt.getName(), value);
+      cmd.addElement(opt.convert());
     }
     
     for (int i = 0; i < _options.size(); i++) {
-      cmd.addElement(((Param) _options.get(i)).convert());
+      Option opt = _options.get(i);
+      String value = render(context, opt.getValue());
+      opt.setValue(value);
+      cmdLineVars.put(opt.getName(), value);
+      cmd.addElement(opt.convert());
     }
     
     for (int i = 0; i < _vmProps.size(); i++) {
-      cmd.addElement(((Param) _vmProps.get(i)).convert());
+      Property p = _vmProps.get(i);
+      String value = render(context, p.getValue());
+      p.setValue(value);
+      cmdLineVars.put(p.getName(), value);
+      cmd.addElement(p.convert());
     }
     
     Property[]      props = env.getProperties();
     
-    Map<String, String>             vars    = new HashMap<String, String>();
-    MapContext      context = new MapContext(vars, new SystemContext(), false);
+    Map<String, String>  envVars    = new HashMap<String, String>();
+    TemplateContextIF envContext = new MapContext(envVars, new SystemContext(), false);
     TemplateFactory fac     = new TemplateFactory();
     
     for (int i = 0; i < props.length; i++) {
-      vars.put(props[i].getName(), props[i].getValue());
-      cmd.addElement(props[i].convert());
+      envVars.put(props[i].getName(), props[i].getValue());
     }
+    envVars.putAll(cmdLineVars);
     
     String pathSep = System.getProperty("path.separator");
     String baseDir = System.getProperty("corus.home") == null ? System.getProperty("user.dir") : System.getProperty("corus.home");
     String starterLib  = baseDir + File.separator + "lib"  + File.separator + "sapia_corus_starter.jar";
     String starterDist = baseDir + File.separator + "dist" + File.separator + "sapia_corus_starter.jar";
     String starterCp = starterLib + pathSep + starterDist;
-    String classpath = starterCp + pathSep + getProcessCp(env.getCommonDir()) + pathSep + getMainCp();
+    String classpath = starterCp + pathSep + getProcessCp(env.getCommonDir(), envContext) + pathSep + getMainCp();
     
     try {
       TemplateElementIF template = fac.parse(classpath);
@@ -156,34 +185,62 @@ public class Java extends BaseJavaStarter {
     return buf.toString();
   }
   
-  private String getProcessCp(String processUserDir) {
+  private String getProcessCp(String processUserDir, TemplateContextIF env) throws LogicException{
     if(!new File(processUserDir).exists()){
       processUserDir = System.getProperty("user.dir");
     }
-    DirectoryScanner ds      = new DirectoryScanner();
-    String           basedir = processUserDir;
-    ds.setBasedir(basedir);
-    ds.setIncludes(new String[] { "lib/**/*.jar", "lib/**/*.zip" });
-    ds.scan();
     
-    String[]     jars = ds.getIncludedFiles();
-    Arrays.sort(jars);
-    
-    List<String> path = new ArrayList<String>();
-    // adding classes dir
-    path.add("classes"+File.separator);
-    for(String jar:jars){
-      path.add(jar);
+    String[] baseDirs;
+    if(_libDirs == null || _libDirs.trim().length() == 0){
+      baseDirs = new String[]{"lib"};
     }
-    StringBuffer buf = new StringBuffer();
-    
-    for (int i = 0; i < path.size(); i++) {
-      buf.append(basedir).append(File.separator).append(path.get(i));
-      if (i < (path.size() - 1)) {
-        buf.append(System.getProperty("path.separator"));
-      }
+    else{
+      baseDirs = _libDirs.split(",");
     }
 
-    return buf.toString();
+    StringBuffer buf = new StringBuffer();
+
+    for(String baseDir:baseDirs){
+      DirectoryScanner ds      = new DirectoryScanner();
+      String           currentDir = processUserDir;
+      ds.setBasedir(currentDir);
+      ds.setIncludes(new String[] { baseDir+"/**/*.jar", baseDir+"/**/*.zip" });
+      ds.scan();
+      
+      String[]     jars = ds.getIncludedFiles();
+      Arrays.sort(jars);
+      
+      List<String> path = new ArrayList<String>();
+      // adding classes dir
+      path.add("classes"+File.separator);
+      for(String jar:jars){
+        path.add(jar);
+      }
+      
+      for (int i = 0; i < path.size(); i++) {
+        buf.append(currentDir).append(File.separator).append(path.get(i));
+        if (i < (path.size() - 1)) {
+          buf.append(System.getProperty("path.separator"));
+        }
+      }
+    }
+    try{
+      TemplateElementIF template = new TemplateFactory().parse(buf.toString());
+      Map<String, String> values = new HashMap<String, String>();
+      values.put("user.dir", processUserDir);
+      MapContext vars = new MapContext(values, env, false);
+      return template.render(vars);
+    }catch(TemplateException e){
+      throw new LogicException("Could not render variables in classpath: " + buf.toString(), e);
+    }
+  }
+  
+  private String render(TemplateContextIF context, String value) throws LogicException{
+    TemplateFactory fac     = new TemplateFactory();
+    try{
+      return fac.parse(value).render(context);
+    }catch(TemplateException e){
+      throw new LogicException("Could not render " + value, e);
+    }
   }
 }

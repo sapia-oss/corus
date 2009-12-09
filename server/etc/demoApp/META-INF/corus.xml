@@ -14,6 +14,15 @@
       <xoption  name="ms" value="16M" />
     </java>
   </process>
+
+  <process name="noopAppV2" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.NoopApplication"
+          profile="prod">
+      <vmType>-server</vmType>
+      <xoption  name="ms" value="16M" />
+      <dependency dist="demo" version="1.0" process="noopApp" profile="test" />
+    </java>
+  </process>
   
   <process name="brokenApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.NotRespondingApplication"
