@@ -324,7 +324,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Deployer.class, "getDistributions",
-        new Object[] { name }, new Class[] { String.class }, cluster);
+        new Object[] { name }, new Class[] { Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -353,7 +353,7 @@ public class CorusFacadeImpl implements CorusFacade {
       if (cluster.isClustered() && (_otherHosts.size() > 0)) {
         applyToCluster(res, Deployer.class, "getDistributions",
           new Object[] { name, version },
-          new Class[] { String.class, String.class }, cluster);
+          new Class[] { Arg.class, Arg.class }, cluster);
       } else {
         res.complete();
       }
@@ -409,7 +409,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
-        new Object[] { distName }, new Class[] { String.class }, cluster);
+        new Object[] { distName }, new Class[] { Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -433,7 +433,7 @@ public class CorusFacadeImpl implements CorusFacade {
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
         new Object[] { distName, version },
-        new Class[] { String.class, String.class }, cluster);
+        new Class[] { Arg.class, Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -457,7 +457,7 @@ public class CorusFacadeImpl implements CorusFacade {
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
         new Object[] { distName, version, profile },
-        new Class[] { String.class, String.class, String.class }, cluster);
+        new Class[] { Arg.class, Arg.class, String.class }, cluster);
     } else {
       res.complete();
     }
@@ -483,7 +483,7 @@ public class CorusFacadeImpl implements CorusFacade {
       applyToCluster(res, Processor.class, "getProcesses",
         new Object[] { distName, version, profile, vmName },
         new Class[] {
-          String.class, String.class, String.class, String.class
+          Arg.class, Arg.class, String.class, Arg.class
         }, cluster);
     } else {
       res.complete();
@@ -535,7 +535,7 @@ public class CorusFacadeImpl implements CorusFacade {
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getStatus",
-        new Object[] { distName }, new Class[] { String.class }, cluster);
+        new Object[] { distName }, new Class[] { Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -559,7 +559,7 @@ public class CorusFacadeImpl implements CorusFacade {
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getStatus",
         new Object[] { distName, version },
-        new Class[] { String.class, String.class }, cluster);
+        new Class[] { Arg.class, Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -583,7 +583,7 @@ public class CorusFacadeImpl implements CorusFacade {
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getStatus",
         new Object[] { distName, version, profile },
-        new Class[] { String.class, String.class, String.class }, cluster);
+        new Class[] { Arg.class, Arg.class, String.class }, cluster);
     } else {
       res.complete();
     }
@@ -609,7 +609,7 @@ public class CorusFacadeImpl implements CorusFacade {
       applyToCluster(res, Processor.class, "getStatus",
         new Object[] { distName, version, profile, vmName },
         new Class[] {
-          String.class, String.class, String.class, String.class
+          Arg.class, Arg.class, String.class, Arg.class
         }, cluster);
     } else {
       res.complete();
