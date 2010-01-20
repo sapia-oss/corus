@@ -404,7 +404,8 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName)));
+    Arg distNameArg = ArgFactory.parse(distName);
+    lst.addAll(getProcessor().getProcesses(distNameArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -426,13 +427,15 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
-        ArgFactory.parse(version)));
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+    lst.addAll(getProcessor().getProcesses(distNameArg, 
+        versionArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
-        new Object[] { distName, version },
+        new Object[] { distNameArg, versionArg },
         new Class[] { Arg.class, Arg.class }, cluster);
     } else {
       res.complete();
@@ -450,13 +453,15 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), profile));
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+    lst.addAll(getProcessor().getProcesses(distNameArg, 
+        versionArg, profile));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
-        new Object[] { distName, version, profile },
+        new Object[] { distNameArg, versionArg, profile },
         new Class[] { Arg.class, Arg.class, String.class }, cluster);
     } else {
       res.complete();
@@ -475,13 +480,17 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getProcesses(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), profile, ArgFactory.parse(vmName)));
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+    Arg processArg = ArgFactory.parse(vmName);
+
+    lst.addAll(getProcessor().getProcesses(distNameArg, 
+        versionArg, profile, processArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getProcesses",
-        new Object[] { distName, version, profile, vmName },
+        new Object[] { distNameArg, versionArg, profile, processArg },
         new Class[] {
           Arg.class, Arg.class, String.class, Arg.class
         }, cluster);
@@ -530,12 +539,15 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName)));
+
+    Arg distNameArg = ArgFactory.parse(distName);
+
+    lst.addAll(getProcessor().getStatus(distNameArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getStatus",
-        new Object[] { distName }, new Class[] { Arg.class }, cluster);
+        new Object[] { distNameArg }, new Class[] { Arg.class }, cluster);
     } else {
       res.complete();
     }
@@ -552,13 +564,17 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
-        ArgFactory.parse(version)));
+    
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+
+    
+    lst.addAll(getProcessor().getStatus(distNameArg, versionArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
       applyToCluster(res, Processor.class, "getStatus",
-        new Object[] { distName, version },
+        new Object[] { distNameArg, versionArg },
         new Class[] { Arg.class, Arg.class }, cluster);
     } else {
       res.complete();
@@ -576,8 +592,11 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), profile));
+    
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+
+    lst.addAll(getProcessor().getStatus(distNameArg, versionArg, profile));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -601,8 +620,13 @@ public class CorusFacadeImpl implements CorusFacade {
     
     Results  res = new Results();
     HostList lst = new HostList(_addr);
-    lst.addAll(getProcessor().getStatus(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), profile, ArgFactory.parse(vmName)));
+    
+    Arg distNameArg = ArgFactory.parse(distName);
+    Arg versionArg = ArgFactory.parse(version);
+    Arg processArg = ArgFactory.parse(vmName);
+
+    lst.addAll(getProcessor().getStatus(distNameArg, 
+        versionArg, profile, processArg));
     res.addResult(lst);
     
     if (cluster.isClustered() && (_otherHosts.size() > 0)) {
@@ -1017,6 +1041,7 @@ public class CorusFacadeImpl implements CorusFacade {
             module = dyn.lookup(moduleInterface.getName());
             
             Method m = module.getClass().getMethod(methodName, sig);
+            
             result = m.invoke(module, params);
             
             if (result instanceof Collection) {
