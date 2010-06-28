@@ -1,0 +1,228 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Server</name>
+  <description>The Corus client API</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_client</artifactId>
+  <version>2.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <organization>
+    <name>Sapia OSS</name>
+    <url>http://www.sapia-oss.org</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>yduchesne</id>
+      <name>Yanick Duchesne</name>
+      <email>yd@sapia-oss.org</email>
+      <url>http://www.sapia-oss.org</url>
+      <organization>Sapia</organization>
+      <organizationUrl>http://www.sapia-oss.org</organizationUrl>
+      <roles>
+        <role>architect</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>jcdesrochers</id>
+      <name>Jean-Cedric Desrochers</name>
+      <email>jc@sapia-oss.org</email>
+      <url>http://www.sapia-oss.org</url>
+      <organization>Sapia</organization>
+      <organizationUrl>http://www.sapia-oss.org</organizationUrl>
+      <roles>
+        <role>architect</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:svn:http://sapia.googlecode.com/svn/branches/corus/modules/client</connection>
+    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/branches/corus/modules/client</developerConnection>
+    <url>scm:svn:https://sapia.googlecode.com/svn/branches/corus/modules/client</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.7</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.8</version>
+    </dependency>
+
+    <dependency>
+        <groupId>piccolo</groupId>
+        <artifactId>piccolo</artifactId>
+        <version>1.0.3</version>
+    </dependency>
+
+    <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.3</version>
+    </dependency>
+
+    <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring</artifactId>
+        <version>2.5.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_iop</artifactId>
+      <classifier>api</classifier>
+      <version>2.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik</artifactId>
+      <version>2.5.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_console</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_utils</artifactId>
+      <version>1.7</version>
+    </dependency>
+
+  </dependencies>
+
+  <distributionManagement>
+    <repository>
+      <id>java.net-m2-repository</id>
+      <url>java-net:/maven2-repository/trunk/repository</url>
+    </repository>
+  </distributionManagement>
+
+  <build>
+    <finalName>${artifactId}-${version}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+	        <source>1.6</source>
+	        <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagBase>https://sapia.googlecode.com/svn/branches/corus/modules/client</tagBase>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/Test*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <configuration>
+              <tasks>
+						    <copy todir="${project.build.outputDirectory}/org/sapia/corus">
+						      <fileset dir="${basedir}/etc/build">
+						        <include name="version.properties" />
+						      </fileset>
+						      <filterset>
+						        <filter token="VERSION" value="${project.version}"/>
+						      </filterset>
+						    </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+    <!--extensions>
+      <extension>
+        <groupId>org.jvnet.wagon-svn</groupId>
+        <artifactId>wagon-svn</artifactId>
+        <version>1.9</version>
+      </extension>
+    </extensions-->
+
+  </build>
+
+ <!--profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.0-alpha-4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles-->
+  
+
+</project>
