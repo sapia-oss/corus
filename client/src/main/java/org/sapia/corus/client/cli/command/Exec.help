@@ -1,0 +1,45 @@
+<help>
+  <section title="Description">
+   <p>Executes processes "from" a deployed distribution, or processes corresponding to a given 
+   execution configuration</p>
+  </section>
+  <section title="Syntax">
+    <p>exec -d distribution_name -v version -p profile [-n process_name] [-i instances] [-cluster]</p>
+    <p/>
+    <p>or:</p>
+    <p/>
+    <p>exec -e exec_config_name [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- d: the name (or name pattern) of the distribution for which to start processes.</p>
+    <p/>
+    <p>- v: the version (or version pattern) of the distribution for which to start processes.</p>
+    <p/>
+    <p>- p: the profile under which to start the process(es).</p>
+    <p/>
+    <p>- n: the name (or name pattern) of the process configurations for which processes should be started.</p>
+    <p/>
+    <p>- i: the number of processes to start.</p>
+    <p/>    
+    <p>- e: the name of the execution configuration whose corresponding processes should be started.</p>
+    <p/>    
+    <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
+  </section>
+  <section title="Notes">
+    <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
+    <p/>
+    <p>- The -n option must be specified in cases where process configurations have their "invoke" attribute set to "true" (in the corus.xml file). This requires the name of the process configuration to be given in order for a process to be executed for it.</p>
+    <p/>    
+    <p>- The -i option is the number of processes to start per-process configuration. If it is not specified, 1 process per process configuration is started.</p>
+  </section>
+  <section title="Examples">
+    <p>exec -d myapp -v 1.0 -n jetty -p qa</p>
+    <p/>
+    <p>exec -d myapp -v 1.* -n * -p qa</p>
+    <p/>    
+    <p>exec -d * -v * -n * -p qa</p>
+    <p/>    
+    <p>exec -e myExecConfig</p>
+  </section>  
+</help>

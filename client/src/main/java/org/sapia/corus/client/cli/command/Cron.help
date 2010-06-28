@@ -1,0 +1,29 @@
+<help>
+  <section title="Description">
+   <p>Analogous to Unix "cron"; allows add new scheduled processes, delete current schedules, or view information about them.</p>
+  </section>
+  <section title="Syntax">
+    <p>The cron syntax takes a first argument that specifies what action perform (add, list, delete):</p>
+    <p/>
+    <p>cron add</p>
+    <p/>
+    <p>OR</p>    
+    <p/>
+    <p>cron list [-cluster]</p>
+    <p/>
+    <p>OR</p>    
+    <p/>
+    <p>cron delete -i cron_identifier</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- i : the identifier of a scheduled process.</p>
+    <p/>
+    <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Notes">
+    <p>- The "add" action triggers a wizard that helps in providing the information necessary to schedule processes.</p>
+    <p/>
+    <p>- A scheduled process cannot be configured cluster-wide. Schedules are defined on a per-Corus server basis.</p>    
+  </section>
+</help>

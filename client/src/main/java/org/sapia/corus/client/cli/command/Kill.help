@@ -1,0 +1,50 @@
+<help>
+  <section title="Description">
+   <p>Terminates processes corresponding to a deployed distribution.</p>
+  </section>
+  <section title="Syntax">
+    <p>kill [-w] -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
+    <p/>
+    <p>OR</p>
+    <p/>
+    <p>kill [-w] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
+    <p/>
+    <p>OR</p>
+    <p/>
+    <p>kill [-w] -op os_pid [os_pid2 [os_pid3 [...]]]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- w: if specified, waits for process termination before given back control to user.</p>
+    <p/>
+    <p>- d: the name of the distribution for which to terminate processes.</p>
+    <p/>
+    <p>- v: the version of the distribution for which to terminate processes.</p>
+    <p/>
+    <p>- p: the profile for which to terminate the process(es).</p>
+    <p/>
+    <p>- n: the name of the process configurations for which processes should be terminated.</p>
+    <p/>
+    <p>- i: the Corus specific identifier of the process to terminate.</p>
+    <p/>
+    <p>- op: the Operating System specific identifier of the process to terminate.</p>
+    <p/>
+    <p>- cluster: if specified, the operation will be performed cluster-wide.</p>
+  </section>
+  <section title="Notes">
+    <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
+    <p/>
+    <p>- When used with the -i or -op option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
+  </section>
+  <section title="Examples">
+    <p>kill -d myapp -v 1.0 -n jetty -p qa</p>
+    <p/>
+    <p>kill -d myapp -v 1.* -n * -p qa</p>
+    <p/>    
+    <p>kill -d * -v * -n * -p qa</p>
+    <p/>    
+    <p>kill -d * -v *</p>
+    <p/>    
+    <p>kill -op 22989 23101 23116</p>
+  </section>    
+</help>

@@ -1,0 +1,31 @@
+<help>
+  <section title="Description">
+   <p>Deploys a distribution or an execution configuration to a given Corus server.</p>
+  </section>
+  <section title="Syntax">
+    <p>deploy file [file2 [file3 [...]]] [-cluster]</p>
+    <p/>
+    <p>or:</p>
+	<p/>
+    <p>deploy -e exec_config_file [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- file [file2 [file3 [...]]]: a single file, or a space-delimited list of files to deploy. 
+    If a file ends with the .xml extension, an execution configuration file is presumed - 
+    otherwise it is treated as a distribution archive. The files may consist of absolute paths 
+    or paths relative to the directory from which the command-line console was started.</p>
+    <p/>
+    <p>Note that this argument supports pattern matching: deploy *.zip, deploy dist/*.zip, etc.</p>
+    <p/>
+    <p>- e: the path to an execution configuration file.</p>
+    <p/>
+    <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Examples">
+    <p>deploy myDistribution.zip</p>
+    <p/>
+    <p>deploy -e myExecConfig.xml</p>
+    <p/>    
+  </section>
+</help>
