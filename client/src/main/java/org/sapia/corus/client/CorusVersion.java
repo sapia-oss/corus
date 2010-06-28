@@ -23,6 +23,10 @@ public class CorusVersion {
   public String toString(){
     return ver;
   }
+ 
+  public static void main(String[] args) {
+    System.out.println("Corus version: " + CorusVersion.create());
+  }
   
   public static CorusVersion create(){
     InputStream is = Thread.currentThread()
