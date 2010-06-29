@@ -100,10 +100,9 @@ public class ZipUtils {
   static byte[] readBytes(ZipInputStream is, int capacity, int increment)
                    throws IOException {
     //ZipEntry  entry;
-    ArrayList entryBytes = new ArrayList(capacity);
+    ArrayList<ByteWrapper> entryBytes = new ArrayList<ByteWrapper>(capacity);
     byte[]    current = new byte[increment];
 
-    int       totalBytes  = 0;
     int       currentRead = 0;
 
     while (is.available() > 0) {

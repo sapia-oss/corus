@@ -13,12 +13,8 @@ import org.sapia.corus.interop.Status;
  * This interface specifies remote process administration behavior.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
+
 public interface Processor extends java.rmi.Remote, Module {
   String ROLE = Processor.class.getName();
 
@@ -33,7 +29,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * should be started.
    * @param the number of process(es) to start.
    *
-   * @return a <code>ProgressQueue</code>.
+   * @return a {@link ProgressQueue}
    */
   public ProgressQueue exec(Arg distName, Arg version, String profile,
                             int instances);
@@ -49,9 +45,9 @@ public interface Processor extends java.rmi.Remote, Module {
    * should be started.
    * @param processName the name of the process configuration for which new process(es)
    * should be started.
-   * @param the number of process(es) to start.
+   * @param instances the number of process(es) to start.
    *
-   * @return a <code>ProgressQueue</code>.
+   * @return a {@link ProgressQueue}.
    */
   public ProgressQueue exec(Arg distName, Arg version, String profile,
                             Arg processName, int instances);
@@ -67,7 +63,7 @@ public interface Processor extends java.rmi.Remote, Module {
   /**
    * Resumes all suspended processes.
    *
-   * @return a <code>ProgressQueue</code>.
+   * @return a {@link ProgressQueue}.
    */
   public ProgressQueue resume();
 
@@ -93,7 +89,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * running processes.
    * @param profile the name of the profile for which to kill the running process(es).
    *
-   * @return a <code>ProgressQueue</code>.
+   * @return a {@link ProgressQueue}.
    */
   public void kill(Arg distName, Arg version, String profile,
                    boolean suspend);
@@ -102,13 +98,13 @@ public interface Processor extends java.rmi.Remote, Module {
    * Kill the process(es) corresponding to the passed in parameters.
    *
    * @param distName the name of the distribution for which to kill
-   * running VMs.
+   * running processes.
    * @param version the version of the distribution for which to kill
-   * running VMs.
+   * running processes.
    * @param profile the name of the profile for which to kill the running process(es).
    * @param processName the name of the process configuration for which to kill the running process(es).
    *
-   * @return a <code>ProgressQueue</code>.
+   * @return a {@link ProgressQueue}.
    */
   public void kill(Arg distName, Arg version, String profile,
                    Arg processName, boolean suspend);
@@ -121,17 +117,17 @@ public interface Processor extends java.rmi.Remote, Module {
   public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException;
 
   /**
-   * Return the process whose identifier is given..
+   * Return the process whose identifier is given.
    *
    * @param corusPid a process identifier.
-   * @return a <code>Process</code> instance.
+   * @return a {@link Process} instance.
    */
   public Process getProcess(String corusPid) throws ProcessNotFoundException;
 
   /**
-   * Returns all process objects.
+   * Returns all process objects held by this instance.
    *
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */
   public List<Process> getProcesses();
 
@@ -139,7 +135,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * Returns all processes corresponding to the given parameters.
    *
    * @param distName the name of the distribution for which to return processes.
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */
   public List<Process> getProcesses(Arg distName);
 
@@ -148,7 +144,7 @@ public interface Processor extends java.rmi.Remote, Module {
    *
    * @param distName the name of the distribution for which to return processes.
    * @param version the version of the distribution for which to return processes.
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */
   public List<Process> getProcesses(Arg distName, Arg version);
 
@@ -158,7 +154,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param distName the name of the distribution for which to return processes.
    * @param version the version of the distribution for which to return processes.
    * @param profile the profile for which to return processes.
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */
   public List<Process> getProcesses(Arg distName, Arg version, String profile);
 
@@ -169,7 +165,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param version the version of the distribution for which to return processes.
    * @param profile the profile for which to return VM processes.
    * @param processName the name of the process for which to return process instances.
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */
   public List<Process> getProcesses(Arg distName, Arg version, String profile,
       Arg processName);
@@ -185,7 +181,7 @@ public interface Processor extends java.rmi.Remote, Module {
   /**
    * Returns the status for all processes.
    *
-   * @return a <code>List</code> of <code>Status</code> instances.
+   * @return a {@link List} of {@link Status} instances.
    */
   public List<Status> getStatus();
 
@@ -193,7 +189,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * Returns the status of all processes corresponding to the given parameters.
    *
    * @param distName the name of the distribution for which process should have their status returned.
-   * @return a <code>List</code> of <code>Status</code> instances.
+   * @return a {@link List} of {@link Status} instances.
    */
   public List<Status> getStatus(Arg distName);
 
@@ -202,7 +198,7 @@ public interface Processor extends java.rmi.Remote, Module {
    *
    * @param distName the name of the distribution for which to return process status.
    * @param version the version of the distribution for which to return process status.
-   * @return a <code>List</code> of <code>Status</code> instances.
+   * @return a {@link List} of {@link Status} instances.
    */
   public List<Status> getStatus(Arg distName, Arg version);
 
@@ -212,7 +208,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param distName the name of the distribution for which to return process status.
    * @param version the version of the distribution for which to return process status.
    * @param profile the profile for which to return process status.
-   * @return a <code>List</code> of <code>Status</code> instances.
+   * @return a {@link List} of {@link Status} instances.
    */
   public List<Status> getStatus(Arg distName, Arg version, String profile);
 
@@ -223,7 +219,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param version the version of the distribution for which to return process status.
    * @param profile the profile for which to return process status.
    * @param processName the name of the process for which to return process status.
-   * @return a <code>List</code> of <code>Status</code> instances.
+   * @return a {@link List} of {@link Status} instances.
    */
   public List<Status> getStatus(Arg distName, Arg version, String profile,
       Arg processName);
@@ -231,7 +227,7 @@ public interface Processor extends java.rmi.Remote, Module {
   /**
    * Returns all processes that have acquired one or more ports.
    *
-   * @return a <code>List</code> of <code>Process</code> instances.
+   * @return a {@link List} of {@link Process} instances.
    */  
   public List<Process> getProcessesWithPorts();
   
@@ -252,7 +248,7 @@ public interface Processor extends java.rmi.Remote, Module {
   public void removeExecConfig(Arg name);
   
   /**
-   * @return this instance'S {@link ProcessorConfigurationImpl}
+   * @return this instance's {@link ProcessorConfiguration}
    */
   public ProcessorConfiguration getConfiguration();
 }

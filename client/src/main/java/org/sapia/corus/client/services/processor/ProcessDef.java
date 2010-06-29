@@ -2,6 +2,14 @@ package org.sapia.corus.client.services.processor;
 
 import java.io.Serializable;
 
+/**
+ * A {@link ProcessDef} is held within an {@link ExecConfig}.
+ * 
+ * @see ExecConfig#getProcesses()
+ * 
+ * @author yduchesne
+ *
+ */
 public class ProcessDef implements Serializable{
   
   static final long serialVersionUID = 1L;

@@ -7,6 +7,7 @@ import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
+import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
 import org.sapia.corus.interop.Shutdown;
@@ -17,7 +18,7 @@ import org.sapia.corus.interop.Shutdown;
  *
  * @author Yanick Duchesne
  */
-public class Process implements java.io.Serializable {
+public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable {
 
   static final long serialVersionUID = 1L;
   
@@ -80,7 +81,7 @@ public class Process implements java.io.Serializable {
   private String             _processDir;
   private String             _pid;
   private boolean            _deleteOnKill                 = false;
-  private transient Object   _lockOwner;
+  private LockOwner          _lockOwner;
   private long               _creationTime                 = System.currentTimeMillis();
   private long               _lastAccess                   = System.currentTimeMillis();
   private int                _shutdownTimeout              = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
@@ -92,6 +93,7 @@ public class Process implements java.io.Serializable {
 
   
   Process(){}
+  
   /**
    * Creates an instance of this class.
    *
@@ -138,6 +140,12 @@ public class Process implements java.io.Serializable {
     this(info);
     _shutdownTimeout = shutDownTimeoutSeconds;
     _maxKillRetry    = maxKillRetry;
+  }
+  
+  @Override
+  @Transient
+  public String getKey() {
+    return _processID;
   }
   
   /**
@@ -380,12 +388,20 @@ public class Process implements java.io.Serializable {
    * @param leaser the object that attempts to obtain the lock on this instance.
    * @throws ProcessLockException if this instance is already locked by another object.
    */
-  public synchronized void acquireLock(Object leaser) throws ProcessLockException {
-    if ((_lockOwner != null) && (_lockOwner != leaser)) {
+  public synchronized void acquireLock(LockOwner leaser) throws ProcessLockException {
+    if ((_lockOwner != null) && (!_lockOwner.equals(leaser))) {
       throw new ProcessLockException("Process is currently locked - probably in shutdown; try again");
     }
 
     _lockOwner = leaser;
+  }
+  
+  public static LockOwner createLockOwner(){
+    return new LockOwner();
+  }
+  
+  LockOwner getLock(){
+    return _lockOwner;
   }
    
   /**

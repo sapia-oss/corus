@@ -14,14 +14,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
+import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 
 
 /**
  *
  * @author yduchesne
  */
-public class PortRange implements java.io.Serializable{
+public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable{
   
   static final long serialVersionUID = 1L;
   
@@ -31,6 +33,12 @@ public class PortRange implements java.io.Serializable{
   private List<Integer> _active = new ArrayList<Integer>();
   
   PortRange(){}
+  
+  @Override
+  @Transient
+  public String getKey() {
+    return _name;
+  }
   
   /** Creates a new instance of PortRange */
   public PortRange(String name, int min, int max) throws PortRangeInvalidException{

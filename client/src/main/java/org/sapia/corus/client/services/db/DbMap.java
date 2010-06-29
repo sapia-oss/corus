@@ -28,6 +28,15 @@ public interface DbMap<K, V> {
    * @param value the value to persist.
    */
   public void put(K key, V value);
+  
+  /**
+   * Refreshes the given value: assigns to it the state that is
+   * currently persisted in this instance.
+   * 
+   * @param key the key of the passed in value.
+   * @param value the value whose state is to be refreshed.
+   */
+  public void refresh(K key, V value);
 
   /**
    * Removes the object that corresponds to the given key.

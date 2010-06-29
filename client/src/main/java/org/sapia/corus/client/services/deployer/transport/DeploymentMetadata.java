@@ -3,30 +3,27 @@ package org.sapia.corus.client.services.deployer.transport;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.VmId;
 
 /**
  * Models meta-information about a given deployment.
  * 
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class DeploymentMetadata implements java.io.Serializable{
 	
+  static final long serialVersionUID = 1L;
+  
 	private VmId _origin = VmId.getInstance();
 	
-	private Set _visited = new HashSet();
-	private Set _targets;
+	private Set<ServerAddress> _visited = new HashSet<ServerAddress>();
+	private Set<ServerAddress> _targets;
 	private String _fileName;
 	private long _contentLen;
 	private boolean _clustered;
 	
-	public DeploymentMetadata(String fileName, long contentLen, Set targets, boolean clustered){
+	public DeploymentMetadata(String fileName, long contentLen, Set<ServerAddress> targets, boolean clustered){
 		_targets = targets;
 		_fileName = fileName;
 		_contentLen = contentLen;
@@ -63,7 +60,7 @@ public class DeploymentMetadata implements java.io.Serializable{
 	 * @return a <code>Set</code> of <code>ServerAddress</code>, or
 	 * <code>null</code> if no targets were specified.
 	 */
-	public Set getTargets(){
+	public Set<ServerAddress> getTargets(){
 		return _targets;
 	}
 	
@@ -72,7 +69,7 @@ public class DeploymentMetadata implements java.io.Serializable{
 	 *  
 	 * @return a <code>Set</code> of <code>ServerAddress</code> instances.
 	 */
-	public Set getVisited(){
+	public Set<ServerAddress> getVisited(){
 		return _visited;
 	}
 	

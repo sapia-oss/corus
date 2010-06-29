@@ -7,14 +7,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.util.xml.ProcessingException;
 import org.sapia.util.xml.confix.Dom4jProcessor;
 import org.sapia.util.xml.confix.ReflectionFactory;
 
-
-public class ExecConfig implements Serializable{
+/**
+ * An instance of this class corresponts to a so-called "execution configuration". An
+ * execution configuration holds "process definitions", each defining a process to be
+ * executed. A process definition refers to a process configured as part of a distribution
+ * deployed in Corus.
+ * 
+ * @see Distribution
+ * 
+ * @author yduchesne
+ *
+ */
+public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable{
   
   static final long serialVersionUID = 1L;
   
@@ -22,6 +34,17 @@ public class ExecConfig implements Serializable{
   private String name, profile;
   private boolean startOnBoot;
   
+  
+  @Override
+  @Transient
+  public String getKey() {
+    return name;
+  }
+  
+  /**
+   * @return the name of the process to start.
+   * @see ProcessConfig#getName()
+   */
   public String getName() {
     return name;
   }
@@ -30,6 +53,12 @@ public class ExecConfig implements Serializable{
     this.name = name;
   }
   
+  /**
+   * @return the profile under which the process should
+   * be started. If <code>null</code>, the Corus server will
+   * interpret the profile as corresponding to the one of the depending process,
+   * if such a dependency is configured.
+   */
   public String getProfile() {
     return profile;
   }
@@ -38,6 +67,9 @@ public class ExecConfig implements Serializable{
     this.profile = profile;
   }
   
+  /**
+   * @return <code>true</code> if the process is to be started at Corus startup.
+   */
   public boolean isStartOnBoot() {
     return startOnBoot;
   }
@@ -52,10 +84,22 @@ public class ExecConfig implements Serializable{
     return proc;
   }
   
+  /**
+   * @return the unmodifiable {@link List} of {@link ProcessDef}s that this
+   * instance holds.
+   */
   public List<ProcessDef> getProcesses() {
     return Collections.unmodifiableList(processes);
   }
   
+  /**
+   * @param is an {@link InputStream} holding the XML data corresponding
+   * to an execution configuration.
+   * @return the {@link ExecConfig} instance that was built using the given
+   * data.
+   * @throws IOException if an IO problem occurs.
+   * @throws ProcessingException if an XML-processing problem occurs.
+   */
   public static ExecConfig newInstance(InputStream is) 
     throws IOException, ProcessingException{
     try{
@@ -69,6 +113,12 @@ public class ExecConfig implements Serializable{
     }
   }
   
+  /**
+   * Removes all process definitions that this instance holds, and which correspond to
+   * the given distribution.
+   * 
+   * @param d a {@link Distribution}
+   */
   public void removeAll(Distribution d){
     List<ProcessDef> toRemove = new ArrayList<ProcessDef>();
     for(ProcessConfig pc : d.getProcesses()){

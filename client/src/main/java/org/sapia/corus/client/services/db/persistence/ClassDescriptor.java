@@ -1,5 +1,6 @@
 package org.sapia.corus.client.services.db.persistence;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -7,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.sapia.corus.client.annotations.Transient;
@@ -115,34 +119,43 @@ public class ClassDescriptor<T> {
           String.format("No-args constructor access problem for %s (make sure class has one)", type.getName()), e);
     }
 
-    List<AccessorInfo> accessors = new ArrayList<AccessorInfo>();
-    
+    Set<AccessorInfo> accessors = new TreeSet<AccessorInfo>();
+    Set<AccessorInfo> transientAccessors = new TreeSet<AccessorInfo>();
     for(Method m:type.getMethods()){
       if(m.getParameterTypes().length == 0 && 
          !m.getReturnType().equals(void.class) &&
          !m.getDeclaringClass().equals(Object.class)){
-        if(m.isAnnotationPresent(Transient.class)){
-          continue;
-        }
-        else if(m.getName().startsWith(GET_PREFIX)){
+        if(m.getName().startsWith(GET_PREFIX)){
           AccessorInfo ai = new AccessorInfo();
           ai.accessor = m;
           ai.name = m.getName().substring(GET_PREFIX.length());
-          accessors.add(ai);
+          if(m.isAnnotationPresent(Transient.class)){
+            transientAccessors.add(ai);
+          }
+          else if(!transientAccessors.contains(ai)){
+            accessors.add(ai);
+          }
         }
         else if(m.getName().startsWith(IS_PREFIX)){
           AccessorInfo ai = new AccessorInfo();
           ai.accessor = m;
           ai.name = m.getName().substring(IS_PREFIX.length());
-          accessors.add(ai);
+          if(m.isAnnotationPresent(Transient.class)){
+            transientAccessors.add(ai);
+          }
+          else if(!transientAccessors.contains(ai)){
+            accessors.add(ai);
+          }
         }
         else{
           continue;
         }
       }
     }
-
-    Collections.sort(accessors);
+    
+    List<AccessorInfo> sortedAccessors = new ArrayList<AccessorInfo>(accessors);
+    
+    Collections.sort(sortedAccessors);
     
     int i = 0;
     for(AccessorInfo ai:accessors){
@@ -203,6 +216,28 @@ public class ClassDescriptor<T> {
     @Override
     public int compareTo(AccessorInfo o) {
       return name.compareTo(o.name);
+    }
+  }
+  
+  
+  private boolean isTransient(Method m) {
+    Transient result = m.getAnnotation(Transient.class);
+    if(result != null){
+      return true;
+    }
+    else{
+      Class<?> parent = m.getDeclaringClass().getSuperclass();
+      if (parent != null) {
+        try{
+          Method superMethod = parent.getDeclaredMethod(m.getName(), m.getParameterTypes());
+          return isTransient(superMethod);
+        }catch(NoSuchMethodException e){
+          return false;
+        }
+      }
+      else{
+        return false;
+      }
     }
   }
 }
