@@ -94,7 +94,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   }
 
   private String getAsCp(Env env) {
-    String           basedir = _corusHome + File.separator + "magnetlib";
+    String           basedir = _corusHome + File.separator + "lib" + File.separator + "magnet";
     PathFilter filter = env.createPathFilter(basedir);
     filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
     
@@ -113,7 +113,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   }
 
   private String getMainCp(Env env) {
-    String           basedir = _corusHome + File.separator + "vm-boot-lib";
+    String           basedir = _corusHome + File.separator + "lib" + File.separator + "vm-boot";
     PathFilter filter = env.createPathFilter(basedir);
     filter.setIncludes(new String[] { "**/*.jar" });
     

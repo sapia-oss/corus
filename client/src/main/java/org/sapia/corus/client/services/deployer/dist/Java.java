@@ -154,7 +154,7 @@ public class Java extends BaseJavaStarter {
   }
   
   private String getMainCp(Env env) {
-    String           basedir = (_corusHome == null ? System.getProperty("user.dir") : _corusHome) + File.separator + "vm-boot-lib";
+    String           basedir = (_corusHome == null ? System.getProperty("user.dir") : _corusHome) + File.separator + "lib" + File.separator + "vm-boot";
     PathFilter filter = env.createPathFilter(basedir);
     filter.setIncludes(new String[] { "**/*.jar" });
     String[] jars = filter.filter();
