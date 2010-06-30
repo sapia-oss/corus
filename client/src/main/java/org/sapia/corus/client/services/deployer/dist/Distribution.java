@@ -12,6 +12,7 @@ import java.util.Set;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ZipUtils;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
+import org.sapia.corus.client.services.processor.Process;
 import org.sapia.util.xml.ProcessingException;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.Dom4jProcessor;
@@ -25,7 +26,7 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  *
  * @author Yanick Duchesne
  */
-public class Distribution implements java.io.Serializable, ObjectCreationCallback{
+public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>{
   
   static final long serialVersionUID = 1L;
 
@@ -102,7 +103,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   /**
    * Adds a process configuration to this distribution.
    *
-   * @param a <code>Process</code> instance, representing a process configuration.
+   * @param a {@link Process} instance, representing a process configuration.
    */
   public void addProcess(ProcessConfig conf) {
     _processConfigs.add(conf);
@@ -111,8 +112,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   /**
    * Returns the process configurations of this distribution.
    *
-   * @return the <code>List</code> of <code>Vm</code>
-   * instances in this distribution.
+   * @return the list of {@link ProcessConfig} instances that this
+   * distribution holds.
    */
   public List<ProcessConfig> getProcesses() {
     return _processConfigs;
@@ -138,7 +139,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * Returns the <code>ProcessConfig</code> that corresponds to the given name.
    * 
    * @param name the name of a process configuration to test for.
-   * @return the <code>ProcessConfig</code> that corresponds to the given name,
+   * @return the {@link ProcessConfig} that corresponds to the given name,
    * or <code>null</code> if none could be found.
    */  
   public ProcessConfig getProcess(String name) {
@@ -150,6 +151,10 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     return null;
   }
   
+  /**
+   * @param name an {@link Arg} corresponding to the process name to match.
+   * @return the {@link ProcessConfig}s whose name match the given argument.
+   */
   public List<ProcessConfig> getProcesses(Arg name) {
     List<ProcessConfig> toReturn = new ArrayList<ProcessConfig>();
     
@@ -260,6 +265,15 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     else{
       return false;
     }
+  }
+  
+  @Override
+  public int compareTo(Distribution other) {
+    int c = _name.compareTo(other.getName());
+    if(c == 0){
+      c = _version.compareTo(other.getVersion());
+    }
+    return c;
   }
   
   public Object onCreate() throws ConfigurationException {

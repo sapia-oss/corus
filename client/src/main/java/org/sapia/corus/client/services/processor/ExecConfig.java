@@ -26,7 +26,7 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  * @author yduchesne
  *
  */
-public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable{
+public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable, Comparable<ExecConfig>{
   
   static final long serialVersionUID = 1L;
   
@@ -78,12 +78,6 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     this.startOnBoot = startOnBoot;
   }
   
-  public ProcessDef createProcess(){
-    ProcessDef proc = new ProcessDef();
-    processes.add(proc);
-    return proc;
-  }
-  
   /**
    * @return the unmodifiable {@link List} of {@link ProcessDef}s that this
    * instance holds.
@@ -112,6 +106,19 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
       is.close();
     }
   }
+
+  /**
+   * Creates a {@link ProcessDef}, internally adds it to this instance, and
+   * returns it.
+   * 
+   * @return a new {@link ProcessDef}
+   */
+  public ProcessDef createProcess(){
+    ProcessDef proc = new ProcessDef();
+    processes.add(proc);
+    return proc;
+  }
+
   
   /**
    * Removes all process definitions that this instance holds, and which correspond to
@@ -132,7 +139,11 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     } 
     processes.removeAll(toRemove);
   }
- 
+  
+  @Override
+  public int compareTo(ExecConfig other) {
+    return name.compareTo(other.getName());
+  }
   
   public String toString(){
     return new StringBuilder("[")

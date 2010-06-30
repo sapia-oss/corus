@@ -18,7 +18,7 @@ import org.sapia.corus.interop.Shutdown;
  *
  * @author Yanick Duchesne
  */
-public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable {
+public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable, Comparable<Process> {
 
   static final long serialVersionUID = 1L;
   
@@ -77,7 +77,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public static final int    DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int    DEFAULT_KILL_RETRY            = 3;
   private DistributionInfo   _distributionInfo;
-  private String             _processID                    = IDGenerator.makeId();
+  private String             _processID                    = IDGenerator.makeIdFromDate();
   private String             _processDir;
   private String             _pid;
   private boolean            _deleteOnKill                 = false;
@@ -97,7 +97,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   /**
    * Creates an instance of this class.
    *
-   * @param info a <code>DistributionInfo</code>.
+   * @param info a {@link DistributionInfo}.
    */
   public Process(DistributionInfo info) {
     _distributionInfo = info;
@@ -106,7 +106,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   /**
    * Creates an instance of this class.
    *
-   * @param info a <code>DistributionInfo</code>.
+   * @param info a {@link DistributionInfo}.
    * @param processID the identifier of the suspended process.
    */
   public Process(DistributionInfo info, String processID) {
@@ -117,7 +117,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   /**
    * Creates an instance of this class.
    *
-   * @param info a <code>DistributionInfo</code>.
+   * @param info a {@link DistributionInfo}.
    * @param shutDownTimeoutSeconds the number of seconds the process corresponding
    * to this instance should be given to acknowledge a "kill".
    */
@@ -129,7 +129,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   /**
    * Creates an instance of this class.
    *
-   * @param info a <code>DistributionInfo</code>.
+   * @param info a {@link DistributionInfo}.
    * @param shutDownTimeoutSeconds the number of seconds the process corresponding
    * to this instance should be given to acknowledge a "kill".
    * @param maxKillRetry the maximum number of times the Corus server should
@@ -167,7 +167,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   /**
    * Returns this process' distribution information.
    *
-   * @return this instance's <code>DistributionInfo</code>.
+   * @return this instance's {@link DistributionInfo}.
    */
   public DistributionInfo getDistributionInfo() {
     return _distributionInfo;
@@ -480,11 +480,21 @@ public class Process extends AbstractPersistent<String, Process> implements java
     return (System.currentTimeMillis() - _lastAccess) > _shutdownTimeout;
   }
   
+  @Override
+  public int compareTo(Process other) {
+    int c = _distributionInfo.compareTo(other.getDistributionInfo());
+    if(c == 0){
+      c = _processID.compareTo(other.getProcessID());
+    }
+    return c;
+  }
+  
   private List<AbstractCommand> commands(){
-    return _commands == null ? _commands = new ArrayList<AbstractCommand>(1) : _commands;
+    return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
   }
 
   public String toString() {
     return "[ id=" + _processID + ", pid=" + _pid + " " + _distributionInfo.toString() + " ]@" + Integer.toHexString(hashCode());
   }
+  
 }

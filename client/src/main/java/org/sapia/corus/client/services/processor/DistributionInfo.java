@@ -8,7 +8,7 @@ import java.io.Serializable;
  *
  * @author Yanick Duchesne
  */
-public class DistributionInfo implements Serializable {
+public class DistributionInfo implements Serializable, Comparable<DistributionInfo> {
   
   static final long serialVersionUID = 1L;
 
@@ -72,6 +72,21 @@ public class DistributionInfo implements Serializable {
     return _version;
   }
 
+  @Override
+  public int compareTo(DistributionInfo other) {
+    int c = _name.compareTo(other.getName());
+    if(c == 0){
+      c = _version.compareTo(other.getVersion());
+    }
+    if(c == 0){
+      c = _processName.compareTo(other.getProcessName());
+    }
+    if(c == 0){
+      c = _profile.compareTo(other.getProfile());
+    }
+    return c;
+  }
+  
   /**
    * Return this instance's string representation.
    *
