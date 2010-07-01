@@ -13,43 +13,7 @@
     <artifactId>sapia_corus_parent</artifactId>
     <version>2.0-SNAPSHOT</version>
   </parent>
-
-  <organization>
-    <name>Sapia OSS</name>
-    <url>http://www.sapia-oss.org</url>
-  </organization>
-
-  <developers>
-    <developer>
-      <id>yduchesne</id>
-      <name>Yanick Duchesne</name>
-      <email>yd@sapia-oss.org</email>
-      <url>http://www.sapia-oss.org</url>
-      <organization>Sapia</organization>
-      <organizationUrl>http://www.sapia-oss.org</organizationUrl>
-      <roles>
-        <role>architect</role>
-      </roles>
-    </developer>
-    <developer>
-      <id>jcdesrochers</id>
-      <name>Jean-Cedric Desrochers</name>
-      <email>jc@sapia-oss.org</email>
-      <url>http://www.sapia-oss.org</url>
-      <organization>Sapia</organization>
-      <organizationUrl>http://www.sapia-oss.org</organizationUrl>
-      <roles>
-        <role>architect</role>
-      </roles>
-    </developer>
-  </developers>
-
-  <scm>
-    <connection>scm:svn:http://sapia.googlecode.com/svn/branches/corus/modules/client</connection>
-    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/branches/corus/modules/client</developerConnection>
-    <url>scm:svn:https://sapia.googlecode.com/svn/branches/corus/modules/client</url>
-  </scm>
-
+  
   <licenses>
     <license>
       <name>Apache 2</name>
@@ -65,6 +29,12 @@
       <artifactId>junit</artifactId>
       <version>4.7</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_iop_api</artifactId>
+      <version>2.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -99,13 +69,6 @@
 
     <dependency>
       <groupId>org.sapia</groupId>
-      <artifactId>sapia_corus_iop</artifactId>
-      <classifier>api</classifier>
-      <version>2.0-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sapia</groupId>
       <artifactId>sapia_ubik</artifactId>
       <version>2.5.5</version>
     </dependency>
@@ -124,13 +87,6 @@
 
   </dependencies>
 
-  <distributionManagement>
-    <repository>
-      <id>java.net-m2-repository</id>
-      <url>java-net:/maven2-repository/trunk/repository</url>
-    </repository>
-  </distributionManagement>
-
   <build>
     <finalName>${artifactId}-${version}</finalName>
     <plugins>
@@ -140,13 +96,6 @@
         <configuration>
 	        <source>1.6</source>
 	        <target>1.6</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <configuration>
-          <tagBase>https://sapia.googlecode.com/svn/branches/corus/modules/client</tagBase>
         </configuration>
       </plugin>
       <plugin>
@@ -183,46 +132,6 @@
       </plugin>
     </plugins>
 
-    <!--extensions>
-      <extension>
-        <groupId>org.jvnet.wagon-svn</groupId>
-        <artifactId>wagon-svn</artifactId>
-        <version>1.9</version>
-      </extension>
-    </extensions-->
-
   </build>
-
- <!--profiles>
-    <profile>
-      <id>release-sign-artifacts</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.0-alpha-4</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles-->
-  
 
 </project>
