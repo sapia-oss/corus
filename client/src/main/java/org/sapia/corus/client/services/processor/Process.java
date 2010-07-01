@@ -297,7 +297,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return a time in milliseconds.
    *
    */
-  public long lastAccess() {
+  public long getLastAccess() {
     return _lastAccess;
   }
 
@@ -308,8 +308,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return the <code>List</code> of pending commands for the process.
    */
   public synchronized List<AbstractCommand> poll() {
-    _lastAccess = System.currentTimeMillis();
-
+    touch();
+    
     List<AbstractCommand> commands = new ArrayList<AbstractCommand>(commands());
     commands().clear();
 
@@ -323,7 +323,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return the <code>List</code> of pending commands for the process.
    */
   public synchronized List<AbstractCommand> status(org.sapia.corus.interop.Status stat) {
-    _lastAccess    = System.currentTimeMillis();
+    touch();
     _processStatus = stat;
 
     List<AbstractCommand> commands  = new ArrayList<AbstractCommand>(commands());
@@ -459,8 +459,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
   }
 
   /**
-   * Returns <code>true</code> if this process has timed-out (has not polled
-   * for the amount of time specified).
+   * Returns <code>true</code> if the process corresponding to this instance
+   * has timed-out (has not polled for the amount of time specified).
    *
    * @param timeout a timeout used internally for verification.
    * @return <code>true</code> if this process has timed-out.
