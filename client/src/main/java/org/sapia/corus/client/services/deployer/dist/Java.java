@@ -133,10 +133,8 @@ public class Java extends BaseJavaStarter {
     
     String pathSep = System.getProperty("path.separator");
     String baseDir = System.getProperty("corus.home") == null ? System.getProperty("user.dir") : System.getProperty("corus.home");
-    String starterLib  = baseDir + File.separator + "lib"  + File.separator + "sapia_corus_starter.jar";
-    String starterDist = baseDir + File.separator + "dist" + File.separator + "sapia_corus_starter.jar";
-    String starterCp = starterLib + pathSep + starterDist;
-    String classpath = starterCp + pathSep + getProcessCp(env.getCommonDir(), envContext, env) + pathSep + getMainCp(env);
+    String starterLib  = baseDir + File.separator + "server" + File.separator + "lib"  + File.separator + "sapia_corus-starter.jar";
+    String classpath = starterLib + pathSep + getProcessCp(env.getCommonDir(), envContext, env) + pathSep + getMainCp(env);
     
     StrSubstitutor substitutor = new StrSubstitutor(context);
     cmd.addOpt("cp", substitutor.replace(classpath).replace(';', System.getProperty("path.separator").charAt(0)));
