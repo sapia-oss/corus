@@ -45,8 +45,6 @@ public class Undeploy extends CorusCliCommand {
                             ctx.getConsole());
     } catch (RunningProcessesException e){
       throw new InputException(e.getMessage());
-    } catch (InputException e) {
-      throw new InputException("File name expected as argument");
-    }
+    } 
   }
 }
