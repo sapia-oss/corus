@@ -11,7 +11,7 @@ public class FacadeHelper<M> {
   public FacadeHelper(CorusConnectionContext context, Class<M> moduleInterface) {
     this.context = context;
     invoker = new ClusterInvoker<M>(moduleInterface, context);
-    invoker.proxy(moduleInterface);
+    proxy = invoker.proxy(moduleInterface);
   }
 
 }

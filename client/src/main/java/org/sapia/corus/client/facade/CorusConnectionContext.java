@@ -157,14 +157,14 @@ public class CorusConnectionContext {
     try {
       Object returnValue = method.invoke(lookup(moduleInterface), params);
       results.addResult(new Result(_addr, returnValue));
+      if (cluster.isClustered()) {
+        applyToCluster(results, moduleInterface, method, params, cluster);
+      }
     } catch (InvocationTargetException e) {
       //results.addResult(new Result(_addr, e.getTargetException()));
       throw e.getTargetException();
-    }
-
-    if (cluster.isClustered()) {
-      //ClientSideClusterInterceptor.clusterCurrentThread(cluster);
-      applyToCluster(results, moduleInterface, method, params, cluster);
+    }finally{
+      results.complete();
     }
   }
   
@@ -232,8 +232,6 @@ public class CorusConnectionContext {
           } 
           continue;
         }
-
-        results.complete();
       }
     };
     _executor.execute(invoker);

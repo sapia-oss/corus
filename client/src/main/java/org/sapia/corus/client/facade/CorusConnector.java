@@ -23,6 +23,7 @@ public class CorusConnector {
   private ConfiguratorFacade config;
   
   public CorusConnector(CorusConnectionContext context){
+    this.context = context;
     deployer = new DeployerFacadeImpl(context);
     processor = new ProcessorFacadeImpl(context);
     cron = new CronFacadeImpl(context);

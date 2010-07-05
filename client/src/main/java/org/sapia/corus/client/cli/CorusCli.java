@@ -139,6 +139,7 @@ public class CorusCli extends CommandConsole {
      */
     public void onAbort(Console cons) {
       cons.println("Good bye...");
+      System.exit(0);
     }
 
     /**
