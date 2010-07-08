@@ -87,7 +87,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private int                _shutdownTimeout              = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
   private int                _maxKillRetry                 = DEFAULT_KILL_RETRY;
   private LifeCycleStatus    _status                       = LifeCycleStatus.ACTIVE;
-  private transient List<AbstractCommand>  _commands       = new ArrayList<AbstractCommand>();
+  private transient List<AbstractCommand>  _commands                 = new ArrayList<AbstractCommand>();
   private List<ActivePort>   _activePorts                  = new ArrayList<ActivePort>();
   private org.sapia.corus.interop.Status             _processStatus;
 
@@ -310,8 +310,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public synchronized List<AbstractCommand> poll() {
     touch();
     
-    List<AbstractCommand> commands = new ArrayList<AbstractCommand>(commands());
-    commands().clear();
+    List<AbstractCommand> commands = new ArrayList<AbstractCommand>(getCommands());
+    getCommands().clear();
 
     return commands;
   }
@@ -326,8 +326,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
     touch();
     _processStatus = stat;
 
-    List<AbstractCommand> commands  = new ArrayList<AbstractCommand>(commands());
-    commands().clear();
+    List<AbstractCommand> commands  = new ArrayList<AbstractCommand>(getCommands());
+    getCommands().clear();
 
     return commands;
   }
@@ -360,7 +360,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
       Shutdown shutdown = new Shutdown();
       shutdown.setCommandId(CyclicIdGenerator.newRequestId());
       shutdown.setRequestor(requestor.getType());
-      commands().add(shutdown);
+      getCommands().add(shutdown);
       _lastAccess = System.currentTimeMillis();
     }
   }
@@ -400,7 +400,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
     return new LockOwner();
   }
   
-  LockOwner getLock(){
+  public LockOwner getLockOwner(){
     return _lockOwner;
   }
    
@@ -426,8 +426,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @param leaser the object that attempts to release this
    * instance's locked.
    */
-  public synchronized void releaseLock(Object leaser) {
-    if ((_lockOwner != null) && (_lockOwner == leaser)) {
+  public synchronized void releaseLock(LockOwner leaser) {
+    if ((_lockOwner != null) && (_lockOwner.equals(leaser))) {
       _lockOwner = null;
     }
   }
@@ -489,7 +489,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
     return c;
   }
   
-  private List<AbstractCommand> commands(){
+  @Transient
+  List<AbstractCommand> getCommands(){
     return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
   }
 

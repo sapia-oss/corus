@@ -1,8 +1,7 @@
 package org.sapia.corus.client.services.http;
 
-import org.simpleframework.http.Request;
-import org.simpleframework.http.Response;
-
+import simple.http.Request;
+import simple.http.Response;
 
 /**
  * Encapsulates HTTP request/response data.
@@ -24,7 +23,6 @@ public class HttpContext {
   }
   
   public void setRequest(Request request) {
-    if(request != null) throw new IllegalStateException("Request already set");
     this.request = request;
   }
 
@@ -36,7 +34,6 @@ public class HttpContext {
   }
   
   public void setResponse(Response response) {
-    if(response != null) throw new IllegalStateException("Response already set");
     this.response = response;
   }
 

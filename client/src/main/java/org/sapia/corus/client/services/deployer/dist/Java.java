@@ -24,6 +24,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
 public class Java extends BaseJavaStarter {
   
   public static final String CORUS_JAVAPROC_MAIN_CLASS = "corus.process.java.main";
+  public static final String STARTER_CLASS = "org.sapia.corus.starter.Starter";
   
   static final long serialVersionUID = 1L;
 
@@ -84,11 +85,6 @@ public class Java extends BaseJavaStarter {
       throw new MissingDataException("'mainClass' not specified in corus.xml");
     }
     
-    Property prop = new Property();
-    prop.setName(CORUS_JAVAPROC_MAIN_CLASS);
-    prop.setValue(_mainClass);
-    _vmProps.add(prop);
-    
     Map<String, String>  cmdLineVars = new HashMap<String, String>();
     cmdLineVars.put("user.dir", env.getCommonDir());
     CompositeStrLookup context = new CompositeStrLookup()
@@ -118,28 +114,36 @@ public class Java extends BaseJavaStarter {
       cmdLineVars.put(p.getName(), value);
       cmd.addElement(p.convert());
     }
+    Property prop = new Property();
+    prop.setName(CORUS_JAVAPROC_MAIN_CLASS);
+    prop.setValue(_mainClass);
+    cmd.addElement(prop.convert());
+    
+    
+    Map<String, String>  envVars    = new HashMap<String, String>();
     
     Property[]      props = env.getProperties();
     
-    Map<String, String>  envVars    = new HashMap<String, String>();
+    for (int i = 0; i < props.length; i++) {      
+      cmd.addElement(props[i].convert());
+      cmdLineVars.put(props[i].getName(), props[i].getValue());
+    }
+
     CompositeStrLookup   envContext = new CompositeStrLookup()
       .add(StrLookup.mapLookup(envVars))
       .add(StrLookup.systemPropertiesLookup());
     
-    for (int i = 0; i < props.length; i++) {
-      envVars.put(props[i].getName(), props[i].getValue());
-    }
     envVars.putAll(cmdLineVars);
     
     String pathSep = System.getProperty("path.separator");
     String baseDir = System.getProperty("corus.home") == null ? System.getProperty("user.dir") : System.getProperty("corus.home");
-    String starterLib  = baseDir + File.separator + "server" + File.separator + "lib"  + File.separator + "sapia_corus-starter.jar";
+    String starterLib  = baseDir + File.separator + "lib" + File.separator + "server"  + File.separator + "sapia_corus-starter.jar";
     String classpath = starterLib + pathSep + getProcessCp(env.getCommonDir(), envContext, env) + pathSep + getMainCp(env);
     
     StrSubstitutor substitutor = new StrSubstitutor(context);
     cmd.addOpt("cp", substitutor.replace(classpath).replace(';', System.getProperty("path.separator").charAt(0)));
     
-    cmd.addArg(Starter.class.getName());
+    cmd.addArg(STARTER_CLASS);
     
     if (_mainArgs != null) {
       CmdLine           toAppend = CmdLine.parse(new StrSubstitutor(context).replace(_mainArgs));

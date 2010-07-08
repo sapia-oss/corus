@@ -50,7 +50,7 @@ public class Help {
     Dom4jProcessor proc =
       new Dom4jProcessor(
       new ReflectionFactory(
-      new String[]{"org.sapia.corus.admin.cli.help"}));
+      new String[]{"org.sapia.corus.client.cli.help"}));
       try{
         return (Help)proc.process(input);
       }catch(ProcessingException e){
