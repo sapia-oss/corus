@@ -89,7 +89,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private LifeCycleStatus    _status                       = LifeCycleStatus.ACTIVE;
   private transient List<AbstractCommand>  _commands                 = new ArrayList<AbstractCommand>();
   private List<ActivePort>   _activePorts                  = new ArrayList<ActivePort>();
-  private org.sapia.corus.interop.Status             _processStatus;
+  private transient org.sapia.corus.interop.Status             _processStatus;
 
   
   Process(){}
@@ -338,6 +338,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *
    * @return the <code>Status</code> of this process instance.
    */
+  @Transient
   public synchronized org.sapia.corus.interop.Status getProcessStatus() {
     return _processStatus;
   }
@@ -480,6 +481,31 @@ public class Process extends AbstractPersistent<String, Process> implements java
     return (System.currentTimeMillis() - _lastAccess) > _shutdownTimeout;
   }
   
+  @Transient
+  public List<AbstractCommand> getCommands(){
+    return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
+  }
+
+  public String toString() {
+    return "[ id=" + _processID + ", pid=" + _pid + " " + _distributionInfo.toString() + " ]";
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if(obj instanceof Process){
+      Process other = (Process)obj;
+      return this.getProcessID().equals(other.getProcessID());
+    }
+    else{
+      return false;
+    }
+  }
+  
+  @Override
+  public int hashCode() {
+    return _processID.hashCode();
+  }
+  
   @Override
   public int compareTo(Process other) {
     int c = _distributionInfo.compareTo(other.getDistributionInfo());
@@ -487,15 +513,6 @@ public class Process extends AbstractPersistent<String, Process> implements java
       c = _processID.compareTo(other.getProcessID());
     }
     return c;
-  }
-  
-  @Transient
-  List<AbstractCommand> getCommands(){
-    return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
-  }
-
-  public String toString() {
-    return "[ id=" + _processID + ", pid=" + _pid + " " + _distributionInfo.toString() + " ]@" + Integer.toHexString(hashCode());
   }
   
 }

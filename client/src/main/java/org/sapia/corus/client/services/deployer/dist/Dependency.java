@@ -2,12 +2,24 @@ package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.Serializable;
 
+/**
+ * This class models a process dependency: such a dependency is a process (the "dependee") 
+ * that another process depends on, and should therefore be executed prior to the dependent 
+ * process.
+ * 
+ * @author yduchesne
+ *
+ */
 public class Dependency implements Serializable{
   
   static final long serialVersionUID = 1L;
 
   private String dist, version, process, profile;
 
+  /**
+   * @return the name of the distribution to which the "dependee" process belongs, or
+   * <code>null</code> if it belongs to the same distribution as the dependent process.
+   */
   public String getDist() {
     return dist;
   }
@@ -20,6 +32,10 @@ public class Dependency implements Serializable{
     this.dist = dist;
   }
 
+  /**
+   * @return the version of the distribution to which the "dependee" process belongs,
+   * or <code>null</code> if it belongs to the same distribution as the dependent process.
+   */
   public String getVersion() {
     return version;
   }
@@ -28,6 +44,9 @@ public class Dependency implements Serializable{
     this.version = version;
   }
 
+  /**
+   * @return the profile of of the "dependee" process.
+   */
   public String getProfile() {
     return profile;
   }
@@ -36,6 +55,9 @@ public class Dependency implements Serializable{
     this.profile = profile;
   }
   
+  /**
+   * @return the name of "dependee" process.
+   */
   public String getProcess() {
     return process;
   }

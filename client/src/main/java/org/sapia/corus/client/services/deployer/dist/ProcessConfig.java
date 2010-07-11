@@ -34,6 +34,14 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   private int             _pollInterval           = DEFAULT_POLL_INTERVAL;
   private boolean         _deleteOnKill           = false;
   private String[]          _tags;
+  
+  public ProcessConfig() {
+  }
+  
+  public ProcessConfig(String name) {
+    _name = name;
+  }
+  
   /**
    * Sets this process config's name.
    *
@@ -270,6 +278,11 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
     return false;
   }
   
+  /**
+   * Adds the given starter to this instance.
+   * 
+   * @param starter a {@link Starter}.
+   */
   public void addStarter(Starter starter){
     _starters.add(starter);
   }

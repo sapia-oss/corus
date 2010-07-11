@@ -17,8 +17,9 @@ import org.sapia.ubik.rmi.replication.ReplicatedInvoker;
  */
 public class ClusteredInvoker implements ReplicatedInvoker{
 	
+  static final long serialVersionUID = 1L;
+  
 	private String                   _moduleName;
-//	private transient Logger         _log;	
 	private transient ClusterManager _cluster;
 	private transient Corus          _corus;
 
@@ -76,6 +77,5 @@ public class ClusteredInvoker implements ReplicatedInvoker{
   public Set<ServerAddress> getSiblings() {
     return _cluster.getHostAddresses();
   }
-
 
 }

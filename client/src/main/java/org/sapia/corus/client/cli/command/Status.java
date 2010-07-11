@@ -166,7 +166,7 @@ public class Status extends CorusCliCommand {
 
     headers = procTable.newRow();
 
-    headers.getCellAt(COL_PID).append("Dyn. PID");
+    headers.getCellAt(COL_PID).append("PID");
     headers.getCellAt(COL_CONTEXT).append("Context");
     headers.getCellAt(COL_PARAM_NAME).append("Name");
     headers.getCellAt(COL_PARAM_VALUE).append("Value");

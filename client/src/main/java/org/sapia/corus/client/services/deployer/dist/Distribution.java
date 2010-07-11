@@ -39,6 +39,13 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   private String              _processesDir;
   private String[]            _tags;
   private List<ProcessConfig> _processConfigs = new ArrayList<ProcessConfig>();
+  
+  public Distribution(){}
+  
+  public Distribution(String name, String version){
+    _name = name;
+    _version = version;
+  }
 
   /**
    * Sets this distribution's name.
@@ -202,6 +209,21 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public String getCommonDir() {
     return _commonDir;
+  }
+  
+  /**
+   * Tests if this distribution's name and version match the given corresponding
+   * arguments.
+   * 
+   * @param name an {@link Arg} to test against this instance's name.
+   * @param version an {@link Arg} to test against this instance's version.
+   * @return
+   */
+  public boolean matches(Arg name, Arg version){
+    if(name.matches(_name)){
+      return version.matches(_version);
+    }
+    return false;
   }
 
   /**
