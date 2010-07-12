@@ -54,6 +54,7 @@ public class ClusterInvokerTest {
   public void testInvokeWithResultsThrowException() throws Throwable{
     proxy.getValuesThrowException();
     Results<String[]> results = new Results<String[]>();
+    results.setTimeout(1000);
     invoker.invoke(results, new ClusterInfo(false));
     assertTrue("Results is not empty", !results.hasNext());
   }

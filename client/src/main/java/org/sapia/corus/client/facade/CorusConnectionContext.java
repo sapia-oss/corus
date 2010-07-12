@@ -3,11 +3,13 @@ package org.sapia.corus.client.facade;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -153,18 +155,20 @@ public class CorusConnectionContext {
   public <T,M> void invoke(Results<T> results, Class<M> moduleInterface, Method method,
       Object[] params, ClusterInfo cluster) throws Throwable {
     refresh();
-
+    
     try {
-      Object returnValue = method.invoke(lookup(moduleInterface), params);
-      results.addResult(new Result(_addr, returnValue));
       if (cluster.isClustered()) {
         applyToCluster(results, moduleInterface, method, params, cluster);
       }
+      else{
+        Object returnValue = method.invoke(lookup(moduleInterface), params);
+        results.incrementInvocationCount();
+        results.addResult(new Result(_addr, returnValue));
+      }
     } catch (InvocationTargetException e) {
+      
       //results.addResult(new Result(_addr, e.getTargetException()));
       throw e.getTargetException();
-    }finally{
-      results.complete();
     }
   }
   
@@ -194,47 +198,63 @@ public class CorusConnectionContext {
       final Method method, 
       final Object[] params,
       final ClusterInfo cluster) {
-    Runnable invoker = new Runnable() {
-      public void run() {
-        Set<ServerAddress> otherHosts;
+    
+    List<ServerAddress> hostList = new ArrayList<ServerAddress>();
 
-        if (cluster.getTargets() != null) {
-          otherHosts = new HashSet<ServerAddress>(_otherHosts);
-          otherHosts.retainAll(cluster.getTargets());
-        } else {
-          otherHosts = _otherHosts;
-        }
-        Iterator<ServerAddress> itr = otherHosts.iterator();
-        Corus corus;
+    if (cluster.getTargets() != null) {
+      Set<ServerAddress> selected = new HashSet<ServerAddress>(_otherHosts);
+      
+      selected.retainAll(cluster.getTargets());
+      if(cluster.getTargets().contains(_addr)){
+        selected.add(_addr);
+      }
+      hostList.addAll(selected);
+    } else {
+      hostList.add(_addr);
+      hostList.addAll(_otherHosts);
+    }
+    Iterator<ServerAddress> itr = hostList.iterator();
+    List<Runnable> invokers = new ArrayList<Runnable>(hostList.size());
+    while (itr.hasNext()) {
+      final TCPAddress addr = (TCPAddress)itr.next();
+      
+      Runnable invoker = new Runnable(){
         Object module;
         Object returnValue;
 
-        while (itr.hasNext()) {
-          TCPAddress addr = (TCPAddress)itr.next();
-          corus = (Corus) _cachedStubs.get(addr);
+        @Override
+        public void run() {
+          Corus corus = (Corus) _cachedStubs.get(addr);
 
           if (corus == null) {
             try {
               corus = (Corus) Hub.connect(addr.getHost(), addr.getPort());
               _cachedStubs.put(addr, corus);
             } catch (java.rmi.RemoteException e) {
-              continue;
+              results.decrementInvocationCount();
+              return;
             }
           }
 
-          module = corus.lookup(moduleInterface.getName());
-
           try {
+            module = corus.lookup(moduleInterface.getName());
             returnValue = method.invoke(module, params);
             results.addResult(new Result(addr, returnValue));
           } catch (Exception err) {
+            //err.printStackTrace();
+            results.decrementInvocationCount();
             // noop
           } 
-          continue;
+
         }
-      }
-    };
-    _executor.execute(invoker);
+      };
+      invokers.add(invoker);
+      results.incrementInvocationCount();
+    }
+    
+    for(Runnable invoker:invokers){
+      _executor.execute(invoker);
+    }
   }
   
   public synchronized <T> T lookup(Class<T> moduleInterface){

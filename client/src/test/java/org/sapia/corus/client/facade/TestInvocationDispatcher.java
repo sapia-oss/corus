@@ -49,11 +49,9 @@ public class TestInvocationDispatcher implements InvocationDispatcher{
     
     try{
       T result = (T)method.invoke(module, params);
+      results.incrementInvocationCount();
       results.addResult(new Result<T>(addr, result));
     }catch(Throwable e){
-      // noop
-    }finally{
-      results.complete();
     }
   }
 
