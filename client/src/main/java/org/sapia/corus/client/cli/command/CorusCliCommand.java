@@ -30,7 +30,21 @@ public abstract class CorusCliCommand implements Command {
    * @see org.sapia.console.Command#execute(Context)
    */
   public void execute(Context ctx) throws AbortException, InputException {
-    doExecute((CliContext) ctx);
+    CliContext cliCtx = (CliContext)ctx;
+    try{
+      doExecute(cliCtx);
+      cliCtx.setError(null);
+    }catch(InputException e){
+      cliCtx.setError(e);
+      if(cliCtx.isAbordOnError()){
+        throw new AbortException();
+      }
+    }catch(RuntimeException e){
+      cliCtx.setError(e);
+      if(cliCtx.isAbordOnError()){
+        throw new AbortException();
+      }
+    }
   }
 
   protected abstract void doExecute(CliContext ctx)
@@ -47,7 +61,10 @@ public abstract class CorusCliCommand implements Command {
         msg = (ProgressMsg) msgs.get(i);
 
         if (msg.isThrowable()) {
-          ((Throwable) msg.getMessage()).printStackTrace(cons.out());
+          Throwable err = (Throwable)msg.getMessage();
+          cons.println(err.getMessage());
+          cons.println("---------- Stack trace: ----------");
+          err.printStackTrace(cons.out());
         } else if (msg.getStatus() >= ProgressMsg.INFO) {
           cons.println(msg.getMessage().toString());
         }

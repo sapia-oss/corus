@@ -14,6 +14,8 @@ public class ChildCliContext extends Context implements CliContext{
   
   private CliContext parent;
   private CmdLine childCmd;
+  private Exception error;
+  private boolean abortOnError;
   
   public ChildCliContext(CliContext parent, CmdLine childCmd) {
     this.parent = parent;
@@ -34,4 +36,23 @@ public class ChildCliContext extends Context implements CliContext{
     return parent.getCorus();
   }
 
+  @Override
+  public Exception getError() {
+    return error;
+  }
+  
+  @Override
+  public void setError(Exception err) {
+    error = err;
+  }
+ 
+  @Override
+  public boolean isAbordOnError() {
+    return abortOnError;
+  }
+  
+  @Override
+  public void setAbortOnError(boolean abortOnError) {
+    this.abortOnError = abortOnError;
+  }
 }
