@@ -7,6 +7,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
@@ -135,7 +136,7 @@ public class Kill extends CorusCliCommand {
     if (processToKill != null) {
       killProcess(ctx, processToKill);
     } else {
-      ctx.getConsole().println("ERROR: Could not kill process, no active process found for the VM id " + vmId);
+      ctx.getConsole().println("Could not kill process, no active process found for the process id " + vmId);
     }
   }
   
@@ -148,7 +149,7 @@ public class Kill extends CorusCliCommand {
         if (process.getOsPid() != null && process.getOsPid().equals(osPid)) {
           String pid = process.getProcessID();
           processToKill = process;
-          ctx.getConsole().println("Found VM " + pid + " associated to OS pid " + osPid);
+          ctx.getConsole().println("Found process " + pid + " associated to OS pid " + osPid);
           break;
         }
       }
@@ -158,7 +159,7 @@ public class Kill extends CorusCliCommand {
       killProcess(ctx, processToKill);
       return processToKill.getProcessID();
     } else {
-      ctx.getConsole().println("ERROR: Could not kill process, no active process found for OS pid " + osPid);
+      ctx.getConsole().println("Could not kill process, no active process found for OS pid " + osPid);
       return null;
     }
   }
@@ -181,17 +182,30 @@ public class Kill extends CorusCliCommand {
     }
   }
   
-  private void waitForKillCompletion(CliContext ctx, KillCompletionHook hook){
+  private void waitForKillCompletion(CliContext ctx, KillCompletionHook hook) throws InputException{
     boolean waitForCompletion = ctx.getCommandLine().containsOption(WAIT_COMPLETION_OPT, false);
+    long timeout = 0;
     if(waitForCompletion){
+      Option opt = ctx.getCommandLine().assertOption(WAIT_COMPLETION_OPT, false);
       ctx.getConsole().println("(Waiting for process termination, please stand by)");
+      if(opt.getValue() != null){
+        try{
+          timeout = Long.parseLong(opt.getValue()) * 1000;
+        }catch(NumberFormatException e){}
+      }
     }
+    long total = 0;
     while(waitForCompletion){
       if(hook.isCompleted(ctx)){
         break;
       }
       try{
+        long start = System.currentTimeMillis();
         Thread.sleep(2000);
+        total += (System.currentTimeMillis() - start);
+        if(timeout > 0 && total > timeout){
+          throw new InputException("Process(es) not killed within specified timeout. Aborting.");
+        }
       }catch(InterruptedException e){
         break;
       }
