@@ -81,7 +81,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private String             _processDir;
   private String             _pid;
   private boolean            _deleteOnKill                 = false;
-  private LockOwner          _lockOwner;
+  private transient LockOwner _lockOwner;
   private long               _creationTime                 = System.currentTimeMillis();
   private long               _lastAccess                   = System.currentTimeMillis();
   private int                _shutdownTimeout              = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
@@ -401,6 +401,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
     return new LockOwner();
   }
   
+  @Transient
   public LockOwner getLockOwner(){
     return _lockOwner;
   }
