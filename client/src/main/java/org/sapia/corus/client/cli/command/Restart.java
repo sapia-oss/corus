@@ -75,7 +75,7 @@ public class Restart extends CorusCliCommand {
     if (processToRestart != null) {
       restartProcess(ctx, processToRestart);
     } else {
-      ctx.getConsole().println("ERROR: Could not restart process, no active process found for the process ID " + pid);
+      ctx.getConsole().println("Could not restart process, no active process found for the process ID " + pid);
     }
   }
   
@@ -88,7 +88,7 @@ public class Restart extends CorusCliCommand {
         if (process.getOsPid() != null && process.getOsPid().equals(osPid)) {
           String pid = process.getProcessID();
           processToRestart = process;
-          ctx.getConsole().println("Found VM " + pid + " associated to OS pid " + osPid);
+          ctx.getConsole().println("Found process " + pid + " associated to OS pid " + osPid);
         }
       }
     }
@@ -96,7 +96,7 @@ public class Restart extends CorusCliCommand {
     if (processToRestart != null) {
       restartProcess(ctx, processToRestart);
     } else {
-      ctx.getConsole().println("ERROR: Could not restart process, no active process found for OS pid " + osPid);
+      ctx.getConsole().println("Could not restart process, no active process found for OS pid " + osPid);
     }
   }
   
@@ -107,7 +107,7 @@ public class Restart extends CorusCliCommand {
       throw new InputException(e.getMessage());
     }
 
-    ctx.getConsole().println("Proceeding to restart of VM " + aProcess.getProcessID() + "...");
+    ctx.getConsole().println("Proceeding to restart of process " + aProcess.getProcessID() + "...");
   }
 
 }
