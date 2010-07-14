@@ -82,7 +82,9 @@ public class CorusCli extends CommandConsole {
         CorusConnector connector = new CorusConnector(connection);
         CorusCli    cli = new CorusCli(connector);
         
-        cli.start();
+        try{
+          cli.start();
+        }catch(NullPointerException e){}
       }
     } catch (InputException e) {
       System.out.println(e.getMessage());
