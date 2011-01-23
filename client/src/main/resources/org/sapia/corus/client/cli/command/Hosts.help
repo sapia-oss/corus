@@ -1,8 +1,0 @@
-<help>
-  <section title="Description">
-   <p>Displays information about the Corus servers in the cluster.</p>
-  </section>
-  <section title="Syntax">
-    <p>hosts</p>
-  </section>
-</help>

@@ -1,6 +1,0 @@
-<exec name="test" startOnBoot="true">
-
-	<process dist="demo" version="1.0" name="restartApp" profile="test" /> 
-	<process dist="demo" version="1.0" name="noopApp" profile="test" /> 
-
-</exec>

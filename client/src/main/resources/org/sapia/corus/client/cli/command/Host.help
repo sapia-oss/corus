@@ -1,8 +1,0 @@
-<help>
-  <section title="Description">
-   <p>Displays information about the Corus server to which the client console is connected.</p>
-  </section>
-  <section title="Syntax">
-    <p>host</p>
-  </section>
-</help>
