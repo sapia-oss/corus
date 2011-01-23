@@ -1,0 +1,183 @@
+<sapia:page title="The Corus Descriptor" cssPath="../css/sapia.css"
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/corus.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="../shadowbox-3.0.3/shadowbox.css" />
+    <script type="text/javascript" src="../shadowbox-3.0.3/shadowbox.js"></script>
+    <script type="text/javascript">
+    Shadowbox.init();
+    </script> 
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Tutorials" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="The Corus Descriptor">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus"     href="../home.html" />
+      <sapia:path name="learning"  href="../learning.html" />
+      <sapia:path name="tutorials" href="index.html"/>
+      <sapia:path name="corus descriptor" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+        In the <a href="webapp.html">introductory tutorial</a>, you've
+        seen that a so-called Corus descriptor must be packaged as part
+        of a distribution that is meant for deployment into Corus. That
+        descriptor provides the information necessary for a Corus daemon
+        to start applications that are part of the distribution. The descriptor
+        also contains runtime JVM parameters.
+      </p>
+    </sapia:sect-desc>
+    
+    <toc/>    
+    
+    <sapia:sect2 title="How the descriptor is processed">
+      <p>
+        When Corus receives a distribution archive, it first checks if it 
+        contains a descriptor - if not, the deployment is denied. If the 
+        distribution passes that check, it is unzipped under a specific directory
+        - where all distributions are unzipped. 
+      </p>
+      <p>
+        A directory structure is created for each distribution. That is: Corus
+        uses the information in the descriptor to create directories 
+        corresponding to the distribution name and version. The path of 
+        a distribution under the Corus deployment directory is as follows:
+        <sapia:command>$CORUS_HOME/deploy/&lt;domain_name&gt;&lt;port&gt;/&lt;distribution_name&gt;&lt;version&gt;</sapia:command>.
+        It is in the subdirectory corresponding to that path that a distribution
+        is unzipped, as you  <a href="img/corus-distribution-layout.png" title="Corus distribution directory structure" rel="shadowbox">you can see</a>.
+      </p>
+      
+      <p>
+        It is also through the information contained in the descriptor of each
+        distribution that Corus can display the related information to end
+        users (using the <sapia:command>ls</sapia:command> command).
+      </p>
+     </sapia:sect2>
+
+     <sapia:sect2 title="More on the contents">
+      <p>
+        The really detailed information about the descriptor is in the
+        <a href="../CorusGuide.pdf">Corus Guide</a>. We will nevertheless
+        delve into the most important elements here.
+      </p>
+      
+      <p>
+        First, vocabulary: Corus works mainly with two concepts: "distribution" and "process".
+        This becomes obvious when looking at the Corus descriptor:
+      </p>
+      
+      <sapia:code><![CDATA[
+<distribution name="basic-sample-jetty" version="1.0">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+  </process> 
+</distribution>]]>
+      </sapia:code>
+      
+      <p>
+        At the root, the <sapia:command>distribution</sapia:command> element,
+        which has two attributes:
+        <ul>
+          <li>
+            <b>Name</b>: the distribution's arbitrarily chosen name.
+          </li>
+          <li>
+            <b>Version</b>: the distribution's arbitrarily chosen version.
+          </li>
+        </ul>
+      </p>
+      
+      <p>
+        Since there may be multiple versions of a distribution (or, to be
+        more precise: multiple versions of the applications contained in
+        a distribution), it must be assigned a version number that
+        distinguishes from other distributions with the same name - it is also 
+        consistent with the common notion that a product evolves in time, and 
+        that the different steps in this evolution are identified by a version 
+        number.
+      </p>
+      
+      <p>
+        In turn, under the <sapia:command>distribution</sapia:command> element,
+        we find <sapia:process>process</sapia:process> elements. This element
+        defines the configuration of a process instance. At the level
+        of that element itself, we see attributes that pertain to how
+        Corus is to handle the process instances at runtime.
+      </p>
+      
+      <p>
+        Indeed, each <sapia:command>process</sapia:command> element is sort of 
+        a blueprint for process instances, defining various runtime parameters,
+        as well as the application that's is started in the context of the
+        process instances it describes.
+      </p>
+      
+      <p>
+        As far as the applications themselves, we can see different 
+        <sapia:command>java</sapia:command> elements under the
+        <sapia:command>process</sapia:command> element. Each such element holds
+        the configuration that is specific to the JVMs that can be started 
+        - only one JVM configuration is chosen when starting the JVM process.
+      </p>
+      
+      <p>
+        Furthermore, we can see that the <sapia:command>java</sapia:command> 
+        element has a <sapia:command>profile</sapia:command> attribute. The 
+        notion of profile has been introduced to support launching applications 
+        according to the environment in which they are deployed. When starting 
+        a process using the <sapia:command>exec</sapia:command> command, we 
+        must specify the profile "under" which we want to start the process. 
+        Corus thus chooses the JVM configuration whose profile matches the one 
+        passed in - if any.
+      </p>
+      
+      <p>
+        In fact, the <sapia:command>exec</sapia:command> command mandates that 
+        we pass in the information that is necessary for Corus to be able to 
+        start a process, according to what we've described above:
+      </p>
+      
+      <ul>
+        <li><b>distribution name</b>: the name of the distribution to which
+              the process belongs.
+        </li>
+        <li><b>distribution version</b>: the version of the distribution to which
+              the process belongs.
+        </li>
+
+        <li><b>process name</b>: the name of the process.</li>
+
+        <li><b>profile</b>: the profile under which to start the process.
+        </li>
+
+      </ul>
+      
+      <sapia:note><a href="img/man-exec.png" title="Man Exec output" rel="shadowbox">You can view</a> the full syntax of the 
+        <sapia:command>exec</sapia:command> by typing 
+        <sapia:command>man exec</sapia:command> in the CLI.
+      </sapia:note>
+      
+     </sapia:sect2>
+    
+  </sapia:sect1>
+</sapia:page>

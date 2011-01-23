@@ -1,0 +1,71 @@
+<sapia:page title="Licensing" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="License">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="license" />
+    </sapia:section>
+    <sapia:sect-desc>
+      <p>The Corus source code has been subdivided into two modules:</p> 
+
+      <p>
+        <b>1)</b> A “client” module, released under the 
+        <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache 2.0 license</a>, 
+        which produces a library (jar file) that can be placed into the 
+        classpath of client applications, allowing these applications to 
+        connect to Corus instances and use the Corus server API directly
+        (a rarely necessary thing, unless one wants to develop his own tools
+        for interacting with Corus).
+      </p>
+      <p> 
+        <b>2)</b> A “server” module, released under the 
+        <a href="http://www.gnu.org/licenses/gpl-3.0-standalone.html">GPL 3.0</a>, 
+        which strictly consists of the server-side Corus classes, which client applications 
+        do NOT need in their classpath. This module depends on the client 
+        module, for it implements some of the interfaces in it. Applications
+        deployed using Corus absolutely do NOT need to depend on the server 
+        module in any way. The artifact produced by this server is the actual
+        Corus distribution.
+      </p>
+      <p>
+        The above means the following:
+      </p>
+      <ol>
+        <li>
+          Client applications linked to the Corus client classes are not bound 
+          by the viral effect of the GPL. They depend entirely on classes 
+          released under the Apache 2.0 license, the most liberal of all open 
+          source license. It means that code linked to these classes does not
+          require its source to be redistributed; that it can be proprietary;
+          it also means that the Corus client .jar can be redistributed 
+          without restrictions as part of client applications.
+        </li>
+        <li>
+          For the server part, it means that no one can modify and redistribute 
+          Corus without providing their entire modifications as source to their 
+          customers; it also means that their modifications automatically become 
+          subjected to the GPL. In addition, new software that is linked
+          to the Corus server libraries automatically becomes subjected to the GPL.
+        </li>
+      </ol>
+      <p>
+        In 99.9% of cases, this licensing scheme has no impact on the projects 
+        using Corus: client applications will use the client classes, which 
+        fall under the Apache 2.0 license, and are therefore shielded from any 
+        viral licensing restrictions or obligations.
+      </p>
+      <p>
+        We recommend that you read the 
+        <a target="gpl_faq" href="http://www.gnu.org/licenses/gpl-faq.html">GPL FAQ</a>
+        if you have more questions.
+      </p>
+    </sapia:sect-desc>
+  </sapia:sect1>
+</sapia:page>

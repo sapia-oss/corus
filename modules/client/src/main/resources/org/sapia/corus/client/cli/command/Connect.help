@@ -1,0 +1,19 @@
+<help>
+  <section title="Description">
+   <p>Connects to a given Corus host</p>
+  </section>
+  <section title="Syntax">
+    <p>connect [-h host_or_address] [-p port]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- h: host to connect to (defaults to localhost).</p>
+    <p/>
+    <p>- p: the port to connect to (defaults to 33000).</p>
+  </section>
+  <section title="Examples">
+    <p>connect -h jupiter -p 33000</p>
+    <p/>
+    <p>connect -p 33001</p>
+  </section>  
+</help>

@@ -1,0 +1,122 @@
+<sapia:page title="Rationale" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Rationale">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="rationale" />
+    </sapia:section>
+    <sapia:sect-desc>
+      <p>
+        Corus has been designed as an alternative to the monolithic 
+        programming and deployment model imposed by JEE, which has been thus 
+        far the only one available under the JVM for scaling applications.
+      </p>
+    </sapia:sect-desc>         
+    <sapia:sect2 title="Application Server Alternative">
+      <p>
+      As many others, we've been frustrated over the years by the bloat of 
+      application servers. We've seen the short-lived glory and inevitable 
+      demise of EJB 2.0, we've contemplated the half-promise of the Spring/JEE 
+      combination. Agile development requires all links in the chain to be 
+      agile: from methodology to team management to development tools to 
+      deployment infrastructure. 
+      </p>
+      
+      <p>
+      Let's <a href="http://www.bbc.co.uk/news/business-11944966">hear it</a> 
+      from WebSpere's initiator himself:
+      </p>
+      
+      <sapia:note>
+        <i>
+        When I was at IBM, I started a product called Websphere. Because I had 
+        come from working on big mission-critical systems, I thought it needs 
+        to be scalable, reliable, have a single point of control... I tried to 
+        build something like a mainframe, a system that was capable of doing 
+        anything, that would be able to do what might be needed in five years.
+        <p/>
+        I call it the endgame fallacy. It was too complex for people to master. 
+        I overdesigned it.Because we were IBM, we survived it, but if we'd been 
+        a start-up, we'd have gone to the wall.
+        </i>
+      </sapia:note>
+      
+      <p>
+      After shedding thousands of bucks on per-CPU license fees and overblown
+      complexity, it's time to dump your app server.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Language Agnosticity">
+      <p>
+      Furthermore, Java is not the only language that can benefit from the 
+      cutting-edge Hotspot JVM. Indeed, over the years, the JVM has gradually 
+      become a great multi-language environment: applications in Scala, Clojure, 
+      JRuby, Jython can all potentially run under Corus seamlessly. 
+      For server-side applications developed in these languages, JEE simply does 
+      not cut it. 
+      </p>
+      
+      <p>Let's <a href="http://www.infoq.com/interviews/josh-bloch-java-prog">hear</a> 
+      Josuah Bloch, Chief Java Architect at Google, on this topic:
+      </p>
+      
+      <sapia:note>
+        <i>
+        An immense investment has been made in the 
+        JVM over the years by many companies, whether it’s IBM or Sun, Apache, 
+        whatever. There are a bunch of VMs out there and you might as well 
+        leverage that investment. I’m also thrilled that it enables all of the 
+        language research that’s going on now. I think everyone realizes that 
+        we’re going to need some new languages before too long and I think it 
+        lowers the bar to be able to do experimentation in that area.
+        </i>
+      </sapia:note>
+      
+      <p>
+      Deploy and scale applications in any language under the JVM.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="À-la-Carte Scalability">
+      <p>
+      There is an enduring myth out there stating that an application not 
+      deployed in a 5K-per-CPU app server will not scale. Myriads of frameworks 
+      and libraries have been developed and made available in open source that 
+      can be integrated in an <i>à-la-carte</i> fashion within applications in order 
+      to address scalability needs. As in the past application servers would 
+      provide such services, nowadays it is oftentimes a deliberate choice to 
+      have applications embed them directly in code. The proliferation of robust 
+      server-side libraries, combined to Inversion of Control's widespread 
+      adoption, has resulted in making the application server model unnecessary 
+      in many cases, and in a more flexible and productive development approach. 
+      </p>
+      <p>
+      Corus makes scalable lightweight applications a viable option.
+      </p>
+
+    </sapia:sect2>
+    <sapia:sect2 title="Agility">
+      <p>
+      Sometimes you just want it barebones: you want to be able to develop your 
+      application without having to bother yourself with abstraction layers that 
+      hide application server considerations just for the sake of running unit 
+      tests. You know that minimizing discrepancies between your IDE and the 
+      deployment environment is the best way to improve productivity, software 
+      quality, and your own morale – we've all been victimized by the infernal 
+      develop-test-deploy loop. Corus  makes possible a no-nonsense 
+      laptop-to-cluster development model where server-side applications are 
+      freed from conformance to complex component models. In fact, Corus 
+      imposes absolutely no application framework: decisions in that regard are 
+      completely left to developers. 
+      </p>
+      <p>Develop-test-develop-test, and then deploy.</p>
+
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

@@ -1,0 +1,32 @@
+<distribution name="scalable-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.ScalableJettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+      <dependency distribution="scalable-sample-jetty" process="sessions" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.ScalableJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+      <dependency distribution="scalable-sample-jetty" version="1.0" process="server" />
+    </java>
+  </process> 
+  
+  <process  name="sessions" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.session.SessionServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.session.SessionServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+  </process> 
+</distribution>

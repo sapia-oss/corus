@@ -1,0 +1,42 @@
+<sapia:page title="Community" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+  
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Community">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="learning" href="learning.html" />      
+      <sapia:path name="community" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+      Corus is hosted at <a target="google_code" href="http://code.google.com/p/sapia/">Google Code</a>. 
+      For the moment, you can consult the following:
+      </p>
+      
+      
+      <ol>
+        <li>The <a target="user_group" href="http://groups.google.com/group/sapia-corus-users">user group</a>: 
+        http://groups.google.com/group/sapia-corus-users. You will need to subscribe in order to post.</li>
+        
+        <li>The <a target="wiki" href="http://code.google.com/p/sapia/">Sapia wiki</a> - have
+        a look at the <a href="http://code.google.com/p/sapia/wiki/CorusHome">Corus section</a>.</li>
+
+        <li>The <a target="svn" href="http://code.google.com/p/sapia/source/checkout">Subversion repository</a>.</li>        
+      </ol>
+      
+    </sapia:sect-desc>
+    
+  </sapia:sect1>
+  
+</sapia:page>

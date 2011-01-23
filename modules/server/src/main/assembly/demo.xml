@@ -1,0 +1,32 @@
+<assembly>
+  <id>demo</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+
+  <fileSets>
+    <fileSet>
+       <directory>etc/demoApp/META-INF</directory>
+       <outputDirectory>META-INF</outputDirectory>
+       <includes>
+          <include>*.xml</include>
+       </includes>
+    </fileSet>
+    <fileSet>
+       <directory>etc/demoApp/lib</directory>
+       <outputDirectory>lib</outputDirectory>
+       <includes>
+          <include>*.jar</include>
+       </includes>
+    </fileSet>
+    <fileSet>
+       <directory>etc/demoApp</directory>
+       <outputDirectory>/</outputDirectory>
+       <includes>
+          <include>*.xml</include>
+       </includes>
+    </fileSet>
+  </fileSets>
+  
+</assembly>

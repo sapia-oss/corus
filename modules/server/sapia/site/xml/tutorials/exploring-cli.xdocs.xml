@@ -1,0 +1,257 @@
+<sapia:page title="Exploring the Corus Command-Line" 
+  cssPath="../css/sapia.css" 
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="../css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Tutorials" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Exploring the Corus Command-Line">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="tutorials" href="index.html"/>
+      <sapia:path name="exploring the command-line" />
+    </sapia:section>
+
+    <sapia:sect-desc>
+      <p>
+        You've had quite a good overview of the Corus CLI in the 
+        <a href="webapp.html">introductory tutorial</a>. Now it's time for
+        a more in-depth look.
+      </p>
+      <p>
+        The CLI provides an array of commands, used to manage distributions,
+        processes, and Corus itself.
+      </p>
+      <p>
+        In this section, we're presenting you with the CLI's main features.
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:sect2 title="A Note on the Architecture">
+      <p>
+        The command-line is just a front-end that itself wraps usage of the
+        remote interface provided by the Corus server, allowing it to be 
+        managed over the network.
+      </p>
+      <p>
+        In fact, the CLI internally uses a "facade" that hides the details
+        of using the remote interface. One could use the facade to implement
+        their own management frontend, for example.
+      </p>
+      <p>
+        Through the facade, the CLI connects to a Corus server over
+        the network. The commands that are typed at the command-line are 
+        converted to object form - in fact, to remote method calls that
+        are processed by Corus.
+      </p>
+    </sapia:sect2>
+
+    <toc/>    
+
+    <sapia:sect2 title="Obtaining On-line Documentation">
+      <p>
+        The CLI supports an array of commands. A lot of these commands
+        will look familiar to you since they mimick the Linux/Unix ones. 
+      </p>
+
+      <sapia:note>This characteristic is intentional: it was one of our main
+      goals to get sysadmins up and running rapidly, since they're the ones
+      making the deployments in production. It is our experience that after
+      getting used to Corus, you'll type common Linux commands in the CLI and
+      wonder why they're not working, then realizing that you're indeed
+      using the CLI...</sapia:note>
+
+      <p>
+        The most basic and important command is 
+        <sapia:command>man</sapia:command>, which, as in Linux/Unix, allows
+        displaying help about a specific command. Just typing 
+        <sapia:command>man</sapia:command> without any arguments will display
+        the categorized list of commands. To obtain help about a specific
+        command, type <sapia:command>man</sapia:command> followed by the actual
+        name of the command whose help you want displayed.
+      </p>
+
+      <p>
+        You'll see that the help not only documents the syntax of a command,
+        but also provides examples illustrating different scenarios. 
+        To obtain details about a command, the online help is your best friend.
+      </p>
+
+    </sapia:sect2>
+
+    <sapia:sect2 title="Experimenting">
+      <p>
+        For the sake of practice, we'll go through the deployment of your
+        <a href="webapp.html">Grails web app</a> again, and explore the CLI in 
+        a more in-depth manner.
+      </p>
+      
+      <p>
+        As a first step, start a Corus instance on your workstation. Then 
+        connect to it with the CLI (note that the options for the host
+        and port are not required when connecting to localhost, on the default
+        Corus port):
+      </p>
+      
+      <sapia:code>coruscli -h localhost -p 33000</sapia:code>
+
+      <p>
+        Now deploy the distribution:
+      </p>
+      
+      <sapia:code>deploy target/corus_sample_jetty-<sapia:param value="project.version"/>-basic.zip</sapia:code>
+      
+      <p>
+        As you've seen previously, you can use <sapia:command>ls</sapia:command>
+        to view the list of currently deployed distributions. The 
+        <sapia:command>ls</sapia:command> command also takes options that allow
+        filtering the results (in cases where you have many distributions with
+        different names and/or versions). Type 
+        <sapia:command>man ls</sapia:command> to view the options that the
+        command takes.
+      </p>
+      
+      
+      <p>
+        Of course there's only one distribution deployed now, so there's not
+        much to filter. But just for the sake of showing that it works, type 
+        the following as is:
+      </p>
+      
+      <sapia:code>ls -d foo</sapia:code>
+      
+      <p>
+        No distribution is listed, confirming that the filtering works... Now type:
+      </p>
+
+      <sapia:code>ls -d basic-sample-jetty -v 5.0</sapia:code>
+
+      <p>
+        Nothing again: no 
+        <sapia:command>basic-sample-jetty</sapia:command> version matches 
+        the one specified.
+      </p>
+      
+      <p>
+        Now this:
+      </p>
+
+      <sapia:code>ls -d basic-sample-jetty -v 1.0</sapia:code>
+      
+      <p>
+        Our distribution appears.
+      </p>
+      
+      <p>
+        As you've seen in the <a href="webapp.html">Grails web app</a> tutorial,
+        the <sapia:command>exec</sapia:command> command also takes such options.
+        For example:
+      </p>
+      
+      <sapia:code>exec -d basic-sample-jetty -v 1.0 -v 1.0 -n server -p dev</sapia:code>
+      
+      <p>
+        The above starts the process corresponding to the given options, 
+        that is: the "server" process (or, the process with the "server" 
+        <sapia:command>n</sapia:command>ame) of the "basic-sample-jetty" 
+        distribution version "1.0", under the "dev" profile.
+      </p>
+      
+      <p>
+        The same can be said of the <sapia:command>kill</sapia:command> command:
+      </p>
+      
+      <sapia:code>kill -d basic-sample-jetty -v 1.0 -n server -p dev</sapia:code>
+
+      <p>
+        And similarly for the undeploy command: 
+      </p>
+
+      <sapia:code>undeploy -d basic-sample-jetty -v 1.0</sapia:code>
+      
+      <p>
+        The above commands are convenient, but can prove counter-productive when
+        having to perform operations on multiple distributions or processes,
+        which is often required in the context of deployment. The next section 
+        explores the solution to this problem. 
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Wildcards">
+      <p>
+        Most command specifying options for filtering results also support
+        wildcard matching. A concrete example will demonstrate this:
+      </p>
+      
+      <sapia:code>exec -d basic* -v * -n * -p dev</sapia:code>
+      
+      <p>
+        The above would target processes with any name, of distributions whose
+        name starts with "basic", of any version, under profile "dev" (note
+        that the profile option does not support wildcards).
+      </p>
+      
+      <p>
+        Wildcard matching greatly improves productivity: imagine that a bunch
+        of processes corresponding to a given distribution version are 
+        currently running, and that the deployment of a new version must be
+        performed. You can use wilcards to optimize your manipulations. 
+        The following illustrates a sequence of commands corresponding to this
+        scenario:
+      </p>
+      
+<sapia:code>kill -d * -v * -n * -w
+undeploy -d * -v *
+deploy target/corus_sample_jetty*.zip</sapia:code>
+      
+      <p>
+        Consult the CLI's online help for more details about how each command
+        supports wildcards.
+      </p>
+    
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Command Clustering">
+      <p>
+        Although Corus clustering is not the subject of this tutorial, it is
+        still relevant to mention it in the context of commands. Indeed, it
+        is possible to execute commands not only "on" the Corus instance to
+        which the CLI is currently connected, but on all instances in the cluster
+        (or domain).
+      </p>
+      
+      <p>
+        To "cluster" a command, one only needs specifiying the 
+        <sapia:command>-cluster</sapia:command> option at the end of the 
+        command-line, such as in:
+      </p>
+      
+      <sapia:code>exec -d corus* -v * -n * -p dev -cluster</sapia:code>
+
+      <p>
+        This will start the process corresponding to the specified options
+        on all Corus instances in the domain (provided they have the 
+        corresponding distribution).
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Conclusion">
+      <p>
+        In this tutorial, you've had a more in-depth look at the command-line
+        interface. We suggest you explore the CLI's help. Have look at each 
+        command, especially the examples.
+      </p>
+    </sapia:sect2>
+
+  </sapia:sect1>
+</sapia:page>

@@ -1,0 +1,46 @@
+<assembly>
+  <id>advanced</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    
+    <!-- lib -->
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>
+       <directory>${basedir}/lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+  
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>    
+       <directory>${basedir}/target</directory>
+       <includes>
+          <include>corus_sample_jetty*.jar</include>
+       </includes>
+    </fileSet>  
+    
+    <!-- webapps -->
+    <fileSet>
+       <outputDirectory>webapps</outputDirectory>
+       <directory>webapps</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+    
+    <!-- corus.xml -->    
+    <fileSet>
+       <outputDirectory>/META-INF</outputDirectory>
+       <directory>dist/advanced/META-INF</directory>
+       <includes>
+          <include>corus.xml</include>
+       </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

@@ -1,0 +1,56 @@
+<distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process name="restartApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.RestartApplication"
+          profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </java>
+  </process>
+  
+  <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.NoopApplication"
+          profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </java>
+  </process>
+
+  <process name="noopAppV2" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.NoopApplication"
+          profile="prod" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+      <dependency dist="demo" version="1.0" process="noopApp" profile="test" />
+    </java>
+  </process>
+  
+  <process name="brokenApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.NotRespondingApplication"
+          profile="test">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </java>
+  </process>
+
+  <process name="restartMagnet" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <magnet magnetFile="restartAppMagnet.xml" profile="test" vmType="client">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </magnet>
+  </process>
+  
+  <process name="noopMagnet" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <magnet magnetFile="noopAppMagnet.xml" profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </magnet>
+  </process>
+  
+  <process name="echoServer" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <magnet magnetFile="echoServerMagnet.xml" profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </magnet>
+    <port name="test" />
+  </process>  
+</distribution>

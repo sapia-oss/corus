@@ -1,0 +1,404 @@
+<sapia:page title="Web App Example" cssPath="../css/sapia.css"
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/corus.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="../shadowbox-3.0.3/shadowbox.css" />
+    <script type="text/javascript" src="../shadowbox-3.0.3/shadowbox.js"></script>
+    <script type="text/javascript">
+    Shadowbox.init();
+    </script>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Tutorials" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Web App Example">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus"     href="../home.html" />
+      <sapia:path name="learning"  href="../learning.html" />
+      <sapia:path name="tutorials" href="index.html"/>
+      <sapia:path name="web app example" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+        The goal of this tutorial is to provide you with a clear picture of 
+        the development-to-deployment cycle that is implied by using Corus.
+      </p>
+      <p>
+        The tutorial consists of a simple web application, deployed into an
+        embedded Jetty container, which is itself started by Corus.
+      </p>
+      <p>
+        As you'll be able to see by yourself, Corus allows deploying plain Java 
+        standalone apps (that is: applications that are bootstrapped by a class 
+        with a <sapia:command>main()</sapia:command> method).
+      </p>
+    </sapia:sect-desc>
+    
+    <toc/>    
+    
+    <sapia:sect2 title="The code">
+      <p>
+        An you've seen in the <a href="building.html">previous tutorial</a>
+        The source code is built with Maven and separated into two modules:
+      </p>
+      
+      <ul>
+        <li>
+          The module for the web application per say.
+        </li>
+        <li>
+          The module for the embedded Jetty container distribution that 
+          includes the above web app, and is deployed into Corus.
+        </li>
+      </ul>
+
+      <p>      
+        We're using Grails' <a target="grails-maven" href="http://grails.org/doc/latest/guide/4.%20The%20Command%20Line.html#4.5%20Ant%20and%20Maven">Maven support</a> 
+        in order to build the webapp, which is the one corresponding to the
+        <a target="grails-tutorial" href="http://www.grails.org/Quick+Start">Grails tutorial</a>).
+      </p>
+      
+      <sapia:note>
+        In order to follow the manipulations at the command-line that are described
+        in this tutorial, cd under the <sapia:command>corus_sample_jetty</sapia:command>
+        directory of the Corus source tree, as it was described <a href="building.html#samples_structure">here</a>.
+      </sapia:note>
+      
+      <p>
+        That being said, we'll now see the module from which we'll create a 
+        Corus distribution. Part of that module, an embedded Jetty container in 
+        a simple standalone Java class:
+      </p>
+      
+      <sapia:code>package org.sapia.corus.sample.jetty;
+
+import org.eclipse.jetty.server.Server;
+
+public class BasicJettyServer {
+
+  public static void main(String[] args) throws Exception{
+    EmbeddedServer embedded = new EmbeddedServer(8080);
+    embedded.start();
+  }
+}
+      </sapia:code>
+
+      <p>
+        The server expects web applications to be present under the directory 
+        correspdonding to <sapia:command>${user.dir}/webapps</sapia:command>,
+        where <sapia:command>${user.dir}</sapia:command> corresponds to the
+        <a target="user-dir" href="http://www.roseindia.net/java/example/java/io/GetCurrentDir.shtml">matching JVM property</a>. 
+        If you dig into the code, you will see that the bulk of the logic of loading the webapps
+        is isolated within a <sapia:class>ServerUtil</sapia:class> class, 
+        that loads the war files (or exploded war directories) under 
+        <sapia:command>webapps</sapia:command> as web applications into the 
+        Jetty container. Therefore, our server expects the war for our Grails 
+        application to be present under its 
+        <sapia:command>webapps</sapia:command> directory.
+      </p>
+      <p>
+        That's exactly how the distribution of our Jetty server that is meant 
+        for deployment into Corus is packaged. The distribution is built using
+        a Maven assembly. Its directory layout is given below:
+      </p>
+      
+      <sapia:code>/
+  META-INF/
+    corus.xml
+  lib/
+    ... the server's dependency jars ...
+  webapps/
+    corus_sample_grails_app-<sapia:param value="project.version" />.war</sapia:code>
+      
+      <p>
+        So the distribution is packaged following the same directory structure
+        we're using when we're developping:
+      </p>
+      
+      <center><img src="img/local_layout.png" /></center>
+      <p/>
+      <sapia:note>
+       To build the embedded Jetty server distributions that are used in the
+       context of the tutorials, do a <sapia:command>mvn install</sapia:command> 
+       in the <sapia:command>corus_sample_jetty</sapia:command> directory.
+      </sapia:note>
+    
+      <p>
+        We'll see later on what the <sapia:command>corus.xml</sapia:command> file is
+        used for. For now you can actually run the server in your IDE. And 
+        <b>that's the point:</b> test the code entirely and thoroughly, on the 
+        development workstation, prior to deploying into Corus.
+      </p>
+      
+      <p>
+        For example, to load the project in Eclipse, type the following maven
+        command in the server module's root:
+      </p>
+      
+      <sapia:code>mvn eclipse:eclipse</sapia:code>    
+      
+      <p>
+        Then create the project in Eclipse (use the "create from existing
+        sources" option). Your layout should be as follows: 
+      </p>
+      
+      <center><img src="img/eclipse-layout.png" /></center>
+      
+      
+      <p>
+        Once the setup is done, just right-click on the 
+        <sapia:class>BasicJettyServer</sapia:class> class and choose the
+        "Run as Java Application" option. The server should start and you
+        should be able to connect to the application at the following URL:
+      </p>
+      
+      
+      <sapia:tag name="a">  
+        <sapia:attr name="href">
+          <sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+        </sapia:attr><sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+      </sapia:tag>
+      
+    </sapia:sect2>
+
+    <sapia:sect2 title="Configuration">
+      <p>
+      Now that the application source code is ready, we need to prepare our 
+      embedded Jetty module for deployment into Corus. There are two things
+      to remember:
+      </p>
+      <ol>
+        <li>
+          Applications deployed into Corus must be packaged in a zip archive
+          (called a "distribution" in Corus terminology).
+        </li>
+        <li>
+          The archive must contain a Corus descriptor (a file named 
+          <sapia:command>corus.xml</sapia:command>) that is stored under a
+          <sapia:command>META-INF</sapia:command> directory of the archive).
+        </li>
+      </ol>
+
+      <p>
+      In our case, here is the Corus descriptor for our application
+      (we discuss the descriptor format more thoroughly 
+      <a href="corus-descriptor.html">here</a>):
+      </p>
+      
+      <sapia:code><![CDATA[
+<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+  </process> 
+</distribution>]]>
+      </sapia:code>
+      
+      <p>
+        As we've mentioned previously, using a Maven assembly, we package our 
+        distribution so that it contains:
+      </p>
+      
+      <ul>
+        <li>
+          The Corus descriptor under the <sapia:command>META-INF</sapia:command> 
+          directory;
+        </li>
+        <li>
+          the jar containing the compiled source of our class that starts 
+          Jetty;
+        </li>
+        <li>
+          the war dependency holding the resources of our webapp itself;
+        </li>
+        <li>
+          the jar dependencies required to run Jetty.
+        </li>
+      </ul>
+      
+      <p>
+        In short, we must package as part of the distribution all the resources 
+        that are required in our application's classpath, in addition to the
+        Corus descriptor.
+      </p>
+      
+    </sapia:sect2>
+      
+    <sapia:sect2 title="Deploying the application's distribution">
+      <p>
+        Now that our distribution has been properly packaged, we need to 
+        deploy it into Corus. First of all, make sure that you have a Corus
+        instance running.
+      </p> 
+      
+      <p>
+        Once that's done, you can connect to Corus using the command-line
+        interface. Type: <sapia:command>coruscli</sapia:command>.
+      </p>      
+      
+      <p>
+        The command-line interface will attempt connecting on a Corus instance
+        running on localhost and port 33000 (which is the Corus default port).
+        You can specify the host explicitely through the 
+        <sapia:command>h</sapia:command> option, and the port through the
+        <sapia:command>p</sapia:command> option, as in the following:
+      </p>
+      
+      <sapia:code>coruscli -h localhost -p 33000</sapia:code>
+      
+      <p>
+        Upon successfully connecting to the Corus instance, the CLI 
+        displays a <a href="img/coruscli_welcome.png" title="Corus CLI welcome screen" rel="shadowbox">welcome screen</a>
+      </p>
+      
+      <p>
+        To deploy the distribution, use the 
+        <sapia:command>deploy</sapia:command> command, as follows:
+      </p>
+      
+      <sapia:code>deploy target/corus_sample_jetty-<sapia:param value="project.version"/>-basic.zip</sapia:code>
+            
+      <p>
+        Once the deployment has completed, you can see the list of
+        distributions that are currently deployed  
+        <a href="img/distribution_list.png" title="Listing distributions" rel="shadowbox">using the <sapia:command>ls</sapia:command> command</a>.
+      </p>
+      
+      <sapia:note>
+        As you've probably noticed, we've been completely free as to what 
+        framework we use for development. Developing in the context of Corus
+        means that you suffer no limitations or constraints with regards to 
+        multi-threading, "bean pooling", etc. What you deploy into Corus are
+        plain-old Java standalone apps. The only thing to add is the Corus 
+        descriptor, which tells Corus about the applications contained in the 
+        distribution and provides runtime JVM parameters.
+      </sapia:note>
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Starting the server">
+      <p>
+        The natural thing to do now is to start an instance of the server. One
+        uses the <sapia:command>exec</sapia:command> to that end:
+      </p>
+      <sapia:code>exec -d basic-sample-jetty -v 1.0 -n server -p dev</sapia:code>
+      
+      <p>
+        The <a href="img/exec_output.png" title="Starting a process" rel="shadowbox">output of the command</a> 
+        indicates that Corus will proceed to the process' startup. To confirm 
+        that this indeed has occured, type <sapia:command>ps</sapia:command> in 
+        the CLI.
+      </p>
+      
+      <sapia:note>
+        If you look at <a href="img/process_list.png" title="Listing processes" rel="shadowbox">the listed process</a>
+        you'll see there are two identifiers associated to it:
+        <ul>
+          <li>One is generated by Corus; it's the "Corus process identifier".</li>
+          <li>The other is the actual process identifier generated by the OS.</li>
+        </ul>
+        
+        Both of these identifiers can be used later on for referring to a
+        specific process.
+      </sapia:note>
+      
+      <p>
+        Now, time to connect to our web app. Type the following URL in a browser:
+      </p>
+      
+      <sapia:tag name="a">  
+        <sapia:attr name="href">
+          <sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+        </sapia:attr><sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+      </sapia:tag>
+      
+      <p>That's it, your first app managed by Corus.</p>
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Stopping the server">
+      <p>
+        To stop a process in Corus, use the <sapia:command>kill</sapia:command>
+        command - which also allows stopping multiple processes at once, 
+        using wildcards (we'll see that in 
+        <a href="exploring-cli.html">another tutorial</a>). In our case, the
+        process identifier assigned by the OS is 2807, so we can use terminate
+        the server process like so:
+      </p>
+      
+      <sapia:code>kill -op 2807</sapia:code>
+      <p>
+        The <sapia:command>op</sapia:command> switch stands for "OS process".
+        (do a <sapia:command>man kill</sapia:command> in
+        the CLI for more information about the command).
+      </p>
+      <sapia:note>
+        Note that if you kill the process through the OS (that is, by using
+        the OS' actual <sapia:command>kill</sapia:command>), Corus will
+        restart the process automatically, as part of its high-availability
+        feature).
+      </sapia:note>
+      
+      <p>
+        Once a kill is issued, Corus proceeds to the termination of the process
+        or group of processes. In our case, Corus will proceed to the 
+        termination of the Jetty server instance.
+      </p>
+      <p>
+        When you type <sapia:command>ps</sapia:command> in the CLI, you should
+        see the process status change (it goes from active mode to 
+        <a href="img/process_kill_state.png" title="Process in shutdown" rel="shadowbox">shutdown mode</a>).
+        Once termination of the process is confirmed, Corus removes it from
+        its list, and it should therefore disappear from the output of the
+        <sapia:command>ps</sapia:command> command. That's what happens to our
+        Jetty server process - you can type <sapia:command>ps</sapia:command>
+        repetitively in the CLI to see this happening.
+      </p>
+    
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Undeploying the distribution">
+      <p>
+        For the sake of completeness, we'll "undeploy" our Jetty server
+        distribution from Corus. The <sapia:command>undeploy</sapia:command>
+        command is used to that end:
+      </p>
+      
+      <sapia:code>undeploy -d basic-sample-jetty -v 1.0</sapia:code>
+      
+      <p>
+        After having undeployed, type <sapia:command>ls</sapia:command>. The 
+        distribution should have disappeared.
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Conclusion">
+      <p>
+        You've experienced in this tutorial the full development-to-deployment
+        lifecycle implied by using Corus. You have also familiarized 
+        yourself with the Corus CLI, which as you'll soon see, allows not
+        only managing a single Corus daemon, but a whole domain.
+      </p>
+    </sapia:sect2>
+    
+    
+  </sapia:sect1>
+</sapia:page>

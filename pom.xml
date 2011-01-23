@@ -1,0 +1,191 @@
+<project 
+  xmlns="http://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus</name>
+  <description>Corus is a generic application process manager</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_parent</artifactId>
+  <version>2.0-SNAPSHOT</version>
+
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_global</artifactId>
+    <version>1.14</version>
+  </parent>
+
+  <scm>
+    <connection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</connection>
+    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</developerConnection>
+    <url>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+    <license>
+      <name>GNU General Public License (GPL), version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
+
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>modules/client</module>
+    <module>modules/server</module>
+    <module>samples</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+          <groupId>avalon-logkit</groupId>
+          <artifactId>avalon-logkit</artifactId>
+          <version>2.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+          <version>2.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+          <version>1.0.4</version>
+      </dependency>
+
+      <dependency>
+          <groupId>dom4j</groupId>
+          <artifactId>dom4j</artifactId>
+          <version>1.6.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.7</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.8</version>
+      </dependency>
+
+      <dependency>
+          <groupId>jdbm</groupId>
+          <artifactId>jdbm</artifactId>
+          <version>0.12</version>
+      </dependency>
+
+      <dependency>
+          <groupId>jdring</groupId>
+          <artifactId>jdring</artifactId>
+          <version>1.0</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.7.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_iop</artifactId>
+        <version>2.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_iop_api</artifactId>
+        <version>2.0</version>
+      </dependency>
+ 
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_as</artifactId>
+        <version>2.2</version>
+      </dependency>
+      
+      <dependency>
+	      <groupId>org.sapia</groupId>
+	      <artifactId>sapia_magnet</artifactId>
+	      <version>2.0</version>
+	      <scope>compile</scope>
+      </dependency> 
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_ubik</artifactId>
+        <version>2.5.9</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_console</artifactId>
+        <version>1.5</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_utils</artifactId>
+        <version>2.2</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring</artifactId>
+          <version>2.5.6</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.syslog4j</groupId>
+          <artifactId>syslog4j</artifactId>
+          <version>0.9.30</version>
+      </dependency>
+
+      <dependency>
+          <groupId>piccolo</groupId>
+          <artifactId>piccolo</artifactId>
+          <version>1.0.4</version>
+      </dependency>
+
+      <dependency>
+          <groupId>tanukisoft</groupId>
+          <artifactId>wrapper</artifactId>
+          <version>3.2.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>trove</groupId>
+          <artifactId>trove</artifactId>
+          <version>1.0.2</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+</project>

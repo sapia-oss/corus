@@ -1,0 +1,15 @@
+<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+  </process> 
+</distribution>

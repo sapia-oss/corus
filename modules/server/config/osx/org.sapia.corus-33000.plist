@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- To put in /Library/LaunchDaemons for system wide launch -->
+<!-- To put in /Library/LaunchAgents for user session launch -->
+
+<plist version="1.0">
+  <dict>
+    <key>Disabled</key>
+    <false/>
+    
+    <!-- Uncomment to run as specific user and group -->
+    <!--
+    <key>UserName</key>
+    <string>root</string>
+    
+    <key>GroupName</key>
+    <string>wheel</string>
+    -->
+    
+    <key>Label</key>
+    <string>org.sapia.corus-33000</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>JAVA_HOME</key>
+      <string>/Library/Java/Home</string>
+      <key>CORUS_HOME</key>
+      <string>/opt/sapia-corus/current</string>
+      
+      <!-- This is required to start wrapper in a non-daemon mode for proper integration with launchd -->
+      <key>CORUS_SERVICE_DAEMONIZE</key>
+      <string>FALSE</string>
+    </dict>
+  
+    <key>ProgramArguments</key>
+    <array>
+      <string>/opt/sapia-corus/current/bin/corus_service.sh</string>
+      <string>start</string>
+      <string>33000</string>
+    </array>
+  
+    <key>KeepAlive</key>
+    <false />
+  
+    <key>RunAtLoad</key>
+    <true />
+    
+    <key>ServiceDescription</key>
+    <string>Sapia Corus</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/opt/sapia-corus/current/bin/logs/corus-launchd.log</string>
+    
+    <key>StandardOutPath</key>
+    <string>/opt/sapia-corus/current/bin/logs/corus-launchd.log</string>
+  
+  </dict>
+</plist>
+

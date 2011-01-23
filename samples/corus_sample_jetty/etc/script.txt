@@ -1,0 +1,5 @@
+kill -d * -v * -w
+undeploy -d * -v *
+deploy target/*-scalable.zip
+deploy etc/exec.xml
+exec -e jetty-server

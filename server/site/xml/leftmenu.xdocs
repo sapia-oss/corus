@@ -1,6 +1,0 @@
-<sapia:vmenu xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
-  <sapia:vsection name="Project Home" href="home.html"/>
-  <sapia:vsection name="Javadoc" href="api/index.html"/>
-  <sapia:vsection name="Download" href="download.html"/>
-  <sapia:vsection name="Mailing List" href="list.html"/>
-</sapia:vmenu>

@@ -1,0 +1,124 @@
+<sapia:page title="Corus" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+  
+  <sapia:sect1 title="Corus: Dump your App Server">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" />
+    </sapia:section>
+
+    <sapia:sect-desc title="Overview">
+      <p>
+        Corus allows distributing server-side applications on a large scale 
+        without requiring conformance to a heavyweight programming model. 
+        Package your app using your lightweight application framework of 
+        choice, deploy it, and then let Corus execute and monitor multiple 
+        distributed instances of it.
+      </p>
+    </sapia:sect-desc>
+    
+    <sapia:sect2 title="Highlights">
+      <ul style="color: black; font-size: 16px; list-style: square outside none;" >
+        <li>
+          Scale JVM-based applications as is, without conforming to a complex 
+          programming model.
+        </li>
+        <li>
+          Centrally manage distributed JVMs on commodity hardware, using 
+          Linux-like commands, allowing for clustered deployment and process 
+          execution.
+        </li>
+	      <li>
+	        Rely on a robust runtime environment providing high-availability - 
+	        crashed or unresponsive processes are automatically restarted.
+	      </li>
+	      <li>
+	        Minimize deployment time, and thus downtime, through batch deployment.
+	      </li>
+	      <li>
+	        Integrate cluster-wide process status data into monitoring
+	        infrastructure.
+	      </li>
+	      <li>
+	        Install on OS of choice (Corus has been deployed and tested on 
+	        multiple Linux/Unix distributions: Ubuntu, CentOS, Solaris, etc.).
+	      </li>
+	    </ul>
+	  </sapia:sect2>
+	  
+	  <sapia:sect2 title="Explore">
+	  
+   	  <div style="margin-left: 15px">
+        <div class="content-box">
+          <div class="content-box-title">Rationale</div>
+          <span class="text">                                                          
+            Corus provides an alternative to the monolithic application
+            server model. Develop your app using your lightweight
+            framework of choice, and deploy.
+            <br/><a href="rationale.html">more...</a>
+          </span>
+        </div>
+        
+        <div class="content-box">
+          <div class="content-box-title">Architecture</div>
+          <span class="text">
+            Corus provides an infrastructure that allows deploying
+            and monitoring distributed application processes 
+            reliably, in a centralized manner.
+            <br/><a href="architecture.html">more...</a>
+          </span>
+        </div>
+        
+        <div class="content-box">
+          <div class="content-box-title">Install</div>
+          <span class="text">
+            Corus has been installed and tested on multiple OSes,
+            even on Windows. Just download, install, configure, 
+            and start.
+            <br/><a href="install.html">more...</a>
+          </span>
+        </div>
+        
+      </div>
+      
+      <div style="clear: both;" />
+      
+   	  <div style="margin-left: 15px">
+        <div class="content-box">
+          <div class="content-box-title">Learning</div>
+          <span class="text">
+            Learn more about the technical details: from development to
+            deployment to actually managing your applications. See our 
+            tutorials, examples, screenshots.
+            <br/><a href="learning.html">more...</a>
+          </span>
+        </div>
+        
+        <div class="content-box">
+          <div class="content-box-title">Roadmap</div>
+          <span class="text">
+            Yes we do have a plan. We encourage you to inquire about
+            it and even provide us with your suggestions.
+            <br/><a href="roadmap.html">more...</a>
+          </span>
+        </div>
+
+        <div class="content-box">
+          <div class="content-box-title">License</div>
+          <span class="text">
+            Corus is released under a dual licensing scheme, under the Apache 
+            2.0 and GPL licenses. Client applications are completely shielded
+            from the GPL.
+            <br/><a href="licensing.html">more...</a>
+          </span>
+        </div>
+      </div>
+	  </sapia:sect2>
+
+  </sapia:sect1>
+</sapia:page>

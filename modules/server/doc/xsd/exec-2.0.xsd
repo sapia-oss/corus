@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://www.sapia-oss.org/xsd/corus/exec-2.0.xsd"
+  xmlns="http://www.sapia-oss.org/xsd/corus/exec-2.0.xsd">
+
+    <xs:element name="exec">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element ref="process" maxOccurs="unbounded" minOccurs="1">
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="startOnBoot" type="xs:boolean" default="false"></xs:attribute>
+      </xs:complexType>    
+    </xs:element>
+     
+    <xs:element name="process">
+      <xs:complexType>
+        <xs:attribute name="dist" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="version" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
+      </xs:complexType>
+    </xs:element>
+
+</xs:schema>

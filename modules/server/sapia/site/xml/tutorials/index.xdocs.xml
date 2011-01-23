@@ -1,0 +1,93 @@
+<sapia:page title="Corus Tutorials" cssPath="../css/sapia.css" 
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="../css/corus.css" type="text/css"/>
+  </head>
+  
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Tutorials" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Tutorials">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus"     href="../home.html" />
+      <sapia:path name="learning"  href="../learning.html" />
+      <sapia:path name="tutorials" />
+    </sapia:section>
+
+    <sapia:sect-desc>
+      <p>
+        We've designed tutorials that provide a gradual introduction to Corus.
+        We suggest you follow the tutorials in the order in which they're
+        presented below. We also suggest you read the 
+        <a href="../CorusGuide.pdf">Corus Guide</a>.
+      </p>
+      
+      <p>
+        In order to go through the tutorials, you'll have to check out Corus
+        and <a href="building.html">build it from source</a> - that is in fact 
+        the subject of the first tutorial.
+      </p>
+    
+      <div>
+        <div class="article-box">
+          <h1><a href="building.html">1) Building from Source</a></h1> 
+          All other tutorials are based on sample applications that are part
+          of the Corus source tree. You need to build Corus from source in order
+          to move on to the other tutorials. We're showing you how in this 
+          tutorial.
+        </div>
+        
+        <div class="article-box">
+          <h1><a href="webapp.html">2) Web App Example</a></h1> 
+          See how a Grails web app is deployed into a Jetty container that is
+          itself deployed into Corus. The tutorials illustrate the full
+          development-to-deployment cycle. At the end of this tutorial you'll
+          have a very good grasp of what Corus is about.
+        </div>
+        
+        <div class="article-box">
+          <h1><a href="corus-descriptor.html">3) The Corus Descriptor</a></h1> 
+          What is it exactly? How is it used? The descriptor tells Corus 
+          how to start your applications. It's the only Corus-specific config 
+          file you'll need when deploying standalone Java apps into Corus.
+        </div>
+      </div>
+      
+      <div style="clear: both;" />
+
+      <div>
+        <div class="article-box">
+          <h1><a href="exploring-cli.html">4) Exploring the CLI</a></h1> 
+          The command-line interface mimicks Linux/Unix commands and is
+          the primary tool through which you interact with Corus.
+          Explore the various features, play around with wildcards,
+          learn about clustered commands. 
+        </div>
+        
+        <div class="article-box">
+          <h1><a href="corus-domain.html">5) Managing a Corus Domain</a></h1> 
+          The real power of Corus lies in its "collective management" 
+          capabilities. You can manage a whole domain of Corus instances through
+          the Corus command-line, without more hassle than you do a single 
+          instance.
+        </div>
+        
+        <div class="article-box">
+          <h1><a href="advanced-management.html">6) Advanced Management</a></h1> 
+          There are more features in stores to streamline deployments and 
+          ease the pain of maintenance operations. In this tutorial, we're 
+          exploring these hassle-saving features. 
+        </div>
+      </div>
+      
+    </sapia:sect-desc>
+    
+  </sapia:sect1>
+</sapia:page>

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<distribution xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd"
+  name="foo"
+  version="1.2">
+
+  <process name="foo">
+      <java mainClass="" profile="" vmType="client">
+          <property name="" value=""/>
+          <property name="" value=""/>
+          <option name="" value=""/>
+          <xoption name="" value=""/>
+          <dependency process=""/>
+      </java>
+      <port name=""/>
+  </process>
+  
+</distribution>

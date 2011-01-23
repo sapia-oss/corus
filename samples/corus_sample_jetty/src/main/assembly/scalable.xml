@@ -1,0 +1,54 @@
+<assembly>
+  <id>scalable</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    
+    <!-- lib -->
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>
+       <directory>${basedir}/lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+  
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>    
+       <directory>${basedir}/target</directory>
+       <includes>
+          <include>corus_sample_jetty*.jar</include>
+       </includes>
+    </fileSet>  
+    
+    <fileSet>
+       <outputDirectory>etc</outputDirectory>
+       <directory>${basedir}/etc</directory>
+       <includes>
+          <include>**/ehcache.xml</include>
+       </includes>
+    </fileSet>
+    
+    <!-- webapps -->
+    <fileSet>
+       <outputDirectory>webapps</outputDirectory>
+       <directory>webapps</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+    
+    <!-- corus.xml -->    
+    <fileSet>
+       <outputDirectory>/META-INF</outputDirectory>
+       <directory>dist/scalable/META-INF</directory>
+       <includes>
+          <include>corus.xml</include>
+       </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

@@ -1,0 +1,43 @@
+<project 
+  xmlns="http://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Samples</name>
+  <description>Sapia Corus samples parent POM</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_samples_parent</artifactId>
+
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <packaging>pom</packaging>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>corus_sample_grails_app</artifactId>
+        <version>${project.version}</version>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>corus_sample_jetty</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+
+  <modules>
+    <module>corus_sample_grails_app</module>
+    <module>corus_sample_jetty</module>
+  </modules>
+
+</project>

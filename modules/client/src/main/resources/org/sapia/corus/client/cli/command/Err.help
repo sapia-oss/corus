@@ -1,0 +1,38 @@
+<help>
+  <section title="Description">
+   <p>Local command that displays the details and summary information of previous errors that occured in this CLI.</p>
+  </section>
+  <section title="Syntax">
+    <p>err</p>
+    <p/>
+    <p>or:</p>
+    <p/>
+    <p>err -c | -i [error id] | -l {number}</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>-c: option to clear the errors from the memory.</p>
+    <p/>
+    <p>-i: option to view the details for a specific error id.</p>
+    <p/>
+    <p>-l: option to view a summary list of all the previous errors, or up to the number of error if the optionnal value {number} is specified.</p>
+  </section>
+  <section title="Notes">
+    <p>- If no option is specified, the command will display the details of the last error encountered in the CLI.</p>
+    <p/>
+    <p>- If the -i option is specified, the error id provided must be a valid identifier.</p>
+    <p/>    
+    <p>- By default the system will remains only the last 20 errors that occured within the CLI.</p>
+  </section>
+  <section title="Examples">
+    <p>err</p>
+    <p/>
+    <p>err -l</p>
+    <p/>
+    <p>err -l 5</p>
+    <p/>    
+    <p>err -i 3</p>
+    <p/>    
+    <p>err -c</p>
+  </section>  
+</help>

@@ -1,0 +1,236 @@
+<sapia:page title="Architecture" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Interop Spec" href="CorusInterop.pdf"/>    
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Architecture">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="architecture" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+        Corus consists of a lightweight daemon implemented in Java. A Corus 
+        daemon is installed on a given host, and executes/monitors processes on 
+        that host.
+      </p>
+      <p>
+        Multiple Corus daemons are grouped by domain (or cluster), which allows 
+        performing clustered application deployment and process execution. 
+        A command-line client is provided in order to control multiple Corus 
+        daemons remotely, in a centralized manner.
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:sect2 title="The Corus Daemon">
+      <p>
+        Corus is, at the core, a daemon process running on a given host, 
+        managing the applications deployed to it. Many such Corus instances can 
+        be grouped together into so-called domains or clusters, thereby allowing
+        for the centralized management of application processes across multiple 
+        hosts. Indeed, all Corus instances that are part of the same domain 
+        “know” each other, and can be administered collectively, as one.
+      </p>
+      <center>
+        <img src="img/architecture.png" />
+      </center>
+    </sapia:sect2>
+
+    <sapia:sect2 title="The Command-Line Interface">    
+      <p>
+        To administer either a single Corus instance or a whole domain, one uses 
+        the Corus command-line interface (the CLI). The CLI is used to connect 
+        to a given Corus instance and send commands to either that single 
+        instance or to all instances in the domain. Most notably, the commands 
+        that are supported allow:
+      </p>
+      <ul>
+        <li>Deploying and undeploying application distributions.</li>
+        <li>Starting application processes from these distributions.</li>
+        <li>Terminating application processes.</li>
+        <li>
+          Perform various management tasks such as obtaining the list
+          of currently running processes, or the status data of running
+          processes
+        </li>
+      </ul>
+      <p>
+        The CLI has a Linux-like feel to it: in a few cases it adapts common 
+        Unix/Linux commands (ps, ls, kill...) to the Corus context.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Distributions and Processes">
+      <p>
+        Corus is used to manage the distribution of applications, and the 
+        execution of application processes. Applications are deployed into Corus 
+        as “distributions”, which consist of zip files containing application 
+        resources: classes, libraries, configuration files, etc. 
+      </p>
+      <p>
+        Corus distributions are no different than plain-vanilla distributions as 
+        they are traditionnally understood: a collection of files among which is 
+        normally one executable, zipped in an archive that is given to end-users. 
+        Corus executes an application the same way human beings do: by invoking 
+        a command-line that boostraps an executable.
+      </p>
+      <p>
+        Currently, Corus supports the startup of standalone Java applications  
+        (that is, it is capable of invoking the execution of Java classes with a 
+        <sapia:command>main</sapia:command> method). In order to be able to do 
+        so, one must include in a distribution a so-called Corus descriptor, 
+        that indicates which applications can be executed.
+      </p>
+      <p>
+        For the sake of clarity, we are providing such a descriptor below:
+      </p>
+      <sapia:code><![CDATA[
+<distribution name="jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.JettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.JettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+  </process> 
+</distribution>]]>
+      </sapia:code>
+      <p>
+        As can be seen, a distribution has a name, a version, and specifies one 
+        to many processes, each with a name. It is quite clear in the above case
+        that a process corresponds to a Java application: one JVM process will 
+        be started for each application.
+      </p>
+      <p>
+        Once a process is started by a Corus daemon (typically following a 
+        command initiated by an administrator using the CLI), it maintains a 
+        link with that daemon, as specified by the Corus Interoperability 
+        Protocol. The protocol describes how a Corus instance and the processes 
+        that it starts interact. Among other interactions, the most notable is 
+        the heartbeat that processes must provide: if a Corus instance has not 
+        received a heartbeat from a process it manages after a predefined 
+        amount of time, Corus automatically attempts restarting it. 
+      </p>
+      <p>To be more concise here are the most important interactions:</p>
+      <ul>
+        <li>
+          Heartbeat: initiated by a process, allows Corus to provide a 
+          high-availability service. A Corus daemon will attempt restarting a 
+          crash process automatically.
+        </li>
+        <li>
+          Status: processes may send status information to Corus, which makes 
+          that status available to administrators, through the command-line.
+        </li>
+        <li>Kill: processes managed by Corus can be killed. A “kill” event is 
+            sent to the targeted processes, which allows applications to 
+            terminate gracefully. Such an event can be triggered by many source:
+          <ul>
+            <li>An adminisrator invokes the kill command using the CLI.</li>
+            <li>The Corus daemon orders the termination of a process after 
+                deeming it unresponsive.</li>
+            <li>The process itself has requested a restart.</li>
+          </ul>
+        </li>
+      </ul>
+      <p>
+        The <a href="CorusInterop.pdf">Corus Interoperability Protocol</a> has been 
+        implemented has a Java agent that is transparently activated in JVMs 
+        that are started by Corus. Upon startup, the agent starts polling the 
+        Corus server at a predefined interval to provide its heartbeat, status, 
+        and to receive events (such as “kill”). 
+      </p>
+
+    </sapia:sect2>
+    <sapia:sect2 title="Applications">
+      <p>
+        As stated multiples times throughout the Corus web site, Corus does not 
+        force a programming model onto the developer. In fact, an application 
+        may be completely oblivious to the fact that it is managed by Corus. 
+        Currently, Corus supports deploying and starting stand-alone Java 
+        applications, that is: applications that are bootstrapped by a Java 
+        class with a static <sapia:command>main</sapia:command> method. 
+        That's it. From then on, everything is up to the developer.
+      </p>
+      <p>
+        The only thing that is relevant for applications to be aware of is that 
+        when it starts a process, Corus passes properties to the command-line 
+        (which are in fact JVM properties passed using the 
+        <sapia:command>-Dname=value</sapia:command> notation). 
+        The properties can be recuperated in Java using 
+        <sapia:command>System.getProperty(...)</sapia:command>.
+      </p>
+      <p>
+        Furthermore, applications can add in their dependencies a jar file 
+        consisting of a library that allows "hooking up" to the Java agent
+        that implements the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a> 
+        and resides within the application's JVM. The code snippet below illustrates how 
+        an application can hook up to Corus via that library and provide 
+        status information (see the <a href="advanced.html#applicationStatus">advanced</a> section
+        for more details):
+      </p>
+      <sapia:code>
+import org.sapia.corus.interop.Context;
+import org.sapia.corus.interop.Param;
+import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.api.InteropLink;
+import org.sapia.corus.interop.api.StatusRequestListener;
+...      
+
+  InteropLink.getImpl().addStatusRequestListener(this);
+
+  ...
+  
+  @Override
+  public void onStatus(Status status) {
+    Context context = new Context("org.sapia.corus.sample.jetty");
+    context.addParam(createParam("dispatched", stats.getDispatched()));        
+    context.addParam(createParam("dispatchedActive", stats.getDispatchedActive()));
+    context.addParam(createParam("dispatchedActiveMax", stats.getDispatchedActiveMax()));        
+    context.addParam(createParam("dispatchedTimeMax", stats.getDispatchedTimeMax()));
+    context.addParam(createParam("dispatchedTimeTotal", stats.getDispatchedTimeTotal()));
+    context.addParam(createParam("dispatchedTimeMean", stats.getDispatchedTimeMean()));
+    context.addParam(createParam("requests", stats.getRequests()));        
+    context.addParam(createParam("requestsActive", stats.getRequestsActive()));        
+    context.addParam(createParam("requestsActiveMax", stats.getRequestsActiveMax()));        
+    context.addParam(createParam("requestsTimeMax", stats.getRequestTimeMax()));        
+    context.addParam(createParam("requestsTimeMean", stats.getRequestTimeMean()));
+    context.addParam(createParam("requestsTimeTotal", stats.getRequestTimeTotal()));
+    context.addParam(createParam("suspends", stats.getSuspends()));        
+    context.addParam(createParam("suspendsActive", stats.getSuspendsActive()));        
+    context.addParam(createParam("suspendsActiveMax", stats.getSuspendsActiveMax()));  
+    status.add(context);
+  }
+  
+  
+  private Param createParam(String name, Object value){
+    return new Param(name, value.toString());
+  }
+
+...
+      </sapia:code>
+      <p>
+        If the JVM has not been started by Corus, the code above will NOT cause 
+        any undesirable side-effects at runtime. Thus, there is no need to 
+        remove the dependency.
+      </p>
+      <p>
+        We are explaining in further details application programming 
+        considerations in the <a href="tutorials/index.html">tutorials</a> and 
+        in the <a href="CorusGuide.pdf">Corus manual</a>. But really, there is 
+        not much more to it than this.
+      </p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

@@ -1,0 +1,421 @@
+<sapia:page title="Running a Corus Domain" 
+  cssPath="../css/sapia.css" 
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="../css/corus.css" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="../shadowbox-3.0.3/shadowbox.css" />
+    <script type="text/javascript" src="../shadowbox-3.0.3/shadowbox.js"></script>
+    <script type="text/javascript">
+    Shadowbox.init();
+    </script>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Tutorials" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Running a Corus Domain">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="tutorials" href="index.html"/>
+      <sapia:path name="running a corus domain" />
+    </sapia:section>
+
+    <sapia:sect-desc>
+      <p>
+        So now you know that you can deploy distributions into Corus, and
+        trigger their execution using the 
+        <a href="exploring-cli.html">command-line interface</a> - with which you
+        should be confortable by now.
+      </p>
+      
+      <p>
+        The goal of this tutorial is to show you that you can just as easily
+        manage a whole Corus domain as you can a single instance. And that's the
+        point: for scalability reasons, you need to be able to deploy your
+        applications on multiple hosts.
+      </p>
+      
+      <p>
+        That's where the Corus advantage comes through: you do not need to 
+        deploy on each individual host one by one. Using Corus, your deployment
+        (and the execution of your applications) is replicated on all hosts.
+      </p>
+      
+      <p>
+        This tutorial assumes that you already went through the 
+        <a href="webapp.html">introductory tutorial</a>. We're going to redeploy
+        the Grails web application that we used in that tutorial, but this
+        time across the whole cluster.
+      </p>
+    </sapia:sect-desc>
+    
+    <toc/>
+
+    <sapia:sect2 title="Setting Up">
+      <p>
+        For the purpose of this tutorial, you are going to start two Corus 
+        instances on your workstation. Since the Corus daemon listens on port
+        33000 by default, you'll have to start an instance on another port - 
+        let's say 33001. You pass in the <sapia:command>d</sapia:command>
+        option to the Corus executable that starts a daemon process, in order 
+        to specify the domain to which the daemon belongs. Here are the two
+        command lines corresponding to the Corus instances that we need for
+        the purpose of this tutorial:
+      </p>
+      
+<sapia:code>corus -d samples
+corus -d samples -p 33001</sapia:code>
+
+      <p/>
+      <sapia:note>
+        When you start Corus directly (that is, when it is not started as
+        a service), the command-line blocks and you have to type 
+        <sapia:command>CTRL-C</sapia:command> to stop the daemon process.
+      </sapia:note>
+      
+      <p>
+        At startup, both instances will discover each other - in fact, both
+        instances broadcast their presence, and other instances in the domain
+        will introspect the presence message to determine if the newcomer's
+        domain match their own. So if all instances are on the same domain,
+        they're all interconnected from then on.
+      </p>
+      
+      <p>
+        At this point, connect with the CLI to one of the instances in the 
+        domain:
+      </p>
+      
+      <sapia:code>coruscli -h localhost -p 33000</sapia:code>
+      
+      <p>
+        And now to have an idea about what Corus instances are part of the 
+        domain, type:
+      </p>
+      
+      <sapia:code>hosts</sapia:code>
+      
+      <p>
+        You should see a  <a href="img/hosts-domain.png" title="Listing the Corus instances in the domain" rel="shadowbox">list of hosts</a> 
+        corresponding to our two instances.
+      </p>
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Preparing the Distribution">
+      <p>
+        So we're going to deploy our 
+        <a href="webapp.html">Grails application</a> to multiple Corus instances
+        that are part of the same domain. As it happens, all these instances 
+        will be running on your workstation; since the Jetty server as we've
+        been deploying it thus far listens on port 8080, this means we're having
+        a potential port conflict. 
+      </p>
+      <p>
+        As a workaround, we've implemented an alternate embedded Jetty server
+        that uses Corus' built-in port management feature, which works this way:
+        <ol>
+          <li>
+            Using the CLI, we define a "port range", to which a name
+            is assigned. That name identifies the range uniquely.
+          </li>
+          <li>
+            We modify our Corus descriptor to specify which processes will 
+            require a port corresponding to that range.
+          </li>
+          <li>
+            We modify our application code (or configuration) to take into 
+            account the fact that a port number will now be dynamically assigned
+            by Corus - that is, passed to the process by Corus at startup time
+            (we call this "leasing" a port).
+          </li>
+        </ol>
+      </p>
+      <p>
+        We delve into these steps more specifically in the following 
+        subsections.  
+      </p>
+      <sapia:sect3 title="Defining a Port Range">
+        <p>
+          Using the CLI, define a port range on each Corus instance. Since
+          both instances are running on the same host, we're making sure that
+          the range on both instances do not overlap. So on the first host 
+          (listening on the default 33000 port), type the following:
+        </p>
+        <sapia:code>port add -n jetty-server -min 8080 -max 8080</sapia:code>
+        
+        <p>
+          And now type the following in the CLI to connect to the second host
+          and create on it the other port range:
+        </p>
+        <sapia:code>
+connect -p 33001
+port add -n jetty-server -min 8081 -max 8081
+        </sapia:code>
+        <p>  
+          In the above, the ranges on both Corus instances do not have the 
+          same port, a necessary thing since the instances are on the same host. 
+          Note also that we've allocated slots for only one port (the lowerbound 
+          and upperbound are identical, for both ranges), since we're going to 
+          start a single Jetty server per Corus instance.
+        </p>
+
+        <p>
+          As you can see, a port range consists of a lowerbound and upperbound 
+          ports, both of them inclusive. As we've mentioned, it is also 
+          identified with a name (in the above case, 
+          <sapia:command>jetty-server</sapia:command>).
+        </p>
+        <p>
+          That name is important, since it is referred to in the Corus
+          descriptor, as shown next.  
+        </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Modifying the Descriptor">
+        <p>
+          We now must modify the Corus descriptor in order to indicate to Corus
+          that it should pass a port number to the process at startup time.
+          Here's how it's done:
+        </p>
+        
+        <sapia:code><![CDATA[<distribution name="corus-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.AdvancedJettyServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="16M" />
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.AdvancedJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+    <port name="jetty-server" />        
+  </process> 
+</distribution>]]></sapia:code>
+        
+        <p>
+          Pay attention to the <sapia:command>port</sapia:command> element,
+          right after <sapia:command>process</sapia:command>. The 
+          <sapia:command>name</sapia:command> attribute of the element 
+          corresponds to the name we've assigned to our port range 
+          (<sapia:command>jetty-server</sapia:command>). This is important, as 
+          it indicates to Corus from which range a port should be leased to the 
+          process.
+        </p>
+        
+        <sapia:note>
+          Here's how port leasing works: upon starting a process for which
+          a port is configured, Corus leases a port from the corresponding 
+          range. The port thus becomes unavailable to other processes, 
+          until that process is terminated. When this happens, the port becomes 
+          available for another lease.
+        </sapia:note>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Adapting the Code">
+        <p>
+          Corus uses a system property to pass a port corresponding to a given
+          range to a process. That property follows the following format:
+        </p>
+        
+        <sapia:code>corus.process.port.&lt;port_name&gt;</sapia:code>
+        
+        <p>
+          We've thus coded a class 
+          (<sapia:class>AdvancedJettyServer</sapia:class>) that implements the 
+          logic necessary to get the leased port that is passed through a
+          system property - falling back to a default port if the property
+          is not specified, allowing startup from the IDE without any
+          special configuration:
+        </p>
+        
+        <sapia:code>public class AdvancedJettyServer {
+
+  private static final String DEFAULT_PORT = "8080";
+  
+  public static void main(String[] args) throws Exception{
+    String portStr = System.getProperty("corus.process.port.jetty-server", DEFAULT_PORT);
+    EmbeddedServer embedded = new EmbeddedServer(Integer.parseInt(portStr));
+    embedded.start();
+  }
+}</sapia:code>
+
+        <p>
+          Other than that, the class is similar to our previous 
+          <sapia:class>BasicJettyServer</sapia:class> one: it starts
+          an embedded Jetty server.
+        </p>
+        
+      </sapia:sect3>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Clustered Deployment">
+      <p>
+        We're now going to deploy our 
+        <a href="webapp.html">Grails application</a> to all Corus instances in 
+        the domain. First of all, to make sure our distribution is not already
+        deployed - as a remnant of previous tutorials, we're going to undeploy 
+        everything (Corus disallows overwriting distributions):
+      </p>
+      
+      <sapia:code>undeploy -d * -v * -cluster</sapia:code>
+      
+      <p>
+        And now let's deploy:
+      </p>
+
+      <sapia:code>deploy target/corus_sample_jetty*advanced.zip -cluster</sapia:code>
+      
+      <p>
+        The above command just deployed the distribution to both our Corus
+        instances. To check it out, type the following:
+      </p>
+      
+      <sapia:code>ls -cluster</sapia:code>
+      
+      <p>
+        As you can see, the CLI displays results on a per-Corus instance basis. 
+        If all went well, you should see the 
+        <a href="img/ls-cluster.png" title="Listing the distributions in the domain" rel="shadowbox">distribution listed under both 
+        Corus instances</a>.
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Clustered Execution">
+      <p>
+        Now the <i>piece de resistance</i>: the clustered execution of your
+        Grails application (and therefore of the Jetty server that runs it).
+        Type the following in the CLI:
+      </p>
+      
+      <sapia:code>exec -d advanced* -v * -n server -p dev -cluster</sapia:code>
+      
+      <p>
+        After a certain delay, both Jetty servers should be running, each on
+        its port. Try connecting to the Grails app on both servers by entering
+        the following URLs in a browser:
+      </p>
+      
+      <p>
+      <sapia:tag name="a">  
+        <sapia:attr name="href">
+          <sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+        </sapia:attr><sapia:text>http://localhost:8080/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+      </sapia:tag>
+      </p>
+      
+      
+      <p>
+      <sapia:tag name="a">  
+        <sapia:attr name="href">
+          <sapia:text>http://localhost:8081/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+        </sapia:attr><sapia:text>http://localhost:8081/corus_sample_grails_app-</sapia:text><sapia:param name="project.version" />
+      </sapia:tag>
+      </p>
+      
+      <p>
+        You can also see the <a href="img/ls-active-ports.png" title="Listing active ports" rel="shadowbox">list of "active" ports</a>
+        on each Corus instance in the domain by typing the following:
+      </p>
+      
+      <sapia:code>port ls -cluster</sapia:code>
+      
+      <p>
+        The listing indicates that there are no more available ports - and shows
+        that the "active" ports are indeed the ones that we've configured.
+      </p>
+  
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Termination">
+      <p>
+        To wrap things up, we'll kill both server instances and undeploy
+        the distribution, again cluster-wide of course. Type the following:
+      </p>
+      
+      <sapia:code>kill -d * -v * -n * -w -cluster</sapia:code>
+      
+      <p>
+        The <sapia:command>w</sapia:command> option above stands for "wait":
+        the CLI will wait, for a predefined amount of time 
+        (60 seconds by default), that all processes corresponding to the kill 
+        command have been killed before returning control.
+      </p>
+      <p>
+        When control returns, type the following to make sure that indeed
+        no matching process runs (no process should be listed):
+      </p>
+      
+      <sapia:code>ps -cluster</sapia:code>
+      
+      <p>
+        As we've explained above, when ports are leased to processes, they are
+        reclaimed when these processes are terminated. Type the following to
+        check it out:
+      </p>
+      
+      <sapia:code>port ls -cluster</sapia:code>
+      
+      <p>
+        No port should appear in the "active" column, and the ports
+        that were leased should now be displayed in the "available" one. 
+      </p>
+      
+      <p>
+        And now, let's undeploy the distribution from both Corus instances:
+      </p>
+      
+      <sapia:code>undeploy -d * -v * -cluster</sapia:code>
+      
+      <p/>
+      <sapia:note>
+        Corus will refuse to undeploy distributions for which processes
+        are currently running.
+      </sapia:note>
+
+      <p>
+        Again for the sake of sanity checking, type 
+        <sapia:command>ls -cluster</sapia:command>. No distribution should be
+        listed.
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Conclusion">
+      <p>
+        So you've just been through the basics of managing a Corus domain,
+        which most of the time amounts to deploying distributions, 
+        executing processes, terminating processes, and undeploying 
+        distributions.
+      </p>
+      
+      <p>
+        Clustered administration is a very important feature in Corus, allowing
+        for the management of multiple Corus instances as one. All commands for 
+        which it is relevant support clustering. Because of that support,
+        you do not have to log individually on each host to start applications
+        - and you do not have to do application-specific installations on each
+        host where the applications will run. Just deploy, execute, kill, 
+        and undeploy, cluster-wide. 
+      </p>
+      
+      <p>
+        But wait there is more: Corus has other features that optimize the
+        deployment workflow. These features are the subject of
+        <a href="advanced-management.html">another tutorial</a>.
+      </p>
+            
+    </sapia:sect2>
+    
+  </sapia:sect1>
+</sapia:page>

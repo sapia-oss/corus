@@ -1,0 +1,66 @@
+<sapia:page title="Gallery" 
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+
+  <head>
+    <script type="text/javascript" language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" language="javascript" src="yoxview/yox.js"></script>
+    <script type="text/javascript" language="javascript" src="yoxview/yoxview-init.js"></script>
+    <script language="javascript" type="text/javascript">
+    $(document).ready(function(){
+        $(".yoxview").yoxview({
+            autoHideMenu: false,
+            autoHideInfo: false            
+        });
+
+    });
+    </script>
+    
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Gallery">
+  
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="learning" href="learning.html" />      
+      <sapia:path name="gallery" />
+    </sapia:section>
+
+    <sapia:sect-desc>
+      <p>
+        This section contains screenshots, screencasts, and other types of
+        content that help grasp what Corus is about.
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:sect2 title="Corus on various operating systems">
+      <p>
+        The thumbnail images below link to screenshots of Corus on different
+        operating systems. If you hover on top of a thumbnail, a short 
+        description will appear.
+      </p>
+    
+      <p>
+        <center><div class="yoxview">
+          <a href="img/gallery/ScreenShot_CorusCLI_AllOS.jpg"><img src="img/gallery/thumbnails/ScreenShot_CorusCLI_AllOS.jpg" alt="Multi-OS domain" title="Corus instances on various OS'es, in one domain" /></a>
+          <a href="img/gallery/ScreenShot_LinuxFedora_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_LinuxFedora_CorusCLI.jpg" alt="Corus on Fedora" title="Corus on Fedora" /></a>
+          <a href="img/gallery/ScreenShot_LinuxMandriva_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_LinuxMandriva_CorusCLI.jpg" alt="Corus on Mandriva" title="Corus on Mandriva" /></a>
+          <a href="img/gallery/ScreenShot_LinuxOpenSUSE_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_LinuxOpenSUSE_CorusCLI.jpg" alt="Corus on OpenSuse" title="Corus on OpenSuse" /></a>
+          <a href="img/gallery/ScreenShot_LinuxUbuntu_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_LinuxUbuntu_CorusCLI.jpg" alt="Corus on Ubuntu" title="Corus on Ubuntu" /></a>
+          <a href="img/gallery/ScreenShot_openSolaris_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_openSolaris_CorusCLI.jpg" alt="Corus on OpenSolaris" title="Corus on OpenSolaris" /></a>
+          <a href="img/gallery/ScreenShot_OSXSnowLeopard_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_OSXSnowLeopard_CorusCLI.jpg" alt="Corus on Mac OSX Snow Leopard" title="Corus on Mac OSX Snow Leopard" /></a>
+          <a href="img/gallery/ScreenShot_WindowsVista_7_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_WindowsVista_7_CorusCLI.jpg" alt="Corus on Windows Vista" title="Corus on Windows Vista" /></a>        
+          <a href="img/gallery/ScreenShot_WindowsXP_7_CorusCLI.jpg"><img src="img/gallery/thumbnails/ScreenShot_WindowsXP_7_CorusCLI.jpg" alt="Corus on Windows XP" title="Corus on Windows XP" /></a>        
+        </div></center>
+      </p>
+    </sapia:sect2>
+    
+  </sapia:sect1>
+</sapia:page>

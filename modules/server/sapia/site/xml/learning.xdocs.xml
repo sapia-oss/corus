@@ -1,0 +1,74 @@
+<sapia:page title="Learning" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+  
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Learning">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="learning" />ù
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+      We've organized resources so that you can learn about Corus
+      in the most optimal manner. Have a look at what we have in store. Also
+      do not forget to read the <a href="CorusGuide.pdf">Corus Guide</a>.
+      </p>
+    
+
+   	  <div style="margin-left: 55px">
+        <div class="content-box">
+          <div class="content-box-title">Gallery</div>
+          <span class="text">
+            Screeshots, screencasts... Like they say
+            an image is worth a thousand words. Your time is scarce?
+            Have a look.
+            <br/><a href="gallery.html">more...</a>
+          </span>
+        </div>
+
+        <div class="content-box">
+          <div class="content-box-title">Tutorials</div>
+          <span class="text">
+            Check out our tutorials to better grasp what Corus is all about: 
+            see the full cycle, from development to deployment to execution.
+            <br/><a href="tutorials/index.html">more...</a>
+          </span>
+        </div>
+      </div>
+        
+      <div style="clear: both;" />
+      
+   	  <div style="margin-left: 55px">
+        <div class="content-box">
+          <div class="content-box-title">Community</div>
+          <span class="text">
+            Subscribe to the Corus Google group to post inquiries and report 
+            issues. We also intend to enrich our wiki with Corus-specific 
+            content.
+            <br/><a href="community.html">more...</a>
+          </span>
+        </div>
+        
+        <div class="content-box">
+          <div class="content-box-title">Advanced</div>
+          <span class="text">
+            Learn more about Corus intricacies: distributed deployment, command 
+            replication, process management, etc.
+            <br/><a href="advanced.html">more...</a>
+          </span>
+        </div>
+      </div>
+
+    </sapia:sect-desc>
+  </sapia:sect1>
+</sapia:page>

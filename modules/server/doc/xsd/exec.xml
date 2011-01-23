@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<exec xmlns="http://www.sapia-oss.org/xsd/corus/exec-2.0.xsd"
+  name="foo"
+  startOnBoot="true">
+
+
+  <process version="" name="" profile="" dist=""/>  
+  
+</exec>

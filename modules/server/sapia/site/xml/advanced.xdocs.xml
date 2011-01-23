@@ -1,0 +1,252 @@
+<sapia:page title="Advanced Material" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+  
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Advanced">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="learning" href="learning.html"/>
+      <sapia:path name="advanced" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+      This section described some Corus characteristics that may be considered
+      more "advanced". We will add more content with time.
+      </p>
+    </sapia:sect-desc>
+    
+  <sapia:sect2 title="High-Availability">
+    <p>
+      Corus provides <a href="http://en.wikipedia.org/wiki/High_availability" target="ha">high availability</a> 
+      (HA) at the level of the Corus daemon itself, and also at the application process 
+      level:
+      
+      <ul>
+        <li>When ran as a service, the Corus daemon is in fact managed by 
+        <a href="http://sourceforge.net/projects/wrapper/" target="wrapper">Service Wrapper</a> 
+        - the latest non-commercial open source version (3.2.3) is used.
+        </li>
+        
+        <li>When a Corus daemon starts an application process, it monitors it,
+        automatically restarting it if a crash occurs.
+        </li>
+      </ul>
+      
+      We're explaining the above in more detais in the following subsections.
+    </p>
+    
+    <sapia:sect3 title="Corus Daemon HA">
+      <p>
+        If you <a href="install.html">install</a> Corus as a service, the
+        Service Wrapper provides the necessary checks at runtime in order to 
+        make sure that the daemon is always up.
+      </p>
+      <p>
+        Indeed, when installed in such a way, Corus starts when the OS
+        first boots. From then on, the Service Wrapper takes over.
+      </p>
+    </sapia:sect3>
+    
+    
+    <sapia:sect3 title="Application Process HA">
+      <p>
+        When Corus starts a JVM, that JVM process embeds an agent that 
+        implements the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a>.
+        That protocol specifies the interactions that occur between a Corus
+        daemon and the process it starts.
+      </p>
+      
+      <p>
+        Among other interactions, we're finding that a process must poll its 
+        Corus daemon at a predefined interval (the <a href="Corus">Corus Guide</a>
+        describes in more details how the various runtime parameters are passed
+        by the Corus daemon to the process, upon startup).
+      </p>
+      
+      <center><img src="img/high-availability.png" /></center>
+      
+      <p>
+        If Corus detects that a process has not polled after the specified
+        "poll interval", it enters into the restarting of the process. This is done
+        by first sending a "kill" event to the process. At this point,
+        we're not talking about an OS kill, but a process termination event as 
+        specified in the Corus Interop Protocol.
+      </p>
+      
+      <p>
+        It is then the responsibility of the process to handle that termination 
+        event coherently (usually by releasing all system resources and having 
+        internal application components cleanly shut down themselves). Upon the
+        termination event having been processed internally, the process must send
+        a termination confirmation to Corus, and then exit from
+        its main loop (which at this point means that the process de facto
+        terminates, from the point of view of the OS).
+      </p>
+      
+      <p>
+        After having received the termination confirmation from the process,
+        Corus starts a fresh instance of it.
+      </p>
+      
+      <p>
+        But there is a catch: a process might not even send a termination 
+        confirmation. What if it has really crashed (i.e.: disappeared from the 
+        OS' process list) ? The process is not even up then, so it can't even 
+        pickup its termination event...
+      </p>
+      
+      <p>
+        Corus has a workaround for that specific issue: it waits for a predefined
+        amount of time in order to receive the termination confirmation. Passed
+        that delay, it proceeds to a "hard" kill, invoking the native 
+        <sapia:command>kill</sapia:command> command (in Linux/Unix, Corus in
+        fact performs a <sapia:command>kill -9</sapia:command>).
+      </p>
+      
+    </sapia:sect3>
+  
+  </sapia:sect2>
+  <sapia:sect2 title="Command Replication">
+    <p>
+     Since there can be many Corus instances in a domain, it is important that
+     the command replication algorithm be efficient. In order to spare the 
+     resources used by each Corus instance in the context of replication, a 
+     so-called cascading distributed replication algorithm has been implemented.
+     The diagram below provides an illustration:
+    </p>
+    <center><img src="img/command_replication.png" /></center>
+  
+    <ol>
+      
+     <li>
+         When a command with the <sapia:command>-cluster</sapia:command> switch
+         is typed in the command-line interface (CLI), it is sent to the Corus
+         instance to which the CLI is currently connected.
+     </li>
+     
+     <li>
+         Upon receiving the command, the Corus instance picks another 
+         Corus instance in the domain that has not yet received it. It then
+         sends the command to that instance (that step is performed at each
+         instance, until all instances have been visited).
+     </li>     
+     
+     <li>
+        When a given instance has replicated the command it has received, it
+        executes its own locally.
+     </li>
+     
+    </ol>
+    
+    <p>
+      The above also applies to the <sapia:command>deploy</sapia:command>
+      command.
+    </p>
+    
+    <sapia:note>
+      The above means that each Corus instance replicates to only one other 
+      Corus instance (if any is left to replicate to).
+    </sapia:note>
+  </sapia:sect2>
+  
+  <sapia:sect2 title="Application Status" alias="applicationStatus">
+    <p>
+      You can integrate application-provided status information with Corus, and
+      then hook up Corus with your monitoring infrastructure, 
+      <a href="tutorials/advanced-management.html#httpExtensions">through HTTP</a>.
+    </p>
+    
+    <p>
+      The first step is to publish application status data through the Corus
+      interop API, in the application's code. Todo so, you need the <a href="http://download.java.net/maven/2/org/sapia/sapia_corus_iop_api/">sapia_corus_iop_api</a>
+      dependency that matches your Corus installation (look in the Corus classpath, under the
+      <sapia:command>lib/vm-boot</sapia:command> directory of the Corus server,
+      to see what version of the dependency corresponds to your installation).
+    </p>
+    
+    <p>
+      The code snippet below, taken from the source that's part of the
+      <a href="tutorials/index.html">tutorials</a>, publishes Jetty status data
+      to Corus:
+    </p>
+    <sapia:code>
+import org.sapia.corus.interop.Context;
+import org.sapia.corus.interop.Param;
+import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.api.InteropLink;
+import org.sapia.corus.interop.api.StatusRequestListener;
+
+...
+
+  public void init(){
+    
+    ...
+    
+    InteropLink.getImpl().addStatusRequestListener(this);
+  }
+
+  @Override
+  public void onStatus(Status status) {
+    Context context = new Context("org.sapia.corus.sample.jetty");
+    context.addParam(createParam("dispatched", stats.getDispatched()));        
+    context.addParam(createParam("dispatchedActive", stats.getDispatchedActive()));
+    context.addParam(createParam("dispatchedActiveMax", stats.getDispatchedActiveMax()));        
+    context.addParam(createParam("dispatchedTimeMax", stats.getDispatchedTimeMax()));
+    context.addParam(createParam("dispatchedTimeTotal", stats.getDispatchedTimeTotal()));
+    context.addParam(createParam("dispatchedTimeMean", stats.getDispatchedTimeMean()));
+    context.addParam(createParam("requests", stats.getRequests()));        
+    context.addParam(createParam("requestsActive", stats.getRequestsActive()));        
+    context.addParam(createParam("requestsActiveMax", stats.getRequestsActiveMax()));        
+    context.addParam(createParam("requestsTimeMax", stats.getRequestTimeMax()));        
+    context.addParam(createParam("requestsTimeMean", stats.getRequestTimeMean()));
+    context.addParam(createParam("requestsTimeTotal", stats.getRequestTimeTotal()));
+    context.addParam(createParam("suspends", stats.getSuspends()));        
+    context.addParam(createParam("suspendsActive", stats.getSuspendsActive()));        
+    context.addParam(createParam("suspendsActiveMax", stats.getSuspendsActiveMax())); 
+    status.addContext(context);
+  }
+  
+  
+  private Param createParam(String name, Object value){
+    return new Param(name, value.toString());
+  }
+  
+ ...
+    </sapia:code>    
+    
+    <p>
+      As the code shows, in order to publish status data, one needs to implement 
+      a <sapia:class>StatusRequestListener</sapia:class> that specifies a single
+      <sapia:command>onStatus</sapia:command> method. That method is passed an
+      instance of the <sapia:class>Status</sapia:class> class. The application
+      should create one or more <sapia:class>Context</sapia:class> instances,
+      add <sapia:class>Param</sapia:class> instances to each, and then add
+      each context to the <sapia:class>Status</sapia:class>. The diagram
+      below illustrates that containment relationship:
+    </p>
+    
+    <center><img src="img/status.png"/></center>
+    
+  </sapia:sect2>
+
+  <sapia:sect2 title="Conclusion">
+    <p>
+      Corus has advanced features that you'll come to appreciate as you work
+      with them. The <a href="tutorials/index.html">tutorials</a> and the 
+      <a href="CorusGuide.pdf">Corus Guide</a> provide additional information.
+    </p>
+  </sapia:sect2>
+  
+  </sapia:sect1>
+  
+</sapia:page>

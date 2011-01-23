@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+      xmlns="http://www.springframework.org/schema/beans"
+      xmlns:p="http://www.springframework.org/schema/p"
+      xmlns:context="http://www.springframework.org/schema/context"
+
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+          http://www.springframework.org/schema/context 
+          http://www.springframework.org/schema/context/spring-context.xsd">
+          
+  <!-- Register Annotation-based Post Processing Beans -->
+  <context:annotation-config />
+  
+  <!-- ============ CLUSTER ============ -->
+
+  <bean name="org.sapia.corus.client.services.cluster.ClusterManager"
+        class="org.sapia.corus.cluster.ClusterManagerImpl" 
+        scope="singleton">
+    <property name="mcastAddress" value="${corus.server.multicast.address}" />
+    <property name="mcastPort"    value="${corus.server.multicast.port}" />
+  </bean> 
+
+  <!-- ============ JNDI ============ -->
+
+  <bean name="org.sapia.corus.client.services.naming.JndiModule" 
+        class="org.sapia.corus.naming.JndiModuleImpl" 
+        scope="singleton">
+  </bean> 
+    
+  <!-- ============ DEPLOYER ============ -->
+
+  <bean name="deployer.configuration" class="org.sapia.corus.deployer.DeployerConfigurationImpl">
+    <property name="tempDir"   value="${corus.server.tmp.dir}" />
+    <property name="deployDir" value="${corus.server.deploy.dir}" />
+  </bean>
+  
+  <bean name="org.sapia.corus.client.services.deployer.Deployer" 
+        class="org.sapia.corus.deployer.DeployerImpl" 
+        scope="singleton" />
+  
+  <!-- ============ PROCESSOR ============ -->
+
+  <bean name="processor.configuration" class="org.sapia.corus.processor.ProcessorConfigurationImpl">
+    <property name="processCheckInterval" value="${corus.process.check-interval}" />
+    <property name="killInterval"         value="${corus.process.kill-interval}" />
+    <property name="startInterval"        value="${corus.process.start-interval}" />
+    <property name="restartInterval"      value="${corus.process.restart-interval}" />
+    <property name="processTimeout"       value="${corus.process.timeout}" />
+  </bean>
+
+  <bean name="org.sapia.corus.client.services.processor.Processor" 
+        class="org.sapia.corus.processor.ProcessorImpl" 
+        scope="singleton" />
+
+
+  <!-- ============ CRON ============ -->
+
+  <bean name="org.sapia.corus.client.services.cron.CronModule" 
+        class="org.sapia.corus.cron.CronModuleImpl" 
+        scope="singleton">
+  </bean> 
+
+  <!-- ============ SECURITY ============ -->
+
+  <bean name="org.sapia.corus.client.services.security.SecurityModule" 
+        class="org.sapia.corus.security.SecurityModuleImpl" 
+        scope="singleton">
+    <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
+    <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
+  </bean> 
+</beans>

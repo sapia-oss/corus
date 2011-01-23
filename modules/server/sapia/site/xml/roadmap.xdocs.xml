@@ -1,0 +1,71 @@
+<sapia:page title="Roadmap" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Roadmap">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="roadmap" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+        We define our roadmap based on what we think is important, but 
+        community input is given the utmost priority. Your comments are welcome. 
+        Send them to us.
+      </p>
+      <p>
+        In the meantime, here's what's on our plate(in no specific order):
+      </p>
+    </sapia:sect-desc>
+    <sapia:sect2 title="Explicit Multi-Language Support">
+      <p>
+        Deployment of JVM-based applications in other languages than Java
+        is somewhat already supported, but we'd rather it be more explicit. 
+        It is our priority to make possible deployment in and execution of 
+        processes in the following languages: Scala, Jython, Clojure, JRuby.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Cloud Integration">
+      <p>
+        Since Corus instances currently discover each other
+        using IP multicast, Corus cannot at this point be deployed in a cloud 
+        environment: most cloud providers (if not all) do not support 
+        multicast. 
+      </p>
+      <p>
+        It is therefore part of our plans to integrate alternative group 
+        communication mechanisms. 
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Corus-enabled Web Servers">
+      <p>
+        Corus is an infrastructure, not a solution per say. We plan on 
+        providing enterprise-scale, Corus-aware versions of Tomcat 7 and/or 
+        Jetty 7. 
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Enterprise-grade management console">
+      <p>
+        Currently, the only way to administer application processes controlled 
+        by Corus is to use the Corus CLI (command-line interface). We plan on 
+        offering a robust management console that will allow managing Corus 
+        domains (whether cloud-based or not) from a single web-based user 
+        interface. 
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Robust Security">
+      <p>
+        Currently, security in Corus is only supported through IP filtering. 
+        This firewall-like, coarse-grained approach works, but is not the 
+        most flexible and robust. We are planning on implementing full-fledge 
+        authentication and authorization.
+      </p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

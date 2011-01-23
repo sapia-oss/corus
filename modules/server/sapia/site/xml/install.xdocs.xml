@@ -1,0 +1,183 @@
+<sapia:page title="Installation" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Installation">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="installation" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>We've packaged a Corus distribution for most of the popular operating systems out there: Linux (main flavors thereof), Mac, Windows.
+      </p>
+    </sapia:sect-desc>
+    
+    <sapia:sect2 title="Supported Operating Systems">
+      <p>
+        Technically speaking, Corus should run on any platform that supports Java. However, manually starting Java
+        programs using custom scripts is kind of cumbersome. That's why we've packaged Corus so it can be started
+        as a daemon (or service) at OS boot time.
+      </p>
+      <p>
+        The following subsections list the characteristics of the Corus installation, for each major OS. 
+      </p>
+      
+      <sapia:sect3 title="Windows">
+        <p>
+          <ul>
+            <li>Corus can be registered as a Windows service to run at startup and to manage execution lifecycle (stop, start, restart)</li>
+            <li>Various <tt>.bat</tt> files to manually execute the Corus server, the CLI, etc.</li>
+            <li>Only 32 bits version is available for native integration</li>
+            <li>Tested on Windows XP and Windows Vista. Windows 7 yet to come...</li>
+          </ul>
+          
+          <sapia:note>
+            Understandably we're not going to overstretch ourselves trying to support this OS in an optimal fashion.
+          </sapia:note>
+        </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Mac OS">
+        <p>
+          <ul>
+            <li>Integration with Mac <tt>launchd</tt> manager to run Corus as a LaunchDaemon or a LaunchAgent (based on your specific needs)</li>
+            <li>Various shell scripts to manually execute the Corus server and associated tools (CLI, Monitor, ...)</li>
+            <li>32 bits version available for OS X 10.5 (leopard) and above</li>
+            <li>64 bits version available for OS X 10.6 (snow leopard)</li>
+            <li>Tested on both Leopard (OS X 10.5) and Snow Leopard (OS X 10.6)</li>
+          </ul>
+        </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Linux">
+        <p>
+          <ul>
+            <li><tt>init.d</tt> like script to integrate Corus to the Linux run levels (using special features like chkconfig when available)</li>
+            <li>Various shell scripts to manually execute the Corus server runtime and associated tools (CLI, Monitor, ...)</li>
+            <li>32 bits and 64 bits versions available</li>
+            <li>Tested on many flavours of Linux: CentOS, Ubuntu, Fedora, Mandriva, OpenSUSE</li>
+          </ul>
+        </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Solaris">
+        <p>
+          <ul>
+            <li>Integration with the Service Management Facility (SMF) to manage Corus as a system service within Solaris</li>
+            <li>Various shell scripts to manually execute the Corus server runtime and associated tools (CLI, monitor, ...)</li>
+            <li>Support for both Sparc (32 and 64 bits) and x86 architecture (32 bits only)</li>
+            <li>Tested with openSolaris 2009.06 on a x86 architecture</li>
+          </ul>
+        </p>
+      </sapia:sect3>
+
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Download">
+      <p>The various Corus distributions can be found <a href="http://code.google.com/p/sapia/downloads/list" target="corus_download">here</a>. Make sure to select
+      the appropriate version based on your operating system and your hardware architecture.
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Setup">
+      <p>
+        Because the configuration differs from one operating system to another, we will only provide an overview of the setup
+        process. We have an <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure" target="install_section">installation section</a> in our wiki,
+        where step-by-step instructions are given on a per-OS basis.  
+      </p>
+      <p>
+        The first three steps described below are common to installations on all operating systems. The last one is OS-specific.
+      </p>
+      
+
+      <p><b>1. Prepare the environment</b><p/>
+      Before actually installing a Corus distribution your need to think about the following things:
+      <ul>
+        <li>User - we strongly suggest to create a <tt>corus</tt> user that will be used to run the server. However on Windows
+        you can decide to use a system user to run Corus as a service.</li>
+        <li>Directory - you can use any directory of your choice to install Corus (<b>to the condition that the path to that directory
+        has no space</b>). To easily support evolution with newer
+        version, we suggest to use a <tt>current</tt> symbolic link. For example if Corus is installed under the <tt>/opt/corus/corus-2.0</tt>
+        directory, creating the <tt>/opt/corus/current</tt> symbolic link that points to the <tt>corus-2.0</tt> directory
+        will facilitate the management of your environment variables. However this might not be appropriate for a Windows installation.</li>
+      </ul> 
+      </p>      
+      
+      <sapia:note>
+        We emphasize: make sure that the path to your Corus installation contains no space.
+      </sapia:note>
+      
+
+      <p><b>2. Extract the corus distribution</b><p/>
+      Unzip or untar the Corus distribution file under you chosen installtion directory. If you choosed to create a specific user
+      to run Corus, make sure that the files are owned by that user.
+      </p>      
+      <sapia:note>
+        We strongly recommend that you create a symbolic (conveniently named "current") pointing to the directory where you
+        extracted the Corus distribution files.
+      </sapia:note>
+
+      <p><b>3. Define the required environment variables</b><p/>
+      To operate properly, Corus uses two environment variables:
+        <ol>
+          <li><tt>JAVA_HOME</tt>  - that points to the root of the JDK/JRE installation you want Corus to use</li>
+          <li><tt>CORUS_HOME</tt> - that points to the directory (or symbolic link) of the Corus distribution (see the preceding steps
+          for more info about the directory/symbolic link).</li>
+        </ol>
+      </p>      
+      
+      <p>
+      At this point, you have can start the corus server and try connecting to it with the CLI (command-line interface). To start Corus, 
+      open a new shell and type the following command in it: <sapia:command>corus</sapia:command>. This starts Corus on the default port (33000)
+      and domain (which, incidentally, is named "default"). You will see the server's logging output in the terminal window (you can type CTRL-C
+      at any time to stop the server).
+      </p>
+      
+      <p>
+      To connect to Corus, type <sapia:command>coruscli</sapia:command> in another terminal (the CLI connects on localhost:33000 by default).
+      You should see a welcome screen and then a prompt appearing. Type <sapia:command>host</sapia:command> in the CLI. You should get a reply
+      from the server and see the corresponding output in the terminal.
+      </p>
+      
+      <p>
+      Now that you're done testing, exit the CLI by typing <sapia:command>exit</sapia:command> or <sapia:command>quit</sapia:command>. In
+      the server's terminal, type CTRL-C.
+      </p>
+      
+      <p>
+      When working in development with Corus on your machine, starting it manually each time might be good enough. In such a case, the installation
+      would be over.
+      </p>
+      
+      <p>
+      But for production use, we suggest starting Corus as a native OS service, which we explain in the next section.
+      </p>
+      
+      
+
+      <p><b>4. OS integration</b><p/>
+        This last step is OS-specific: it consists of configuring your OS to tell it
+        how to run Corus as a native service. Go to our <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure" target="install_section">wiki</a> 
+        to pick the part corresponding to your OS.
+      </p>      
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Moving Further">
+      <p>
+        Once you have completed the installation, we suggest you go through our <a href="learning.html">Learning</a> section.   
+      </p>
+    </sapia:sect2>
+    
+  </sapia:sect1>
+</sapia:page>

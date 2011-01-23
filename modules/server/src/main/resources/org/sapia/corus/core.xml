@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+      xmlns="http://www.springframework.org/schema/beans"
+      xmlns:p="http://www.springframework.org/schema/p"
+      xmlns:context="http://www.springframework.org/schema/context"
+
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+          http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+				  http://www.springframework.org/schema/context 
+				  http://www.springframework.org/schema/context/spring-context.xsd">
+				  
+  <!-- Register Annotation-based Post Processing Beans -->
+  <context:annotation-config />
+                  
+  <!-- ============ DB ============ -->
+
+  <bean name="org.sapia.corus.db.DbModule" 
+        class="org.sapia.corus.db.DbModuleImpl" 
+        scope="singleton">
+  </bean>
+
+  <!-- ============ CONFIGURATOR ============ -->
+
+  <bean name="org.sapia.corus.admin.services.configurator.Configurator" 
+        class="org.sapia.corus.configurator.ConfiguratorImpl"
+        scope="singleton">
+  </bean>
+  
+  <!-- ============ TASK MANAGER ============ -->
+  
+
+  <bean name="org.sapia.corus.taskmanager.CorusTaskManager" 
+        class="org.sapia.corus.taskmanager.CorusTaskManagerImpl" 
+        scope="singleton">
+  </bean>
+
+  <!-- ============ EVENT DISPATCHER ============ -->
+
+  <bean name="org.sapia.corus.event.EventDispatcher" 
+        class="org.sapia.corus.event.EventDispatcherImpl" 
+        scope="singleton">
+  </bean>
+
+  <!-- ============ HTTP ============ -->
+
+  <bean name="org.sapia.corus.admin.services.http.HttpModule" 
+        class="org.sapia.corus.http.HttpModuleImpl" 
+        scope="singleton">
+  </bean>
+
+  <!-- ============ PORTS ============ -->
+  
+  <bean name="org.sapia.corus.admin.services.port.PortManager" 
+        class="org.sapia.corus.port.PortManagerImpl" 
+        scope="singleton">
+  </bean>
+
+</beans>
