@@ -130,8 +130,14 @@ public class ClusterManagerImpl extends ModuleHelper
     if (event instanceof CorusPubEvent) {
       CorusPubEvent evt  = (CorusPubEvent) event;
       ServerAddress  addr = evt.getOrigin();
-      _hostsAddresses.add(evt.getOrigin());
-      _hostsInfos.add(evt.getHostInfo());
+      
+      if(_hostsAddresses.add(evt.getOrigin())){
+        _hostsInfos.add(evt.getHostInfo());
+      }
+      else{
+        _logger.debug("Corus discovered, already registered (that node probably was restarted): " + addr);        
+        return;
+      }
 
       
       if (evt.isNew()) {
