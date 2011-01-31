@@ -3,6 +3,10 @@
 #
 . /lib/svc/share/smf_include.sh
 
+if [ ! -d "${CORUS_HOME}/logs" ] ; then
+    su - corus -c "mkdir "$CORUS_HOME/logs""
+fi
+
 echo `date`" :: $0 $*" >>$CORUS_HOME/logs/corus-smf.log
 
 case "$1" in

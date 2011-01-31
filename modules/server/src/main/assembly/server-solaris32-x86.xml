@@ -14,10 +14,10 @@
        </includes>
        <excludes>
           <exclude>*.bat</exclude>
-          <exclude>*/linux*</exclude>
-          <exclude>*/osx*</exclude>
-          <exclude>*/solaris*</exclude>
-          <exclude>*/win*</exclude>
+          <exclude>linux*</exclude>
+          <exclude>osx*</exclude>
+          <exclude>solaris*</exclude>
+          <exclude>win*</exclude>
        </excludes>
        <fileMode>0777</fileMode>
        <lineEnding>unix</lineEnding>
