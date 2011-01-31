@@ -1,0 +1,81 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Magnet Sample</name>
+  <groupId>org.sapia</groupId>
+  <artifactId>corus_sample_magnet</artifactId>
+  <packaging>jar</packaging>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_samples_parent</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+      </dependency>
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_client</artifactId>
+    </dependency>    
+      <dependency>
+	      <groupId>org.sapia</groupId>
+	      <artifactId>sapia_magnet</artifactId>
+      </dependency> 
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+
+          <!-- copying server dependencies -->
+          <execution>
+            <id>copy-server-libs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/target/dist-lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <excludeArtifactIds>guice,jetty,mina-core,servlet-api,simple,spring</excludeArtifactIds>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-dist</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dist.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+    </plugins>
+  </build>
+</project>

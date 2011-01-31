@@ -1,0 +1,18 @@
+<distribution name="sample-magnet" version="1.0"
+              xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+
+    <process name="echo-server" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+        <magnet magnetFile="echo_server.magnet.xml" magnetOptions="-info" profile="dev">
+            <vmType>-server</vmType>
+            <xoption name="ms" value="16M" />
+            <xoption name="mx" value="32M" />
+        </magnet>
+
+        <magnet magnetFile="echo_server.magnet.xml" magnetOptions="-info" profile="prod">
+            <vmType>-server</vmType>
+            <xoption name="ms" value="128M" />
+            <xoption name="mx" value="256M" />
+            <xoption name="X:+UseParallelGC" value="" />
+        </magnet>
+    </process>
+</distribution>

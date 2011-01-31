@@ -1,0 +1,45 @@
+<assembly>
+  <id>dist</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    
+    <!-- lib -->
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>
+       <directory>${basedir}/target/dist-lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+  
+    <fileSet>
+       <outputDirectory>lib</outputDirectory>    
+       <directory>${basedir}/target</directory>
+       <includes>
+          <include>corus_sample*.jar</include>
+       </includes>
+    </fileSet>  
+    
+    <!-- corus stuff -->
+    <fileSet>
+       <outputDirectory>/META-INF</outputDirectory>
+       <directory>${basedir}/src/main/resources</directory>
+       <includes>
+          <include>corus.xml</include>
+       </includes>
+    </fileSet>
+
+    <fileSet>
+       <outputDirectory>/</outputDirectory>
+       <directory>${basedir}/src/main/resources</directory>
+       <includes>
+          <include>*.magnet.xml</include>
+       </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE magnet PUBLIC "-//SAPIA OSS//Magnet DTD 2.0//EN"
+                 "http://www.sapia-oss.org/dtd/magnet-2.0.dtd"> 
+
+<magnet name="echo_server" description="Sample Echo Server"
+        xmlns="http://schemas.sapia-oss.org/magnet/">
+
+    <!-- Scripting the creation and definition of ${log.home} -->
+    <script type="bsh" isAbortingOnError="true">
+        import java.io.File;
+  
+        // Set log.home system property.
+        String logHome = System.getProperty("user.dir") + "/log/" + System.getProperty("corus.process.profile");
+        System.setProperty("log.home", logHome);
+      
+        // Creating log directory
+        File logDir = new File(logHome);
+        logDir.mkdirs();
+        
+        if (!logDir.exists()) {
+          System.err.println("Could not create log directory: " + logDir.getAbsolutePath());
+        }  
+    </script>
+
+    <!-- Define some system parameters -->
+    <parameters>
+        <param name="soto.debug"               value="true" scope="system" />
+        <param name="java.net.preferIPv4Stack" value="true" scope="system" />
+        
+        <param name="echoServer.loopIntervalMillis" value="1000" scope="magnet" />
+    </parameters>
+    
+    <classpath id="main-cp">
+        <path directory="${user.dir}/lib">
+            <include pattern="**/*.jar" />
+        </path>
+    </classpath>
+    
+    <!-- Launcher for the TIC echo server -->
+    <launcher type="java" name="echo_server_tic" isDaemon="false"
+              mainClass="org.sapia.corus.sample.EchoMain" args="TIC ${param.initialWaitDelayMillis} ${echoServer.loopIntervalMillis}">
+
+        <profile name="dev">
+            <parameters>
+                <!--  Make tic starting before toc -->
+                <param name="param.initialWaitDelayMillis" value="0" />
+            </parameters>
+            <classpath parent="main-cp" />
+        </profile>
+
+        <profile name="prod">
+            <parameters>
+                <!--  Make tic starting after toc -->
+                <param name="param.initialWaitDelayMillis" value="2000" />
+            </parameters>
+            <classpath parent="main-cp" />
+        </profile>
+    </launcher>
+    
+    <!-- Launcher for the TOC echo server -->
+    <!-- Running two main classes within the same VM -->
+    <launcher type="java" name="echo_server_toc" isDaemon="false"
+              mainClass="org.sapia.corus.sample.EchoMain" args="TOC 1500 ${echoServer.loopIntervalMillis}">
+
+        <profile name="dev">
+            <classpath parent="main-cp" />
+        </profile>
+
+        <profile name="prod">
+            <classpath parent="main-cp" />
+        </profile>
+    </launcher>
+    
+</magnet>
