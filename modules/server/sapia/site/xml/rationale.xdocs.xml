@@ -62,25 +62,34 @@
       For server-side applications developed in these languages, JEE simply does 
       not cut it. 
       </p>
-      
-      <p>Let's <a href="http://www.infoq.com/interviews/josh-bloch-java-prog">hear</a> 
+      <p>
+      It is also a growing tendency to use multiple languages,
+      each chosen for their specific strengths, to tackle different parts of an
+      application (for example, a Python/Django frontend implemented on top of a
+      Java backend). 
+      </p>
+
+      <p>
+      In such a context, the JVM as a multi-language execution environmment only makes sense.
+      Let's <a href="http://www.infoq.com/interviews/josh-bloch-java-prog">hear</a> 
       Josuah Bloch, Chief Java Architect at Google, on this topic:
       </p>
       
       <sapia:note>
         <i>
-        An immense investment has been made in the 
-        JVM over the years by many companies, whether it’s IBM or Sun, Apache, 
-        whatever. There are a bunch of VMs out there and you might as well 
-        leverage that investment. I’m also thrilled that it enables all of the 
-        language research that’s going on now. I think everyone realizes that 
-        we’re going to need some new languages before too long and I think it 
-        lowers the bar to be able to do experimentation in that area.
+        An immense investment has been made in the JVM over the years by many 
+        companies, whether it’s IBM or Sun, Apache, whatever. There are a bunch 
+        of VMs out there and you might as well leverage that investment. 
+        I’m also thrilled that it enables all of the language research that’s going 
+        on now. I think everyone realizes that we’re going to need some new languages 
+        before too long and I think it lowers the bar to be able to do 
+        experimentation in that area.
         </i>
       </sapia:note>
       
       <p>
-      Deploy and scale applications in any language under the JVM.
+      Corus can be used to deploy and scale applications in any language under the JVM,
+      and potentially in any language, period.
       </p>
     </sapia:sect2>
     <sapia:sect2 title="À-la-Carte Scalability">
