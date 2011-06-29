@@ -1,10 +1,8 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.text.StrLookup;
@@ -12,8 +10,9 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
-import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 /**
@@ -66,100 +65,38 @@ public class Java extends BaseJavaStarter {
     _libDirs = dirs;
   }
   
-  
   public CmdLine toCmdLine(Env env) throws MissingDataException {
-    CmdLine cmd = new CmdLine();
-    File javaHome = new File(_javaHome);
-    
-    if(!javaHome.exists()){
-      throw new MissingDataException("java.home not found");
-    }
-    
-    cmd.addArg(javaHome.getAbsolutePath() + File.separator + "bin" + File.separator + _javaCmd);
-    
-    if (_vmType != null) {
-      if(!_vmType.startsWith("-")){
-        cmd.addArg("-"+_vmType);        
-      }
-      else{
-        cmd.addArg(_vmType);
-      }
-    }
+
+    CmdLineBuildResult result = super.buildCommandLine(env);
     
     if (_mainClass == null) {
       throw new MissingDataException("'mainClass' not specified in corus.xml");
     }
     
-    Map<String, String>  cmdLineVars = new HashMap<String, String>();
-    cmdLineVars.put("user.dir", env.getCommonDir());
-    CompositeStrLookup context = new CompositeStrLookup()
-      .add(StrLookup.mapLookup(cmdLineVars))
-      .add(PropertiesStrLookup.systemPropertiesLookup());
-    
-    for (int i = 0; i < _xoptions.size(); i++) {
-      XOption opt = _xoptions.get(i);
-      String value = render(context, opt.getValue());
-      opt.setValue(value);
-      cmdLineVars.put(opt.getName(), value);
-      cmd.addElement(opt.convert());
-    }
-    
-    for (int i = 0; i < _options.size(); i++) {
-      Option opt = _options.get(i);
-      String value = render(context, opt.getValue());
-      opt.setValue(value);
-      cmdLineVars.put(opt.getName(), value);
-      cmd.addElement(opt.convert());
-    }
-    
-    for (int i = 0; i < _vmProps.size(); i++) {
-      Property p = _vmProps.get(i);
-      String value = render(context, p.getValue());
-      p.setValue(value);
-      cmdLineVars.put(p.getName(), value);
-      cmd.addElement(p.convert());
-    }
-    
     Property prop = new Property();
     prop.setName(CORUS_JAVAPROC_MAIN_CLASS);
     prop.setValue(_mainClass);
-    cmd.addElement(prop.convert());
-    
-    Map<String, String>  envVars    = new HashMap<String, String>();
-    
-    Property[]      props = env.getProperties();
-    
-    for (int i = 0; i < props.length; i++) {      
-      cmd.addElement(props[i].convert());
-      cmdLineVars.put(props[i].getName(), props[i].getValue());
-    }
-
-    CompositeStrLookup   envContext = new CompositeStrLookup()
-      .add(StrLookup.mapLookup(envVars))
-      .add(StrLookup.systemPropertiesLookup());
-    
-    envVars.putAll(cmdLineVars);
+    result.command.addElement(prop.convert());
     
     String pathSep = System.getProperty("path.separator");
 
     String classpath = env.getCorusIopLibPath() + pathSep + 
                        env.getJavaStarterLibPath() + pathSep +
-                       getProcessCp(env.getCommonDir(), envContext, env) + pathSep + 
+                       getProcessCp(env.getCommonDir(), result.variables, env) + pathSep + 
                        getMainCp(env);
+        
+    result.command.addOpt("cp", render(result.variables, classpath).replace(';', System.getProperty("path.separator").charAt(0)));
     
-    StrSubstitutor substitutor = new StrSubstitutor(context);
-    cmd.addOpt("cp", substitutor.replace(classpath).replace(';', System.getProperty("path.separator").charAt(0)));
-    
-    cmd.addArg(STARTER_CLASS);
+    result.command.addArg(STARTER_CLASS);
     
     if (_mainArgs != null) {
-      CmdLine           toAppend = CmdLine.parse(new StrSubstitutor(context).replace(_mainArgs));
+      CmdLine           toAppend = CmdLine.parse(render(result.variables, _mainArgs));
       while (toAppend.hasNext()) {
-        cmd.addElement(toAppend.next());
+        result.command.addElement(toAppend.next());
       }
     }
     
-    return cmd;
+    return result.command;
   }
   
   private String getMainCp(Env env) {
@@ -190,31 +127,42 @@ public class Java extends BaseJavaStarter {
       baseDirs = new String[]{"lib"};
     }
     else{
-      baseDirs = _libDirs.split(",");
+      baseDirs = _libDirs.split(";");
     }
 
     StringBuffer buf = new StringBuffer();
 
-    for(String baseDir:baseDirs){
-      String           currentDir = processUserDir;
-      PathFilter filter = env.createPathFilter(currentDir);
-      filter.setIncludes(new String[] { baseDir+"/**/*.jar", baseDir+"/**/*.zip" });
+    for(int dirIndex = 0; dirIndex < baseDirs.length; dirIndex++){
+      String baseDir = render(envVars, baseDirs[dirIndex]);
+      String currentDir;
+      if(FileUtils.isAbsolute(baseDir)){
+        currentDir = baseDir;        
+      }
+      else{
+        currentDir = processUserDir + FileUtils.FILE_SEPARATOR + baseDir;
+      }
+      
+      FileInfo fileInfo = FileUtils.getFileInfo(currentDir);        
+      PathFilter filter = env.createPathFilter(fileInfo.directory);       
+      if(fileInfo.fileName == null){
+        filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
+      }
+      else{
+        filter.setIncludes(new String[] { fileInfo.fileName });
+      }
+      
       String[]     jars = filter.filter();
       Arrays.sort(jars);
-      
-      List<String> path = new ArrayList<String>();
-      // adding classes dir
-      path.add("classes"+File.separator);
-      for(String jar:jars){
-        path.add(jar);
-      }
-      
-      for (int i = 0; i < path.size(); i++) {
-        buf.append(currentDir).append(File.separator).append(path.get(i));
-        if (i < (path.size() - 1)) {
-          buf.append(System.getProperty("path.separator"));
+      for (int i = 0; i < jars.length; i++) {
+        buf.append(fileInfo.directory).append(FileUtils.FILE_SEPARATOR).append(jars[i]);
+        if (i < (jars.length - 1)) {
+          buf.append(FileUtils.PATH_SEPARATOR);
         }
       }
+      
+      if(dirIndex < jars.length - 1){
+        buf.append(FileUtils.PATH_SEPARATOR);
+      }      
     }
     Map<String, String> values = new HashMap<String, String>();
     values.put("user.dir", processUserDir);
@@ -224,9 +172,6 @@ public class Java extends BaseJavaStarter {
     StrSubstitutor substitutor = new StrSubstitutor(vars);
     return substitutor.replace(buf.toString());
   }
+
   
-  private String render(StrLookup context, String value){
-    StrSubstitutor substitutor = new StrSubstitutor(context);
-    return substitutor.replace(value);
-  }
 }

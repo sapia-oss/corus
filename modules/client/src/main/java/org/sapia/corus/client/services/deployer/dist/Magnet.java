@@ -47,43 +47,19 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
       throw new MissingDataException("'profile' attribute not specified in 'magnet' element of corus.xml");
     }
 
-    CmdLine cmd = new CmdLine();
-    cmd.addArg(_javaHome + File.separator + "bin" + 
-               File.separator + _javaCmd);
-
-    if (_vmType != null) {
-      cmd.addArg(_vmType);
-    }
-    
-    for (int i = 0; i < _xoptions.size(); i++) {
-      cmd.addElement(((Param) _xoptions.get(i)).convert());
-    }
-
-    for (int i = 0; i < _options.size(); i++) {
-      cmd.addElement(((Param) _options.get(i)).convert());
-    }
-
-    for (int i = 0; i < _vmProps.size(); i++) {
-      cmd.addElement(((Param) _vmProps.get(i)).convert());
-    }
-
-    Property[] props = env.getProperties();
-
-    for (int i = 0; i < props.length; i++) {
-      cmd.addElement(props[i].convert());
-    }
-
-    cmd.addOpt("cp", getMainCp(env));
-    cmd.addArg(APP_STARTER_CLASS_NAME);
-    cmd.addOpt("ascp", getAsCp(env));
-    cmd.addArg("org.sapia.magnet.MagnetRunner");
-    cmd.addOpt("magnetfile", env.getCommonDir() + File.separator + _magnetFile);
-    cmd.addOpt("p", _profile);
+    CmdLineBuildResult result = super.buildCommandLine(env);
+   
+    result.command.addOpt("cp", getMainCp(env));
+    result.command.addArg(APP_STARTER_CLASS_NAME);
+    result.command.addOpt("ascp", getAsCp(env));
+    result.command.addArg("org.sapia.magnet.MagnetRunner");
+    result.command.addOpt("magnetfile", env.getCommonDir() + File.separator + _magnetFile);
+    result.command.addOpt("p", _profile);
     if (_magnetOptions != null && _magnetOptions.length() > 0) {
-      cmd.addArg(_magnetOptions);
+      result.command.addArg(_magnetOptions);
     }
 
-    return cmd;
+    return result.command;
   }
 
   public String toString() {
@@ -129,4 +105,5 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
 
     return buf.toString();
   }
+
 }

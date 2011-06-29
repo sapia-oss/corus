@@ -1,10 +1,19 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 
 /**
@@ -126,4 +135,78 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     return new ArrayList<Dependency>(_dependencies);
   }
   
+  
+  protected CmdLineBuildResult buildCommandLine(Env env){
+    Map<String, String> cmdLineVars = new HashMap<String, String>();
+    cmdLineVars.put("user.dir", env.getCommonDir());
+    Property[] envProperties = env.getProperties();
+        
+    CompositeStrLookup propContext = new CompositeStrLookup()
+      .add(StrLookup.mapLookup(cmdLineVars))
+      .add(PropertiesStrLookup.getInstance(envProperties))    
+      .add(PropertiesStrLookup.getSystemInstance());
+    
+    CmdLine cmd = new CmdLine();
+        
+    File javaHome = new File(_javaHome);
+    if(!javaHome.exists()){
+      throw new MissingDataException("java.home not found");
+    }        
+    cmd.addArg(javaHome.getAbsolutePath() + File.separator + "bin" + File.separator + _javaCmd);
+    
+    if (_vmType != null) {
+      if(!_vmType.startsWith("-")){
+        cmd.addArg("-"+_vmType);        
+      }
+      else{
+        cmd.addArg(_vmType);
+      }
+    }
+
+    
+    for (int i = 0; i < _xoptions.size(); i++) {
+      XOption opt = _xoptions.get(i);
+      String value = render(propContext, opt.getValue());
+      opt.setValue(value);
+      cmdLineVars.put(opt.getName(), value);
+      cmd.addElement(opt.convert());
+    }
+  
+    for (int i = 0; i < _options.size(); i++) {
+      Option opt = _options.get(i);
+      String value = render(propContext, opt.getValue());
+      opt.setValue(value);
+      cmdLineVars.put(opt.getName(), value);
+      cmd.addElement(opt.convert());
+    }
+  
+    for (int i = 0; i < _vmProps.size(); i++) {
+      Property p = _vmProps.get(i);
+      String value = render(propContext, p.getValue());
+      p.setValue(value);
+      cmdLineVars.put(p.getName(), value);
+      cmd.addElement(p.convert());
+    }
+    
+    for (int i = 0; i < envProperties.length; i++) {
+      if(propContext.lookup(envProperties[i].getName()) != null){
+        cmd.addElement(envProperties[i].convert());
+      }
+    }
+    
+    CmdLineBuildResult ctx = new CmdLineBuildResult();
+    ctx.command = cmd;
+    ctx.variables = propContext;
+    return ctx;
+  }
+  
+  protected String render(StrLookup context, String value){
+    StrSubstitutor substitutor = new StrSubstitutor(context);
+    return substitutor.replace(value);
+  }
+  
+  static final class CmdLineBuildResult{
+    CmdLine command;
+    StrLookup variables;
+  }
 }
