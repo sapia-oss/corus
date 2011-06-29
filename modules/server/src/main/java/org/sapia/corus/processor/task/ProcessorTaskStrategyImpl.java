@@ -115,7 +115,6 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
   public boolean execProcess(TaskExecutionContext ctx, ProcessInfo info,
       Properties processProperties){
 
-    ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
     ProcessConfig conf = info.getConfig();
     Process process = info.getProcess();
     Distribution dist = info.getDistribution();
@@ -130,7 +129,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
       process.setShutdownTimeout(conf.getShutdownTimeout());
     }
 
-    File processDir = strategy.makeProcessDir(ctx, info);
+    File processDir = makeProcessDir(ctx, info);
 
     if (processDir == null) {
       return false;
@@ -169,7 +168,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
     ctx.info("Executing process under: " + processDir + " ---> "
         + cmd.toString());
     
-    boolean executed = strategy.execCmdLine(ctx, processDir, cmd, process);
+    boolean executed = execCmdLine(ctx, processDir, cmd, process);
     if (!executed) {
       process.releasePorts(ports);
     }
@@ -234,7 +233,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
         if (value.indexOf(' ') > 0) {
           value = "\"" + value + "\"";
         }
-        ctx.info("Passing process property: " + name + "=" + value);
+        ctx.info("Passing process property: " + name + "=" + hideIfPassword(name, value));
         props.add(new Property(name, value));
       }
     }
@@ -412,4 +411,11 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
   protected void onRestartThresholdInvalid(){}
   
   protected void onRestarted(){}
+  
+  private String hideIfPassword(String name, String value){
+    if(name.contains("password")){
+      return "********";
+    }
+    else return value;
+  }
 }

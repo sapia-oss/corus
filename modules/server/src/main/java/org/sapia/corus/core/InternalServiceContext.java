@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.processor.Processor;
@@ -82,6 +83,13 @@ public class InternalServiceContext {
    */
   public TaskManager getTaskManager(){
     return lookup(TaskManager.class);
+  }
+  
+  /**
+   * @return the {@link Configurator}
+   */
+  public Configurator getConfigurator(){
+    return lookup(Configurator.class);
   }
   
   /**

@@ -3,11 +3,13 @@ package org.sapia.corus.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.UUID;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.cluster.ServerHost;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.TCPAddress;
 
 /**
@@ -144,6 +146,13 @@ public class ServerContextImpl implements ServerContext {
         stream.close();
       }
     }    
+    Properties configuratorProps = services.getConfigurator().getProperties(PropertyScope.PROCESS);
+    Enumeration propNames = configuratorProps.propertyNames();
+    while(propNames.hasMoreElements()){
+      String name  = (String)propNames.nextElement();
+      String value = configuratorProps.getProperty(name);
+      globals.setProperty(name, value);
+    }
     return globals;
   }
   
