@@ -231,26 +231,31 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       }
       
       FileInfo fileInfo = FileUtils.getFileInfo(currentDir);        
-      PathFilter filter = env.createPathFilter(fileInfo.directory);       
-      if(fileInfo.fileName == null){
-        filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
+      PathFilter filter = env.createPathFilter(fileInfo.directory);
+      if(fileInfo.isClasses){
+        buf.append(fileInfo.directory);
       }
       else{
-        filter.setIncludes(new String[] { fileInfo.fileName });
-      }
-      
-      String[]     jars = filter.filter();
-      Arrays.sort(jars);
-      for (int i = 0; i < jars.length; i++) {
-        buf.append(fileInfo.directory).append(FileUtils.FILE_SEPARATOR).append(jars[i]);
-        if (i < (jars.length - 1)) {
+        if(fileInfo.fileName == null){
+          filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
+        }
+        else{
+          filter.setIncludes(new String[] { fileInfo.fileName });
+        }
+        
+        String[]     jars = filter.filter();
+        Arrays.sort(jars);
+        for (int i = 0; i < jars.length; i++) {
+          buf.append(fileInfo.directory).append(FileUtils.FILE_SEPARATOR).append(jars[i]);
+          if (i < (jars.length - 1)) {
+            buf.append(FileUtils.PATH_SEPARATOR);
+          }
+        }
+        
+        if(dirIndex < jars.length - 1){
           buf.append(FileUtils.PATH_SEPARATOR);
         }
       }
-      
-      if(dirIndex < jars.length - 1){
-        buf.append(FileUtils.PATH_SEPARATOR);
-      }      
     }
     Map<String, String> values = new HashMap<String, String>();
     values.put("user.dir", processUserDir);

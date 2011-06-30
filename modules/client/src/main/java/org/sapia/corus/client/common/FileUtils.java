@@ -13,6 +13,7 @@ public class FileUtils {
   public static class FileInfo{
     public String  directory;
     public String  fileName;
+    public boolean isClasses;
   }
   
   public static final String FILE_SEPARATOR = System.getProperty("file.separator");
@@ -48,9 +49,14 @@ public class FileUtils {
    * @return a {@link FileInfo}.
    */
   public static FileInfo getFileInfo(String path){
-    int separatorIndex = path.lastIndexOf("/");
+    String trimmedPath = path.trim();
+    int separatorIndex = trimmedPath.lastIndexOf("/");
     FileInfo info = new FileInfo();
-    if(separatorIndex > 1){
+    if(trimmedPath.endsWith("/")){
+      info.directory = path;
+      info.isClasses = true;
+    }
+    else if(separatorIndex > 1){
       String fileName = path.substring(separatorIndex+1);
       if(fileName.contains(".")){
         info.directory = path.substring(0, separatorIndex);

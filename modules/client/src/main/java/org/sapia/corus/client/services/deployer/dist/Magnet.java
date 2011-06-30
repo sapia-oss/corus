@@ -1,18 +1,11 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-import org.apache.commons.lang.text.StrLookup;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
-import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
-import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 /**

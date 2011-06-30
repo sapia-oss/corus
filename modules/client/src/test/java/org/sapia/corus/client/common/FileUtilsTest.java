@@ -45,5 +45,13 @@ public class FileUtilsTest {
     assertEquals("/some/directory", info.directory);
     assertEquals("file.txt", info.fileName);
   }  
+  
+  @Test
+  public void testIsClassesDirectory(){
+    FileInfo info = FileUtils.getFileInfo("/some/classes/");
+    assertEquals("/some/classes/", info.directory);
+    assertTrue("Should be flagged as classes directory", info.isClasses);
+    assertTrue(info.fileName == null);
+  }  
 
 }
