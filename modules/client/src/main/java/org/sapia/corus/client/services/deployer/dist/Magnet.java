@@ -1,10 +1,18 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
+import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 /**
@@ -21,6 +29,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   
   private String _magnetFile;
   private String _magnetOptions;
+  private String _libDirs;
 
   /**
    * Sets the name of the magnet file that will be used to start the VM.
@@ -31,9 +40,21 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
     _magnetFile = file;
   }
 
+  /**
+   * Sets the Magnet-specific options (-debug, etc.)
+   * @param options
+   */
   public void setMagnetOptions(String options) {
     _magnetOptions = options;
   }
+  
+  /**
+   * Sets the directories where libraries that should be part of
+   * the System classloader are stored.
+   */
+  public void setLibDirs(String dirs) {
+    _libDirs = dirs;
+  }  
   
   /**
    * Returns a "command-line" representation of this instance.
@@ -49,7 +70,13 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
 
     CmdLineBuildResult result = super.buildCommandLine(env);
    
-    result.command.addOpt("cp", getMainCp(env));
+    String mainCp = getMainCp(env);    
+    String optionalCp = _libDirs == null ? null : getOptionalCp(_libDirs, result.variables, env);
+    if(optionalCp != null){
+      mainCp = mainCp+FileUtils.PATH_SEPARATOR+optionalCp;
+    }
+    
+    result.command.addOpt("cp", mainCp);
     result.command.addArg(APP_STARTER_CLASS_NAME);
     result.command.addOpt("ascp", getAsCp(env));
     result.command.addArg("org.sapia.magnet.MagnetRunner");

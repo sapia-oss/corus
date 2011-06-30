@@ -82,7 +82,7 @@ public class Java extends BaseJavaStarter {
 
     String classpath = env.getCorusIopLibPath() + pathSep + 
                        env.getJavaStarterLibPath() + pathSep +
-                       getProcessCp(env.getCommonDir(), result.variables, env) + pathSep + 
+                       getProcessCp(result.variables, env) + pathSep + 
                        getMainCp(env);
         
     result.command.addOpt("cp", render(result.variables, classpath).replace(';', System.getProperty("path.separator").charAt(0)));
@@ -117,61 +117,12 @@ public class Java extends BaseJavaStarter {
     return buf.toString();
   }
   
-  private String getProcessCp(String processUserDir, StrLookup envVars, Env env) {
-    if(!new File(processUserDir).exists()){
-      processUserDir = System.getProperty("user.dir");
-    }
-    
-    String[] baseDirs;
+  private String getProcessCp(StrLookup envVars, Env env) {
     if(_libDirs == null || _libDirs.trim().length() == 0){
-      baseDirs = new String[]{"lib"};
+      return super.getOptionalCp("lib", envVars, env);
     }
     else{
-      baseDirs = _libDirs.split(";");
+      return super.getOptionalCp(_libDirs, envVars, env);
     }
-
-    StringBuffer buf = new StringBuffer();
-
-    for(int dirIndex = 0; dirIndex < baseDirs.length; dirIndex++){
-      String baseDir = render(envVars, baseDirs[dirIndex]);
-      String currentDir;
-      if(FileUtils.isAbsolute(baseDir)){
-        currentDir = baseDir;        
-      }
-      else{
-        currentDir = processUserDir + FileUtils.FILE_SEPARATOR + baseDir;
-      }
-      
-      FileInfo fileInfo = FileUtils.getFileInfo(currentDir);        
-      PathFilter filter = env.createPathFilter(fileInfo.directory);       
-      if(fileInfo.fileName == null){
-        filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
-      }
-      else{
-        filter.setIncludes(new String[] { fileInfo.fileName });
-      }
-      
-      String[]     jars = filter.filter();
-      Arrays.sort(jars);
-      for (int i = 0; i < jars.length; i++) {
-        buf.append(fileInfo.directory).append(FileUtils.FILE_SEPARATOR).append(jars[i]);
-        if (i < (jars.length - 1)) {
-          buf.append(FileUtils.PATH_SEPARATOR);
-        }
-      }
-      
-      if(dirIndex < jars.length - 1){
-        buf.append(FileUtils.PATH_SEPARATOR);
-      }      
-    }
-    Map<String, String> values = new HashMap<String, String>();
-    values.put("user.dir", processUserDir);
-    CompositeStrLookup vars = new CompositeStrLookup()
-      .add(StrLookup.mapLookup(values))
-      .add(envVars);
-    StrSubstitutor substitutor = new StrSubstitutor(vars);
-    return substitutor.replace(buf.toString());
   }
-
-  
 }
