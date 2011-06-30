@@ -26,6 +26,13 @@ public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implemen
   }
   
   @Override
+  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster)
+      throws PortRangeConflictException, PortRangeInvalidException {
+    proxy.addPortRanges(ranges, clearExisting);
+    invoker.invokeLenient(void.class, cluster);    
+  }
+  
+  @Override
   public Results<List<PortRange>> getPortRanges(ClusterInfo cluster) {
     Results<List<PortRange>> results = new Results<List<PortRange>>();
     proxy.getPortRanges();

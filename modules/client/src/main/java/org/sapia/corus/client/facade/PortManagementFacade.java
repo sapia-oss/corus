@@ -28,6 +28,14 @@ public interface PortManagementFacade {
    throws PortRangeConflictException, PortRangeInvalidException;
   
   /**
+   * @param ranges a {@link List} of {@link PortRange}
+   * @param clearExisting if <code>true</code>, indicates that the existing port ranges must be deleted.
+   * @param cluster a {@link ClusterInfo} instance. 
+   */
+  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster)
+    throws PortRangeConflictException, PortRangeInvalidException;  
+  
+  /**
    * @param name the name of the port range to add.
    * @param force if <code>true</code>, indicates that the port range should 
    * be removed even if the Corus server has corresponding ports flagged as

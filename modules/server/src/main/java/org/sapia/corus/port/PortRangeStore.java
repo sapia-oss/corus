@@ -46,4 +46,8 @@ public class PortRangeStore {
   public void deleteRange(String name){
     _ranges.remove(name);
   }
+  
+  public void clear(){
+    _ranges.clear();
+  }
 }

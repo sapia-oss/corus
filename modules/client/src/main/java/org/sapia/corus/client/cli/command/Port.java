@@ -1,6 +1,13 @@
 package org.sapia.corus.client.cli.command;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
@@ -28,7 +35,9 @@ public class Port extends CorusCliCommand{
   public static final String RELEASE = "release";
   public static final String LIST  = "ls";
   public static final String OPT_NAME = "n";
+  public static final String OPT_PROPS = "p";
   public static final String OPT_FORCE = "f";
+  public static final String OPT_CLEAR = "clear";
   public static final String OPT_MIN = "min";
   public static final String OPT_MAX = "max";
   
@@ -57,19 +66,69 @@ public class Port extends CorusCliCommand{
   }
   
   void doAdd(CliContext ctx, CmdLine cmd) throws InputException{
-    String name = cmd.assertOption(OPT_NAME, true).getValue();
-    int min = cmd.assertOption(OPT_MIN, true).asInt();
-    int max = cmd.assertOption(OPT_MAX, true).asInt();
     
     try {
-      ctx.getCorus().getPortManagementFacade().addPortRange(name, min, max, getClusterInfo(ctx));
+      if(cmd.containsOption(OPT_PROPS, true)){
+        
+        String fileName = cmd.assertOption(OPT_PROPS, true).getValue();
+        File propFile = new File(fileName);
+        if(!propFile.exists()){
+          throw new InputException("File does not exist: " + fileName);
+        }
+        if(propFile.isDirectory()){
+          throw new InputException("File is a directory: " + fileName);
+        }
+        
+        Properties props = new Properties();
+        InputStream input = null;
+        try{
+          input = new FileInputStream(propFile);
+          props.load(input);
+          boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
+          
+          List<PortRange> ranges = new ArrayList<PortRange>();
+          Enumeration names = props.propertyNames();
+          while(names.hasMoreElements()){
+            String name = (String)names.nextElement();
+            String minMax = props.getProperty(name);
+            if(minMax != null){
+              String[] minMaxArray = minMax.split(",");
+              if(minMaxArray.length == 1){
+                minMaxArray = new String[]{minMaxArray[0],minMaxArray[0]};
+              }              
+              if(minMaxArray.length != 2){
+                throw new InputException(String.format("Invalid min/max for port range %s, expected <min>,<max>, got %", name, minMax));
+              }
+              PortRange range = new PortRange(name, Integer.parseInt(minMaxArray[0]), Integer.parseInt(minMaxArray[1]));
+              ranges.add(range);
+            }
+            else{
+              throw new InputException(String.format("Min/max not specified for port range %s", name));
+            }
+          }
+          ctx.getCorus().getPortManagementFacade().addPortRanges(ranges, clearExisting, getClusterInfo(ctx));          
+        }finally{
+          try{
+            input.close();
+          }catch(IOException e){}
+        }        
+      }
+      else{
+        String name = cmd.assertOption(OPT_NAME, true).getValue();
+        int min     = cmd.assertOption(OPT_MIN, true).asInt();
+        int max     = cmd.assertOption(OPT_MAX, true).asInt();
+        ctx.getCorus().getPortManagementFacade().addPortRange(name, min, max, getClusterInfo(ctx));
+      }
       
     } catch (PortRangeConflictException e) {
-      CliError err = ctx.createAndAddErrorFor(this, "unable to add a port range", e);
+      CliError err = ctx.createAndAddErrorFor(this, "Unable to add a port range", e);
       ctx.getConsole().println(err.getSimpleMessage());
       
     } catch (PortRangeInvalidException e) {
-      CliError err = ctx.createAndAddErrorFor(this, "unable to add a port range", e);
+      CliError err = ctx.createAndAddErrorFor(this, "Unable to add a port range", e);
+      ctx.getConsole().println(err.getSimpleMessage());
+    } catch(IOException e){
+      CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());
     }
   }
@@ -85,7 +144,7 @@ public class Port extends CorusCliCommand{
       ctx.getCorus().getPortManagementFacade().removePortRange(name, force, getClusterInfo(ctx));
       
     } catch (PortActiveException e) {    
-      CliError err = ctx.createAndAddErrorFor(this, "unable to delete a port range", e);
+      CliError err = ctx.createAndAddErrorFor(this, "Unable to delete a port range", e);
       ctx.getConsole().println(err.getSimpleMessage());
     }
   }  

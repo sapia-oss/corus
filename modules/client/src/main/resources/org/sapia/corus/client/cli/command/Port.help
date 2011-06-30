@@ -6,6 +6,10 @@
     <p>port add -n range_name -min min_port -max max_port [-cluster]</p>
     <p/>
     <p>OR</p>
+    <p/>    
+    <p>port add -p ranges.properties [-cluster] (where properties must have format: range=min,max or range=singlePort)</p>
+    <p/>
+    <p>OR</p>
     <p/>
     <p>port del -n range_name [-f][-cluster]</p>
     <p/>
@@ -23,6 +27,8 @@
     <p/>
     <p>- n: the name of the port range to add or delete.</p>
     <p/>
+    <p>- p: the path to the properties file containing the range configurations to add (goes with the 'add' arg - see above).</p>
+    <p/>    
     <p>- min: the lowerbound port of the range to add.</p>
     <p/>
     <p>- max: the higherbound port of the range to add.</p>

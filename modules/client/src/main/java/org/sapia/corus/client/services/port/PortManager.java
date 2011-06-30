@@ -34,6 +34,16 @@ public interface PortManager extends java.rmi.Remote, Module{
    */
   public void addPortRange(String name, int min, int max) throws 
     PortRangeInvalidException, PortRangeConflictException;
+  
+  /**
+   * @param ranges a {@link List} of {@link PortRange}s.
+   * @param clearExisting if <code>true</code>, indicates that the existing port ranges should
+   * be deleted.
+   * @throws PortRangeInvalidException
+   * @throws PortRangeConflictException
+   */
+  public void addPortRanges(List<PortRange> ranges, boolean clearExisting) throws 
+    PortRangeInvalidException, PortRangeConflictException;
 
   /**
    * @param name the name of the port range to remove.

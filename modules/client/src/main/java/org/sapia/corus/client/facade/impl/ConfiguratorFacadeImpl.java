@@ -1,6 +1,7 @@
 package org.sapia.corus.client.facade.impl;
 
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
@@ -41,6 +42,13 @@ public class ConfiguratorFacadeImpl
       ClusterInfo cluster) {
     proxy.addProperty(scope, name, value);
     invoker.invokeLenient(void.class, cluster); 
+  }
+  
+  @Override
+  public void addProperties(PropertyScope scope, Properties props,
+      boolean clearExisting, ClusterInfo cluster) {
+    proxy.addProperties(scope, props, clearExisting);
+    invoker.invokeLenient(void.class, cluster);
   }
   
   @Override

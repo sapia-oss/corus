@@ -12,6 +12,7 @@ import java.util.TreeSet;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.InternalConfigurator;
@@ -73,6 +74,23 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   @Override
   public void addProperty(PropertyScope scope, String name, String value) {
     store(scope).addProperty(name, value);
+  }
+  
+  @Override
+  public void addProperties(PropertyScope scope, Properties props,
+      boolean clearExisting) {
+    PropertyStore store = store(scope);
+    if(clearExisting){
+      store.removeProperty(ArgFactory.any());
+    }
+    Enumeration names = props.propertyNames();
+    while(names.hasMoreElements()){
+      String name  = (String)names.nextElement();
+      String value = props.getProperty(name);
+      if(value != null){
+        store.addProperty(name, value);
+      }
+    }
   }
 
   @Override

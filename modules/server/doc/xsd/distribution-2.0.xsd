@@ -62,6 +62,7 @@
         <xs:attribute name="javaHome" type="xs:string"></xs:attribute>
         <xs:attribute name="javaCmd" type="xs:string"></xs:attribute>
         <xs:attribute name="vmType" type="xs:string"></xs:attribute>
+        <xs:attribute name="libDirs" type="xs:string"></xs:attribute>
       </xs:complexType>
     </xs:element>
 
@@ -86,6 +87,8 @@
         <xs:attribute name="javaHome" type="xs:string"></xs:attribute>
         <xs:attribute name="javaCmd" type="xs:string"></xs:attribute>
         <xs:attribute name="vmType" type="xs:string"></xs:attribute>
+        <xs:attribute name="libDirs" type="xs:string" use="required"></xs:attribute>
+        <xs:attribute name="args" type="xs:string"></xs:attribute>        
       </xs:complexType>
     </xs:element>
 

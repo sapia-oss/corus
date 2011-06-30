@@ -1,7 +1,12 @@
 package org.sapia.corus.client.cli.command;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.console.AbortException;
@@ -11,6 +16,7 @@ import org.sapia.console.table.Table;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
+import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
@@ -26,6 +32,7 @@ public class Conf extends CorusCliCommand{
   public static final String OPT_SCOPE = "s";
   public static final String OPT_SCOPE_SVR = "s";
   public static final String OPT_SCOPE_PROC = "p";
+  public static final String OPT_CLEAR = "clear";
 
   private static final int COL_PROP_TAG   = 0;
   private static final int COL_PROP_NAME  = 0;
@@ -64,6 +71,9 @@ public class Conf extends CorusCliCommand{
       if(ctx.getCommandLine().containsOption(OPT_TAG, false)){
         handleTag(op, ctx);
       }
+      else if(op == Op.LIST){
+        handlePropertyOp(op, ctx);
+      }
       else if(ctx.getCommandLine().containsOption(OPT_PROPERTY, false) || 
               ctx.getCommandLine().containsOption(OPT_SCOPE_PROC, true)){
         handlePropertyOp(op, ctx);
@@ -95,7 +105,7 @@ public class Conf extends CorusCliCommand{
   }
   
   private void handlePropertyOp(Op op, CliContext ctx) throws InputException{ 
-    PropertyScope scope = PropertyScope.SERVER;
+    PropertyScope scope = PropertyScope.PROCESS;
     if(ctx.getCommandLine().containsOption(OPT_SCOPE, true)){
       String scopeOpt = ctx.getCommandLine().assertOption(OPT_SCOPE, true).getValue();
       if(scopeOpt.startsWith(OPT_SCOPE_PROC)){
@@ -110,12 +120,40 @@ public class Conf extends CorusCliCommand{
     }
     if(op == Op.ADD){
       String pair = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();
-      String[] nameValue = pair.split("=");
-      if(nameValue.length != 2){
-        throw new InputException("Invalid property format; expected: <name>=<value>");
+      
+      if(!pair.contains("=") && pair.endsWith(".properties")){
+        File propFile = new File(pair);
+        if(!propFile.exists()){
+          throw new InputException("File does not exist: " + pair);
+        }
+        if(propFile.isDirectory()){
+          throw new InputException("File is a directory: " + pair);
+        }
+        
+        Properties props = new Properties();
+        InputStream input = null;
+        try{
+          input = new FileInputStream(propFile);
+          props.load(input);
+          boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
+          ctx.getCorus().getConfigFacade().addProperties(scope, props, clearExisting, getClusterInfo(ctx));          
+        }catch(IOException e){
+          CliError err = ctx.createAndAddErrorFor(this, e);
+          ctx.getConsole().println(err.getSimpleMessage());
+        }finally{
+          try{
+            input.close();
+          }catch(IOException e){}
+        }
       }
       else{
-        ctx.getCorus().getConfigFacade().addProperty(scope, nameValue[0], nameValue[1], getClusterInfo(ctx));
+        String[] nameValue = pair.split("=");
+        if(nameValue.length != 2){
+          throw new InputException("Invalid property format; expected: <name>=<value>");
+        }
+        else{
+          ctx.getCorus().getConfigFacade().addProperty(scope, nameValue[0], nameValue[1], getClusterInfo(ctx));
+        }
       }
     }
     else if(op == Op.DELETE){

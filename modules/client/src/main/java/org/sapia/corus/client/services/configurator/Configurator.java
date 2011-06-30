@@ -35,14 +35,23 @@ public interface Configurator extends java.rmi.Remote, Module {
   }
   
   /**
-   * Sets a property.
+   * Adds a property.
    * 
+   * @param scope a {@link PropertyScope}
    * @param name the name of the property
    * @param value the value of the property
    */
   public void addProperty(PropertyScope scope, String name, String value);
   
   /**
+   * @param scope a {@link PropertyScope}
+   * @param props the {@link Properties} to add
+   * @param clearExisting if <code>true</code>, indicates that the existing properties should be cleared.
+   */
+  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting);
+  
+  /**
+   * @param scope a {@link PropertyScope}
    * @param name the name of the property to remove.
    */
   public void removeProperty(PropertyScope scope, Arg name);

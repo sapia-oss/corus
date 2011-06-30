@@ -10,8 +10,8 @@
     <p/>
     <p>OR</p>    
     <p/>
-    <p>conf ls -t [-cluster]</p>
-    <p>conf ls -p -s svr | proc [-cluster]</p>
+    <p>conf ls [-t] [-cluster]</p>
+    <p>conf ls [-p] [-s svr | proc] [-cluster]</p>
     <p/>
     <p>OR</p>    
     <p/>
@@ -20,19 +20,27 @@
     <p/>
     <p>Where:</p>
     <p/>
-    <p>- t : indicates a tagging operation.</p>
+    <p>- t : indicates a tagging operation (if not specified, -p is assumed).</p>
     <p/>
-    <p>- p : indicates a property-related operation.</p>
+    <p>- p : indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
     <p/>
-    <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be svr (for server) and proc (for process).</p>
+    <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be svr (for server) and proc (for process) - defaults to proc.</p>
     <p/>
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Examples">
     <p>conf add -s svr -p corus.process.timeout=25,corus.process.kill-interval=30</p>
-    <p/> 
-    <p>conf ls -s svr</p>
-    <p/> 
+    <p/>
+    <p>conf add -s svr -p myProperties.properties</p>
+    <p/>    
+    <p>conf ls -t</p>
+    <p/>     
+    <p>conf ls -p -s svr</p>
+    <p/>
+    <p>conf ls -p</p>
+    <p/>      
+    <p>conf ls</p>
+    <p/>    
     <p>conf del -s svr -p corus.process.timeout</p>
     <p/> 
     <p>conf del -s svr -p corus.process.*</p>

@@ -17,18 +17,28 @@ public class TestConfigurator implements Configurator, InternalConfigurator{
     return Configurator.ROLE;
   }
 
+  @Override
   public void addProperty(PropertyScope scope, String name, String value) {
   }
+  
+  @Override
+  public void addProperties(PropertyScope scope, Properties props,
+      boolean clearExisting) {
+  }
 
+  @Override
   public void addTag(String tag) {
   }
 
+  @Override
   public void addTags(Set<String> tags) {
   }
 
+  @Override
   public void clearTags() {
   }
 
+  @Override
   public Properties getProperties(PropertyScope scope) {
     return new Properties();
   }
@@ -38,6 +48,7 @@ public class TestConfigurator implements Configurator, InternalConfigurator{
     return getProperties(scope);
   }
 
+  @Override
   public List<NameValuePair> getPropertiesAsNameValuePairs(PropertyScope scope) {
     return new ArrayList<NameValuePair>();
   }
@@ -48,6 +59,7 @@ public class TestConfigurator implements Configurator, InternalConfigurator{
     return getPropertiesAsNameValuePairs(scope);
   }
 
+  @Override
   public String getProperty(String name) {
     return null;
   }
@@ -57,16 +69,20 @@ public class TestConfigurator implements Configurator, InternalConfigurator{
     return getProperty(name);
   }
 
+  @Override
   public Set<String> getTags() {
     return new HashSet<String>();
   }
 
+  @Override
   public void removeProperty(PropertyScope scope, Arg name) {
   }
 
+  @Override
   public void removeTag(Arg tag) {
   }
 
+  @Override
   public void removeTag(String tag) {
   }
 }

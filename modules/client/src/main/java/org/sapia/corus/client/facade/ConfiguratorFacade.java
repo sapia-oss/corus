@@ -27,6 +27,15 @@ public interface ConfiguratorFacade {
   public void addProperty(PropertyScope scope, String name, String value, ClusterInfo cluster);
   
   /**
+   * Adds the given properties to the Corus server.
+   * 
+   * @param scope a {@link PropertyScope}
+   * @param props the {@link Properties} to add.
+   * @param clearExisting if <code>true</code>, indicates that the existing properties should be cleared.
+   */
+  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting, ClusterInfo cluster);  
+  
+  /**
    * @param scope a {@link PropertyScope}
    * @return the {@link Properties} held within the Corus server.
    */
