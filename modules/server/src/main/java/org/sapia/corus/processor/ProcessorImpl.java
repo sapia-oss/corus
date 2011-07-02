@@ -14,6 +14,7 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -180,7 +181,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   public ProgressQueue exec(Arg distName, Arg version, String profile,
-    Arg processName, int instances) {
+    Arg processName, int instances) throws TooManyProcessInstanceException{
     try {
       List<Distribution> dists = _deployer.getDistributions(distName, version);
       if (dists.size() == 0) {
@@ -210,6 +211,13 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         }
         else{
           for(ProcessConfig config:configs){
+            int activeCount = _processes.getProcessCountFor(dist.getName(), dist.getVersion(), config.getName(), profile);
+            int totalCount = activeCount + instances;
+            if(config.getMaxInstances() > 0 && (totalCount > config.getMaxInstances())){
+              throw new TooManyProcessInstanceException(
+                "Too many process instances for : " + config.getName() + "(" + dist.getName() + " " + dist.getVersion() + ")" +
+                ", requested: " + instances + ", currently active: " + activeCount + ", maximum permitted: " + config.getMaxInstances());
+            }
             filter.addRootProcess(dist, config, profile, instances);
           }
         }
@@ -241,7 +249,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   public ProgressQueue exec(Arg distName, Arg version, String profile,
-    int instances) {
+    int instances) throws TooManyProcessInstanceException{
     return exec(distName, version, profile, null, instances);
   }
   

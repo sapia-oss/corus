@@ -9,6 +9,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.ExecConfig;
@@ -61,14 +62,14 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   
   @Override
   public synchronized ProgressQueue exec(String distName, String version, String profile,
-      int instances, ClusterInfo cluster) {
+      int instances, ClusterInfo cluster) throws TooManyProcessInstanceException{
     proxy.exec(ArgFactory.parse(distName), ArgFactory.parse(version), profile, instances);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
   
   @Override
   public synchronized ProgressQueue exec(String distName, String version, String profile,
-      String processName, int instances, ClusterInfo cluster) {
+      String processName, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException{
     proxy.exec(ArgFactory.parse(distName), 
         ArgFactory.parse(version), 
         profile, 

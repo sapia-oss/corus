@@ -28,6 +28,16 @@ public interface ProcessRepository {
    * @return the number of processes for the given process reference
    */
   public abstract int getProcessCountFor(ProcessRef processRef);
+  
+  /**
+   * @param dist a distribution name
+   * @param version a distribution version
+   * @param processName a process name
+   * @param profile a profile.
+   * @return the number of active processes matching the given parameters.
+   */
+  public abstract int getProcessCountFor(String dist, String version, String processName, String profile);
+
 
   /**
    * @return the <code>List</code> of <code>Process</code> instances that

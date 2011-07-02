@@ -7,6 +7,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
@@ -128,8 +129,12 @@ public interface ProcessorFacade {
    * @param cluster a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
-  public ProgressQueue exec(String distName, String version, String profile,
-                            int instances, ClusterInfo cluster);
+  public ProgressQueue exec(
+      String distName, 
+      String version, 
+      String profile,
+      int instances, 
+      ClusterInfo cluster) throws TooManyProcessInstanceException;
 
   /**
    * Starts process(es) corresponding to the passed in parameters.
@@ -146,8 +151,13 @@ public interface ProcessorFacade {
    * @param cluster a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
-  public ProgressQueue exec(String distName, String version, String profile,
-                            String processName, int instances, ClusterInfo cluster);
+  public ProgressQueue exec(
+      String distName, 
+      String version, 
+      String profile,
+      String processName, 
+      int instances, 
+      ClusterInfo cluster) throws TooManyProcessInstanceException;
 
   /**
    * Restarts all suspended processes.

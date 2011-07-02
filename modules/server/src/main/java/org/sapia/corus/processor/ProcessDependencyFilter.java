@@ -111,7 +111,7 @@ public class ProcessDependencyFilter {
                   }
                 } else {
                   progress
-                      .warning("Profile " + currentProfile + " not found for dependency - distribution"
+                      .warning("Profile " + currentProfile + " not found for dependency - distribution "
                           + dist + ", process: " + depProcess);
                 }
               } else {
@@ -120,7 +120,7 @@ public class ProcessDependencyFilter {
               }
             } else {
               progress
-                  .warning("No distribution found for dependency - distribution"
+                  .warning("No distribution found for dependency - distribution "
                       + dep.getDist() + ", version: " + currentVersion);
             }
           } catch (DistributionNotFoundException dnfe) {

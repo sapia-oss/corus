@@ -29,6 +29,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   private List<Port>        _ports                  = new ArrayList<Port>();
   private int               _maxKillRetry           = -1;
   private int               _shutDownTimeout        = -1;
+  private int               _maxInstances;
   private String            _name;
   private int               _statusInterval         = DEFAULT_STATUS_INTERVAL;
   private int               _pollInterval           = DEFAULT_POLL_INTERVAL;
@@ -231,6 +232,20 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    */
   public List<Port> getPorts(){
     return _ports;
+  }
+
+  /**
+   * @param maxInstances the maximum number of process instances allowed.
+   */
+  public void setMaxInstances(int maxInstances) {
+    _maxInstances = maxInstances;
+  }
+
+  /**
+   * @return the maximum number of process instances allowed (if <= 0, means no maximum).
+   */
+  public int getMaxInstances() {
+    return _maxInstances;
   }
 
   /**

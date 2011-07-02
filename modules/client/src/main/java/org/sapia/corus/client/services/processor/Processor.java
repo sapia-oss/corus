@@ -6,6 +6,7 @@ import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.interop.Status;
 
 
@@ -32,7 +33,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @return a {@link ProgressQueue}
    */
   public ProgressQueue exec(Arg distName, Arg version, String profile,
-                            int instances);
+                            int instances) throws TooManyProcessInstanceException;;
 
   /**
    * Starts process(es) corresponding to the passed in parameters.
@@ -50,7 +51,7 @@ public interface Processor extends java.rmi.Remote, Module {
    * @return a {@link ProgressQueue}.
    */
   public ProgressQueue exec(Arg distName, Arg version, String profile,
-                            Arg processName, int instances);
+                            Arg processName, int instances) throws TooManyProcessInstanceException;
 
   /**
    * 

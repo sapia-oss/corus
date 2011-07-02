@@ -54,6 +54,10 @@ public class ProcessRepositoryImpl implements ProcessRepository {
         processRef.getProcessConfig().getName(), 
         processRef.getProfile()).size();
   }
+  
+  public synchronized int getProcessCountFor(String dist, String version, String processName, String profile){
+    return getActiveProcesses().getProcesses(dist, version, processName, profile).size();
+  }  
 
   public synchronized List<Process> getProcesses() {
     List<Process> procs = new ArrayList<Process>();
