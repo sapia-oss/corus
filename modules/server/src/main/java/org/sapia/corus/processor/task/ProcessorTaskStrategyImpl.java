@@ -193,6 +193,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
       host = ctx.getServerContext().getServerAddress().getHost();
     }
     int port = ctx.getServerContext().getServerAddress().getPort();
+    props.add(new Property("corus.home", ctx.getServerContext().getHomeDir()));
     props.add(new Property("corus.server.host", host));
     props.add(new Property("corus.server.port", "" + port));
     if (System.getProperty(Consts.PROPERTY_CORUS_DOMAIN) != null) {
