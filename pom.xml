@@ -39,6 +39,7 @@
 
   <modules>
     <module>modules/client</module>
+    <module>modules/tomcat</module>
     <module>modules/server</module>
     <module>samples</module>
   </modules>
@@ -104,6 +105,12 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_tomcat</artifactId>
         <version>${project.version}</version>
       </dependency>
 

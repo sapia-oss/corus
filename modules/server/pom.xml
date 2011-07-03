@@ -78,6 +78,11 @@
       <groupId>org.sapia</groupId>
       <artifactId>sapia_corus_client</artifactId>
     </dependency>
+  
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_tomcat</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.sapia</groupId>
@@ -256,6 +261,22 @@
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
               <includeArtifactIds>sapia_as,sapia_corus_iop_api</includeArtifactIds>
+            </configuration>
+          </execution>
+          
+          <!-- copying tomcat bootstrap dependencies -->
+          <execution>
+            <id>copy-tomcat-bootstrap</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/lib/tomcat-boot</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeArtifactIds>sapia_corus_tomcat</includeArtifactIds>
             </configuration>
           </execution>
           
