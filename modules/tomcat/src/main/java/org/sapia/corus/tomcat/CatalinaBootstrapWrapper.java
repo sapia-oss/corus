@@ -8,7 +8,10 @@ import org.sapia.corus.interop.api.ShutdownListener;
 public class CatalinaBootstrapWrapper { 
 
 	public static String PROPERTY_CATALINA_STOP_METHOD = "sapia.corus.tomcat.catalinaStopMethod";
-	public static String CATALINA_MAIN_CLASS = "org.apache.catalina.startup.Bootstrap";
+	public static String DEFAULT_CATALINA_STOP_METHOD = "stopd";
+
+	public static String PROPERTY_CATALINA_MAIN_CLASS = "sapia.corus.tomcat.catalinaMainClass";
+	public static String DEFAULT_CATALINA_MAIN_CLASS = "org.apache.catalina.startup.Bootstrap";
 	
 	
 	/**
@@ -19,7 +22,8 @@ public class CatalinaBootstrapWrapper {
 	public static void main(String[] args) {
 		try {
 			new ShutdownDelegate().registerWithCorusInterop();
-			doCallStaticMethod(CATALINA_MAIN_CLASS, "main", new Object[] { args });
+			String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
+			doCallStaticMethod(className, "main", new Object[] { args });
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -35,7 +39,7 @@ public class CatalinaBootstrapWrapper {
 	 */
 	protected static Object doCallStaticMethod(String aClassName, String aMethodName, Object[] someArgs) throws Exception {
 		// 1. Get the target class object
-        Class<?> targetClass = Thread.currentThread().getContextClassLoader().loadClass(CATALINA_MAIN_CLASS);
+        Class<?> targetClass = Thread.currentThread().getContextClassLoader().loadClass(aClassName);
 
         // 2. Get the target method
         Class<?>[] paramTypes = new Class[someArgs.length];
@@ -82,8 +86,10 @@ public class CatalinaBootstrapWrapper {
 		@Override
 		public void onShutdown() {
 			try {
-				String argument = System.getProperty(PROPERTY_CATALINA_STOP_METHOD, "stopd");
-				doCallStaticMethod(CATALINA_MAIN_CLASS, "main", new Object[] { new String[] {argument} });
+				String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
+				String argument = System.getProperty(PROPERTY_CATALINA_STOP_METHOD, DEFAULT_CATALINA_STOP_METHOD);
+				
+				doCallStaticMethod(className, "main", new Object[] { new String[] {argument} });
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
