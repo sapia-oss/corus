@@ -264,15 +264,15 @@
             </configuration>
           </execution>
           
-          <!-- copying tomcat bootstrap dependencies -->
+          <!-- copying 3rd-party dependencies -->
           <execution>
-            <id>copy-tomcat-bootstrap</id>
+            <id>copy-thirdparty</id>
             <phase>package</phase>
             <goals>
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/lib/tomcat-boot</outputDirectory>
+              <outputDirectory>${basedir}/lib/thirdparty</outputDirectory>
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>

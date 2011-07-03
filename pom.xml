@@ -39,7 +39,7 @@
 
   <modules>
     <module>modules/client</module>
-    <module>modules/tomcat</module>
+    <module>modules/thirdparty</module>    
     <module>modules/server</module>
     <module>samples</module>
   </modules>
@@ -196,4 +196,26 @@
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <finalName>${artifactId}-${version}</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+	        <source>1.6</source>
+	        <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/Test*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
