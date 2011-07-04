@@ -1,16 +1,17 @@
 package org.sapia.corus.tomcat;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sapia.corus.interop.api.InteropLink;
 
 public class CatalinaHookTest {
 
 	// Fixtures
-	private MockCorusInteropLink _corusInterop;
+	private static MockCorusInteropLink _corusInterop;
 	
-	@Before
-	public void setUp() throws Exception {
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+		// Doing it in static because interop link can only be set once
 		_corusInterop = new MockCorusInteropLink();
 		InteropLink.setImpl(_corusInterop);
 	}
@@ -40,8 +41,8 @@ public class CatalinaHookTest {
 	
 	public static void main(String[] args) {
 		try {
+			CatalinaHookTest.setUpClass();
 			CatalinaHookTest test = new CatalinaHookTest();
-			test.setUp();
 			test.testLifeCycle();
 		} catch (Exception e) {
 			e.printStackTrace();

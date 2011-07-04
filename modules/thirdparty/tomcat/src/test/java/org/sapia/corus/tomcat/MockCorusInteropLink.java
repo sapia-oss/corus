@@ -63,15 +63,14 @@ public class MockCorusInteropLink implements Implementation {
 
 	@Override
 	public void shutdown() {
-		for (ShutdownListener listener: _shutdownListeners) {
+		while (!_shutdownListeners.isEmpty()) {
+			ShutdownListener listener = _shutdownListeners.remove(0);
 			try {
 				listener.onShutdown();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
-//		System.exit(0);
 	}
 
 }
