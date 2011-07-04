@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
@@ -56,14 +57,14 @@ public class PortManagerImplTest {
 
   @Test
   public void testRemovePortRange() throws Exception{
-    ports.removePortRange("single", false);
+    ports.removePortRange(ArgFactory.exact("single"), false);
   }
   
   @Test
   public void testRemoveActivePortRange() throws Exception{
     ports.aquirePort("single");
     try{
-      ports.removePortRange("single", false);
+      ports.removePortRange(ArgFactory.exact("single"), false);
       fail("Should not have been able to remove port range");
     }catch(PortActiveException e){
       //ok

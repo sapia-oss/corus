@@ -10,10 +10,15 @@
 
 package org.sapia.corus.port;
 
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.util.IteratorFilter;
+import org.sapia.corus.util.Matcher;
 
 /**
  *
@@ -42,6 +47,21 @@ public class PortRangeStore {
   public PortRange readRange(String name){
     return _ranges.get(name);
   }
+  
+  public Collection<PortRange> readRange(final Arg name){
+    return new IteratorFilter<PortRange>(new Matcher<PortRange>() {
+      @Override
+      public boolean matches(PortRange range) {
+        return name.matches(range.getName());
+      }
+    }).filter(_ranges.values()).sort(new Comparator<PortRange>() {
+      
+      @Override
+      public int compare(PortRange o1, PortRange o2) {
+        return o1.getName().compareTo(o2.getName());
+      }
+    }).get();
+  }  
   
   public void deleteRange(String name){
     _ranges.remove(name);

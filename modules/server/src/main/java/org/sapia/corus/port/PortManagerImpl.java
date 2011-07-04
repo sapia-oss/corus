@@ -11,10 +11,12 @@
 package org.sapia.corus.port;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -68,7 +70,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     PortRange range = (PortRange)_store.readRange(name);
     int port = range.acquire();
     _store.writeRange(range);
-    logger().debug("Releasing port: " + name + ":" + port);    
+    logger().debug("Acquiring port: " + name + ":" + port);    
     return port;
   }
   
@@ -129,21 +131,24 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     _store.writeRange(range);
   }
   
-  public synchronized void removePortRange(String name, boolean force) throws PortActiveException{
-    PortRange range = (PortRange)_store.readRange(name);
-    if(range != null){
+  public synchronized void removePortRange(Arg name, boolean force) throws PortActiveException{
+    Collection<PortRange> ranges = _store.readRange(name);
+    
+    for(PortRange range : ranges){
       if(range.hasBusyPorts()){
         if(!force){
           throw new PortActiveException("Range has ports for which processes are running");
         }
-      }
-      _store.deleteRange(name);
+      }      
     }
+    for(PortRange range : ranges){
+      _store.deleteRange(range.getName());      
+    }    
   }  
   
-  public synchronized void releasePortRange(String name){
-    PortRange range = (PortRange)_store.readRange(name);
-    if(range != null){
+  public synchronized void releasePortRange(final Arg name){
+    Collection<PortRange> ranges = _store.readRange(name);
+    for(PortRange range : ranges){
       range.releaseAll();
       _store.writeRange(range);      
     }
