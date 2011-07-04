@@ -53,13 +53,16 @@ public class Port extends CorusCliCommand{
   @Override
   public void doExecute(CliContext ctx) throws InputException{
     CmdLine cmdLine = ctx.getCommandLine();
-    Arg arg = cmdLine.assertNextArg(new String[]{ADD, DELETE, LIST});
+    Arg arg = cmdLine.assertNextArg(new String[]{ADD, DELETE, LIST, RELEASE});
     if(arg.toString().equals(ADD)){
       doAdd(ctx, cmdLine);
     }
     else if(arg.toString().equals(DELETE)){
       doDelete(ctx, cmdLine);
     }
+    else if(arg.toString().equals(RELEASE)){
+      doRelease(ctx, cmdLine);
+    }    
     else{
       doList(ctx, cmdLine);
     }

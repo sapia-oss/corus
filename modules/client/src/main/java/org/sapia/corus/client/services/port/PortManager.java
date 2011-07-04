@@ -13,6 +13,7 @@ package org.sapia.corus.client.services.port;
 import java.util.List;
 
 import org.sapia.corus.client.Module;
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -51,14 +52,14 @@ public interface PortManager extends java.rmi.Remote, Module{
    * be removed even if this instance has corresponding ports flagged as
    * active.
    */
-  public void removePortRange(String name, boolean force) throws PortActiveException;
+  public void removePortRange(Arg name, boolean force) throws PortActiveException;
   
   /**
    * Forces the release of all ports corresponding to the given name.
    *
    * @param name the name of a port range.
    */
-  public void releasePortRange(String name);
+  public void releasePortRange(Arg name);
   
   /**
    * @return the <code>List</code> of port ranges that this instance holds.

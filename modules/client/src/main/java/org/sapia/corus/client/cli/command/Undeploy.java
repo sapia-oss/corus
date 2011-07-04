@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli.command;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
@@ -37,13 +38,22 @@ public class Undeploy extends CorusCliCommand {
       String  dist    = null;
       String  version = null;
       CmdLine cmd     = ctx.getCommandLine();
-
-      dist    = cmd.assertOption(DIST_OPT, true).getValue();
-      version = cmd.assertOption(VERSION_OPT, true).getValue();
-
-      super.displayProgress(ctx.getCorus().getDeployerFacade().undeploy(dist, version,
-                                                    getClusterInfo(ctx)),
-                            ctx);
+      
+      if(cmd.hasNext() && cmd.isNextArg()){
+        cmd.assertNextArg(new String[]{ARG_ALL});
+        dist    = WILD_CARD;
+        version = WILD_CARD;
+      }
+      else{
+        dist    = cmd.assertOption(DIST_OPT, true).getValue();
+        version = cmd.assertOption(VERSION_OPT, true).getValue();
+      }
+      
+      super.displayProgress(ctx.getCorus().getDeployerFacade().undeploy(
+          dist, version,
+          getClusterInfo(ctx)),
+          ctx);
+      
     } catch (RunningProcessesException e) {
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());

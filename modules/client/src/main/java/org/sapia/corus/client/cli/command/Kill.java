@@ -44,9 +44,21 @@ public class Kill extends CorusCliCommand {
     String  osPid   = null;
 
     CmdLine cmd = ctx.getCommandLine();
-
+    
+    // Kill ALL
+    if(cmd.hasNext() && cmd.isNextArg()){
+      cmd.assertNextArg(new String[]{ARG_ALL});
+      MatchCompletionHook completion = new MatchCompletionHook(WILD_CARD, WILD_CARD, WILD_CARD, WILD_CARD);
+      ClusterInfo cluster = getClusterInfo(ctx);
+      if (_suspend) {
+        ctx.getCorus().getProcessorFacade().suspend(WILD_CARD, WILD_CARD, profile, cluster);
+      } else {
+        ctx.getCorus().getProcessorFacade().kill(WILD_CARD, WILD_CARD, profile, cluster);
+      }
+      waitForKillCompletion(ctx, completion);
+    }
     // Kill by VM IDENTIDER
-    if (cmd.containsOption(VM_ID_OPT, true)) {
+    else if (cmd.containsOption(VM_ID_OPT, true)) {
       PidCompletionHook completion = new PidCompletionHook();
       pid = cmd.assertOption(VM_ID_OPT, true).getValue();
       completion.addPid(pid);

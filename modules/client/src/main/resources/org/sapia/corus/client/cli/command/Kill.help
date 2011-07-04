@@ -7,6 +7,10 @@
     <p/>
     <p>OR</p>
     <p/>
+    <p>kill all [-w] [-cluster]</p>
+    <p/>
+    <p>OR</p>
+    <p/>
     <p>kill [-w] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
     <p/>
     <p>OR</p>
@@ -45,6 +49,8 @@
     <p/>    
     <p>kill -d * -v *</p>
     <p/>    
+    <p>kill all</p>
+    <p/>
     <p>kill -op 22989 23101 23116</p>
   </section>    
 </help>

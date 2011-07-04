@@ -252,7 +252,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
           }
         }
         
-        if(dirIndex < jars.length - 1){
+        if(dirIndex < baseDirs.length - 1){
           buf.append(FileUtils.PATH_SEPARATOR);
         }
       }

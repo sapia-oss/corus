@@ -25,6 +25,9 @@ public abstract class CorusCliCommand implements Command {
   public static final String VM_NAME_OPT  = "n";
   public static final String VM_ID_OPT    = "i";
   public static final String VM_INSTANCES = "i";
+  public static final String ARG_ALL      = "all";
+  public static final String WILD_CARD    = "*";
+  
   public static final String OS_PID_OPT   = "op";
   
   /**

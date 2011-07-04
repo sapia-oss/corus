@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -42,14 +43,14 @@ public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implemen
   
   @Override
   public void releasePortRange(String rangeName, ClusterInfo cluster) {
-    proxy.releasePortRange(rangeName);
+    proxy.releasePortRange(ArgFactory.parse(rangeName));
     invoker.invokeLenient(void.class, cluster);
   }
   
   @Override
   public void removePortRange(String name, boolean force, ClusterInfo cluster)
       throws PortActiveException {
-    proxy.removePortRange(name, force);
+    proxy.removePortRange(ArgFactory.parse(name), force);
     invoker.invokeLenient(void.class, cluster);
   }
  
