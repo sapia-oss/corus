@@ -48,12 +48,12 @@ public class Kill extends CorusCliCommand {
     // Kill ALL
     if(cmd.hasNext() && cmd.isNextArg()){
       cmd.assertNextArg(new String[]{ARG_ALL});
-      MatchCompletionHook completion = new MatchCompletionHook(WILD_CARD, WILD_CARD, WILD_CARD, WILD_CARD);
+      MatchCompletionHook completion = new MatchCompletionHook(WILD_CARD, WILD_CARD, null, null);
       ClusterInfo cluster = getClusterInfo(ctx);
       if (_suspend) {
-        ctx.getCorus().getProcessorFacade().suspend(WILD_CARD, WILD_CARD, profile, cluster);
+        ctx.getCorus().getProcessorFacade().suspend(WILD_CARD, WILD_CARD, null, cluster);
       } else {
-        ctx.getCorus().getProcessorFacade().kill(WILD_CARD, WILD_CARD, profile, cluster);
+        ctx.getCorus().getProcessorFacade().kill(WILD_CARD, WILD_CARD, null, cluster);
       }
       waitForKillCompletion(ctx, completion);
     }
