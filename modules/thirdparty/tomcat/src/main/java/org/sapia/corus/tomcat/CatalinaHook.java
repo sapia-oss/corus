@@ -73,7 +73,7 @@ public class CatalinaHook {
 		/**
 		 * Registers this delegate with the Corus interop link.
 		 */
-		public void registerWithCorusInterop() {
+		public synchronized void registerWithCorusInterop() {
 			if (!_isRegistered && InteropLink.getImpl().isDynamic()) {
 				InteropLink.getImpl().addShutdownListener(this);
 				_isRegistered = true;
