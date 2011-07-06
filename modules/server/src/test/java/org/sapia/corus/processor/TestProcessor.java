@@ -117,6 +117,12 @@ public class TestProcessor implements Processor{
   public void restartByAdmin(String pid) throws ProcessNotFoundException{
   }
   
+  public void restart(Arg distName, Arg version, String profile) {
+  }
+  
+  public void restart(Arg distName, Arg version, String profile, Arg processName) {
+  }
+  
   public ProgressQueue resume() {
     ProgressQueue q = new ProgressQueueImpl();
     return q;

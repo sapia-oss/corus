@@ -374,6 +374,39 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     doRestart(pid, ProcessTerminationRequestor.KILL_REQUESTOR_PROCESS);
   }
   
+  @Override
+  public void restart(Arg distName, Arg version, String profile) {
+    List<Process> procs = _processes.getActiveProcesses().getProcesses(distName, version, profile);
+
+    for (int i = 0; i < procs.size(); i++) {
+      Process proc = (Process) procs.get(i);
+      RestartTask restart = new RestartTask(
+          ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN, 
+          proc.getProcessID(), proc.getMaxKillRetry());
+      _taskman.executeBackground(
+          restart,
+          BackgroundTaskConfig.create()
+            .setExecDelay(0)
+            .setExecInterval(_configuration.getKillIntervalMillis()));
+    }
+  }
+  
+  @Override
+  public void restart(Arg distName, Arg version, String profile, Arg processName) {
+    List<Process> procs = _processes.getActiveProcesses().getProcesses(distName, version, profile, processName);
+    for (int i = 0; i < procs.size(); i++) {
+      Process proc = (Process) procs.get(i);
+      RestartTask restart = new RestartTask(
+          ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN, 
+          proc.getProcessID(), proc.getMaxKillRetry());
+      _taskman.executeBackground(
+          restart,
+          BackgroundTaskConfig.create()
+            .setExecDelay(0)
+            .setExecInterval(_configuration.getKillIntervalMillis()));
+    }
+  }
+  
   private void doRestart(String pid, ProcessTerminationRequestor origin) throws ProcessNotFoundException{
     Process     proc    = _processes.getActiveProcesses().getProcess(pid);
     RestartTask restart = new RestartTask(

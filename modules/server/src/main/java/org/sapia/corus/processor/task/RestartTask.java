@@ -39,7 +39,6 @@ public class RestartTask extends ProcessTerminationTask {
       Process process = processes.getActiveProcesses().getProcess(corusPid());
       strategy.attemptKill(ctx, requestor(), process, super.getExecutionCount());
     } catch (ProcessNotFoundException e) {
-      // no pro for ID...
       ctx.error(e);
       super.abort(ctx);
     }
@@ -50,7 +49,7 @@ public class RestartTask extends ProcessTerminationTask {
     try {
       DistributionDatabase dists = ctx.getServerContext().getServices().getDistributions();
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
-      Process      process = processes.getActiveProcesses().getProcess(corusPid());
+      Process process = processes.getActiveProcesses().getProcess(corusPid());
 
       Arg nameArg = ArgFactory.exact(process.getDistributionInfo().getName());
       Arg versionArg = ArgFactory.exact(process.getDistributionInfo().getVersion());      
@@ -60,6 +59,7 @@ public class RestartTask extends ProcessTerminationTask {
 
       synchronized (dists) {
         process.setStatus(Process.LifeCycleStatus.RESTARTING);        
+        process.clearCommands();
         processes.getProcessesToRestart().addProcess(process);
         processes.getActiveProcesses().removeProcess(process.getProcessID());
       }

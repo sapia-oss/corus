@@ -2,6 +2,7 @@ package org.sapia.corus.client.cli.command;
 
 import java.util.List;
 
+
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
@@ -11,7 +12,6 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.services.processor.Process;
-
 
 /**
  * @author Yanick Duchesne
@@ -26,8 +26,16 @@ public class Restart extends CorusCliCommand {
     String  osPid   = null; 
     CmdLine cmd = ctx.getCommandLine();
 
+    // restart ALL
+    if(cmd.hasNext() && cmd.isNextArg()){
+      cmd.assertNextArg(new String[]{ARG_ALL});
+      ClusterInfo cluster = getClusterInfo(ctx);
+      
+      ctx.getConsole().println("Proceeding to restart...");
+      ctx.getCorus().getProcessorFacade().restart(WILD_CARD, WILD_CARD, null, cluster);
+    }     
     // restart by process IDENTIDER
-    if (cmd.containsOption(VM_ID_OPT, true)) {
+    else if (cmd.containsOption(VM_ID_OPT, true)) {
       pid = cmd.assertOption(VM_ID_OPT, true).getValue();
       restartProcessByVmId(ctx, pid);
 
@@ -56,6 +64,19 @@ public class Restart extends CorusCliCommand {
         }
       }
       
+    } else {
+      String distName     = cmd.assertOption(DIST_OPT, true).getValue();
+      String version      = cmd.assertOption(VERSION_OPT, true).getValue();
+      String processName  = cmd.containsOption(VM_NAME_OPT, false) ? cmd.assertOption(VM_NAME_OPT, true).getValue() : null;
+      String profile      = cmd.containsOption(PROFILE_OPT, false) ? cmd.assertOption(PROFILE_OPT, true).getValue() : null;
+      
+      ctx.getConsole().println("Proceeding to restart...");      
+      if(processName == null){
+        ctx.getCorus().getProcessorFacade().restart(distName, version, profile, getClusterInfo(ctx));        
+      }
+      else{
+        ctx.getCorus().getProcessorFacade().restart(distName, version, profile, processName, getClusterInfo(ctx));
+      }
     }
    
   }

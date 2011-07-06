@@ -174,6 +174,41 @@ public interface ProcessorFacade {
   public void restart(String pid) throws ProcessNotFoundException;
   
   /**
+   * Restarts the process(es) corresponding to the passed in parameters.
+   *
+   * @param distName the name of the distribution for which to kill
+   * running processes.
+   * @param version the version of the distribution for which to kill
+   * running processes.
+   * @param profile the name of the profile for which to kill the running process(es).
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void restart(String distName, String version, String profile,
+                      ClusterInfo cluster);
+
+  /**
+   * Restarts the process(es) corresponding to the passed in parameters.
+   *
+   * @param distName the name of the distribution for which to restart
+   * running processes.
+   * @param version the version of the distribution for which to kill
+   * running processes.
+   * @param profile the name of the profile for which to kill the running process(es).
+   * @param processName the name of the process configuration for which to kill the running process(es).
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void restart(String distName, String version, String profile,
+                      String processName, ClusterInfo cluster);
+
+
+  /**
+   * Kills the process with the given identifier.
+   *
+   * @param pid a process identifier.
+   */
+  public void kill(String pid) throws ProcessNotFoundException;
+  
+  /**
    * Kills the process(es) corresponding to the passed in parameters.
    *
    * @param distName the name of the distribution for which to kill
@@ -201,13 +236,6 @@ public interface ProcessorFacade {
                    String processName, ClusterInfo cluster);
 
   /**
-   * Kills the process with the given identifier.
-   *
-   * @param pid a process identifier.
-   */
-  public void kill(String pid) throws ProcessNotFoundException;
-
-  /**
    * Suspends the process(es) corresponding to the passed in parameters.
    *
    * @param distName the name of the distribution for which to kill
@@ -223,9 +251,9 @@ public interface ProcessorFacade {
   /**
    * Suspends the process(es) corresponding to the passed in parameters.
    *
-   * @param distName the name of the distribution for which to kill
+   * @param distName the name of the distribution for which to suspend
    * running processes.
-   * @param version the version of the distribution for which to kill
+   * @param version the version of the distribution for which to suspend
    * running processes.
    * @param profile the name of the profile for which to kill the running process(es).
    * @param processName the name of the process configuration for which to kill the running process(es).

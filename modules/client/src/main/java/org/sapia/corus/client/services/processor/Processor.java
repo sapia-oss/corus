@@ -76,10 +76,35 @@ public interface Processor extends java.rmi.Remote, Module {
   public void restartByAdmin(String pid) throws ProcessNotFoundException;
   
   /**
-   * Shuts down and restarts the process with the given ID.
+   * Restarts the process with the given ID.
    * @see Processor#restart(String)
    */
   public void restart(String pid) throws ProcessNotFoundException;
+  
+  /**
+   * Restarts the process(es) corresponding to the passed in parameters.
+   *
+   * @param distName the name of the distribution for which to kill
+   * running processes.
+   * @param version the version of the distribution for which to kill
+   * running processes.
+   * @param profile the name of the profile for which to kill the running process(es).
+   * @param suspend if <code>true</code>, indicates that the process should be suspended.
+   */
+  public void restart(Arg distName, Arg version, String profile);
+
+  /**
+   * Restarts the process(es) corresponding to the passed in parameters.
+   *
+   * @param distName the name of the distribution for which to kill
+   * running processes.
+   * @param version the version of the distribution for which to kill
+   * running processes.
+   * @param profile the name of the profile for which to kill the running process(es).
+   * @param processName the name of the process configuration for which to kill the running process(es).
+   * @param suspend if <code>true</code>, indicates that the process should be suspended.
+   */
+  public void restart(Arg distName, Arg version, String profile, Arg processName);  
 
   /**
    * Kill the process(es) corresponding to the passed in parameters.

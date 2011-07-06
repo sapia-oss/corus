@@ -266,8 +266,6 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
           PortManager.class);
       Processor processor = ctx.getServerContext().getServices().lookup(
           Processor.class);
-      
-      ProcessorTaskStrategy strategy = ctx.getServerContext().getServices().lookup(ProcessorTaskStrategy.class);
       ProcessRepository processes = ctx.getServerContext().getServices()
           .getProcesses();
       Process process = processes.getActiveProcesses().getProcess(corusPid);
@@ -290,13 +288,12 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
       }
 
       process.releasePorts(ports);
-
-      strategy.cleanupProcess(ctx, process);
-
+      
       // if shutdown was initiated by Corus server, restart process
       // automatically (if restarted interval threshold is respected)
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER
           && processor.getConfiguration().getRestartIntervalMillis() > 0) {
+        cleanupProcess(ctx, process);
         ctx.debug("Preparing for restart");
         ctx.debug("Process creation time: "
             + new Date(process.getCreationTime()));
@@ -319,7 +316,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
           onRestartThresholdInvalid();
         } else {
           ctx.warn("Restarting Process: " + process);
-          strategy.restartProcess(ctx, process);
+          restartProcess(ctx, process);
           onRestarted();
         }
       } else {
@@ -335,11 +332,9 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
   public void killConfirmed(TaskExecutionContext ctx, Process process){
     PortManager ports = ctx.getServerContext().getServices().lookup(
         PortManager.class);
-    ProcessorTaskStrategy tasks = ctx.getServerContext().lookup(
-        ProcessorTaskStrategy.class);
     ctx.info("Process kill confirmed: " + process.getProcessID());
     process.releasePorts(ports);
-    tasks.cleanupProcess(ctx, process);
+    cleanupProcess(ctx, process);
     ctx.warn("Process " + process.getProcessID() + " terminated");
   }
 

@@ -157,6 +157,20 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
+  public synchronized void restart(String distName, String version, String profile,
+      ClusterInfo cluster) {
+    proxy.restart(ArgFactory.parse(distName), ArgFactory.parse(version), profile);
+    invoker.invokeLenient(void.class, cluster);  
+  }
+  
+  @Override
+  public synchronized void restart(String distName, String version, String profile,
+      String processName, ClusterInfo cluster) {
+    proxy.restart(ArgFactory.parse(distName), ArgFactory.parse(version), profile, ArgFactory.parse(processName));
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
   public synchronized void suspend(String distName, String version, String profile,
       ClusterInfo cluster) {
     proxy.kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, true);

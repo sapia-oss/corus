@@ -331,6 +331,13 @@ public class Process extends AbstractPersistent<String, Process> implements java
 
     return commands;
   }
+  
+  /**
+   * Clears this instance's {@link List} of {@link AbstractCommand}s.
+   */
+  public synchronized void clearCommands(){
+    getCommands().clear();
+  }
 
   /**
    * This process' "interoperability" status: corresponds to the "status"
