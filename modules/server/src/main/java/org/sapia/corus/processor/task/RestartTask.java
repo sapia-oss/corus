@@ -119,6 +119,7 @@ public class RestartTask extends ProcessTerminationTask {
         if(strategy.execProcess(ctx, new ProcessInfo(_process, _dist, _conf, true), ctx.getServerContext().getProcessProperties())){
           repository.getProcessesToRestart().removeProcess(_process.getProcessID());
           _process.touch();
+          _process.clearCommands();
           _process.setStatus(Process.LifeCycleStatus.ACTIVE);        
           repository.getActiveProcesses().addProcess(_process);
         }

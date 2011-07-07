@@ -293,7 +293,6 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
       // automatically (if restarted interval threshold is respected)
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER
           && processor.getConfiguration().getRestartIntervalMillis() > 0) {
-        cleanupProcess(ctx, process);
         ctx.debug("Preparing for restart");
         ctx.debug("Process creation time: "
             + new Date(process.getCreationTime()));
@@ -308,14 +307,17 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
               .warn("Could not be forcefully killed (because it does not have an OS pid)");
           ctx
               .warn("Might be stalled... Make sure that you do not have a process in limbo");
+          cleanupProcess(ctx, process);
           onNoOsPid();
         } else if (((System.currentTimeMillis() - process.getCreationTime()) < processor
             .getConfiguration().getRestartIntervalMillis())) {
-          ctx
-              .warn("Process will not be restarted; not enough time since last restart");
+          ctx.warn("Process will not be restarted; not enough time since last restart");
           onRestartThresholdInvalid();
+          cleanupProcess(ctx, process);
         } else {
           ctx.warn("Restarting Process: " + process);
+          processes.getActiveProcesses().removeProcess(process.getProcessID());
+          processes.getProcessesToRestart().addProcess(process);
           restartProcess(ctx, process);
           onRestarted();
         }
@@ -374,11 +376,13 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
   }
 
   public boolean restartProcess(TaskExecutionContext ctx, Process process) {
-    Distribution dist; 
-    ctx.debug("Executing process");    
+    
+    Deployer          deployer  = ctx.getServerContext().getServices().lookup(Deployer.class);
+    ProcessRepository repo      = ctx.getServerContext().getServices().getProcesses();
+    Distribution      dist; 
+
+    ctx.debug("Executing process");
     try{
-      Deployer deployer = ctx.getServerContext().getServices().lookup(Deployer.class);
-      
       Arg nameArg = ArgFactory.exact(process.getDistributionInfo().getName());
       Arg versionArg = ArgFactory.exact(process.getDistributionInfo().getVersion());      
       
@@ -386,14 +390,45 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
     }catch(DistributionNotFoundException e){
       ctx.error("Could not find corresponding distribution; process " + process.getProcessID() + " will not be restarted", e);
       return false;
-    }catch(Exception e){
-      ctx.error("Could not look up Deployer module; process " + process.getProcessID() + " will not be restarted", e);
-      return false;
     }    
     
-    ExecTask exec = new ExecTask(dist, dist.getProcess(process.getDistributionInfo().getProcessName()), process.getDistributionInfo().getProfile());
-    ctx.getTaskManager().executeAndWait(exec);
-    return true;
+    if(repo.getProcessesToRestart().containsProcess(process.getProcessID())){
+      ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
+      try{
+        if(execProcess(ctx, new ProcessInfo(process, dist, processConf , true), ctx.getServerContext().getProcessProperties())){
+          repo.getProcessesToRestart().removeProcess(process.getProcessID());
+          process.touch();
+          process.clearCommands();
+          process.setStatus(Process.LifeCycleStatus.ACTIVE);        
+          repo.getActiveProcesses().addProcess(process);
+          return true;
+        }
+        else{
+          return false;
+        }
+      }catch(Exception e){
+        ctx.error("Error trying to restart " + process.getProcessID() + " will not be restarted", e);
+        return false;
+      }    
+    }
+    else{
+      try{
+        Arg nameArg = ArgFactory.exact(process.getDistributionInfo().getName());
+        Arg versionArg = ArgFactory.exact(process.getDistributionInfo().getVersion());      
+        
+        dist = deployer.getDistribution(nameArg, versionArg);
+      }catch(DistributionNotFoundException e){
+        ctx.error("Could not find corresponding distribution; process " + process.getProcessID() + " will not be restarted", e);
+        return false;
+      }catch(Exception e){
+        ctx.error("Error trying to restart " + process.getProcessID() + " will not be restarted", e);
+        return false;
+      }    
+      
+      ExecTask exec = new ExecTask(dist, dist.getProcess(process.getDistributionInfo().getProcessName()), process.getDistributionInfo().getProfile());
+      ctx.getTaskManager().executeAndWait(exec);
+      return true;
+    }
   }
   
   /////////// restricted methods

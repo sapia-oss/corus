@@ -6,11 +6,15 @@
     <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete):</p>
     <p/> 
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
-    <p>conf add -s svr -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
+    <p>conf add [-s svr | proc] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
     <p/>
     <p>OR</p>    
     <p/>
-    <p>conf ls [-t] [-cluster]</p>
+    <p>conf add [-s svr | proc] -p file.properties [-clear] [-cluster]</p>
+    <p/>    
+    <p>OR</p>    
+    <p/>    
+    <p>conf ls -t [-cluster]</p>
     <p>conf ls [-p] [-s svr | proc] [-cluster]</p>
     <p/>
     <p>OR</p>    
@@ -23,6 +27,8 @@
     <p>- t : indicates a tagging operation (if not specified, -p is assumed).</p>
     <p/>
     <p>- p : indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
+    <p/>    
+    <p>- clear: indicates that existing properties must be cleared (taken into account when -p corresponds to a properties file).</p>    
     <p/>
     <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be svr (for server) and proc (for process) - defaults to proc.</p>
     <p/>
@@ -31,8 +37,10 @@
   <section title="Examples">
     <p>conf add -s svr -p corus.process.timeout=25,corus.process.kill-interval=30</p>
     <p/>
-    <p>conf add -s svr -p myProperties.properties</p>
-    <p/>    
+    <p>conf add -s svr -p myServerProperties.properties</p>
+    <p/>
+    <p>conf add -p myProcessProperties.properties</p>
+    <p/>            
     <p>conf ls -t</p>
     <p/>     
     <p>conf ls -p -s svr</p>
