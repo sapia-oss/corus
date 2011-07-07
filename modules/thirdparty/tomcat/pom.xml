@@ -28,12 +28,12 @@
       <scope>provided</scope>      
     </dependency>
     
-    <dependency>
+    <!--dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-catalina</artifactId>
       <version>7.0.16</version>
       <scope>provided</scope>		    
-    </dependency>
+    </dependency-->
 
   </dependencies>  
 
