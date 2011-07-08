@@ -147,13 +147,11 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       remove(key);
     }
 
-    // weird bug: some key/values may be remaining, so 2nd pass if need be.
+    // weird bug: some keys may be remaining, so 2nd pass.
     keys = keys();
-    if(keys.hasNext()){
-      while(keys.hasNext()){
-        K key = keys.next();
-        remove(key);
-      }
+    while(keys.hasNext()){
+      K key = keys.next();
+      remove(key);
     }
   }
   
