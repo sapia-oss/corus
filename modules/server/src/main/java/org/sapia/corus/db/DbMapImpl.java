@@ -140,9 +140,20 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
 
   @Override
   public void clear() {
+    
     Iterator<K> keys = keys();    
     while(keys.hasNext()){
-      this.remove(keys.next());
+      K key = keys.next();
+      remove(key);
+    }
+
+    // weird bug: some key/values may be remaining, so 2nd pass if need be.
+    keys = keys();
+    if(keys.hasNext()){
+      while(keys.hasNext()){
+        K key = keys.next();
+        remove(key);
+      }
     }
   }
   

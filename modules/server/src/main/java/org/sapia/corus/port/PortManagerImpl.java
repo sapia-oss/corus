@@ -12,6 +12,7 @@ package org.sapia.corus.port;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -89,36 +90,27 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   @Override
   public void addPortRanges(List<PortRange> ranges, boolean clearExisting)
       throws PortRangeInvalidException, PortRangeConflictException {
-    
     if(clearExisting){
       _store.clear();
     }
     
     for(PortRange range : ranges){
-      if(_store.containsRange(range.getName())){
-        throw new PortRangeConflictException("Port range already exists for: " + range.getName());
-      }
-      Iterator<PortRange> existingRanges = _store.getPortRanges();
-      while(existingRanges.hasNext()){
-        PortRange existing = (PortRange)existingRanges.next();
-        if(existing.isConflicting(range)){
-          throw new PortRangeConflictException("Existing port range (" + existing.getName() +
-            ") conflicting with new range: " + range.getName());
-        }
-      }      
-    }
-    
-    for(PortRange range : ranges){
-      _store.writeRange(range);
+      addPortRange(range);
     }
   }
   
   public synchronized void addPortRange(String name, int min, int max) 
     throws PortRangeInvalidException, PortRangeConflictException{
-    
-    PortRange range = new PortRange(name, min, max);
-    if(_store.containsRange(name)){
-      throw new PortRangeConflictException("Port range already exists for: " + name);
+    addPortRange(new PortRange(name, min, max));
+  }
+  
+  public synchronized void addPortRange(PortRange range)  
+    throws PortRangeInvalidException, PortRangeConflictException{
+    if(range.getMax() < range.getMin()){
+      throw new PortRangeInvalidException("Max port must be greater than min port for: " + range);
+    }
+    if(_store.containsRange(range.getName())){
+      throw new PortRangeConflictException("Port range already exists for: " + range.getName());
     }
     Iterator<PortRange> ranges = _store.getPortRanges();
     while(ranges.hasNext()){
@@ -129,7 +121,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
       }
     }
     _store.writeRange(range);
-  }
+  }  
   
   public synchronized void removePortRange(Arg name, boolean force) throws PortActiveException{
     Collection<PortRange> ranges = _store.readRange(name);
@@ -164,6 +156,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
       }
       lst.add(range);    
     }
+    Collections.sort(lst);
     return lst;
   }
   

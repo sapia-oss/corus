@@ -46,7 +46,7 @@ public class Kill extends CorusCliCommand {
     CmdLine cmd = ctx.getCommandLine();
     
     // Kill ALL
-    if(cmd.hasNext() && cmd.isNextArg()){
+    if(cmd.isNextArg()){
       cmd.assertNextArg(new String[]{ARG_ALL});
       MatchCompletionHook completion = new MatchCompletionHook(WILD_CARD, WILD_CARD, null, null);
       ClusterInfo cluster = getClusterInfo(ctx);

@@ -24,7 +24,7 @@ import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
  *
  * @author yduchesne
  */
-public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable{
+public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable, Comparable<PortRange>{
   
   static final long serialVersionUID = 1L;
   
@@ -135,6 +135,11 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
   public boolean isConflicting(PortRange other){
     return (other._max <= _max &&  other._max >= _min) ||
       (other._min >= _min &&  other._min <= _max);
+  }
+  
+  @Override
+  public int compareTo(PortRange other) {
+    return getName().compareTo(other.getName());
   }
   
   public String toString(){
