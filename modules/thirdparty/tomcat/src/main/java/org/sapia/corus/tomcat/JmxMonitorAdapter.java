@@ -207,7 +207,7 @@ public class JmxMonitorAdapter {
 	              if (value != null && value.getClass().isArray()) {
 	                Object[] valueArray = (Object[]) value;
                     for (int j = 0; j < valueArray.length; j++) {
-                        context.addParam(new Param(mbeanAttributes[i].getName()+"["+j+"]", (valueArray[j] == null? "": valueArray[j].toString())));
+                        context.addParam(new Param(mbeanAttributes[i].getName()+"."+j, (valueArray[j] == null? "": valueArray[j].toString())));
                     }
 	                
 	              } else {
