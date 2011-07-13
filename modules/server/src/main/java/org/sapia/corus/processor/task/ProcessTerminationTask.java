@@ -90,6 +90,7 @@ public abstract class ProcessTerminationTask extends Task {
   protected void abort(TaskExecutionContext ctx) {
     try{
       Process proc = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcess(_corusPid);
+      ctx.debug(String.format("Releasing lock on: ", proc));
       proc.releaseLock(_lockOwner);
       proc.save();
     }catch(Throwable err){

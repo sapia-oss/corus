@@ -3,6 +3,8 @@ package org.sapia.corus.client.services.processor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
@@ -87,9 +89,9 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private int                _shutdownTimeout              = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
   private int                _maxKillRetry                 = DEFAULT_KILL_RETRY;
   private LifeCycleStatus    _status                       = LifeCycleStatus.ACTIVE;
-  private transient List<AbstractCommand>  _commands                 = new ArrayList<AbstractCommand>();
+  private transient List<AbstractCommand>  _commands       = new ArrayList<AbstractCommand>();
   private List<ActivePort>   _activePorts                  = new ArrayList<ActivePort>();
-  private transient org.sapia.corus.interop.Status             _processStatus;
+  private transient org.sapia.corus.interop.Status _processStatus;
 
   
   Process(){}
@@ -440,7 +442,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
       _lockOwner = null;
     }
   }
-
+  
   /**
    * @return this instance's {@link LifeCycleStatus}.
    */
@@ -484,7 +486,12 @@ public class Process extends AbstractPersistent<String, Process> implements java
   }
 
   public String toString() {
-    return "[ id=" + _processID + ", pid=" + _pid + " " + _distributionInfo.toString() + " ]";
+   return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+      .append("pid", _processID)
+      .append("OS pid", _pid)
+      .append("status", _status)
+      .append("isLocked", _lockOwner != null)
+      .toString();
   }
   
   @Override

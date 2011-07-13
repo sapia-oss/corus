@@ -88,6 +88,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     org.sapia.corus.client.services.processor.Process corusProcess = _serverContext
       .lookup(Processor.class).getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.poll();
+    _logger.debug("Process commands: " + commands);
     corusProcess.save();
     return commands;
   }
@@ -122,6 +123,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     
     org.sapia.corus.client.services.processor.Process corusProcess = _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.status(stat);
+    _logger.debug("Process commands: " + commands);
     corusProcess.save();
     return commands;
   }

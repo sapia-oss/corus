@@ -42,10 +42,10 @@ public class SuspendTask extends ProcessTerminationTask {
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
       Process process = processes.getActiveProcesses().getProcess(corusPid());
       
-      process.releasePorts(ports);
 
       synchronized (processes) {
-        process.setStatus(Process.LifeCycleStatus.SUSPENDED);        
+        process.releasePorts(ports);
+        process.setStatus(Process.LifeCycleStatus.SUSPENDED);     
         processes.getSuspendedProcesses().addProcess(process);
         processes.getActiveProcesses().removeProcess(process.getProcessID());
       }
@@ -62,9 +62,9 @@ public class SuspendTask extends ProcessTerminationTask {
   protected void onMaxExecutionReached(TaskExecutionContext ctx)
       throws Throwable {
     ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
-    
-    if (strategy.forcefulKill(ctx, requestor(), corusPid())) {
-      onKillConfirmed(ctx);
-    } 
+    strategy.forcefulKill(ctx, requestor(), corusPid());
+    onKillConfirmed(ctx);
+    Process process = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcess(corusPid());    
+    strategy.cleanupProcess(ctx, process);
   }
 }

@@ -61,7 +61,6 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
     proc.save();
     return false;
   }
-
   public void cleanupProcess(TaskExecutionContext ctx, Process proc){
     if (proc.getProcessDir() != null) {
       if (proc.isDeleteOnKill()) {
@@ -161,7 +160,7 @@ public class ProcessorTaskStrategyImpl implements ProcessorTaskStrategy {
 
     if (cmd == null) {
       ctx.warn("No executable found for profile: " + env.getProfile());
-
+      process.releasePorts(ports);
       return false;
     }
 

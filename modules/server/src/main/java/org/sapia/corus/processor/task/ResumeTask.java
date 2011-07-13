@@ -31,6 +31,7 @@ public class ResumeTask extends Task{
     _process = proc;
     _dist    = dist;
     _conf    = conf;
+    proc.releaseLock();
     proc.acquireLock(_lockOwner);
     proc.save();
   }
@@ -52,6 +53,8 @@ public class ResumeTask extends Task{
       }
     }catch(IOException e){
       ctx.error("Error restarting process: " + _process.getProcessID(), e);
+    }finally{
+      _process.releaseLock();
     }
     return null;
   }
