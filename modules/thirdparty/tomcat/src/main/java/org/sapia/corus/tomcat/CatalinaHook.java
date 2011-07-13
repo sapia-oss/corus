@@ -1,9 +1,11 @@
 package org.sapia.corus.tomcat;
 
+
 import java.lang.reflect.Method;
 
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.ShutdownListener;
+
 
 public class CatalinaHook { 
 
@@ -12,6 +14,9 @@ public class CatalinaHook {
 
 	public static String PROPERTY_CATALINA_MAIN_CLASS = "sapia.corus.tomcat.catalinaMainClass";
 	public static String DEFAULT_CATALINA_MAIN_CLASS = "org.apache.catalina.startup.Bootstrap";
+
+	public static String PROPERTY_MONITOR_CATALINA_MBEANS = "sapia.corus.tomcat.monitorCatalinaMbeans";
+	public static String DEFAULT_MONITOR_CATALINA_MBEANS = "true";
 	
 	
 	/**
@@ -21,9 +26,36 @@ public class CatalinaHook {
 	 */
 	public static void main(String[] args) {
 		try {
+			String exportValue = System.getProperty(PROPERTY_MONITOR_CATALINA_MBEANS, DEFAULT_MONITOR_CATALINA_MBEANS);
+			if (exportValue.equalsIgnoreCase("true")) {
+				JmxMonitorAdapter monitor = new JmxMonitorAdapter();
+				monitor.setAppendMbeanInfo(false);
+				monitor.setDomain("Catalina");
+				monitor.addInclude("*j2eeType=Servlet*");
+				monitor.addInclude("*type=Deployer*");
+				monitor.addInclude("*type=Engine*");
+				monitor.addInclude("*type=GlobalRequestProcessor*");
+				monitor.addInclude("*type=Host*");
+				monitor.addInclude("*type=JkHandler*");
+				monitor.addInclude("*type=Manager*");
+				monitor.addInclude("*type=Mapper*");
+				monitor.addInclude("*type=ProtocolHandler*");
+				monitor.addInclude("*type=Resource*");
+				monitor.addInclude("*type=Server*");
+				monitor.addInclude("*type=ThreadPool*");
+				
+				monitor.init();
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
 			new ShutdownDelegate().registerWithCorusInterop();
 			String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
 			doCallStaticMethod(className, "main", new Object[] { args });
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

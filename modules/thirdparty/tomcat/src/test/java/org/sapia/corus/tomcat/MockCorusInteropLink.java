@@ -3,6 +3,7 @@ package org.sapia.corus.tomcat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.Implementation;
 import org.sapia.corus.interop.api.ShutdownListener;
 import org.sapia.corus.interop.api.StatusRequestListener;
@@ -10,6 +11,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
 public class MockCorusInteropLink implements Implementation {
 
 	private List<ShutdownListener> _shutdownListeners = new ArrayList<ShutdownListener>();
+	private List<StatusRequestListener> _statusListeners = new ArrayList<StatusRequestListener>();
 	
 	@Override
 	public void addShutdownListener(ShutdownListener aListener) {
@@ -18,7 +20,7 @@ public class MockCorusInteropLink implements Implementation {
 
 	@Override
 	public void addStatusRequestListener(StatusRequestListener arg0) {
-		throw new RuntimeException("Not implemented");
+		_statusListeners.add(arg0);
 	}
 
 	@Override
@@ -73,4 +75,12 @@ public class MockCorusInteropLink implements Implementation {
 		}
 	}
 
+	public void status() {
+		for (StatusRequestListener listener: _statusListeners) {
+			Status s = new Status();
+			listener.onStatus(s);
+			System.out.println(s);
+		}
+	}
+	
 }
