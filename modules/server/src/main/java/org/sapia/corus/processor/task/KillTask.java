@@ -54,8 +54,12 @@ public class KillTask extends ProcessTerminationTask {
   protected void onMaxExecutionReached(TaskExecutionContext ctx) throws Throwable{
     ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
     strategy.forcefulKill(ctx, requestor(), corusPid());
-    Process process = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcess(corusPid());    
-    strategy.cleanupProcess(ctx, process);
+    try{
+      Process process = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcess(corusPid());    
+      strategy.cleanupProcess(ctx, process);
+    }catch(ProcessNotFoundException e){
+      // ignore
+    }
   }
 
   @Override
