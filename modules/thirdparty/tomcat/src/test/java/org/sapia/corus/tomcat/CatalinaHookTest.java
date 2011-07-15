@@ -18,16 +18,16 @@ public class CatalinaHookTest {
 	
 	@Test
 	public void testLifeCycle() throws Exception {
-		Thread t = new Thread(new CatalinaHookTask(new String[] {"startd"}));
+		Thread t = new Thread(new CatalinaHookTask(new String[] {"start"}));
 		t.start();
 		
 		Thread.sleep(5000);
 		_corusInterop.status();
 		
-		Thread.sleep(5000);
+		Thread.sleep(2000);
 		_corusInterop.shutdown();
 		
-		t.join(5000);
+		t.join(2000);
 	}
 	
 	public class CatalinaHookTask implements Runnable {
