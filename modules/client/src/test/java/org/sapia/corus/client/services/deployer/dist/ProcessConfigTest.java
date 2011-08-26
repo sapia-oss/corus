@@ -1,7 +1,5 @@
 package org.sapia.corus.client.services.deployer.dist;
 
-import static org.junit.Assert.*;
-
 import java.util.HashSet;
 import java.util.Set;
 

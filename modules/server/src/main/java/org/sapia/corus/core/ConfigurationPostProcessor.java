@@ -3,7 +3,6 @@ package org.sapia.corus.core;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.corus.client.services.configurator.Configurator;
-import org.sapia.corus.core.PropertyProvider;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.PropertyValue;

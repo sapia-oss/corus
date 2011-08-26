@@ -22,7 +22,10 @@ public class ArgFactory {
    * @return the corresponding {@link Arg} object.
    */
   public static Arg parse(String token){
-    if(isPattern(token)){
+    if(token == null){
+      return new PatternArg(PATTERN);
+    }
+    else if(isPattern(token)){
       return new PatternArg(token);
     }
     else{
@@ -51,6 +54,15 @@ public class ArgFactory {
    */
   public static boolean isPattern(String token){
     return (token.indexOf(PATTERN) >= 0);  
+  }
+  
+  /**
+   * @param arg an {@link Arg} instance.
+   * @return the passed in {@link Arg} if it's not null, or an {@link Arg} instance that will
+   * match any character string if it is.
+   */
+  public static Arg anyIfNull(Arg arg){
+    return arg == null ? any() : arg; 
   }
 
 }

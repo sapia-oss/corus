@@ -1,10 +1,11 @@
 package org.sapia.corus.db;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.services.db.PatternRecordMatcher;
 import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 
 public class PatternRecordMatcherTest {

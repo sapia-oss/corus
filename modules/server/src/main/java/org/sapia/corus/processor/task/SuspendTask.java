@@ -1,9 +1,7 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
@@ -12,59 +10,28 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  * 
  * @author Yanick Duchesne
  */
-public class SuspendTask extends ProcessTerminationTask {
+public class SuspendTask extends KillTask {
   
-  public SuspendTask(ProcessTerminationRequestor requestor, String corusPid, int maxRetry) {
-    super(requestor, corusPid, maxRetry);
+  public SuspendTask(int maxRetry) {
+    super(maxRetry);
   }
   
   @Override
-  protected void onExec(TaskExecutionContext ctx) {
-    try {
-      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
-      Process process = processes.getActiveProcesses().getProcess(corusPid());
-      ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
-      
-      if(strategy.attemptKill(ctx, requestor(), process, super.getExecutionCount())){
-        abort(ctx);
-      }
-    } catch (ProcessNotFoundException e) {
-      // no Vm for ID...
-      super.abort(ctx);
-      ctx.error(e);
-    }
-  }  
-
-  @Override
-  protected void onKillConfirmed(TaskExecutionContext ctx) {
+  protected void doKillConfirmed(TaskExecutionContext ctx) {
     try {
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
-      Process process = processes.getActiveProcesses().getProcess(corusPid());
-      
 
       synchronized (processes) {
-        process.releasePorts(ports);
-        process.setStatus(Process.LifeCycleStatus.SUSPENDED);     
-        processes.getSuspendedProcesses().addProcess(process);
-        processes.getActiveProcesses().removeProcess(process.getProcessID());
+        proc.releasePorts(ports);
+        proc.setStatus(Process.LifeCycleStatus.SUSPENDED);     
+        processes.getSuspendedProcesses().addProcess(proc);
+        processes.getActiveProcesses().removeProcess(proc.getProcessID());
       }
 
-      ctx.warn("Process '" + process.getProcessID() + "' put in suspended process queue.");
-    } catch (ProcessNotFoundException e) {
-      ctx.error(e);
+      ctx.warn(String.format("Process %s put in suspended process queue.", proc));
     } finally {
       super.abort(ctx);
     }
-  }
-  
-  @Override
-  protected void onMaxExecutionReached(TaskExecutionContext ctx)
-      throws Throwable {
-    ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
-    strategy.forcefulKill(ctx, requestor(), corusPid());
-    onKillConfirmed(ctx);
-    Process process = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcess(corusPid());    
-    strategy.cleanupProcess(ctx, process);
   }
 }

@@ -27,27 +27,27 @@ public class ChildTaskLog implements TaskLog{
   public void close() {
   }
   
-  public void debug(Task task, String msg) {
+  public void debug(Task<?,?> task, String msg) {
     delegate.debug(task, msg);
   }
   
-  public void error(Task task, String msg, Throwable err) {
+  public void error(Task<?,?> task, String msg, Throwable err) {
     delegate.error(task, msg, err);
   }
   
-  public void error(Task task, String msg) {
+  public void error(Task<?,?> task, String msg) {
     delegate.error(task, msg);
   }
   
-  public void info(Task task, String msg) {
+  public void info(Task<?,?> task, String msg) {
     delegate.info(task, msg);
   }
   
-  public void warn(Task task, String msg, Throwable err) {
+  public void warn(Task<?,?> task, String msg, Throwable err) {
     delegate.warn(task, msg, err);
   }
   
-  public void warn(Task task, String msg) {
+  public void warn(Task<?,?> task, String msg) {
     delegate.warn(task, msg);
   }
 

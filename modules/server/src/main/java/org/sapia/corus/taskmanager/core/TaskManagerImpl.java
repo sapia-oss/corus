@@ -1,7 +1,9 @@
 package org.sapia.corus.taskmanager.core;
 
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -13,6 +15,7 @@ public class TaskManagerImpl implements TaskManager{
   private ExecutorService threadpool;
   private ServerContext   serverContext;
   private TaskLog         globalTaskLog;
+  private Map<ThrottleKey, Throttle> throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
   
   public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext) {
     this.globalTaskLog = globalTaskLog;
@@ -21,11 +24,16 @@ public class TaskManagerImpl implements TaskManager{
     this.threadpool = Executors.newCachedThreadPool();
   }
   
-  public void execute(Task task) {
-    this.execute(task, SequentialTaskConfig.create());
+  @Override
+  public void registerThrottle(ThrottleKey key, Throttle throttle) {
+    throttles.put(key, throttle);
   }
   
-  public void execute(final Task task, final SequentialTaskConfig conf) {
+  public <R,P> void execute(Task<R,P> task, P param) {
+    this.execute(task, param, SequentialTaskConfig.create());
+  }
+  
+  public <R,P> void execute(final Task<R,P> task, final P param, final SequentialTaskConfig conf) {
     if(task.isMaxExecutionReached()){
       TaskExecutionContext ctx = createExecutionContext(task, conf);
       try{
@@ -37,11 +45,11 @@ public class TaskManagerImpl implements TaskManager{
       }
     }
     else{
-      threadpool.execute(new Runnable(){
+      Runnable toRun = new Runnable(){
         public void run() {
           TaskExecutionContext ctx = createExecutionContext(task, conf);
           try{
-            Object result = task.execute(ctx);
+            Object result = task.execute(ctx, param);
             if(conf.getListener() != null){
               conf.getListener().executionSucceeded(task, result);
             }
@@ -55,16 +63,22 @@ public class TaskManagerImpl implements TaskManager{
             task.cleanup(ctx);
           }
         }
-      });
+      };
+      if(task instanceof Throttleable){
+        throttle(((Throttleable)task).getThrottleKey(), toRun);
+      }
+      else{
+        threadpool.execute(toRun);
+      }
     }
   }
   
-  public FutureResult executeAndWait(Task task) {
-    return executeAndWait(task, new TaskConfig());
+  public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param) {
+    return executeAndWait(task, param, new TaskConfig());
   }
   
-  public FutureResult executeAndWait(final Task task, final TaskConfig conf) {
-    final FutureResult result = new FutureResult();
+  public <R,P> FutureResult<R> executeAndWait(final Task<R,P> task, final P param, final TaskConfig conf) {
+    final FutureResult<R> result = new FutureResult<R>();
     if(task.isMaxExecutionReached()){
       TaskExecutionContext ctx = createExecutionContext(task, conf);
       Object value = null;
@@ -80,11 +94,12 @@ public class TaskManagerImpl implements TaskManager{
     }
     else{
       final TaskExecutionContext ctx = createExecutionContext(task, conf);
-      threadpool.execute(new Runnable(){
+      
+      Runnable toRun = new Runnable(){
         public void run() {
           Object value = null;
           try{
-            value = task.execute(ctx);
+            value = task.execute(ctx, param);
           }catch(Throwable t){
             value = t;
           }finally{
@@ -93,12 +108,19 @@ public class TaskManagerImpl implements TaskManager{
             result.completed(value);
           }
         }
-      });
+      };
+      
+      if(task instanceof Throttleable){
+        throttle(((Throttleable)task).getThrottleKey(), toRun);
+      }
+      else{
+        threadpool.execute(toRun);
+      }
     }
     return result;
   }
   
-  public void executeBackground(final Task task, final BackgroundTaskConfig config){
+  public <R,P> void executeBackground(final Task<R,P> task, final P param, final BackgroundTaskConfig config){
     background.schedule(new TimerTask(){  
       @Override
       public void run() {
@@ -125,7 +147,7 @@ public class TaskManagerImpl implements TaskManager{
         else{
           TaskExecutionContext ctx = createExecutionContext(task, config);
           try{
-            task.execute(ctx);
+            task.execute(ctx, param);
           }catch(Throwable t){
             ctx.error("Problem occurred executing task", t);
           }finally{
@@ -140,7 +162,7 @@ public class TaskManagerImpl implements TaskManager{
     threadpool.shutdown();
   }
   
-  private InternalTaskLog wrapLogFor(Task task, TaskLog log){
+  private InternalTaskLog wrapLogFor(Task<?,?> task, TaskLog log){
     if(log == null){
       return new InternalTaskLog(globalTaskLog);
     }
@@ -149,12 +171,20 @@ public class TaskManagerImpl implements TaskManager{
     }
   }
   
-  private TaskExecutionContext createExecutionContext(Task task, TaskConfig config){
+  private TaskExecutionContext createExecutionContext(Task<?,?> task, TaskConfig config){
     return new TaskExecutionContext(
         task,
         wrapLogFor(task, config.getLog()), 
         serverContext, 
         this);
+  }
+  
+  private void throttle(ThrottleKey throttleKey, Runnable toRun){
+    Throttle throttle = throttles.get(throttleKey);
+    if(throttle == null){
+      throw new IllegalStateException(String.format("No throttle found for %s", throttleKey.getName()));
+    }
+    throttle.execute(toRun);
   }
 
 }

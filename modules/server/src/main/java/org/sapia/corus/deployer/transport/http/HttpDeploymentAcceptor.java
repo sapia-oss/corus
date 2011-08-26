@@ -1,7 +1,6 @@
 package org.sapia.corus.deployer.transport.http;
 
 import org.sapia.corus.client.services.deployer.transport.http.HttpDeploymentClient;
-
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentAcceptor;

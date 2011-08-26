@@ -51,37 +51,37 @@ public class ServerTaskLog implements TaskLog{
   protected void handleMsg(ProgressMsg msg) {
   }
   
-  public void debug(Task task, String msg) {
+  public void debug(Task<?,?> task, String msg) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.DEBUG));
     _delegate.debug(task, msg);
   }
 
-  public void info(Task task, String msg) {
+  public void info(Task<?,?> task, String msg) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.INFO));
     _delegate.info(task, msg);    
   }
   
-  public void warn(Task task, String msg, Throwable err) {
+  public void warn(Task<?,?> task, String msg, Throwable err) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.WARNING));
     _delegate.warn(task, msg, err);    
   }
   
-  public void warn(Task task, String msg) {
+  public void warn(Task<?,?> task, String msg) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.WARNING));
     _delegate.info(task, msg);    
   }
 
-  public void error(Task task, String msg) {
+  public void error(Task<?,?> task, String msg) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.ERROR));
     _delegate.error(task, msg);    
   }
   
-  public void error(Task task, String msg, Throwable err) {
+  public void error(Task<?,?> task, String msg, Throwable err) {
     addMsg(new ProgressMsg(format(task, msg), ProgressMsg.ERROR));
     _delegate.error(task, msg, err);    
   }
   
-  private String format(Task task, String msg){
+  private String format(Task<?,?> task, String msg){
     return task.getName() + " >> " + msg;
   }
   

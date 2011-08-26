@@ -15,6 +15,7 @@ import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 
 public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements ProcessorFacade{
@@ -61,20 +62,9 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
-  public synchronized ProgressQueue exec(String distName, String version, String profile,
+  public synchronized ProgressQueue exec(ProcessCriteria criteria,
       int instances, ClusterInfo cluster) throws TooManyProcessInstanceException{
-    proxy.exec(ArgFactory.parse(distName), ArgFactory.parse(version), profile, instances);
-    return invoker.invokeLenient(ProgressQueue.class, cluster);
-  }
-  
-  @Override
-  public synchronized ProgressQueue exec(String distName, String version, String profile,
-      String processName, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException{
-    proxy.exec(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), 
-        profile, 
-        ArgFactory.parse(processName), 
-        instances);
+    proxy.exec(criteria, instances);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
   
@@ -84,59 +74,17 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
-  public synchronized Results<List<Process>> getProcesses(ClusterInfo cluster) {
+  public synchronized Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster) {
     Results<List<Process>> results = new Results<List<Process>>();
-    proxy.getProcesses();
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<Process>> getProcesses(String distName, ClusterInfo cluster) {
-    Results<List<Process>> results = new Results<List<Process>>();
-    proxy.getProcesses(ArgFactory.parse(distName));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<Process>> getProcesses(String distName, String version,
-      ClusterInfo cluster) {
-    Results<List<Process>> results = new Results<List<Process>>();
-    proxy.getProcesses(ArgFactory.parse(distName), ArgFactory.parse(version));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<Process>> getProcesses(String distName, String version,
-      String profile, ClusterInfo cluster) {
-    Results<List<Process>> results = new Results<List<Process>>();
-    proxy.getProcesses(ArgFactory.parse(distName), ArgFactory.parse(version), profile);
+    proxy.getProcesses(criteria);
     invoker.invokeLenient(results, cluster);
     return results;
   }
 
   @Override
-  public synchronized Results<List<Process>> getProcesses(String distName, String version,
-      String profile, String processName, ClusterInfo cluster) {
-    Results<List<Process>> results = new Results<List<Process>>();
-    proxy.getProcesses(ArgFactory.parse(distName), ArgFactory.parse(version), profile, ArgFactory.parse(processName));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-   
-  @Override
-  public synchronized void kill(String distName, String version, String profile,
+  public synchronized void kill(ProcessCriteria criteria,
       ClusterInfo cluster) {
-    proxy.kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, false);
-    invoker.invokeLenient(void.class, cluster);
-  }
-  
-  @Override
-  public synchronized void kill(String distName, String version, String profile,
-      String processName, ClusterInfo cluster) {
-    proxy.kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, false);
+    proxy.kill(criteria, false);
     invoker.invokeLenient(void.class, cluster);
   }
   
@@ -146,45 +94,19 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
-  public synchronized ProgressQueue restart(ClusterInfo cluster) {
-    proxy.resume();
-    return invoker.invokeLenient(ProgressQueue.class, cluster);
-  }
-  
-  @Override
   public synchronized void restart(String pid) throws ProcessNotFoundException {
     context.lookup(Processor.class).restart(pid);
   }
   
   @Override
-  public synchronized void restart(String distName, String version, String profile,
-      ClusterInfo cluster) {
-    proxy.restart(ArgFactory.parse(distName), ArgFactory.parse(version), profile);
-    invoker.invokeLenient(void.class, cluster);  
+  public synchronized ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster) {
+    proxy.restart(criteria);
+    return invoker.invokeLenient(ProgressQueue.class, cluster);  
   }
   
   @Override
-  public synchronized void restart(String distName, String version, String profile,
-      String processName, ClusterInfo cluster) {
-    proxy.restart(ArgFactory.parse(distName), ArgFactory.parse(version), profile, ArgFactory.parse(processName));
-    invoker.invokeLenient(void.class, cluster);
-  }
-  
-  @Override
-  public synchronized void suspend(String distName, String version, String profile,
-      ClusterInfo cluster) {
-    proxy.kill(ArgFactory.parse(distName), ArgFactory.parse(version), profile, true);
-    invoker.invokeLenient(void.class, cluster);
-  }
-  
-  @Override
-  public synchronized void suspend(String distName, String version, String profile,
-      String processName, ClusterInfo cluster) {
-    proxy.kill(ArgFactory.parse(distName), 
-        ArgFactory.parse(version), 
-        profile,
-        ArgFactory.parse(processName),
-        true);
+  public synchronized void suspend(ProcessCriteria criteria, ClusterInfo cluster) {
+    proxy.kill(criteria, true);
     invoker.invokeLenient(void.class, cluster);
   }
   
@@ -194,52 +116,13 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
-  public synchronized Results<List<ProcStatus>> getStatus(ClusterInfo cluster) {
+  public synchronized Results<List<ProcStatus>> getStatus(ProcessCriteria criteria, ClusterInfo cluster) {
     Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
-    proxy.getStatus();
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<ProcStatus>> getStatus(String distName, ClusterInfo cluster) {
-    Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
-    proxy.getStatus(ArgFactory.parse(distName));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<ProcStatus>> getStatus(String distName, String version,
-      ClusterInfo cluster) {
-    Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
-    proxy.getStatus(ArgFactory.parse(distName), ArgFactory.parse(version));
+    proxy.getStatus(criteria);
     invoker.invokeLenient(results, cluster);
     return results;
   }
  
-  @Override
-  public synchronized Results<List<ProcStatus>> getStatus(String distName, String version,
-      String profile, ClusterInfo cluster) {
-    Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
-    proxy.getStatus(ArgFactory.parse(distName), ArgFactory.parse(version), profile);
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<ProcStatus>> getStatus(String distName, String version,
-      String profile, String processName, ClusterInfo cluster) {
-    Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
-    proxy.getStatus(
-        ArgFactory.parse(distName), 
-        ArgFactory.parse(version), 
-        profile,
-        ArgFactory.parse(processName));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
   @Override
   public synchronized ProcStatus getStatusFor(String pid) throws ProcessNotFoundException {
     return context.lookup(Processor.class).getStatusFor(pid);

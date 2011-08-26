@@ -25,7 +25,6 @@ import java.util.Map;
  * <p>
  * This class is an utility class that perform wilcard-patterns matching and
  * isolation.
- * ¯
  * @author <a href="mailto:pier@apache.org">Pierpaolo Fumagalli </a> (Apache
  *         Software Foundation)
  * @author <a href="mailto:Giacomo.Pati@pwr.ch">Giacomo Pati </a>

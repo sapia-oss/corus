@@ -11,7 +11,6 @@
 package org.sapia.corus.client.services.port;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;

@@ -33,45 +33,27 @@ public interface Deployer extends java.rmi.Remote, Module {
    * Running VMs could have locks on files in the distribution's directory,
    * preventing the cleanup procedure from completing successfully.
    *
-   * @param distName an {@link Arg} corresponding to the name of the distribution to undeploy.
-   * @param version  an {@link Arg} corresponding to the version of the distribution to undeploy.
+   * @param criteria a {@link DistributionCriteria}
    * @return a {@link ProgressQueue}.
    */
-  public ProgressQueue undeploy(Arg distName, Arg version) throws RunningProcessesException;
-
-  /**
-   * Returns the list of distributions that this instance contains.
-   *
-   * @return a {@link List} of {@link Distribution} instances.
-   */
-  public List<Distribution> getDistributions();
+  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException;
 
   /**
    * Returns the list of distributions with the given name.
    *
-   * @param name an {@link Arg} corresponding to a distribution name.
+   * @param criteria a {@link DistributionCriteria}.
    * @return a {@link List} of {@link Distribution} instances.
    */
-  public List<Distribution> getDistributions(Arg name);
-  
-  /**
-   * Returns the list of distributions with the given name.
-   *
-   * @param name an {@link Arg} corresponding to a distribution name.
-   * @param version an {@link Arg} corresponding to a distribution version.
-   * @return a {@link List} of {@link Distribution} instances.
-   */
-  public List<Distribution> getDistributions(Arg name, Arg version);  
+  public List<Distribution> getDistributions(DistributionCriteria criteria);  
   
 
   /**
    * Returns the distribution with the given name and version.
    *
-   * @param name an {@link Arg} corresponding to a distribution name.
-   * @param version an {@link Arg} corresponding to a distribution version.
+   * @param criteria a {@link DistributionCriteria}.
    * @return a {@link Distribution} instance.
    * @throws LogicException if no corresponding distribution could be found.
    */
-  public Distribution getDistribution(Arg name, Arg version)
+  public Distribution getDistribution(DistributionCriteria criteria)
                                throws DistributionNotFoundException;
 }

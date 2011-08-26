@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.processor.ExecConfigDatabase;
-import org.sapia.corus.processor.StartupLock;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 /**
@@ -19,8 +18,8 @@ public class EndUserExecConfigStartTask extends AbstractExecConfigStartTask{
 
   private String execConfigName;
   
-  public EndUserExecConfigStartTask(String execConfigName, StartupLock lock) {
-    super(lock, false);
+  public EndUserExecConfigStartTask(String execConfigName) {
+    super(false);
     this.execConfigName = execConfigName;
   }
   

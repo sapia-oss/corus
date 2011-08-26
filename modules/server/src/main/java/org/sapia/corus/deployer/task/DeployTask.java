@@ -1,15 +1,21 @@
 package org.sapia.corus.deployer.task;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.event.DeploymentEvent;
+import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
-import org.sapia.corus.taskmanager.tasks.TaskFactory;
+import org.sapia.corus.taskmanager.core.ThrottleKey;
+import org.sapia.corus.taskmanager.core.Throttleable;
 
 
 /**
@@ -29,47 +35,40 @@ import org.sapia.corus.taskmanager.tasks.TaskFactory;
  *
  * @author Yanick Duchesne
  */
-public class DeployTask extends Task {
-  private String            _fName;
-  private String            _tmpDir;
-  private String            _deployDir;
-  private DistributionDatabase _store;
-
-  public DeployTask(DistributionDatabase store, String fileName, String tmpDir,
-             String deployDir) {
-    _fName     = fileName;
-    _tmpDir    = tmpDir;
-    _deployDir = deployDir;
-    _store     = store;
+public class DeployTask extends Task<Void, String> implements Throttleable{
+  
+  @Override
+  public ThrottleKey getThrottleKey() {
+    return DeployerThrottleKeys.DEPLOY_DISTRIBUTION;
   }
 
   @Override
-  public Object execute(TaskExecutionContext ctx) throws Throwable {
+  public Void execute(TaskExecutionContext ctx, String fileName) throws Throwable {
+    
+    DistributionDatabase dists    = ctx.getServerContext().lookup(DistributionDatabase.class);
+    Deployer             deployer = ctx.getServerContext().getServices().getDeployer();
+    FileSystemModule     fs       = ctx.getServerContext().getServices().getFileSystem();
+    File                 src      = new File(deployer.getConfiguration().getTempDir() + File.separator + fileName);               
+    
     try {
     	
-      int idx = _fName.lastIndexOf('.');
+      ctx.info(String.format("Deploying: %s", fileName));
 
-      if (idx < 0) {
-        ctx.error("File name does not have a temporary extension: " + _fName);
-
-        return null;
-      }
-
-      String shortName = _fName.substring(0, idx);
-      File   src = new File(_tmpDir + File.separator + _fName);
-      ctx.info("Deploying: " + shortName);
-
-      // extraction corus.xml from archive and checking if already exists...
-      Distribution dist    = Distribution.newInstance(src.getAbsolutePath());
-      String       baseDir = _deployDir + File.separator + dist.getName() +
+      // extracting corus.xml from archive and checking if already exists...
+      Distribution dist    = Distribution.newInstance(src, fs);
+      String       baseDir = deployer.getConfiguration().getDeployDir() + File.separator + dist.getName() +
                              File.separator + dist.getVersion();
       dist.setBaseDir(baseDir);
 
-      synchronized (_store) {
-        File dest = new File(baseDir + File.separator + "common");
-        File vms = new File(baseDir + File.separator + "processes");
+      synchronized (dists) {
+        File commonDir  = new File(baseDir + File.separator + "common");
+        File processDir = new File(baseDir + File.separator + "processes");
 
-        if (_store.containsDistribution(dist.getName(), dist.getVersion())) {
+        DistributionCriteria criteria = DistributionCriteria.builder()
+          .name(dist.getName())
+          .version(dist.getVersion())
+          .build();
+        if (dists.containsDistribution(criteria)) {
           ctx.error(new DuplicateDistributionException("Distribution already exists for: " +
                                          dist.getName() + " version: " +
                                          dist.getVersion()));
@@ -77,7 +76,7 @@ public class DeployTask extends Task {
           return null;
         }
 
-        if (dest.exists()) {
+        if (fs.exists(commonDir)) {
           ctx.error(new DuplicateDistributionException("Distribution already exists for: " +
                                          dist.getName() + " version: " +
                                          dist.getVersion()));
@@ -86,30 +85,32 @@ public class DeployTask extends Task {
         }
 
         // making distribution directories...
-        if (!dest.exists() && !dest.mkdirs()) {
-          ctx.error("Could not make directory: " + dest.getAbsolutePath());
+        try{
+          fs.createDirectory(commonDir);
+        }catch(IOException e){
+          ctx.error(String.format("Could not make directory: %s", commonDir.getAbsolutePath()));
         }
-
-        vms.mkdirs();
-
-        Task unjar = TaskFactory.newUnjarTask(src, dest);
-        ctx.getTaskManager().executeAndWait(unjar).get();
+        try{
+          fs.createDirectory(processDir);
+        }catch(IOException e){
+          ctx.error(String.format("Could not make directory: %s", processDir.getAbsolutePath()));
+        }        
 
         try {
-          _store.addDistribution(dist);
+          fs.unzip(src, commonDir);
+          dists.addDistribution(dist);
           ctx.info("Distribution added to Corus");
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentEvent(dist));
         } catch (DuplicateDistributionException e) {
-          // noop
+          ctx.error("Distribution already exists", e);
+        } catch(IOException e){
+          ctx.error("Could not unzip distribution", e);
         }
       }
     } catch (DeploymentException e) {
       ctx.error(e);
     } finally {
-      Task deleteFile = TaskFactory.newDeleteFileTask(new File(_tmpDir +
-                                                               File.separator +
-                                                               _fName));
-      ctx.getTaskManager().executeAndWait(deleteFile).get();
+      fs.deleteFile(src);
     }
     return null;
   }

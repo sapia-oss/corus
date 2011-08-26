@@ -1,7 +1,5 @@
 package org.sapia.corus.client.services.processor;
 
-import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -11,7 +9,6 @@ import java.util.List;
 
 import junit.framework.Assert;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public class ExecConfigTest {

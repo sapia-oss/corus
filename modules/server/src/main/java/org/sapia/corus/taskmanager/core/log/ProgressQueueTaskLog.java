@@ -10,11 +10,11 @@ import org.sapia.corus.taskmanager.core.TaskLog;
 
 public class ProgressQueueTaskLog implements ProgressQueue{
 
-  private Task  task;
+  private Task<?,?>  task;
   private TaskLog log;
   private volatile boolean closed;
   
-  public ProgressQueueTaskLog(Task task, TaskLog log) {
+  public ProgressQueueTaskLog(Task<?,?> task, TaskLog log) {
     this.task = task;
     this.log  = log;
   }

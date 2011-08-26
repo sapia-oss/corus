@@ -1,170 +1,156 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
-import org.sapia.corus.client.services.processor.DistributionInfo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.sapia.corus.client.exceptions.processor.ProcessLockException;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.dist.Port;
+import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.client.services.processor.ActivePort;
+import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
-import org.sapia.corus.processor.ProcessorConfigurationImpl;
-import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * @author Yanick Duchesne
  */
-public class KillTaskTest extends BaseTaskTest{
+public class KillTaskTest extends TestBaseTask{
   
-  /**
-   * Constructor for KillTaskTest.
-   * @param arg0
-   */
-  public KillTaskTest(String arg0) {
-    super(arg0);
+  private Process          proc;
+  
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    Distribution  dist  = super.createDistribution("testDist", "1.0");
+    ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
+    
+    PortRange     range = new PortRange("test", 8080, 8080);
+    ctx.getPorts().addPortRange(range);
+    Port port = conf.createPort();
+    port.setName("test");
+    proc = super.createProcess(dist, conf, "testProfile");
+    int portNumber = ctx.getPorts().aquirePort(port.getName());
+    proc.addActivePort(new ActivePort(port.getName(), portNumber));
   }
-  
-  
+
+  @Test
   public void testKillFromCorusNotConfirmed() throws Exception {
-    DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(dist);
-    db.getActiveProcesses().addProcess(proc);
-
-    TestKill kill = new TestKill(ProcessTerminationRequestor.KILL_REQUESTOR_SERVER,
-                                 proc.getProcessID());
-    tm.executeAndWait(kill).get();
-    super.assertTrue(kill.killed != true);
+    KillTask kill = new KillTask(3);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
+    assertTrue(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
   }
-  
+
+  @Test
   public void testKillFromCorusConfirmed() throws Exception {
-    DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(dist);
-    db.getActiveProcesses().addProcess(proc);
-    
-    TestKill kill = new TestKill(
-        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
-        proc.getProcessID());
-    
     proc.confirmKilled();
     proc.save();
-
-    tm.executeAndWait(kill).get();  
-    super.assertTrue(kill.killed);
-
-    try {
-      db.getActiveProcesses().getProcess(proc.getProcessID());
-      throw new Exception("Process not removed from db");
-    } catch (ProcessNotFoundException e) {
-      //ok
-    }
-
-    super.assertTrue(!kill.restart);
-  }
-
-  public void testKillMaxAttemptReached() throws Exception {
-    DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(dist);
-    db.getActiveProcesses().addProcess(proc);
-
-    Thread.sleep(1500);
-
-    TestKill kill = new TestKill(
-        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
-        proc.getProcessID());
-
-    tm.executeAndWait(kill).get();
-    super.assertTrue(!kill.killed);
-    super.assertTrue(!kill.restart);
-    tm.executeAndWait(kill).get();
-    super.assertTrue(!kill.killed);
-    super.assertTrue(!kill.restart);
-    tm.executeAndWait(kill).get();
-    proc.confirmKilled();    
-    tm.executeAndWait(kill).get();    
-    super.assertTrue(kill.killed);
-
-    try {
-      db.getActiveProcesses().getProcess(proc.getProcessID());
-      throw new Exception("Process not removed from db");
-    } catch (ProcessNotFoundException e) {
-      //ok
-    }
-  }
-
-  public void testRestart() throws Exception {
-    DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(dist);
-    db.getActiveProcesses().addProcess(proc);
+    KillTask kill = new KillTask(3);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)).get();
     
-    ProcessorConfigurationImpl processorConf = (ProcessorConfigurationImpl) ctx.getProc().getConfiguration();
-    processorConf.setRestartInterval(1);
+    assertFalse(
+        "Process should have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+    assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+  }
 
-    Thread.sleep(1500);
+  @Test
+  public void testKillMaxAttemptReachedNoRestart() throws Exception {
+    int      maxAttempts = 3;
+    KillTask kill        = new KillTask(maxAttempts);
+    for(int i = 0; i < maxAttempts; i++){
+      tm.executeAndWait(
+          kill, 
+          TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)
+      ).get();
+    }
+    
+    assertTrue(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
 
-    TestKill kill = new TestKill(ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 
-                                 proc.getProcessID());
+    // ultimate attempt
+    tm.executeAndWait(
+        kill, 
+        TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)
+    ).get();
+    
+    assertFalse(
+        "Process should have been killed and not restarted", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+  }
+
+  @Test
+  public void testKillMaxAttemptReachedWithRestart() throws Exception {
+    int      maxAttempts = 3;
+    String   oldPid = proc.getOsPid();
+    ctx.getProc().getConfigurationImpl().setRestartInterval(0);
+    KillTask kill        = new KillTask(maxAttempts);
+    for(int i = 0; i < maxAttempts; i++){
+      tm.executeAndWait(
+          kill, 
+          TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)
+      ).get();
+    }
+    
+    assertTrue(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+
+    // ultimate attempt
+    tm.executeAndWait(
+        kill, 
+        TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)
+    ).get();
+    
+    assertTrue(
+        "Process should have been killed and restarted", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+    
+    Process restarted = ctx.getProc().getProcessDB().getActiveProcesses().getProcess(proc.getProcessID());
+    assertNotSame("Restarted process should have new PID", oldPid, restarted.getOsPid());
+  }
+
+  @Test
+  public void testRestartDenied() throws Exception {
     proc.confirmKilled();
     proc.save();
-    tm.executeAndWait(kill).get();
-    super.assertTrue(kill.killed);
-    super.assertTrue(kill.restart);
-
-    try {
-      db.getActiveProcesses().getProcess(proc.getProcessID());
-      throw new Exception("Process not removed from db");
-    } catch (ProcessNotFoundException e) {
-      //ok
-    }
+    KillTask kill = new KillTask(3);
+    tm.executeAndWait(
+          kill, 
+          TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)
+    ).get();
+    
+    assertFalse(
+        "Process should not have been restarted", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
   }
   
-
-  public void testRestartDenied() throws Exception {
-    DistributionInfo dist = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(dist);
-    db.getActiveProcesses().addProcess(proc);
-    Thread.sleep(500);
-
-    TestKill kill = new TestKill(
-        ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, proc.getProcessID());
-    proc.confirmKilled();
-    proc.save();
-    tm.executeAndWait(kill).get();
-    super.assertTrue(kill.killed);
-    super.assertTrue(kill.restart == false);
-
-    try {
-      db.getActiveProcesses().getProcess(proc.getProcessID());
-      throw new Exception("Process not removed from db");
-    } catch (ProcessNotFoundException e) {
-      //ok
-    }
+  
+  @Test(expected=ProcessLockException.class)
+  public void testConcurrentAccess() throws Exception{
+    KillTask kill = new KillTask(3);
+    tm.executeAndWait(
+          kill, 
+          TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)
+    ).get();
+    
+    proc.getLock().acquire(LockOwner.createInstance());
   }
 
-  static class TestKill extends KillTask {
-    boolean killed;
-    boolean restart;
-
-    TestKill(ProcessTerminationRequestor requestor, String vmId, int maxRetry) throws Exception{
-      super(requestor, vmId, maxRetry);
-    }
-    
-    TestKill(ProcessTerminationRequestor requestor, String vmId) throws Exception{
-      super(requestor, vmId, 3);
-    }
-    
-    @Override
-    protected void onKillConfirmed(TaskExecutionContext ctx) throws Throwable {
-      killed = true;
-      super.onKillConfirmed(ctx);
-    }
-    
-    @Override
-    protected void onMaxExecutionReached(TaskExecutionContext ctx)
-        throws Throwable {
-      super.onMaxExecutionReached(ctx);
-      killed = true;
-    }
-    
-    @Override
-    protected void onRestarted(TaskExecutionContext ctx) {
-      restart = true;
-    }
-    
-  }
 }

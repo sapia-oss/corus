@@ -15,45 +15,68 @@
                   
   <!-- ============ DB ============ -->
 
-  <bean name="org.sapia.corus.db.DbModule" 
+  <bean name="org.sapia.corus.client.services.db.DbModule" 
         class="org.sapia.corus.db.DbModuleImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
+  
+  <!-- ============ OS ============ -->
+
+  <bean name="org.sapia.corus.client.services.os.OsModule" 
+        class="org.sapia.corus.os.OsModuleImpl" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
+  <!-- ============ FileSystem ============ -->
+
+  <bean name="org.sapia.corus.client.services.file.FileSystemModule" 
+        class="org.sapia.corus.file.FileSystemModuleImpl" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>  
+    
 
   <!-- ============ CONFIGURATOR ============ -->
 
-  <bean name="org.sapia.corus.admin.services.configurator.Configurator" 
+  <bean name="org.sapia.corus.client.services.configurator.Configurator" 
         class="org.sapia.corus.configurator.ConfiguratorImpl"
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
   
   <!-- ============ TASK MANAGER ============ -->
   
 
-  <bean name="org.sapia.corus.taskmanager.CorusTaskManager" 
+  <bean name="org.sapia.corus.taskmanager.core.TaskManager" 
         class="org.sapia.corus.taskmanager.CorusTaskManagerImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
 
   <!-- ============ EVENT DISPATCHER ============ -->
 
-  <bean name="org.sapia.corus.event.EventDispatcher" 
+  <bean name="org.sapia.corus.client.services.event.EventDispatcher" 
         class="org.sapia.corus.event.EventDispatcherImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
 
   <!-- ============ HTTP ============ -->
 
-  <bean name="org.sapia.corus.admin.services.http.HttpModule" 
+  <bean name="org.sapia.corus.client.services.http.HttpModule" 
         class="org.sapia.corus.http.HttpModuleImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
 
   <!-- ============ PORTS ============ -->
   
-  <bean name="org.sapia.corus.admin.services.port.PortManager" 
+  <bean name="org.sapia.corus.client.services.port.PortManager" 
         class="org.sapia.corus.port.PortManagerImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean>
 
 </beans>

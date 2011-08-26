@@ -12,10 +12,10 @@ public interface BackgroundTaskListener extends TaskListener{
   /**
    * @param task the {@link Task} whose max execution has been reached.
    */
-  public void maxExecutionReached(Task task);
+  public void maxExecutionReached(Task<?, ?> task);
 
   /**
    * @param task the {@link Task} whose execution was aborted.
    */
-  public void executionAborted(Task task);
+  public void executionAborted(Task<?, ?> task);
 }

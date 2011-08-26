@@ -20,6 +20,7 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.DeployerFacade;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeployOsAdapter;
@@ -153,9 +154,8 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
 
   @Override
-  public synchronized ProgressQueue undeploy(String distName, String version,
-    ClusterInfo cluster) throws RunningProcessesException{
-    proxy.undeploy(ArgFactory.parse(distName), ArgFactory.parse(version));
+  public synchronized ProgressQueue undeploy(DistributionCriteria criteria, ClusterInfo cluster) throws RunningProcessesException{
+    proxy.undeploy(criteria);
     try{
       return invoker.invoke(ProgressQueue.class, cluster);
     }catch(RunningProcessesException e){
@@ -168,25 +168,9 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
   
   @Override
-  public synchronized Results<List<Distribution>> getDistributions(ClusterInfo cluster) {
+  public synchronized Results<List<Distribution>> getDistributions(DistributionCriteria criteria, ClusterInfo cluster) {
     Results<List<Distribution>>  results = new Results<List<Distribution>>();
-    proxy.getDistributions();
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<Distribution>> getDistributions(String name, ClusterInfo cluster) {
-    Results<List<Distribution>>  results = new Results<List<Distribution>>();
-    proxy.getDistributions(ArgFactory.parse(name));
-    invoker.invokeLenient(results, cluster);
-    return results;
-  }
-  
-  @Override
-  public synchronized Results<List<Distribution>> getDistributions(String name, String version, ClusterInfo cluster) {
-    Results<List<Distribution>>  results = new Results<List<Distribution>>();
-    proxy.getDistributions(ArgFactory.parse(name), ArgFactory.parse(version));
+    proxy.getDistributions(criteria);
     invoker.invokeLenient(results, cluster);
     return results;    
   }

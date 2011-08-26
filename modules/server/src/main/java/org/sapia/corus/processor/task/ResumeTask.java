@@ -1,8 +1,8 @@
 package org.sapia.corus.processor.task;
 
 import java.io.IOException;
+import java.util.Properties;
 
-import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.LockOwner;
@@ -11,50 +11,45 @@ import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
-
+import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * This task resumes a suspended process.
  * 
  * @author Yanick Duchesne
  */
-public class ResumeTask extends Task{
-  private Process       _process;
-  private Distribution  _dist;
-  private ProcessConfig _conf;
-  private LockOwner     _lockOwner = new LockOwner();
+public class ResumeTask extends Task<Void, TaskParams<Process, Distribution, ProcessConfig, Void>>{
 
-  public ResumeTask(Process proc,
-                    Distribution dist, 
-                    ProcessConfig conf)
-             throws ProcessLockException {
-    _process = proc;
-    _dist    = dist;
-    _conf    = conf;
-    proc.releaseLock();
-    proc.acquireLock(_lockOwner);
-    proc.save();
-  }
+  private LockOwner     lockOwner = new LockOwner();
 
   @Override
-  public Object execute(TaskExecutionContext ctx) throws Throwable {
-    _process.touch();
-    _process.save();
+  public Void execute(TaskExecutionContext ctx,
+      TaskParams<Process, Distribution, ProcessConfig, Void> params)
+      throws Throwable {
+  
+    Process process     = params.getParam1();
+    Distribution dist   = params.getParam2();
+    ProcessConfig conf  = params.getParam3();
+    
+    process.getLock().acquire(lockOwner);
+    
     try{
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
-      ProcessorTaskStrategy strategy = ctx.getServerContext().lookup(ProcessorTaskStrategy.class);
-      if(strategy.execProcess(ctx, new ProcessInfo(_process, _dist, _conf, true), ctx.getServerContext().getProcessProperties())){
-        processes.getSuspendedProcesses().removeProcess(_process.getProcessID());
-        _process.setStatus(Process.LifeCycleStatus.ACTIVE);
-        processes.getActiveProcesses().addProcess(_process);
+      PerformExecProcessTask execProcess = new PerformExecProcessTask();
+      ProcessInfo info  = new ProcessInfo(process, dist, conf, true);
+      Properties  props = ctx.getServerContext().getProcessProperties();
+      if(ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, props)).get()){
+        processes.getSuspendedProcesses().removeProcess(process.getProcessID());
+        process.setStatus(Process.LifeCycleStatus.ACTIVE);
+        processes.getActiveProcesses().addProcess(process);
       }
       else{
-        ctx.error("Process: " + _process.getProcessID() + " will not be resumed");
+        ctx.error(String.format("Process: %s will not be resumed", process));
       }
     }catch(IOException e){
-      ctx.error("Error restarting process: " + _process.getProcessID(), e);
+      ctx.error(String.format("Error restarting process: %s", process), e);
     }finally{
-      _process.releaseLock();
+      process.getLock().release(lockOwner);
     }
     return null;
   }

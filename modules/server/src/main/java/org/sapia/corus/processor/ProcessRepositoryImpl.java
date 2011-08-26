@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
  * An instance of this class holds the {@link ProcessDatabase}s that
@@ -35,39 +35,38 @@ public class ProcessRepositoryImpl implements ProcessRepository {
     _toRestart = toRestart;
   }
 
+  @Override
   public synchronized ProcessDatabase getSuspendedProcesses() {
     return _suspended;
   }
 
+  @Override
   public synchronized ProcessDatabase getActiveProcesses() {
     return _active;
   }
 
+  @Override
   public synchronized ProcessDatabase getProcessesToRestart() {
     return _toRestart;
   }
 
-  public synchronized int getProcessCountFor(ProcessRef processRef){
-    return getActiveProcesses().getProcesses(
-        processRef.getDist().getName(), 
-        processRef.getDist().getVersion(),
-        processRef.getProcessConfig().getName(), 
-        processRef.getProfile()).size();
-  }
-  
-  public synchronized int getProcessCountFor(String dist, String version, String processName, String profile){
-    return getActiveProcesses().getProcesses(dist, version, processName, profile).size();
+  @Override
+  public synchronized int getActiveProcessCountFor(ProcessCriteria criteria){
+    return getActiveProcesses().getProcesses(criteria).size();
   }  
 
+  @Override
   public synchronized List<Process> getProcesses() {
     List<Process> procs = new ArrayList<Process>();
-    procs.addAll(_active.getProcesses());
-    procs.addAll(_suspended.getProcesses());
-    procs.addAll(_toRestart.getProcesses());
+    ProcessCriteria criteria = ProcessCriteria.builder().all();
+    procs.addAll(_active.getProcesses(criteria));
+    procs.addAll(_suspended.getProcesses(criteria));
+    procs.addAll(_toRestart.getProcesses(criteria));
     Collections.sort(procs);
     return procs;
   }
   
+  @Override
   public synchronized Process getProcess(String corusPid) throws ProcessNotFoundException{
     if(_active.containsProcess(corusPid)){
       return _active.getProcess(corusPid);
@@ -81,41 +80,13 @@ public class ProcessRepositoryImpl implements ProcessRepository {
     throw new ProcessNotFoundException("No process found for ID: " + corusPid);
   }
   
-  public synchronized List<Process> getProcesses(Arg distName) {
+  @Override
+  public synchronized List<Process> getProcesses(ProcessCriteria criteria) {
     List<Process> procs = new ArrayList<Process>();
-    procs.addAll(_active.getProcesses(distName));
-    procs.addAll(_suspended.getProcesses(distName));
-    procs.addAll(_toRestart.getProcesses(distName));
+    procs.addAll(_active.getProcesses(criteria));
+    procs.addAll(_suspended.getProcesses(criteria));
+    procs.addAll(_toRestart.getProcesses(criteria));
     Collections.sort(procs);
     return procs;
   }  
-
-  public synchronized List<Process> getProcesses(Arg distName, Arg version) {
-    List<Process> procs = new ArrayList<Process>();
-    procs.addAll(_active.getProcesses(distName, version));
-    procs.addAll(_suspended.getProcesses(distName, version));
-    procs.addAll(_toRestart.getProcesses(distName, version));
-    Collections.sort(procs);
-    return procs;
-  }
-
-  public synchronized List<Process> getProcesses(Arg distName, Arg version,
-                                        String profile) {
-    List<Process> procs = new ArrayList<Process>();
-    procs.addAll(_active.getProcesses(distName, version, profile));
-    procs.addAll(_suspended.getProcesses(distName, version, profile));
-    procs.addAll(_toRestart.getProcesses(distName, version, profile));
-    Collections.sort(procs);
-    return procs;
-  }
-
-  public synchronized List<Process> getProcesses(Arg distName, Arg version,
-                                        String profile, Arg procName) {
-    List<Process> procs = new ArrayList<Process>();
-    procs.addAll(_active.getProcesses(distName, version, profile, procName));
-    procs.addAll(_suspended.getProcesses(distName, version, profile, procName));
-    procs.addAll(_toRestart.getProcesses(distName, version, profile, procName));
-    Collections.sort(procs);
-    return procs;
-  }
 }

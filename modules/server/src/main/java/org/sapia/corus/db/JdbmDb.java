@@ -2,9 +2,9 @@ package org.sapia.corus.db;
 
 import java.io.IOException;
 
-import org.sapia.corus.client.services.db.DbMap;
-
 import jdbm.JDBMRecordManager;
+
+import org.sapia.corus.client.services.db.DbMap;
 
 
 /**

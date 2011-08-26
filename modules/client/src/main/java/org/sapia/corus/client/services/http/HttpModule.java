@@ -11,7 +11,7 @@ import org.sapia.corus.client.Module;
 public interface HttpModule extends Module{
 
   
-  public static String ROLE = HttpModule.class.getName();
+  public static final String ROLE = HttpModule.class.getName();
   
   /***
    * Adds a {@link HttpExtension} to this instance.

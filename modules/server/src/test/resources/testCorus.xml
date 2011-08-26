@@ -1,0 +1,11 @@
+<!-- This config is used to perform in-memory unit testing -->
+<distribution name="test" version="1.0">
+  <process name="testProcess" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.test.App"
+          profile="test">
+      <vmType>-client</vmType>
+      <xoption  name="ms" value="16M" />
+      <property  name="corus.process.log.level" value="debug" />
+    </java>
+  </process>
+</distribution>

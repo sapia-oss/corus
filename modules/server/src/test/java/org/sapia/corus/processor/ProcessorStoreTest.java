@@ -5,10 +5,10 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 
 /**
@@ -61,49 +61,64 @@ public class ProcessorStoreTest extends TestCase {
     db.getActiveProcesses().getProcess(((Process)procs.get(3)).getProcessID());
   }
 
-  public void testGetProcessExactNameAndVersion() throws Exception {
+  public void testGetAllProcesses() throws Exception {
+    super.assertEquals(4, db.getActiveProcesses().getProcesses(ProcessCriteria.builder().all()).size());
     
-    super.assertEquals(4, db.getActiveProcesses().getProcesses().size());
-    super.assertEquals(3, db.getActiveProcesses().getProcesses(ArgFactory.parse("test")).size());
-    super.assertEquals(2,
-                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
+  }
+  
+  public void testGetProcessesForName() throws Exception{
+    super.assertEquals(3, db.getActiveProcesses().getProcesses(ProcessCriteria.builder().distribution("test").build()).size());
+  }
+  
+  public void testGetProcessesForNameVersion() throws Exception{
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test").version("1.0").build();
+    super.assertEquals(2, db.getActiveProcesses().getProcesses(criteria).size());
+  }
+  
+  public void testGetProcessesForNameVersionProfile() throws Exception{
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test").version("1.0").profile("test").build();
     super.assertEquals(2,
                        db.getActiveProcesses()
-                         .getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"), "test").size());
+                         .getProcesses(criteria).size());
+    
+  }
+  
+  public void testGetProcessesForNameVersionProfileProcess() throws Exception{
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test").version("1.0").profile("test").name("testVm").build();
     super.assertEquals(2,
                        db.getActiveProcesses()
-                         .getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"), 
-                             "test", ArgFactory.parse("testVm")).size());
+                         .getProcesses(criteria).size());
+    
+    criteria = ProcessCriteria.builder().distribution("test").version("1.1").build();    
     super.assertEquals(1,
-                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.1")).size());
+                       db.getActiveProcesses().getProcesses(criteria).size());
   }
   
   public void testGetProcessDistNamePattern() throws Exception{
-    super.assertEquals(4, db.getActiveProcesses().getProcesses(ArgFactory.parse("*")).size());
-    super.assertEquals(3, db.getActiveProcesses().getProcesses(ArgFactory.parse("test*")).size());    
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("*").build();    
+    super.assertEquals(4, db.getActiveProcesses().getProcesses(criteria).size());
+    criteria = ProcessCriteria.builder().distribution("test*").build();
+    super.assertEquals(3, db.getActiveProcesses().getProcesses(criteria).size());    
   }
   
   public void testGetProcessDistNameVersionPattern() throws Exception{
-    super.assertEquals(2, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*.0")).size());
-    super.assertEquals(4, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*")).size());    
-    super.assertEquals(2, db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("1.1")).size());
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("*").version("*.0").build();
+    super.assertEquals(2, db.getActiveProcesses().getProcesses(criteria).size());
+    criteria = ProcessCriteria.builder().distribution("*").version("*").build();
+    super.assertEquals(4, db.getActiveProcesses().getProcesses(criteria).size());
+    criteria = ProcessCriteria.builder().distribution("*").version("1.1").build();
+    super.assertEquals(2, db.getActiveProcesses().getProcesses(criteria).size());
   }
   
   public void testGetProcessDistNameVersionAndNamePattern() throws Exception{
-    super.assertEquals(1, db.getActiveProcesses().getProcesses(
-        ArgFactory.parse("*"), 
-        ArgFactory.parse("*"), null, 
-        ArgFactory.parse("other*")).size());    
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("*").version("*").name("other*").build();    
+    super.assertEquals(1, db.getActiveProcesses().getProcesses(criteria).size());    
     
-    super.assertEquals(0, db.getActiveProcesses().getProcesses(
-        ArgFactory.parse("*"), 
-        ArgFactory.parse("*"), "someTest", 
-        ArgFactory.parse("other*")).size());    
+    criteria = ProcessCriteria.builder().distribution("*").version("*").profile("someTest").name("other*").build();
+    super.assertEquals(0, db.getActiveProcesses().getProcesses(criteria).size());    
     
-    super.assertEquals(1, db.getActiveProcesses().getProcesses(
-        ArgFactory.parse("*"), 
-        ArgFactory.parse("*"), "test", 
-        ArgFactory.parse("other*")).size());    
+    criteria = ProcessCriteria.builder().distribution("*").version("*").profile("test").name("other*").build();
+    super.assertEquals(1, db.getActiveProcesses().getProcesses(criteria).size());    
   }    
 
   public void testRemoveProcess() throws Exception {
@@ -122,24 +137,27 @@ public class ProcessorStoreTest extends TestCase {
   }
 
   public void testRemoveMultiProcess() throws Exception {
-    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0"));
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test").version("1.0").build();    
+    db.getActiveProcesses().removeProcesses(criteria);
     
     super.assertEquals(0,
-                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
+                       db.getActiveProcesses().getProcesses(criteria).size());
   }
   
   public void testRemoveMultiProcessDistNamePattern() throws Exception {
-    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test*"), ArgFactory.parse("1.0"));
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test*").version("1.0").build();    
+    db.getActiveProcesses().removeProcesses(criteria);
     
     super.assertEquals(0,
-                       db.getActiveProcesses().getProcesses(ArgFactory.parse("test"), ArgFactory.parse("1.0")).size());
+                       db.getActiveProcesses().getProcesses(criteria).size());
   }  
 
   public void testRemoveMultiProcessDistNameVersionPattern() throws Exception {
-    db.getActiveProcesses().removeProcesses(ArgFactory.parse("test*"), ArgFactory.parse("1.*"));
+    ProcessCriteria criteria = ProcessCriteria.builder().distribution("test*").version("1.*").build();    
+    db.getActiveProcesses().removeProcesses(criteria);
     
     super.assertEquals(1,
-                       db.getActiveProcesses().getProcesses(ArgFactory.parse("*"), ArgFactory.parse("*")).size());
+                       db.getActiveProcesses().getProcesses(ProcessCriteria.builder().all()).size());
   }  
   
 }

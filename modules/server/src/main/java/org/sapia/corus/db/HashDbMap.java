@@ -10,8 +10,8 @@ import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.RecordMatcher;
 import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.db.persistence.Record;
-import org.sapia.corus.db.persistence.Template;
-import org.sapia.corus.db.persistence.TemplateMatcher;
+import org.sapia.corus.client.services.db.persistence.Template;
+import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
 
 
 /**

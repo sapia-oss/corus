@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 
@@ -39,23 +38,15 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
     distsByVersion.put(dist.getVersion(), dist);
   }
   
-  public synchronized boolean containsDistribution(Arg name, Arg version) {
-    return select(name, version).size() > 0;
+  @Override
+  public synchronized boolean containsDistribution(DistributionCriteria criteria) {
+    return select(criteria).size() > 0;
   }
 
-  public synchronized boolean containsDistribution(String name, String version) {
-    Map<String, Distribution> distsByVersion = (Map<String, Distribution>)_distsByName.get(name);
-    if(distsByVersion == null){
-      return false;
-    }
-    else{
-      return distsByVersion.get(version) != null;
-    }
-  }  
-
-  public synchronized void removeDistribution(Arg name, Arg version) {
+  @Override
+  public synchronized void removeDistribution(DistributionCriteria criteria) {
     Map<String, Distribution> distsByVersion;
-    List<Distribution> dists = select(name, version);
+    List<Distribution> dists = select(criteria);
     for(int i = 0; i < dists.size(); i++){
       Distribution dist = (Distribution)dists.get(i);
       if ((distsByVersion = _distsByName.get(dist.getName())) != null) {
@@ -69,57 +60,41 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
     }
   }
   
-  public synchronized List<Distribution> getDistributions() {
-    List<Distribution>   dists = new ArrayList<Distribution>();
-    String name;
-
-    for (Iterator<String> iter = _distsByName.keySet().iterator(); iter.hasNext();) {
-      name = iter.next();
-      dists.addAll(getDistributions(ArgFactory.parse(name)));
-    }
-
-    return dists;
-  }
-
-  public synchronized List<Distribution> getDistributions(Arg name) {
+  @Override
+  public synchronized List<Distribution> getDistributions(DistributionCriteria criteria) {
     List<Distribution> lst            = new ArrayList<Distribution>();
-    lst.addAll(select(name, null));
+    lst.addAll(select(criteria));
     return lst;
   }
 
-  public synchronized List<Distribution> getDistributions(Arg name, Arg version) {
-    List<Distribution> lst            = new ArrayList<Distribution>();
-    lst.addAll(select(name, version));
-    return lst;
-  }
-
-  public synchronized Distribution getDistribution(Arg name, Arg version)
+  @Override  
+  public synchronized Distribution getDistribution(DistributionCriteria criteria)
                                             throws DistributionNotFoundException {
-    List<Distribution> dists = select(name, version);
+    List<Distribution> dists = select(criteria);
     if(dists.size() == 0){
-      throw new DistributionNotFoundException("No distribution for version " + version +
-          " under " + name);
+      throw new DistributionNotFoundException(String.format("No distribution for version %s under %s", 
+          criteria.getName(), criteria.getVersion()));
     }
     else if(dists.size() > 1){
-      throw new DistributionNotFoundException("More than one distribution for version " + version +
-          " under " + name);      
+      throw new DistributionNotFoundException(String.format("More than one distribution for version %s under %s", 
+          criteria.getName(), criteria.getVersion()));      
     }
     else{
       return (Distribution)dists.get(0);
     }
   }
   
-  private List<Distribution> select(Arg nameToken, Arg versionToken){
+  private List<Distribution> select(DistributionCriteria criteria){
     Iterator<String> names = _distsByName.keySet().iterator();
     List<Distribution> dists = new ArrayList<Distribution>();
     while(names.hasNext()){
       String name = (String)names.next();
-      if(nameToken.matches(name)){
+      if(criteria.getName().matches(name)){
         Map<String, Distribution> distsByVersion = _distsByName.get(name);
         Iterator<String> versions = distsByVersion.keySet().iterator();
         while(versions.hasNext()){
           String version = (String)versions.next();
-          if(versionToken == null || versionToken.matches(version)){
+          if(criteria.getVersion() == null || criteria.getVersion().matches(version)){
             Distribution dist = (Distribution)distsByVersion.get(version);
             dists.add(dist);
           }

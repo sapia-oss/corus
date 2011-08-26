@@ -7,6 +7,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 
 /**
@@ -57,19 +58,17 @@ public class Exec extends CorusCliCommand {
     }
 
     ClusterInfo cluster = getClusterInfo(ctx);
-
+    ProcessCriteria criteria = ProcessCriteria.builder()
+      .name(vmName)
+      .distribution(dist)
+      .version(version)
+      .profile(profile)
+      .build();
     try{
-      if (vmName != null) {
-        displayProgress(
-                ctx.getCorus().getProcessorFacade().exec(
-                        dist, version, profile, vmName, instances, cluster),
-                ctx);
-      } else {
-        displayProgress(
-                ctx.getCorus().getProcessorFacade().exec(
-                        dist, version, profile, instances, cluster),
-                ctx);
-      }
+      displayProgress(
+              ctx.getCorus().getProcessorFacade().exec(criteria, instances, cluster),
+              ctx
+      );
     }catch(TooManyProcessInstanceException e){
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());

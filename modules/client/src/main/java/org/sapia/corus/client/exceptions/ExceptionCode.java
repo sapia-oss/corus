@@ -8,8 +8,8 @@ public enum ExceptionCode {
   SERVICE_NOT_FOUND(ExceptionScope.CORE, 1020),
   INVALID_INPUT(ExceptionScope.CORE, 1030),
   IO_ERROR(ExceptionScope.CORE, 1040),
-
-  
+  STALE_DATA(ExceptionScope.CORE, 1050),
+ 
   //// MISC
 
   MISSING_DATA(ExceptionScope.MISC, 1000),

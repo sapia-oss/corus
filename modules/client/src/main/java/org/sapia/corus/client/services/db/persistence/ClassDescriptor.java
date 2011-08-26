@@ -1,5 +1,6 @@
 package org.sapia.corus.client.services.db.persistence;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,6 +16,7 @@ import java.util.TreeSet;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.annotations.Version;
 
 /**
  * An instance of this class holds metadata about a persistent class.
@@ -133,6 +135,7 @@ public class ClassDescriptor<T> {
           }
           else if(!transientAccessors.contains(ai)){
             accessors.add(ai);
+            ai.isVersion = isVersion(m);
           }
         }
         else if(m.getName().startsWith(IS_PREFIX)){
@@ -144,6 +147,7 @@ public class ClassDescriptor<T> {
           }
           else if(!transientAccessors.contains(ai)){
             accessors.add(ai);
+            ai.isVersion = isVersion(m);            
           }
         }
         else{
@@ -190,6 +194,7 @@ public class ClassDescriptor<T> {
         }
       }
     }
+    fd.setVersion(info.isVersion);
     fieldsByName.put(fieldName, fd);
     fieldsByIndex.add(fd);
   }
@@ -211,6 +216,7 @@ public class ClassDescriptor<T> {
   static class AccessorInfo implements Comparable<AccessorInfo>{
     String name;
     Method accessor;
+    boolean isVersion;
     
     @Override
     public int compareTo(AccessorInfo o) {
@@ -218,22 +224,39 @@ public class ClassDescriptor<T> {
     }
   }
   
-  
   private boolean isTransient(Method m) {
-    Transient result = m.getAnnotation(Transient.class);
+    return hasAnnotation(Transient.class, m);
+  }
+  
+  private boolean isVersion(Method m) {
+    if(hasAnnotation(Version.class, m)){
+      if(!m.getReturnType().equals(long.class) && !m.getReturnType().equals(Long.class)){
+        throw new IllegalStateException(
+            String.format("Version fields must have type long: method %s has type %s", 
+            m.getName(), 
+            m.getReturnType().getName())
+        );
+      }
+      return true;
+    }
+    return false;
+  }  
+  
+  private <A extends Annotation> boolean hasAnnotation(Class<A> annotationClass, Method m) {
+    A result = m.getAnnotation(annotationClass);
     if(result != null){
       return true;
     }
     else{
       for(Object element:ClassUtils.getAllInterfaces(m.getDeclaringClass())){
         Class<?> intf = (Class<?>)element;
-        if(isTransientInClass(m, intf)){
+        if(hasAnnotationInClass(annotationClass, m, intf)){
           return true;
         }
       }
       for(Object element:ClassUtils.getAllSuperclasses(m.getDeclaringClass())){
         Class<?> clazz = (Class<?>)element;
-        if(isTransientInClass(m, clazz)){
+        if(hasAnnotationInClass(annotationClass, m, clazz)){
           return true;
         }
       }
@@ -241,10 +264,10 @@ public class ClassDescriptor<T> {
     }
   }
   
-  private boolean isTransientInClass(Method m, Class<?> clazz){
+  private <A extends Annotation> boolean hasAnnotationInClass(Class<A> annotationClass, Method m, Class<?> clazz){
     try{
       m = clazz.getDeclaredMethod(m.getName(), m.getParameterTypes());
-      if(m.isAnnotationPresent(Transient.class)){
+      if(m.isAnnotationPresent(annotationClass)){
         return true;
       }
     }catch(NoSuchMethodException e){

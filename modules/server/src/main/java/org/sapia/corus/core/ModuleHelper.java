@@ -3,6 +3,7 @@ package org.sapia.corus.core;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.Module;
+import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
@@ -31,6 +32,13 @@ public abstract class ModuleHelper implements ApplicationContextAware, Service, 
   
   @Override
   public void afterPropertiesSet() throws Exception {
+    if(getClass().isAnnotationPresent(Bind.class)){
+      Bind bind = getClass().getAnnotation(Bind.class);
+      for(Class<?> moduleInterface : bind.moduleInterface()){
+        _logger.debug(String.format("Binding %s as module %s", getClass().getName(), moduleInterface.getName()));
+        _serverContext.getServices().bind(moduleInterface, this);
+      }
+    }    
     this.init();
   }
   

@@ -2,8 +2,8 @@ package org.sapia.corus.deployer;
 
 import junit.framework.TestCase;
 
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 
@@ -37,10 +37,19 @@ public class DistributionDatabaseTest extends TestCase {
   }
 
   public void testContainsDistribution() throws Exception {
-    super.assertTrue(_store.containsDistribution("test2", "1.0"));
-    super.assertTrue(_store.containsDistribution(
-        ArgFactory.parse("test*"), 
-        ArgFactory.parse("1.0")));    
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test2")
+      .version("1.0")
+      .build();
+    
+    super.assertTrue(_store.containsDistribution(criteria));
+    
+    criteria = DistributionCriteria.builder()
+      .name("test*")
+      .version("1.0")
+      .build();
+    
+    super.assertTrue(_store.containsDistribution(criteria));    
   }
 
   public void testAddDuplicate() throws Exception {
@@ -60,15 +69,22 @@ public class DistributionDatabaseTest extends TestCase {
     d.setName("test1");
     d.setVersion("1.0");
     
-    _store.removeDistribution(ArgFactory.parse("test1"), 
-        ArgFactory.parse("1.0"));
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test1")
+      .version("1.0")
+      .build();    
+    
+    _store.removeDistribution(criteria);
     _store.addDistribution(d);
   }
   
   public void testRemoveDistributionForName() throws Exception {
-    _store.removeDistribution(ArgFactory.parse("test*"), 
-        ArgFactory.parse("1.0"));
-    assertEquals(0, _store.getDistributions().size());
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test*")
+      .version("1.0")
+      .build();    
+    _store.removeDistribution(criteria);
+    assertEquals(0, _store.getDistributions(DistributionCriteria.builder().all()).size());
   }  
   
   public void testRemoveDistributionForNameAndVersion() throws Exception {
@@ -77,13 +93,17 @@ public class DistributionDatabaseTest extends TestCase {
     d.setVersion("2.0");
     _store.addDistribution(d);
     
-    _store.removeDistribution(ArgFactory.parse("test1"), 
-        ArgFactory.parse("*"));
-    assertEquals(1, _store.getDistributions().size());
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test1")
+      .version("*")
+      .build();        
+    
+    _store.removeDistribution(criteria);
+    assertEquals(1, _store.getDistributions(DistributionCriteria.builder().all()).size());
   }  
 
   public void testGetDistributions() throws Exception {
-    super.assertEquals(2, _store.getDistributions().size());
+    super.assertEquals(2, _store.getDistributions(DistributionCriteria.builder().all()).size());
   }
   
   public void testGetDistributionsForName() throws Exception{
@@ -91,7 +111,12 @@ public class DistributionDatabaseTest extends TestCase {
     d.setName("dist");
     d.setVersion("1.0");
     _store.addDistribution(d);
-    super.assertEquals(2, _store.getDistributions(ArgFactory.parse("test*")).size());
+    
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test*")
+      .build();        
+    
+    super.assertEquals(2, _store.getDistributions(criteria).size());
   }
   
   public void testGetDistributionsForNameVersion() throws Exception{
@@ -99,8 +124,13 @@ public class DistributionDatabaseTest extends TestCase {
     d.setName("dist");
     d.setVersion("2.0");
     _store.addDistribution(d);
-    super.assertEquals(2, _store.getDistributions(
-        ArgFactory.parse("*"), ArgFactory.parse("1.0")).size());
+    
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("*")
+      .version("1.0")
+      .build();        
+    
+    super.assertEquals(2, _store.getDistributions(criteria).size());
   }
   
   

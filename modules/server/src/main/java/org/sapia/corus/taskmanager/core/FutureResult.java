@@ -7,20 +7,21 @@ import java.lang.reflect.InvocationTargetException;
  * @author yduchesne
  *
  */
-public class FutureResult {
+public class FutureResult<R> {
   
   private volatile boolean completed = false;
   private Object result;
 
-  public synchronized Object get() throws InterruptedException, InvocationTargetException{
+  public synchronized R get() throws InterruptedException, InvocationTargetException{
     return doGet(0);
   }
 
-  public synchronized Object get(long timeout) throws InterruptedException, InvocationTargetException{
+  public synchronized R get(long timeout) throws InterruptedException, InvocationTargetException{
     return doGet(timeout);
   }
 
-  private synchronized Object doGet(long timeout) throws InterruptedException, InvocationTargetException{
+  @SuppressWarnings(value="unchecked")
+  private synchronized R doGet(long timeout) throws InterruptedException, InvocationTargetException{
     while(!completed){
       if(timeout <= 0) wait();
       else wait(timeout);
@@ -30,7 +31,7 @@ public class FutureResult {
         throw (InvocationTargetException)result;
       } 
       else{
-        return result;
+        return (R)result;
       }
     }
     else{

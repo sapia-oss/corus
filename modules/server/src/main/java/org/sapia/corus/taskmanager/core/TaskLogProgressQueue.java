@@ -15,31 +15,31 @@ public class TaskLogProgressQueue implements TaskLog{
     this.progress = progress;
   }
   
-  public void debug(Task task, String msg) {
+  public void debug(Task<?,?> task, String msg) {
     progress.debug(format(task, msg));
   }
   
-  public void info(Task task, String msg) {
+  public void info(Task<?,?> task, String msg) {
     progress.info(format(task, msg));
   }
   
-  public void warn(Task task, String msg) {
+  public void warn(Task<?,?> task, String msg) {
     progress.warning(format(task, msg));
   }
   
-  public void warn(Task task, String msg, Throwable err) {
+  public void warn(Task<?,?> task, String msg, Throwable err) {
     progress.warning(err);
   }
   
-  public void error(Task task, String msg) {
+  public void error(Task<?,?> task, String msg) {
     progress.error(format(task, msg));    
   }
   
-  public void error(Task task, String msg, Throwable err) {
+  public void error(Task<?,?> task, String msg, Throwable err) {
     progress.error(err);
   }
 
-  private String format(Task task, String msg){
+  private String format(Task<?,?> task, String msg){
     return task.getName() + " >> " + msg;
   }
   

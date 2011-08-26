@@ -12,6 +12,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
  * @author Yanick Duchesne
@@ -32,7 +33,9 @@ public class Restart extends CorusCliCommand {
       ClusterInfo cluster = getClusterInfo(ctx);
       
       ctx.getConsole().println("Proceeding to restart...");
-      ctx.getCorus().getProcessorFacade().restart(WILD_CARD, WILD_CARD, null, cluster);
+      
+      ProcessCriteria criteria = ProcessCriteria.builder().all();
+      ctx.getCorus().getProcessorFacade().restart(criteria, cluster);
     }     
     // restart by process IDENTIDER
     else if (cmd.containsOption(VM_ID_OPT, true)) {
@@ -70,20 +73,26 @@ public class Restart extends CorusCliCommand {
       String processName  = cmd.containsOption(VM_NAME_OPT, false) ? cmd.assertOption(VM_NAME_OPT, true).getValue() : null;
       String profile      = cmd.containsOption(PROFILE_OPT, false) ? cmd.assertOption(PROFILE_OPT, true).getValue() : null;
       
+
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .name(processName)
+        .distribution(distName)
+        .version(version)
+        .profile(profile)
+        .build();
+      
       ctx.getConsole().println("Proceeding to restart...");      
-      if(processName == null){
-        ctx.getCorus().getProcessorFacade().restart(distName, version, profile, getClusterInfo(ctx));        
-      }
-      else{
-        ctx.getCorus().getProcessorFacade().restart(distName, version, profile, processName, getClusterInfo(ctx));
-      }
+      ctx.getCorus().getProcessorFacade().restart(criteria, getClusterInfo(ctx));
     }
    
   }
   
   protected void restartProcessByVmId(CliContext ctx, String pid) throws InputException {
     Process processToRestart = null;
-    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(new ClusterInfo(false));
+    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(
+        ProcessCriteria.builder().all(), 
+        new ClusterInfo(false)
+    );
     while (results.hasNext() && processToRestart == null) {
       Result<List<Process>> result = results.next();
       for(Process process:result.getData()){
@@ -102,7 +111,10 @@ public class Restart extends CorusCliCommand {
   
   protected void restartProcessByOsPid(CliContext ctx, String osPid) throws InputException {
     Process processToRestart = null;
-    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(new ClusterInfo(false));
+    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(
+        ProcessCriteria.builder().all(), 
+        new ClusterInfo(false)
+    );
     while (results.hasNext() && processToRestart == null) {
       Result<List<Process>> result = results.next();
       for(Process process:result.getData()){

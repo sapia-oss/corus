@@ -7,11 +7,13 @@ import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.event.EventDispatcher;
+import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.processor.ProcessRepository;
-import org.sapia.corus.processor.task.ProcessorTaskStrategy;
 import org.sapia.corus.taskmanager.core.TaskManager;
 
 /**
@@ -86,17 +88,31 @@ public class InternalServiceContext {
   }
   
   /**
+   * @return the {@link PortManager}
+   */
+  public PortManager getPortManager(){
+    return lookup(PortManager.class);
+  }
+  
+  /**
    * @return the {@link Configurator}
    */
   public Configurator getConfigurator(){
     return lookup(Configurator.class);
   }
+
+  /**
+   * @return the {@link FileSystemModule}.
+   */
+  public FileSystemModule getFileSystem(){
+    return lookup(FileSystemModule.class);
+  }
   
   /**
-   * @return the {@link ProcessorTaskStrategy}
+   * @return the {@link OsModule}.
    */
-  public ProcessorTaskStrategy getProcessorTaskStrategy(){
-    return lookup(ProcessorTaskStrategy.class);
+  public OsModule getOS(){
+    return lookup(OsModule.class);
   }
   
   /**
@@ -110,7 +126,7 @@ public class InternalServiceContext {
   public <S> S lookup(Class<S> serviceInterface){
     Object service = services.get(serviceInterface.getName());
     if(service == null){
-      throw new IllegalStateException("No internal service found for: " + serviceInterface);
+      throw new IllegalStateException(String.format("No internal service found for: %s", serviceInterface));
     }
     return serviceInterface.cast(service);
   }
@@ -130,18 +146,31 @@ public class InternalServiceContext {
   
   /**
    * Binds the given service instance "under" the given interface.
+   * 
    * @param serviceInterface the interface to use to internally bind the service (this
    * interface can later be used for lookup).
-   * 
    * @param service an {@link Object} corresponding to the service to bind.
+   * @throws IllegalStateException if a service is already bound for the given name.
    */
   public void bind(Class<?> serviceInterface, Object service) {
-    bind(serviceInterface.getName(), service);
+    doBind(serviceInterface.getName(), service, false);
   }
   
-  void bind(String interfaceName, Object service){
-    if(services.get(interfaceName) != null){
-      throw new IllegalStateException("Internal service already found for: " + interfaceName);
+  /**
+   * Binds the given service instance "under" the given interface - ignoring any already
+   * existing binding for that interface.
+   * 
+   * @param serviceInterface the interface to use to internally bind the service (this
+   * interface can later be used for lookup).
+   * @param service an {@link Object} corresponding to the service to bind.
+  */
+  public void rebind(Class<?> serviceInterface, Object service){
+    doBind(serviceInterface.getName(), service, true);
+  }
+  
+  private void doBind(String interfaceName, Object service, boolean rebind){
+    if(services.get(interfaceName) != null && !rebind){
+      throw new IllegalArgumentException(String.format("Internal service already found for: %s", interfaceName));
     }
     services.put(interfaceName, service);
   }

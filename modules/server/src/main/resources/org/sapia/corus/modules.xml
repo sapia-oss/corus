@@ -17,7 +17,8 @@
 
   <bean name="org.sapia.corus.client.services.cluster.ClusterManager"
         class="org.sapia.corus.cluster.ClusterManagerImpl" 
-        scope="singleton">
+        scope="singleton" 
+        autowire="autodetect">
     <property name="mcastAddress" value="${corus.server.multicast.address}" />
     <property name="mcastPort"    value="${corus.server.multicast.port}" />
   </bean> 
@@ -26,7 +27,8 @@
 
   <bean name="org.sapia.corus.client.services.naming.JndiModule" 
         class="org.sapia.corus.naming.JndiModuleImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean> 
     
   <!-- ============ DEPLOYER ============ -->
@@ -38,7 +40,8 @@
   
   <bean name="org.sapia.corus.client.services.deployer.Deployer" 
         class="org.sapia.corus.deployer.DeployerImpl" 
-        scope="singleton" />
+        scope="singleton" 
+        autowire="autodetect"/>
   
   <!-- ============ PROCESSOR ============ -->
 
@@ -52,21 +55,23 @@
 
   <bean name="org.sapia.corus.client.services.processor.Processor" 
         class="org.sapia.corus.processor.ProcessorImpl" 
-        scope="singleton" />
-
+        scope="singleton" 
+        autowire="autodetect"/>
 
   <!-- ============ CRON ============ -->
 
   <bean name="org.sapia.corus.client.services.cron.CronModule" 
         class="org.sapia.corus.cron.CronModuleImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
   </bean> 
 
   <!-- ============ SECURITY ============ -->
 
   <bean name="org.sapia.corus.client.services.security.SecurityModule" 
         class="org.sapia.corus.security.SecurityModuleImpl" 
-        scope="singleton">
+        scope="singleton"
+        autowire="autodetect">
     <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
     <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
   </bean> 

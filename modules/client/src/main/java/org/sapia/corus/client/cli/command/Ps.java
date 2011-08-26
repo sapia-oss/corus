@@ -12,6 +12,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
 
 
@@ -81,21 +82,15 @@ public class Ps extends CorusCliCommand {
       } catch (Exception e) {
         ctx.getConsole().println(e.getMessage());
       }
-    } else if ((dist != null) && (version != null) && (profile != null) &&
-                 (vmName != null)) {
-      res = ctx.getCorus().getProcessorFacade().getProcesses(dist, version, profile, vmName, cluster);
-      displayResults(res, ctx, displayPorts);
-    } else if ((dist != null) && (version != null) && (profile != null)) {
-      res = ctx.getCorus().getProcessorFacade().getProcesses(dist, version, profile, cluster);
-      displayResults(res, ctx, displayPorts);
-    } else if ((dist != null) && (version != null)) {
-      res = ctx.getCorus().getProcessorFacade().getProcesses(dist, version, cluster);
-      displayResults(res, ctx, displayPorts);
-    } else if (dist != null) {
-      res = ctx.getCorus().getProcessorFacade().getProcesses(dist, cluster);
-      displayResults(res, ctx, displayPorts);
     } else {
-      res = ctx.getCorus().getProcessorFacade().getProcesses(cluster);
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .name(vmName)
+        .distribution(dist)
+        .version(version)
+        .profile(profile)
+        .build();
+        
+      res = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
       displayResults(res, ctx, displayPorts);
     }
   }

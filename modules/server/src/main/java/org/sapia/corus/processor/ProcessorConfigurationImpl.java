@@ -37,8 +37,6 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
    */
   public static int DEFAULT_RESTART_INTERVAL   = 120;
   
-  public static int DEFAULT_EXEC_TASK_INTERVAL = 10;
-
   public static int DEFAULT_BOOT_EXEC_DELAY = 30;
 
   
@@ -47,7 +45,6 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   private int killInterval = DEFAULT_KILL_INTERVAL;
   private int startInterval = DEFAULT_START_INTERVAL;
   private int restartInterval = DEFAULT_RESTART_INTERVAL;
-  private int execInterval = DEFAULT_EXEC_TASK_INTERVAL;
   private int bootExecDelay = DEFAULT_BOOT_EXEC_DELAY;
   
   public long getProcessTimeoutMillis(){
@@ -104,18 +101,6 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   
   public void setRestartInterval(int restartInterval) {
     this.restartInterval = restartInterval;
-  }
-  
-  public int getExecInterval() {
-    return execInterval;
-  }
-
-  public long getExecIntervalMillis(){
-    return execInterval * 1000;
-  }
-  
-  public void setExecInterval(int execInterval) {
-    this.execInterval = execInterval;
   }
   
   public int getBootExecDelay() {

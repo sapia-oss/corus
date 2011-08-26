@@ -1,12 +1,12 @@
 package org.sapia.corus.event;
 
 import org.apache.log.Hierarchy;
-
-
 import org.apache.log.Logger;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.event.EventDispatcher;
+import org.sapia.corus.core.ModuleHelper;
+import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
 
@@ -17,9 +17,11 @@ import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
  */
 @SuppressWarnings(value="unchecked")
 @Bind(moduleInterface=EventDispatcher.class)
-public class EventDispatcherImpl extends MultiDispatcher implements EventDispatcher, Service{
+public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher, Service{
   
   private Logger logger = Hierarchy.getDefaultHierarchy().getLoggerFor("EventDispatcher");
+  
+  private MultiDispatcher delegate = new MultiDispatcher();
   
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -46,7 +48,12 @@ public class EventDispatcherImpl extends MultiDispatcher implements EventDispatc
   @Override
   public void addInterceptor(Class event, Interceptor it){
     logger.debug("Adding interceptor: " + it + " for event type: " + event);
-    super.addInterceptor(event, it);
+    delegate.addInterceptor(event, it);
+  }
+  
+  @Override
+  public void dispatch(Event event) {
+    delegate.dispatch(event);
   }
 
 }

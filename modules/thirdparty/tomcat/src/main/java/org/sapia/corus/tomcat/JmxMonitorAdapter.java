@@ -158,7 +158,7 @@ public class JmxMonitorAdapter {
 	  /**
 	   * Inner class that implements the Corus status request listener. 
 	   *
-	   * @author Jean-CŽdric Desrochers
+	   * @author Jean-Cedric Desrochers
 	   */
 	  public static class StatusListener implements StatusRequestListener {
 

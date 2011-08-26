@@ -13,6 +13,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ExecConfig;
@@ -80,19 +81,12 @@ public class Ls extends CorusCliCommand {
     if (cmd.containsOption(VERSION_OPT, true)) {
       version = cmd.assertOption(VERSION_OPT, true).getValue();
     }
-
+    
+    
     ClusterInfo cluster = getClusterInfo(ctx);
-
-    if ((dist != null) && (version != null)) {
-      Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(dist, version, cluster);
-      displayResults(res, ctx);
-    } else if (dist != null) {
-      Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(dist, cluster);
-      displayResults(res, ctx);
-    } else {
-      Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(cluster);
-      displayResults(res, ctx);
-    }
+    DistributionCriteria criteria = DistributionCriteria.builder().name(dist).version(version).build();
+    Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(criteria, cluster);
+    displayResults(res, ctx);
   }
 
   private void displayResults(Results<List<Distribution>> res, CliContext ctx) {

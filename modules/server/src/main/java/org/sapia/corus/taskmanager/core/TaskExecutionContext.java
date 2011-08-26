@@ -1,7 +1,7 @@
 package org.sapia.corus.taskmanager.core;
 
-import org.sapia.corus.core.ServerContextImpl;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.core.ServerContextImpl;
 import org.sapia.corus.taskmanager.core.log.ChildTaskLog;
 
 /**
@@ -12,13 +12,13 @@ import org.sapia.corus.taskmanager.core.log.ChildTaskLog;
  */
 public class TaskExecutionContext {
 
-  private Task task;
+  private Task<?,?> task;
   
   private InternalTaskLog log;
   private TaskManager taskManager;
   private ServerContext serverContext;
   
-  public TaskExecutionContext(Task t, InternalTaskLog log, ServerContext ctx, TaskManager taskMan) {
+  public TaskExecutionContext(Task<?,?> t, InternalTaskLog log, ServerContext ctx, TaskManager taskMan) {
     this.task = t;
     this.log = log;
     this.serverContext = ctx;
@@ -28,7 +28,7 @@ public class TaskExecutionContext {
   /**
    * @return the {@link Task} associated to this instance.
    */
-  public Task getTask() {
+  public Task<?,?> getTask() {
     return task;
   }
   
@@ -90,40 +90,45 @@ public class TaskExecutionContext {
   static class InnerTaskManager implements TaskManager{
     
     TaskManager owner;
-    Task task;
+    Task<?,?> task;
     InternalTaskLog log;
     
-    public InnerTaskManager(Task task, InternalTaskLog log, TaskManager delegate) {
+    public InnerTaskManager(Task<?,?> task, InternalTaskLog log, TaskManager delegate) {
       this.task = task;
       this.owner = delegate;
       this.log = log;
     }
     
-    public void execute(Task child) {
-      execute(child, SequentialTaskConfig.create());
+    @Override
+    public void registerThrottle(ThrottleKey key, Throttle throttle) {
+      owner.registerThrottle(key, throttle);
     }
     
-    public void execute(Task child, SequentialTaskConfig conf) {
+    public <R,P> void execute(Task<R,P> child, P param) {
+      execute(child, param, SequentialTaskConfig.create());
+    }
+    
+    public <R,P> void execute(Task<R,P> child, P param, SequentialTaskConfig conf) {
       if(conf.getLog() == null){
         conf.setLog(log.getTaskLog());
       }
-      owner.execute(child, conf);
+      owner.execute(child, param, conf);
     }
     
-    public FutureResult executeAndWait(Task child) {
-      return executeAndWait(child, new TaskConfig());
+    public <R,P> FutureResult<R> executeAndWait(Task<R,P> child, P param) {
+      return executeAndWait(child, param, new TaskConfig());
     }
     
-    public FutureResult executeAndWait(Task child, TaskConfig conf) {
+    public <R,P> FutureResult<R> executeAndWait(Task<R,P> child, P param, TaskConfig conf) {
       task.addChild(child);
       if(conf.getLog() == null){
         conf.setLog(new ChildTaskLog(log.getTaskLog()));
       }
-      return owner.executeAndWait(child, conf);
+      return owner.executeAndWait(child, param, conf);
     }
     
-    public void executeBackground(Task child, BackgroundTaskConfig conf) {
-      owner.executeBackground(child, conf);
+    public <R,P> void executeBackground(Task<R,P> child, P param, BackgroundTaskConfig conf) {
+      owner.executeBackground(child, param, conf);
     }
     
   }

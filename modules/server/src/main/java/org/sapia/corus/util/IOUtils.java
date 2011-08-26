@@ -3,6 +3,7 @@ package org.sapia.corus.util;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,21 +14,14 @@ import org.apache.commons.lang.text.StrSubstitutor;
 
 
 /**
- * I/O utilisty methods.
+ * I/O utility methods.
  *
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">
- *     Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *     <a href="http://www.sapia-oss.org/license.html" target="sapia-license">license page</a>
- *     at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class IOUtils {
   
   /**
-   * Extracts all the current available data of the passed in input stream and add it
+   * Extracts all the available data of the passed in input stream and add it
    * to the output stream. When no data is available, it closes the input stream and
    * flush the data of the output stream.
    * 
@@ -110,6 +104,16 @@ public class IOUtils {
     }
   }
 
+  /**
+   * Performs variable substitution (with variables having form <code>${variable}</code>) in the
+   * content of the given stream.
+   * 
+   * @param lookup a {@link StrLookup} instance used to look up variable values.
+   * @param textStream the {@link InputStream} containing the text in which to perform
+   * variable substitution.
+   * @return the {@link InputStream} holding the text with the substituted content.
+   * @throws IOException if an IO problem occurs while performing substitution.
+   */
   public static InputStream replaceVars(StrLookup lookup, InputStream textStream) throws IOException{
     String text = textStreamToString(textStream);
     StrSubstitutor stb = new StrSubstitutor(lookup);
@@ -117,6 +121,15 @@ public class IOUtils {
     return new ByteArrayInputStream(text.getBytes());
   }
   
+  /**
+   * Returns the content in the given stream in the form of a string.
+   * <p>
+   * Note: the stream is closed by this method.
+   * 
+   * @param is an {@link InputStream}
+   * @return a {@link String} containing the data in the given steam. 
+   * @throws IOException if an IO problem occurs.
+   */
   public static String textStreamToString(InputStream is) throws IOException{
     try{
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -137,4 +150,17 @@ public class IOUtils {
       }
     }
   }
+ 
+
+  /**
+   * @param file the {@link File} for which a lock file should be created.
+   * @throws IOException if a corresponding lock file already exists or could not be created.
+   */
+  public static void createLockFile(File file) throws IOException{
+    if(!file.createNewFile()){
+      throw new IOException(String.format("Lock file already exists, server probably running %s", file.getAbsolutePath()));
+    }
+    file.deleteOnExit();
+  }
+  
 }

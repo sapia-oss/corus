@@ -7,5 +7,5 @@ import java.lang.annotation.RetentionPolicy;
 
 public @interface Bind {
 
-  Class<?> moduleInterface();
+  Class<?>[] moduleInterface();
 }

@@ -16,12 +16,17 @@ import org.sapia.corus.core.ModuleHelper;
  */
 @Bind(moduleInterface=DbModule.class)
 public class DbModuleImpl extends ModuleHelper implements DbModule{
-  private File   _dbDir;
-  private JdbmDb _db;
 
   /**
-   * Constructor for DbModuleImpl.
+   * The {@link File} corresponding to the directory where database files are kept.
    */
+  private File   _dbDir;
+  
+  /**
+   * The {@link JdbmDb} instance.
+   */
+  private JdbmDb _db;
+
   public DbModuleImpl() {
     super();
   }

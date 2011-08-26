@@ -2,11 +2,10 @@ package org.sapia.corus.processor;
 
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.util.CompositeMatcher;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
@@ -25,70 +24,54 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
     _processes = map;
   }
   
+  @Override
   public synchronized void addProcess(Process process) {
     _processes.put(process.getProcessID(), process);
   }
-  
+
+  @Override
   public synchronized boolean containsProcess(String corusPid){
     return _processes.get(corusPid) != null;
   }
 
-  public synchronized void removeProcesses(Arg name, Arg version) {
-    List<Process>     toRemove  = getProcesses(name, version);
+  @Override
+  public synchronized void removeProcesses(ProcessCriteria criteria) {
+    List<Process>     toRemove  = getProcesses(criteria);
     for (int i = 0; i < toRemove.size(); i++) {
       _processes.remove(((Process) toRemove.get(i)).getProcessID());
     }
   }
-
-  public synchronized List<Process> getProcesses() {
-    return new IteratorFilter<Process>(new CompositeMatcher<Process>()).filter(_processes.values()).sort(new ProcessComparator()).get();
-  }
-  
-  public synchronized List<Process> getProcesses(final Arg name) {
-    return getProcesses(replaceNull(name), replaceNull(null), null, replaceNull(null));
-  }
- 
-  public synchronized List<Process> getProcesses(Arg name, Arg version) {
-    return getProcesses(replaceNull(name), replaceNull(version), null, replaceNull(null));
-  }
-  
-  public synchronized List<Process> getProcesses(final String name, final String version, final String processName, final String profile) {
-    return getProcesses(argFor(name), argFor(version), profile, argFor(processName));
-  }
-  
-  public synchronized List<Process> getProcesses(Arg name, Arg version, String profile) {
-    return getProcesses(name, version, profile, replaceNull(null));
-  }
    
-  public synchronized List<Process> getProcesses(final Arg name, final Arg version, final String profile,
-                                 final Arg processName) {
+  @Override
+  public synchronized List<Process> getProcesses(final ProcessCriteria criteria) {
     Matcher<Process> matcher = new CompositeMatcher<Process>()
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {
-          return name.matches(object.getDistributionInfo().getName());
+          boolean result = criteria.getDistribution().matches(object.getDistributionInfo().getName());
+          return result;
         }
       }
     )
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {
-          return version.matches(object.getDistributionInfo().getVersion());
+          return criteria.getVersion().matches(object.getDistributionInfo().getVersion());
         }
       }
     )
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {
-          return processName.matches(object.getDistributionInfo().getProcessName());
+          return criteria.getName().matches(object.getDistributionInfo().getProcessName());
         }
       }
     )
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {
-          if(profile == null) return true;
-          return profile.equals(object.getDistributionInfo().getProfile());
+          if(criteria.getProfile() == null) return true;
+          return criteria.getProfile().equals(object.getDistributionInfo().getProfile());
         }
       }
     );
@@ -108,23 +91,5 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
     }
 
     return current;
-  }
-  
-  private Arg replaceNull(Arg someArg){
-    if(someArg == null){
-      return argFor(null);
-    }
-    else{
-      return someArg;
-    }
-  }
-  
-  private Arg argFor(String arg){
-    if(arg == null){
-      return ArgFactory.any();
-    }
-    else{
-      return ArgFactory.parse(arg);
-    }
   }
 }

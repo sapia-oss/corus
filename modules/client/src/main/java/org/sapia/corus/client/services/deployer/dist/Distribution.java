@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -10,9 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ZipUtils;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
-import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.util.xml.ProcessingException;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.Dom4jProcessor;
@@ -31,7 +29,6 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   static final long serialVersionUID = 1L;
 
   private static final String DEPLOYMENT_DESCRIPTOR = "META-INF/corus.xml";
-  private static final int    CAPACITY   = 4096;
   private String              _name;
   private String              _version;
   private String              _baseDir;
@@ -252,22 +249,25 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * configuration whose file is in the <code>META-INF</code> directory of
    * the archive whose name is passed as a parameter.
    *
-   * @param jarName the name of the jar to search the configuration in.
-   * configuration.
+   * @param zipFile the {@link File} corresponding to the zip file to get the configuration
+   * from.
+   * @param the {@link FileSystemModule} abstracting the file system to read from.
    *
    * @throws DeploymentException if a problem occurs creating the <code>Distribution</code> object.
    */
-  public static Distribution newInstance(String jarName)
+  public static Distribution newInstance(File zipFile, FileSystemModule fs)
                                   throws DeploymentException {
     try {
 
-      return newInstance(ZipUtils.readEntryStream(jarName,
-                                                  DEPLOYMENT_DESCRIPTOR,
-                                                  CAPACITY, CAPACITY));
+      return newInstance(fs.openZipEntryStream(zipFile, DEPLOYMENT_DESCRIPTOR));
     } catch (IOException e) {
       throw new DeploymentException("could not extract entry: " +
                                     DEPLOYMENT_DESCRIPTOR, e);
     }
+  }
+  
+  public String getDislayInfo(){
+    return String.format("[%s-%s]", _name, _version);
   }
 
   public String toString() {

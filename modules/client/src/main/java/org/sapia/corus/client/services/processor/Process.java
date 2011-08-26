@@ -8,7 +8,6 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
-import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
@@ -83,7 +82,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private String             _processDir;
   private String             _pid;
   private boolean            _deleteOnKill                 = false;
-  private transient LockOwner _lockOwner;
+  private ProcessLock        _lock                         = new ProcessLock();
   private long               _creationTime                 = System.currentTimeMillis();
   private long               _lastAccess                   = System.currentTimeMillis();
   private int                _shutdownTimeout              = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
@@ -92,7 +91,6 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private transient List<AbstractCommand>  _commands       = new ArrayList<AbstractCommand>();
   private List<ActivePort>   _activePorts                  = new ArrayList<ActivePort>();
   private transient org.sapia.corus.interop.Status _processStatus;
-
   
   Process(){}
   
@@ -192,6 +190,15 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public String getProcessDir() {
     return _processDir;
   }
+  
+  /**
+   * Sets this instance's process private directory.
+   * 
+   * @param dir a valid directory path.
+   */
+  public void setProcessDir(String dir) {
+    _processDir = dir;
+  }
 
   /**
    * Returns the time at which this instance was created.
@@ -209,6 +216,15 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   public int getShutdownTimeout() {
     return _shutdownTimeout;
+  }
+  
+  /**
+   * Sets this instance's shutdown timeout.
+   *
+   * @param timeout a timeout in seconds.
+   */
+  public void setShutdownTimeout(int timeout) {
+    _shutdownTimeout = timeout;
   }
   
   /**
@@ -247,6 +263,15 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public int getMaxKillRetry() {
     return _maxKillRetry;
   }
+  
+  /**
+   * Sets this instance's max number of kill retries.
+   * 
+   * @param retry a max number of retries.
+   */
+  public void setMaxKillRetry(int retry) {
+    _maxKillRetry = retry;
+  }
 
   /**
    * @return the OS-specific process identifier corresponding to this
@@ -255,34 +280,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public String getOsPid() {
     return _pid;
   }
-
-  /**
-   * Sets this instance's shutdown timeout.
-   *
-   * @param timeout a timeout in seconds.
-   */
-  public void setShutdownTimeout(int timeout) {
-    _shutdownTimeout = timeout;
-  }
-
-  /**
-   * Sets this instance's max number of kill retries.
-   * 
-   * @param retry a max number of retries.
-   */
-  public void setMaxKillRetry(int retry) {
-    _shutdownTimeout = retry;
-  }
-
-  /**
-   * Sets this instance's process private directory.
-   * 
-   * @param dir a valid directory path.
-   */
-  public void setProcessDir(String dir) {
-    _processDir = dir;
-  }
-
+  
   /**
    * Sets this instance's OS-specific process identifier.
    * 
@@ -393,57 +391,6 @@ public class Process extends AbstractPersistent<String, Process> implements java
   }
 
   /**
-   * Acquires the lock on this instance.
-   * 
-   * @param leaser the object that attempts to obtain the lock on this instance.
-   * @throws ProcessLockException if this instance is already locked by another object.
-   */
-  public synchronized void acquireLock(LockOwner leaser) throws ProcessLockException {
-    if ((_lockOwner != null) && (!_lockOwner.equals(leaser))) {
-      throw new ProcessLockException("Process is currently locked - probably in shutdown; try again");
-    }
-
-    _lockOwner = leaser;
-  }
-  
-  public static LockOwner createLockOwner(){
-    return new LockOwner();
-  }
-  
-  @Transient
-  public LockOwner getLockOwner(){
-    return _lockOwner;
-  }
-   
-  /**
-   * Forces the releases of the lock on this instance.
-   */
-  public synchronized void releaseLock() {
-    _lockOwner = null;
-  }
-  
-  /**
-   * @return <code>true</code> if this instance is locked.
-   */
-  @Transient
-  public synchronized boolean isLocked() {
-    return _lockOwner != null;
-  }
-  
-  /**
-   * Releases this instance's lock, ONLY if the passed in instance
-   * is the owner of the lock (otherwise, this method has no effect).
-   * 
-   * @param leaser the object that attempts to release this
-   * instance's locked.
-   */
-  public synchronized void releaseLock(LockOwner leaser) {
-    if ((_lockOwner != null) && (_lockOwner.equals(leaser))) {
-      _lockOwner = null;
-    }
-  }
-  
-  /**
    * @return this instance's {@link LifeCycleStatus}.
    */
   public LifeCycleStatus getStatus() {
@@ -484,13 +431,43 @@ public class Process extends AbstractPersistent<String, Process> implements java
   public List<AbstractCommand> getCommands(){
     return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
   }
+  
+  /**
+   * Returns the {@link ProcessLock} on this instance.
+   * 
+   * @return a {@link ProcessLock}.
+   */
+  public ProcessLock getLock() {
+    return _lock;
+  }
+  
+  void setLock(ProcessLock lock){
+    _lock = lock;
+  }
+  
+  /**
+   * Clears this instance's state:
+   * 
+   * <ul>
+   *  <li>Empties this instance's command queue (see {@link #getCommands()}).
+   *  <li>Sets this instance's creation to the current time.
+   *  <li>Sets this instance's last access time to the current time.
+   *  <li>Sets this instance's status to {@link LifeCycleStatus#ACTIVE}.
+   * </ul>
+   */
+  public void clear(){
+    if(_commands != null) _commands.clear();
+    _creationTime = System.currentTimeMillis();
+    _lastAccess = System.currentTimeMillis();
+    _status = LifeCycleStatus.ACTIVE;
+  }
 
   public String toString() {
    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
       .append("pid", _processID)
       .append("OS pid", _pid)
       .append("status", _status)
-      .append("isLocked", _lockOwner != null)
+      .append("isLocked", _lock.isLocked())
       .toString();
   }
   

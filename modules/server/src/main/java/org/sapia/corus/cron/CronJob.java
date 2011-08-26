@@ -2,10 +2,10 @@ package org.sapia.corus.cron;
 
 
 import org.sapia.corus.client.annotations.Transient;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.util.progress.ProgressQueueLogger;
@@ -70,9 +70,13 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
   public void handleAlarm(AlarmEntry entry) {
     try {
       Processor     proc  = _serverContext.getServices().getProcessor();
-      ProgressQueue queue = proc.exec(ArgFactory.parse(_info.getDistribution()),
-                                      ArgFactory.parse(_info.getVersion()), _info.getProfile(),
-                                      ArgFactory.parse(_info.getProcessName()), 1);
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .distribution(_info.getDistribution())
+        .version(_info.getVersion())
+        .profile(_info.getProfile())
+        .name(_info.getProcessName())
+        .build();
+      ProgressQueue queue = proc.exec(criteria, 1);
       _owner.logger().info("executing schedule VM " + _info);
       ProgressQueueLogger.transferMessages(_owner.logger(), queue);
     } catch (Throwable t) {

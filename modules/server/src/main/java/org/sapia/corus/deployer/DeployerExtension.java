@@ -8,6 +8,7 @@ import java.util.List;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.http.HttpContext;
@@ -15,6 +16,7 @@ import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.net.TCPAddress;
+
 import simple.http.Request;
 
 public class DeployerExtension implements HttpExtension{
@@ -116,19 +118,10 @@ public class DeployerExtension implements HttpExtension{
   
   private List<Distribution> filterDists(Request req) throws IOException{
     Arg d = arg(PARAM_DIST, req);
-    Arg v = arg(PARAM_VERSION, req);    
+    Arg v = arg(PARAM_VERSION, req);
     
-    List<Distribution> dists;
-    if(d != null && v != null){
-      dists = _deployer.getDistributions(d, v);
-    }
-    else if(d != null){
-      dists = _deployer.getDistributions(d);
-    }
-    else{
-      dists = _deployer.getDistributions();
-    }
-    return dists;
+    DistributionCriteria criteria = DistributionCriteria.builder().name(d).version(v).build();
+    return _deployer.getDistributions(criteria);
   }
   
   private void attribute(String name, Object value, PrintStream ps){

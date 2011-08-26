@@ -13,13 +13,13 @@ import java.util.List;
  * @author yduchesne
  *
  */
-public abstract class Task {
+public abstract class Task<R,P> {
 
-  private List<Task> children = Collections.synchronizedList(new ArrayList<Task>());
+  private List<Task<?,?>> children = Collections.synchronizedList(new ArrayList<Task<?,?>>());
   private volatile boolean aborted;
   private volatile int executionCount, maxExecution;
   private String name;
-  private Task parent;
+  private Task<?,?> parent;
 
   /**
    * Creates a new instance of this class.
@@ -61,7 +61,7 @@ public abstract class Task {
    * @return an arbitrary object resulting from the execution.
    * @throws Throwable if an error occurs during execution.
    */
-  public abstract Object execute(TaskExecutionContext ctx) throws Throwable;
+  public abstract R execute(TaskExecutionContext ctx, P param) throws Throwable;
 
   /**
    * @return <code>true</code> if this task has no parent.
@@ -149,14 +149,14 @@ public abstract class Task {
   /**
    * @return this instance's parent {@link Task}
    */
-  Task getParent() {
+  Task<?,?> getParent() {
     return parent;
   }
   
   /**
    * @param child a {@link Task} to add to this instance.
    */
-  void addChild(Task child){
+  void addChild(Task<?,?> child){
     if(child != this){
       child.parent = this;
       children.add(child);

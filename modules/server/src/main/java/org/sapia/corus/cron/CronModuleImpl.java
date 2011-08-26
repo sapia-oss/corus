@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cron.DuplicateScheduleException;
@@ -17,6 +16,7 @@ import org.sapia.corus.client.services.cron.CronModule;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,9 +88,11 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
     if (_logger.isInfoEnabled()) {
       _logger.info("adding cron job: " + info);
     }
-
-    if (!_deployer.getDistribution(ArgFactory.parse(info.getDistribution()), 
-        ArgFactory.parse(info.getVersion())).containsProcess(info.getProcessName())) {
+    
+    if (!_deployer.getDistribution(DistributionCriteria.builder()
+        .name(info.getDistribution())
+        .version(info.getVersion()).build())
+        .containsProcess(info.getProcessName())) {
       throw new ProcessConfigurationNotFoundException("Invalid process name: " + info.getProcessName());
     }
 

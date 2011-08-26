@@ -22,37 +22,14 @@ public interface Processor extends java.rmi.Remote, Module {
   /**
    * Starts process(es) corresponding to the passed in parameters.
    *
-   * @param distName the name of the distribution for which to start
-   * new process(es).
-   * @param version the version of the distribution for which to start
-   * new process(es).
-   * @param profile the name of the profile under which the new process(es)
-   * should be started.
+   * @param criteria the {@link ProcessCriteria} indicating which process should be executed.
    * @param instances the number of process(es) to start.
    *
    * @return a {@link ProgressQueue}
    */
-  public ProgressQueue exec(Arg distName, Arg version, String profile,
-                            int instances) throws TooManyProcessInstanceException;;
-
-  /**
-   * Starts process(es) corresponding to the passed in parameters.
-   *
-   * @param distName the name of the distribution for which to start
-   * new process(es).
-   * @param version the version of the distribution for which to start
-   * new process(es).
-   * @param profile the name of the profile under which the new process(es)
-   * should be started.
-   * @param processName the name of the process configuration for which new process(es)
-   * should be started.
-   * @param instances the number of process(es) to start.
-   *
-   * @return a {@link ProgressQueue}.
-   */
-  public ProgressQueue exec(Arg distName, Arg version, String profile,
-                            Arg processName, int instances) throws TooManyProcessInstanceException;
-
+  public ProgressQueue exec(ProcessCriteria criteria,
+                            int instances) throws TooManyProcessInstanceException;
+                            
   /**
    * 
    * @param execConfigName the name of the execution configuration from which to start
@@ -84,54 +61,18 @@ public interface Processor extends java.rmi.Remote, Module {
   /**
    * Restarts the process(es) corresponding to the passed in parameters.
    *
-   * @param distName the name of the distribution for which to kill
-   * running processes.
-   * @param version the version of the distribution for which to kill
-   * running processes.
-   * @param profile the name of the profile for which to kill the running process(es).
-   * @param suspend if <code>true</code>, indicates that the process should be suspended.
+   * @param criteria the {@link ProcessCriteria} indicating which process should be restarted.
    */
-  public void restart(Arg distName, Arg version, String profile);
-
-  /**
-   * Restarts the process(es) corresponding to the passed in parameters.
-   *
-   * @param distName the name of the distribution for which to kill
-   * running processes.
-   * @param version the version of the distribution for which to kill
-   * running processes.
-   * @param profile the name of the profile for which to kill the running process(es).
-   * @param processName the name of the process configuration for which to kill the running process(es).
-   * @param suspend if <code>true</code>, indicates that the process should be suspended.
-   */
-  public void restart(Arg distName, Arg version, String profile, Arg processName);  
+  public void restart(ProcessCriteria criteria);
 
   /**
    * Kill the process(es) corresponding to the passed in parameters.
    *
-   * @param distName the name of the distribution for which to kill
-   * running processes.
-   * @param version the version of the distribution for which to kill
-   * running processes.
-   * @param profile the name of the profile for which to kill the running process(es).
+   * @param criteria the {@link ProcessCriteria} indicating which process should be restarted.
    * @param suspend if <code>true</code>, indicates that the process should be suspended.
    */
-  public void kill(Arg distName, Arg version, String profile,
+  public void kill(ProcessCriteria criteria,
                    boolean suspend);
-
-  /**
-   * Kill the process(es) corresponding to the passed in parameters.
-   *
-   * @param distName the name of the distribution for which to kill
-   * running processes.
-   * @param version the version of the distribution for which to kill
-   * running processes.
-   * @param profile the name of the profile for which to kill the running process(es).
-   * @param processName the name of the process configuration for which to kill the running process(es).
-   * @param suspend if <code>true</code>, indicates that the process should be suspended.
-   */
-  public void kill(Arg distName, Arg version, String profile,
-                   Arg processName, boolean suspend);
 
   /**
    * Kills the process with the given identifier.
@@ -150,50 +91,9 @@ public interface Processor extends java.rmi.Remote, Module {
   public Process getProcess(String corusPid) throws ProcessNotFoundException;
 
   /**
-   * Returns all process objects held by this instance.
-   *
-   * @return a {@link List} of {@link Process} instances.
+   * Returns the processes that match the given criteria.
    */
-  public List<Process> getProcesses();
-
-  /**
-   * Returns all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return processes.
-   * @return a {@link List} of {@link Process} instances.
-   */
-  public List<Process> getProcesses(Arg distName);
-
-  /**
-   * Returns all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return processes.
-   * @param version the version of the distribution for which to return processes.
-   * @return a {@link List} of {@link Process} instances.
-   */
-  public List<Process> getProcesses(Arg distName, Arg version);
-
-  /**
-   * Returns all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return processes.
-   * @param version the version of the distribution for which to return processes.
-   * @param profile the profile for which to return processes.
-   * @return a {@link List} of {@link Process} instances.
-   */
-  public List<Process> getProcesses(Arg distName, Arg version, String profile);
-
-  /**
-   * Returns all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return processes.
-   * @param version the version of the distribution for which to return processes.
-   * @param profile the profile for which to return VM processes.
-   * @param processName the name of the process for which to return process instances.
-   * @return a {@link List} of {@link Process} instances.
-   */
-  public List<Process> getProcesses(Arg distName, Arg version, String profile,
-      Arg processName);
+  public List<Process> getProcesses(ProcessCriteria criteria);
   
   /**
    * Return the status of the process whose identifier is given..
@@ -204,58 +104,19 @@ public interface Processor extends java.rmi.Remote, Module {
   public ProcStatus getStatusFor(String corusPid) throws ProcessNotFoundException;
 
   /**
-   * Returns the status for all processes.
-   *
+   * Returns the status for the processes that match the given criteria.
+   * 
+   * @param criteria the {@link ProcessCriteria} indicating which process should be restarted.
    * @return a {@link List} of {@link Status} instances.
    */
-  public List<Status> getStatus();
+  public List<Status> getStatus(ProcessCriteria criteria);
 
-  /**
-   * Returns the status of all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which process should have their status returned.
-   * @return a {@link List} of {@link Status} instances.
-   */
-  public List<Status> getStatus(Arg distName);
-
-  /**
-   * Returns the status of all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return process status.
-   * @param version the version of the distribution for which to return process status.
-   * @return a {@link List} of {@link Status} instances.
-   */
-  public List<Status> getStatus(Arg distName, Arg version);
-
-  /**
-   * Returns the status of all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return process status.
-   * @param version the version of the distribution for which to return process status.
-   * @param profile the profile for which to return process status.
-   * @return a {@link List} of {@link Status} instances.
-   */
-  public List<Status> getStatus(Arg distName, Arg version, String profile);
-
-  /**
-   * Returns the status of all processes corresponding to the given parameters.
-   *
-   * @param distName the name of the distribution for which to return process status.
-   * @param version the version of the distribution for which to return process status.
-   * @param profile the profile for which to return process status.
-   * @param processName the name of the process for which to return process status.
-   * @return a {@link List} of {@link Status} instances.
-   */
-  public List<Status> getStatus(Arg distName, Arg version, String profile,
-      Arg processName);
-  
   /**
    * Returns all processes that have acquired one or more ports.
    *
    * @return a {@link List} of {@link Process} instances.
    */  
   public List<Process> getProcessesWithPorts();
-  
  
   /**
    * @param conf adds an {@link ExecConfig} to this instance.

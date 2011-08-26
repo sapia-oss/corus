@@ -12,11 +12,11 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  */
 public class AntTaskHelper {
   
-  public static Task init(String name, org.apache.tools.ant.Task antTask) {
+  public static Task<Void,Void> init(String name, org.apache.tools.ant.Task antTask) {
     return new DynAntTask(name, antTask);
   }
 
-  static class DynAntTask extends Task{
+  static class DynAntTask extends Task<Void,Void>{
     private org.apache.tools.ant.Task _antTask;
 
     DynAntTask(String name, org.apache.tools.ant.Task antTask) {
@@ -25,7 +25,7 @@ public class AntTaskHelper {
     }
     
     @Override
-    public Object execute(TaskExecutionContext ctx) throws Throwable {
+    public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
       try {
         Project p = new Project();
         p.addBuildListener(new AntTaskLog(ctx));

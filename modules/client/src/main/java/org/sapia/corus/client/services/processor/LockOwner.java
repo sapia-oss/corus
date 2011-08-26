@@ -16,6 +16,15 @@ public class LockOwner implements Serializable{
   static synchronized int increment(){
     return counter++;
   }
+
+  /**
+   * Creates a new instance of this class.
+   * 
+   * @return a new {@link LockOwner} instance.
+   */
+  public static LockOwner createInstance(){
+    return new LockOwner();
+  }
   
   @Override
   public int hashCode() {

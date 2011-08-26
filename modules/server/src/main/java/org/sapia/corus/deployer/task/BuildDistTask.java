@@ -17,7 +17,7 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  *
  * @author Yanick Duchesne
  */
-public class BuildDistTask extends Task {
+public class BuildDistTask extends Task<Void,Void> {
   private String            _deployDir;
   private DistributionDatabase _store;
 
@@ -27,7 +27,7 @@ public class BuildDistTask extends Task {
   }
 
   @Override
-  public Object execute(TaskExecutionContext ctx) throws Throwable {
+  public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     File   f = new File(_deployDir);
 
     File[] distDirs = f.listFiles();

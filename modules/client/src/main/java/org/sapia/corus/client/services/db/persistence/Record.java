@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.db.persistence;
 
 import java.io.Serializable;
 
+import org.sapia.corus.client.exceptions.db.StaleObjectException;
 import org.sapia.corus.client.services.db.DbMap;
 
 /**
@@ -12,6 +13,9 @@ import org.sapia.corus.client.services.db.DbMap;
  * @param <V>
  */
 public class Record<V> implements Serializable{
+  
+  public static final Long MIN_VERSION = 1L;
+  public static final Long NULL_VERSION = 0L;
 
   static final long serialVersionUID = 1L;
   
@@ -43,7 +47,19 @@ public class Record<V> implements Serializable{
   public void updateWith(ClassDescriptor<V> cd, Object instance){
     for(int i = 0; i < values.length; i++){
       FieldDescriptor fd = cd.getFieldForIndex(i);
-      values[i]  = fd.invokeAccessor(instance);
+      Object toAssign = fd.invokeAccessor(instance); 
+      if(fd.isVersion()){
+        if(!values[i].equals(toAssign)){
+          throw new StaleObjectException(String.format("Stale object: %s; concurrent update has occurred", instance));
+        }
+        else{
+          values[i] = incrementVersion((Long)values[i]);
+          fd.invokeMutator(instance, values[i]);
+        }
+      }
+      else{
+        values[i]  = toAssign;
+      }
     }
   }
   
@@ -57,7 +73,14 @@ public class Record<V> implements Serializable{
     Object[] values = new Object[cd.getFieldCount()];
     for(int i = 0; i < values.length; i++){
       FieldDescriptor fd = cd.getFieldForIndex(i);
-      values[i]  = fd.invokeAccessor(instance);
+      Object value = fd.invokeAccessor(instance);
+      if(fd.isVersion()){
+        if(value == null || value.equals(NULL_VERSION)){
+          value = MIN_VERSION;
+          fd.invokeMutator(instance, value);
+        }
+      }
+      values[i]  = value;
     }
     return new Record<T>(values);
   }
@@ -118,6 +141,15 @@ public class Record<V> implements Serializable{
       }
     }
     return sb.toString();
+  }
+  
+  private Long incrementVersion(Long current){
+    if(current.longValue() + 1 == Long.MAX_VALUE){
+      return MIN_VERSION;
+    }
+    else{
+      return new Long(current.longValue() + 1);
+    }
   }
   
 }

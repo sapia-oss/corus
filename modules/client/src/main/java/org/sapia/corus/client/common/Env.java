@@ -1,5 +1,7 @@
 package org.sapia.corus.client.common;
 
+import java.io.FileNotFoundException;
+
 import org.sapia.corus.client.services.deployer.dist.Property;
 
 /**
@@ -69,7 +71,13 @@ public interface Env {
    */
   public String getJavaLibDir();
   
+  /**
+   * @return the path to the Corus IOP lib.
+   */
   public String getCorusIopLibPath();
-  
+
+  /**
+   * @return the path to the Java starter lib.
+   */
   public String getJavaStarterLibPath();
 }

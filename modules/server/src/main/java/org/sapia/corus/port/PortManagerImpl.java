@@ -152,7 +152,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     while(ranges.hasNext()){
       PortRange range = (PortRange)ranges.next();
       if(logger().isDebugEnabled()){
-        logger().debug("Returning port range: " + range.getName() + "[" + range.getMin() + " - " + range.getMax());
+        logger().debug("Returning port range: " + range.getName() + "[" + range.getMin() + " - " + range.getMax() + "]");
       }
       lst.add(range);    
     }

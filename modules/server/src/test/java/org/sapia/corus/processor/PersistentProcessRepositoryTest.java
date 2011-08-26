@@ -11,6 +11,7 @@ import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.db.CachingDbMap;
 import org.sapia.corus.db.TestDbModule;
 import org.sapia.corus.interop.Context;
@@ -88,11 +89,11 @@ public class PersistentProcessRepositoryTest {
     
     LockOwner lck = new LockOwner();
     repo.getActiveProcesses().addProcess(proc);
-    proc.acquireLock(lck);
+    proc.getLock().acquire(lck);
     proc.save();
     
     Process updated = repo.getActiveProcesses().getProcess(proc.getProcessID());
-    Assert.assertTrue("Process should be locked", updated.isLocked());
+    Assert.assertTrue("Process should be locked", updated.getLock().isLocked());
   }
 
   @Test
@@ -112,7 +113,7 @@ public class PersistentProcessRepositoryTest {
     Assert.assertTrue(withStatus.getProcessStatus() != null);
     
     boolean found = false;
-    for(Process p: repo.getActiveProcesses().getProcesses()){
+    for(Process p: repo.getActiveProcesses().getProcesses(ProcessCriteria.builder().all())){
       if(p.getProcessID().equals(proc.getProcessID())){
         Assert.assertTrue(p.getProcessStatus() != null);
         found = true;

@@ -27,7 +27,7 @@ public class EnvImpl implements Env{
    * @param distDir the path to the distribution directory of the process to start.
    * @param commonDir the path to the "common" directory of the process to start - corresponds to user.dir.
    * @param processDir the path to the process directory.
-   * @param props a <code>Property[]</code> instance that corresponds to the properties that will
+   * @param props an array of {@link Property} instances that corresponds to the properties that will
    * be dynamically passed to the started process.
    */
   public EnvImpl(String corusHome, String profile, String distDir, String commonDir, String processDir,
@@ -123,14 +123,14 @@ public class EnvImpl implements Env{
         return name.startsWith(libName);
       }
     });
-    if(matching.length == 0){ 
+    if(matching == null || matching.length == 0){ 
       throw new IllegalStateException(
-          String.format("Could not find lib " + libName + " under " + basedirName)
+          String.format("Could not find lib %s under %s", libName, basedirName)
       );
     }
     if(matching.length > 1){ 
       throw new IllegalStateException(
-          String.format("More than one match for lib " + libName + " under " + basedirName)
+          String.format("More than one match for lib %s under %s", libName, basedirName)
       );
     }   
     return matching[0].getAbsolutePath();

@@ -8,18 +8,6 @@ import java.util.Map;
  * <code>UriPatternHelper</code> class.
  * 
  * @author Yanick Duchesne
- * 
- * <dl>
- * <dt><b>Copyright: </b>
- * <dd>Copyright &#169; 2002-2011 <a href="http://www.sapia-oss.org">Sapia Open
- * Source Software </a>. All Rights Reserved.</dd>
- * </dt>
- * <dt><b>License: </b>
- * <dd>Read the license.txt file of the jar or visit the <a
- * href="http://www.sapia-oss.org/license.html">license page </a> at the Sapia
- * OSS web site</dd>
- * </dt>
- * </dl>
  */
 public class UriPattern {
 
@@ -65,18 +53,6 @@ public class UriPattern {
    * This class represents the result of a pattern-matching operation
    * 
    * @author Yanick Duchesne
-   * 
-   * <dl>
-   * <dt><b>Copyright: </b>
-   * <dd>Copyright &#169; 2002-2011¯ <a href="http://www.sapia-oss.org">Sapia
-   * Open Source Software </a>. All Rights Reserved.</dd>
-   * </dt>
-   * <dt><b>License: </b>
-   * <dd>Read the license.txt file of the jar or visit the <a
-   * href="http://www.sapia-oss.org/license.html">license page </a> at the Sapia
-   * OSS web site</dd>
-   * </dt>
-   * </dl>
    */
   public static final class MatchResult {
 

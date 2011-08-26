@@ -19,11 +19,11 @@ public class ProcessTest {
   @Test
   public void testAcquireLock() throws Exception{
     Process proc = new Process(new DistributionInfo("dist", "1.0", "prod", "app"));
-    LockOwner lockOwner = Process.createLockOwner();
-    proc.acquireLock(lockOwner);
-    LockOwner lockOwner2 = Process.createLockOwner();
+    LockOwner lockOwner = LockOwner.createInstance();
+    proc.getLock().acquire(lockOwner);
+    LockOwner lockOwner2 = LockOwner.createInstance();
     try {
-      proc.acquireLock(lockOwner2);
+      proc.getLock().acquire(lockOwner2);
       Assert.fail("Process lock should not have been acquired");
     } catch (ProcessLockException e) {
       //ok
@@ -33,8 +33,8 @@ public class ProcessTest {
   @Test
   public void testIsLocked() throws Exception{
     Process proc = new Process(new DistributionInfo("dist", "1.0", "prod", "app"));
-    proc.acquireLock(Process.createLockOwner());
-    Assert.assertTrue("Process should be locked", proc.isLocked());
+    proc.getLock().acquire(LockOwner.createInstance());
+    Assert.assertTrue("Process should be locked", proc.getLock().isLocked());
   }
   
   @Test 

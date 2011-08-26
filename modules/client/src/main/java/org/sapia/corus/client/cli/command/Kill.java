@@ -14,6 +14,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 
 /**
@@ -48,12 +49,16 @@ public class Kill extends CorusCliCommand {
     // Kill ALL
     if(cmd.isNextArg()){
       cmd.assertNextArg(new String[]{ARG_ALL});
-      MatchCompletionHook completion = new MatchCompletionHook(WILD_CARD, WILD_CARD, null, null);
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .distribution(WILD_CARD)
+        .version(WILD_CARD)
+        .build();      
+      MatchCompletionHook completion = new MatchCompletionHook(criteria);
       ClusterInfo cluster = getClusterInfo(ctx);
       if (_suspend) {
-        ctx.getCorus().getProcessorFacade().suspend(WILD_CARD, WILD_CARD, null, cluster);
+        ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
       } else {
-        ctx.getCorus().getProcessorFacade().kill(WILD_CARD, WILD_CARD, null, cluster);
+        ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
       }
       waitForKillCompletion(ctx, completion);
     }
@@ -112,31 +117,34 @@ public class Kill extends CorusCliCommand {
       if (cmd.containsOption(VM_NAME_OPT, true)) {
         vmName = cmd.assertOption(VM_NAME_OPT, true).getValue();
       }
+      
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .name(vmName)
+        .profile(profile)
+        .distribution(dist)
+        .version(version)
+        .build();      
   
       ClusterInfo cluster = getClusterInfo(ctx);
 
       ctx.getConsole().println("Proceeding to kill...");
-      MatchCompletionHook completion = new MatchCompletionHook(dist, version, profile, vmName);
-      if (vmName != null) {
-        if (_suspend) {
-          ctx.getCorus().getProcessorFacade().suspend(dist, version, profile, vmName, cluster);
-        } else {
-          ctx.getCorus().getProcessorFacade().kill(dist, version, profile, vmName, cluster);
-        }
+      MatchCompletionHook completion = new MatchCompletionHook(criteria);
+      if (_suspend) {
+        ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
       } else {
-        if (_suspend) {
-          ctx.getCorus().getProcessorFacade().suspend(dist, version, profile, cluster);
-        } else {
-          ctx.getCorus().getProcessorFacade().kill(dist, version, profile, cluster);
-        }
+        ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
       }
+
       waitForKillCompletion(ctx, completion);
     }
   }
   
   protected void killProcessByVmId(CliContext ctx, String vmId) throws InputException {
     Process processToKill = null;
-    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(new ClusterInfo(false));
+    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(
+        ProcessCriteria.builder().all(), 
+        new ClusterInfo(false)
+    );
     while (results.hasNext() && processToKill == null) {
       Result<List<Process>> processes = results.next();
       for(Process process:processes.getData()){
@@ -156,7 +164,10 @@ public class Kill extends CorusCliCommand {
   
   protected String killProcessByOsPid(CliContext ctx, String osPid) throws InputException {
     Process processToKill = null;
-    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(new ClusterInfo(false));
+    Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(
+        ProcessCriteria.builder().all(), 
+        new ClusterInfo(false)
+    );
     while (results.hasNext() && processToKill == null) {
       Result<List<Process>> processes = results.next();
       for(Process process:processes.getData()){
@@ -257,25 +268,16 @@ public class Kill extends CorusCliCommand {
   }
   
   class MatchCompletionHook implements KillCompletionHook{
-    String dist, version, profile, process;
+      
+    ProcessCriteria criteria;
 
-    public MatchCompletionHook(String dist, String version, String profile, String process) {
-      this.dist = dist;
-      this.version = version;
-      this.process = process;
-      this.profile = profile;
+    public MatchCompletionHook(ProcessCriteria criteria) {
+      this.criteria = criteria;
     }
     
     public boolean isCompleted(CliContext ctx) {
       ClusterInfo cluster = getClusterInfo(ctx);
-      boolean completed = true;
-      if(process != null){
-        completed = isCompleted(ctx.getCorus().getProcessorFacade().getProcesses(dist, version, profile, process, cluster));
-      }
-      else{
-        completed = isCompleted(ctx.getCorus().getProcessorFacade().getProcesses(dist, version, cluster));
-      }
-      return completed;
+      return isCompleted(ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster));
     }
     
     private boolean isCompleted(Results<List<Process>> results){

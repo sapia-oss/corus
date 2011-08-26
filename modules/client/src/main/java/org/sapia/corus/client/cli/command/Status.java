@@ -13,6 +13,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.ProcStatus;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.interop.Context;
 import org.sapia.corus.interop.Param;
 import org.sapia.ubik.net.ServerAddress;
@@ -69,23 +70,17 @@ public class Status extends CorusCliCommand {
       } catch (ProcessNotFoundException e) {
         throw new InputException(e.getMessage());
       }
-    } else if ((dist != null) && (version != null) && (profile != null) &&
-                 (vmName != null)) {
-      res = ctx.getCorus().getProcessorFacade().getStatus(dist, version, profile, vmName, cluster);
-      displayResults(res, ctx);
-    } else if ((dist != null) && (version != null) && (profile != null)) {
-      res = ctx.getCorus().getProcessorFacade().getStatus(dist, version, profile, cluster);
-      displayResults(res, ctx);
-    } else if ((dist != null) && (version != null)) {
-      res = ctx.getCorus().getProcessorFacade().getStatus(dist, version, cluster);
-      displayResults(res, ctx);
-    } else if (dist != null) {
-      res = ctx.getCorus().getProcessorFacade().getStatus(dist, cluster);
-      displayResults(res, ctx);
     } else {
-      res = ctx.getCorus().getProcessorFacade().getStatus(cluster);
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .name(vmName)
+        .distribution(dist)
+        .version(version)
+        .profile(profile)
+        .build();
+      
+      res = ctx.getCorus().getProcessorFacade().getStatus(criteria, cluster);
       displayResults(res, ctx);
-    }
+    } 
   }
 
   private void displayResults(Results<List<ProcStatus>> res, CliContext ctx) {

@@ -14,6 +14,7 @@ import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.interop.Context;
@@ -174,20 +175,14 @@ public class ProcessorExtension implements HttpExtension{
         processes = new ArrayList<Process>(0);
       }
     }
-    else if(p != null && d != null && v != null && n != null){
-      processes = _processor.getProcesses(d, v, p, n);
-    }
-    else if(p != null && d != null && v != null){
-      processes = _processor.getProcesses(d, v, p);
-    }
-    else if(d != null && v != null){
-      processes = _processor.getProcesses(d, v);
-    }
-    else if(d != null){
-      processes = _processor.getProcesses(d);
-    }
     else{
-      processes = _processor.getProcesses();
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .distribution(d)
+        .version(v)
+        .name(n)
+        .profile(p)
+        .build();
+      processes = _processor.getProcesses(criteria);
     }
     return processes;
   }

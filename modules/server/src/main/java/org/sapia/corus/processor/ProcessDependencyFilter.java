@@ -11,9 +11,11 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Dependency;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 
 public class ProcessDependencyFilter {
@@ -50,13 +52,19 @@ public class ProcessDependencyFilter {
       @Override
       public List<org.sapia.corus.client.services.processor.Process> getProcesses(Arg distName, Arg version, String profile,
           Arg processName){
-        return processor.getProcesses(distName, version, profile, processName);
+        ProcessCriteria criteria = ProcessCriteria.builder()
+          .distribution(distName)
+          .version(version)
+          .profile(profile)
+          .name(processName)
+          .build();
+        return processor.getProcesses(criteria);
       }
       
       @Override
       public Distribution getDistribution(Arg name, Arg version)
           throws DistributionNotFoundException {
-        return deployer.getDistribution(name, version);
+        return deployer.getDistribution(DistributionCriteria.builder().name(name).version(version).build());
       }
     };
     

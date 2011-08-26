@@ -15,20 +15,22 @@ public abstract class AbstractPersistent<K, V> implements Persistent<K, V>{
   
   @Override
   @SuppressWarnings(value="unchecked")
-  public void save() {
-    if(db == null){
-      throw new IllegalStateException("DB Map not set; cannot save");
+  public boolean save() {
+    if(db != null){
+      db.put(this.getKey(), (V)this);
+      return true;
     }
-    db.put(this.getKey(), (V)this);
+    return false;
   }
   
   @Override
   @SuppressWarnings(value="unchecked")
-  public void refresh() {
-    if(db == null){
-      throw new IllegalStateException("DB Map not set; cannot refresh");
+  public boolean refresh() {
+    if(db != null){
+      db.refresh(getKey(), (V)this);
+      return true;
     }
-    db.refresh(getKey(), (V)this);
+    return false;
   }
 
 }

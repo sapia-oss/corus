@@ -7,13 +7,12 @@ import org.apache.tools.ant.taskdefs.Expand;
 import org.sapia.corus.taskmanager.AntTaskHelper;
 import org.sapia.corus.taskmanager.core.Task;
 
-
 /**
  * @author Yanick Duchesne
  */
 public class TaskFactory {
 
-  public static Task newUnjarTask(File srcJar, File destDir) {
+  public static Task<Void,Void> newUnjarTask(File srcJar, File destDir) {
     Expand unzip = new Expand();
     unzip.setSrc(srcJar);
     unzip.setDest(destDir);
@@ -21,14 +20,14 @@ public class TaskFactory {
     return AntTaskHelper.init("UnzipTask", unzip);
   }
 
-  public static Task newDeleteFileTask(File toDelete) {
+  public static Task<Void,Void> newDeleteFileTask(File toDelete) {
     Delete del = new Delete();
     del.setFile(toDelete);
 
     return AntTaskHelper.init("DeleteFileTask", del);
   }
 
-  public static Task newDeleteDirTask(File toDelete) {
+  public static Task<Void,Void> newDeleteDirTask(File toDelete) {
     Delete del = new Delete();
     del.setDir(toDelete);
     del.setIncludeEmptyDirs(true);

@@ -26,21 +26,21 @@ public class TaskManagerImplTest extends TestCase {
 
   public void testExecute() throws Exception{
     TestTask t = new TestTask(getName());
-    tm.execute(t);
+    tm.execute(t, null);
     t.waitFor();
     assertTrue("Not completed", t.completed);
   }
 
   public void testExecuteAndWait() throws Exception{
     TestTask t = new TestTask(getName());
-    String result = (String)tm.executeAndWait(t).get();
+    String result = tm.executeAndWait(t, null).get();
     assertEquals("Result invalid", "TEST", result);
   }
   
   public void testExecuteAndWaitError() throws Exception{
     ErrorTask t = new ErrorTask(getName());
     try{
-      tm.executeAndWait(t).get();
+      tm.executeAndWait(t, null).get();
       fail("Expected InvocationTargetException");
     }catch(InvocationTargetException e){
       //ok
@@ -51,13 +51,13 @@ public class TaskManagerImplTest extends TestCase {
     TestTask t = new TestTask(getName());
     TestTaskLog log = new TestTaskLog();
 
-    tm.executeAndWait(t, new TaskConfig().setLog(log)).get();
+    tm.executeAndWait(t, null, new TaskConfig().setLog(log)).get();
     assertTrue("Parent log was not called", log.logged);
   }
 
   public void testExecuteBackground() throws Exception{
     TestTask t = new TestTask(getName());
-    tm.executeBackground(t, BackgroundTaskConfig.create().setExecDelay(200).setExecInterval(200));
+    tm.executeBackground(t, null, BackgroundTaskConfig.create().setExecDelay(200).setExecInterval(200));
     Thread.sleep(1000);
     t.abort();
     assertTrue("Task executed only once or less", t.getExecutionCount() > 1);
@@ -66,22 +66,12 @@ public class TaskManagerImplTest extends TestCase {
   public void testExecuteBackgroundWithMax() throws Exception{
     TestTask t = new TestTask(getName());
     t.setMaxExecution(3);
-    tm.executeBackground(t, BackgroundTaskConfig.create().setExecDelay(200).setExecInterval(200));
+    tm.executeBackground(t, null, BackgroundTaskConfig.create().setExecDelay(200).setExecInterval(200));
     Thread.sleep(1000);
     assertTrue("Task executed more than max", t.getExecutionCount() > 0 && t.getExecutionCount() <= 3);
   }
   
-  
-  /*
-  public void testNestedTask() throws Exception{
-    ContainerTask container = new ContainerTask();
-    tm.execute(container);
-    Thread.sleep(2000000);
-  }*/
-  
-
-  
-  class TestTask extends Task{
+  class TestTask extends Task<String, Void>{
     boolean completed;
     
     public TestTask(String name) {
@@ -89,7 +79,7 @@ public class TaskManagerImplTest extends TestCase {
     }
 
     @Override
-    public synchronized Object execute(TaskExecutionContext ctx) throws Throwable {
+    public synchronized String execute(TaskExecutionContext ctx, Void param) throws Throwable {
       try{
         ctx.getLog().debug(this, "executing... " + getExecutionCount());
         return "TEST";
@@ -113,7 +103,7 @@ public class TaskManagerImplTest extends TestCase {
     }
     
     @Override    
-    public Object execute(TaskExecutionContext ctx) throws Throwable {
+    public String execute(TaskExecutionContext ctx, Void param) throws Throwable {
       try{
         throw new Exception();
       }finally{
@@ -129,22 +119,22 @@ public class TaskManagerImplTest extends TestCase {
     public boolean isAdditive() {
       return false;
     }
-    public void debug(Task task, String msg) {
+    public void debug(Task<?, ?> task, String msg) {
       this.logged = true;
     }
-    public void info(Task task, String msg) {
+    public void info(Task<?, ?> task, String msg) {
       this.logged = true;
     }
-    public void warn(Task task, String msg) {
+    public void warn(Task<?, ?> task, String msg) {
       this.logged = true;
     }
-    public void warn(Task task, String msg, Throwable err) {
+    public void warn(Task<?, ?> task, String msg, Throwable err) {
       this.logged = true;
     }
-    public void error(Task task, String msg) {
+    public void error(Task<?, ?> task, String msg) {
       this.logged = true;
     }
-    public void error(Task task, String msg, Throwable err) {
+    public void error(Task<?, ?> task, String msg, Throwable err) {
       this.logged = true;
     }
     
@@ -154,16 +144,16 @@ public class TaskManagerImplTest extends TestCase {
   
   class TestTaskListener implements TaskListener{
 
-    private volatile boolean completed = false;
-    private volatile boolean failed, succeeded;
+    volatile boolean completed = false;
+    volatile boolean failed, succeeded;
 
-    public synchronized void executionFailed(Task task, Throwable err) {
+    public synchronized void executionFailed(Task<?, ?> task, Throwable err) {
       failed    = true;
       completed = true;
       notifyAll();
     }
     
-    public synchronized void executionSucceeded(Task task, Object result) {
+    public synchronized void executionSucceeded(Task<?, ?> task, Object result) {
       succeeded = true;
       completed = true;
       notifyAll();
@@ -177,21 +167,21 @@ public class TaskManagerImplTest extends TestCase {
     
   }
   
-  class ContainerTask extends Task{
+  class ContainerTask extends Task<Void, Void>{
     
     @Override
-    public Object execute(TaskExecutionContext ctx) throws Throwable {
+    public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
       ctx.debug("Executing container task");
-      ctx.getTaskManager().execute(new NestedTask());
+      ctx.getTaskManager().execute(new NestedTask(), null);
       return null;
     }
     
   }
   
-  class NestedTask extends Task{
+  class NestedTask extends Task<Void, Void>{
     
     @Override
-    public Object execute(TaskExecutionContext ctx) throws Throwable {
+    public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
       ctx.debug("Executing nested task");
       return null;
     }

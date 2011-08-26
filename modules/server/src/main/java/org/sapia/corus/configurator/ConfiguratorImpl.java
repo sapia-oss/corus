@@ -1,7 +1,6 @@
 package org.sapia.corus.configurator;
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;

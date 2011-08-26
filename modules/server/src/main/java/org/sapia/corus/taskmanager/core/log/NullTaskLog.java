@@ -16,26 +16,26 @@ public class NullTaskLog implements TaskLog{
   }
 
   @Override
-  public void debug(Task task, String msg) {
+  public void debug(Task<?,?> task, String msg) {
   }
 
   @Override
-  public void error(Task task, String msg, Throwable err) {
+  public void error(Task<?,?> task, String msg, Throwable err) {
   }
 
   @Override
-  public void error(Task task, String msg) {
+  public void error(Task<?,?> task, String msg) {
   }
 
   @Override
-  public void info(Task task, String msg) {
+  public void info(Task<?,?> task, String msg) {
   }
 
   @Override
-  public void warn(Task task, String msg, Throwable err) {
+  public void warn(Task<?,?> task, String msg, Throwable err) {
   }
 
   @Override
-  public void warn(Task task, String msg) {
+  public void warn(Task<?,?> task, String msg) {
   }
 }

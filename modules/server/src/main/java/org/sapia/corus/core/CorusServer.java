@@ -1,8 +1,8 @@
 package org.sapia.corus.core;
 
 import java.io.File;
-
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -45,6 +45,7 @@ public class CorusServer {
   public static final String PROP_SYSLOG_HOST     = "corus.server.syslog.host";
   public static final String PROP_SYSLOG_PORT     = "corus.server.syslog.port";
   public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
+  private static final String LOCK_FILE_NAME = ".lock";
   
   public static void main(String[] args) {
     //System.setProperty(Consts.LOG_LEVEL, "debug");
@@ -200,6 +201,10 @@ public class CorusServer {
       String host = Localhost.getLocalAddress().getHostAddress();
 
       CorusTransport aTransport = new TcpCorusTransport(host, port);
+      
+      // Create Lock file
+      File lockFile = new File(corusHome + File.separator + "bin" + File.separator + LOCK_FILE_NAME + "_" + domain + "_" + port);
+      IOUtils.createLockFile(lockFile);
    
       // Initialize Corus, export it and start it
       CorusImpl corus = new CorusImpl(h, new FileInputStream(aFilename), domain, new TCPAddress(host, port), aTransport, corusHome);

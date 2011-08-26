@@ -101,6 +101,10 @@ public class CachingDbMap<K, V> implements DbMap<K, V>{
 
   @Override
   public synchronized void remove(K key) {
+    V value = get(key);
+    if(value != null && value instanceof Persistent<?, ?>){
+      ((Persistent<?,?>)value).setDbMap(null);
+    }
     cache.remove(key);
     delegate.remove(key);
   }

@@ -7,16 +7,16 @@ import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.processor.ProcessDependencyFilter;
 import org.sapia.corus.processor.ProcessRef;
 import org.sapia.corus.processor.ProcessRepository;
-import org.sapia.corus.processor.StartupLock;
-import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.log.ProgressQueueTaskLog;
@@ -27,18 +27,16 @@ import org.sapia.corus.taskmanager.core.log.ProgressQueueTaskLog;
  * @author yduchesne
  *
  */
-public class ExecNewProcessesTask extends Task{
+public class ExecNewProcessesTask extends Task<Void, Void>{
   
-  private StartupLock lock;
   private Set<ProcessDef> toStart;
   
-  public ExecNewProcessesTask(StartupLock lock, Set<ProcessDef> toStart) {
-    this.lock = lock;
+  public ExecNewProcessesTask(Set<ProcessDef> toStart) {
     this.toStart = toStart;
   }
   
   @Override
-  public Object execute(TaskExecutionContext ctx) throws Throwable {
+  public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     
     if(toStart.size() == 0){
       ctx.info("No processes to start, aborting");
@@ -56,14 +54,20 @@ public class ExecNewProcessesTask extends Task{
       Arg version      = new StringArg(pd.getVersion());
       Arg processName  = new StringArg(pd.getName());
       
-      List<Process> activeProcesses = processes.getActiveProcesses().getProcesses(
-          distName, 
-          version,
-          pd.getProfile(),
-          processName);
+      ProcessCriteria criteria = ProcessCriteria.builder()
+        .distribution(distName)
+        .version(version)
+        .profile(pd.getProfile())
+        .build();
+      
+      List<Process> activeProcesses = processes.getActiveProcesses().getProcesses(criteria);
       if(activeProcesses.size() == 0){
         try{
-            dist = deployer.getDistribution(distName, version);
+          DistributionCriteria distCriteria = DistributionCriteria.builder()
+            .name(distName)
+            .version(version)
+            .build();
+          dist = deployer.getDistribution(distCriteria);
         }catch(DistributionNotFoundException e){
           ctx.warn("Could not acquire distribution", e);
           // noop;
@@ -98,12 +102,7 @@ public class ExecNewProcessesTask extends Task{
         ctx.info(ref.toString());
       }
       
-      MultiExecTask exec = new MultiExecTask(lock, filteredProcesses);
-      ctx.getTaskManager().executeBackground(
-          exec, 
-          BackgroundTaskConfig.create()
-            .setExecDelay(0)
-            .setExecInterval(processor.getConfiguration().getExecIntervalMillis()));
+      ctx.getTaskManager().execute(new MultiExecTask(), filteredProcesses);
     }
     else{
       ctx.error("No processes found to execute");

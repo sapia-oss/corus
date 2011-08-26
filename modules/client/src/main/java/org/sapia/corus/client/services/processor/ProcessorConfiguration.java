@@ -5,17 +5,42 @@ import java.rmi.Remote;
 
 public interface ProcessorConfiguration extends Remote{
 
+  /**
+   * Returns the delay after which processes that have not polled their Corus server 
+   * are considered "timed out".
+   * 
+   * @return the process timeout, in millis.
+   */
   public long getProcessTimeoutMillis();
   
+  /**
+   * Returns the interval at which the Corus server checks for timed out processes.
+   * 
+   * @return the process check interval, in millis.
+   */
   public long getProcessCheckIntervalMillis();
 
+  /**
+   * Returns the interval between process kill attempts.
+   * 
+   * @return the process kill interval, in millis.
+   */
   public long getKillIntervalMillis();
 
+  /**
+   * Returns the amount of time to wait for between process startups
+   * 
+   * @return the process start interval, in millis.
+   */
   public long getStartIntervalMillis();
 
+  /**
+   * Amount of time a process must have been running for before it crashed 
+   * and in order for an automatic restart to be authorized.
+   * 
+   * @return process restart interval, in millis.
+   */
   public long getRestartIntervalMillis();
-
-  public long getExecIntervalMillis();
 
   public long getBootExecDelayMillis();
 

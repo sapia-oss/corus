@@ -5,16 +5,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
+import jdbm.JDBMEnumeration;
+import jdbm.JDBMHashtable;
+
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.RecordMatcher;
 import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.db.persistence.Record;
-import org.sapia.corus.db.persistence.Template;
-import org.sapia.corus.db.persistence.TemplateMatcher;
-
-import jdbm.JDBMEnumeration;
-import jdbm.JDBMHashtable;
+import org.sapia.corus.client.services.db.persistence.Template;
+import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
 
 
 /**

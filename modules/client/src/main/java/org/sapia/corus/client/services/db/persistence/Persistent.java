@@ -10,7 +10,7 @@ public interface Persistent<K, V> {
   
   public void setDbMap(DbMap<K, V> db);
   
-  public void save();
+  public boolean save();
   
-  public void refresh();
+  public boolean refresh();
 }

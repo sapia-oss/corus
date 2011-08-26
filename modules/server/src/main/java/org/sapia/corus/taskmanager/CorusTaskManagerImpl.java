@@ -11,6 +11,8 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskManagerImpl;
+import org.sapia.corus.taskmanager.core.Throttle;
+import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.log.LoggerTaskLog;
 import org.sapia.ubik.rmi.Remote;
 
@@ -20,7 +22,7 @@ import org.sapia.ubik.rmi.Remote;
  * 
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface=CorusTaskManager.class)
+@Bind(moduleInterface={TaskManager.class, CorusTaskManager.class})
 @Remote(interfaces=CorusTaskManager.class)
 public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager{
   
@@ -54,24 +56,29 @@ public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManag
                        TaskManager INTERFACE METHODS
   ////////////////////////////////////////////////////////////////////*/
   
-  public void execute(Task task) {
-    _delegate.execute(task);
+  @Override
+  public void registerThrottle(ThrottleKey key, Throttle throttle) {
+   _delegate.registerThrottle(key, throttle);
   }
   
-  public void execute(Task task, SequentialTaskConfig conf) {
-    _delegate.execute(task, conf);
+  public <R,P> void execute(Task<R,P> task, P param) {
+    _delegate.execute(task, param);
   }
   
-  public FutureResult executeAndWait(Task task) {
-    return _delegate.executeAndWait(task);
+  public <R,P> void execute(Task<R,P> task, P param, SequentialTaskConfig conf) {
+    _delegate.execute(task, param, conf);
   }
   
-  public FutureResult executeAndWait(Task task, TaskConfig cfg) {
-    return _delegate.executeAndWait(task, cfg);
+  public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param) {
+    return _delegate.executeAndWait(task, param);
   }
   
-  public void executeBackground(Task task, BackgroundTaskConfig cfg) {
-    _delegate.executeBackground(task, cfg);
+  public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param, TaskConfig cfg) {
+    return _delegate.executeAndWait(task, param, cfg);
+  }
+  
+  public <R,P> void executeBackground(Task<R,P> task, P param, BackgroundTaskConfig cfg) {
+    _delegate.executeBackground(task, param, cfg);
   }
 
   public ProgressQueue getProgressQueue(int level){

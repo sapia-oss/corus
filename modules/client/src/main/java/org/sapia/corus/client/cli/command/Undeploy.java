@@ -3,10 +3,10 @@ package org.sapia.corus.client.cli.command;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
-import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 
 
 /**
@@ -50,7 +50,7 @@ public class Undeploy extends CorusCliCommand {
       }
       
       super.displayProgress(ctx.getCorus().getDeployerFacade().undeploy(
-          dist, version,
+          DistributionCriteria.builder().name(dist).version(version).build(),
           getClusterInfo(ctx)),
           ctx);
       

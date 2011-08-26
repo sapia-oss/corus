@@ -53,37 +53,37 @@ public class InternalTaskLog implements TaskLog{
   }
 
   @Override
-  public void debug(Task task, String msg) {
+  public void debug(Task<?,?> task, String msg) {
     taskLog.debug(task, msg);
     globalTaskLog.debug(task, msg);
   }
 
   @Override
-  public void error(Task task, String msg, Throwable err) {
+  public void error(Task<?,?> task, String msg, Throwable err) {
     taskLog.error(task, msg, err);
     globalTaskLog.error(task, msg, err);
   }
 
   @Override
-  public void error(Task task, String msg) {
+  public void error(Task<?,?> task, String msg) {
     taskLog.error(task, msg);
     globalTaskLog.error(task, msg);
   }
 
   @Override
-  public void info(Task task, String msg) {
+  public void info(Task<?,?> task, String msg) {
     taskLog.info(task, msg);
     globalTaskLog.info(task, msg);
   }
 
   @Override
-  public void warn(Task task, String msg, Throwable err) {
+  public void warn(Task<?,?> task, String msg, Throwable err) {
     taskLog.warn(task, msg, err);
     globalTaskLog.warn(task, msg, err);
   }
 
   @Override
-  public void warn(Task task, String msg) {
+  public void warn(Task<?,?> task, String msg) {
     taskLog.warn(task, msg);
     globalTaskLog.warn(task, msg);
   }

@@ -7,17 +7,17 @@ package org.sapia.corus.taskmanager.core;
  */
 public interface TaskLog {
   
-  public void debug(Task task, String msg);
+  public void debug(Task<?, ?> task, String msg);
   
-  public void info(Task task, String msg);
+  public void info(Task<?, ?> task, String msg);
   
-  public void warn(Task task, String msg);
+  public void warn(Task<?, ?> task, String msg);
 
-  public void warn(Task task, String msg, Throwable err);
+  public void warn(Task<?, ?> task, String msg, Throwable err);
 
-  public void error(Task task, String msg);
+  public void error(Task<?, ?> task, String msg);
   
-  public void error(Task task, String msg, Throwable err);
+  public void error(Task<?, ?> task, String msg, Throwable err);
   
   public void close();
 

@@ -18,6 +18,7 @@ public class FieldDescriptor {
   private String name;
   private Method accessor;
   private Mutator mutator;
+  private boolean isVersion;
 
   /**
    * 
@@ -42,6 +43,21 @@ public class FieldDescriptor {
    */
   public String getName() {
     return name;
+  }
+  
+  /**
+   * @param isVersion if <code>true</code>, indicates that this descriptor corresponds
+   * to a version field.
+   */
+  public void setVersion(boolean isVersion) {
+    this.isVersion = isVersion;
+  }
+  
+  /**
+   * @return <code>true</code> if this instance corresponds to a version field.
+   */
+  public boolean isVersion() {
+    return isVersion;
   }
   
   /**

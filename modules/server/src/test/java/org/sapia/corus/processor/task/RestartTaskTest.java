@@ -1,41 +1,49 @@
 package org.sapia.corus.processor.task;
 
+import static org.junit.Assert.*;
+
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
-import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
-import org.sapia.corus.deployer.DistributionDatabase;
+import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * @author Yanick Duchesne
  */
-public class RestartTaskTest extends BaseTaskTest{
-  /**
-   * @param arg0
-   */
-  public RestartTaskTest(String arg0) {
-    super(arg0);
+public class RestartTaskTest extends TestBaseTask{
+
+  private Process  proc;
+  
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    Distribution  dist  = super.createDistribution("testDist", "1.0");
+    ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
+    proc = super.createProcess(dist, conf, "testProfile");
+    proc.setMaxKillRetry(1);
+    proc.save();
   }
   
-  public void testRestart() throws Exception{
-    Distribution dist = new Distribution();
-    dist.setName("test");
-    dist.setVersion("1.0");
-    ProcessConfig conf = new ProcessConfig();
-    conf.setName("testVm");
-    dist.addProcess(conf);
-    DistributionDatabase store = ctx.getServices().getDistributions();
-    store.addDistribution(dist);
-    DistributionInfo info = new DistributionInfo("test", "1.0", "test", "testVm");
-    Process          proc = new Process(info);
-    db.getActiveProcesses().addProcess(proc);
-    RestartTask restart = new RestartTask(
-        ProcessTerminationRequestor.KILL_REQUESTOR_PROCESS, proc.getProcessID(), 3);
-    tm.executeAndWait(restart);
-    proc.confirmKilled();    
-    tm.executeAndWait(restart);    
-  
+  @Test
+  public void testExecute() throws Exception{
+    proc.confirmKilled();
+    proc.save();
+    long oldCreationTime = proc.getCreationTime();
+    long lastAccessTime  = proc.getLastAccess();
+    Thread.sleep(100);
+    RestartTask restart = new RestartTask(proc.getMaxKillRetry());
+    TaskParams<Process, ProcessTerminationRequestor, Void, Void> params = 
+      TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_PROCESS);
+    tm.executeAndWait(restart, params).get();
+    proc.getLock().awaitRelease(10, TimeUnit.SECONDS);
+    assertNotSame("Creation times should not be identical", oldCreationTime, proc.getCreationTime());
+    assertNotSame("Last access times should not be identical", lastAccessTime, proc.getLastAccess());    
+    assertTrue("Process should be active", ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID()));
   }
 
 }

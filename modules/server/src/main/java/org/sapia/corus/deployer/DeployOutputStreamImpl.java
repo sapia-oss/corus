@@ -43,7 +43,7 @@ public class DeployOutputStreamImpl extends FileOutputStream
       super.flush();
 
       if (_deployer != null) {
-        _queue = _deployer.unlockDeployFile(_fName);
+        _queue = _deployer.completeDeployment(_fName);
       }
     } finally {
       super.close();

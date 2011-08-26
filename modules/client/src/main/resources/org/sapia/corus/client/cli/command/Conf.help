@@ -20,7 +20,7 @@
     <p>OR</p>    
     <p/>
     <p>conf del -t tag_name</p>
-    <p>conf del -s svr | prop -p property_name</p>
+    <p>conf del -s svr | proc -p property_name</p>
     <p/>
     <p>Where:</p>
     <p/>

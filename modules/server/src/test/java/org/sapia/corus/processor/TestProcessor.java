@@ -10,117 +10,84 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.interop.Status;
 
 public class TestProcessor implements Processor{
   
-  private TestProcessRepository db = new TestProcessRepository();
-  private ProcessorConfiguration configuration = new  ProcessorConfigurationImpl();
+  private TestProcessRepository      db            = new TestProcessRepository();
+  private ProcessorConfigurationImpl configuration = new  ProcessorConfigurationImpl();
   
   public TestProcessRepository getProcessRepository(){
     return db;
   }
-  
+
+  @Override
   public ProcessorConfiguration getConfiguration() {
     return configuration;
   }
   
-  public ProgressQueue exec(Arg distName, Arg version,
-      String profile, Arg processName, int instances) {
-    ProgressQueue q = new ProgressQueueImpl();
-    return q;
+  public ProcessorConfigurationImpl getConfigurationImpl(){
+    return configuration;
   }
   
+  @Override
   public ProgressQueue exec(String execConfigName) {
     ProgressQueue q = new ProgressQueueImpl();
     return q;
-  }  
+  }
 
-  public ProgressQueue exec(Arg distName, Arg version,
-      String profile, int instances) {
+  @Override  
+  public ProgressQueue exec(ProcessCriteria criteria, int instances) {
     ProgressQueue q = new ProgressQueueImpl();
     return q;
   }
 
+  @Override  
   public Process getProcess(String corusPid) throws ProcessNotFoundException {
     return db.getProcess(corusPid);
   }
   
-  public List<Process> getProcesses() {
-    return db.getProcesses();
+  @Override
+  public List<Process> getProcesses(ProcessCriteria criteria) {
+    return db.getProcesses(criteria);
   }
   
-  public List<Process> getProcesses(Arg distName) {
-    return db.getProcesses(distName);
-  }
-  
-  public List<Process> getProcesses(Arg distName, Arg version) {
-    return db.getProcesses(distName, version);
-  }
-  
-  public List<Process> getProcesses(Arg distName, Arg version,
-      String profile) {
-    return db.getProcesses(distName, version, profile);
-  }
-  
-  public List<Process> getProcesses(Arg distName, Arg version,
-      String profile, Arg processName) {
-    return db.getProcesses(distName, version, profile, processName);
-  }
-  
+  @Override
   public List<Process> getProcessesWithPorts() {
     return new ArrayList<Process>();
   }
   
-  public List<Status> getStatus() {
+  @Override
+  public List<Status> getStatus(ProcessCriteria criteria) {
     return new ArrayList<Status>();
   }
-  
-  public List<Status> getStatus(Arg distName) {
-    return getStatus();
-  }
-  
-  public List<Status> getStatus(Arg distName, Arg version) {
-    return getStatus();
-  }
-  
-  public List<Status> getStatus(Arg distName, Arg version,
-      String profile) {
-    return getStatus();
-  }
-  
-  public List<Status> getStatus(Arg distName, Arg version,
-      String profile, Arg processName) {
-    return getStatus();
-  }
-  
+
+  @Override
   public ProcStatus getStatusFor(String corusPid) throws ProcessNotFoundException {
     return new ProcStatus(getProcess(corusPid));
   }
   
-  public void kill(Arg distName, Arg version, String profile,
-      boolean suspend) {
+  @Override
+  public void kill(ProcessCriteria criteria, boolean suspend) {
   }
-  
-  public void kill(Arg distName, Arg version, String profile,
-      Arg processName, boolean suspend) {
-  }
-  
+
+  @Override
   public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException{
   }
   
+  @Override
   public void restart(String pid) throws ProcessNotFoundException{
   }
   
+  @Override
   public void restartByAdmin(String pid) throws ProcessNotFoundException{
   }
   
-  public void restart(Arg distName, Arg version, String profile) {
-  }
-  
-  public void restart(Arg distName, Arg version, String profile, Arg processName) {
+  @Override
+  public void restart(ProcessCriteria criteria) {
   }
   
   public ProgressQueue resume() {
@@ -132,17 +99,16 @@ public class TestProcessor implements Processor{
   public void addExecConfig(ExecConfig conf) {
   }
   
-  
+  @Override
   public List<ExecConfig> getExecConfigs() {
-    // TODO Auto-generated method stub
-    return null;
+    return new ArrayList<ExecConfig>();
   }
   
+  @Override
   public void removeExecConfig(Arg name) {
-    // TODO Auto-generated method stub
-    
   }
   
+  @Override
   public String getRoleName() {
     return Processor.ROLE;
   }
