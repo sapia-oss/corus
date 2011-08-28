@@ -437,6 +437,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * 
    * @return a {@link ProcessLock}.
    */
+  @Transient
   public ProcessLock getLock() {
     return _lock;
   }

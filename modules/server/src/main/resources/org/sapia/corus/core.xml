@@ -12,6 +12,7 @@
 				  
   <!-- Register Annotation-based Post Processing Beans -->
   <context:annotation-config />
+  <bean name="coreModulePostProcessor" class="org.sapia.corus.core.ModulePostProcessor" />
                   
   <!-- ============ DB ============ -->
 

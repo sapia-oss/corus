@@ -110,8 +110,8 @@ public class CorusImpl implements Corus, RemoteContextProvider {
       }
     };
     final ModuleLifeCycleManager manager                   = new ModuleLifeCycleManager(serverContext, propContainer);
-    BeanFactoryPostProcessor configPostProcessor           = new ConfigurationPostProcessor(serverContext, manager);
-
+    BeanFactoryPostProcessor configPostProcessor           = new ConfigurationPostProcessor(manager);
+    
     GenericApplicationContext rootContext = new GenericApplicationContext();
     rootContext.getBeanFactory().registerSingleton("lifecycleManager", manager);
     rootContext.refresh();

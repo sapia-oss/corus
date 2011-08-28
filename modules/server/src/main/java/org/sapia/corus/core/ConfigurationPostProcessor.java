@@ -23,11 +23,9 @@ class ConfigurationPostProcessor implements BeanFactoryPostProcessor{
 
   private PropertyProvider properties;
 
-  ConfigurationPostProcessor(ServerContext delegate, PropertyProvider properties) {
+  ConfigurationPostProcessor(PropertyProvider properties) {
     this.properties = properties;
   }
-
-  
   
   @Override
   public void postProcessBeanFactory(ConfigurableListableBeanFactory factory)

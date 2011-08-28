@@ -34,7 +34,8 @@ public class TestPersistentObject implements Persistent<String, TestPersistentOb
   }
   
   @Override
-  public void refresh() {
+  public boolean refresh() {
+    return true;
   }
   
   @Override
@@ -43,7 +44,8 @@ public class TestPersistentObject implements Persistent<String, TestPersistentOb
   }
   
   @Override
-  public void save() {
+  public boolean save() {
+    return true;
   }
   
   @Override

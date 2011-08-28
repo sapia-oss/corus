@@ -12,6 +12,7 @@
           
   <!-- Register Annotation-based Post Processing Beans -->
   <context:annotation-config />
+  <bean name="extModulePostProcessor" class="org.sapia.corus.core.ModulePostProcessor" />
   
   <!-- ============ CLUSTER ============ -->
 
