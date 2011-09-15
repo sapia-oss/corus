@@ -27,11 +27,11 @@ import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
 public class ClusterManagerImpl extends ModuleHelper
   implements ClusterManager, AsyncEventListener {
   static ClusterManagerImpl instance;
-  private String _multicastAddress = Consts.DEFAULT_MCAST_ADDR;
-  private int _multicastPort       = Consts.DEFAULT_MCAST_PORT;
-  private EventChannel      _channel;
-  private Set<ServerAddress>   _hostsAddresses = Collections.synchronizedSet(new HashSet<ServerAddress>());
-  private Set<ServerHost>   _hostsInfos = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private String               _multicastAddress = Consts.DEFAULT_MCAST_ADDR;
+  private int                  _multicastPort    = Consts.DEFAULT_MCAST_PORT;
+  private EventChannel         _channel;
+  private Set<ServerAddress>   _hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
+  private Set<ServerHost>      _hostsInfos       = Collections.synchronizedSet(new HashSet<ServerHost>());
   private ServerSideClusterInterceptor _interceptor;
   
   /**
@@ -59,7 +59,7 @@ public class ClusterManagerImpl extends ModuleHelper
         _multicastPort);
     _channel.registerAsyncListener(CorusPubEvent.class.getName(), this);
     _channel.start();
-    _channel.setBufsize(4000);    
+    _channel.setBufsize(4000);
     _logger.info("Signaling presence to cluster on: " + _multicastAddress + ":" + _multicastPort);
     _channel.dispatch(CorusPubEvent.class.getName(),
             new CorusPubEvent(true, serverContext().getServerAddress(), serverContext().getHostInfo()));
@@ -132,17 +132,14 @@ public class ClusterManagerImpl extends ModuleHelper
       ServerAddress  addr = evt.getOrigin();
       
       if(_hostsAddresses.add(evt.getOrigin())){
+        _logger.debug(String.format("Corus discovered at %s" + addr));        
         _hostsInfos.add(evt.getHostInfo());
       }
       else{
-        _logger.debug("Corus discovered, already registered (that node probably was restarted): " + addr);        
-        return;
+        _logger.debug(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", addr));
       }
-
       
       if (evt.isNew()) {
-        _logger.debug("New corus discovered: " + addr);
-
         try {
           if(remote.getUnicastAddress() == null){
             _channel.dispatch(
