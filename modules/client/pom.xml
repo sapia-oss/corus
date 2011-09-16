@@ -54,6 +54,11 @@
       <artifactId>sapia_utils</artifactId>
     </dependency>
 
+    <dependency>
+        <groupId>org.simpleframework</groupId>
+        <artifactId>simple</artifactId>
+    </dependency>
+
   </dependencies>
 
   <build>
