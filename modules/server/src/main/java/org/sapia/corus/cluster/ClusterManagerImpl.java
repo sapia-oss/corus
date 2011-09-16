@@ -2,7 +2,9 @@ package org.sapia.corus.cluster;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
@@ -12,6 +14,7 @@ import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.EventChannel;
+import org.sapia.ubik.mcast.EventChannelStateListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Consts;
@@ -25,13 +28,14 @@ import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
  */
 @Bind(moduleInterface=ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper
-  implements ClusterManager, AsyncEventListener {
+  implements ClusterManager, AsyncEventListener, EventChannelStateListener {
   static ClusterManagerImpl instance;
   private String               _multicastAddress = Consts.DEFAULT_MCAST_ADDR;
   private int                  _multicastPort    = Consts.DEFAULT_MCAST_PORT;
   private EventChannel         _channel;
-  private Set<ServerAddress>   _hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
-  private Set<ServerHost>      _hostsInfos       = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private Set<ServerAddress>      _hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
+  private Set<ServerHost>         _hostsInfos       = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private Map<String, ServerHost> _hostsByNode      = Collections.synchronizedMap(new HashMap<String, ServerHost>());
   private ServerSideClusterInterceptor _interceptor;
   
   /**
@@ -58,6 +62,7 @@ public class ClusterManagerImpl extends ModuleHelper
         _multicastAddress,
         _multicastPort);
     _channel.registerAsyncListener(CorusPubEvent.class.getName(), this);
+    _channel.registerEventChannelStateListener(this);
     _channel.start();
     _channel.setBufsize(4000);
     _logger.info("Signaling presence to cluster on: " + _multicastAddress + ":" + _multicastPort);
@@ -132,12 +137,13 @@ public class ClusterManagerImpl extends ModuleHelper
       ServerAddress  addr = evt.getOrigin();
       
       if(_hostsAddresses.add(evt.getOrigin())){
-        _logger.debug(String.format("Corus discovered at %s" + addr));        
+        _logger.debug(String.format("Corus discovered at %s", addr));        
         _hostsInfos.add(evt.getHostInfo());
       }
       else{
         _logger.debug(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", addr));
       }
+      _hostsByNode.put(remote.getNode(), evt.getHostInfo());
       
       if (evt.isNew()) {
         try {
@@ -158,9 +164,30 @@ public class ClusterManagerImpl extends ModuleHelper
           _logger.debug("Event channel could not dispatch event", e);
         }
       } else {
-        _logger.debug("Existing corus discovered: " + addr);
+        _logger.debug(String.format("Existing corus discovered: %s", addr));
       }
     } 
   }
   
+  @Override
+  public synchronized void onDisappeared(EventChannelEvent event) {
+    synchronized(_hostsByNode){
+      ServerHost host = _hostsByNode.remove(event.getNode());
+      if(host != null){
+        _logger.debug(String.format("Corus server detected as down: %s. Removing from cluster view", 
+            host.getServerAddress()));        
+        synchronized(_hostsAddresses){
+          _hostsAddresses.remove(host.getServerAddress());
+        }
+        synchronized(_hostsInfos){
+          _hostsInfos.remove(host);
+        }
+      }
+    }
+  }
+  
+  @Override
+  public void onDiscovered(EventChannelEvent event) {
+   }
+
 }
