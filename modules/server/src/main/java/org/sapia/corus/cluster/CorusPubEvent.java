@@ -15,7 +15,8 @@ public class CorusPubEvent implements Serializable {
   
   private boolean       _new;
   private ServerAddress _origin;
-  private ServerHost _hostInfo;
+  private ServerHost    _hostInfo;
+  private boolean       _pointToPoint = false;
 
   public CorusPubEvent(boolean isNew, ServerAddress origin, ServerHost hostInfo) {
     _new    = isNew;
@@ -33,6 +34,15 @@ public class CorusPubEvent implements Serializable {
   
   public ServerHost getHostInfo() {
     return _hostInfo;
+  }
+  
+  public boolean isPointToPoint() {
+    return _pointToPoint;
+  }
+  
+  public CorusPubEvent setPointToPoint(boolean pointToPoint) {
+    _pointToPoint = pointToPoint;
+    return this;
   }
   
 }

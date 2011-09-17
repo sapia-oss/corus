@@ -29,14 +29,18 @@ import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
 @Bind(moduleInterface=ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper
   implements ClusterManager, AsyncEventListener, EventChannelStateListener {
+   
+  private static final long START_UP_DELAY = 15000;
+  
   static ClusterManagerImpl instance;
-  private String               _multicastAddress = Consts.DEFAULT_MCAST_ADDR;
-  private int                  _multicastPort    = Consts.DEFAULT_MCAST_PORT;
-  private EventChannel         _channel;
-  private Set<ServerAddress>      _hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
-  private Set<ServerHost>         _hostsInfos       = Collections.synchronizedSet(new HashSet<ServerHost>());
-  private Map<String, ServerHost> _hostsByNode      = Collections.synchronizedMap(new HashMap<String, ServerHost>());
+  private String                       _multicastAddress = Consts.DEFAULT_MCAST_ADDR;
+  private int                          _multicastPort    = Consts.DEFAULT_MCAST_PORT;
+  private EventChannel                 _channel;
+  private Set<ServerAddress>           _hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
+  private Set<ServerHost>              _hostsInfos       = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private Map<String, ServerHost>      _hostsByNode      = Collections.synchronizedMap(new HashMap<String, ServerHost>());
   private ServerSideClusterInterceptor _interceptor;
+  private long                         _startTime = System.currentTimeMillis();
   
   /**
    * @param addr this instance's multicast address.
@@ -66,8 +70,14 @@ public class ClusterManagerImpl extends ModuleHelper
     _channel.start();
     _channel.setBufsize(4000);
     _logger.info("Signaling presence to cluster on: " + _multicastAddress + ":" + _multicastPort);
-    _channel.dispatch(CorusPubEvent.class.getName(),
-            new CorusPubEvent(true, serverContext().getServerAddress(), serverContext().getHostInfo()));
+    _channel.dispatch(
+        CorusPubEvent.class.getName(),
+        new CorusPubEvent(
+            true, 
+            serverContext().getServerAddress(), 
+            serverContext().getHostInfo()
+        ).setPointToPoint(false)
+    );
   }
   
   @Override
@@ -143,23 +153,22 @@ public class ClusterManagerImpl extends ModuleHelper
       else{
         _logger.debug(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", addr));
       }
+      
+      _logger.debug(String.format("Current addresses: %s", _hostsAddresses));
+      
       _hostsByNode.put(remote.getNode(), evt.getHostInfo());
       
       if (evt.isNew()) {
         try {
-          if(remote.getUnicastAddress() == null){
-            _channel.dispatch(
-                CorusPubEvent.class.getName(),
-                new CorusPubEvent(false, serverContext().getTransport().getServerAddress(), serverContext().getHostInfo())
-            );
-          }
-          else{
-            _channel.dispatch(
-                remote.getUnicastAddress(),
-                CorusPubEvent.class.getName(),
-                new CorusPubEvent(false, serverContext().getTransport().getServerAddress(), serverContext().getHostInfo())
-            );
-          }
+          _channel.dispatch(
+              remote.getUnicastAddress(),
+              CorusPubEvent.class.getName(),
+              new CorusPubEvent(
+                  false, 
+                  serverContext().getTransport().getServerAddress(), 
+                  serverContext().getHostInfo()
+              ).setPointToPoint(true)
+          );
         } catch (IOException e) {
           _logger.debug("Event channel could not dispatch event", e);
         }
@@ -170,7 +179,7 @@ public class ClusterManagerImpl extends ModuleHelper
   }
   
   @Override
-  public synchronized void onDisappeared(EventChannelEvent event) {
+  public synchronized void onDown(final EventChannelEvent event) {
     synchronized(_hostsByNode){
       ServerHost host = _hostsByNode.remove(event.getNode());
       if(host != null){
@@ -184,10 +193,52 @@ public class ClusterManagerImpl extends ModuleHelper
         }
       }
     }
+
+    Thread async = new Thread(getClass().getSimpleName()+"Discovery@"+event.getAddress()){
+      
+      @Override
+      public void run() {
+        try {
+          _logger.debug(String.format("Trying to trigger discovery of for down Corus server %s", event.getAddress()));
+          _channel.dispatch(
+              event.getAddress(), CorusPubEvent.class.getName(),
+              new CorusPubEvent(
+                  true, 
+                  serverContext().getServerAddress(), 
+                  serverContext().getHostInfo()).setPointToPoint(true)
+              );
+        }catch(IOException e) {
+          _logger.error(String.format("Could not send pub event to %s", event.getAddress()), e);
+        }
+      }
+    };
+    async.setDaemon(true);
+    async.run();
   }
   
   @Override
-  public void onDiscovered(EventChannelEvent event) {
-   }
+  public void onUp(EventChannelEvent event) {
+    if(!_hostsByNode.containsKey(event.getNode())){
+      try{
+        // we want to make sure were not send a pub event prior to the discovery process triggered at
+        // startup having completed.
+        if(System.currentTimeMillis() - _startTime >=  START_UP_DELAY){
+          _logger.debug("Corus appeared in cluster but not yet in host list; signaling presence to trigger discovery process");
+          _channel.dispatch(
+              event.getAddress(), 
+              CorusPubEvent.class.getName(),
+              new CorusPubEvent(
+                  true, 
+                  serverContext().getServerAddress(), 
+                  serverContext().getHostInfo()
+              ).setPointToPoint(true)
+          );
+        }
+      }catch(IOException e){
+        _logger.error("Error sending publish event", e);
+      }
+    }
+    
+  }
 
 }

@@ -9,6 +9,8 @@ import org.sapia.ubik.net.ServerAddress;
  * @author J-C Desrochers
  */
 public class ServerHost implements Serializable {
+  
+  static final long serialVersionUID = 1L;
 
   private ServerAddress _serverAddress;
   private String _osInfo;
@@ -81,6 +83,21 @@ public class ServerHost implements Serializable {
    */
   public void setJavaVmInfo(String aJavaVmInfo) {
     _javaVmInfo = aJavaVmInfo;
+  }
+  
+  @Override
+  public int hashCode() {
+    return _serverAddress.hashCode();
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if(obj instanceof ServerHost){
+      ServerHost host = (ServerHost)obj;
+      return _serverAddress.equals(host.getServerAddress());
+    }
+    return false;
+   
   }
 
   /* (non-Javadoc)
