@@ -136,6 +136,12 @@
         <groupId>trove</groupId>
         <artifactId>trove</artifactId>
     </dependency>
+
+    <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <scope>test</scope>
+    </dependency>
     
   </dependencies>
 
