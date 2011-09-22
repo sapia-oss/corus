@@ -28,7 +28,7 @@ public class SemaphoreThrottleTest {
     latch.await();
     long duration = System.currentTimeMillis() - start;
     
-    assertTrue("Should have run 1000ms, got " + duration, duration > 1000);
+    assertTrue("Should have run 1000ms, got " + duration, duration >= 1000);
   }
   
   class RunnableImpl implements Runnable{
