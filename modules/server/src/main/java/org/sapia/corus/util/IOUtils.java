@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -157,10 +161,34 @@ public class IOUtils {
    * @throws IOException if a corresponding lock file already exists or could not be created.
    */
   public static void createLockFile(File file) throws IOException{
-    if(!file.createNewFile()){
-      throw new IOException(String.format("Lock file already exists, server probably running %s", file.getAbsolutePath()));
+   
+    RandomAccessFile randomFile = new RandomAccessFile(file, "rw");
+    FileChannel channel = randomFile.getChannel();
+
+    // Try to get an exclusive lock on the file.
+    // This method will return a lock or null, but will not block.
+    // See also FileChannel.lock() for a blocking variant.
+    FileLock lock = channel.tryLock();
+
+    if (lock != null) {
+      // We obtained the lock, so arrange to delete the file when
+      // we're done, and then write the approximate time at which
+      // we'll relinquish the lock into the file.
+      file.deleteOnExit(); // Just a temporary file
+
+      // First, we need a buffer to hold the timestamp
+      ByteBuffer bytes = ByteBuffer.allocate(8); // a long is 8 bytes
+
+      // Put the time in the buffer and flip to prepare for writing
+      // Note that many Buffer methods can be "chained" like this.
+      bytes.putLong(System.currentTimeMillis() + 10000).flip();
+
+      channel.write(bytes); // Write the buffer contents to the channel
+      channel.force(false);
     }
-    file.deleteOnExit();
+    else {
+      throw new IOException(String.format("Lock file already exists, server probably running %s", file.getAbsolutePath()));      
+    }
   }
   
 }
