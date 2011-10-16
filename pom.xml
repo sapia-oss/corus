@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_global</artifactId>
-    <version>1.15-SNAPSHOT</version>
+    <version>1.14</version>
   </parent>
 
   <scm>
