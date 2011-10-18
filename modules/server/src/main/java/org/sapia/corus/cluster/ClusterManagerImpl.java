@@ -147,11 +147,11 @@ public class ClusterManagerImpl extends ModuleHelper
       ServerAddress  addr = evt.getOrigin();
       
       if(_hostsAddresses.add(evt.getOrigin())){
-        _logger.debug(String.format("Corus discovered at %s", addr));        
+        _logger.info(String.format("Corus discovered at %s", addr));        
         _hostsInfos.add(evt.getHostInfo());
       }
       else{
-        _logger.debug(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", addr));
+        _logger.info(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", addr));
       }
       
       _logger.debug(String.format("Current addresses: %s", _hostsAddresses));
@@ -183,7 +183,7 @@ public class ClusterManagerImpl extends ModuleHelper
     synchronized(_hostsByNode){
       ServerHost host = _hostsByNode.remove(event.getNode());
       if(host != null){
-        _logger.debug(String.format("Corus server detected as down: %s. Removing from cluster view", 
+        _logger.info(String.format("Corus server detected as down: %s. Removing from cluster view", 
             host.getServerAddress()));        
         synchronized(_hostsAddresses){
           _hostsAddresses.remove(host.getServerAddress());
