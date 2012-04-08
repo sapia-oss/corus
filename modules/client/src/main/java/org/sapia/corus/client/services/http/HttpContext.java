@@ -11,9 +11,9 @@ import simple.http.Response;
  */
 public class HttpContext {
 
-  private Request request;
+  private Request  request;
   private Response response;
-  private String contextPath, pathInfo;
+  private String 	 contextPath, pathInfo;
   
   /**
    * @return this instance's <code>Request</code> object.

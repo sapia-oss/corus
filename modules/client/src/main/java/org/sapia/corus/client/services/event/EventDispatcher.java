@@ -10,7 +10,6 @@ import org.sapia.ubik.rmi.interceptor.InvalidInterceptorException;
  * 
  * @author Yanick Duchesne
  */
-@SuppressWarnings(value="unchecked")
 public interface EventDispatcher extends Module{
 	
   public static String ROLE = EventDispatcher.class.getName();
@@ -23,13 +22,13 @@ public interface EventDispatcher extends Module{
    *
    * @throws InvalidInterceptorException if the interceptor could not be added.
    */
-  public void addInterceptor(Class event, Interceptor it)
+  public void addInterceptor(Class<?> event, Interceptor it)
   throws InvalidInterceptorException;
   /**
    * Dispatches the given event to all interceptors that have
    * registered for the event's class.
    *
-   * @param event an <code>Event</code> instance.
+   * @param event an {@link Event} instance.
    */
   public void dispatch(Event event);
 

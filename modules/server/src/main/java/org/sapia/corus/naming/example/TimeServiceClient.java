@@ -1,15 +1,16 @@
 package org.sapia.corus.naming.example;
 
 import java.lang.reflect.UndeclaredThrowableException;
+
 import java.rmi.RemoteException;
 import java.util.Properties;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.sapia.ubik.log.Log;
 import org.sapia.ubik.rmi.RemoteRuntimeException;
 import org.sapia.ubik.rmi.naming.remote.RemoteInitialContextFactory;
-import org.sapia.ubik.rmi.server.Log;
 
 /**
  * @author Yanick Duchesne

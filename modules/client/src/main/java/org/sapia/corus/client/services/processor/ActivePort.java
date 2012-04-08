@@ -22,25 +22,25 @@ public class ActivePort implements Serializable{
   
   static final long serialVersionUID = 1L;
 
-  private String _name;
-  private int _port;
+  private String name;
+  private int 	 port;
   
   /** Creates a new instance of ActivePort */
   public ActivePort(String name, int port) {
-    _name = name;
-    _port = port;
+    this.name = name;
+    this.port = port;
   }
   
   public String getName(){
-    return _name;
+    return name;
   }
   
   public int getPort(){
-    return _port;
+    return port;
   }
   
   public String toString(){
-    return new StringBuffer(_name).append('/').append(_port).toString();
+    return new StringBuffer(name).append('/').append(port).toString();
   }
   
 }

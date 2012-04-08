@@ -19,10 +19,10 @@ import org.sapia.corus.client.services.cron.CronJobInfo;
 public class CronWizard {
   public void execute(CmdLine cmd, CliContext ctx)
                throws AbortException, InputException {
-    String      dist    = cmd.assertOption(Cron.DIST_OPT, true).getValue();
-    String      version = cmd.assertOption(Cron.VERSION_OPT, true).getValue();
-    String      profile = cmd.assertOption(Cron.PROFILE_OPT, true).getValue();
-    String      vmName  = cmd.assertOption(Cron.VM_NAME_OPT, true).getValue();
+    String dist    = cmd.assertOption(Cron.DIST_OPT, true).getValue();
+    String version = cmd.assertOption(Cron.VERSION_OPT, true).getValue();
+    String profile = cmd.assertOption(Cron.PROFILE_OPT, true).getValue();
+    String vmName  = cmd.assertOption(Cron.VM_NAME_OPT, true).getValue();
 
     CronJobInfo info = new CronJobInfo(dist, profile, version, vmName);
 

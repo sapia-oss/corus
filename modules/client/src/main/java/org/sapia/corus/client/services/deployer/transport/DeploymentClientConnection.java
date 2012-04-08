@@ -10,31 +10,31 @@ import java.io.OutputStream;
  */
 public class DeploymentClientConnection implements Connection{
 	
-	private AbstractDeploymentClient _client;
+	private AbstractDeploymentClient client;
 	
 	public DeploymentClientConnection(AbstractDeploymentClient client){
-		_client = client;
+		this.client = client;
 	}
 	
   /**
    * @see org.sapia.corus.client.services.deployer.transport.Connection#close()
    */
   public void close() {
-    _client.close();
+    client.close();
   }
 
   /**
    * @see org.sapia.corus.client.services.deployer.transport.Connection#getInputStream()
    */
   public InputStream getInputStream() throws IOException {
-    return _client.getInputStream();
+    return client.getInputStream();
   }
 
   /**
    * @see org.sapia.corus.client.services.deployer.transport.Connection#getOutputStream()
    */
   public OutputStream getOutputStream() throws IOException {
-    return _client.getOutputStream();
+    return client.getOutputStream();
   }
 
 }

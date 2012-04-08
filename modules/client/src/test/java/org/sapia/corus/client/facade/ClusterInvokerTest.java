@@ -8,6 +8,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.impl.ClusterInvoker;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 
 public class ClusterInvokerTest {
 
@@ -16,7 +17,7 @@ public class ClusterInvokerTest {
   
   @Before
   public void setUp() throws Exception {
-    TestInvocationDispatcher dispatcher = new TestInvocationDispatcher(new TCPAddress("localhost", 8888));
+    TestInvocationDispatcher dispatcher = new TestInvocationDispatcher(new MultiplexSocketAddress("localhost", 8888));
     dispatcher.add(TestInterface.class, new TestInterfaceImpl());
     invoker = new ClusterInvoker<TestInterface>(TestInterface.class, dispatcher);
     proxy = invoker.proxy(TestInterface.class);

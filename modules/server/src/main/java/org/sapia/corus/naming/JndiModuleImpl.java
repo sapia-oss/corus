@@ -29,21 +29,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JndiModuleImpl extends ModuleHelper implements JndiModule, Interceptor{
 
   @Autowired
-  EventDispatcher _events;
-  
+  EventDispatcher 			events;
   @Autowired
-  ClusterManager _cluster;
+  ClusterManager 				 cluster;
+  private Context 			 context;
   
-  private Context _context;
-  private ClientListener _listener;
+  // keeping reference to avoid garbage-collection
+  @SuppressWarnings("unused")
+  private ClientListener listener;
   
   /**
    * @see Service#init()
    */
   public void init() throws Exception {
-    EventChannel ec = _cluster.getEventChannel();
-    _events.addInterceptor(ServerStartedEvent.class, this);
-    _context = JNDIServerHelper.newRootContext(ec);
+    EventChannel ec = cluster.getEventChannel();
+    events.addInterceptor(ServerStartedEvent.class, this);
+    context = JNDIServerHelper.newRootContext(ec);
   }
   
   /**
@@ -51,7 +52,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
    */
   public void dispose() {
     try{
-     _context.close();
+    	context.close();
     }catch(NamingException e){}
     
   }
@@ -75,7 +76,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
    * @see JndiModule#getContext()
    */
   public Context getContext() {
-    return _context;
+    return context;
   }
   
   /**
@@ -86,16 +87,16 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
    */
   public void onServerStartedEvent(ServerStartedEvent evt){
     try{
-      EventChannel ec = _cluster.getEventChannel();
-      serverContext().getTransport().exportObject(_context);
-      _listener = JNDIServerHelper.createClientListener(ec, serverContext().getTransport().getServerAddress());
+      EventChannel ec = cluster.getEventChannel();
+      serverContext().getTransport().exportObject(context);
+      listener = JNDIServerHelper.createClientListener(ec, serverContext().getTransport().getServerAddress());
     }catch(Exception e){
       logger().error("Could not initialize client listener properly in JNDI module", e);
     }
   }
   
   public RemoteContext getRemoteContext(){
-    return (RemoteContext)_context;
+    return (RemoteContext) context;
   }
   
 }

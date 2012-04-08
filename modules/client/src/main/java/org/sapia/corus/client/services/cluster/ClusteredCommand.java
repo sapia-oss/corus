@@ -2,9 +2,10 @@ package org.sapia.corus.client.services.cluster;
 
 import java.util.Set;
 
+
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.replication.ReplicatedCommand;
-import org.sapia.ubik.rmi.server.invocation.InvokeCommand;
+import org.sapia.ubik.rmi.server.command.InvokeCommand;
 
 
 /**

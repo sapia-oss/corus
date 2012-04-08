@@ -16,8 +16,8 @@ import org.sapia.corus.client.facade.CorusConnector;
 public class ChildCliContext extends Context implements CliContext {
   
   private CliContext parent;
-  private CmdLine childCmd;
-  private boolean abortOnError;
+  private CmdLine 	 childCmd;
+  private boolean 	 abortOnError;
   
   public ChildCliContext(CliContext parent, CmdLine childCmd) {
     this.parent = parent;

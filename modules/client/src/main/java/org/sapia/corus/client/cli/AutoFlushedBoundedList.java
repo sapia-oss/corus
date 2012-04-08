@@ -1,10 +1,21 @@
 package org.sapia.corus.client.cli;
 
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * A {@link List} implementation that will start flushing the last element in
+ * its list upon adding new elements, if the maximum capacity is reached.
+ * 
+ * @author jdesrochers
+ *
+ * @param <E>
+ */
 public class AutoFlushedBoundedList<E> extends ArrayList<E> {
 
-  private int _capacity;
+	static final long serialVersionUID = 1L;
+	
+  private int capacity;
   
   /**
    * Creates a new {@link AutoFlushedBoundedList} instance.
@@ -13,12 +24,9 @@ public class AutoFlushedBoundedList<E> extends ArrayList<E> {
    */
   public AutoFlushedBoundedList(int aCapacity) {
     super(aCapacity);
-    _capacity = aCapacity;
+    capacity = aCapacity;
   }
   
-  /* (non-Javadoc)
-   * @see java.util.concurrent.ArrayBlockingQueue#add(java.lang.Object)
-   */
   @Override
   public boolean add(E anElement) {
     ensureSpaceAvailable();
@@ -27,10 +35,6 @@ public class AutoFlushedBoundedList<E> extends ArrayList<E> {
     return true;
   }
 
-  /* (non-Javadoc)
-   * @see java.util.ArrayList#add(int, java.lang.Object)
-   */
-  @Override
   public void add(int anIndex, E anElement) {
     ensureSpaceAvailable();
     
@@ -38,8 +42,8 @@ public class AutoFlushedBoundedList<E> extends ArrayList<E> {
   }
 
   private void ensureSpaceAvailable() {
-    if (super.size() == _capacity) {
-      super.remove(_capacity-1);
+    if (super.size() == capacity) {
+      super.remove(capacity - 1);
     }
   }
   

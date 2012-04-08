@@ -12,52 +12,56 @@ import org.sapia.corus.client.services.processor.Process;
  *
  */
 public class ProcessInfo {
-  private Process       _process;
-  private ProcessConfig _config;
-  private Distribution  _dist;
-  private boolean       _restart;
+	
+  private Process       process;
+  private ProcessConfig config;
+  private Distribution  dist;
+  private boolean       restart;
 
   /**
-   * @param process the <code>Process</code> to which this instance corresponds.
-   * @param dist the <code>Distribution</code> that this process comes from.
-   * @param config the <code>ProcessConfig</code> that corresponds to the configuration (in corus.xml)
+   * @param process the {@link Process} to which this instance corresponds.
+   * @param dist the {@link Distribution} that this process comes from.
+   * @param config the {@link ProcessConfig} that corresponds to the configuration (in corus.xml)
    * from which the given process was started.
    * @param restart if <code>true</code>, signals that the process to which this instance
    * corresponds is in restart mode.
    */
-  public ProcessInfo(Process process, Distribution dist, ProcessConfig config,
+  public ProcessInfo(
+  						Process process, 
+  						Distribution dist, 
+  						ProcessConfig config,
               boolean restart) {
-    _process = process;
-    _config  = config;
-    _restart = restart;
-    _dist    = dist;
+   this.process = process;
+   this.config  = config;
+   this.restart = restart;
+   this.dist    = dist;
   }
 
   /**
-   * @return a <code>Process</code>.
+   * @return a {@link Process}.
    */
   public Process getProcess() {
-    return _process;
+    return process;
   }
   
   /**
-   * @return a <code>Distribution</code>.
+   * @return a {@link Distribution}.
    */
   public Distribution getDistribution() {
-    return _dist;
+    return dist;
   }
 
   /**
-   * @return a <code>ProcessConfig</code>
+   * @return a {@link ProcessConfig}
    */
   public ProcessConfig getConfig() {
-    return _config;
+    return config;
   }
   
   /**
    * @return <code>true</code> if this process is in restart mode.
    */
   public boolean isRestart() {
-    return _restart;
+    return restart;
   }
 }

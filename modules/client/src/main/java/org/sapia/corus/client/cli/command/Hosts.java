@@ -15,9 +15,9 @@ import org.sapia.ubik.net.TCPAddress;
  * @author Yanick Duchesne
  */
 public class Hosts extends CorusCliCommand {
-  static final int COL_HOST = 0;
-  static final int COL_PORT = 1;
-  static final int COL_OS_INFO = 2;
+  static final int COL_HOST 		 = 0;
+  static final int COL_PORT 		 = 1;
+  static final int COL_OS_INFO 	 = 2;
   static final int COL_JAVA_INFO = 3;
 
   @Override

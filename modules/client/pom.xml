@@ -58,6 +58,11 @@
         <groupId>org.simpleframework</groupId>
         <artifactId>simple</artifactId>
     </dependency>
+    
+	<dependency>
+		<groupId>dom4j</groupId>
+		<artifactId>dom4j</artifactId>
+	</dependency>
 
   </dependencies>
 

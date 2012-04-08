@@ -1,6 +1,5 @@
 package org.sapia.corus.taskmanager;
 
-import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
 
@@ -18,7 +17,7 @@ public interface CorusTaskManager extends TaskManager{
   /**
    * @param level a progress level.
    * @return a {@link ProgressQueue}
-   * @see ProgressMsg
+   * @see ProgressQueue
    */
   public ProgressQueue getProgressQueue(int level);
 

@@ -62,7 +62,7 @@ public interface PortManager extends java.rmi.Remote, Module{
   public void releasePortRange(Arg name);
   
   /**
-   * @return the <code>List</code> of port ranges that this instance holds.
+   * @return the {@link List} of {@link PortRange}s that this instance holds.
    */
   public List<PortRange> getPortRanges(); 
   

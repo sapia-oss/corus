@@ -24,23 +24,23 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
 
   public static final int DEFAULT_POLL_INTERVAL   = 10;
   public static final int DEFAULT_STATUS_INTERVAL = 30;
-  private boolean           _invoke                 = true;
-  private List<Starter>     _starters               = new ArrayList<Starter>();
-  private List<Port>        _ports                  = new ArrayList<Port>();
-  private int               _maxKillRetry           = -1;
-  private int               _shutDownTimeout        = -1;
-  private int               _maxInstances;
-  private String            _name;
-  private int               _statusInterval         = DEFAULT_STATUS_INTERVAL;
-  private int               _pollInterval           = DEFAULT_POLL_INTERVAL;
-  private boolean           _deleteOnKill           = false;
-  private String[]          _tags;
+  private boolean           invoke                 = true;
+  private List<Starter>     starters               = new ArrayList<Starter>();
+  private List<Port>        ports                  = new ArrayList<Port>();
+  private int               maxKillRetry           = -1;
+  private int               shutDownTimeout        = -1;
+  private int               maxInstances;
+  private String            name;
+  private int               statusInterval         = DEFAULT_STATUS_INTERVAL;
+  private int               pollInterval           = DEFAULT_POLL_INTERVAL;
+  private boolean           deleteOnKill           = false;
+  private String[]          tags;
   
   public ProcessConfig() {
   }
   
   public ProcessConfig(String name) {
-    _name = name;
+    this.name = name;
   }
   
   /**
@@ -49,7 +49,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param name a name.
    */
   public void setName(String name) {
-    _name = name;
+    this.name = name;
   }
 
   /**
@@ -58,7 +58,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @return this process config's name.
    */
   public String getName() {
-    return _name;
+    return name;
   }
 
   /**
@@ -66,9 +66,9 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param tagList
    */
   public void setTags(String tagList){
-    _tags = tagList.split(",");
-    for(int i = 0; i < _tags.length; i++){
-      _tags[i] = _tags[i].trim();
+    tags = tagList.split(",");
+    for(int i = 0; i < tags.length; i++){
+      tags[i] = tags[i].trim();
     }
   }
   
@@ -77,8 +77,8 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    */
   public Set<String> getTagSet(){
     Set<String> set = new HashSet<String>();
-    if(_tags != null){
-      for(String t:_tags){
+    if(tags != null){
+      for(String t:tags){
         set.add(t);
       }
     }
@@ -92,7 +92,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param maxRetry a number of maximum successive "kill" attempts.
    */
   public void setMaxKillRetry(int maxRetry) {
-    _maxKillRetry = maxRetry;
+    maxKillRetry = maxRetry;
   }
   
   /**
@@ -100,7 +100,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * terminated (defaults to true).
    */
   public void setDeleteOnKill(boolean delete){
-    _deleteOnKill = delete;
+    deleteOnKill = delete;
   }
   
   /**
@@ -108,7 +108,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * terminated
    */
   public boolean isDeleteOnKill(){
-    return _deleteOnKill;
+    return deleteOnKill;
   }
 
   /**
@@ -120,7 +120,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * <code>-1</code> is returned if no value was specified.
    */
   public int getMaxKillRetry() {
-    return _maxKillRetry;
+    return maxKillRetry;
   }
 
   /**
@@ -130,7 +130,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * should poll the corus server - defaults to 10 seconds.
    */
   public void setPollInterval(int interval) {
-    _pollInterval = interval;
+    pollInterval = interval;
   }
 
   /**
@@ -138,7 +138,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @see #setPollInterval(int)
    */
   public int getPollInterval() {
-    return _pollInterval;
+    return pollInterval;
   }
 
   /**
@@ -148,7 +148,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * should send a status to the corus server - defaults to 25 seconds.
    */
   public void setStatusInterval(int interval) {
-    _statusInterval = interval;
+    statusInterval = interval;
   }
 
   /**
@@ -156,7 +156,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @see #setStatusInterval(int)
    */
   public int getStatusInterval() {
-    return _statusInterval;
+    return statusInterval;
   }
 
   /**
@@ -166,7 +166,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param shutDownTimeout a number in seconds.
    */
   public void setShutdownTimeout(int shutDownTimeout) {
-    _shutDownTimeout = shutDownTimeout;
+    shutDownTimeout = shutDownTimeout;
   }
 
   /**
@@ -177,7 +177,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * was specified.
    */
   public int getShutdownTimeout() {
-    return _shutDownTimeout;
+    return shutDownTimeout;
   }
 
   /**
@@ -189,7 +189,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * be invoked explicitly by its name (defaults to <code>true</code>).
    */
   public void setInvoke(boolean invoke) {
-    _invoke = invoke;
+    invoke = invoke;
   }
 
   /**
@@ -197,7 +197,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * be invoked explicitly by its name.
    */
   public boolean isInvoke() {
-    return _invoke;
+    return invoke;
   }
   
   /**
@@ -206,7 +206,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    */
   public Port createPort(){
     Port p = new Port();
-    _ports.add(p);
+    ports.add(p);
     return p;
   }
   
@@ -216,7 +216,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   public List<Dependency> getDependenciesFor(String profile){
     List<Dependency> toReturn = new ArrayList<Dependency>();
     
-    for(Starter st:_starters){
+    for(Starter st:starters){
       if(st.getProfile().equals(profile)){
         for(Dependency dep:st.getDependencies()){
           toReturn.add(dep);
@@ -231,21 +231,21 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @return the <code>List<code> of this instance's <code>Port</code>.
    */
   public List<Port> getPorts(){
-    return _ports;
+    return ports;
   }
 
   /**
    * @param maxInstances the maximum number of process instances allowed.
    */
   public void setMaxInstances(int maxInstances) {
-    _maxInstances = maxInstances;
+    maxInstances = maxInstances;
   }
 
   /**
    * @return the maximum number of process instances allowed (if <= 0, means no maximum).
    */
   public int getMaxInstances() {
-    return _maxInstances;
+    return maxInstances;
   }
 
   /**
@@ -273,7 +273,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    */
   public List<String> getProfiles() {
     List<String> profiles = new ArrayList<String>();
-    for (Starter st:_starters) {
+    for (Starter st:starters) {
       profiles.add(st.getProfile());
     }
 
@@ -285,7 +285,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @return <code>true</code> if this instance has the given profile.
    */
   public boolean containsProfile(String profile){
-    for (Starter st:_starters) {
+    for (Starter st:starters) {
       if(st.getProfile().equals(profile)){
         return true;
       }
@@ -299,7 +299,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param starter a {@link Starter}.
    */
   public void addStarter(Starter starter){
-    _starters.add(starter);
+    starters.add(starter);
   }
   
   public void handleObject(String elementName, Object starter)
@@ -314,18 +314,18 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   }
     
   public String toString() {
-    return "[ name=" + _name + ", maxKillRetry=" + _maxKillRetry +
-           ", shutDownTimeout=" + _shutDownTimeout + " java=" + _starters +
-           ", deleteOnKill=" + _deleteOnKill + " ]";
+    return "[ name=" + name + ", maxKillRetry=" + maxKillRetry +
+           ", shutDownTimeout=" + shutDownTimeout + " java=" + starters +
+           ", deleteOnKill=" + deleteOnKill + " ]";
   }
   
   public int hashCode(){
-    return _name.hashCode();
+    return name.hashCode();
   }
   
   public boolean equals(Object other){
     if(other instanceof ProcessConfig){
-      return _name.equals(((ProcessConfig)other).getName());
+      return name.equals(((ProcessConfig)other).getName());
     }
     else{
       return false;
@@ -333,7 +333,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
   }
   
   void init(String distName, String version){
-    for(Starter st: _starters){
+    for(Starter st: starters){
       for(Dependency dep:st.getDependencies()){
         if(dep.getDist() == null)
           dep.setDist(distName);
@@ -350,8 +350,8 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
     Starter toReturn = null;
     Starter current;
 
-    for (int i = 0; i < _starters.size(); i++) {
-      current = (Starter) _starters.get(i);
+    for (int i = 0; i < starters.size(); i++) {
+      current = (Starter) starters.get(i);
 
       if ((current.getProfile() == null) && (toReturn == null)) {
         toReturn = current;

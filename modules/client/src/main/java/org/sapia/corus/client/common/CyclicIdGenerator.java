@@ -12,8 +12,8 @@ public class CyclicIdGenerator {
 
   public static final int MAX_ID = 999999;
 
-  private static int _commandCount = 0;
-  private static int _requestCount = 0;
+  private static int commandCount = 0;
+  private static int requestCount = 0;
 
   /**
    * Generates the next command identifier.
@@ -21,11 +21,11 @@ public class CyclicIdGenerator {
    * @return The next command identifier.
    */
   public static synchronized String newCommandId() {
-    if (_commandCount >= MAX_ID) {
-      _commandCount = 0;
+    if (commandCount >= MAX_ID) {
+      commandCount = 0;
     }
 
-    return String.valueOf(++_commandCount);
+    return String.valueOf(++commandCount);
   }
 
   /**
@@ -34,10 +34,10 @@ public class CyclicIdGenerator {
    * @return The next request identifier.
    */
   public static synchronized String newRequestId() {
-    if (_requestCount >= MAX_ID) {
-      _requestCount = 0;
+    if (requestCount >= MAX_ID) {
+      requestCount = 0;
     }
 
-    return String.valueOf(++_requestCount);
+    return String.valueOf(++requestCount);
   }
 }

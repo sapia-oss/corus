@@ -23,6 +23,12 @@ import org.sapia.corus.core.PropertyProvider;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Implements the {@link Configurator} and {@link InternalConfigurator} interfaces.
+ * 
+ * @author yduchesne
+ *
+ */
 @Bind(moduleInterface=Configurator.class)
 @Remote(interfaces=Configurator.class)
 public class ConfiguratorImpl extends ModuleHelper implements Configurator, InternalConfigurator{
@@ -53,14 +59,13 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
     serverProperties    = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.server"));
     internalProperties  = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.internal"));
 
-    tags       = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
+    tags = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
     propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
 
     String serverName = internalProperties.getProperty(PROP_SERVER_NAME);
     if(serverName == null){
       internalProperties.addProperty(PROP_SERVER_NAME, serverContext().getServerName());
-    }
-    else{
+    } else{
       serverContext().overrideServerName(serverName);
     }
     
@@ -75,6 +80,7 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
     store(scope).addProperty(name, value);
   }
   
+  @SuppressWarnings("rawtypes")
   @Override
   public void addProperties(PropertyScope scope, Properties props,
       boolean clearExisting) {

@@ -34,14 +34,14 @@ public class SoapExtension implements HttpExtension, RequestListener {
   
   public static final String HTTP_INTEROP_SOAP_CONTEXT = "interop/soap";  
   
-  private ServerStatelessSoapStreamHelper _helper;
-  private Logger                          _logger;
-  private ServerContext                   _serverContext;
+  private ServerStatelessSoapStreamHelper helper;
+  private Logger                          logger;
+  private ServerContext                   serverContext;
   
   public SoapExtension(ServerContext serverContext){
-    _helper = new ServerStatelessSoapStreamHelper(this, "corus.server");
-    _logger = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-    _serverContext = serverContext;
+    helper = new ServerStatelessSoapStreamHelper(this, "corus.server");
+    logger = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+    this.serverContext = serverContext;
   }
   
   public HttpExtensionInfo getInfo() {
@@ -55,7 +55,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
   public void process(HttpContext ctx) throws Exception {
     ctx.getResponse().set("Content-Type", "text/xml");
     try {
-      _helper.processRequest(ctx.getRequest().getInputStream(), ctx.getResponse().getOutputStream());
+      helper.processRequest(ctx.getRequest().getInputStream(), ctx.getResponse().getOutputStream());
     } catch (Exception e) {
       throw new Exception("Error processing request", e);
     }finally{
@@ -70,8 +70,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
       throw new MissingDataException("'corusPid' not specified in header");
     }
     
-    _logger.info("Process: " + proc + " confirming shutdown");
-    org.sapia.corus.client.services.processor.Process corusProcess = _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
+    logger.info("Process: " + proc + " confirming shutdown");
+    org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
     corusProcess.confirmKilled();
     corusProcess.save();
   }
@@ -82,13 +82,13 @@ public class SoapExtension implements HttpExtension, RequestListener {
       throw new MissingDataException("'corusPid' not specified in header");
     }
   
-    if(_logger.isDebugEnabled())
-      _logger.debug("Process: " + proc + " polling...");
+    if(logger.isDebugEnabled())
+      logger.debug("Process: " + proc + " polling...");
     
-    org.sapia.corus.client.services.processor.Process corusProcess = _serverContext
+    org.sapia.corus.client.services.processor.Process corusProcess = serverContext
       .lookup(Processor.class).getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.poll();
-    _logger.debug("Process commands: " + commands);
+    logger.debug("Process commands: " + commands);
     corusProcess.save();
     return commands;
   }
@@ -99,10 +99,10 @@ public class SoapExtension implements HttpExtension, RequestListener {
       throw new MissingDataException("'corusPid' not specified in header");
     }
 
-    if(_logger.isDebugEnabled())
-      _logger.debug("Process requested a restart: " + proc);
+    if(logger.isDebugEnabled())
+      logger.debug("Process requested a restart: " + proc);
     
-    _serverContext.lookup(Processor.class).restart(proc.getCorusPid());
+    serverContext.lookup(Processor.class).restart(proc.getCorusPid());
   }
   
   public synchronized List<AbstractCommand> onStatus(Process proc, Status stat)
@@ -111,19 +111,19 @@ public class SoapExtension implements HttpExtension, RequestListener {
       throw new MissingDataException("'corusPid' not specified in header");
     }
     
-    if(_logger.isDebugEnabled()){
-      _logger.debug("Status received for " + proc);
+    if(logger.isDebugEnabled()){
+      logger.debug("Status received for " + proc);
       for(Context ctx: stat.getContexts()){
-        _logger.debug("Context: " + ctx.getName());
+        logger.debug("Context: " + ctx.getName());
         for(Param p: ctx.getParams()){
-          _logger.debug(String.format("   %s = %s", p.getName(), p.getValue()));
+          logger.debug(String.format("   %s = %s", p.getName(), p.getValue()));
         }
       }
     }
     
-    org.sapia.corus.client.services.processor.Process corusProcess = _serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
+    org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.status(stat);
-    _logger.debug("Process commands: " + commands);
+    logger.debug("Process commands: " + commands);
     corusProcess.save();
     return commands;
   }

@@ -37,7 +37,7 @@ public interface CorusTransport {
   
   
   /**
-   * @return The Ubik transport provider used by this corus transport implementation.
+   * @return The Ubik {@link TransportProvider} used by this corus transport implementation.
    */
   public TransportProvider getTransportProvider();
 }

@@ -9,25 +9,18 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.services.os.OsModule;
-import org.sapia.corus.client.services.os.OsModule.LogCallback;
-import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.util.IOUtils;
 
 
 /**
- * Unix implementation of the <code>NativeProcess</code> interface.
+ * Windows implementation of the {@link NativeProcess} interface.
  * 
  * @author Yanick Duchesne
  *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class WindowsProcess implements NativeProcess {
 
-  private static String _pvPath;
+  private static String pvPath;
   
   /**
    * Utility method that returns a new CmdLine object with the path to the process viewer tool.
@@ -36,7 +29,7 @@ public class WindowsProcess implements NativeProcess {
    * @throws IOException If the process viewer tool is not found 
    */
   private static synchronized CmdLine createPVCmdLine() throws IOException {
-    if (_pvPath == null) {
+    if (pvPath == null) {
       // Generate the command line to the process viewer tool
       StringBuffer aCommand = new StringBuffer();
       aCommand.append(System.getProperty("corus.home")).
@@ -46,13 +39,13 @@ public class WindowsProcess implements NativeProcess {
   
       // Validate the presence and accessibility of the process viewer tool
       if (new File(aCommand.toString()).exists()) {
-        _pvPath = aCommand.toString();
+        pvPath = aCommand.toString();
       } else {
         throw new IOException("Unable to find the process viewer tool under path " + aCommand.toString());
       }
     }
     
-    return new CmdLine().addArg(_pvPath);
+    return new CmdLine().addArg(pvPath);
   }
 
   /**

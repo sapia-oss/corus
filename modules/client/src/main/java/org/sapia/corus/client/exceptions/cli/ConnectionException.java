@@ -5,6 +5,7 @@ import org.sapia.corus.client.exceptions.ExceptionCode;
 
 /**
  * Thrown when a connection to the Corus server could not be obtained.
+ * 
  * @author yduchesne
  *
  */

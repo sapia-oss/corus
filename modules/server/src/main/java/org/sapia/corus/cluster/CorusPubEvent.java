@@ -1,48 +1,24 @@
 package org.sapia.corus.cluster;
 
-import java.io.Serializable;
-
 import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.ubik.net.ServerAddress;
 
 
 /**
+ * An event that is dispatched by a Corus node, at startup, to publish itself to other nodes.
+ * 
  * @author Yanick Duchesne
  */
-public class CorusPubEvent implements Serializable {
-  
-  static final long serialVersionUID = 1L;
-  
-  private boolean       _new;
-  private ServerAddress _origin;
-  private ServerHost    _hostInfo;
-  private boolean       _pointToPoint = false;
+public class CorusPubEvent extends AbstractClusterEvent {
 
-  public CorusPubEvent(boolean isNew, ServerAddress origin, ServerHost hostInfo) {
-    _new    = isNew;
-    _origin = origin;
-    _hostInfo = hostInfo;
-  }
-
-  public boolean isNew() {
-    return _new;
-  }
-
-  public ServerAddress getOrigin() {
-    return _origin;
+	/**
+	 * Meant for externalization.
+	 */
+	public CorusPubEvent() {
   }
   
-  public ServerHost getHostInfo() {
-    return _hostInfo;
-  }
-  
-  public boolean isPointToPoint() {
-    return _pointToPoint;
-  }
-  
-  public CorusPubEvent setPointToPoint(boolean pointToPoint) {
-    _pointToPoint = pointToPoint;
-    return this;
+  public CorusPubEvent(ServerAddress origin, ServerHost hostInfo) {
+  	super(origin, hostInfo);
   }
   
 }

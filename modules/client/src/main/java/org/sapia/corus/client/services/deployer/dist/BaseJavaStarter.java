@@ -21,7 +21,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 
 /**
- * This helper class can be inherited from to implement <code>Starter</code>s that
+ * This helper class can be inherited from to implement {@link Starter}s that
  * launch Java processes.
  * 
  * @author Yanick Duchesne
@@ -30,15 +30,15 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   
   static final long serialVersionUID = 1L;
 
-  protected String _javaHome   = System.getProperty("java.home");
-  protected String _javaCmd    = "java";
-  protected String _vmType; 
-  protected String _profile;
-  protected String _corusHome = System.getProperty("corus.home");
-  protected List<Property>   _vmProps   = new ArrayList<Property>();
-  protected List<Option>     _options    = new ArrayList<Option>();
-  protected List<XOption>    _xoptions   = new ArrayList<XOption>();
-  private   List<Dependency> _dependencies = new ArrayList<Dependency>();
+  protected String 					 javaHome     = System.getProperty("java.home");
+  protected String 					 javaCmd      = "java";
+  protected String 					 vmType; 
+  protected String 					 profile;
+  protected String 					 corusHome    = System.getProperty("corus.home");
+  protected List<Property>   vmProps      = new ArrayList<Property>();
+  protected List<Option>     options      = new ArrayList<Option>();
+  protected List<XOption>    xoptions     = new ArrayList<XOption>();
+  private   List<Dependency> dependencies = new ArrayList<Dependency>();
   
   /**
    * Sets the Corus home.
@@ -46,7 +46,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param home the Corus home.
    */
   public void setCorusHome(String home) {
-    _corusHome = home;
+    corusHome = home;
   }
 
   /**
@@ -55,7 +55,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param profile a profile name.
    */
   public void setProfile(String profile) {
-    _profile = profile;
+    this.profile = profile;
   }
 
   /**
@@ -64,7 +64,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @return a profile name.
    */
   public String getProfile() {
-    return _profile;
+    return profile;
   }
 
   /**
@@ -73,7 +73,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param prop a <code>Property</code> instance.
    */
   public void addProperty(Property prop) {
-    _vmProps.add(prop);
+    vmProps.add(prop);
   }
 
   /**
@@ -82,7 +82,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param opt an <code>Option</code> instance.
    */
   public void addOption(Option opt) {
-    _options.add(opt);
+    options.add(opt);
   }
 
   /**
@@ -91,7 +91,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param opt a <code>XOption</code> instance.
    */
   public void addXoption(XOption opt) {
-    _xoptions.add(opt);
+    xoptions.add(opt);
   }
 
   /**
@@ -100,7 +100,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param home the full path to a JDK installation directory
    */
   public void setJavaHome(String home) {
-    _javaHome = home;
+    javaHome = home;
   }
 
   /**
@@ -109,11 +109,11 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    * @param cmdName the name of the 'java' executable
    */
   public void setJavaCmd(String cmdName) {
-    _javaCmd = cmdName;
+    javaCmd = cmdName;
   }
   
   public void setVmType(String aType) {
-    _vmType = aType;
+    vmType = aType;
   }
   
   /**
@@ -123,20 +123,20 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    */
   public void addDependency(Dependency dep){
     if(dep.getProfile() == null){
-      dep.setProfile(_profile);
+      dep.setProfile(profile);
     }
-    _dependencies.add(dep);
+    dependencies.add(dep);
   }
   
   public Dependency createDependency(){
     Dependency dep = new Dependency();
-    dep.setProfile(_profile);
-    _dependencies.add(dep);
+    dep.setProfile(profile);
+    dependencies.add(dep);
     return dep;
   }
   
   public List<Dependency> getDependencies() {
-    return new ArrayList<Dependency>(_dependencies);
+    return new ArrayList<Dependency>(dependencies);
   }
   
   
@@ -152,40 +152,39 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     
     CmdLine cmd = new CmdLine();
         
-    File javaHome = new File(_javaHome);
-    if(!javaHome.exists()){
+    File javaHomeDir = new File(javaHome);
+    if(!javaHomeDir.exists()){
       throw new MissingDataException("java.home not found");
     }        
-    cmd.addArg(javaHome.getAbsolutePath() + File.separator + "bin" + File.separator + _javaCmd);
+    cmd.addArg(javaHomeDir.getAbsolutePath() + File.separator + "bin" + File.separator + javaCmd);
     
-    if (_vmType != null) {
-      if(!_vmType.startsWith("-")){
-        cmd.addArg("-"+_vmType);        
+    if (vmType != null) {
+      if(!vmType.startsWith("-")){
+        cmd.addArg("-"+vmType);        
       }
       else{
-        cmd.addArg(_vmType);
+        cmd.addArg(vmType);
       }
     }
-
     
-    for (int i = 0; i < _xoptions.size(); i++) {
-      XOption opt = _xoptions.get(i);
+    for (int i = 0; i < xoptions.size(); i++) {
+      XOption opt = xoptions.get(i);
       String value = render(propContext, opt.getValue());
       opt.setValue(value);
       cmdLineVars.put(opt.getName(), value);
       cmd.addElement(opt.convert());
     }
   
-    for (int i = 0; i < _options.size(); i++) {
-      Option opt = _options.get(i);
+    for (int i = 0; i < options.size(); i++) {
+      Option opt = options.get(i);
       String value = render(propContext, opt.getValue());
       opt.setValue(value);
       cmdLineVars.put(opt.getName(), value);
       cmd.addElement(opt.convert());
     }
   
-    for (int i = 0; i < _vmProps.size(); i++) {
-      Property p = _vmProps.get(i);
+    for (int i = 0; i < vmProps.size(); i++) {
+      Property p = vmProps.get(i);
       String value = render(propContext, p.getValue());
       p.setValue(value);
       cmdLineVars.put(p.getName(), value);

@@ -6,10 +6,16 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
+/**
+ * Specifies the behavior for storing/retrieving {@link Process} instances.
+ * 
+ * @author yduchesne
+ *
+ */
 public interface ProcessDatabase {
 
   /**
-   * @param process a <code>Process</code>.
+   * @param process a {@link Process}.
    */
   public void addProcess(Process process);
   

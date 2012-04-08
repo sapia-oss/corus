@@ -13,83 +13,52 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public class ClusterInfo {
   
-  private Set<ServerAddress> _targets;
-  //private Set<String> _tags;
-  private boolean _cluster;
+  private Set<ServerAddress> targets;
+  private boolean 					 cluster;
   
   public ClusterInfo(boolean cluster){
-  	_cluster = cluster;
+  	this.cluster = cluster;
   }
   
   /**
    * Adds the given deployment target.
    *   
-   * @param addr a <code>ServerAddress</code> corresponding to the targeted
+   * @param addr a {@link ServerAddress} corresponding to the targeted
    * Corus server.
    * @return this instance (allowing for chained invocation).
    */
   public ClusterInfo addTarget(ServerAddress addr){
-  	_cluster = true;
-  	if(_targets == null){
-  		_targets = new HashSet<ServerAddress>();
+  	cluster = true;
+  	if(targets == null){
+  		targets = new HashSet<ServerAddress>();
   	}
-  	_targets.add(addr);
+  	targets.add(addr);
   	return this;
   }
-  
-  /**
-   * Adds the given tag.
-   * @param tag a tag that target server must match.
-   * @return
-   */
-  /*public ClusterInfo addTag(String tag){
-    _cluster = true;
-    if(_tags == null){
-      _tags = new HashSet<String>();
-    }
-    _tags.add(tag);
-    return this;
-  }*/
-    
+ 
   /**
    * @return <code>true</code> if this instance corresponds to a clustered
    * operation.
    */
   public boolean isClustered(){
-  	return _cluster;
+  	return cluster;
   }
   
   /**
    * Returns the targets to which this instance's operation corresponds. If the
-   * returned set is <code>null</code> and this instance's <code>isClustered()</code>
+   * returned set is <code>null</code> and this instance's {@link #isClustered()}
    * method returns <code>true</code>, then this instance indicates that its
    * corresponding operation should be performed accross all instances in the cluster.
    * <p>
    * If the returned set is not <code>null</code>, then only the corresponding servers
    * should be targeted by the operation.
    * 
-   * @return the <code>Set</code> of <code>ServerAddress</code>es corresponding
+   * @return the {@link Set} of {@link ServerAddress}es corresponding
    * to this instance's targets, or <code>null</code> if no targets were
    * specified.
    */
   public Set<ServerAddress> getTargets(){
-  	return _targets;
+  	return targets;
   }
   
-  /**
-   * Returns the tags to which this instance's operation corresponds. If the
-   * returned set is <code>null</code> and this instance's <code>isClustered()</code>
-   * method returns <code>true</code>, then this instance indicates that its
-   * corresponding operation should be performed accross all instances in the cluster.
-   * <p>
-   * If the returned set is not <code>null</code>, then only servers whose tags
-   * match this instance's should be targeted by the operation.
-   * 
-   * @return the <code>Set</code> of tags corresponding
-   * to this instance's targets, or <code>null</code> if no tags were
-   * specified.
-   */
-  /*public Set<String> getTags() {
-    return _tags;
-  }*/
 }

@@ -3,6 +3,7 @@ package org.sapia.corus.deployer.transport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 
 import org.sapia.corus.client.services.deployer.transport.Connection;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
@@ -18,44 +19,44 @@ public class Deployment {
 	
 	static final int BUFSZ = 2048;
 
-	private ServerContext _context;
-  private Connection _conn;
-	private DeploymentMetadata _meta;
+	private ServerContext 		 context;
+  private Connection 				 conn;
+	private DeploymentMetadata meta;
 	
 	/**
-	 * @param conn the <code>Connection</code> that represents the network
+	 * @param conn the {@link Connection} that represents the network
 	 * link with the client that is performing the deployment.
 	 */
 	public Deployment(ServerContext context, Connection conn){
-    _context = context;
-		_conn = conn;
+    this.context = context;
+		this.conn = conn;
 	}
   
 	public DeploymentMetadata getMetadata() throws IOException{
-		if(_meta == null){
-			ObjectInputStream ois = new ObjectInputStream(_conn.getInputStream());
+		if(meta == null){
+			ObjectInputStream ois = new ObjectInputStream(conn.getInputStream());
 			try{
-				_meta = (DeploymentMetadata)ois.readObject();  			
+				meta = (DeploymentMetadata)ois.readObject();  			
 			}catch(ClassNotFoundException e){
 				throw new IOException("Class not found: " + e.getMessage());
 			}
 		}
-		return _meta;
+		return meta;
 	}
 	
 	/**
-	 * @return the <code>Connection</code> that represents the physical
+	 * @return the {@link Connection} that represents the physical
 	 * link with the client that is performing the deployment.
 	 */
 	public Connection getConnection(){
-		return _conn;
+		return conn;
 	}
   
   /**
-   * Closes the <code>Connection</code> that this instance encapsulates.
+   * Closes the {@link Connection} that this instance encapsulates.
    */  
 	public void close(){
-	  _conn.close();
+	  conn.close();
 	}
 	
 	/**
@@ -63,13 +64,13 @@ public class Deployment {
 	 * <p>
 	 * IMPORTANT: this method closes the given stream.
 	 * 
-	 * @param deployOutput an <code>OutputStream</code>.
+	 * @param deployOutput an {@link OutputStream}.
 	 * @throws IOException if an IO problem occurs while performing this
 	 * operation.
 	 */
 	public void deploy(DeployOutputStream deployOutput) throws IOException{
 		long length = getMetadata().getContentLength();
-		InputStream is = _conn.getInputStream();
+		InputStream is = conn.getInputStream();
 		long total = 0;
 		byte[] buf = new byte[BUFSZ];
 		int read = 0;
@@ -78,7 +79,7 @@ public class Deployment {
 			deployOutput.write(buf, 0, read);
 		}
 		deployOutput.close();
-		ClientCallback cb = new ClientCallback(_context);
+		ClientCallback cb = new ClientCallback(context);
 		cb.handleResult(this, deployOutput.getProgressQueue());
 	}
 }

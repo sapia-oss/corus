@@ -14,27 +14,26 @@ import org.sapia.corus.client.common.ProgressQueue;
  */
 public class ProgressQueues {
 	
-	private List<SoftReference<Subscription>> _queues = Collections.synchronizedList(
+	private List<SoftReference<Subscription>> queues = Collections.synchronizedList(
 	    new ArrayList<SoftReference<Subscription>>()
 	);
 	
 	public void addProgressQueue(ProgressQueue queue, int level){
-		_queues.add(new SoftReference<Subscription>(new Subscription(level, queue)));
+		queues.add(new SoftReference<Subscription>(new Subscription(level, queue)));
 	}
 	
   public void notify(ProgressMsg msg){
   	Subscription subs;
   	SoftReference<Subscription> ref;
-		synchronized(_queues){
-			for (int i = 0; i < _queues.size(); i++) {
-        ref = (SoftReference<Subscription>)_queues.get(i);
+		synchronized(queues){
+			for (int i = 0; i < queues.size(); i++) {
+        ref = (SoftReference<Subscription>)queues.get(i);
         subs = (Subscription)ref.get();
         if(subs == null || subs.queue.isClosed()){
-        	_queues.remove(i);
+        	queues.remove(i);
         	--i;
         	continue;
-        }
-        else{
+        } else {
           subs.queue.addMsg(msg);
         }
       }

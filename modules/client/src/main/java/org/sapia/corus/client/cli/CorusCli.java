@@ -4,6 +4,8 @@ import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -25,29 +27,34 @@ import org.sapia.ubik.util.Localhost;
  * @author Yanick Duchesne
  */
 public class CorusCli extends CommandConsole {
+	
   public static final int    DEFAULT_PORT = 33000;
   public static final String HOST_OPT = "h";
   public static final String PORT_OPT = "p";
   public static final int    MAX_ERROR_HISTORY = 20;
   
-  protected CorusConnector _corus;
-  private List<CliError> _errors;
+  static {
+  	Logger.getRootLogger().setLevel(Level.OFF);
+  }
+  
+  protected CorusConnector corus;
+  private List<CliError> 	 errors;
 
   public CorusCli(CorusConnector corus) {
     super(new CorusCommandFactory());
     super.setCommandListener(new CliConsoleListener());
-    _corus = corus;
-    _errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
+    this.corus = corus;
+    errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
     
     // Change the prompt
     StringBuffer prompt = new StringBuffer().append("[");
-    if (_corus.getContext().getAddress().getTransportType().equals("tcp/socket")) {
-      prompt.append(((TCPAddress) _corus.getContext().getAddress()).getHost()).append(":").
-             append(((TCPAddress) _corus.getContext().getAddress()).getPort());
+    if (corus.getContext().getAddress().getTransportType().equals("tcp/socket")) {
+      prompt.append(((TCPAddress) corus.getContext().getAddress()).getHost()).append(":").
+             append(((TCPAddress) corus.getContext().getAddress()).getPort());
     } else {
-      prompt.append(_corus.getContext().getAddress().toString());
+      prompt.append(corus.getContext().getAddress().toString());
     }
-    prompt.append("@").append(_corus.getContext().getDomain()).append("]>> ");
+    prompt.append("@").append(corus.getContext().getDomain()).append("]>> ");
 
     setPrompt(prompt.toString());
   }
@@ -113,7 +120,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    return new CliContextImpl(_corus, _errors);
+    return new CliContextImpl(corus, errors);
   }
 
   private static void help() {

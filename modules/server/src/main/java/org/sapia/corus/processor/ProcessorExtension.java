@@ -24,26 +24,29 @@ import org.sapia.ubik.net.TCPAddress;
 
 import simple.http.Request;
 
+/**
+ * An {@link HttpExtension} that handles requests pertaining to processes.
+ * 
+ * @author yduchesne
+ *
+ */
 public class ProcessorExtension implements HttpExtension{
   
-  public static final String CONTEXT_PATH = "processor";
+  public static final String CONTEXT_PATH 			= "processor";
+  private static final String COMMAND_PS 				= "/ps";
+  private static final String COMMAND_STATUS 		= "/status";
+  private static final String PARAM_DIST 				= "d";
+  private static final String PARAM_VERSION 	  = "v";
+  private static final String PARAM_PROC 				= "n";
+  private static final String PARAM_PROFILE 	  = "p";
+  private static final String PARAM_ID 					= "i";
   
-  private static final String COMMAND_PS = "/ps";
-  
-  private static final String COMMAND_STATUS = "/status";
-  
-  private static final String PARAM_DIST = "d";
-  private static final String PARAM_VERSION = "v";
-  private static final String PARAM_PROC = "n";
-  private static final String PARAM_PROFILE = "p";
-  private static final String PARAM_ID = "i";
-  
-  private Processor _processor;
-  private ServerContext _context;
+  private Processor 		processor;
+  private ServerContext context;
   
   ProcessorExtension(Processor proc, ServerContext context){
-    _processor = proc;
-    _context = context;
+    this.processor = proc;
+    this.context = context;
   }
   
   public HttpExtensionInfo getInfo() {
@@ -87,9 +90,9 @@ public class ProcessorExtension implements HttpExtension{
     ctx.getResponse().set("Content-Type", "text/xml");    
     PrintStream ps = ctx.getResponse().getPrintStream();
     ps.print("<processes ");
-    attribute("domain", _context.getDomain(), ps);
+    attribute("domain", context.getDomain(), ps);
     try{
-      TCPAddress addr = _context.getServerAddress();
+      TCPAddress addr = context.getServerAddress();
       attribute("host", addr.getHost(), ps);      
       attribute("port", Integer.toString(addr.getPort()), ps);
     }catch(ClassCastException e){}
@@ -168,7 +171,7 @@ public class ProcessorExtension implements HttpExtension{
     List<Process> processes;
     if(i != null){
       try{
-        Process proc = _processor.getProcess(i);
+        Process proc = processor.getProcess(i);
         processes = new ArrayList<Process>(1);
         processes.add(proc);
       }catch(ProcessNotFoundException e){
@@ -182,7 +185,7 @@ public class ProcessorExtension implements HttpExtension{
         .name(n)
         .profile(p)
         .build();
-      processes = _processor.getProcesses(criteria);
+      processes = processor.getProcesses(criteria);
     }
     return processes;
   }

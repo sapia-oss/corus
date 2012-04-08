@@ -1,9 +1,18 @@
 package org.sapia.corus.client.services.http;
 
+/**
+ * Encapsulates information about a {@link HttpExtension}.
+ * 
+ * @author yduchesne
+ *
+ */
 public class HttpExtensionInfo implements Comparable<HttpExtensionInfo>{
   
   private String name, description, contextPath;
 
+  /**
+   * @return the extension's context path.
+   */
   public String getContextPath() {
     return contextPath;
   }
@@ -12,6 +21,9 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo>{
     this.contextPath = contextPath;
   }
 
+  /**
+   * @return the extension's description.
+   */
   public String getDescription() {
     return description;
   }
@@ -20,6 +32,9 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo>{
     this.description = description;
   }
 
+  /**
+   * @return the extension's name.
+   */
   public String getName() {
     return name;
   }

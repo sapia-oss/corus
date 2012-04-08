@@ -3,11 +3,11 @@ package org.sapia.corus.util;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings(value="unchecked")
+@SuppressWarnings("rawtypes")
 public class UriPattern {
 
   private int[]  _compiled;
-
+  
   private UriPattern(int[] compiled) {
     _compiled = compiled;
   }
@@ -19,7 +19,6 @@ public class UriPattern {
    */
   public static UriPattern parse(String pattern) {
     return new UriPattern(UriPatternHelper.compilePattern(pattern));
-
   }
 
   /**

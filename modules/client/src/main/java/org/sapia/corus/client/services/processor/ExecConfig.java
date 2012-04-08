@@ -31,8 +31,8 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
   static final long serialVersionUID = 1L;
   
   private List<ProcessDef> processes = new ArrayList<ProcessDef>();
-  private String name, profile;
-  private boolean startOnBoot;
+  private String 					 name, profile;
+  private boolean 				 startOnBoot;
   
   
   @Override

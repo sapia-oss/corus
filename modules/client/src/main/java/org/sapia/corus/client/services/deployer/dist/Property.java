@@ -15,45 +15,45 @@ public class Property implements Param, java.io.Serializable {
 
   static final long serialVersionUID = 1L;
 
-  protected String _name;
-  protected String _value;
+  protected String name;
+  protected String value;
 
   public Property() {
   }
 
   public Property(String name, String value) {
-    _name  = name;
-    _value = value;
+    this.name  = name;
+    this.value = value;
   }
 
   public void setName(String name) {
-    _name = name;
+    this.name = name;
   }
 
   public String getName() {
-    return _name;
+    return name;
   }
 
   public void setValue(String val) {
-    _value = val;
+    value = val;
   }
 
   public String getValue() {
-    return _value;
+    return value;
   }
 
   /**
    * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
    */
   public CmdElement convert() {
-    if (_value.indexOf(" ") == -1) {
-      return new Option("D" + _name + "=" + _value);
+    if (value.indexOf(" ") == -1) {
+      return new Option("D" + name + "=" + value);
     } else {
-      return new Option("D" + _name + "=\"" + _value + "\"");
+      return new Option("D" + name + "=\"" + value + "\"");
     }
   }
 
   public String toString() {
-    return "[ name=" + _name + ", value=" + _value + " ]";
+    return "[ name=" + name + ", value=" + value + " ]";
   }
 }

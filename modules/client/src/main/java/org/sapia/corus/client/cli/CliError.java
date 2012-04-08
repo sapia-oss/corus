@@ -15,12 +15,12 @@ import org.sapia.corus.client.cli.command.CorusCliCommand;
  */
 public class CliError {
 
-  private int _id;
-  private long _timestamp;
-  private String _description;
-  private Throwable _cause;
-  private CmdLine _commandLine;
-  private CorusCliCommand _command;
+  private int 						id;
+  private long 						timestamp;
+  private String 					description;
+  private Throwable 			cause;
+  private CmdLine 				commandLine;
+  private CorusCliCommand command;
   
   /**
    * Creates a new {@link CliError} instance.
@@ -32,12 +32,12 @@ public class CliError {
    * @param aCommand The executed command.
    */
   public CliError(int anId, String aDescription, Throwable aCause, CmdLine aCommandLine, CorusCliCommand aCommand) {
-    _id = anId;
-    _timestamp = System.currentTimeMillis();
-    _description = aDescription;
-    _cause = aCause;
-    _commandLine = aCommandLine;
-    _command = aCommand;
+    id 						= anId;
+    timestamp 		= System.currentTimeMillis();
+    description 	= aDescription;
+    cause 				= aCause;
+    commandLine 	= aCommandLine;
+    command 			= aCommand;
   }
 
   /**
@@ -46,7 +46,7 @@ public class CliError {
    * @return The id value.
    */
   public int getId() {
-    return _id;
+    return id;
   }
 
   /**
@@ -55,7 +55,7 @@ public class CliError {
    * @return The timestamp value.
    */
   public long getTimestamp() {
-    return _timestamp;
+    return timestamp;
   }
 
   /**
@@ -65,7 +65,7 @@ public class CliError {
    */
   public String getErrorDate() {
     SimpleDateFormat formatter = new SimpleDateFormat("yyy-MM-dd");
-    return formatter.format(new Date(_timestamp));
+    return formatter.format(new Date(timestamp));
   }
 
   /**
@@ -75,7 +75,7 @@ public class CliError {
    */
   public String getErrorTime() {
     SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
-    return formatter.format(new Date(_timestamp));
+    return formatter.format(new Date(timestamp));
   }
   
   /**
@@ -84,7 +84,7 @@ public class CliError {
    * @return The description value.
    */
   public String getDescription() {
-    return _description;
+    return description;
   }
 
   /**
@@ -93,7 +93,7 @@ public class CliError {
    * @return The cause value.
    */
   public Throwable getCause() {
-    return _cause;
+    return cause;
   }
 
   /**
@@ -102,7 +102,7 @@ public class CliError {
    * @return The commandLine value.
    */
   public CmdLine getCommandLine() {
-    return _commandLine;
+    return commandLine;
   }
 
   /**
@@ -111,25 +111,25 @@ public class CliError {
    * @return The command value.
    */
   public CorusCliCommand getCommand() {
-    return _command;
+    return command;
   }
 
   public String getSimpleMessage() {
     StringBuilder buffer = new StringBuilder();
     
-    if (_cause instanceof InputException) {
+    if (cause instanceof InputException) {
       buffer.append("Input error executing command '");
-    } else if (_cause instanceof RuntimeException) {
+    } else if (cause instanceof RuntimeException) {
       buffer.append("System error executing command '");
     } else {
-      buffer.append("Error ").append(_cause.getClass().getSimpleName()).append(" executing command '");
+      buffer.append("Error ").append(cause.getClass().getSimpleName()).append(" executing command '");
     }
     
-    buffer.append(_command.getName()).append("'");
-    if (_description != null) {
-      buffer.append(", ").append(_description);
+    buffer.append(command.getName()).append("'");
+    if (description != null) {
+      buffer.append(", ").append(description);
     }
-    buffer.append(" ==> ").append(_cause.getMessage());
+    buffer.append(" ==> ").append(cause.getMessage());
     
     return buffer.toString();
   }

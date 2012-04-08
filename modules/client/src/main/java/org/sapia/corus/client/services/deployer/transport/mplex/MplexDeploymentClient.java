@@ -11,7 +11,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 
 /**
- * Implements the <code>DeploymentClient</code> interface over the Mplex transport.
+ * Implements the {@link DeploymentClient} interface over the Mplex transport.
  * 
  * @author Yanick Duchesne
  */
@@ -21,15 +21,15 @@ public class MplexDeploymentClient extends AbstractDeploymentClient implements D
 	
 	static final int BUFSZ = 2048;
 	
-	private Socket _sock;
+	private Socket sock;
 	
 	/**
-	 * @param addr a <code>ServerAddress</code>.
+	 * @param addr a {@link ServerAddress}.
 	 * @throws IOException if no connection could be made.
 	 */
 	public void connect(ServerAddress addr) throws IOException{
 		TCPAddress tcpAddr = (TCPAddress)addr;
-		_sock = new Socket(tcpAddr.getHost(), tcpAddr.getPort());
+		sock = new Socket(tcpAddr.getHost(), tcpAddr.getPort());
 	}
 	
 	/**
@@ -76,9 +76,9 @@ public class MplexDeploymentClient extends AbstractDeploymentClient implements D
 	 * @see DeploymentClient#close()
 	 */
 	public void close(){
-		if(_sock != null){
+		if(sock != null){
 			try {
-        _sock.close();
+        sock.close();
       } catch (Exception e) {
         // noop
       }
@@ -89,20 +89,20 @@ public class MplexDeploymentClient extends AbstractDeploymentClient implements D
    * @see org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient#getInputStream()
    */
   protected InputStream getInputStream() throws IOException {
-		if(_sock == null){
+		if(sock == null){
 			throw new IOException("This instance is not connected; call connect()");
 		}
-		return _sock.getInputStream();
+		return sock.getInputStream();
   }
 
   /**
    * @see org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient#getOutputStream()
    */
   protected OutputStream getOutputStream() throws IOException {
-		if(_sock == null){
+		if(sock == null){
 			throw new IOException("This instance is not connected; call connect()");
 		}
-		OutputStream os = _sock.getOutputStream();
+		OutputStream os = sock.getOutputStream();
 		os.write(DEPLOY_STREAM_HEADER.getBytes("UTF-8"));
 		os.flush();
 		return os;

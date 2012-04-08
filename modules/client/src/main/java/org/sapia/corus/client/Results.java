@@ -9,11 +9,14 @@ import java.util.List;
  * @author Yanick Duchesne
  */
 public class Results<T> {
-  private List<Result<T>>    _results = new ArrayList<Result<T>>();
-  private boolean _invocationFinished;
-  private int _invocationCount;
-  private int _completedCount;
-  private long _timeout = 5000;
+	
+	public static final long DEFAULT_INVOCATION_TIMEOUT = 5000;
+	
+  private List<Result<T>> results 						= new ArrayList<Result<T>>();
+  private long 						timeout 						= DEFAULT_INVOCATION_TIMEOUT;
+  private boolean 			  invocationFinished;
+  private int 					  invocationCount;
+  private int 					  completedCount;
   
   /**
    * @param timeout the timeout, in millis, that an instance of this class should wait 
@@ -22,44 +25,47 @@ public class Results<T> {
    * @see #hasNext()
    */
   public void setTimeout(long timeout){
-    _timeout = timeout;
+    this.timeout = timeout;
   }
   
   /**
    * @param result a {@link Result}.
    */
   public synchronized void addResult(Result<T> result) {
-    _results.add(result);
-    _completedCount++;
-    if(_completedCount >= _invocationCount){
-      _invocationFinished = true;
+    results.add(result);
+    completedCount++;
+    if(completedCount >= invocationCount){
+      invocationFinished = true;
     }
     notify();
   }
   
+  /**
+   * @return <code>true</code> if invocation has completed.
+   */
   public boolean isFinished(){
-    return _invocationFinished;
+    return invocationFinished;
   }
 
   /**
    * @return <code>true</code> if this instance contains other objects.
    */
   public synchronized boolean hasNext() {
-    while (_results.size() == 0) {
-      if(_invocationFinished){
+    while (results.size() == 0) {
+      if(invocationFinished){
         return false;
       }
       long start = System.currentTimeMillis();
       try {
-        wait(_timeout);
+        wait(timeout);
       } catch (InterruptedException e) {
         return false;
       }
       
-      if(_results.size() == 0){
-        if(_invocationFinished ||
+      if(results.size() == 0){
+        if(invocationFinished ||
            // is timed out ?
-           (System.currentTimeMillis() - start > _timeout)){
+           (System.currentTimeMillis() - start > timeout)){
           break;
         }
         else{
@@ -70,7 +76,7 @@ public class Results<T> {
         break;
       }      
     }
-    return _results.size() > 0;
+    return results.size() > 0;
   }
 
   /**
@@ -78,23 +84,23 @@ public class Results<T> {
    * is removed from this instance).
    */
   public Result<T> next() {
-    return _results.remove(0);
+    return results.remove(0);
   }
   
   /**
    * increments the internal "invocation count".
    */
   public synchronized void incrementInvocationCount(){
-    _invocationCount++;
+    invocationCount++;
   }
   
   /**
    * decrements the internal "invocation count".
    */
   public synchronized void decrementInvocationCount(){
-    _invocationCount--;
-    if(_completedCount >= _invocationCount){
-      _invocationFinished = true;
+    invocationCount--;
+    if(completedCount >= invocationCount){
+      invocationFinished = true;
       notifyAll();
     }
   }

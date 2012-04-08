@@ -10,25 +10,19 @@ import simple.http.Request;
 import simple.http.Response;
 
 /**
- * Implements the <code>Connection</code> interface over HTTP response/request
+ * Implements the {@link Connection} interface over HTTP response/request
  * objects.
  * 
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
-public class HttpConnection implements Connection{
+public class HttpConnection implements Connection {
 	
-	private Request  _req;
-	private Response _res;
+	private Request  req;
+	private Response res;
 
   HttpConnection(Request req, Response res){
-  	_req = req;
-  	_res = res;
+  	this.req = req;
+  	this.res = res;
   }
   
   /**
@@ -36,7 +30,7 @@ public class HttpConnection implements Connection{
    */
   public InputStream getInputStream() throws IOException {
     try{
-      return _req.getInputStream();
+      return req.getInputStream();
     }catch(Exception e){
       throw new IOException(e);
     }
@@ -47,7 +41,7 @@ public class HttpConnection implements Connection{
    */
   public OutputStream getOutputStream() throws IOException {
     try{
-      return _res.getOutputStream();
+      return res.getOutputStream();
     }catch(Exception e){
       throw new IOException(e);
     }

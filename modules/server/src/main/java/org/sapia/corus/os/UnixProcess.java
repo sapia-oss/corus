@@ -8,12 +8,11 @@ import java.util.StringTokenizer;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
-import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.util.IOUtils;
 
 
 /**
- * Unix implementation of the <code>NativeProcess</code> interface.
+ * Unix implementation of the {@link NativeProcess} interface.
  * 
  * @author Yanick Duchesne
  *

@@ -12,26 +12,25 @@ import org.sapia.ubik.rmi.replication.ReplicationEvent;
 import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
 
 /**
+ * Handles clustered commands on the server-side.
+ * 
  * @author Yanick Duchesne
  */
 public class ServerSideClusterInterceptor implements Interceptor {
-  private static ThreadLocal<ClusterInfo> _registration = new ThreadLocal<ClusterInfo>();
-  private Logger             _log;
-  private ClusterManager     _cluster;
-  private ServerContext      _context;
-  /*
-  public ServerSideClusterInterceptor(ClusterManager cluster) {
-    _cluster = cluster;
-  }*/
+	
+  private static ThreadLocal<ClusterInfo> registration = new ThreadLocal<ClusterInfo>();
+  private Logger             log;
+  private ClusterManager     cluster;
+  private ServerContext      context;
 
   ServerSideClusterInterceptor(Logger log, ServerContext context) {
-    _log = log;
-    _context = context;
-    _cluster = context.getServices().lookup(ClusterManager.class);
+    this.log 		 = log;
+    this.context = context;
+    this.cluster = context.getServices().lookup(ClusterManager.class);
   }
 
   public static void clusterCurrentThread(ClusterInfo cluster) {
-    _registration.set(cluster);
+    registration.set(cluster);
   }
   
   public void onServerPreInvokeEvent(ServerPreInvokeEvent evt){
@@ -41,11 +40,11 @@ public class ServerSideClusterInterceptor implements Interceptor {
 			if (evt.getTarget() instanceof Module) {
 				try {
 					ClusteredInvoker invoker = (ClusteredInvoker)cmd.getReplicatedInvoker();
-					invoker.setUp(_context.getCorus(), _cluster);
+					invoker.setUp(context.getCorus(), cluster);
 					invoker.setModuleName(((Module)evt.getTarget()).getRoleName());
 					  																									
 				} catch (Throwable t) {
-					_log.error("Could not cluster command", t);
+					log.error("Could not cluster command", t);
 				}
 			}
 			else{
@@ -58,18 +57,8 @@ public class ServerSideClusterInterceptor implements Interceptor {
     if (evt.getReplicatedCommand() instanceof ClusteredCommand) {
       ClusteredCommand cmd = (ClusteredCommand)evt.getReplicatedCommand();
       ClusteredInvoker invoker = (ClusteredInvoker)cmd.getReplicatedInvoker();
-      invoker.setUp(_context.getCorus(), _cluster);
+      invoker.setUp(context.getCorus(), cluster);
     }
   }
 
-  /*
-  private static boolean isCurrentThreadClustered() {
-		ClusterInfo clustered = (ClusterInfo) _registration.get();
-
-    if (clustered == null) {
-      return false;
-    } else {
-      return clustered.isClustered();
-    }
-  }*/
 }

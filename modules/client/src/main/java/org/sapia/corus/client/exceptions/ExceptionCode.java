@@ -1,5 +1,11 @@
 package org.sapia.corus.client.exceptions;
 
+/**
+ * This enum holds the constants corresponding to the different error codes.
+ * 
+ * @author yduchesne
+ *
+ */
 public enum ExceptionCode {
 
   //// CORE

@@ -12,14 +12,14 @@ import java.io.OutputStream;
 public interface Connection {
 	
 	/**
-	 * @return the <code>InputStream</code> of this client.
+	 * @return this client's {@link InputStream}.
 	 * @throws IOException
 	 */
 	public InputStream getInputStream() throws IOException;
 	
 	
 	/**
-	 * @return the <code>OutputStream</code> of this client.
+	 * @return this client's {@link OutputStream}.
 	 * @throws IOException
 	 */
 	public OutputStream getOutputStream() throws IOException;

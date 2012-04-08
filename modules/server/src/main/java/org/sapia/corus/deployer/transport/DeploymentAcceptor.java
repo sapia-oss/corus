@@ -1,16 +1,9 @@
 package org.sapia.corus.deployer.transport;
 
 /**
- * Accepts incoming connections and dispatches them to a registered
- * <code>DeploymentConnector</code>.
+ * Accepts incoming connections and dispatches them to a registered {@link DeploymentConnector}.
  * 
  * @author Yanick Duchesne
- *
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public interface DeploymentAcceptor {
   
@@ -30,7 +23,7 @@ public interface DeploymentAcceptor {
 	public void stop() throws Exception;
 	
 	/**
-	 * @param connector a <code>DeploymentConnector</code>.
+	 * @param connector a {@link DeploymentConnector}.
 	 */
 	public void registerConnector(DeploymentConnector connector);	
   

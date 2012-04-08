@@ -8,11 +8,14 @@ import org.sapia.corus.interop.client.InteropClient;
 import org.sapia.corus.interop.http.HttpProtocol;
 
 /**
+ * This class implements the logic for bootstrapping the Corus interop client
+ * on the client-side.
+ * 
  * @author Yanick Duchesne
  */
 public class Starter {
   
-  public static void main(String[] args){
+	public static void main(String[] args){
     
     try {
       InteropClient.getInstance().setProtocol(new HttpProtocol());

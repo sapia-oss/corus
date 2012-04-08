@@ -1,7 +1,5 @@
 package org.sapia.corus.client.services.security;
 
-import java.rmi.Remote;
-
 import org.sapia.corus.client.Module;
 
 /**

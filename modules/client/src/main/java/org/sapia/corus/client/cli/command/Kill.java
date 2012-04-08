@@ -21,14 +21,15 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  * @author Yanick Duchesne
  */
 public class Kill extends CorusCliCommand {
-  protected boolean _suspend;
+	
+  protected boolean suspend;
 
   public static final String WAIT_COMPLETION_OPT = "w";
   
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 60000;
   
   protected Kill(boolean suspend) {
-    _suspend = suspend;
+    this.suspend = suspend;
   }
 
   public Kill() {
@@ -55,7 +56,7 @@ public class Kill extends CorusCliCommand {
         .build();      
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
       ClusterInfo cluster = getClusterInfo(ctx);
-      if (_suspend) {
+      if (suspend) {
         ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
       } else {
         ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
@@ -129,7 +130,7 @@ public class Kill extends CorusCliCommand {
 
       ctx.getConsole().println("Proceeding to kill...");
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
-      if (_suspend) {
+      if (suspend) {
         ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
       } else {
         ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
@@ -189,7 +190,7 @@ public class Kill extends CorusCliCommand {
   }
   
   protected void killProcess(CliContext ctx, Process aProcess) throws InputException {
-    if (_suspend) {
+    if (suspend) {
       try{
         ctx.getCorus().getProcessorFacade().suspend(aProcess.getProcessID());
         ctx.getConsole().println("Suspending process " + aProcess.getProcessID() + "...");

@@ -21,7 +21,7 @@ public interface NativeProcess {
    *
    * @param log the {@link OsModule#LogCallback} to use for logging activity.
    * @param baseDir the base directory of the process to execute.
-   * @param cmd the <code>CmdLine</code> to execute.
+   * @param cmd the {@link CmdLine} to execute.
    * @return the started process' PID, or <code>null</code> if a native PID
    * could not be returned.
    */

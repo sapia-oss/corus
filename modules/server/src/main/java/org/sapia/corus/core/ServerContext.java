@@ -7,6 +7,12 @@ import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.ubik.net.TCPAddress;
 
+/**
+ * An instance of this class holds the state for a Corus server. 
+ * 
+ * @author yduchesne
+ *
+ */
 public interface ServerContext {
 
   /**
@@ -85,4 +91,10 @@ public interface ServerContext {
    * @return an {@link Object} matching the given name.
    */
   public Object lookup(String name);
+  
+  /**
+   * @return the {@link Properties} of this Corus instance.  
+   */
+  public Properties getCorusProperties();
+
 }

@@ -3,7 +3,6 @@ package org.sapia.corus.client.services.deployer;
 import java.util.List;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;

@@ -20,8 +20,6 @@
         class="org.sapia.corus.cluster.ClusterManagerImpl" 
         scope="singleton" 
         autowire="autodetect">
-    <property name="mcastAddress" value="${corus.server.multicast.address}" />
-    <property name="mcastPort"    value="${corus.server.multicast.port}" />
   </bean> 
 
   <!-- ============ JNDI ============ -->

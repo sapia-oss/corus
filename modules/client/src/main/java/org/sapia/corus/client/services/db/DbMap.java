@@ -7,7 +7,7 @@ import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 
 
 /**
- * Specifies behavior similar to the <code>java.util.Map</code>
+ * Specifies behavior similar to the {@link java.util.Map}
  * interface. Instances of this interface are expected to provide
  * persistency.
  *
@@ -56,7 +56,7 @@ public interface DbMap<K, V> {
   /**
    * Returns an iterator of this instance's keys.
    *
-   * @return an <code>Iterator</code>.
+   * @return an {@link Iterator}.
    */
   public Iterator<K> keys();
 

@@ -1,5 +1,11 @@
 package org.sapia.corus.configurator;
 
+/**
+ * Models a configuration property, corresponding to a name and its associated value.
+ * 
+ * @author yduchesne
+ *
+ */
 public class ConfigProperty{
   
   String name, value;

@@ -14,23 +14,23 @@ import org.sapia.ubik.rmi.server.transport.TransportProvider;
  */
 public abstract class AbstractTransport implements CorusTransport{
 	
-	private boolean _init;
+	private boolean isInit;
 	
 	/**
 	 * This method will, the first time it is invoked, delegate the export operation
-	 * to the <code>initExport()<code> method of this class.
+	 * to the {@link #initExport(Object)} method of this class.
 	 * 
 	 * @see #initExport(Object)
 	 * @see org.sapia.corus.core.CorusTransport#exportObject(java.lang.Object)
    */
   public Object exportObject(Object anObject) throws RemoteException {
   	Object stub;
-  	if(!_init)
+  	if(!isInit)
   	  stub = initExport(anObject);
   	else
   	  stub = Hub.exportObject(anObject, getTransportProvider().getTransportType());
 		  
-		_init = true;
+		isInit = true;
 		return stub;
   }
   
@@ -48,12 +48,12 @@ public abstract class AbstractTransport implements CorusTransport{
   /**
    * Inheriting classes must implement this method in the following way:
    * <ol>
-   *   <li>Create the appropriate <code>TransportProvider</code>.
-   *   <li>Export the given object through Ubik's <code>Hub</code>, in a way that
+   *   <li>Create the appropriate {@link TransportProvider}.
+   *   <li>Export the given object through Ubik's {@link Hub}, in a way that
    * is compliant with the provider that has been previously created.
    *   <li>Return the stub resulting from the export operation.
    * </ol>
-   * @param anObject an <code>Object</code> to export.
+   * @param anObject an {@link Object} to export.
    * @return the stub that was generated for the given object.
    * @throws RemoteException
    */

@@ -9,28 +9,25 @@ import org.sapia.corus.deployer.transport.DeploymentAcceptor;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.ubik.net.mplex.MultiplexSocketConnector;
 import org.sapia.ubik.net.mplex.StreamSelector;
-import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvider;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketHelper;
 
 /**
- * Implements the <code>DeploymentAcceptor</code> over a <code>MultiplexSocketTransportProvider</code>.
+ * Implements the {@link DeploymentAcceptor} over a {@link MultiplexSocketConnector}.
  * 
  * @author Yanick Duchesne
  */
 public class MplexDeploymentAcceptor implements StreamSelector, DeploymentAcceptor{
 	
-	private MultiplexSocketConnector _connector;
-	private ServerContext _context;
-	private MultiplexSocketTransportProvider _provider;
-	private DeploymentConnector _deployConn;
-	private Logger              _logger;
-	private Thread              _acceptor;
+	private MultiplexSocketConnector connector;
+	private ServerContext 					 context;
+	private DeploymentConnector 		 deployConn;
+	private Logger              		 logger;
+	private Thread              		 acceptor;
 	
 	public MplexDeploymentAcceptor(ServerContext context, 
-	                               MultiplexSocketTransportProvider provider,
 	                               Logger logger){
-	  _context  = context;
-		_provider = provider;
-		_logger   = logger;
+	  this.context  = context;
+		this.logger   = logger;
 	}
 	
 	/**
@@ -51,7 +48,7 @@ public class MplexDeploymentAcceptor implements StreamSelector, DeploymentAccept
    * @see DeploymentAcceptor#registerConnector(DeploymentConnector)
    */
   public void registerConnector(DeploymentConnector conn) {
-  	_deployConn = conn;
+  	deployConn = conn;
   }
   
   ///////// Life-cycle methods /////////
@@ -60,26 +57,26 @@ public class MplexDeploymentAcceptor implements StreamSelector, DeploymentAccept
 	 * @see DeploymentAcceptor#init()
 	 */
 	public void init() throws Exception {
-		_logger.debug("Creating mplex socket connector to accept deployment connections");
-		_connector = _provider.createSocketConnector(this);
+		logger.debug("Creating mplex socket connector to accept deployment connections");
+		connector = MultiplexSocketHelper.createSocketConnector(this);
 	}  
   
   /**
    * @see DeploymentAcceptor#start()
    */
   public void start() throws Exception{
-		_logger.debug("Starting mplex deployment acceptor thread");  	
-		_acceptor = new Thread(new AcceptorThread(_connector, _deployConn, _context, _logger));
-		_acceptor.setName("DeploymentAcceptor");
-		_acceptor.setDaemon(true);
-		_acceptor.start();
+		logger.debug("Starting mplex deployment acceptor thread");  	
+		acceptor = new Thread(new AcceptorThread(connector, deployConn, context, logger));
+		acceptor.setName("DeploymentAcceptor");
+		acceptor.setDaemon(true);
+		acceptor.start();
   }
   
   /**
    * @see DeploymentAcceptor#stop()
    */
   public void stop() throws Exception {
-    _connector.close();
-    _acceptor.interrupt();
+    connector.close();
+    acceptor.interrupt();
   }
 }

@@ -2,127 +2,122 @@ package org.sapia.corus.client.services.cron;
 
 import java.util.Date;
 
-
-
 /**
+ * Stores information about a Cron job.
+ * 
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class CronJobInfo implements java.io.Serializable {
   
   static final long serialVersionUID = 1L;
   
   public static final int UNDEFINED   = -1;
-  private String          _distName;
-  private String          _profile;
-  private String          _version;
-  private String          _processName;
-  private String          _id;
-  private int             _minute     = UNDEFINED;
-  private int             _hour       = UNDEFINED;
-  private int             _dayOfMonth = UNDEFINED;
-  private int             _month      = UNDEFINED;
-  private int             _dayOfWeek  = UNDEFINED;
-  private int             _year       = UNDEFINED;
-  private Date            _creation;
-  private Date            _lastRun;
+  private String distName;
+  private String profile;
+  private String version;
+  private String processName;
+  private String id;
+  private int    minute     = UNDEFINED;
+  private int    hour       = UNDEFINED;
+  private int    dayOfMonth = UNDEFINED;
+  private int    month      = UNDEFINED;
+  private int    dayOfWeek  = UNDEFINED;
+  private int    year       = UNDEFINED;
+  private Date   creation;
+  private Date   lastRun;
 
   /**
    * Constructor for CronJobInfo.
    */
   public CronJobInfo(String dist, String profile, String version, String vmName) {
-    _distName = dist;
-    _profile  = profile;
-    _version  = version;
-    _processName   = vmName;
+    distName = dist;
+    this.profile  = profile;
+    this.version  = version;
+    processName   = vmName;
   }
 
   public String getId() {
-    return _id;
+    return id;
   }
 
   public String getDistribution() {
-    return _distName;
+    return distName;
   }
 
   public String getProfile() {
-    return _profile;
+    return profile;
   }
 
   public String getVersion() {
-    return _version;
+    return version;
   }
 
   public String getProcessName() {
-    return _processName;
+    return processName;
   }
 
   public void setMinute(int min) {
-    _minute = min;
+    minute = min;
   }
 
   public int getMinute() {
-    return _minute;
+    return minute;
   }
 
   public void setHour(int hour) {
-    _hour = hour;
+    this.hour = hour;
   }
 
   public int getHour() {
-    return _hour;
+    return hour;
   }
 
   public void setDayOfMonth(int dom) {
-    _dayOfMonth = dom;
+    dayOfMonth = dom;
   }
 
   public int getDayOfMonth() {
-    return _dayOfMonth;
+    return dayOfMonth;
   }
 
   public void setMonth(int month) {
-    _month = month;
+    this.month = month;
   }
 
   public int getMonth() {
-    return _month;
+    return month;
   }
 
   public void setDayOfWeek(int dow) {
-    _dayOfWeek = dow;
+    dayOfWeek = dow;
   }
 
   public int getDayOfWeek() {
-    return _dayOfWeek;
+    return dayOfWeek;
   }
 
   public void setYear(int year) {
-    _year = year;
+    this.year = year;
   }
 
   public int getYear() {
-    return _year;
+    return year;
   }
 
   public Date getLastRunTime() {
-    return _lastRun;
+    return lastRun;
   }
 
   public void touch() {
-    _lastRun = new Date();
+    lastRun = new Date();
   }
 
   public void assignId(String id) {
-    _id       = id;
-    _creation = new Date();
+    this.id  = id;
+    creation = new Date();
   }
   
   public Date getCreation(){
-    return _creation;
+    return creation;
   }
 }

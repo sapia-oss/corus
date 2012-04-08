@@ -22,7 +22,7 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.core.Consts;
+import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.deployer.config.EnvImpl;
 import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.taskmanager.core.Task;
@@ -156,7 +156,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     return processDir;
   }
   
-  @SuppressWarnings(value={"unchecked", "deprecation"})
+  @SuppressWarnings("rawtypes")
   private Property[] getProcessProps(ProcessConfig conf, Process proc,
       Distribution dist, TaskExecutionContext ctx, Properties processProperties)
       throws PortUnavailableException {
@@ -169,7 +169,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     List<Property> props = new ArrayList<Property>(10);
     String host = null;
     try {
-      host = Localhost.getLocalAddress().getHostAddress();
+      host = Localhost.getAnyLocalAddress().getHostAddress();
     } catch (Exception e) {
       host = ctx.getServerContext().getServerAddress().getHost();
     }
@@ -177,11 +177,11 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     props.add(new Property("corus.home", ctx.getServerContext().getHomeDir()));
     props.add(new Property("corus.server.host", host));
     props.add(new Property("corus.server.port", "" + port));
-    if (System.getProperty(Consts.PROPERTY_CORUS_DOMAIN) != null) {
+    if (System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
       props.add(new Property("corus.server.domain", System
-          .getProperty(Consts.PROPERTY_CORUS_DOMAIN)));
+          .getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
       props.add(new Property(RemoteInitialContextFactory.UBIK_DOMAIN_NAME,
-          System.getProperty(Consts.PROPERTY_CORUS_DOMAIN)));
+          System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
     }
     props.add(new Property("corus.distribution.name", dist.getName()));
     props.add(new Property("corus.distribution.version", dist.getVersion()));

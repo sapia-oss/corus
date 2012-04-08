@@ -1,0 +1,34 @@
+<help>
+  <section title="Description">
+   <p>Executes the Corus commands in a provided script. It allows automatic the execution of commands provided in batch.</p>
+  </section>
+  <section title="Syntax">
+    <p>script &lt;script_name&gt;</p>
+    <p/>
+    <p>Where &lt;script_name&gt; is the path to the script which holds the commands to execute.</p>
+    <p/>    
+  </section>
+  <section title="Notes">
+    <p>The script command is not clustered: the command it holds though, can be clustered, just as if
+    you had entered them directly in the CLI.</p>
+    <p/>
+    <p>Also note that scripts may hold comments. A comment line must begin with the # character.</p>
+  </section>
+  <section title="Script command examples">
+    <p>script /opt/apps/v1.2/etc/scripts/deploy.txt</p>
+    <p/>
+    <p>script deploy.txt</p>
+    <p/>
+  </section>
+  <section title="Script content example">
+    <p># this is a comment</p>
+    <p/>
+    <p># the -w switch of the kill command forces the wait until all targeted</p>
+    <p># processes are killed, or until the given timeout (30s in this case).</p>
+    <p># if one or more processes targeted by the kill are still up after the</p>
+    <p># timeout is passed, an error is thrown and the script's execution is aborted.</p>    
+    <p>kill all -w 30</p>
+    <p>undeploy all</p>
+    <p>deploy /opt/apps/v1.2/dist/*.zip</p>
+  </section>    
+</help>

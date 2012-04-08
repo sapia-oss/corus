@@ -14,9 +14,9 @@ public class FieldDescriptor {
 
   static final Object[] EMPTY_ARGS = new Object[]{};
   
-  private int    index;
-  private String name;
-  private Method accessor;
+  private int    	index;
+  private String 	name;
+  private Method 	accessor;
   private Mutator mutator;
   private boolean isVersion;
 

@@ -10,7 +10,7 @@ public class EventLog {
   }
   
   private String source, message;
-  private Level level;
+  private Level  level;
   
   public EventLog(Level level, String source, String message) {
     this.level = level;

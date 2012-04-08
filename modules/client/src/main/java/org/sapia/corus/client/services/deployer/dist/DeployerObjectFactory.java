@@ -16,7 +16,7 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  *
  */
 public class DeployerObjectFactory extends ReflectionFactory {
-  private Map<String, Class<?>> _localNamesToClasses = new HashMap<String, Class<?>>();
+  private Map<String, Class<?>> localNamesToClasses = new HashMap<String, Class<?>>();
 
   public DeployerObjectFactory() {
     super(new String[0]);
@@ -30,13 +30,13 @@ public class DeployerObjectFactory extends ReflectionFactory {
   }
 
   void register(String localName, Class<?> clazz) {
-    _localNamesToClasses.put(localName, clazz);
+    localNamesToClasses.put(localName, clazz);
   }
 
   public CreationStatus newObjectFor(String prefix, String uri,
                                      String localName, Object parent)
                               throws ObjectCreationException {
-    Class<?> clazz = _localNamesToClasses.get(localName);
+    Class<?> clazz = localNamesToClasses.get(localName);
 
     if (clazz == null) {
       return super.newObjectFor(prefix, uri, localName, parent);

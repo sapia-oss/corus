@@ -11,25 +11,30 @@ import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
+/**
+ * A base {@link Deployer} implementation. 
+ * 
+ * @author yduchesne
+ *
+ */
 public class BaseDeployer implements Deployer{
 
-  protected DeployerConfigurationImpl _configuration = new DeployerConfigurationImpl();
-  private DistributionDatabase        _store         = new DistributionDatabaseImpl();
+  protected DeployerConfigurationImpl configuration = new DeployerConfigurationImpl();
+  private   DistributionDatabase      store         = new DistributionDatabaseImpl();
   
   public DeployerConfiguration getConfiguration() {
-    return _configuration;
+    return configuration;
   }
   
   @Override
   public Distribution getDistribution(DistributionCriteria criteria)
       throws DistributionNotFoundException {
-      return _store.getDistribution(criteria);
+    return store.getDistribution(criteria);
   }
-  
   
   @Override
   public List<Distribution> getDistributions(DistributionCriteria criteria) {
-    return _store.getDistributions(criteria);
+    return store.getDistributions(criteria);
   }
   
   @Override
@@ -45,7 +50,7 @@ public class BaseDeployer implements Deployer{
   }
   
   protected DistributionDatabase getDistributionDatabase(){
-    return _store;
+    return store;
   }
   
 }

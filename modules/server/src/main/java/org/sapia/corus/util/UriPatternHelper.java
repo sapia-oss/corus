@@ -18,7 +18,7 @@ import java.util.Map;
  * @author <a href="mailto:bloritsch@apache.org">Berin Loritsch </a>
  */
 
-@SuppressWarnings(value="unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class UriPatternHelper {
 
   /** The int representing '*' in the pattern <code>int []</code>. */

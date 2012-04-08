@@ -18,7 +18,7 @@ import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
 
 
 /**
- * A {@link DbMap} implementation on top of JDMB.
+ * A {@link DbMap} implementation on top of JDBM.
  * 
  * @author Yanick Duchesne
  */

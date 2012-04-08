@@ -6,6 +6,12 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
+/**
+ * Specifies the behavior for storing/retrieving processes.
+ * 
+ * @author yduchesne
+ *
+ */
 public interface ProcessRepository {
 
   /**

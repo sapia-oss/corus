@@ -15,7 +15,6 @@ import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
  * 
  * @author Yanick Duchesne
  */
-@SuppressWarnings(value="unchecked")
 @Bind(moduleInterface=EventDispatcher.class)
 public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher, Service{
   
@@ -45,6 +44,7 @@ public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher
    */
   public void dispose() {}
   
+  @SuppressWarnings("rawtypes")
   @Override
   public void addInterceptor(Class event, Interceptor it){
     logger.debug("Adding interceptor: " + it + " for event type: " + event);

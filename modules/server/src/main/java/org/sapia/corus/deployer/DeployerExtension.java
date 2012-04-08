@@ -21,19 +21,17 @@ import simple.http.Request;
 
 public class DeployerExtension implements HttpExtension{
   
-  public static final String CONTEXT_PATH = "deployer";
-  
-  private static final String COMMAND_LS = "/ls";
-  
-  private static final String PARAM_DIST = "d";
+  public static final String CONTEXT_PATH 	= "deployer";
+  private static final String COMMAND_LS 		= "/ls";
+  private static final String PARAM_DIST 		= "d";
   private static final String PARAM_VERSION = "v";
   
-  private Deployer _deployer;
-  private ServerContext _context;
+  private Deployer 			deployer;
+  private ServerContext context;
   
-  DeployerExtension(Deployer dep, ServerContext context){
-    _deployer = dep;
-    _context = context;
+  DeployerExtension(Deployer deployer, ServerContext context){
+    this.deployer = deployer;
+    this.context  = context;
   }
   
   public HttpExtensionInfo getInfo() {
@@ -78,9 +76,9 @@ public class DeployerExtension implements HttpExtension{
       throw new IOException("Error caught while processing request", e);
     }
     ps.println("<distributions");
-    attribute("domain", _context.getDomain(), ps);
+    attribute("domain", context.getDomain(), ps);
     try{
-      TCPAddress addr = _context.getServerAddress();
+      TCPAddress addr = context.getServerAddress();
       attribute("host", addr.getHost(), ps);      
       attribute("port", Integer.toString(addr.getPort()), ps);
     }catch(ClassCastException e){}
@@ -121,7 +119,7 @@ public class DeployerExtension implements HttpExtension{
     Arg v = arg(PARAM_VERSION, req);
     
     DistributionCriteria criteria = DistributionCriteria.builder().name(d).version(v).build();
-    return _deployer.getDistributions(criteria);
+    return deployer.getDistributions(criteria);
   }
   
   private void attribute(String name, Object value, PrintStream ps){

@@ -24,7 +24,7 @@ public class ClusteredInvoker implements ReplicatedInvoker{
    * @see org.sapia.ubik.rmi.replication.ReplicatedInvoker#invoke(java.lang.String, java.lang.Class[], java.lang.Object[])
    */
   public Object invoke(String methodName, 
-                       Class[] types, 
+                       Class<?>[] types, 
                        Object[] args)
                        throws Throwable {
 		Object toReturn = null;

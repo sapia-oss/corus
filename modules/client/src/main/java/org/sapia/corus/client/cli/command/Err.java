@@ -20,15 +20,15 @@ import org.sapia.corus.client.cli.CliError;
  */
 public class Err extends CorusCliCommand {
 
-  public static final String OPTION_ERROR_LIST = "l";
-  public static final String OPTION_ERROR_ID = "i";
+  public static final String OPTION_ERROR_LIST 	= "l";
+  public static final String OPTION_ERROR_ID 		= "i";
   public static final String OPTION_ERROR_CLEAR = "c";
 
-  private static final int COL_FIELD_NAME = 0;
-  private static final int COL_FIELD_VALUE = 1;
+  private static final int COL_FIELD_NAME 			= 0;
+  private static final int COL_FIELD_VALUE 			= 1;
 
-  private static final int COL_ERROR_ID = 0;
-  private static final int COL_MESSAGE = 1;
+  private static final int COL_ERROR_ID 				= 0;
+  private static final int COL_MESSAGE 					= 1;
 
 
   public void doExecute(CliContext aContext) throws AbortException, InputException {

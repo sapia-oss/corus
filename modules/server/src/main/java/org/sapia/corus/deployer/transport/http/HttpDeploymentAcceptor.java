@@ -12,19 +12,19 @@ import simple.http.Request;
 import simple.http.Response;
 
 /**
- * Implements the <code>DeploymentAcceptor</code> interface over a <code>HttpTransportProvider</code>.
+ * Implements the {@link DeploymentAcceptor} interface over a {@link HttpTransportProvider}.
  * 
  * @author Yanick Duchesne
  */
 public class HttpDeploymentAcceptor implements ProtocolHandler, DeploymentAcceptor{
 	
-  private ServerContext         _context;
-	private HttpTransportProvider _provider;
-	private DeploymentConnector   _connector;
+  private ServerContext         context;
+	private HttpTransportProvider provider;
+	private DeploymentConnector   connector;
 	
 	public HttpDeploymentAcceptor(ServerContext context, HttpTransportProvider provider){
-	  _context   = context;
-		_provider  = provider;
+	  this.context   = context;
+		this.provider  = provider;
 	}
 	
 	/**
@@ -37,7 +37,7 @@ public class HttpDeploymentAcceptor implements ProtocolHandler, DeploymentAccept
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#start()
    */
   public void start() throws Exception {
-		_provider.getServiceMapper().addService(HttpDeploymentClient.DEPLOYER_CONTEXT, this);  	
+		provider.getServiceMapper().addService(HttpDeploymentClient.DEPLOYER_CONTEXT, this);  	
   }
   
   /**
@@ -50,12 +50,12 @@ public class HttpDeploymentAcceptor implements ProtocolHandler, DeploymentAccept
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#registerConnector(DeploymentConnector)
    */
   public void registerConnector(DeploymentConnector connector) {
-    _connector = connector;	
+    this.connector = connector;	
   }
   
   @Override
   public void handle(Request req, Response res) {
-  	_connector.connect(new Deployment(_context, new HttpConnection(req, res)));
+  	connector.connect(new Deployment(context, new HttpConnection(req, res)));
   }
 
 }

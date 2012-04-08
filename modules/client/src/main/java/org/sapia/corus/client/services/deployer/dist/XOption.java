@@ -18,6 +18,6 @@ public class XOption extends Option implements java.io.Serializable {
    * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
    */
   public CmdElement convert() {
-    return new org.sapia.console.Option("X" + _name + _value);
+    return new org.sapia.console.Option("X" + name + value);
   }
 }

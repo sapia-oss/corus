@@ -1,5 +1,8 @@
 package org.sapia.corus;
 
+import java.util.Properties;
+
+import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.InternalConfigurator;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -9,6 +12,7 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.configurator.TestConfigurator;
+import org.sapia.corus.core.CorusTransport;
 import org.sapia.corus.core.InternalServiceContext;
 import org.sapia.corus.core.ServerContextImpl;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
@@ -26,6 +30,7 @@ import org.sapia.corus.taskmanager.core.TestTaskManager;
 import org.sapia.corus.taskmanager.core.Throttle;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 
 public class TestServerContext extends ServerContextImpl{
 
@@ -80,16 +85,15 @@ public class TestServerContext extends ServerContextImpl{
     ctx.getTm().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, throttle);
     ctx.getTm().registerThrottle(DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, throttle);
   }
-  
 
   public TestServerContext() {
-    super(
-        null,
-        null, 
-        new TCPAddress("localhost", 33000), 
-        "test", 
-        System.getProperty("user.dir"),
-        new InternalServiceContext());
+  	super(
+  			null, 
+  			null, 
+  			new MultiplexSocketAddress("localhost", 33000), 
+  			"test", 
+  			System.getProperty("user.dir"), 
+  			new InternalServiceContext(), new Properties());
   }
 
   /**

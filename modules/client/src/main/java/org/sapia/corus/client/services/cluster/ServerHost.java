@@ -12,9 +12,9 @@ public class ServerHost implements Serializable {
   
   static final long serialVersionUID = 1L;
 
-  private ServerAddress _serverAddress;
-  private String _osInfo;
-  private String _javaVmInfo;
+  private ServerAddress serverAddress;
+  private String 				osInfo;
+  private String 				javaVmInfo;
 
   public static ServerHost createNew(ServerAddress anAddress, String anOsInfo, String aJavaVmInfo) {
     ServerHost created = new ServerHost();
@@ -37,7 +37,7 @@ public class ServerHost implements Serializable {
    * @return The serverAddress value.
    */
   public ServerAddress getServerAddress() {
-    return _serverAddress;
+    return serverAddress;
   }
 
   /**
@@ -46,7 +46,7 @@ public class ServerHost implements Serializable {
    * @param aServerAddress The new value of the serverAddress attribute.
    */
   public void setServerAddress(ServerAddress aServerAddress) {
-    _serverAddress = aServerAddress;
+    serverAddress = aServerAddress;
   }
 
   /**
@@ -55,7 +55,7 @@ public class ServerHost implements Serializable {
    * @return The osInfo value.
    */
   public String getOsInfo() {
-    return _osInfo;
+    return osInfo;
   }
 
   /**
@@ -64,7 +64,7 @@ public class ServerHost implements Serializable {
    * @param aOsInfo The new value of the osInfo attribute.
    */
   public void setOsInfo(String aOsInfo) {
-    _osInfo = aOsInfo;
+    osInfo = aOsInfo;
   }
 
   /**
@@ -73,7 +73,7 @@ public class ServerHost implements Serializable {
    * @return The javaVmInfo value.
    */
   public String getJavaVmInfo() {
-    return _javaVmInfo;
+    return javaVmInfo;
   }
 
   /**
@@ -82,19 +82,19 @@ public class ServerHost implements Serializable {
    * @param aJavaVmInfo The new value of the javaVmInfo attribute.
    */
   public void setJavaVmInfo(String aJavaVmInfo) {
-    _javaVmInfo = aJavaVmInfo;
+    javaVmInfo = aJavaVmInfo;
   }
   
   @Override
   public int hashCode() {
-    return _serverAddress.hashCode();
+    return serverAddress.hashCode();
   }
   
   @Override
   public boolean equals(Object obj) {
     if(obj instanceof ServerHost){
       ServerHost host = (ServerHost)obj;
-      return _serverAddress.equals(host.getServerAddress());
+      return serverAddress.equals(host.getServerAddress());
     }
     return false;
    
@@ -105,9 +105,9 @@ public class ServerHost implements Serializable {
    */
   public String toString() {
     return new StringBuffer().append("[").
-            append("address=").append(String.valueOf(_serverAddress)).
-            append(" osInfo=").append(_osInfo).
-            append(" javaVmInfo=").append(_javaVmInfo).
+            append("address=").append(String.valueOf(serverAddress)).
+            append(" osInfo=").append(osInfo).
+            append(" javaVmInfo=").append(javaVmInfo).
             append("]").toString();
   }
   

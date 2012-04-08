@@ -15,9 +15,9 @@ import org.sapia.corus.client.services.db.PatternRecordMatcher.FieldMatcher;
  */
 public class Template<T> {
 
-  ClassDescriptor<T> descriptor;
-  Object instance;
-  PatternRecordMatcher<T> matcher;
+  private ClassDescriptor<T> 			descriptor;
+  private Object 									instance;
+  private PatternRecordMatcher<T> matcher;
   
   /**
    * @param desc the {@link ClassDescriptor} that provides meta data about the

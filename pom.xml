@@ -159,7 +159,8 @@
         <artifactId>sapia_corus_iop_api</artifactId>
         <version>2.0</version>
       </dependency>
- 
+
+      <!-- Sapia -->
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_as</artifactId>
@@ -167,17 +168,11 @@
       </dependency>
       
       <dependency>
-	      <groupId>org.sapia</groupId>
-	      <artifactId>sapia_magnet</artifactId>
-	      <version>2.2</version>
-	      <scope>compile</scope>
-      </dependency> 
-
-      <dependency>
         <groupId>org.sapia</groupId>
-        <artifactId>sapia_ubik</artifactId>
-        <version>2.6.2</version>
-      </dependency>
+	<artifactId>sapia_magnet</artifactId>
+	<version>2.2</version>
+	<scope>compile</scope>
+      </dependency> 
 
       <dependency>
         <groupId>org.sapia</groupId>
@@ -191,6 +186,62 @@
         <version>2.2</version>
       </dependency>
 
+      <!-- Ubik -->
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_ubik</artifactId>
+        <version>2.6.2</version>
+      </dependency>
+
+      <dependency>
+	<groupId>jboss</groupId>
+	<artifactId>jboss-serialization</artifactId>
+	<version>4.2.2.GA</version>
+      </dependency>
+	
+      <dependency>
+	<groupId>trove</groupId>
+	<artifactId>trove</artifactId>
+	<version>1.0.2</version>
+      </dependency>
+	
+      <dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<version>1.2.16</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.mina</groupId>
+        <artifactId>mina-core</artifactId>
+        <version>1.1.7</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.2</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>1.2</version>
+      </dependency>
+
+      <dependency>
+        <groupId>mantara</groupId>
+        <artifactId>avis-client</artifactId>
+        <version>1.2.2</version>
+      </dependency>
+    
+      <dependency>
+        <groupId>mantara</groupId>
+        <artifactId>avis-common</artifactId>
+        <version>1.2.2</version>
+      </dependency>
+
+      <!-- Spring -->
       <dependency>
           <groupId>org.springframework</groupId>
           <artifactId>spring</artifactId>
@@ -222,9 +273,9 @@
       </dependency>
 
       <dependency>
-          <groupId>trove</groupId>
-          <artifactId>trove</artifactId>
-          <version>1.0.2</version>
+	<groupId>dom4j</groupId>
+	<artifactId>dom4j</artifactId>
+	<version>1.6.1</version>
       </dependency>
 
     </dependencies>

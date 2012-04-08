@@ -13,20 +13,21 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 
 /**
- * Holds {@link Distribution} instances.
+ * Implements the {@link DistributionDatabase} interface over an in-memory {@link Map}.
  *  
  * @author Yanick Duchesne
  */
 public class DistributionDatabaseImpl implements DistributionDatabase {
-  private Map<String, Map<String, Distribution>> _distsByName = new TreeMap<String, Map<String, Distribution>>();
+	
+  private Map<String, Map<String, Distribution>> distsByName = new TreeMap<String, Map<String, Distribution>>();
 
   public synchronized void addDistribution(Distribution dist)
                                     throws DuplicateDistributionException {
     Map<String, Distribution> distsByVersion;
 
-    if ((distsByVersion = _distsByName.get(dist.getName())) == null) {
+    if ((distsByVersion = distsByName.get(dist.getName())) == null) {
       distsByVersion = new TreeMap<String, Distribution>();
-      _distsByName.put(dist.getName(), distsByVersion);
+      distsByName.put(dist.getName(), distsByVersion);
     }
 
     if (distsByVersion.get(dist.getVersion()) != null) {
@@ -49,11 +50,11 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
     List<Distribution> dists = select(criteria);
     for(int i = 0; i < dists.size(); i++){
       Distribution dist = (Distribution)dists.get(i);
-      if ((distsByVersion = _distsByName.get(dist.getName())) != null) {
+      if ((distsByVersion = distsByName.get(dist.getName())) != null) {
         if (distsByVersion.get(dist.getVersion()) != null) {
           distsByVersion.remove(dist.getVersion());
           if (distsByVersion.size() == 0) {
-            _distsByName.remove(dist.getName());
+            distsByName.remove(dist.getName());
           }
         }
       }      
@@ -85,12 +86,12 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
   }
   
   private List<Distribution> select(DistributionCriteria criteria){
-    Iterator<String> names = _distsByName.keySet().iterator();
+    Iterator<String> names = distsByName.keySet().iterator();
     List<Distribution> dists = new ArrayList<Distribution>();
     while(names.hasNext()){
       String name = (String)names.next();
       if(criteria.getName().matches(name)){
-        Map<String, Distribution> distsByVersion = _distsByName.get(name);
+        Map<String, Distribution> distsByVersion = distsByName.get(name);
         Iterator<String> versions = distsByVersion.keySet().iterator();
         while(versions.hasNext()){
           String version = (String)versions.next();

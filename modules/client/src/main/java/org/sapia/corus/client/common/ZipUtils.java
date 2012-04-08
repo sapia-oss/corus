@@ -16,10 +16,10 @@ import java.util.zip.ZipInputStream;
  */
 public class ZipUtils {
   /**
-   * Reads an entry from a jar file (a <code>ZipInputStream</code>)
+   * Reads an entry from a jar file (a {@link ZipInputStream})
    * and returns it as an array of bytes.
    *
-   * @param is the <code>ZipInputStream</code> containing the entry.
+   * @param is the {@link ZipInputStream} containing the entry.
    * @param name the entry's name.
    * @param capacity the maximum buffer size of the internal byte array
    * used to read the bytes.
@@ -79,10 +79,10 @@ public class ZipUtils {
   }
 
   /**
-   * Reads an entry from a jar file (as a <code>ZipInputStream</code>) and returns
+   * Reads an entry from a jar file (as a {@link ZipInputStream}) and returns
    * it as a stream.
    *
-   * @param is the <code>ZipInputStream</code> containing the entry.
+   * @param is the {@link ZipInputStream} containing the entry.
    * @param name the name of the entry to look for.
    * @param capacity the maximum buffer size of the internal byte array
    * used to read the bytes.

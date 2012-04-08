@@ -11,7 +11,7 @@ public class Connect extends CorusCliCommand{
   public static final String OPT_PORT = "p";
   
   private static final String DEFAULT_HOST = "localhost";
-  private static final int DEFAULT_PORT = 33000;
+  private static final int 		DEFAULT_PORT = 33000;
   
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,

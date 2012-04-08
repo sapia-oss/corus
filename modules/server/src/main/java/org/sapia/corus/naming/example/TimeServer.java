@@ -6,8 +6,8 @@ import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.sapia.ubik.log.Log;
 import org.sapia.ubik.rmi.naming.remote.RemoteInitialContextFactory;
-import org.sapia.ubik.rmi.server.Log;
 import org.sapia.ubik.rmi.server.Stateless;
 
 /**

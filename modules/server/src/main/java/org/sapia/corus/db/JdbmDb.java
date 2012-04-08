@@ -8,6 +8,8 @@ import org.sapia.corus.client.services.db.DbMap;
 
 
 /**
+ * Wraps a {@link JDBMRecordManager}.
+ * 
  * @author Yanick Duchesne
  */
 public class JdbmDb {

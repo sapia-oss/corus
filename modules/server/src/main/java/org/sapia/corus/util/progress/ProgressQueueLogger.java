@@ -8,13 +8,26 @@ import org.sapia.corus.client.common.ProgressQueue;
 
 
 /**
+ * A utility class for transferring the content of a {@link ProgressQueue} to
+ * a {@link Logger}.
+ * 
  * @author Yanick Duchesne
  */
 public class ProgressQueueLogger {
+	
+	/**
+	 * Outputs the {@link ProgressMsg} instances in the given progress queue
+	 * to the given {@link Logger}.
+	 * 
+	 * @param log the target {@link Logger}.
+	 * @param queue the {@link ProgressQueue} to transfer from.
+	 * 
+	 * @throws Throwable 
+	 */
   public static void transferMessages(Logger log, ProgressQueue queue)
                                throws Throwable {
-    List<ProgressMsg>        msgs;
-    ProgressMsg msg;
+    List<ProgressMsg> msgs;
+    ProgressMsg 			msg;
 
     while (queue.hasNext()) {
       msgs = queue.next();
@@ -25,8 +38,8 @@ public class ProgressQueueLogger {
       }
     }
   }
-
-  public static void transferMessage(Logger log, ProgressMsg msg)
+  
+  private static void transferMessage(Logger log, ProgressMsg msg)
                               throws Throwable {
     switch (msg.getStatus()) {
       case ProgressMsg.DEBUG:

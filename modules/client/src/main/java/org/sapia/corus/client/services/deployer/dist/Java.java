@@ -16,17 +16,17 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
 public class Java extends BaseJavaStarter {
   
   public static final String CORUS_JAVAPROC_MAIN_CLASS = "corus.process.java.main";
-  public static final String STARTER_CLASS = "org.sapia.corus.starter.Starter";
+  public static final String STARTER_CLASS 						 = "org.sapia.corus.starter.Starter";
   
   static final long serialVersionUID = 1L;
 
-  protected String _mainClass;
-  protected String _args;
-  protected String _mainArgs;
-  protected String _libDirs;
+  protected String mainClass;
+  protected String args;
+  protected String mainArgs;
+  protected String libDirs;
   
   public void setCorusHome(String home) {
-    _corusHome = home;
+    corusHome = home;
   }
   
   /**
@@ -36,7 +36,7 @@ public class Java extends BaseJavaStarter {
    * @param main the name of the class to execute
    */
   public void setMainClass(String main) {
-    _mainClass = main;
+    mainClass = main;
   }
   
   /**
@@ -47,7 +47,7 @@ public class Java extends BaseJavaStarter {
    * @param mainArgs a string of arguments.
    */
   public void setArgs(String mainArgs) {
-    _mainArgs = mainArgs;
+    this.mainArgs = mainArgs;
   }
   
   /**
@@ -55,20 +55,20 @@ public class Java extends BaseJavaStarter {
    * the classpath are stored.
    */
   public void setLibDirs(String dirs) {
-    _libDirs = dirs;
+    libDirs = dirs;
   }
   
   public CmdLine toCmdLine(Env env) throws MissingDataException {
 
     CmdLineBuildResult result = super.buildCommandLine(env);
     
-    if (_mainClass == null) {
+    if (mainClass == null) {
       throw new MissingDataException("'mainClass' not specified in corus.xml");
     }
     
     Property prop = new Property();
     prop.setName(CORUS_JAVAPROC_MAIN_CLASS);
-    prop.setValue(_mainClass);
+    prop.setValue(mainClass);
     result.command.addElement(prop.convert());
     
     String pathSep = System.getProperty("path.separator");
@@ -82,8 +82,8 @@ public class Java extends BaseJavaStarter {
     
     result.command.addArg(STARTER_CLASS);
     
-    if (_mainArgs != null) {
-      CmdLine           toAppend = CmdLine.parse(render(result.variables, _mainArgs));
+    if (mainArgs != null) {
+      CmdLine           toAppend = CmdLine.parse(render(result.variables, mainArgs));
       while (toAppend.hasNext()) {
         result.command.addElement(toAppend.next());
       }
@@ -111,11 +111,11 @@ public class Java extends BaseJavaStarter {
   }
   
   private String getProcessCp(StrLookup envVars, Env env) {
-    if(_libDirs == null || _libDirs.trim().length() == 0){
+    if(libDirs == null || libDirs.trim().length() == 0){
       return super.getOptionalCp("lib", envVars, env);
     }
     else{
-      return super.getOptionalCp(_libDirs, envVars, env);
+      return super.getOptionalCp(libDirs, envVars, env);
     }
   }
 }

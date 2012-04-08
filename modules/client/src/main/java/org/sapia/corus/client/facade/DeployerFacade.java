@@ -25,8 +25,8 @@ public interface DeployerFacade {
    * is given.
    *
    * @param fileName the name of the distribution archive.
-   * @param cluster a <code>ClusterInfo</code> instance.
-   * @return a <code>ProgressQueue</code> instance.
+   * @param cluster a {@link ClusterInfo} instance.
+   * @return a {@link ProgressQueue} instance.
    * @throws java.io.IOException if a IO error occurs.
    * @throws ConcurrentDeploymentException if another thread is trying to concurrently
    * deploy the same archive.

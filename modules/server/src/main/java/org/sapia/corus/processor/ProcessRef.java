@@ -4,29 +4,54 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
+/**
+ * Models a reference to a {@link ProcessConfig} and its corresponding {@link Distribution}. This
+ * class is used as part of resolving process dependencies.
+ * 
+ * @author yduchesne
+ *
+ */
 public class ProcessRef {
 
-  private Distribution dist;
+  private Distribution 	dist;
   private ProcessConfig processConf;
-  private String profile;
-  private int instanceCount = 1;
-  private boolean isRoot;
+  private String 				profile;
+  private int 					instanceCount = 1;
+  private boolean 			isRoot;
 
+  /**
+   * @param dist a {@link Distribution}.
+   * @param conf a {@link ProcessConfig}.
+   * @param profile a profile.
+   */
   public ProcessRef(Distribution dist, ProcessConfig conf, String profile) {
     this.dist = dist;
     this.processConf = conf;
     this.profile = profile;
   }
 
+  /**
+   * @param isRoot <code>true</code> if this instance corresponds to the root
+   * of the process dependency graph.
+   * 
+   * @return this instance.
+   */
   public ProcessRef setRoot(boolean isRoot) {
     this.isRoot = isRoot;
     return this;
   }
   
+  /**
+   * @return <code>true</code> if this instance corresponds to the root of the
+   * dependency graph.
+   */
   public boolean isRoot() {
     return isRoot;
   }
   
+  /**
+   * @return this process ref's instance count.
+   */
   public int getInstanceCount() {
     return instanceCount;
   }
@@ -40,18 +65,30 @@ public class ProcessRef {
     this.instanceCount = count;
   }
 
+  /**
+   * @return this instance's profile.
+   */
   public String getProfile() {
     return profile;
   }
 
+  /**
+   * @return this instance's {@link Distribution}.
+   */
   public Distribution getDist() {
     return dist;
   }
 
+  /**
+   * @return this instance's {@link ProcessConfig}.
+   */
   public ProcessConfig getProcessConfig() {
     return processConf;
   }
   
+  /**
+   * @return the {@link ProcessCriteria} corresponding to this instance.
+   */
   public ProcessCriteria getCriteria(){
     return ProcessCriteria.builder()
       .distribution(dist.getName())

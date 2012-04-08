@@ -11,7 +11,7 @@ import simple.http.Response;
  *
  */
 public interface OutputHelper {
-
+	
   public void print(Request req, Response res) throws Exception;
   
 }

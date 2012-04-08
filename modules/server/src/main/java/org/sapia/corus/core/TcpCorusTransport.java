@@ -7,8 +7,8 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.Consts;
 import org.sapia.ubik.rmi.server.Hub;
-import org.sapia.ubik.rmi.server.transport.TransportManager;
 import org.sapia.ubik.rmi.server.transport.TransportProvider;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvider;
 
 
@@ -16,13 +16,6 @@ import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvid
  * Raw-socket implementation of the <code>CorusTransport</code> interface.
  *
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">
- *     Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *     <a href="http://www.sapia-oss.org/license.html" target="sapia-license">license page</a>
- *     at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class TcpCorusTransport extends AbstractTransport{
 
@@ -41,7 +34,7 @@ public class TcpCorusTransport extends AbstractTransport{
       throw new IllegalStateException("The port number is invalid: " + aPort);
     }
     
-    _theAddress = new TCPAddress(aHost, aPort);
+    _theAddress = new MultiplexSocketAddress(aHost, aPort);
   }
 
   /**
@@ -58,7 +51,7 @@ public class TcpCorusTransport extends AbstractTransport{
     Properties props = new Properties();
     props.setProperty(MultiplexSocketTransportProvider.BIND_ADDRESS, _theAddress.getHost());
     props.setProperty(MultiplexSocketTransportProvider.PORT, ""+_theAddress.getPort());
-    props.setProperty(Consts.TRANSPORT_TYPE, MultiplexSocketTransportProvider.TRANSPORT_TYPE);
+    props.setProperty(Consts.TRANSPORT_TYPE, MultiplexSocketTransportProvider.MPLEX_TRANSPORT_TYPE);
     return Hub.exportObject(anObject, props);
   }
 
@@ -66,6 +59,6 @@ public class TcpCorusTransport extends AbstractTransport{
    * @return The Ubik transport provider used by this corus transport implementation.
    */
   public TransportProvider getTransportProvider() {
-    return TransportManager.getDefaultProvider();
+    return Hub.getModules().getTransportManager().getDefaultProvider();
   }
 }

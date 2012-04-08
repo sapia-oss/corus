@@ -18,12 +18,10 @@ import org.springframework.context.ApplicationContextAware;
  */
 public abstract class ModuleHelper implements ApplicationContextAware, Service, Module, InitializingBean, DisposableBean{
   
-  protected Logger  _logger = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-
-  protected ApplicationContext _appContext;
-  
+  protected Logger  					 log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+  protected ApplicationContext appContext;
   @Autowired
-  protected ServerContext _serverContext;
+  protected ServerContext 		 serverContext;
 
   public ModuleHelper() {
     super();
@@ -42,29 +40,29 @@ public abstract class ModuleHelper implements ApplicationContextAware, Service, 
   @Override
   public void setApplicationContext(ApplicationContext appCtx)
       throws BeansException {
-    _appContext = appCtx;
+    appContext = appCtx;
   }
     
   public void start() throws Exception {}
 
   public Logger logger(){
-    return _logger;  
+    return log;  
   }
 
   public ApplicationContext env(){
-    return _appContext;
+    return appContext;
   }
   
   protected ServerContext serverContext(){
-    return _serverContext;
+    return serverContext;
   }
   
   protected InternalServiceContext services(){
-    return _serverContext.getServices();
+    return serverContext.getServices();
   }
   
   protected <S> S lookup(Class<S> serviceInterface){
-    return _serverContext.lookup(serviceInterface);
+    return serverContext.lookup(serviceInterface);
   }
 
 }

@@ -161,7 +161,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       logger().error("Could not start deployment processor", e);
     }
     try{
-      DeployerExtension ext = new DeployerExtension(this, _serverContext);
+      DeployerExtension ext = new DeployerExtension(this, serverContext);
       _http.addHttpExtension(ext);
     }catch (Exception e){
       logger().error("Could not add deployer HTTP extension", e);
@@ -390,7 +390,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
 
 
   synchronized ProgressQueue completeDeployment(String fileName) {
-    _logger.info("Finished uploading " + fileName);
+    log.info("Finished uploading " + fileName);
     ProgressQueue progress = new ProgressQueueImpl();
     try {
       _taskman.executeAndWait(
@@ -400,7 +400,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       ).get();
       
     } catch (Throwable e) {
-      _logger.error("Could not deploy", e);
+      log.error("Could not deploy", e);
       progress.error(e);
     }
     return progress;

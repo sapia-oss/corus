@@ -15,11 +15,11 @@ import org.productivity.java.syslog4j.SyslogIF;
  */
 public class SyslogTarget implements LogTarget{
   
-  public static final String DEFAULT_HOST = "localhost";
-  public static final int DEFAULT_PORT = 514;
+  public static final String DEFAULT_HOST 		= "localhost";
+  public static final int 	 DEFAULT_PORT 		= 514;
   public static final String DEFAULT_PROTOCOL = "udp";
   
-  private SyslogIF syslog;
+  private SyslogIF 				syslog;
   private SyslogFormatter formatter = new SyslogFormatter();
   
   public SyslogTarget(){

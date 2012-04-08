@@ -12,41 +12,39 @@ import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvid
  */
 public class DeploymentProcessor {
 	
-	private DeploymentAcceptor _acceptor;
-	private DeploymentConnector _connector;
-	private ServerContext _context;
-	private Logger _logger;
+	private DeploymentAcceptor  acceptor;
+	private DeploymentConnector connector;
+	private ServerContext 			context;
+	private Logger 							logger;
 	
 	public DeploymentProcessor(DeploymentConnector connector, ServerContext context, Logger logger){
-		_logger    = logger;
-		_connector = connector;
-		_context = context;
+		this.connector = connector;		
+		this.logger    = logger;
+		this.context   = context;
 	}
 	
   public void init() throws Exception{
-    if(_context.getTransport().getTransportProvider() instanceof MultiplexSocketTransportProvider){
-    	MultiplexSocketTransportProvider provider = (MultiplexSocketTransportProvider)_context.getTransport().getTransportProvider();
-    	_acceptor = new MplexDeploymentAcceptor(_context, provider, _logger);
-    	_acceptor.registerConnector(_connector);
-    }
-    else if(_context.getTransport().getTransportProvider() instanceof HttpTransportProvider){
-    	HttpTransportProvider provider = (HttpTransportProvider)_context.getTransport().getTransportProvider();
-    	_acceptor = new HttpDeploymentAcceptor(_context, provider);
-			_acceptor.registerConnector(_connector);    	
+    if(context.getTransport().getTransportProvider() instanceof MultiplexSocketTransportProvider){
+    	acceptor = new MplexDeploymentAcceptor(context, logger);
+    	acceptor.registerConnector(connector);
+    } else if(context.getTransport().getTransportProvider() instanceof HttpTransportProvider){
+    	HttpTransportProvider provider = (HttpTransportProvider)context.getTransport().getTransportProvider();
+    	acceptor = new HttpDeploymentAcceptor(context, provider);
+			acceptor.registerConnector(connector);    	
     }
     else{
     	throw new IllegalStateException("Transport provider not recognized; expecting mplex or http");
     }
-    _acceptor.init();
+    acceptor.init();
   }
   
   public void start() throws Exception{
-  	_acceptor.start();
+  	acceptor.start();
   }
   
   public void dispose(){
   	try{
-			_acceptor.stop();  		
+			acceptor.stop();  		
   	}catch(Exception e){
   		// noop
   	}

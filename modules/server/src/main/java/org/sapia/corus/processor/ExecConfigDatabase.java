@@ -5,20 +5,56 @@ import java.util.List;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.services.processor.ExecConfig;
 
+/**
+ * Specifies methods for storing and retrieving {@link ExecConfig} instances.
+ * 
+ * @author yduchesne
+ *
+ */
 public interface ExecConfigDatabase {
 
-  public abstract List<ExecConfig> getConfigs();
+	/**
+	 * @return this instance's {@link List} of {@link ExecConfig}s.
+	 */
+  public List<ExecConfig> getConfigs();
 
-  public abstract List<ExecConfig> getBootstrapConfigs();
+  /**
+   * @return this instance's {@link List} of bootstrap {@link ExecConfig}s.
+   */
+  public List<ExecConfig> getBootstrapConfigs();
 
-  public abstract List<ExecConfig> getConfigsFor(Arg arg);
+  /**
+   * @param arg an {@link Arg} instance.
+   * @return the {@link List} of {@link ExecConfig}s that match the given
+   * {@link Arg} instance.
+   */
+  public List<ExecConfig> getConfigsFor(Arg arg);
 
-  public abstract void removeConfigsFor(Arg arg);
+  /**
+   * Removes the {@link ExecConfig}s that correspond to the given {@link Arg}.
+   * 
+   * @param arg an {@link Arg} instance.
+   */
+  public void removeConfigsFor(Arg arg);
 
-  public abstract ExecConfig getConfigFor(String name);
+  /**
+   * @param name the name of an expected {@link ExecConfig}.
+   * @return the {@link ExecConfig} corresponding to the given name. 
+   */
+  public ExecConfig getConfigFor(String name);
 
-  public abstract void removeConfig(String name);
+  /**
+   * Removes an {@link ExecConfig} from this instance.
+   * 
+   * @param name the name of the {@link ExecConfig} to remove.
+   */
+  public void removeConfig(String name);
 
-  public abstract void addConfig(ExecConfig btc);
+  /**
+   * Adds the given {@link ExecConfig} to this instance.
+   * 
+   * @param conf an {@link ExecConfig}.
+   */
+  public void addConfig(ExecConfig conf);
 
 }

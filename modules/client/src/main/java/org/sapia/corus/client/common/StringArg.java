@@ -12,19 +12,19 @@ public class StringArg implements Arg {
   
   public static final long serialVersionUID = 1L;
   
-  private String _token;
+  private String token;
   
   public StringArg(String token) {
-    _token = token;
+    this.token = token;
   }
   
   public boolean matches(String str) {
     if(str == null) return false;
-    else return _token.equals(str);
+    else return token.equals(str);
   }
   
   public String toString(){
-    return _token;
+    return token;
   }
 
 }

@@ -29,19 +29,19 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   static final long serialVersionUID = 1L;
 
   private static final String DEPLOYMENT_DESCRIPTOR = "META-INF/corus.xml";
-  private String              _name;
-  private String              _version;
-  private String              _baseDir;
-  private String              _commonDir;
-  private String              _processesDir;
-  private String[]            _tags;
-  private List<ProcessConfig> _processConfigs = new ArrayList<ProcessConfig>();
+  private String              name;
+  private String              version;
+  private String              baseDir;
+  private String              commonDir;
+  private String              processesDir;
+  private String[]            tags;
+  private List<ProcessConfig> processConfigs = new ArrayList<ProcessConfig>();
   
   public Distribution(){}
   
   public Distribution(String name, String version){
-    _name = name;
-    _version = version;
+    this.name		 = name;
+    this.version = version;
   }
 
   /**
@@ -50,7 +50,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @param name a name.
    */
   public void setName(String name) {
-    _name = name;
+    this.name = name;
   }
   
   /**
@@ -58,9 +58,9 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @param tagList
    */
   public void setTags(String tagList){
-    _tags = tagList.split(",");
-    for(int i = 0; i < _tags.length; i++){
-      _tags[i] = _tags[i].trim();
+    tags = tagList.split(",");
+    for(int i = 0; i < tags.length; i++){
+      tags[i] = tags[i].trim();
     }
   }
   
@@ -69,8 +69,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public Set<String> getTagSet(){
     Set<String> set = new HashSet<String>();
-    if(_tags != null){
-      for(String t:_tags){
+    if(tags != null){
+      for(String t:tags){
         set.add(t);
       }
     }
@@ -83,7 +83,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @return a name.
    */
   public String getName() {
-    return _name;
+    return name;
   }
 
   /**
@@ -92,7 +92,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @param version a version.
    */
   public void setVersion(String version) {
-    _version = version;
+    this.version = version;
   }
 
   /**
@@ -101,7 +101,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @return a version as a string.
    */
   public String getVersion() {
-    return _version;
+    return version;
   }
 
   /**
@@ -110,7 +110,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @param conf a {@link ProcessConfig} instance, representing a process configuration.
    */
   public void addProcess(ProcessConfig conf) {
-    _processConfigs.add(conf);
+    processConfigs.add(conf);
   }
 
   /**
@@ -120,7 +120,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * distribution holds.
    */
   public List<ProcessConfig> getProcesses() {
-    return _processConfigs;
+    return processConfigs;
   }
   
   /**
@@ -131,7 +131,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * with the given name.
    */
   public boolean containsProcess(String name) {
-    for(ProcessConfig pc: _processConfigs){
+    for(ProcessConfig pc: processConfigs){
       if(pc.getName().equals(name)){
         return true;
       }
@@ -147,7 +147,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * or <code>null</code> if none could be found.
    */  
   public ProcessConfig getProcess(String name) {
-    for (ProcessConfig pc: _processConfigs) {
+    for (ProcessConfig pc: processConfigs) {
       if (name.matches(pc.getName())) {
         return pc;
       }
@@ -162,7 +162,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   public List<ProcessConfig> getProcesses(Arg name) {
     List<ProcessConfig> toReturn = new ArrayList<ProcessConfig>();
     
-    for (ProcessConfig pc: _processConfigs) {
+    for (ProcessConfig pc: processConfigs) {
       if (name.matches(pc.getName())) {
         toReturn.add(pc);
       }
@@ -176,9 +176,9 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @param baseDir this distribution's base dir. as a string.
    */
   public void setBaseDir(String baseDir) {
-    _baseDir   = baseDir;
-    _commonDir = baseDir + File.separator + "common";
-    _processesDir = baseDir + File.separator + "processes";
+    this.baseDir = baseDir;
+    commonDir 	 = baseDir + File.separator + "common";
+    processesDir = baseDir + File.separator + "processes";
   }
 
   /**
@@ -188,7 +188,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * the Corus server.
    */
   public String getBaseDir() {
-    return _baseDir;
+    return baseDir;
   }
 
   /**
@@ -197,7 +197,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @return the full path to the process process directory.
    */
   public String getProcessesDir() {
-    return _processesDir;
+    return processesDir;
   }
 
   /**
@@ -205,7 +205,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * the directory where the distribution's archive was extracted).
    */
   public String getCommonDir() {
-    return _commonDir;
+    return commonDir;
   }
   
   /**
@@ -217,8 +217,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * @return <code>true</code> if this instance matches the given name and version.
    */
   public boolean matches(Arg name, Arg version){
-    if(name.matches(_name)){
-      return version.matches(_version);
+    if(name.matches(this.name)){
+      return version.matches(this.version);
     }
     return false;
   }
@@ -267,22 +267,22 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   }
   
   public String getDislayInfo(){
-    return String.format("[%s-%s]", _name, _version);
+    return String.format("[%s-%s]", name, version);
   }
 
   public String toString() {
-    return "[ name=" + _name + ", version=" + _version + ", processes=" +
-           _processConfigs.toString() + " ]";
+    return "[ name=" + name + ", version=" + version + ", processes=" +
+           processConfigs.toString() + " ]";
   }
   
   public int hashCode(){
-    return _name.hashCode() ^ _version.hashCode();
+    return name.hashCode() ^ version.hashCode();
   }
   
   public boolean equals(Object other){
     if(other instanceof Distribution){
       Distribution otherDist = (Distribution)other;
-      return _name.equals(otherDist.getName()) && _version.equals(otherDist.getVersion());
+      return name.equals(otherDist.getName()) && version.equals(otherDist.getVersion());
     }
     else{
       return false;
@@ -291,16 +291,16 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   
   @Override
   public int compareTo(Distribution other) {
-    int c = _name.compareTo(other.getName());
+    int c = name.compareTo(other.getName());
     if(c == 0){
-      c = _version.compareTo(other.getVersion());
+      c = version.compareTo(other.getVersion());
     }
     return c;
   }
   
   public Object onCreate() throws ConfigurationException {
-    for(ProcessConfig cfg:_processConfigs){
-      cfg.init(_name, _version);
+    for(ProcessConfig cfg:processConfigs){
+      cfg.init(name, version);
     }
     return this;
   }

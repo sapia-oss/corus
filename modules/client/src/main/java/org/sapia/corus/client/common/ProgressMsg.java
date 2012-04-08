@@ -20,23 +20,23 @@ public class ProgressMsg implements java.io.Serializable {
     	"DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR"
     };
   
-  private int             _status = INFO;
-  private Object          _msg;
+  private int             status = INFO;
+  private Object          msg;
   
   public ProgressMsg(Object msg) {
-    _msg = msg;
+    this.msg = msg;
   }
 
   public ProgressMsg(Object msg, int status) {
-    _msg    = msg;
-    _status = status;
+    this(msg);
+    this.status = status;
   }
 
   /**
    * @return the actual message object (may be a {@link Throwable} instance).
    */
   public Object getMessage() {
-    return _msg;
+    return msg;
   }
 
   /**
@@ -44,14 +44,14 @@ public class ProgressMsg implements java.io.Serializable {
    * @see #isThrowable()
    */
   public Throwable getError() {
-    return (Throwable) _msg;
+    return (Throwable) msg;
   }
 
   /**
    * @return this instance's status.
    */
   public int getStatus() {
-    return _status;
+    return status;
   }
 
   /**
@@ -61,7 +61,7 @@ public class ProgressMsg implements java.io.Serializable {
    * @see #getError()
    */
   public boolean isThrowable() {
-    return _msg instanceof Throwable;
+    return msg instanceof Throwable;
   }
 
   /**
@@ -69,7 +69,7 @@ public class ProgressMsg implements java.io.Serializable {
    * @return <code>true</code> if this instance's status indicates an error.
    */
   public boolean isError() {
-    return _status == ERROR;
+    return status == ERROR;
   }
   
   public static final String getLabelFor(int status){
@@ -77,6 +77,6 @@ public class ProgressMsg implements java.io.Serializable {
   }
 
   public String toString() {
-    return "[ msg=" + _msg + ", level=" + _status + "]";
+    return "[ msg=" + msg + ", level=" + status + "]";
   }
 }

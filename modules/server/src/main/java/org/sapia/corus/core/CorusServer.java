@@ -3,9 +3,14 @@ package org.sapia.corus.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.apache.log.Priority;
 import org.apache.log.format.Formatter;
 import org.apache.log.output.io.rotate.RevolvingFileStrategy;
@@ -14,6 +19,7 @@ import org.apache.log.output.io.rotate.RotatingFileTarget;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
@@ -24,7 +30,10 @@ import org.sapia.corus.log.FormatterFactory;
 import org.sapia.corus.log.StdoutTarget;
 import org.sapia.corus.log.SyslogTarget;
 import org.sapia.corus.util.IOUtils;
+import org.sapia.corus.util.PropertiesFilter;
+import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 import org.sapia.ubik.util.Localhost;
 
 /**
@@ -33,21 +42,22 @@ import org.sapia.ubik.util.Localhost;
  * @author Yanick Duchesne
  */
 public class CorusServer {
-  public static final int    DEFAULT_PORT    = 33000;
-  public static final String CONFIG_FILE_OPT = "c";
-  public static final String PORT_OPT        = "p";
-  public static final String DOMAIN_OPT      = "d";
-  public static final String BIND_ADDR_OPT   = "a";
-  public static final String DEBUG_VERBOSITY = "v";
-  public static final String DEBUG_FILE      = "f";
-  public static final String HELP            = "help";
-  public static final String PROP_SYSLOG_HOST     = "corus.server.syslog.host";
-  public static final String PROP_SYSLOG_PORT     = "corus.server.syslog.port";
-  public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
-  private static final String LOCK_FILE_NAME = ".lock";
+  public static final int     DEFAULT_PORT         = 33000;
+  public static final String  CONFIG_FILE_OPT      = "c";
+  public static final String  PORT_OPT             = "p";
+  public static final String  DOMAIN_OPT           = "d";
+  public static final String  BIND_ADDR_OPT        = "a";
+  public static final String  DEBUG_VERBOSITY      = "v";
+  public static final String  DEBUG_FILE           = "f";
+  public static final String  HELP            		 = "help";
+  public static final String  PROP_SYSLOG_HOST     = "corus.server.syslog.host";
+  public static final String  PROP_SYSLOG_PORT     = "corus.server.syslog.port";
+  public static final String  PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
+  public static final String  PROP_INCLUDES        = "corus.server.properties.include";
+  private static final String LOCK_FILE_NAME 			 = ".lock";
   
+  @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
-    //System.setProperty(Consts.LOG_LEVEL, "debug");
     try {
       
       String corusHome = System.getProperty("corus.home");
@@ -79,6 +89,10 @@ public class CorusServer {
         return;
       }
       
+      // ----------------------------------------------------------------------
+      // Determining location of server properties 
+      // (can be specified at command-line)
+      
       String configFileName = "corus.properties";
       if (cmd.containsOption(CONFIG_FILE_OPT , true)) {
         configFileName = cmd.assertOption(CONFIG_FILE_OPT, true).getValue();
@@ -90,13 +104,50 @@ public class CorusServer {
         toString();      
       
       File propFile = new File(aFilename);
+
+      // ----------------------------------------------------------------------
+      // First off, we're loading the server properties to extract the includes
       
-      Properties corusProps = new Properties();
+      Properties rawProps       = new Properties();
+      PropertiesUtil.loadIfExist(rawProps, propFile);
+      Properties includes       = PropertiesUtil.filter(
+      		                          rawProps, 
+      		                          PropertiesFilter.NamePrefixPropertiesFilter.createInstance(PROP_INCLUDES)
+      		                        );
+      
+      includes = PropertiesUtil.replaceVars(includes, PropertiesStrLookup.systemPropertiesLookup());
+      final Properties includedProps  = new Properties();
+      Collection<String> includePaths = PropertiesUtil.values(includes);
+      for(String includePath: includePaths) {
+      	StringTokenizer stok = new StringTokenizer(includePath, ";:");
+      	while(stok.hasMoreTokens()) {
+      		String includePropFileName = stok.nextToken();
+      		PropertiesUtil.loadIfExist(includedProps, new File(includePropFileName));
+      		PropertiesUtil.replaceVars(includedProps, new StrLookup() {
+						@Override
+						public String lookup(String name) {
+							String value = includedProps.getProperty(name);
+							if(value == null) value = System.getProperty(name);
+							return value;
+						}
+					});
+      	}
+      }
+      
+      //-----------------------------------------------------------------------
+      // Now we're loading the server properties with the System properties and
+      // included properties as parents (in that order). We're performing 
+      // variable substitution.
+      
+      Properties corusProps = new Properties(System.getProperties());
+      // copying the included props to the server props (server props will 
+      // override included props
+      PropertiesUtil.copy(includedProps, corusProps);
       if(propFile.exists()){
         InputStream is = null;
         InputStream propStream = null;
         try{
-          propStream = IOUtils.replaceVars(new PropertiesStrLookup(System.getProperties()), is = new FileInputStream(propFile));
+          propStream = IOUtils.replaceVars(new PropertiesStrLookup(corusProps), is = new FileInputStream(propFile));
           corusProps.load(propStream);
         }finally{
           if(is != null){
@@ -105,30 +156,35 @@ public class CorusServer {
         }
       }
       
+      // ----------------------------------------------------------------------
+      // Determining domain: can be specified at command line, or in server 
+      // properties.
+      
       String domain = null;
       if(cmd.containsOption(DOMAIN_OPT, true)){
         domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
-      }
-      else if(corusProps.getProperty(Consts.PROPERTY_CORUS_DOMAIN) != null){
-        domain = corusProps.getProperty(Consts.PROPERTY_CORUS_DOMAIN);
-      }
-      else{
+      } else if(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null){
+        domain = corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+      } else{
         throw new CorusException("Domain must be set; pass -d option to command-line, "
-           + " or configure " + Consts.PROPERTY_CORUS_DOMAIN + " as part of "
+           + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN + " as part of "
            + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());
       }
       
-      System.setProperty(Consts.PROPERTY_CORUS_DOMAIN, domain);
+      System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
+      
+      // ----------------------------------------------------------------------
+      // Determining port.
       
       if (cmd.containsOption(PORT_OPT, true)) {
         port = cmd.assertOption(PORT_OPT, true).asInt();
       }
-      else if(corusProps.getProperty(Consts.PROPERTY_CORUS_PORT) != null){
-        port = Integer.parseInt(corusProps.getProperty(Consts.PROPERTY_CORUS_PORT));
+      else if(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT) != null){
+        port = Integer.parseInt(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT));
       }
       
-      
-      /////////////// setting up logging //////////////////
+      // ----------------------------------------------------------------------
+      // Setting up logging.
       
       Hierarchy h = Hierarchy.getDefaultHierarchy();
       CompositeTarget logTarget = null;
@@ -170,34 +226,40 @@ public class CorusServer {
         logTarget.addTarget(target);
       }
       
-      String syslogHost = corusProps.getProperty(PROP_SYSLOG_HOST); 
-      String syslogPort = corusProps.getProperty(PROP_SYSLOG_PORT);
+      String syslogHost  = corusProps.getProperty(PROP_SYSLOG_HOST); 
+      String syslogPort  = corusProps.getProperty(PROP_SYSLOG_PORT);
       String syslogProto = corusProps.getProperty(PROP_SYSLOG_PROTOCOL);
       
       if (syslogHost != null && syslogPort != null && syslogProto != null) {
         SyslogTarget target = new SyslogTarget(syslogProto, syslogHost, Integer.parseInt(syslogPort));
-        if (logTarget == null) {
-          logTarget = new CompositeTarget();
-        }
         logTarget.addTarget(target);
       }
       
-      if (logTarget != null) {
-        h.setDefaultLogTarget(logTarget);
+      h.setDefaultLogTarget(logTarget);
+      
+      Logger serverLog = h.getLoggerFor(CorusServer.class.getName());
+      if(serverLog.isDebugEnabled()) {
+      	serverLog.debug("------------------------ Starting server with following properties: ------------------------");
+      	Map<String, String> sortedServerProps = PropertiesUtil.map(corusProps);
+      	for(Map.Entry<String, String> prop : sortedServerProps.entrySet()){
+      		serverLog.debug(String.format("%s=%s", prop.getKey(), prop.getValue()));
+      	}
+      	serverLog.debug("--------------------------------------------------------------------------------------------");
       }
       
-      /////////////// exporting server //////////////////
+      // ----------------------------------------------------------------------
+      // Exporting server
       
       if(cmd.containsOption(BIND_ADDR_OPT, true)){
         String pattern = cmd.assertOption(BIND_ADDR_OPT, true).getValue();
         System.setProperty(org.sapia.ubik.rmi.Consts.IP_PATTERN_KEY, pattern);
       }      
-      else if(corusProps.getProperty(Consts.PROPERTY_CORUS_ADDRESS_PATTERN) != null){
-        String pattern = corusProps.getProperty(Consts.PROPERTY_CORUS_ADDRESS_PATTERN);
+      else if(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_ADDRESS_PATTERN) != null){
+        String pattern = corusProps.getProperty(CorusConsts.PROPERTY_CORUS_ADDRESS_PATTERN);
         System.setProperty(org.sapia.ubik.rmi.Consts.IP_PATTERN_KEY, pattern);
       }
       
-      String host = Localhost.getLocalAddress().getHostAddress();
+      String host = Localhost.getAnyLocalAddress().getHostAddress();
 
       CorusTransport aTransport = new TcpCorusTransport(host, port);
       
@@ -206,9 +268,12 @@ public class CorusServer {
       IOUtils.createLockFile(lockFile);
    
       // Initialize Corus, export it and start it
-      CorusImpl corus = new CorusImpl(h, new FileInputStream(aFilename), domain, new TCPAddress(host, port), aTransport, corusHome);
+      CorusImpl corus = new CorusImpl(new FileInputStream(aFilename), domain, new MultiplexSocketAddress(host, port), aTransport, corusHome);
       ServerContext context =  corus.getServerContext();
-      aTransport.exportObject(corus);
+      
+      // keeping reference to stub
+      @SuppressWarnings("unused")
+      Corus stub = (Corus) aTransport.exportObject(corus);
       corus.start();
       
       TCPAddress addr = ((TCPAddress) aTransport.getServerAddress());
@@ -230,6 +295,8 @@ public class CorusServer {
     } catch (InputException e) {
       System.out.println(e.getMessage());
       help();
+    } catch (InterruptedException e) {
+    	System.out.println("Interrupted, exiting.");
     } catch (Throwable e) {
       e.printStackTrace();
     }

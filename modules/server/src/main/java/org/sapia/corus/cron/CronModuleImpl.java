@@ -38,20 +38,18 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
   static CronModuleImpl instance;
   
   @Autowired
-  private DbModule _db;
-  
+  private DbModule 							 db;
   @Autowired
-  private Deployer _deployer;
-  
-  private DbMap<String, CronJob> _jobs;
-  private AlarmManager  _alarms = new AlarmManager();
+  private Deployer 							 deployer;
+  private DbMap<String, CronJob> jobs;
+  private AlarmManager  				 alarms = new AlarmManager();
 
   /**
    * @see Service#init()
    */
   public void init() throws Exception {
     instance = this;
-    _jobs    = _db.getDbMap(String.class, CronJob.class, "cron.jobs");
+    jobs    = db.getDbMap(String.class, CronJob.class, "cron.jobs");
     initAlarms();
   }
 
@@ -60,7 +58,7 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
    */
   public void dispose() {
     try{
-      _alarms.removeAllAlarms();
+      alarms.removeAllAlarms();
     }catch(RuntimeException e){}
   }
 
@@ -85,11 +83,11 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
   public synchronized void addCronJob(CronJobInfo info)
                                throws InvalidTimeException, ProcessConfigurationNotFoundException, 
                                       CorusException {
-    if (_logger.isInfoEnabled()) {
-      _logger.info("adding cron job: " + info);
+    if (log.isInfoEnabled()) {
+      log.info("adding cron job: " + info);
     }
     
-    if (!_deployer.getDistribution(DistributionCriteria.builder()
+    if (!deployer.getDistribution(DistributionCriteria.builder()
         .name(info.getDistribution())
         .version(info.getVersion()).build())
         .containsProcess(info.getProcessName())) {
@@ -106,32 +104,32 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
                                         info.getDayOfMonth(), info.getMonth(),
                                         info.getDayOfWeek(), info.getYear(), job);
 
-      if (_alarms.containsAlarm(entry)) {
+      if (alarms.containsAlarm(entry)) {
         throw new DuplicateScheduleException("A cron job with the same schedule is already present; change the schedule of the new cron job");
       } else {
-        _alarms.addAlarm(entry);
+        alarms.addAlarm(entry);
       }
     } catch (PastDateException e) {
       throw new InvalidTimeException(e.getMessage());
     }
 
-    _jobs.put(info.getId(), job);
+    jobs.put(info.getId(), job);
   }
 
   /**
    * @see org.sapia.corus.client.services.cron.CronModule#removeCronJob(String)
    */
   public synchronized void removeCronJob(String id) {
-    _logger.debug("removing cron job: " + id);
-    _jobs.remove(id);
-    _alarms.removeAllAlarms();
-    _alarms = new AlarmManager();
+    log.debug("removing cron job: " + id);
+    jobs.remove(id);
+    alarms.removeAllAlarms();
+    alarms = new AlarmManager();
     initAlarms();
   }
 
   public synchronized List<CronJobInfo> listCronJobs() {
     List<CronJobInfo>     infos = new ArrayList<CronJobInfo>(10);
-    Iterator<CronJob> itr = _jobs.values();
+    Iterator<CronJob> itr = jobs.values();
     CronJob  job;
 
     while (itr.hasNext()) {
@@ -143,20 +141,20 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
   }
 
   private synchronized void initAlarms() {
-    Iterator<CronJob> itr = _jobs.values();
+    Iterator<CronJob> itr = jobs.values();
     CronJob  job;
 
     while (itr.hasNext()) {
       job = (CronJob) itr.next();
       job.init(this, super.serverContext());
       try {
-        _alarms.addAlarm(job.getInfo().getMinute(), job.getInfo().getHour(),
+        alarms.addAlarm(job.getInfo().getMinute(), job.getInfo().getHour(),
                          job.getInfo().getDayOfMonth(),
                          job.getInfo().getMonth(),
                          job.getInfo().getDayOfWeek(), job.getInfo().getYear(),
                          job);
       } catch (PastDateException e) {
-        _jobs.remove(job.getInfo().getId());
+        jobs.remove(job.getInfo().getId());
       }
     }
   }

@@ -20,27 +20,25 @@ public interface ClusterManager extends java.rmi.Remote, Module {
   /**
    * Returns addresses of the other Corus servers in the cluster/domain.
    *
-   * @return a <code>Set</code> of <code>ServerAddress</code>
+   * @return a {@link Set} of {@link ServerAddress}
    * instances.
-   * @see org.sapia.ubik.net.ServerAddress
    */
   public Set<ServerAddress> getHostAddresses();
 
   /**
    * Returns information of the other Corus servers in the cluster/domain.
    *
-   * @return a <code>Set</code> of {@link ServerHost} instances.
-   * @see org.sapia.ubik.net.ServerAddress
+   * @return a {@link Set} of {@link ServerHost} instances.
    */
   public Set<ServerHost> getHosts();
 
   /**
    * Returns the event channel used to dispatch events to
-   * the other coruss in the cluster.
+   * the other Corus nodes in the cluster.
    * <p>
    * IMPORTANT: this method cannot be called remotely.
    *
-   * @return an <code>EventChannel</code> instance.
+   * @return an {@link EventChannel} instance.
    */
   public EventChannel getEventChannel();
 }

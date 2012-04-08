@@ -22,10 +22,10 @@ public class HttpStreamSelector implements StreamSelector {
   public static final String DELETE  = "delete";  
   
   /** The specific type of HTTP method to select, if provided */
-  private String _theMethod;
+  private String theMethod;
 
   /** A simple selection pattern of the request path of the HTTP header, if provided */
-  private String _theRequestPatern;
+  private String theRequestPatern;
 
   /**
    * Creates a new HtpStreamSelector instance that will select any HTTP request.
@@ -45,8 +45,8 @@ public class HttpStreamSelector implements StreamSelector {
    *        Passing <code>null</code> will make this selector choose any request path.
    */
   public HttpStreamSelector(String aMethod, String aRequestPattern) {
-    _theMethod          = aMethod;
-    _theRequestPatern   = aRequestPattern;
+    theMethod          = aMethod;
+    theRequestPatern   = aRequestPattern;
   }
 
   /**
@@ -62,15 +62,15 @@ public class HttpStreamSelector implements StreamSelector {
     if (firstSpace > 0) {
       String aMethod = aStringValue.substring(0, firstSpace).toLowerCase().trim(); 
       // Looking for the HTTP method
-      if (_theMethod != null) {
-        if (!aMethod.equals(_theMethod)) {
+      if (theMethod != null) {
+        if (!aMethod.equals(theMethod)) {
           return false;
         }
       }
 
       // Looking for the HTTP request URI
-      if (_theRequestPatern != null) {
-        if (!aStringValue.substring(firstSpace + 1).startsWith(_theRequestPatern)) {
+      if (theRequestPatern != null) {
+        if (!aStringValue.substring(firstSpace + 1).startsWith(theRequestPatern)) {
           return false;
         }
       }

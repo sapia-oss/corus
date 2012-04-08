@@ -8,6 +8,12 @@ import org.sapia.corus.http.HttpExtensionManager;
 import simple.http.Request;
 import simple.http.Response;
 
+/**
+ * Generates HTML content for the 404 error page.
+ * 
+ * @author yduchesne
+ *
+ */
 public class NotFoundHelper implements OutputHelper{
   
   public void print(Request req, Response res) throws Exception{

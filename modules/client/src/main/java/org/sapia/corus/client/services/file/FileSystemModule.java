@@ -4,6 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Abstracts the file system.
+ * 
+ * @author yduchesne
+ *
+ */
 public interface FileSystemModule{
   
   public static final String ROLE = FileSystemModule.class.getName();

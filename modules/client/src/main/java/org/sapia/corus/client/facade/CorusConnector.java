@@ -16,19 +16,19 @@ import org.sapia.corus.client.facade.impl.ProcessorFacadeImpl;
 public class CorusConnector {
   
   private CorusConnectionContext context;
-  private DeployerFacade deployer;
-  private ProcessorFacade processor;
-  private CronFacade cron;
-  private PortManagementFacade ports;
-  private ConfiguratorFacade config;
+  private DeployerFacade 				 deployer;
+  private ProcessorFacade 			 processor;
+  private CronFacade 						 cron;
+  private PortManagementFacade 	 ports;
+  private ConfiguratorFacade 		 config;
   
   public CorusConnector(CorusConnectionContext context){
     this.context = context;
-    deployer = new DeployerFacadeImpl(context);
-    processor = new ProcessorFacadeImpl(context);
-    cron = new CronFacadeImpl(context);
-    ports = new PortManagementFacadeImpl(context);
-    config = new ConfiguratorFacadeImpl(context);
+    deployer 		 = new DeployerFacadeImpl(context);
+    processor 	 = new ProcessorFacadeImpl(context);
+    cron 				 = new CronFacadeImpl(context);
+    ports 			 = new PortManagementFacadeImpl(context);
+    config 			 = new ConfiguratorFacadeImpl(context);
   }
   
   public CorusConnectionContext getContext() {

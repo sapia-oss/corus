@@ -1,7 +1,7 @@
 package org.sapia.corus.deployer.transport;
 
 /**
- * Notified by a <code>DeploymentAcceptor</code> upon deployment by clients.
+ * Notified by a {@link DeploymentAcceptor} upon deployment by clients.
  * 
  * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#registerConnector(DeploymentConnector) 
  * 
@@ -10,7 +10,7 @@ package org.sapia.corus.deployer.transport;
 public interface DeploymentConnector {
 
   /**
-   * @param deployment a <code>Deployment</code>.
+   * @param deployment a {@link Deployment}.
    */
   public void connect(Deployment deployment);
 }

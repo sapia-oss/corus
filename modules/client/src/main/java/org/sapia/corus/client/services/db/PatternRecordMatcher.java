@@ -25,7 +25,7 @@ import org.sapia.corus.client.services.db.persistence.Record;
  */
 public class PatternRecordMatcher<V> implements RecordMatcher<V>{
   
-  private ClassDescriptor<V> desc;
+  private ClassDescriptor<V> 							desc;
   private Map<String, List<FieldMatcher>> fieldMatchers = new HashMap<String, List<FieldMatcher>>();
   
   public PatternRecordMatcher(ClassDescriptor<V> desc) {

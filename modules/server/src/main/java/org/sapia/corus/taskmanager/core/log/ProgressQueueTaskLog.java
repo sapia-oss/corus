@@ -8,10 +8,16 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskLog;
 
+/**
+ * A {@link ProgressQueue} implementation that is backed by a {@link TaskLog}.
+ * 
+ * @author yduchesne
+ *
+ */
 public class ProgressQueueTaskLog implements ProgressQueue{
 
-  private Task<?,?>  task;
-  private TaskLog log;
+  private Task<?,?> task;
+  private TaskLog 	log;
   private volatile boolean closed;
   
   public ProgressQueueTaskLog(Task<?,?> task, TaskLog log) {

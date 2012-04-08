@@ -11,8 +11,8 @@ import org.sapia.corus.client.services.event.EventLog.Level;
 public class ProcessKilledEvent implements Event, Loggable{
 
   private ProcessTerminationRequestor requestor;
-  private Process process;
-  private boolean restarted;
+  private Process 									  process;
+  private boolean 										restarted;
   
   public ProcessKilledEvent(
       ProcessTerminationRequestor requestor, 

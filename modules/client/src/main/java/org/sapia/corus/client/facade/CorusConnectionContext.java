@@ -28,6 +28,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
+import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 
 /**
  * An instance of this class encapsulates objects pertaining to the connection to a
@@ -38,18 +39,19 @@ import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
  */
 public class CorusConnectionContext {
 
-  static final int INVOKER_THREADS = 10;
+  static final int INVOKER_THREADS 		 = 10;
   static final long RECONNECT_INTERVAL = 15000;
-  private long _lastReconnect = System.currentTimeMillis();
-  private Corus _corus;
-  private ServerAddress _connectAddress;
-  private ServerHost _serverHost;
-  private String _domain;
-  private Map<Class<?>, Object> _modules = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
-  private Set<ServerHost> _otherHosts = Collections.synchronizedSet(new HashSet<ServerHost>());
-  private Map<ServerAddress, Corus> _cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
-  private ExecutorService _executor;
-  private ClientSideClusterInterceptor _interceptor;
+  
+  private long 												 lastReconnect = System.currentTimeMillis();
+  private Corus 											 corus;
+  private ServerAddress 					     connectAddress;
+  private ServerHost 									 serverHost;
+  private String 										   domain;
+  private Map<Class<?>, Object> 		   modules 		 = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
+  private Set<ServerHost> 						 otherHosts  = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private Map<ServerAddress, Corus> 	 cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
+  private ExecutorService 						 executor;
+  private ClientSideClusterInterceptor interceptor;
 
   /**
    * @param host the host of the Corus server to connect to.
@@ -62,9 +64,9 @@ public class CorusConnectionContext {
    */
   public CorusConnectionContext(String host, int port, int invokerThreads) throws ConnectionException, Exception {
     reconnect(host, port);
-    _interceptor = new ClientSideClusterInterceptor();
-    Hub.clientRuntime.addInterceptor(ClientPreInvokeEvent.class, _interceptor);
-    _executor = Executors.newFixedThreadPool(invokerThreads);
+    interceptor = new ClientSideClusterInterceptor();
+    Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
+    executor = Executors.newFixedThreadPool(invokerThreads);
   }
 
   public CorusConnectionContext(String host, int port) throws Exception {
@@ -76,7 +78,7 @@ public class CorusConnectionContext {
    */
   public String getVersion(){
     refresh();
-    return _corus.getVersion();
+    return corus.getVersion();
   }
 
   /**
@@ -84,21 +86,16 @@ public class CorusConnectionContext {
    *         connected.
    */
   public String getDomain() {
-    return _domain;
+    return domain;
   }
 
   /**
    * @return the {@link ServerAddress} of the other Corus instances in the
    *         cluster.
    */
-//  public Collection<ServerAddress> getOtherAddresses() {
-//    refresh();
-//    return Collections.unmodifiableCollection(_otherHosts);
-//  }
-
   public Collection<ServerHost> getOtherHosts() {
     refresh();
-    return Collections.unmodifiableCollection(_otherHosts);
+    return Collections.unmodifiableCollection(otherHosts);
   }
   
   /**
@@ -107,11 +104,11 @@ public class CorusConnectionContext {
    */
   public Corus getCorus() {
     refresh();
-    return _corus;
+    return corus;
   }
 
   public ServerHost getServerHost() {
-    return _serverHost;
+    return serverHost;
   }
   
   /**
@@ -119,10 +116,10 @@ public class CorusConnectionContext {
    *         instance is connected.
    */
   public ServerAddress getAddress() {
-    if (_serverHost != null) {
-      return _serverHost.getServerAddress();
+    if (serverHost != null) {
+      return serverHost.getServerAddress();
     } else {
-      return _connectAddress;
+      return connectAddress;
     }
   }
   
@@ -136,7 +133,7 @@ public class CorusConnectionContext {
    * @throws CorusException
    */
   public synchronized void reconnect(String host, int port) {
-    _connectAddress = new TCPAddress(host, port);
+    connectAddress = new MultiplexSocketAddress(host, port);
     reconnect();
   }
 
@@ -147,15 +144,15 @@ public class CorusConnectionContext {
    */
   public synchronized void reconnect() {
     try {
-      _corus = (Corus) Hub.connect(_connectAddress);
-      _domain = _corus.getDomain();
-      _serverHost = _corus.getHostInfo();
-      _otherHosts.clear();
-      _cachedStubs.clear();
-      _modules.clear();
+      corus = (Corus) Hub.connect(connectAddress);
+      domain = corus.getDomain();
+      serverHost = corus.getHostInfo();
+      otherHosts.clear();
+      cachedStubs.clear();
+      modules.clear();
 
-      ClusterManager mgr = (ClusterManager) _corus.lookup(ClusterManager.ROLE);
-      _otherHosts.addAll(mgr.getHosts());
+      ClusterManager mgr = (ClusterManager) corus.lookup(ClusterManager.ROLE);
+      otherHosts.addAll(mgr.getHosts());
     } catch (RemoteException e) {
       throw new ConnectionException("Could not reconnect to Corus server", e);
     }
@@ -178,7 +175,7 @@ public class CorusConnectionContext {
       else{
         Object returnValue = method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result(_connectAddress, returnValue));
+        results.addResult(new Result(connectAddress, returnValue));
       }
     } catch (InvocationTargetException e) {
       
@@ -215,18 +212,18 @@ public class CorusConnectionContext {
     List<ServerAddress> hostList = new ArrayList<ServerAddress>();
 
     if (cluster.getTargets() != null) {
-      if (cluster.getTargets().contains(_connectAddress)) {
-        hostList.add(_connectAddress);
+      if (cluster.getTargets().contains(connectAddress)) {
+        hostList.add(connectAddress);
       }
-      for (ServerHost otherHost: _otherHosts) {
+      for (ServerHost otherHost: otherHosts) {
         if (cluster.getTargets().contains(otherHost.getServerAddress())) {
           hostList.add(otherHost.getServerAddress());
         }
       }
       
     } else {
-      hostList.add(_connectAddress);
-      for (ServerHost otherHost: _otherHosts) {
+      hostList.add(connectAddress);
+      for (ServerHost otherHost: otherHosts) {
         hostList.add(otherHost.getServerAddress());
       }
     }
@@ -242,12 +239,12 @@ public class CorusConnectionContext {
 
         @Override
         public void run() {
-          Corus corus = (Corus) _cachedStubs.get(addr);
+          Corus corus = (Corus) cachedStubs.get(addr);
 
           if (corus == null) {
             try {
               corus = (Corus) Hub.connect(addr.getHost(), addr.getPort());
-              _cachedStubs.put(addr, corus);
+              cachedStubs.put(addr, corus);
             } catch (java.rmi.RemoteException e) {
               results.decrementInvocationCount();
               return;
@@ -271,23 +268,23 @@ public class CorusConnectionContext {
     }
     
     for(Runnable invoker:invokers){
-      _executor.execute(invoker);
+      executor.execute(invoker);
     }
   }
   
   public synchronized <T> T lookup(Class<T> moduleInterface){
-    Object module  = _modules.get(moduleInterface);
+    Object module  = modules.get(moduleInterface);
     if(module == null){
-      module = _corus.lookup(moduleInterface.getName());
-      _modules.put(moduleInterface, module);
+      module = corus.lookup(moduleInterface.getName());
+      modules.put(moduleInterface, module);
     }
     return moduleInterface.cast(module);
   }
 
   protected void refresh() throws ConnectionException {
-    if ((System.currentTimeMillis() - _lastReconnect) > RECONNECT_INTERVAL) {
+    if ((System.currentTimeMillis() - lastReconnect) > RECONNECT_INTERVAL) {
       reconnect();
-      _lastReconnect = System.currentTimeMillis();
+      lastReconnect = System.currentTimeMillis();
     }
   }
 }

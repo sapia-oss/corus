@@ -8,6 +8,11 @@ import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.core.ModuleHelper;
 
+/**
+ * Implements the {@link OsModule} interface. 
+ * @author yduchesne
+ *
+ */
 @Bind(moduleInterface=OsModule.class)
 public class OsModuleImpl extends ModuleHelper implements OsModule{
   

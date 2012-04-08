@@ -39,10 +39,10 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     }
   }
   
-  private List<UriPattern> _allowedPatterns = new ArrayList<UriPattern>();
-  private List<UriPattern> _deniedPatterns = new ArrayList<UriPattern>();
+  private List<UriPattern> allowedPatterns = new ArrayList<UriPattern>();
+  private List<UriPattern> deniedPatterns = new ArrayList<UriPattern>();
   
-  private boolean _isRunning = false;
+  private boolean isRunning = false;
   
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -52,7 +52,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   }
   
   public boolean isRunning() {
-    return _isRunning;
+    return isRunning;
   }
   
   /**
@@ -62,15 +62,15 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    * @param patternList The pattern list of allowed hosts.
    */  
   public synchronized void setAllowedHostPatterns(String patternList) {
-    _allowedPatterns.clear();
+    allowedPatterns.clear();
     
     if (patternList != null && (patternList = patternList.trim()).length() > 0) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
         if (patterns[i].trim().equals("localhost")) {
-          _allowedPatterns.add(UriPattern.parse(LOCALHOST));
+        	allowedPatterns.add(UriPattern.parse(LOCALHOST));
         } else {
-          _allowedPatterns.add(UriPattern.parse(patterns[i].trim()));
+          allowedPatterns.add(UriPattern.parse(patterns[i].trim()));
         }
       }
     }
@@ -83,15 +83,15 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    * @param patternList The pattern list of denied hosts.
    */  
   public synchronized void setDeniedHostPatterns(String patternList) {
-    _deniedPatterns.clear();
+    deniedPatterns.clear();
     
     if (patternList != null && (patternList = patternList.trim()).length() > 0) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
         if (patterns[i].trim().equals("localhost")) {
-          _deniedPatterns.add(UriPattern.parse(LOCALHOST));
+          deniedPatterns.add(UriPattern.parse(LOCALHOST));
         } else {
-          _deniedPatterns.add(UriPattern.parse(patterns[i].trim()));
+          deniedPatterns.add(UriPattern.parse(patterns[i].trim()));
         }
       }
     }
@@ -102,7 +102,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    */
   public void init() throws Exception {
     logger().info("Initializing the security module");
-    Hub.serverRuntime.addInterceptor(ServerPreInvokeEvent.class, this);
+    Hub.getModules().getServerRuntime().addInterceptor(ServerPreInvokeEvent.class, this);
   }
   
   /**
@@ -110,7 +110,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    */
   public void start() throws Exception {
     logger().info("Starting the security module");
-    _isRunning = true;
+    isRunning = true;
   }
   
   /**
@@ -118,7 +118,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    */
   public void dispose() {
     logger().info("Stopping the security module");
-    _isRunning = false;
+    isRunning = false;
   }
   
   /**
@@ -126,7 +126,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    * @param evt a {@link ServerPreInvokeEvent}
    */
   public void onServerPreInvokeEvent(ServerPreInvokeEvent evt) {
-    if (!_isRunning) {
+    if (!isRunning) {
       throw new IllegalStateException("This security module is currently not running");
     }
     
@@ -138,19 +138,19 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   }
   
   protected synchronized boolean isMatch(String hostAddr) {
-    if (_allowedPatterns.size() == 0 && _deniedPatterns.size() == 0) {
+    if (allowedPatterns.size() == 0 && deniedPatterns.size() == 0) {
       return true;
     }
 
-    boolean isMatching = (_allowedPatterns.size() == 0);
-    for (Iterator<UriPattern> it = _allowedPatterns.iterator(); !isMatching && it.hasNext(); ) {
+    boolean isMatching = (allowedPatterns.size() == 0);
+    for (Iterator<UriPattern> it = allowedPatterns.iterator(); !isMatching && it.hasNext(); ) {
       UriPattern pattern = (UriPattern) it.next();
       if (pattern.matches(hostAddr)) {
         isMatching = true;
       }
     }
     
-    for (Iterator<UriPattern> it = _deniedPatterns.iterator(); isMatching && it.hasNext(); ) {
+    for (Iterator<UriPattern> it = deniedPatterns.iterator(); isMatching && it.hasNext(); ) {
       UriPattern pattern = (UriPattern) it.next();
       if (pattern.matches(hostAddr)) {
         isMatching = false;

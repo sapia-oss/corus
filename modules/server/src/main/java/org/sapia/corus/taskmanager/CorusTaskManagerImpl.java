@@ -26,16 +26,16 @@ import org.sapia.ubik.rmi.Remote;
 @Remote(interfaces=CorusTaskManager.class)
 public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager{
   
-  private TaskManager _delegate; 
-  private ProgressQueues _queues = new ProgressQueues();
+  private TaskManager 	 delegate; 
+  private ProgressQueues queues = new ProgressQueues();
 
   /*////////////////////////////////////////////////////////////////////
                         Service INTERFACE METHODS
   ////////////////////////////////////////////////////////////////////*/
 
   public void init() throws Exception {
-    _delegate = new TaskManagerImpl(
-        new ServerTaskLog(_queues, new LoggerTaskLog(_logger)), serverContext());
+    delegate = new TaskManagerImpl(
+        new ServerTaskLog(queues, new LoggerTaskLog(log)), serverContext());
   }
 
   public void dispose() {
@@ -58,32 +58,32 @@ public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManag
   
   @Override
   public void registerThrottle(ThrottleKey key, Throttle throttle) {
-   _delegate.registerThrottle(key, throttle);
+  	delegate.registerThrottle(key, throttle);
   }
   
   public <R,P> void execute(Task<R,P> task, P param) {
-    _delegate.execute(task, param);
+    delegate.execute(task, param);
   }
   
   public <R,P> void execute(Task<R,P> task, P param, SequentialTaskConfig conf) {
-    _delegate.execute(task, param, conf);
+    delegate.execute(task, param, conf);
   }
   
   public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param) {
-    return _delegate.executeAndWait(task, param);
+    return delegate.executeAndWait(task, param);
   }
   
   public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param, TaskConfig cfg) {
-    return _delegate.executeAndWait(task, param, cfg);
+    return delegate.executeAndWait(task, param, cfg);
   }
   
   public <R,P> void executeBackground(Task<R,P> task, P param, BackgroundTaskConfig cfg) {
-    _delegate.executeBackground(task, param, cfg);
+    delegate.executeBackground(task, param, cfg);
   }
 
   public ProgressQueue getProgressQueue(int level){
   	ProgressQueue queue = new ProgressQueueImpl();
-  	_queues.addProgressQueue(queue, level);
+  	queues.addProgressQueue(queue, level);
   	return queue;
   }
 

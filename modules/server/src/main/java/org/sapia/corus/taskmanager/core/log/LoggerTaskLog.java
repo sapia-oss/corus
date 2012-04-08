@@ -4,6 +4,12 @@ import org.apache.log.Logger;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskLog;
 
+/**
+ * Implements a {@link TaskLog} around a {@link Logger}.
+ * 
+ * @author yduchesne
+ *
+ */
 public class LoggerTaskLog implements TaskLog{
 
   private Logger logger;

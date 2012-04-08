@@ -1,19 +1,19 @@
 package org.sapia.corus.core;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.UUID;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.util.PropertiesFilter;
+import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.net.TCPAddress;
 
 /**
- * Encapsulates the state pertaining to a corus server.
+ * Implements the {@link ServerContext} interface.
  * 
  * @author yduchesne
  *
@@ -38,14 +38,15 @@ public class ServerContextImpl implements ServerContext {
             toString();
   }
 
-  private Corus corus;
-  private String serverName = UUID.randomUUID().toString().substring(0, 8);
-  private String domain;
-  private TCPAddress serverAddress;
-  private ServerHost hostInfo;
-  private CorusTransport transport;
+  private Corus 							   corus;
+  private String 								 serverName = UUID.randomUUID().toString().substring(0, 8);
+  private String 				 				 domain;
+  private TCPAddress 		 				 serverAddress;
+  private ServerHost 						 hostInfo;
+  private CorusTransport 				 transport;
   private InternalServiceContext services;
-  private String homeDir;
+  private String 								 homeDir;
+  private Properties             properties;
   
   public ServerContextImpl(
       Corus corus,
@@ -53,14 +54,16 @@ public class ServerContextImpl implements ServerContext {
       TCPAddress addr, 
       String domain, 
       String homeDir, 
-      InternalServiceContext services){
-    this.corus = corus;
-    this.transport = transport;
+      InternalServiceContext services,
+      Properties props){
+    this.corus 				 = corus;
+    this.transport     = transport;
     this.serverAddress = addr;
-    this.domain = domain;
-    this.homeDir = homeDir;
-    this.services = services;
-    this.hostInfo = ServerHost.createNew(addr, _OS_INFO, _JAVA_VM_INFO);
+    this.domain        = domain;
+    this.homeDir       = homeDir;
+    this.services      = services;
+    this.hostInfo      = ServerHost.createNew(addr, _OS_INFO, _JAVA_VM_INFO);
+    this.properties    = props;
   }
   
   @Override
@@ -97,9 +100,7 @@ public class ServerContextImpl implements ServerContext {
     return serverAddress;
   }
   
-  /* (non-Javadoc)
-   * @see org.sapia.corus.core.ServerContext#getHostInfo()
-   */
+  @Override
   public ServerHost getHostInfo() {
     return hostInfo;
   }
@@ -125,35 +126,34 @@ public class ServerContextImpl implements ServerContext {
   }
   
   @Override
+  public Properties getCorusProperties() {
+	  return properties;
+  }
+  
+  @Override
   public Properties getProcessProperties() throws IOException{
+    Properties processProps   = new Properties();
+    
+    // ------------------------------------------------------------------------
+    // copying Ubik properties to process properties
+    Properties ubikProperties = PropertiesUtil.filter(
+    		System.getProperties(), 
+    		PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik")
+    );
+    PropertiesUtil.copy(ubikProperties, processProps);
+
+    // ------------------------------------------------------------------------
+    // loading process properties from file
+    // (trying "global" file and then domain-specific file
     File home = new File(getHomeDir() + File.separator + "config");
-    File globalProps = new File(home, CORUS_PROCESS_FILE + ".properties");
-    Properties globals = new Properties();
-    if(globalProps.exists()){
-      FileInputStream stream = new FileInputStream(globalProps);
-      try{
-        globals.load(stream);
-      }finally{
-        stream.close();
-      }
-    }
-    File domainProps = new File(home, CORUS_PROCESS_FILE + "_" + getDomain() + ".properties");
-    if(domainProps.exists()){
-      FileInputStream stream = new FileInputStream(domainProps);
-      try{
-        globals.load(stream);
-      }finally{
-        stream.close();
-      }
-    }    
+    PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + ".properties"));
+    PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + "_" + getDomain() + ".properties"));
+    
+    // ------------------------------------------------------------------------
+    // copying configurator props to process props
     Properties configuratorProps = services.getConfigurator().getProperties(PropertyScope.PROCESS);
-    Enumeration propNames = configuratorProps.propertyNames();
-    while(propNames.hasMoreElements()){
-      String name  = (String)propNames.nextElement();
-      String value = configuratorProps.getProperty(name);
-      globals.setProperty(name, value);
-    }
-    return globals;
+    PropertiesUtil.copy(configuratorProps, processProps);
+    return processProps;
   }
   
   void setServerAddress(TCPAddress addr){

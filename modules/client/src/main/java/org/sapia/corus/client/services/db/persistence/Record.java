@@ -85,7 +85,7 @@ public class Record<V> implements Serializable{
     return new Record<T>(values);
   }
   
-  @SuppressWarnings(value="unchecked")
+  @SuppressWarnings(value={ "unchecked", "rawtypes" })
   public static <T>  Record<T> createFor(DbMap<?, T> db, Object instance){
     Record<T> record = createFor(db.getClassDescriptor(), instance);
     if(instance instanceof Persistent){
@@ -94,7 +94,7 @@ public class Record<V> implements Serializable{
     return record;
   }
   
-  @SuppressWarnings(value="unchecked")
+  @SuppressWarnings(value={ "unchecked", "rawtypes" })
   public <K> V toObject(DbMap<K, V> db){
     V toReturn = toObject(db.getClassDescriptor());
     if(toReturn instanceof Persistent){
@@ -103,7 +103,7 @@ public class Record<V> implements Serializable{
     return toReturn; 
   }
 
-  @SuppressWarnings(value="unchecked")
+  @SuppressWarnings(value={ "unchecked", "rawtypes" })
   public <K> void populate(DbMap<K, V> db, V value){
     populate(db.getClassDescriptor(), value);
     if(value instanceof Persistent){

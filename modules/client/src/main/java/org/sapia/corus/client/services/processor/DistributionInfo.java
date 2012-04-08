@@ -12,10 +12,10 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
   
   static final long serialVersionUID = 1L;
 
-  private String _name;
-  private String _version;
-  private String _profile;
-  private String _processName;
+  private String name;
+  private String version;
+  private String profile;
+  private String processName;
 
   /**
    * Creates a new instance of this class with the given params.
@@ -27,10 +27,10 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    */
   public DistributionInfo(String name, String version, String profile,
                           String processName) {
-    _name    = name;
-    _version = version;
-    _profile = profile;
-    _processName  = processName;
+    this.name        = name;
+    this.version     = version;
+    this.profile 		 = profile;
+    this.processName = processName;
   }
 
   /**
@@ -39,7 +39,7 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    * @return a profile name.
    */
   public String getProfile() {
-    return _profile;
+    return profile;
   }
 
   /**
@@ -49,7 +49,7 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    * @return a distribution name.
    */
   public String getName() {
-    return _name;
+    return name;
   }
 
   /**
@@ -59,7 +59,7 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    * @return a process name.
    */
   public String getProcessName() {
-    return _processName;
+    return processName;
   }
 
   /**
@@ -69,20 +69,20 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    * @return a version as a string.
    */
   public String getVersion() {
-    return _version;
+    return version;
   }
 
   @Override
   public int compareTo(DistributionInfo other) {
-    int c = _name.compareTo(other.getName());
+    int c = name.compareTo(other.getName());
     if(c == 0){
-      c = _version.compareTo(other.getVersion());
+      c = version.compareTo(other.getVersion());
     }
     if(c == 0){
-      c = _processName.compareTo(other.getProcessName());
+      c = processName.compareTo(other.getProcessName());
     }
     if(c == 0){
-      c = _profile.compareTo(other.getProfile());
+      c = profile.compareTo(other.getProfile());
     }
     return c;
   }
@@ -93,7 +93,7 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    * @return this as a string.
    */
   public String toString() {
-    return "[ dist=" + _name + ", version=" + _version + ", profile=" +
-           _profile + ", process name=" + _processName + " ]";
+    return "[ dist=" + name + ", version=" + version + ", profile=" +
+           profile + ", process name=" + processName + " ]";
   }
 }

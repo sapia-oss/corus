@@ -1,7 +1,12 @@
 package org.sapia.corus.client.exceptions;
 
+/**
+ * This enum holds the constants corresponding to the different error scopes.
+ * 
+ * @author yduchesne
+ *
+ */
 public enum ExceptionScope {
-
   
   UNDEFINED(100),
   MISC(102),

@@ -14,10 +14,10 @@ import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
  * @author Yanick Duchesne
  */
 public class ClientSideClusterInterceptor implements Interceptor {
-  private static ThreadLocal<ClusterInfo> _registration = new ThreadLocal<ClusterInfo>();
+  private static ThreadLocal<ClusterInfo> registration = new ThreadLocal<ClusterInfo>();
 
   public static void clusterCurrentThread(ClusterInfo cluster) {
-    _registration.set(cluster);
+    registration.set(cluster);
   }
 
   public void onClientPreInvokeEvent(ClientPreInvokeEvent evt) {
@@ -26,12 +26,12 @@ public class ClientSideClusterInterceptor implements Interceptor {
           new ClusteredCommand(
               evt.getCommand(), 
               new ClusteredInvoker(), 
-              _registration.get().getTargets()));
+              registration.get().getTargets()));
     }
   }
 
   private static boolean isCurrentThreadClustered() {
-		ClusterInfo clustered = _registration.get();
+		ClusterInfo clustered = registration.get();
 
     if (clustered == null) {
       return false;

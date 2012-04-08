@@ -15,37 +15,90 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Dependency;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 
+/**
+ * 
+ * @author yduchesne
+ *
+ */
 public class ProcessDependencyFilter {
 
+	/**
+	 * An interface that abstracts a {@link ProcessDependencyFilter} from processes and distributions.
+	 */
   interface FilterCallback{
     
+  	/**
+  	 * @param name an {@link Arg} corresponding to a distribution name.
+  	 * @param version an {@link Arg} corresponding to a distribution version.
+  	 * @return the {@link Distribution} corresponding to the given name and version.
+  	 * @throws DistributionNotFoundException if no distribution is found for the given name and version.
+  	 */
     public Distribution getDistribution(Arg name, Arg version) throws DistributionNotFoundException;
     
-    public List<org.sapia.corus.client.services.processor.Process> getProcesses(Arg name, Arg version, String profile, Arg processName);
+    /**
+     * @param name an {@link Arg} corresponding to a distribution name.
+     * @param version an {@link Arg} corresponding to a distribution version.
+     * @param profile a profile.
+     * @param processName an {@link Arg} corresponding to a process name.
+     * @return the {@link List} of {@link Process} corresponding to the given parameters.
+     */
+    public List<org.sapia.corus.client.services.processor.Process> getProcesses(
+    		Arg name, 
+    		Arg version, 
+    		String profile, 
+    		Arg processName);
     
   }
   
-  private Set<ProcessRef> rootProcesses = new HashSet<ProcessRef>();
-  private ProgressQueue progress;
+  private Set<ProcessRef>  rootProcesses 		 = new HashSet<ProcessRef>();
+  private ProgressQueue 	 progress;
   private List<ProcessRef> filteredProcesses = new ArrayList<ProcessRef>();
 
+  /**
+   * Creates an instance of this class wrapping the given {@link ProgressQueue}, which is internally
+   * used to notify about the filtering progress.
+   * 
+   * @param progress a {@link ProgressQueue}.
+   */
   public ProcessDependencyFilter(ProgressQueue progress) {
     this.progress = progress;
   }
 
+  /**
+   * @return the {@link List} of filtered {@link ProcessRef}s.
+   */
   public List<ProcessRef> getFilteredProcesses() {
     return filteredProcesses;
   }
 
-  public ProcessDependencyFilter addRootProcess(Distribution dist,
-      ProcessConfig conf, String profile, int instances) {
+  /**
+   * Adds the root process to evaluate dependencies from.
+   * 
+   * @param dist a {@link Distribution}.
+   * @param conf a {@link ProcessConfig}.
+   * @param profile a profile.
+   * @param instances the number of process instances.
+   * @return this instance.
+   */
+  public ProcessDependencyFilter addRootProcess(
+  		Distribution dist,
+      ProcessConfig conf, 
+      String profile, 
+      int instances) {
     this.rootProcesses.add(new ProcessRef(dist, conf, profile).setRoot(true).setInstanceCount(instances));
     return this;
   }
 
+  /**
+   * Performs dependency filtering using the given processor and deployer.
+   * 
+   * @param deployer a {@link Deployer} instance.
+   * @param processor a {@link Processor} instance.
+   */
   public void filterDependencies(final Deployer deployer, final Processor processor) {
     FilterCallback cb = new FilterCallback() {
       
@@ -70,6 +123,12 @@ public class ProcessDependencyFilter {
     
     filterDependencies(cb);
   }
+  
+  /**
+   * Performs dependency filtering using the given callback.
+   * 
+   * @param callback a {@link FilterCallback}
+   */
   public void filterDependencies(FilterCallback callback) {
 
     DependencyGraphNode results = new DependencyGraphNode();
@@ -135,9 +194,7 @@ public class ProcessDependencyFilter {
             progress.warning("Could not find distribution for dependency: "
                 + dnfe.getMessage());
           }
-        }
-        // no distribution specified
-        else {
+        } else { // no distribution specified
           progress.warning("No distribution specified for dependency "
               + dep + " in " + parentNode.getProcessRef().getDist());
         }

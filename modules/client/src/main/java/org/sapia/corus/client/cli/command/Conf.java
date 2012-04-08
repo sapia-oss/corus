@@ -23,16 +23,16 @@ import org.sapia.ubik.net.ServerAddress;
 
 public class Conf extends CorusCliCommand{
   
-  public static final String ARG_ADD = "add";
-  public static final String ARG_DEL = "del";
-  public static final String ARG_LS  = "ls";
+  public static final String ARG_ADD 				= "add";
+  public static final String ARG_DEL 				= "del";
+  public static final String ARG_LS  				= "ls";
   
-  public static final String OPT_PROPERTY = "p";
-  public static final String OPT_TAG = "t";
-  public static final String OPT_SCOPE = "s";
-  public static final String OPT_SCOPE_SVR = "s";
+  public static final String OPT_PROPERTY 	= "p";
+  public static final String OPT_TAG 				= "t";
+  public static final String OPT_SCOPE 			= "s";
+  public static final String OPT_SCOPE_SVR 	= "s";
   public static final String OPT_SCOPE_PROC = "p";
-  public static final String OPT_CLEAR = "clear";
+  public static final String OPT_CLEAR 			= "clear";
 
   private static final int COL_PROP_TAG   = 0;
   private static final int COL_PROP_NAME  = 0;

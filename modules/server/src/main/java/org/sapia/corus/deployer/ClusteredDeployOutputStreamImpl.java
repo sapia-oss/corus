@@ -10,17 +10,14 @@ import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
  * An output stream that is used for clustered deployment.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
 public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
-  DeployOutputStream _next;
+	
+  private DeployOutputStream next;
 
   /**
    * Constructor for ClusteredDeployOutputStreamImpl.
+   * 
    * @param fileName
    * @throws FileNotFoundException
    */
@@ -28,13 +25,13 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
                                   DeployerImpl current, DeployOutputStream next)
                            throws FileNotFoundException {
     super(absolutePath, fileName, current);
-    _next = next;
+    this.next = next;
   }
 
   public void close() throws IOException {
     super.flush();
     super.close();
-    _next.close();
+    next.close();
   }
 
   /**
@@ -42,7 +39,7 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
    */
   public void flush() throws IOException {
     super.flush();
-    _next.flush();
+    next.flush();
   }
 
   /**
@@ -50,7 +47,7 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
    */
   public void write(byte[] bytes) throws IOException {
     super.write(bytes);
-    _next.write(bytes);
+    next.write(bytes);
   }
 
   /**
@@ -59,7 +56,7 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
   public void write(byte[] bytes, int offset, int length)
              throws IOException {
     super.write(bytes, offset, length);
-    _next.write(bytes, offset, length);
+    next.write(bytes, offset, length);
   }
 
   /**
@@ -67,6 +64,6 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
    */
   public void write(int data) throws IOException {
     super.write(data);
-    _next.write(data);
+    next.write(data);
   }
 }

@@ -17,7 +17,7 @@ public abstract class AbstractDeploymentClient implements DeploymentClient{
 	
 	final static int BUFSZ = 2048;
 	
-	private DeployOutputStream _client; 	
+	private DeployOutputStream client; 	
 	
   /**
    * @see DeploymentClient#close()
@@ -47,17 +47,17 @@ public abstract class AbstractDeploymentClient implements DeploymentClient{
     InputStream is)
     throws IOException {
    	
-   	_client = getDeployOutputStream(meta);
+   	client = getDeployOutputStream(meta);
 		byte[] buf = new byte[BUFSZ];
 		long total = 0; 
 		int read = 0;
  
 		while((read = is.read(buf, 0, BUFSZ)) > 0 && total < meta.getContentLength()){
 			total = total + read;
-			_client.write(buf, 0, read);
-			_client.flush();
+			client.write(buf, 0, read);
+			client.flush();
 		}
-		return _client.getProgressQueue();
+		return client.getProgressQueue();
   }
   
   /**

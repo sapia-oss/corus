@@ -22,10 +22,11 @@ import org.sapia.ubik.net.ServerAddress;
  * @author Yanick Duchesne
  */
 public class Status extends CorusCliCommand {
+	
   private static final int COL_PID          = 0;
-  private static final int COL_CONTEXT        = 1;
-  private static final int COL_PARAM_NAME    = 2;
-  private static final int COL_PARAM_VALUE   = 3;  
+  private static final int COL_CONTEXT      = 1;
+  private static final int COL_PARAM_NAME   = 2;
+  private static final int COL_PARAM_VALUE  = 3;  
 
   @Override
   protected void doExecute(CliContext ctx)

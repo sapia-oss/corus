@@ -41,6 +41,7 @@ public class PatternArg implements Arg{
     _token = token;
   }
   
+  @SuppressWarnings("rawtypes")
   public boolean matches(String str) {
     return match(new HashMap(5), str, _pattern);
   }

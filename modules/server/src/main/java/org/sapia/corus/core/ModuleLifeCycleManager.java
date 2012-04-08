@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log.Hierarchy;
-import org.apache.log.Logger;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
@@ -31,10 +29,9 @@ import org.springframework.context.ApplicationContext;
  */
 class ModuleLifeCycleManager implements ServerContext, PropertyProvider{
   
-  private Logger logger = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getSimpleName());
-  private List<ApplicationContext> contexts = new ArrayList<ApplicationContext>();
-  private ServerContextImpl delegate;
-  private PropertyContainer properties;
+  private List<ApplicationContext> contexts   = new ArrayList<ApplicationContext>();
+  private ServerContextImpl 			 delegate;
+  private PropertyContainer 			 properties;
 
   ModuleLifeCycleManager(ServerContextImpl serverContext, PropertyContainer properties) {
     this.delegate = serverContext;
@@ -74,6 +71,11 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider{
   }
   
   @Override
+  public Properties getCorusProperties() {
+    return delegate.getCorusProperties();
+  }  
+  
+  @Override
   public Properties getProcessProperties() throws IOException {
     return delegate.getProcessProperties();
   }
@@ -102,7 +104,6 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider{
   public Object lookup(String name){
     return delegate.lookup(name);
   }
-
   
   ///////// PropertyProvider interface
   

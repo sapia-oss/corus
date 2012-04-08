@@ -12,18 +12,13 @@ import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
  * An output stream that is used for deployment.
  *
  * @author Yanick Duchesne
- * <dl>
- * <dt><b>Copyright:</b><dd>Copyright &#169; 2002-2003 <a href="http://www.sapia-oss.org">Sapia Open Source Software</a>. All Rights Reserved.</dd></dt>
- * <dt><b>License:</b><dd>Read the license.txt file of the jar or visit the
- *        <a href="http://www.sapia-oss.org/license.html">license page</a> at the Sapia OSS web site</dd></dt>
- * </dl>
  */
-public class DeployOutputStreamImpl extends FileOutputStream
-  implements DeployOutputStream {
-  private DeployerImpl  _deployer;
-  private boolean _closed;
-  private String        _fName;
-  private ProgressQueue _queue;
+public class DeployOutputStreamImpl extends FileOutputStream implements DeployOutputStream {
+	
+  private DeployerImpl  deployer;
+  private boolean 			closed;
+  private String        fileName;
+  private ProgressQueue queue;
 
   /**
    * Constructor for DeployOutputStream.
@@ -33,32 +28,32 @@ public class DeployOutputStreamImpl extends FileOutputStream
   public DeployOutputStreamImpl(String absolutePath, String fileName,
                          DeployerImpl deployer) throws FileNotFoundException {
     super(absolutePath);
-    _deployer = deployer;
-    _fName    = fileName;
+    this.deployer = deployer;
+    this.fileName = fileName;
   }
 
   public void close() throws IOException {
-  	if(_closed) return;
+  	if(closed) return;
     try {
       super.flush();
 
-      if (_deployer != null) {
-        _queue = _deployer.completeDeployment(_fName);
+      if (deployer != null) {
+        queue = deployer.completeDeployment(fileName);
       }
     } finally {
       super.close();
     }
-    _closed = true;
+    closed = true;
   }
   
   /**
    * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#getProgressQueue()
    */
   public ProgressQueue getProgressQueue() {
-    if (_queue == null) {
+    if (queue == null) {
       throw new IllegalStateException("progress queue not available");
     }
 
-    return _queue;
+    return queue;
   }
 }

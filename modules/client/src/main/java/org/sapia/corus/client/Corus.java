@@ -22,7 +22,7 @@ public interface Corus extends java.rmi.Remote {
   
   /**
    * 
-   * @return The information about this server host.
+   * @return the {@link ServerHost} instance which holds information about the Corus server.
    */
   public ServerHost getHostInfo();
   

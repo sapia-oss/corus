@@ -13,25 +13,25 @@ public class ProcStatus extends Status{
   
   static final long serialVersionUID = 1L;
   
-  private String _corusPid;
-  private List<Context>   _contexts;
+  private String 			  corusPid;
+  private List<Context> contexts;
   
   public ProcStatus(Process proc){
-    _corusPid = proc.getProcessID();
+    corusPid = proc.getProcessID();
     if(proc.getProcessStatus() == null){
-      _contexts = new ArrayList<Context>(0);
+      contexts = new ArrayList<Context>(0);
     }
     else{
-      _contexts = proc.getProcessStatus().getContexts();
+      contexts = proc.getProcessStatus().getContexts();
     }
   }
   
   public List<Context> getContexts(){
-    return _contexts;
+    return contexts;
   }
   
   public String getProcessID(){
-    return _corusPid;
+    return corusPid;
   }
   
 }

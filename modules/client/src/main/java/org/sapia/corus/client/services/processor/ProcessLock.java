@@ -16,7 +16,7 @@ public class ProcessLock implements Serializable{
   
   static final long serialVersionUID = 1L;
   
-  private transient LockOwner _lockOwner;
+  private transient LockOwner lockOwner;
   
   /**
    * Acquires the lock on this instance.
@@ -25,10 +25,10 @@ public class ProcessLock implements Serializable{
    * @throws ProcessLockException if this instance is already locked by another object.
    */
   public synchronized void acquire(LockOwner leaser) throws ProcessLockException {
-    if ((_lockOwner != null) && (!_lockOwner.equals(leaser))) {
+    if ((lockOwner != null) && (!lockOwner.equals(leaser))) {
       throw new ProcessLockException("Process is currently locked - probably in shutdown; try again");
     }
-    _lockOwner = leaser;
+    lockOwner = leaser;
   }
   
   /**
@@ -39,7 +39,7 @@ public class ProcessLock implements Serializable{
    */
   public synchronized void awaitRelease(long timeout, TimeUnit timeUnit) throws InterruptedException{
     Delay delay = new Delay(timeout, timeUnit).start();
-    while((_lockOwner != null) && delay.isNotOver()){
+    while((lockOwner != null) && delay.isNotOver()){
       wait(delay.remainingMillis());
     }
   }
@@ -48,21 +48,21 @@ public class ProcessLock implements Serializable{
    * @return this instance's current {@link LockOwner}, or null if none is currently set.
    */
   public LockOwner getOwner(){
-    return _lockOwner;
+    return lockOwner;
   }
    
   /**
    * Forces the releases of the lock on this instance.
    */
   public synchronized void release() {
-    _lockOwner = null;
+    lockOwner = null;
   }
   
   /**
    * @return <code>true</code> if this instance is locked.
    */
   public synchronized boolean isLocked() {
-    return _lockOwner != null;
+    return lockOwner != null;
   }
   
   /**
@@ -76,8 +76,8 @@ public class ProcessLock implements Serializable{
    * otherwise.
    */
   public synchronized boolean release(LockOwner leaser) {
-    if ((_lockOwner != null) && (_lockOwner.equals(leaser))) {
-      _lockOwner = null;
+    if ((lockOwner != null) && (lockOwner.equals(leaser))) {
+      lockOwner = null;
       notifyAll();
       return true;
     }

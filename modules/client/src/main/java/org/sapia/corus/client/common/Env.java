@@ -1,7 +1,5 @@
 package org.sapia.corus.client.common;
 
-import java.io.FileNotFoundException;
-
 import org.sapia.corus.client.services.deployer.dist.Property;
 
 /**

@@ -1,13 +1,3 @@
-/*
- * PortManagerImpl.java
- *
- * Created on October 18, 2005, 7:05 AM
- *
- * To change this template, choose Tools | Options and locate the template under
- * the Source Creation and Management node. Right-click the template and choose
- * Open. You can then make changes to the template in the Source Editor.
- */
-
 package org.sapia.corus.port;
 
 import java.util.ArrayList;
@@ -33,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implements the {@link PortManager} interface.
+ * 
  * @author yduchesne
  */
 @Bind(moduleInterface=PortManager.class)
@@ -40,23 +31,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class PortManagerImpl extends ModuleHelper implements Service, PortManager {
   
   @Autowired
-  private DbModule _db;
-  private PortRangeStore _store;
+  private DbModule 			 db;
+  private PortRangeStore store;
   
   /** Creates a new instance of PortManagerImpl */
   public PortManagerImpl() {
   }
   
   protected PortManagerImpl(PortRangeStore store){
-    _store = store;
+    this.store = store;
   }
   
   public void init() throws Exception{
-    _store = newPortRangeStore();
+    store = newPortRangeStore();
   }
   
   protected PortRangeStore newPortRangeStore() throws Exception{
-    DbMap<String, PortRange> ports = _db.getDbMap(String.class, PortRange.class, "ports");
+    DbMap<String, PortRange> ports = db.getDbMap(String.class, PortRange.class, "ports");
     return new PortRangeStore(ports);
   }
   
@@ -65,24 +56,24 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   public void dispose(){}
   
   public synchronized int aquirePort(String name) throws PortUnavailableException{
-    if(!_store.containsRange(name)){
+    if(!store.containsRange(name)){
       throw new PortUnavailableException("Port range does not exist for: " + name);
     }
-    PortRange range = (PortRange)_store.readRange(name);
+    PortRange range = (PortRange)store.readRange(name);
     int port = range.acquire();
-    _store.writeRange(range);
+    store.writeRange(range);
     logger().debug("Acquiring port: " + name + ":" + port);    
     return port;
   }
   
   public synchronized void releasePort(String name, int port){
-    if(!_store.containsRange(name)){
+    if(!store.containsRange(name)){
       return;
     }
-    PortRange range = (PortRange)_store.readRange(name);
+    PortRange range = (PortRange)store.readRange(name);
     if(range.getMin() <= port && range.getMax() >= port){
       range.release(port);
-      _store.writeRange(range);
+      store.writeRange(range);
     }
     logger().debug("Releasing port: " + name + ":" + port);
   }
@@ -91,7 +82,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   public void addPortRanges(List<PortRange> ranges, boolean clearExisting)
       throws PortRangeInvalidException, PortRangeConflictException {
     if(clearExisting){
-      _store.clear();
+      store.clear();
     }
     
     for(PortRange range : ranges){
@@ -109,10 +100,10 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     if(range.getMax() < range.getMin()){
       throw new PortRangeInvalidException("Max port must be greater than min port for: " + range);
     }
-    if(_store.containsRange(range.getName())){
+    if(store.containsRange(range.getName())){
       throw new PortRangeConflictException("Port range already exists for: " + range.getName());
     }
-    Iterator<PortRange> ranges = _store.getPortRanges();
+    Iterator<PortRange> ranges = store.getPortRanges();
     while(ranges.hasNext()){
       PortRange existing = (PortRange)ranges.next();
       if(existing.isConflicting(range)){
@@ -120,11 +111,11 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
           ") conflicting with new range");
       }
     }
-    _store.writeRange(range);
+    store.writeRange(range);
   }  
   
   public synchronized void removePortRange(Arg name, boolean force) throws PortActiveException{
-    Collection<PortRange> ranges = _store.readRange(name);
+    Collection<PortRange> ranges = store.readRange(name);
     
     for(PortRange range : ranges){
       if(range.hasBusyPorts()){
@@ -134,21 +125,21 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
       }      
     }
     for(PortRange range : ranges){
-      _store.deleteRange(range.getName());      
+      store.deleteRange(range.getName());      
     }    
   }  
   
   public synchronized void releasePortRange(final Arg name){
-    Collection<PortRange> ranges = _store.readRange(name);
+    Collection<PortRange> ranges = store.readRange(name);
     for(PortRange range : ranges){
       range.releaseAll();
-      _store.writeRange(range);      
+      store.writeRange(range);      
     }
   }
   
   public synchronized List<PortRange> getPortRanges(){
     List<PortRange> lst = new ArrayList<PortRange>();
-    Iterator<PortRange> ranges = _store.getPortRanges();
+    Iterator<PortRange> ranges = store.getPortRanges();
     while(ranges.hasNext()){
       PortRange range = (PortRange)ranges.next();
       if(logger().isDebugEnabled()){

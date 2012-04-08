@@ -30,16 +30,16 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public class Port extends CorusCliCommand{
   
-  public static final String ADD = "add";
-  public static final String DELETE = "del";
-  public static final String RELEASE = "release";
-  public static final String LIST  = "ls";
-  public static final String OPT_NAME = "n";
+  public static final String ADD       = "add";
+  public static final String DELETE    = "del";
+  public static final String RELEASE   = "release";
+  public static final String LIST      = "ls";
+  public static final String OPT_NAME  = "n";
   public static final String OPT_PROPS = "p";
   public static final String OPT_FORCE = "f";
   public static final String OPT_CLEAR = "clear";
-  public static final String OPT_MIN = "min";
-  public static final String OPT_MAX = "max";
+  public static final String OPT_MIN   = "min";
+  public static final String OPT_MAX   = "max";
   
   public static final int COL_NAME   = 0;
   public static final int COL_RANGE  = 1;
@@ -68,6 +68,7 @@ public class Port extends CorusCliCommand{
     }
   }
   
+  @SuppressWarnings("unchecked")
   void doAdd(CliContext ctx, CmdLine cmd) throws InputException{
     
     try {
@@ -90,7 +91,7 @@ public class Port extends CorusCliCommand{
           boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
           
           List<PortRange> ranges = new ArrayList<PortRange>();
-          Enumeration names = props.propertyNames();
+          Enumeration<String> names = (Enumeration<String>) props.propertyNames();
           while(names.hasMoreElements()){
             String name = (String)names.nextElement();
             String minMax = props.getProperty(name);

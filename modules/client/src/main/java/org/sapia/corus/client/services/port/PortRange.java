@@ -20,24 +20,23 @@ import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 
 
 /**
- *
  * @author yduchesne
  */
 public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable, Comparable<PortRange>{
   
   static final long serialVersionUID = 1L;
   
-  private String _name;
-  private int _min, _max;
-  private List<Integer> _available = new ArrayList<Integer>();
-  private List<Integer> _active = new ArrayList<Integer>();
+  private String 				name;
+  private int 				  min, max;
+  private List<Integer> available = new ArrayList<Integer>();
+  private List<Integer> active 		= new ArrayList<Integer>();
   
   PortRange(){}
   
   @Override
   @Transient
   public String getKey() {
-    return _name;
+    return name;
   }
   
   /** Creates a new instance of PortRange */
@@ -49,39 +48,39 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
     if(min > max)
       throw new PortRangeInvalidException("Min port must be lower than max port");    
     
-    _name = name;
-    _min = min;
-    _max = max;
+    this.name = name;
+    this.min = min;
+    this.max = max;
     
     for(int i = min; i <= max; i++){
-      _available.add(new Integer(i));
+      available.add(new Integer(i));
     }
   }
   
   public String getName(){
-    return _name;
+    return name;
   }
   
   public List<Integer> getAvailable(){
-    return _available;
+    return available;
   }
   
   public List<Integer> getActive(){
-    return _active;
+    return active;
   }  
   
   /**
    * @return the lowerbound port in this range.
    */
   public int getMin(){
-    return _min;
+    return min;
   }
   
   /**
    * @return the higherbound port in this range.
    */
   public int getMax(){
-    return _max;
+    return max;
   }
   
   /**
@@ -89,9 +88,9 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
    */
   public synchronized void release(int port){
     Integer portObj = new Integer(port);
-    _active.remove(portObj);
-    if(!_available.contains(portObj)){
-      _available.add(portObj);
+    active.remove(portObj);
+    if(!available.contains(portObj)){
+      available.add(portObj);
     }
   }
   
@@ -99,11 +98,11 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
    * acquires an available port from this instance.
    */
   public synchronized int acquire() throws PortUnavailableException{
-    if(_available.size() == 0){
-      throw new PortUnavailableException("No port available for range: " + _name);
+    if(available.size() == 0){
+      throw new PortUnavailableException("No port available for range: " + name);
     }
-    Integer portObj = (Integer)_available.remove(0);
-    _active.add(portObj);
+    Integer portObj = (Integer)available.remove(0);
+    active.add(portObj);
     return portObj.intValue();
   }
   
@@ -111,20 +110,20 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
    * @return <code>true</code> if this range has busy ports.
    */
   public boolean hasBusyPorts(){
-    return _active.size() > 0;
+    return active.size() > 0;
   }
   
   /**
    * releases all active ports.
    */
   public void releaseAll(){
-    for(int i = 0; i < _active.size(); i++){
-      Integer busy = (Integer)_active.get(i);
-      if(!_available.contains(busy)){
-        _available.add(busy);
+    for(int i = 0; i < active.size(); i++){
+      Integer busy = (Integer)active.get(i);
+      if(!available.contains(busy)){
+        available.add(busy);
       }
     }
-    _active.clear();
+    active.clear();
   }
   
   /**   
@@ -132,8 +131,8 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
    * is conflicting with this instance.
    */
   public boolean isConflicting(PortRange other){
-    return (other._max <= _max &&  other._max >= _min) ||
-      (other._min >= _min &&  other._min <= _max);
+    return (other.max <= max &&  other.max >= min) ||
+      (other.min >= min &&  other.min <= max);
   }
   
   @Override
@@ -143,9 +142,9 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
   
   public String toString(){
     return new StringBuffer().append("[")
-     .append("name=").append(_name)
-     .append(", min=").append(_min)
-     .append(", max=").append(_max)
+     .append("name=").append(name)
+     .append(", min=").append(min)
+     .append(", max=").append(max)
      .append("]").toString();
   }
   

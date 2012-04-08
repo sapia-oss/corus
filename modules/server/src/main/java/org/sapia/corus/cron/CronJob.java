@@ -14,31 +14,33 @@ import fr.dyade.jdring.AlarmEntry;
 import fr.dyade.jdring.AlarmListener;
 
 /**
+ * Implements the notion of "cron job" withing Corus.
+ * 
  * @author Yanick Duchesne
  */
 public class CronJob extends AbstractPersistent<String, CronJob> implements java.io.Serializable, AlarmListener {
 
   static final long serialVersionUID = 1L;
   
-  private transient CronModuleImpl _owner;
-  private transient ServerContext _serverContext;
-  private CronJobInfo _info;
+  private transient CronModuleImpl owner;
+  private transient ServerContext  serverContext;
+  private CronJobInfo              info;
 
   CronJob(){}
   
   CronJob(CronJobInfo info) {
-    _info = info;
+    this.info = info;
   }
   
   @Override
   @Transient
   public String getKey() {
-    return _info.getId();
+    return info.getId();
   }
   
-  void init(CronModuleImpl owner, ServerContext ctx){
-    _owner = owner;
-    _serverContext = ctx;
+  void init(CronModuleImpl owner, ServerContext serverContext){
+    this.owner = owner;
+    this.serverContext = serverContext;
   }
   
   /**
@@ -46,7 +48,7 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
    */
   @Transient
   ServerContext getServerContext() {
-    return _serverContext;
+    return serverContext;
   }
   
   /**
@@ -54,14 +56,14 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
    */
   @Transient
   public CronModuleImpl getOwner() {
-    return _owner;
+    return owner;
   }
 
   /**
    * @return this instance's {@link CronJobInfo}
    */
   CronJobInfo getInfo() {
-    return _info;
+    return info;
   }
 
   /**
@@ -69,19 +71,19 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
    */
   public void handleAlarm(AlarmEntry entry) {
     try {
-      Processor     proc  = _serverContext.getServices().getProcessor();
+      Processor     proc  = serverContext.getServices().getProcessor();
       ProcessCriteria criteria = ProcessCriteria.builder()
-        .distribution(_info.getDistribution())
-        .version(_info.getVersion())
-        .profile(_info.getProfile())
-        .name(_info.getProcessName())
+        .distribution(info.getDistribution())
+        .version(info.getVersion())
+        .profile(info.getProfile())
+        .name(info.getProcessName())
         .build();
       ProgressQueue queue = proc.exec(criteria, 1);
-      _owner.logger().info("executing schedule VM " + _info);
-      ProgressQueueLogger.transferMessages(_owner.logger(), queue);
+      owner.logger().info("Executing scheduled VM " + info);
+      ProgressQueueLogger.transferMessages(owner.logger(), queue);
     } catch (Throwable t) {
       entry.isRepetitive = false;
-      _owner.removeCronJob(_info.getId());
+      owner.removeCronJob(info.getId());
     }
   }
 }

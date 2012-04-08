@@ -11,11 +11,12 @@ public class DeployerConfigurationImpl implements DeployerConfiguration{
   
   private String deployDir;
   private String tempDir;
-  private long fileLockTimeout = DEFAULT_FILELOCK_TIMEOUT;
+  private long 	 fileLockTimeout = DEFAULT_FILELOCK_TIMEOUT;
   
   public String getDeployDir() {
     return deployDir;
   }
+  
   public void setDeployDir(String deployDir) {
     this.deployDir = deployDir;
   }

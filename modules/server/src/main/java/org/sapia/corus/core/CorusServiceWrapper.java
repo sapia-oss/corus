@@ -12,8 +12,7 @@ import org.tanukisoftware.wrapper.WrapperManager;
  */
 public class CorusServiceWrapper implements WrapperListener, Runnable {
   
-  private String[] _theArguments;
-  private boolean _isStarted;
+  private String[] theArguments;
   
   /**
    * Main method to start the corus service wrapper.
@@ -34,7 +33,6 @@ public class CorusServiceWrapper implements WrapperListener, Runnable {
    * Creates a new CorusServiceWrapper instance.
    */
   public CorusServiceWrapper() {
-    _isStarted = false;
   }
   
   
@@ -44,11 +42,9 @@ public class CorusServiceWrapper implements WrapperListener, Runnable {
    * @see org.tanukisoftware.wrapper.WrapperListener#start(java.lang.String[])
    */
   public Integer start(String[] args) {
-    _theArguments = args;
+    theArguments = args;
     Thread aThread = new Thread(this, "CorusService");
     aThread.start();
-    _isStarted = true;
-    
     return null;
   }
   
@@ -92,11 +88,10 @@ public class CorusServiceWrapper implements WrapperListener, Runnable {
    */
   public void run() {
     try {
-      CorusServer.main(_theArguments);
+      CorusServer.main(theArguments);
     } catch (RuntimeException re) {
-      System.err.println("System error running the activator server from the service wrapper");
+      System.err.println("System error running the Corus server from the service wrapper");
       re.printStackTrace();
-      _isStarted = false;
-    }
+   }
   }
 }

@@ -8,6 +8,12 @@ import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
+/**
+ * Specifies the behavior for persisting and retrieving {@link Distribution}s.
+ * 
+ * @author yduchesne
+ *
+ */
 public interface DistributionDatabase {
 
   /**

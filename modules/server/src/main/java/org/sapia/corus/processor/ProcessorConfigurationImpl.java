@@ -16,36 +16,39 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
    * This constant specifies the default interval (in seconds) at which
    * process status is checked.
    */
-  public static final int DEFAULT_CHECK_INTERVAL = 15;
+  public static final int DEFAULT_CHECK_INTERVAL 	= 15;
 
   /**
    * This constant specifies the default interval (in seconds) at which
    * kill attempts occur.
    */
-  public static final int DEFAULT_KILL_INTERVAL = 15;
+  public static final int DEFAULT_KILL_INTERVAL 	= 15;
   
   /**
    * This constant specifies the amount of time (in seconds) to wait
    * between process startups.
    */
-  public static final int DEFAULT_START_INTERVAL = 15;  
+  public static final int DEFAULT_START_INTERVAL 	= 15;  
 
   /**
    * This constant specifies the minimum amount of time (in
    * seconds) required between two startups for the second one
    * to be authorized; value is 120 (seconds).
    */
-  public static int DEFAULT_RESTART_INTERVAL   = 120;
+  public static int DEFAULT_RESTART_INTERVAL   		= 120;
   
-  public static int DEFAULT_BOOT_EXEC_DELAY = 30;
-
+  /**
+   * This constant specifis the amount of seconds to wait for prior to
+   * lauch the boot time execution configurations.
+   */
+  public static int DEFAULT_BOOT_EXEC_DELAY 			= 30;
   
-  private int processTimeout = DEFAULT_PROCESS_TIMEOUT;
+  private int processTimeout 			 = DEFAULT_PROCESS_TIMEOUT;
   private int processCheckInterval = DEFAULT_CHECK_INTERVAL;
-  private int killInterval = DEFAULT_KILL_INTERVAL;
-  private int startInterval = DEFAULT_START_INTERVAL;
-  private int restartInterval = DEFAULT_RESTART_INTERVAL;
-  private int bootExecDelay = DEFAULT_BOOT_EXEC_DELAY;
+  private int killInterval 				 = DEFAULT_KILL_INTERVAL;
+  private int startInterval        = DEFAULT_START_INTERVAL;
+  private int restartInterval 		 = DEFAULT_RESTART_INTERVAL;
+  private int bootExecDelay 			 = DEFAULT_BOOT_EXEC_DELAY;
   
   public long getProcessTimeoutMillis(){
     return processTimeout * 1000;

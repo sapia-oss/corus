@@ -16,16 +16,16 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 public class DeploymentClientFactory {
 	
 	/**
-	 * Returns a <code>DeploymentClient</code> instance, given the target address passed
+	 * Returns a {@link DeploymentClient} instance, given the target address passed
 	 * in.
 	 * <p>
-	 * IMPORTANT: this method internally calls the  <code>DeploymentClient</code>'s <code>connec()</code>
+	 * IMPORTANT: this method internally calls the  {@link DeploymentClient}'s {@link DeploymentClient#connect(ServerAddress)}
 	 * method before returning it. Thus, the caller MUST NOT itself call that method.
 	 * 
 	 * @see DeploymentClient#connect(ServerAddress) 
 	 *  
-	 * @param addr a <code>ServerAddress</code>.
-	 * @return a <code>DeploymentClient</code> instance.
+	 * @param addr a {@link ServerAddress}.
+	 * @return a {@link DeploymentClient} instance.
 	 * @throws IOException if a problem occurs returning the client instance.
 	 */
 	public static DeploymentClient newDeploymentClientFor(ServerAddress addr) throws IOException{

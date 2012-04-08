@@ -14,12 +14,13 @@ import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvid
 
 /**
  * Implements the {@link HttpModule} interface.
+ * 
  * @author Yanick Duchesne
  */
 @Bind(moduleInterface=HttpModule.class)
 public class HttpModuleImpl extends ModuleHelper implements HttpModule {
 
-  private HttpExtensionManager _httpExt;
+  private HttpExtensionManager httpExt;
   
   /**
    * Constructor for HttpModuleImpl.
@@ -41,14 +42,14 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
   public void init() throws Exception {
     // Create the interop and http extension transports
     String transportType = serverContext().getTransport().getTransportProvider().getTransportType();
-    if (transportType.equals(MultiplexSocketTransportProvider.TRANSPORT_TYPE)) {
-      _httpExt = new HttpExtensionManager(logger(), serverContext());      
+    if (transportType.equals(MultiplexSocketTransportProvider.MPLEX_TRANSPORT_TYPE)) {
+      httpExt = new HttpExtensionManager(logger(), serverContext());      
     } else if (transportType.equals(HttpTransportProvider.DEFAULT_HTTP_TRANSPORT_TYPE)) {
-      _httpExt = new HttpExtensionManager(logger(), serverContext());      
+      httpExt = new HttpExtensionManager(logger(), serverContext());      
     } else {
       throw new IllegalStateException("Could not initialize the http module using the transport type: " + transportType);
     }
-    _httpExt.init();      
+    httpExt.init();      
   }
   
   /**
@@ -63,14 +64,14 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
     SoapExtension ext = new SoapExtension(serverContext());
     addHttpExtension(ext);    
     
-    _httpExt.start();
+    httpExt.start();
   }  
   
   /**
    * @see Service#dispose()
    */
   public void dispose() {
-    _httpExt.dispose();    
+    httpExt.dispose();    
   }
  
   /**
@@ -79,6 +80,6 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
    * @param ext a {@link HttpExtension}
    */
   public void addHttpExtension(HttpExtension ext) {
-    _httpExt.addHttpExtension(ext);
+    httpExt.addHttpExtension(ext);
   }
 }

@@ -15,40 +15,40 @@ public class DeploymentMetadata implements java.io.Serializable{
 	
   static final long serialVersionUID = 1L;
   
-	private VmId _origin = VmId.getInstance();
+	private VmId origin = VmId.getInstance();
 	
-	private Set<ServerAddress> _visited = new HashSet<ServerAddress>();
-	private Set<ServerAddress> _targets;
-	private String _fileName;
-	private long _contentLen;
-	private boolean _clustered;
+	private Set<ServerAddress> visited 		= new HashSet<ServerAddress>();
+	private Set<ServerAddress> targets;
+	private String 						 fileName;
+	private long 							 contentLen;
+	private boolean 					 clustered;
 	
 	public DeploymentMetadata(String fileName, long contentLen, Set<ServerAddress> targets, boolean clustered){
-		_targets = targets;
-		_fileName = fileName;
-		_contentLen = contentLen;
-		_clustered = clustered;
+		this.targets = targets;
+		this.fileName = fileName;
+		this.contentLen = contentLen;
+		this.clustered = clustered;
 	}
 	
 	/**
 	 * @return the file name of the deployed archive.
 	 */
 	public String getFileName(){
-		return _fileName;
+		return fileName;
 	}
 	
 	/**
 	 * @return the length (in bytes) of the deployed archive.
 	 */
 	public long getContentLength(){
-		return _contentLen;
+		return contentLen;
 	}
 	
 	/**
 	 * @return <code>true</code> if deployment is clustered.
 	 */
 	public boolean isClustered(){
-		return _clustered;
+		return clustered;
 	}
 	
 	/**
@@ -61,7 +61,7 @@ public class DeploymentMetadata implements java.io.Serializable{
 	 * <code>null</code> if no targets were specified.
 	 */
 	public Set<ServerAddress> getTargets(){
-		return _targets;
+		return targets;
 	}
 	
 	/**
@@ -70,13 +70,13 @@ public class DeploymentMetadata implements java.io.Serializable{
 	 * @return a {@link Set} of {@link ServerAddress} instances.
 	 */
 	public Set<ServerAddress> getVisited(){
-		return _visited;
+		return visited;
 	}
 	
 	/**
 	 * @return the {@link VmId} of the server from which this instance originates. 
 	 */
 	public VmId getOrigin(){
-	  return _origin;	
+	  return origin;	
 	}
 }

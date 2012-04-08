@@ -18,7 +18,7 @@ public class Option extends Property implements java.io.Serializable {
    * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
    */
   public CmdElement convert() {
-    return new org.sapia.console.Option(_name, _value);
+    return new org.sapia.console.Option(name, value);
   }
 
   public String toString() {

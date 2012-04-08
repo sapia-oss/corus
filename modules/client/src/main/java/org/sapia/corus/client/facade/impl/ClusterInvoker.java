@@ -14,9 +14,9 @@ import org.sapia.corus.client.facade.InvocationDispatcher;
 public class ClusterInvoker<M>{
   
   private InvocationDispatcher dispatcher;
-  private Class<M> moduleInterface;
-  private Method toInvoke;
-  private Object[] params;
+  private Class<M> 						 moduleInterface;
+  private Method 							 toInvoke;
+  private Object[] 						 params;
   
   public ClusterInvoker(Class<M> moduleInterface, CorusConnectionContext context){
     this(moduleInterface, new DefaultInvocationDispatcher(context));

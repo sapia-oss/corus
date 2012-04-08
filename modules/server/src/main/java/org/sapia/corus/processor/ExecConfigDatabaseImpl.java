@@ -10,29 +10,29 @@ import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
 
-public class ExecConfigDatabaseImpl implements ExecConfigDatabase{
+public class ExecConfigDatabaseImpl implements ExecConfigDatabase {
 
-  private DbMap<String, ExecConfig> _configs;
+  private DbMap<String, ExecConfig> configs;
   
   public ExecConfigDatabaseImpl(DbMap<String, ExecConfig> configs) {
-    _configs = configs;
+    this.configs = configs;
   }
   
   public synchronized List<ExecConfig> getConfigs(){
-    Iterator<ExecConfig> configs = _configs.values();
+    Iterator<ExecConfig> itr 	= configs.values();
     List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    while(configs.hasNext()){
-      toReturn.add(configs.next());
+    while(itr.hasNext()){
+      toReturn.add(itr.next());
     }
     Collections.sort(toReturn);
     return toReturn;
   }
   
   public synchronized List<ExecConfig> getBootstrapConfigs(){
-    Iterator<ExecConfig> configs = _configs.values();
+    Iterator<ExecConfig> itr 	= configs.values();
     List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    while(configs.hasNext()){
-      ExecConfig ec = configs.next();
+    while(itr.hasNext()){
+      ExecConfig ec = itr.next();
       if(ec.isStartOnBoot()){
         toReturn.add(ec);
       }
@@ -42,10 +42,10 @@ public class ExecConfigDatabaseImpl implements ExecConfigDatabase{
   }
   
   public synchronized List<ExecConfig> getConfigsFor(Arg arg){
-    Iterator<ExecConfig> configs = _configs.values();
-    List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    while(configs.hasNext()){
-      ExecConfig c = configs.next();
+    Iterator<ExecConfig> itr = configs.values();
+    List<ExecConfig> toReturn 	 = new ArrayList<ExecConfig>();
+    while(itr.hasNext()){
+      ExecConfig c = itr.next();
       if(arg != null && arg.matches(c.getName())){
         toReturn.add(c);
       }
@@ -55,31 +55,31 @@ public class ExecConfigDatabaseImpl implements ExecConfigDatabase{
   }
   
   public synchronized void removeConfigsFor(Arg arg){
-    List<ExecConfig> configs = getConfigsFor(arg);
-    for(ExecConfig c:configs){
-      _configs.remove(c.getName());
+    List<ExecConfig> list = getConfigsFor(arg);
+    for(ExecConfig c : list){
+      configs.remove(c.getName());
     }
   }
   
   public synchronized ExecConfig getConfigFor(String name){
-    return _configs.get(name);
+    return configs.get(name);
   }
   
   public synchronized void removeConfig(String name){
-    _configs.remove(name);
+    configs.remove(name);
   }
   
   public synchronized void addConfig(ExecConfig btc){
-    _configs.put(btc.getName(), btc);
+    configs.put(btc.getName(), btc);
   }
 
   public synchronized void removeProcessesForDistribution(Distribution d){
-    Iterator<ExecConfig> configs = _configs.values();
-    while(configs.hasNext()){
-      ExecConfig c = configs.next();
+    Iterator<ExecConfig> itr = configs.values();
+    while(itr.hasNext()){
+      ExecConfig c = itr.next();
       c.removeAll(d);
       if(c.getProcesses().size() == 0){
-        _configs.remove(c.getName());
+        configs.remove(c.getName());
       }
     }
   }

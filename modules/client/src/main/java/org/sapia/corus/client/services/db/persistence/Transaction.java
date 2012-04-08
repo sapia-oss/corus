@@ -3,14 +3,13 @@ package org.sapia.corus.client.services.db.persistence;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings(value="unchecked")
 public class Transaction {
   
   interface Logic<T>{
     public T execute();
   }
   
-  private List<Persistent> persistentObjects = new ArrayList<Persistent>();
+  private List<Persistent<?, ?>> persistentObjects = new ArrayList<Persistent<?,?>>();
   
   public <K,V> Transaction add(Persistent<K, V> p){
     persistentObjects.add(p);
@@ -18,7 +17,7 @@ public class Transaction {
   }
   
   public void commit(){
-    for(Persistent p:persistentObjects){
+    for(Persistent<?,?> p:persistentObjects){
       p.save();
     }
   }
