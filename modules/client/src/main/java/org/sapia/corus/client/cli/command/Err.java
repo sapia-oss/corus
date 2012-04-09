@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli.command;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.InputException;
@@ -201,7 +202,7 @@ public class Err extends CorusCliCommand {
       table.drawLine('-');
       aContext.getConsole().print(" CAUSED BY:  ");
       aContext.getConsole().out().flush();
-      anError.getCause().printStackTrace(aContext.getConsole().out());
+      aContext.getConsole().out().println(ExceptionUtils.getStackTrace(anError.getCause()));
     }
     
     table.drawLine('=');

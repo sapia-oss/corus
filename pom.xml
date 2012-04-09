@@ -6,7 +6,7 @@
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>2.1.5-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,6 +43,14 @@
     <module>modules/server</module>
     <module>samples</module>
   </modules>
+
+  <repositories>
+    <repository>
+      <id>jline</id>
+      <name>JLine Project Repository</name>
+      <url>http://jline.sourceforge.net/m2repo</url>
+    </repository>
+  </repositories>
 
   <dependencies>
 
@@ -131,6 +139,13 @@
       </dependency>
 
       <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>0.9.9</version>
+        <optional>true</optional>
+      </dependency>
+
+      <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_client</artifactId>
         <version>${project.version}</version>
@@ -177,7 +192,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>1.5</version>
+        <version>1.6-SNAPSHOT</version>
       </dependency>
 
       <dependency>
@@ -190,7 +205,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>2.6.2</version>
+        <version>3.0-SNAPSHOT</version>
       </dependency>
 
       <dependency>

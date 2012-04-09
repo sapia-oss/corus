@@ -1,12 +1,11 @@
 package org.sapia.corus.client.cli.help;
 
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.console.ConsoleOutput;
 import org.sapia.console.table.Table;
-import org.sapia.corus.client.cli.command.Man;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
 import org.sapia.util.xml.ProcessingException;
@@ -26,7 +25,7 @@ public class Help {
     return s;
   }
   
-  public void display(PrintWriter out){
+  public void display(ConsoleOutput out){
     Table t = new Table(out, 1, 78);
     Section sect;
     for(int i = 0; i < _sections.size(); i++){
@@ -58,12 +57,4 @@ public class Help {
       }
   }
   
-  public static void main(String[] args) {
-    try {
-      Help h = Help.newHelpFor(Man.class);
-      h.display(new PrintWriter(System.out, true));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
 }

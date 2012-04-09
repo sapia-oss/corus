@@ -1,15 +1,16 @@
 package org.sapia.corus.client.cli;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
+import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
+import org.sapia.console.ConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.CorusVersion;
@@ -33,15 +34,11 @@ public class CorusCli extends CommandConsole {
   public static final String PORT_OPT = "p";
   public static final int    MAX_ERROR_HISTORY = 20;
   
-  static {
-  	Logger.getRootLogger().setLevel(Level.OFF);
-  }
-  
   protected CorusConnector corus;
   private List<CliError> 	 errors;
 
-  public CorusCli(CorusConnector corus) {
-    super(new CorusCommandFactory());
+  public CorusCli(CorusConnector corus) throws IOException {
+    super(ConsoleInputFactory.createJLineConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
     super.setCommandListener(new CliConsoleListener());
     this.corus = corus;
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
