@@ -1,5 +1,6 @@
 package org.sapia.corus.client.facade;
 
+import org.sapia.corus.client.facade.impl.ClusterfacadeImpl;
 import org.sapia.corus.client.facade.impl.ConfiguratorFacadeImpl;
 import org.sapia.corus.client.facade.impl.CronFacadeImpl;
 import org.sapia.corus.client.facade.impl.DeployerFacadeImpl;
@@ -21,6 +22,7 @@ public class CorusConnector {
   private CronFacade 						 cron;
   private PortManagementFacade 	 ports;
   private ConfiguratorFacade 		 config;
+  private ClusterFacade          cluster;
   
   public CorusConnector(CorusConnectionContext context){
     this.context = context;
@@ -29,6 +31,7 @@ public class CorusConnector {
     cron 				 = new CronFacadeImpl(context);
     ports 			 = new PortManagementFacadeImpl(context);
     config 			 = new ConfiguratorFacadeImpl(context);
+    cluster      = new ClusterfacadeImpl(context);
   }
   
   public CorusConnectionContext getContext() {
@@ -70,4 +73,10 @@ public class CorusConnector {
     return ports;
   }
 
+  /**
+   * @return the {@link ClusterFacade}.
+   */
+  public ClusterFacade getCluster() {
+	  return cluster;
+  }
 }

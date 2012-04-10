@@ -1,10 +1,11 @@
 package org.sapia.corus.client.cli;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.log4j.Level;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -45,7 +46,7 @@ public class CorusCli extends CommandConsole {
     
     // Change the prompt
     StringBuffer prompt = new StringBuffer().append("[");
-    if (corus.getContext().getAddress().getTransportType().equals("tcp/socket")) {
+    if (corus.getContext().getAddress().getTransportType().equals("tcp/mplex")) {
       prompt.append(((TCPAddress) corus.getContext().getAddress()).getHost()).append(":").
              append(((TCPAddress) corus.getContext().getAddress()).getPort());
     } else {
@@ -57,10 +58,12 @@ public class CorusCli extends CommandConsole {
   }
 
   public static void main(String[] args) {
+  	
+  	
+  	// disabling log4j output
+  	org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
+  	
     String host = null;
-    try{
-      host = Localhost.getAnyLocalAddress().getHostAddress();
-    }catch(UnknownHostException e){}
     int port = DEFAULT_PORT;
 
     try {
@@ -93,14 +96,15 @@ public class CorusCli extends CommandConsole {
         
         try{
           cli.start();
-        }catch(NullPointerException e){}
+        }catch(NullPointerException e){
+        	e.printStackTrace();
+        }
       }
     } catch (InputException e) {
       System.out.println(e.getMessage());
       help();
     } catch (Exception e) {
-      e.printStackTrace();
-      if(e instanceof ConnectionException){
+      if(e instanceof ConnectionException || e instanceof RemoteException){
         System.out.println("No server listening at " + host + ":" + port);
       }
       else{

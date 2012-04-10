@@ -5,6 +5,7 @@ import java.io.Serializable;
 import org.sapia.ubik.net.ServerAddress;
 
 /**
+ * Holds misc information about a Corus host.
  * 
  * @author J-C Desrochers
  */

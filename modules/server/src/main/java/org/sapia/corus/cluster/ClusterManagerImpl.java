@@ -12,6 +12,7 @@ import java.util.Set;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.ClusterManager;
+import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.util.PropertiesFilter;
@@ -112,27 +113,27 @@ public class ClusterManagerImpl extends ModuleHelper
                      ClusterManager and instance METHODS
   ////////////////////////////////////////////////////////////////////*/
 
-  /**
-   * @see ClusterManager#getHostAddresses()
-   */
+  @Override
   public synchronized Set<ServerAddress> getHostAddresses() {
     return new HashSet<ServerAddress>(hostsAddresses);
   }
 
+  @Override
   public synchronized Set<ServerHost> getHosts() {
     return new HashSet<ServerHost>(hostsInfos);
   }
+  
+  @Override
+  public ClusterStatus getClusterStatus() {
+    return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo());
+  }
 
-  /**
-   * @see ClusterManager#getEventChannel()
-   */
+  @Override
   public EventChannel getEventChannel() {
     return channel;
   }
 
-  /**
-   * @see AsyncEventListener#onAsyncEvent(org.sapia.ubik.mcast.RemoteEvent)
-   */
+  @Override
   public void onAsyncEvent(RemoteEvent remote) {
     Object event = null;
 
@@ -211,7 +212,7 @@ public class ClusterManagerImpl extends ModuleHelper
       @Override
       public void run() {
         try {
-          log.debug(String.format("Trying to trigger discovery of for down Corus server %s", event.getAddress()));
+          log.debug(String.format("Trying to trigger discovery of down Corus server %s", event.getAddress()));
           channel.dispatch(
               event.getAddress(), CorusPubEvent.class.getName(),
               new CorusPubEvent(

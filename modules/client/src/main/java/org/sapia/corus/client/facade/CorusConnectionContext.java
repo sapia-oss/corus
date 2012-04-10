@@ -173,13 +173,11 @@ public class CorusConnectionContext {
         applyToCluster(results, moduleInterface, method, params, cluster);
       }
       else{
-        Object returnValue = method.invoke(lookup(moduleInterface), params);
+        T returnValue = (T) method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result(connectAddress, returnValue));
+        results.addResult(new Result<T>(connectAddress, returnValue));
       }
     } catch (InvocationTargetException e) {
-      
-      //results.addResult(new Result(_addr, e.getTargetException()));
       throw e.getTargetException();
     } 
   }

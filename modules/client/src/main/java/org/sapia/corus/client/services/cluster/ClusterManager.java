@@ -41,4 +41,10 @@ public interface ClusterManager extends java.rmi.Remote, Module {
    * @return an {@link EventChannel} instance.
    */
   public EventChannel getEventChannel();
+  
+  /**
+   * @return the {@link ClusterStatus} for the Corus instance.
+   */
+  public ClusterStatus getClusterStatus();
+  
 }

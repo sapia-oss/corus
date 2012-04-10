@@ -16,6 +16,7 @@ import org.apache.log.format.Formatter;
 import org.apache.log.output.io.rotate.RevolvingFileStrategy;
 import org.apache.log.output.io.rotate.RotateStrategyByTime;
 import org.apache.log.output.io.rotate.RotatingFileTarget;
+import org.apache.log4j.Level;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
@@ -32,6 +33,7 @@ import org.sapia.corus.log.SyslogTarget;
 import org.sapia.corus.util.IOUtils;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
+import org.sapia.ubik.log.Log;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 import org.sapia.ubik.util.Localhost;
@@ -59,6 +61,8 @@ public class CorusServer {
   @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
     try {
+    	
+    	org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
       
       String corusHome = System.getProperty("corus.home");
       

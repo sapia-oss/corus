@@ -1,0 +1,8 @@
+<help>
+  <section title="Description">
+   <p>Displays cluster status information for a Corus instance.</p>
+  </section>
+  <section title="Syntax">
+    <p>cluster [status] [-cluster]</p>
+  </section>
+</help>
