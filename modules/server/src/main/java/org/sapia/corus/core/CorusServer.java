@@ -33,7 +33,6 @@ import org.sapia.corus.log.SyslogTarget;
 import org.sapia.corus.util.IOUtils;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
-import org.sapia.ubik.log.Log;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 import org.sapia.ubik.util.Localhost;
