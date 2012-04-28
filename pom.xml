@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+﻿<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <name>Sapia Corus</name>
@@ -29,11 +29,7 @@
       <name>Apache 2</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
-    <license>
-      <name>GNU General Public License (GPL), version 3</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-    </license>
-  </licenses>
+</licenses>
 
   <packaging>pom</packaging>
 
@@ -192,7 +188,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>1.6-SNAPSHOT</version>
+        <version>1.6</version>
       </dependency>
 
       <dependency>
@@ -205,7 +201,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>3.0-SNAPSHOT</version>
+        <version>3.0-RC1</version>
       </dependency>
 
       <dependency>
