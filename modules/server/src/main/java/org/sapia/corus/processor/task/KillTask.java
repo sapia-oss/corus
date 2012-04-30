@@ -8,6 +8,7 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -118,9 +119,11 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
           ctx.warn(String.format("Restarting process: %s", proc));
           PerformProcessRestartTask restartProcess = new PerformProcessRestartTask();
           ctx.getTaskManager().executeAndWait(restartProcess, proc).get();
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, true));
         } else {
           ctx.debug(String.format("Restarting interval (millis): %s", procConfig.getRestartIntervalMillis()));
           ctx.warn("Process will not be restarted; not enough time since last restart");
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
         }
       } else {
         ctx.warn(String.format("Process %s terminated", proc));
@@ -137,12 +140,14 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
   
     if(ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get()){
       doKillConfirmed(ctx);
-    }
-    else{
+    } else{
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ctx.error(String.format("Process %s could not be killed forcefully; auto-restart is aborted", proc));
       proc.releasePorts(ports);
       ctx.getServerContext().getServices().getProcesses().getActiveProcesses().removeProcess(proc.getProcessID());
+      if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
+      }
       abort(ctx);
     }
   }

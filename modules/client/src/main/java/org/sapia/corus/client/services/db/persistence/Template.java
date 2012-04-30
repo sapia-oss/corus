@@ -1,7 +1,7 @@
 package org.sapia.corus.client.services.db.persistence;
 
 import org.sapia.corus.client.services.db.PatternRecordMatcher;
-import org.sapia.corus.client.services.db.PatternRecordMatcher.FieldMatcher;;
+import org.sapia.corus.client.services.db.PatternRecordMatcher.FieldMatcher;
 
 /**
  * An instance of this class is used to perform matching operations dynamically,

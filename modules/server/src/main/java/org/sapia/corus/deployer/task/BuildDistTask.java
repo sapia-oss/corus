@@ -18,17 +18,17 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  * @author Yanick Duchesne
  */
 public class BuildDistTask extends Task<Void,Void> {
-  private String            _deployDir;
-  private DistributionDatabase _store;
+  private String               deployDir;
+  private DistributionDatabase store;
 
   public BuildDistTask(String deployDir, DistributionDatabase store) {
-    _deployDir = deployDir;
-    _store     = store;
+    this.deployDir = deployDir;
+    this.store     = store;
   }
 
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
-    File   f = new File(_deployDir);
+    File   f = new File(deployDir);
 
     File[] distDirs = f.listFiles();
 
@@ -63,7 +63,7 @@ public class BuildDistTask extends Task<Void,Void> {
       try {
         Distribution dist = Distribution.newInstance(new FileInputStream(corusXML));
         dist.setBaseDir(versionDir.getAbsolutePath());
-        _store.addDistribution(dist);
+        store.addDistribution(dist);
         ctx.info("Adding distribution: " + dist.getName() + ", " + dist.getVersion());
       } catch (Exception e) {
         ctx.error(e);

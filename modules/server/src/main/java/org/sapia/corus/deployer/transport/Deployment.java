@@ -9,6 +9,7 @@ import org.sapia.corus.client.services.deployer.transport.Connection;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.ubik.serialization.SerializationStreams;
 
 /**
  * This class models a deployment on the server-side.
@@ -34,7 +35,7 @@ public class Deployment {
   
 	public DeploymentMetadata getMetadata() throws IOException{
 		if(meta == null){
-			ObjectInputStream ois = new ObjectInputStream(conn.getInputStream());
+			ObjectInputStream ois = SerializationStreams.createObjectInputStream(conn.getInputStream());
 			try{
 				meta = (DeploymentMetadata)ois.readObject();  			
 			}catch(ClassNotFoundException e){

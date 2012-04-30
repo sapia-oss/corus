@@ -22,9 +22,9 @@ import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannelStateListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.rmi.replication.ReplicationEvent;
+import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.server.Hub;
-import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
+import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
 import org.sapia.ubik.util.Props;
 
 
@@ -34,6 +34,7 @@ import org.sapia.ubik.util.Props;
  * @author Yanick Duchesne
  */
 @Bind(moduleInterface=ClusterManager.class)
+@Remote(interfaces=ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper
   implements ClusterManager, AsyncEventListener, EventChannelStateListener {
    
@@ -87,8 +88,7 @@ public class ClusterManagerImpl extends ModuleHelper
   public void start() throws Exception {
     super.start();
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
-    Hub.getModules().getServerRuntime().addInterceptor(ServerPreInvokeEvent.class, interceptor);
-    Hub.getModules().getServerRuntime().addInterceptor(ReplicationEvent.class, interceptor);    
+    Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
   }
   
   /**
@@ -98,9 +98,8 @@ public class ClusterManagerImpl extends ModuleHelper
     channel.close();
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                        Module INTERFACE METHOD
-  ////////////////////////////////////////////////////////////////////*/
+  // --------------------------------------------------------------------------
+  // Module INTERFACE METHOD
 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -109,9 +108,8 @@ public class ClusterManagerImpl extends ModuleHelper
     return ClusterManager.ROLE;
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                     ClusterManager and instance METHODS
-  ////////////////////////////////////////////////////////////////////*/
+  // --------------------------------------------------------------------------
+  // ClusterManager and instance METHODS
 
   @Override
   public synchronized Set<ServerAddress> getHostAddresses() {

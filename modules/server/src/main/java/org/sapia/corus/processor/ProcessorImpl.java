@@ -25,6 +25,7 @@ import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
@@ -117,8 +118,20 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
     for (int i = 0; i < processes.size(); i++) {
       proc = (Process) processes.get(i);
-      proc.touch();
+      if (proc.getStatus()  == LifeCycleStatus.KILL_CONFIRMED) {
+        log.debug("Removing stale process object - is confirmed as killed");
+        suspended.removeProcess(proc.getProcessID());
+        active.removeProcess(proc.getProcessID());
+        toRestart.removeProcess(proc.getProcessID());
+        if (active.containsProcess(proc.getProcessID())){
+          log.debug("Process not removed!");
+        }
+        
+      } else {
+        proc.touch();
+      }
     }
+    
   }
   
   public void start() throws Exception {

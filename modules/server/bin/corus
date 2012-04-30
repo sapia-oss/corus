@@ -150,5 +150,4 @@ if [ -n "$CYGHOME" ]; then
 fi
 
 java_exec_command="exec \"${JAVACMD}\" -cp \"${CORUS_CLASSPATH}\" -Dcorus.home=\"${CORUS_HOME}\" $java_sys_opts ${MAINCLASS} \"$@\""
-echo $java_exec_command
 eval $java_exec_command

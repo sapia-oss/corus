@@ -1,13 +1,13 @@
 package org.sapia.corus.client.facade;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.impl.ClusterInvoker;
-import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 
 public class ClusterInvokerTest {

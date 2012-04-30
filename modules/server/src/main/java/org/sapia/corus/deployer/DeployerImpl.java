@@ -44,9 +44,7 @@ import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
-import org.sapia.ubik.rmi.replication.ReplicationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 /**
  * This component implements the {@link Deployer} interface.

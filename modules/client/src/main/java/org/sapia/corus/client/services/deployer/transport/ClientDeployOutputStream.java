@@ -7,6 +7,7 @@ import java.io.OutputStream;
 
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
+import org.sapia.ubik.serialization.SerializationStreams;
 
 /**
  * @author Yanick Duchesne
@@ -26,7 +27,7 @@ public class ClientDeployOutputStream implements DeployOutputStream{
 		}
 
 		out = this.client.getOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(out);
+		ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(out);
 		oos.writeObject(meta);
 		oos.flush();
 	}
@@ -39,11 +40,13 @@ public class ClientDeployOutputStream implements DeployOutputStream{
   		return;
   	}
 		try{
-			ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
+			ObjectInputStream ois = SerializationStreams.createObjectInputStream(client.getInputStream());
 			queue = (ProgressQueue)ois.readObject();
 		}catch(ClassNotFoundException e){
 			throw new IOException("Could not deserialize response: " + e.getMessage());
-		}  	
+		}catch(IOException e){
+		  e.printStackTrace();
+		} 	
     client.close();
     closed = true;
   }

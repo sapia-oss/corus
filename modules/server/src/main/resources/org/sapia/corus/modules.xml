@@ -73,5 +73,21 @@
         autowire="autodetect">
     <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
     <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
-  </bean> 
+  </bean>
+  
+  <!-- ============ ALERTS ============ -->
+  
+  <bean name="org.sapia.corus.client.services.alert.AlertManager" 
+        class="org.sapia.corus.alert.AlertManagerImpl" 
+        scope="singleton"
+        autowire="autodetect">
+    <property name="smtpHost"   	 value="${corus.server.alert.smtp.host}" />
+    <property name="smtpPort"        value="${corus.server.alert.smtp.port}" />
+    <property name="smtpPassword"    value="${corus.server.alert.smtp.password}" />
+    <property name="fromEmail"       value="${corus.server.alert.sender}" />    
+    <property name="recipientEmails" value="${corus.server.alert.recipients}" />
+    <property name="enabled"   	     value="${corus.server.alert.enabled}" />
+    
+  </bean>  
+   
 </beans>

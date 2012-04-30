@@ -2,7 +2,6 @@ package org.sapia.corus.client.facade;
 
 import java.util.List;
 
-
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.exceptions.cron.DuplicateScheduleException;

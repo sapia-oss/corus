@@ -33,46 +33,6 @@ public class MplexDeploymentClient extends AbstractDeploymentClient implements D
 	}
 	
 	/**
-	 * @see DeploymentClient#deploy(String, long, Set, InputStream)
-	 *
-	public ProgressQueue deploy(String fileName, 
-	                            long contentLen, 
-	                           Set targets,
-	                           InputStream is) throws IOException{
-	                           	
-  	                           	
-                           	
-		if(_sock == null){
-			throw new IOException("This instance is not connected; call connect()");
-		}
-		
-    DeploymentMetadata meta = new DeploymentMetadata(fileName, contentLen, targets, false);
-    OutputStream os = _sock.getOutputStream();
-		os.write(MplexDeploymentAcceptor.DEPLOY_STREAM_HEADER.getBytes("UTF-8"));
-		os.flush();
-    ObjectOutputStream oos = new ObjectOutputStream(os);
-    oos.writeObject(meta);
-    oos.flush();
-    byte[] buf = new byte[BUFSZ];
-    long total = 0; 
-    int read = 0;
-   
-    while((read = is.read(buf, 0, BUFSZ)) > 0 && total < contentLen){
-    	total = total + read;
-    	os.write(buf, 0, read);
-    	os.flush();
-    }
-  
-    ObjectInputStream ois = new ObjectInputStream(_sock.getInputStream());
-    try{
-      ProgressQueue queue = (ProgressQueue)ois.readObject();
-      return queue;
-    }catch(ClassNotFoundException e){
-    	throw new IOException("Could not deserialize response: " + e.getMessage());
-    }
-	}*/
-	
-	/**
 	 * @see DeploymentClient#close()
 	 */
 	public void close(){
@@ -107,45 +67,4 @@ public class MplexDeploymentClient extends AbstractDeploymentClient implements D
 		os.flush();
 		return os;
   }
-  
-  /*
-	public static void main(String[] args) {
-		try {
-			TCPAddress addr = new TCPAddress("127.0.0.1", 33000);
-			File toDeploy = new File("dist/demoDist.jar");
-			FileOutputStream fos = null;
-			MplexDeploymentClient client = null;      
-			try{
-				client = new MplexDeploymentClient();
-				client.connect(addr);
-				Set targets = new HashSet();
-				targets.add(new TCPAddress("127.0.0.1", 33100));
-				DeploymentMetadata meta = new DeploymentMetadata(toDeploy.getName(), toDeploy.length(), targets, true);
-				ProgressQueue queue = client.deploy(meta, new FileInputStream(toDeploy));
-				List msgs;
-				while(queue.hasNext()){
-					msgs = queue.next();
-					for(int i = 0; i < msgs.size(); i++){
-						System.out.println(((ProgressMsg)msgs.get(i)).getMessage());
-					}
-				}
-			}catch(IOException e){
-				e.printStackTrace();
-			}finally{
-				if(client != null){
-					client.close();
-				}
-				if(fos != null){
-					try {
-						fos.close();
-					} catch (Exception e) {
-						// noop
-					}
-				}
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}*/
 }

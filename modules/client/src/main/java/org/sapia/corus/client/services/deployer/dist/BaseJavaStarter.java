@@ -14,9 +14,9 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
-import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 

@@ -3,6 +3,7 @@ package org.sapia.corus.client.services.cluster;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.sapia.corus.client.Corus;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.replication.ReplicatedInvoker;
@@ -11,6 +12,9 @@ import org.sapia.ubik.rmi.replication.ReplicatedInvoker;
  * @author Yanick Duchesne
  */
 public class ClusteredInvoker implements ReplicatedInvoker{
+  
+  private static Logger log = Logger.getLogger(ClusteredInvoker.class);
+  
 	
   static final long serialVersionUID = 1L;
   
@@ -33,27 +37,26 @@ public class ClusteredInvoker implements ReplicatedInvoker{
 			Object module = _corus.lookup(_moduleName);
 			Method toCall = module.getClass().getMethod(methodName,
 																									types);
-/*
-			if (_log.isInfoEnabled()) {
-				_log.info("Processing clustered command: " + methodName);
+
+			if (log.isInfoEnabled()) {
+				log.info("Processing clustered command: " + methodName);
 			}
-*/
+
 			toCall.invoke(module, args);
 		} catch (Throwable t) {
-			//_log.error("Error processing cluster event", t);
-
+			log.error("Error processing cluster event", t);
 			throw t;
 		}
-		/*
 
+		/**
 		if ((toReturn != null) && toReturn instanceof ProgressQueue) {
 			try {
 				ProgressQueueLogger.transferMessages(_log, (ProgressQueue) toReturn);
 			} catch (Throwable t) {
-				_log.error("Error processing cluster event", t);
+				log.error("Error processing cluster event", t);
 			}
 			
-		} */ 
+		}  */
 		return toReturn;                     	
   }
   

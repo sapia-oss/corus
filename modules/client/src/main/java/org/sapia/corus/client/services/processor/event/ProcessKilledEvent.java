@@ -1,12 +1,11 @@
 package org.sapia.corus.client.services.processor.event;
 
-import org.sapia.ubik.rmi.interceptor.Event;
-
+import org.sapia.corus.client.services.event.EventLog;
+import org.sapia.corus.client.services.event.EventLog.Level;
+import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
-import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.Loggable;
-import org.sapia.corus.client.services.event.EventLog.Level;
+import org.sapia.ubik.rmi.interceptor.Event;
 
 public class ProcessKilledEvent implements Event, Loggable{
 
@@ -21,6 +20,18 @@ public class ProcessKilledEvent implements Event, Loggable{
     this.requestor = requestor;
     this.process = process;
     this.restarted = restarted;
+  }
+  
+  public Process getProcess() {
+    return process;
+  }
+  
+  public ProcessTerminationRequestor getRequestor() {
+    return requestor;
+  }
+  
+  public boolean wasRestarted() {
+    return restarted;
   }
   
   public EventLog getEventLog() {

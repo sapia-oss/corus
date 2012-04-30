@@ -2,7 +2,6 @@ package org.sapia.corus.client.cli.command;
 
 import java.util.List;
 
-
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;

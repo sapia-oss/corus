@@ -93,22 +93,11 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  protected ClusterInfo getClusterInfo(CliContext ctx) /*throws InputException*/{
-    /*if(ctx.getCommandLine().containsOption(CLUSTER_OPT, true)){
-      String clusterOpt = ctx.getCommandLine().assertOption(CLUSTER_OPT, true).getValue();
-      String[] tags = clusterOpt.split(",");
-      ClusterInfo info = new ClusterInfo(true);
-      for(int i = 0; i < tags.length; i++){
-        info.addTag(tags[i].trim());
-      }
-      return info;
-    }
-    else{*/
-    	ClusterInfo info = new ClusterInfo(
-       ctx.getCommandLine().containsOption(CLUSTER_OPT, false)
-      );
-      return info;
-    //}
+  protected ClusterInfo getClusterInfo(CliContext ctx) {
+  	ClusterInfo info = new ClusterInfo(
+  	    ctx.getCommandLine().containsOption(CLUSTER_OPT, false)
+    );
+    return info;
   }
   
   protected void sleep(long millis) throws AbortException {

@@ -8,7 +8,6 @@ import java.util.Map;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.facade.InvocationDispatcher;
 import org.sapia.ubik.net.ServerAddress;
 
 public class TestInvocationDispatcher implements InvocationDispatcher{
