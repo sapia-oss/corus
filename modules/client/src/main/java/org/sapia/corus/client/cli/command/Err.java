@@ -96,7 +96,7 @@ public class Err extends CorusCliCommand {
   private void doShowErrorList(CliContext aContext, int aMaxCount) {
     Table table = new Table(aContext.getConsole().out(), 2, 40);
     table.getTableMetaData().getColumnMetaDataAt(COL_ERROR_ID).setWidth(4);
-    table.getTableMetaData().getColumnMetaDataAt(COL_MESSAGE).setWidth(80);
+    table.getTableMetaData().getColumnMetaDataAt(COL_MESSAGE).setWidth(72);
 
     table.drawLine('=');
     aContext.getConsole().println(" ERROR LIST");
@@ -167,7 +167,7 @@ public class Err extends CorusCliCommand {
   private void displayErrorDetailsInTable(CliContext aContext, CliError anError) {
     Table table = new Table(aContext.getConsole().out(), 2, 40);
     table.getTableMetaData().getColumnMetaDataAt(COL_FIELD_NAME).setWidth(10);
-    table.getTableMetaData().getColumnMetaDataAt(COL_FIELD_VALUE).setWidth(75);
+    table.getTableMetaData().getColumnMetaDataAt(COL_FIELD_VALUE).setWidth(66);
 
     table.drawLine('=');
     aContext.getConsole().println(" ERROR DETAILS");

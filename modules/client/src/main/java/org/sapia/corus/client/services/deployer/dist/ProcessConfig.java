@@ -166,7 +166,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param shutDownTimeout a number in seconds.
    */
   public void setShutdownTimeout(int shutDownTimeout) {
-    shutDownTimeout = shutDownTimeout;
+    this.shutDownTimeout = shutDownTimeout;
   }
 
   /**
@@ -189,7 +189,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * be invoked explicitly by its name (defaults to <code>true</code>).
    */
   public void setInvoke(boolean invoke) {
-    invoke = invoke;
+    this.invoke = invoke;
   }
 
   /**
@@ -238,7 +238,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
    * @param maxInstances the maximum number of process instances allowed.
    */
   public void setMaxInstances(int maxInstances) {
-    maxInstances = maxInstances;
+    this.maxInstances = maxInstances;
   }
 
   /**

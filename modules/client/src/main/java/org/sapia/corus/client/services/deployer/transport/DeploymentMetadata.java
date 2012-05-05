@@ -18,13 +18,11 @@ public class DeploymentMetadata implements java.io.Serializable{
 	private VmId origin = VmId.getInstance();
 	
 	private Set<ServerAddress> visited 		= new HashSet<ServerAddress>();
-	private Set<ServerAddress> targets;
 	private String 						 fileName;
 	private long 							 contentLen;
 	private boolean 					 clustered;
 	
-	public DeploymentMetadata(String fileName, long contentLen, Set<ServerAddress> targets, boolean clustered){
-		this.targets = targets;
+	public DeploymentMetadata(String fileName, long contentLen, boolean clustered){
 		this.fileName = fileName;
 		this.contentLen = contentLen;
 		this.clustered = clustered;
@@ -49,19 +47,6 @@ public class DeploymentMetadata implements java.io.Serializable{
 	 */
 	public boolean isClustered(){
 		return clustered;
-	}
-	
-	/**
-	 * Returns the addresses of the servers to which the deployment is targeted.
-	 * <p>
-	 * If no targets were specified AND the deployment is clustered, all Corus
-	 * servers will be targeted.
-	 * 
-	 * @return a {@link Set} of {@link ServerAddress}es, or
-	 * <code>null</code> if no targets were specified.
-	 */
-	public Set<ServerAddress> getTargets(){
-		return targets;
 	}
 	
 	/**

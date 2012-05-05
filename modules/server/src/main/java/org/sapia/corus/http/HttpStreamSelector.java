@@ -16,9 +16,9 @@ import org.sapia.ubik.net.mplex.StreamSelector;
  */
 public class HttpStreamSelector implements StreamSelector {
   
-  public static final String GET  = "get";
-  public static final String POST = "post";  
-  public static final String PUT  = "put";  
+  public static final String GET     = "get";
+  public static final String POST    = "post";  
+  public static final String PUT     = "put";  
   public static final String DELETE  = "delete";  
   
   /** The specific type of HTTP method to select, if provided */

@@ -2,7 +2,6 @@ package org.sapia.corus.client.facade.impl;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.cluster.ClusteredCommand;
-import org.sapia.corus.client.services.cluster.ClusteredInvoker;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 
@@ -24,9 +23,9 @@ public class ClientSideClusterInterceptor implements Interceptor {
     if (isCurrentThreadClustered()) {
       evt.setCommand(
           new ClusteredCommand(
-              evt.getCommand(), 
-              new ClusteredInvoker(), 
-              registration.get().getTargets()));
+              evt.getCommand()
+          )
+      );
     }
   }
 

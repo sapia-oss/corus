@@ -16,7 +16,7 @@ public interface DeploymentClient {
 	/**
 	 * Connects to the Corus server corresponding to the given address.
 	 *  
-	 * @param addr the <code>ServerAddress</code> of the server.
+	 * @param addr the {@link ServerAddress} of the server.
 	 * @throws IOException if no connection could be made.
 	 */
 	public void connect(ServerAddress addr) throws IOException;
@@ -24,7 +24,7 @@ public interface DeploymentClient {
   /**
    * Performs a deployment.
    * 
-   * @param meta a <code>DeploymentMetadata</code> holding deployment
+   * @param meta a {@link DeploymentMetadata} holding deployment
    * information used by this instance.
    * @param is the stream of data to deploy.
    * @throws IOException if a problem occurs during deployment.

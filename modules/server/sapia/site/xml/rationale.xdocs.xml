@@ -3,6 +3,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+ 	<sapia:vsection name="In 2 minutes" href="overview.html"/>    
   </sapia:vmenu>
 
   <sapia:sect1 title="Rationale">
@@ -23,9 +24,9 @@
       <p>
       As many others, we've been frustrated over the years by the bloat of 
       application servers. We've seen the short-lived glory and inevitable 
-      demise of EJB 2.0, we've contemplated the half-promise of the Spring/JEE 
-      combination. Agile development requires all links in the chain to be 
-      agile: from methodology to team management to development tools to 
+      demise of EJB 2.0, we've contemplated the Spring/JEE compromise. Agile
+      development requires all links in the chain to be agile: from methodology to 
+      team management to development tools to 
       deployment infrastructure. 
       </p>
       

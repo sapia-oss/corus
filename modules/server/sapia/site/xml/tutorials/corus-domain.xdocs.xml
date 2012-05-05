@@ -143,7 +143,7 @@ corus -d samples -p 33001</sapia:code>
         We delve into these steps more specifically in the following 
         subsections.  
       </p>
-      <sapia:sect3 title="Defining a Port Range">
+      <sapia:sect3 title="Defining a Port Range" alias="portrange">
         <p>
           Using the CLI, define a port range on each Corus instance. Since
           both instances are running on the same host, we're making sure that

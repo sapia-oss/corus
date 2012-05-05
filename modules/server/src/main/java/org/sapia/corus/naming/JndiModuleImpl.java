@@ -29,10 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class JndiModuleImpl extends ModuleHelper implements JndiModule, Interceptor{
 
   @Autowired
-  EventDispatcher 			events;
+  EventDispatcher events;
   @Autowired
-  ClusterManager 				 cluster;
-  private Context 			 context;
+  ClusterManager 	cluster;
+  private Context context;
   
   // keeping reference to avoid garbage-collection
   @SuppressWarnings("unused")

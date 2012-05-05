@@ -201,29 +201,16 @@ public class CorusConnectionContext {
 
   @SuppressWarnings(value = "unchecked")
   void applyToCluster(
-      final Results results, 
-      final Class moduleInterface,
+      final Results<?> results, 
+      final Class<?> moduleInterface,
       final Method method, 
       final Object[] params,
       final ClusterInfo cluster) {
     
     List<ServerAddress> hostList = new ArrayList<ServerAddress>();
-
-    if (cluster.getTargets() != null) {
-      if (cluster.getTargets().contains(connectAddress)) {
-        hostList.add(connectAddress);
-      }
-      for (ServerHost otherHost: otherHosts) {
-        if (cluster.getTargets().contains(otherHost.getServerAddress())) {
-          hostList.add(otherHost.getServerAddress());
-        }
-      }
-      
-    } else {
-      hostList.add(connectAddress);
-      for (ServerHost otherHost: otherHosts) {
-        hostList.add(otherHost.getServerAddress());
-      }
+    hostList.add(connectAddress);
+    for (ServerHost otherHost: otherHosts) {
+      hostList.add(otherHost.getServerAddress());
     }
     
     Iterator<ServerAddress> itr = hostList.iterator();
@@ -235,6 +222,7 @@ public class CorusConnectionContext {
         Object module;
         Object returnValue;
 
+        @SuppressWarnings("rawtypes")
         @Override
         public void run() {
           Corus corus = (Corus) cachedStubs.get(addr);

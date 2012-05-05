@@ -135,7 +135,7 @@ public class PatternArg implements Arg{
    * match a pattern agains a string and isolates wildcard replacement into a
    * <code>Map</code>.
    */
-  static boolean match(Map map, String data, int[] expr)
+  static boolean match(Map<String, String> map, String data, int[] expr)
       throws NullPointerException {
     if(map == null)
       throw new NullPointerException("No map provided");

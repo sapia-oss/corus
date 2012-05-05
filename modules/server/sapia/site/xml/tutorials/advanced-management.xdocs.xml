@@ -36,7 +36,7 @@
     
     <toc/>    
 
-    <sapia:sect2 title="Process Dependencies">
+    <sapia:sect2 title="Process Dependencies" alias="proc-deps">
       <p>
         In the world of distributed applications, interdependencies are common.
         Let's say application A depends on application B, and that both of these
@@ -211,7 +211,7 @@ Scheduling execution of process: [dist=scalable-sample-jetty, version=1.0, proce
     </sapia:sect2>
     
     
-    <sapia:sect2 title="Execution Configurations">
+    <sapia:sect2 title="Execution Configurations" alias="exec-configs">
       <p>
         Let's say that even using dependencies, you end up with multiple
         completely independent processes that you have to start manually. You
@@ -311,7 +311,7 @@ Scheduling execution of process: [dist=scalable-sample-jetty, version=1.0, proce
       </p>
     </sapia:sect2>
     
-    <sapia:sect2 title="Scripts">
+    <sapia:sect2 title="Scripts" alias="scripts">
       <p>
         You now should have the <sapia:class>ScalableJettyServer</sapia:class>
         distribution running in Corus - since we've not undeployed it. Let's 

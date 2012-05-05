@@ -3,7 +3,6 @@ package org.sapia.corus.client.services.cluster;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,7 +28,7 @@ public class ClusteredCommand extends InvokeCommand {
   public ClusteredCommand() {
   }
 
-  public ClusteredCommand(InvokeCommand cmd, ClusteredInvoker invoker, Set<ServerAddress> targets) {
+  public ClusteredCommand(InvokeCommand cmd) {
   	super(cmd.getOID(), cmd.getMethodName(), cmd.getParams(), cmd.getParameterTypes(), null);
   }
   
@@ -93,17 +92,13 @@ public class ClusteredCommand extends InvokeCommand {
 	}
 	
 	ServerAddress selectNextAddress() {
-	  Set<ServerAddress> siblings = callback.getSiblings();
-	  Set<ServerAddress> remaining = new HashSet<ServerAddress>(siblings);
-	  remaining.removeAll(visited);
+	  visited.add(callback.getCorusAddress());
+	  Set<ServerAddress> siblings  = callback.getSiblings();
     if (callback.isDebug()) {
       callback.debug("Got siblings: " + siblings);
-      callback.debug("Remaining to visit: " + remaining);      
+      callback.debug("Got visited: " + visited);
     }	  
-	  if (remaining.isEmpty()) {
-	    return null;
-	  }
-	  return remaining.iterator().next();
+	  return ClusteringHelper.selectNextTarget(visited, siblings);
 	}
 	
 	@SuppressWarnings("unchecked")

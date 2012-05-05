@@ -3,6 +3,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+ 	<sapia:vsection name="In 2 minutes" href="overview.html"/>    
   </sapia:vmenu>
 
   <sapia:sect1 title="Roadmap">
@@ -29,18 +30,6 @@
         is somewhat already supported, but we'd rather it be more explicit. 
         It is our priority to make possible deployment in and execution of 
         processes in the following languages: Scala, Jython, Clojure, JRuby.
-      </p>
-    </sapia:sect2>
-    <sapia:sect2 title="Cloud Integration">
-      <p>
-        Since Corus instances currently discover each other
-        using IP multicast, Corus cannot at this point be deployed in a cloud 
-        environment: most cloud providers (if not all) do not support 
-        multicast. 
-      </p>
-      <p>
-        It is therefore part of our plans to integrate alternative group 
-        communication mechanisms. 
       </p>
     </sapia:sect2>
     <sapia:sect2 title="Corus-enabled Web Servers">

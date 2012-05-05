@@ -15,11 +15,11 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.ClusterManager;
+import org.sapia.corus.client.services.cluster.ClusteringHelper;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient;
 import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
@@ -61,29 +61,29 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
   public static final String LOCK_TIMEOUT = "file-lock-timeout";
 
   @Autowired
-  private EventDispatcher _events;
+  private EventDispatcher       events;
   
   @Autowired
-  private HttpModule _http;
+  private HttpModule            http;
   
   @Autowired
-  private TaskManager _taskman;
+  private TaskManager           taskman;
     
   @Autowired
-  private ClusterManager _cluster;
+  private ClusterManager        cluster;
   
   @Autowired
-  private DeployerConfiguration _configuration;
+  private DeployerConfiguration configuration;
   
-  private DeploymentProcessor _processor;
-  private DistributionDatabase   _store;
+  private DeploymentProcessor   processor;
+  private DistributionDatabase  store;
 
   
   /**
    * Returns this instance's {@link DeployerConfiguration}
    */
   public DeployerConfiguration getConfiguration() {
-    return _configuration;
+    return configuration;
   }
   
 
@@ -93,9 +93,9 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
   @Override
   public void init() throws Exception {
     
-    _store = new DistributionDatabaseImpl();
+    store = new DistributionDatabaseImpl();
     
-    services().bind(DistributionDatabase.class, _store);
+    services().bind(DistributionDatabase.class, store);
     
     services().getTaskManager().registerThrottle(
         DeployerThrottleKeys.DEPLOY_DISTRIBUTION, 
@@ -113,38 +113,38 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
     String pattern = serverContext().getDomain() + '_' + serverContext().getServerAddress().getPort();
     
     DeployerConfigurationImpl config = new DeployerConfigurationImpl();
-    config.setFileLockTimeout(_configuration.getFileLockTimeout());
+    config.setFileLockTimeout(configuration.getFileLockTimeout());
     
-    if (_configuration.getDeployDir() != null) {
-      config.setDeployDir(_configuration.getDeployDir() + File.separator + pattern);
+    if (configuration.getDeployDir() != null) {
+      config.setDeployDir(configuration.getDeployDir() + File.separator + pattern);
     } else {
       config.setDeployDir(defaultDeployDir + File.separator + pattern);
     }
 
-    if (_configuration.getTempDir() != null) {
-      config.setTempDir(_configuration.getTempDir() + File.separator + pattern);
+    if (configuration.getTempDir() != null) {
+      config.setTempDir(configuration.getTempDir() + File.separator + pattern);
     } else {
       config.setTempDir(defaultTmpDir + File.separator + pattern);
     }
-    _configuration = config;
+    configuration = config;
     
-    File f = new File(new File(_configuration.getDeployDir()).getAbsolutePath());
+    File f = new File(new File(configuration.getDeployDir()).getAbsolutePath());
     f.mkdirs();
     assertFile(f);
     logger().debug(String.format("Deploy dir: %s", f.getAbsolutePath()));
     
-    f = new File(new File(_configuration.getTempDir()).getAbsolutePath());
+    f = new File(new File(configuration.getTempDir()).getAbsolutePath());
     f.mkdirs();
     assertFile(f);
     logger().debug(String.format("Temporary dir: %s", f.getPath()));
     
     logger().info("Initializing: rebuilding distribution objects");
 
-    _taskman.executeAndWait(new BuildDistTask(_configuration.getDeployDir(), getDistributionStore()), null);
+    taskman.executeAndWait(new BuildDistTask(configuration.getDeployDir(), getDistributionStore()), null);
 
     logger().info("Distribution objects succesfully rebuilt");
 
-    _events.addInterceptor(ServerStartedEvent.class, this);
+    events.addInterceptor(ServerStartedEvent.class, this);
   }
 
   /**
@@ -152,15 +152,15 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
    */
   public void onServerStartedEvent(ServerStartedEvent evt) {
     try {
-      _processor = new DeploymentProcessor(this, serverContext(), logger());
-      _processor.init();
-      _processor.start();
+      processor = new DeploymentProcessor(this, serverContext(), logger());
+      processor.init();
+      processor.start();
     } catch (Exception e) {
       logger().error("Could not start deployment processor", e);
     }
     try{
       DeployerExtension ext = new DeployerExtension(this, serverContext);
-      _http.addHttpExtension(ext);
+      http.addHttpExtension(ext);
     }catch (Exception e){
       logger().error("Could not add deployer HTTP extension", e);
     }
@@ -171,8 +171,8 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
    * @see Service#dispose()
    */
   public void dispose() {
-    if (_processor != null) {
-      _processor.dispose();
+    if (processor != null) {
+      processor.dispose();
     }
   }
 
@@ -214,7 +214,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       }
 
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      _taskman.executeAndWait(
+      taskman.executeAndWait(
           new UndeployTask(), 
           TaskParams.createFor(criteria.getName(), criteria.getVersion()), 
           cfg
@@ -229,7 +229,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
    * @return this instance's <code>DistributionStore</code>.
    */
   public DistributionDatabase getDistributionStore() {
-    return _store;
+    return store;
   }
 
   /**
@@ -258,7 +258,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
       Set<ServerAddress> siblings;
 
       try {
-        siblings = _cluster.getHostAddresses();
+        siblings = cluster.getHostAddresses();
       } catch (RuntimeException e) {
         deployment.close();
         logger().error("Could not lookup ClusterManager while performing deployment",
@@ -267,97 +267,37 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
         return;
       }
 
-      Set<ServerAddress>  targets = meta.getTargets();
       Set<ServerAddress>  visited = meta.getVisited();
       ServerAddress       addr;
       ServerAddress       current = serverContext().getServerAddress();
-      ReplicationStrategy strat   = new ReplicationStrategy(visited, targets,
-          siblings);
 			
       // adding this host to visited set
       visited.add(current);
 
-      // if targets have been specified...
-      if (targets != null) {
-        // check that this host is in targets
-        if (targets.contains(current)) {
-          try {
-            // remove this host from targets and add it to visited set						
-            targets.remove(current);
-
-            // if there are remaining targets, chain deployment to the 
-            // next one
-            if ((targets.size() > 0) && (siblings.size() > 0)) {
-              addr = strat.selectNextSibling();
-
-              try {
-                out = new ClusteredDeployOutputStreamImpl(_configuration.getTempDir() +
-                    File.separator + fileName, fileName, this,
-                    new ClientDeployOutputStream(meta,
-                      DeploymentClientFactory.newDeploymentClientFor(addr)));
-              } catch (IOException e) {
-                deployment.close();
-                logger().error("Could not create clustered output stream while performing targeted deployment", e);
-
-                return;
-              }
-            }
-            // no remaining targets; deployment chain stops at this 
-            // host
-            else {
-              out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
-                  fileName, fileName, this);
-            }
-          } catch (FileNotFoundException e) {
-            deployment.close();
-            logger().error("Could not create output stream while performing targeted deployment", e);
-
-            return;
-          }
+      try {
+				// no next host to deploy to; we have reached end of chain  
+				// - deployment stops here        	
+        if ((addr = ClusteringHelper.selectNextTarget(visited, siblings)) == null) {
+          out = new DeployOutputStreamImpl(configuration.getTempDir() + File.separator +
+              fileName, fileName, this);
+        } else {
+					// chaining deployment to next host.        	
+          out = new ClusteredDeployOutputStreamImpl(configuration.getTempDir() + File.separator +
+              fileName, fileName, this,
+              new ClientDeployOutputStream(meta,
+                DeploymentClientFactory.newDeploymentClientFor(addr)));
         }
-        // this host not in targets; so jump to the next host right away
-        else {
-          addr = strat.selectNextSibling();
+      } catch (IOException e) {
+        deployment.close();
+        logger().error("Could not create output stream while performing clustered deployment", e);
 
-          try {
-            AbstractDeploymentClient client = (AbstractDeploymentClient) DeploymentClientFactory.newDeploymentClientFor(addr);
-            out = client.getDeployOutputStream(meta);
-          } catch (IOException e) {
-            deployment.close();
-            logger().error("Could not deploy to host: " + addr + " while performing targeted deployment", e);
-
-            return;
-          }
-        }
-      }
-      // clustered deployment with no targets specified: all hosts
-      // are thus part of the deployment.
-      else {
-        try {
-					// no next host to deploy to; we have reached end of chain  
-  				// - deployment stops here        	
-          if ((addr = strat.selectNextSibling()) == null) {
-            out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
-                fileName, fileName, this);
-          } else {
-						// chaining deployment to next host.        	
-            out = new ClusteredDeployOutputStreamImpl(_configuration.getTempDir() + File.separator +
-                fileName, fileName, this,
-                new ClientDeployOutputStream(meta,
-                  DeploymentClientFactory.newDeploymentClientFor(addr)));
-          }
-        } catch (IOException e) {
-          deployment.close();
-          logger().error("Could not create output stream while performing clustered deployment", e);
-
-          return;
-        }
+        return;
       }
     }
     // deployment is not clustered		
     else {
       try {
-        out = new DeployOutputStreamImpl(_configuration.getTempDir() + File.separator + fileName,
+        out = new DeployOutputStreamImpl(configuration.getTempDir() + File.separator + fileName,
             fileName, this);
       } catch (FileNotFoundException e) {
         deployment.close();
@@ -391,7 +331,7 @@ public class DeployerImpl extends ModuleHelper implements Deployer,
     log.info("Finished uploading " + fileName);
     ProgressQueue progress = new ProgressQueueImpl();
     try {
-      _taskman.executeAndWait(
+      taskman.executeAndWait(
         new DeployTask(),
         fileName,
         TaskConfig.create(new TaskLogProgressQueue(progress))

@@ -1,0 +1,145 @@
+<sapia:page title="Rationale" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Corus in 2 Minutes">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="overview" />
+    </sapia:section>
+    <sapia:sect-desc>
+      <p>
+      	Corus has been designed as an alternative to the monolithic 
+        programming and deployment model imposed by JEE, which has been thus 
+        far the only one available under the JVM for scaling applications.
+      </p>
+      <p>
+      	Witch Corus, you deploy plain-vanilla Java apps (that is, Java classes with
+      	a <sapia:command>main()</sapia:command> method).</p>
+    </sapia:sect-desc>         
+    <sapia:sect2 title="Write a Descriptor">
+      <p>
+      Corus will start the JVMs "containing" your applications based on a 
+      <a href="tutorials/corus-descriptor.html">descriptor</a> that you provide. 
+      The descriptor defines the classes with a <sapia:command>main()</sapia:command> method for
+       which JVMs will be started:
+      </p>
+      
+        <sapia:code><![CDATA[
+<distribution name="myapp" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+  <process  name="myapp-web" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.me.myapp.WebServer"
+          profile="dev" vmType="server">
+      <xoption  name="ms" value="128M" />
+    </java>
+    <java mainClass="org.me.myapp.WebServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="1024M" />
+    </java>
+  </process> 
+</distribution>]]></sapia:code> 
+
+	<p>The deployment unit in Corus is the <tt>distribution</tt>. One distribution can define one to many 
+	processes, each corresponding to an actual application bootstapped by a <tt>main()</tt>. Each process
+	can define or or multiple profile, each consisting of different startup parameters - such as JVM options
+	or properties.</p>
+      
+    </sapia:sect2>
+    <sapia:sect2 title="Package your App">
+      <p>
+       The next thing is to package your application in a <tt>.zip</tt> file. The Corus
+       descriptor is expected under the <tt>META-INF</tt> directory. It must be named
+       <tt>corus.xml</tt>.
+      </p>
+      
+      <sapia:code>META-INF/
+    corus.xml
+lib/
+    &lt;your libraries here&gt; 
+    (this location may be changed - 
+     configurable in the descriptor)</sapia:code>
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Deploy">
+      <p>
+      You interact with Corus through a command-line (the Corus CLI). Using the CLI, you 
+      execute commands against a single Corus instance, or the whole cluster. You use the CLI
+      to deploy your application to the cluster:
+      </p>
+      
+      <sapia:code>deploy myapp-1.0.zip -cluster</sapia:code>
+      
+      <p>The <sapia:command>-cluster</sapia:command> switch replicates commands across the cluster,
+      to all Corus nodes.</p>
+
+    </sapia:sect2>
+    <sapia:sect2 title="Execute">
+      <p>
+      You start your application across a cluster of Corus instances with the following:
+      </p>
+      
+      <sapia:code>exec -d myapp -v 1.0 -n myapp-web -p dev -cluster</sapia:code> 
+      
+      <p>Do it more with sparingly with wildcards:</p>
+      
+      <sapia:code>exec -d * -v * -n * -p dev -cluster</sapia:code>
+      
+      <p>With the <sapia:command>-i</sapia:command> switch, start multiples instances per Corus node: </p>
+      
+      <sapia:code>exec -d * -v * -n * -p dev -i 2 -cluster</sapia:code>      
+      
+      <p>Corus will take it from here, monitoring your JVMs, automatically restarting them if they
+      become unresponsive.</p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Automate">
+    	<p>
+    	You have a new version of your app. You want to undeploy the current version, and deploy a new version. Let's do it efficiently through a script.
+    	Save the following to a file - say, <tt>myapp-2.0.txt</tt>:
+    	</p>
+    	<sapia:code>kill all -w -cluster
+undeploy all -cluster
+deploy myapp-2.0.zip
+exec -d * -v * -n * -p dev -cluster</sapia:code>
+
+		<p>
+		Now execute the script:
+		</p>
+<sapia:code>script myapp2.0.txt</sapia:code>
+    
+    </sapia:sect2>
+   
+    <sapia:sect2 title="And Much More">
+    	<p>
+    		The above is just an insight, you can do much more:
+    	</p> 
+    	<ul>
+    		<li>Start on boot: have your JVMs start at Corus boot time (convenient if the machine on which Corus runs is itself rebooted).</li>
+    		<li>Use <a href="tutorials/exploring-cli.html">Linux-like commands</a> to manage distributed JVMs collectively, as one: 
+    			<sapia:command>restart all -cluster</sapia:command>, <sapia:command>kill all -cluster</sapia:command>, 
+    			<sapia:command>undeploy all -cluster</sapia:command>, etc.</li>
+    		<li>Fully configure your JVMs using the usual options: <sapia:command>-Xms</sapia:command>, etc.</li>
+    		<li>Configure <a href="tutorials/advanced-management.html#proc-deps">process dependencies</a> to ensure that some JVMs are started prior to others.</li>
+    		<li>Automate startup: invoking <sapia:command>exec</sapia:command> for each process that you want to start can become tedious. Rather,
+    			you can use <a href="tutorials/advanced-management.html#exec-configs">execution configurations</a> to automate process startup.</li>
+    		<li>Automate assignment of network ports, through the built-in <a href="tutorials/corus-domain.html#portrange">port management</a> feature.</li>
+    		<li>Store JVM properties in Corus - they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
+    		<li>Receive email notifications when Corus restarts unresponsive processes.</li>
+    		<li>Trigger JVM restart from your application.</li>
+    		<li>etc.</li>
+    	</ul>
+    </sapia:sect2>
+    
+  </sapia:sect1>
+</sapia:page>
+
+

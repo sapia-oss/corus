@@ -41,7 +41,7 @@ public class Cluster extends CorusCliCommand {
 
     distTable.getTableMetaData().getColumnMetaDataAt(COL_HOST).setWidth(14);
     distTable.getTableMetaData().getColumnMetaDataAt(COL_PORT).setWidth(8);
-    distTable.getTableMetaData().getColumnMetaDataAt(COL_ROLE).setWidth(20);
+    distTable.getTableMetaData().getColumnMetaDataAt(COL_ROLE).setWidth(30);
 
     distTable.drawLine('=');
 
@@ -63,7 +63,7 @@ public class Cluster extends CorusCliCommand {
     distTable = new Table(ctx.getConsole().out(), 4, 20);
     distTable.getTableMetaData().getColumnMetaDataAt(COL_HOST).setWidth(14);
     distTable.getTableMetaData().getColumnMetaDataAt(COL_PORT).setWidth(8);
-    distTable.getTableMetaData().getColumnMetaDataAt(COL_ROLE).setWidth(20);
+    distTable.getTableMetaData().getColumnMetaDataAt(COL_ROLE).setWidth(30);
 
     headers = distTable.newRow();
 

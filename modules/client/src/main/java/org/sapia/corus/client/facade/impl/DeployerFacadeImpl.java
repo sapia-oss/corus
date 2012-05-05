@@ -115,7 +115,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       }
       
       
-      DeploymentMetadata meta = new DeploymentMetadata(toDeploy.getName(), toDeploy.length(), cluster.getTargets(), cluster.isClustered());
+      DeploymentMetadata meta = new DeploymentMetadata(toDeploy.getName(), toDeploy.length(), cluster.isClustered());
       DeployOutputStream dos  = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
       
       /*getDeployer().getDeployOutputStream(new File(fileName).getName(),

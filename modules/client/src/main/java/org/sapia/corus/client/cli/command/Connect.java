@@ -10,14 +10,13 @@ public class Connect extends CorusCliCommand{
   public static final String OPT_HOST = "h";
   public static final String OPT_PORT = "p";
   
-  private static final String DEFAULT_HOST = "localhost";
   private static final int 		DEFAULT_PORT = 33000;
   
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,
       InputException {
  
-    String host = DEFAULT_HOST;
+    String host = ((TCPAddress)ctx.getCorus().getContext().getAddress()).getHost();
     int port = DEFAULT_PORT;
     
     if(ctx.getCommandLine().containsOption(OPT_HOST, true)){

@@ -21,6 +21,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+ 	<sapia:vsection name="In 2 minutes" href="overview.html"/>    
   </sapia:vmenu>
 
   <sapia:sect1 title="Gallery">

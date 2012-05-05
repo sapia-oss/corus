@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashSet;
 
 import junit.framework.TestCase;
 
@@ -25,7 +24,7 @@ public class DeploymentTest extends TestCase{
   public void testGetContent() throws Exception{
   	ByteArrayOutputStream bos = new ByteArrayOutputStream();
   	byte[] data = new String("THIS IS DATA").getBytes();
-  	DeploymentMetadata meta = new DeploymentMetadata("test", data.length, new HashSet(), false);
+  	DeploymentMetadata meta = new DeploymentMetadata("test", data.length, false);
     ObjectOutputStream oos = new ObjectOutputStream(bos);
     oos.writeObject(meta);
     bos.write(data);

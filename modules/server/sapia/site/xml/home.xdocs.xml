@@ -14,11 +14,12 @@
 
     <sapia:sect-desc title="Overview">
       <p>
-        Corus allows distributing server-side applications on a large scale 
-        without requiring conformance to a heavyweight programming model. 
+        JVM meets DevOps: Corus allows automated distribution of server-side applications 
+        on a large scale - and without requiring conformance to a heavyweight programming model. 
         Package your app using your lightweight application framework of 
         choice, deploy it, and then let Corus execute and monitor multiple 
-        distributed instances of it.
+        distributed instances of it. See the <a href="overview.html">Corus in 2 Minutes</a>
+        section for a fast intro.
       </p>
     </sapia:sect-desc>
     
