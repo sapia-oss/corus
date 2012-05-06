@@ -3,12 +3,12 @@
   <groupId>org.sapia</groupId>
   <artifactId>corus_sample_grails_app</artifactId>
   <packaging>war</packaging>
-  <version>3.0-RC1</version>
+  <version>3.0.1-SNAPSHOT</version>
   
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_samples_parent</artifactId>
-    <version>3.0-RC1</version>
+    <version>3.0.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 
