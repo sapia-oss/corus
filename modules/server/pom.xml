@@ -195,7 +195,7 @@
             </configuration>
           </execution>
 
-          <!-- building demo jar that's put in server classpath -->
+          <!-- building demo jar -->
           <execution>
             <id>demo-jar</id>
             <phase>package</phase>
@@ -441,7 +441,7 @@
         <configuration>
           <serverId>sapia.googlecode.com</serverId>
           <failsOnError>true</failsOnError>
-          <projectName>Ubik</projectName>
+          <projectName>Corus</projectName>
           <uploads>
             <upload>
 	            <file>${project.build.directory}/sapia_corus_server-${project.version}-bin.zip</file>

@@ -35,7 +35,6 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
   private Context context;
   
   // keeping reference to avoid garbage-collection
-  @SuppressWarnings("unused")
   private ClientListener listener;
   
   /**
@@ -90,6 +89,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
       EventChannel ec = cluster.getEventChannel();
       serverContext().getTransport().exportObject(context);
       listener = new ClientListener(ec, serverContext().getTransport().getServerAddress());
+      listener.registerWithChannel();
     }catch(Exception e){
       logger().error("Could not initialize client listener properly in JNDI module", e);
     }

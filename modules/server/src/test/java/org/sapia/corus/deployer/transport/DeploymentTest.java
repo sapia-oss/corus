@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import junit.framework.TestCase;
 
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
+import org.sapia.ubik.serialization.SerializationStreams;
 
 /**
  * @author Yanick Duchesne
@@ -25,7 +26,7 @@ public class DeploymentTest extends TestCase{
   	ByteArrayOutputStream bos = new ByteArrayOutputStream();
   	byte[] data = new String("THIS IS DATA").getBytes();
   	DeploymentMetadata meta = new DeploymentMetadata("test", data.length, false);
-    ObjectOutputStream oos = new ObjectOutputStream(bos);
+    ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(bos);
     oos.writeObject(meta);
     bos.write(data);
     ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
