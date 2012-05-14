@@ -18,7 +18,7 @@
         on a large scale - and without requiring conformance to a heavyweight programming model. 
         Package your app using your lightweight application framework of 
         choice, deploy it, and then let Corus execute and monitor multiple 
-        distributed instances of it. See the <a href="overview.html">Corus in 2 Minutes</a>
+        distributed instances of it. See the <a href="overview.html"><b>Corus in 2 Minutes</b></a>
         section for a fast intro.
       </p>
     </sapia:sect-desc>
