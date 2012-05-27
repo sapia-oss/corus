@@ -196,7 +196,11 @@ public class CorusCli extends CommandConsole {
       center(cons, "(c)2002-" + year + " sapia-oss.org");
       center(cons, "");
       line(cons);
-      cons.println("");
+      cons.println();
+      
+      cons.println("-> Type man to see the list of available commands.");
+      cons.println("-> Type man <command_name> to see help about a specific command.");
+      cons.println();
     }
 
     static void line(Console cons) {
