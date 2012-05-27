@@ -91,8 +91,6 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     
   }
   
-  
-  
   private ProgressQueue doDeploy(String fileName, ClusterInfo cluster)   
   throws IOException,
     ConcurrentDeploymentException,
@@ -114,14 +112,10 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
         throw new IOException(toDeploy.getAbsolutePath() + " is a directory");
       }
       
-      
       DeploymentMetadata meta = new DeploymentMetadata(toDeploy.getName(), toDeploy.length(), cluster.isClustered());
       DeployOutputStream dos  = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
-      
-      /*getDeployer().getDeployOutputStream(new File(fileName).getName(),
-                                                                   cluster);*/
-      os = new DeployOsAdapter(dos);
-      
+
+      os  = new DeployOsAdapter(dos);
       bis = new BufferedInputStream(new FileInputStream(fileName));
       
       byte[] b    = new byte[BUFSZ];

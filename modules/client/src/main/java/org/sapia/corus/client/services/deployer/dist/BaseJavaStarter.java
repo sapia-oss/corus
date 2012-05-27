@@ -18,6 +18,7 @@ import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.ubik.util.Strings;
 
 
 /**
@@ -35,6 +36,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected String 					 vmType; 
   protected String 					 profile;
   protected String 					 corusHome    = System.getProperty("corus.home");
+  protected List<VmArg>      vmArgs       = new ArrayList<VmArg>();
   protected List<Property>   vmProps      = new ArrayList<Property>();
   protected List<Option>     options      = new ArrayList<Option>();
   protected List<XOption>    xoptions     = new ArrayList<XOption>();
@@ -66,11 +68,20 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   public String getProfile() {
     return profile;
   }
+  
+  /**
+   * Adds the given {@link VmArg} to this instance.
+   * 
+   * @param arg a {@link VmArg}.
+   */
+  public void addArg(VmArg arg) {
+    vmArgs.add(arg);
+  }
 
   /**
    * Adds the given property to this instance.
    *
-   * @param prop a <code>Property</code> instance.
+   * @param prop a {@link Property} instance.
    */
   public void addProperty(Property prop) {
     vmProps.add(prop);
@@ -79,7 +90,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   /**
    * Adds the given VM option to this instance.
    *
-   * @param opt an <code>Option</code> instance.
+   * @param opt an {@link Option} instance.
    */
   public void addOption(Option opt) {
     options.add(opt);
@@ -88,7 +99,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   /**
    * Adds the given "X" option to this instance.
    *
-   * @param opt a <code>XOption</code> instance.
+   * @param opt a {@link XOption} instance.
    */
   public void addXoption(XOption opt) {
     xoptions.add(opt);
@@ -167,33 +178,40 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       }
     }
     
-    for (int i = 0; i < xoptions.size(); i++) {
-      XOption opt = xoptions.get(i);
-      String value = render(propContext, opt.getValue());
-      opt.setValue(value);
-      cmdLineVars.put(opt.getName(), value);
-      cmd.addElement(opt.convert());
-    }
-  
-    for (int i = 0; i < options.size(); i++) {
-      Option opt = options.get(i);
-      String value = render(propContext, opt.getValue());
-      opt.setValue(value);
-      cmdLineVars.put(opt.getName(), value);
-      cmd.addElement(opt.convert());
-    }
-  
-    for (int i = 0; i < vmProps.size(); i++) {
-      Property p = vmProps.get(i);
-      String value = render(propContext, p.getValue());
-      p.setValue(value);
-      cmdLineVars.put(p.getName(), value);
-      cmd.addElement(p.convert());
+    for (VmArg arg : vmArgs) {
+      String value = render(propContext, arg.getValue());
+      arg.setValue(value);
+      cmd.addElement(arg.convert());
     }
     
-    for (int i = 0; i < envProperties.length; i++) {
-      if(propContext.lookup(envProperties[i].getName()) != null){
-        cmd.addElement(envProperties[i].convert());
+    for (XOption opt : xoptions) {
+      String value = render(propContext, opt.getValue());
+      opt.setValue(value);
+      if (!Strings.isBlank(opt.getName())) {
+        cmdLineVars.put(opt.getName(), value);
+      }
+      cmd.addElement(opt.convert());
+    }
+  
+    for (Option opt : options) {
+      String value = render(propContext, opt.getValue());
+      opt.setValue(value);
+      if (!Strings.isBlank(opt.getName())) {
+        cmdLineVars.put(opt.getName(), value);
+      }      
+      cmd.addElement(opt.convert());
+    }
+  
+    for (Property prop : vmProps) {
+      String value = render(propContext, prop.getValue());
+      prop.setValue(value);
+      cmdLineVars.put(prop.getName(), value);
+      cmd.addElement(prop.convert());
+    }
+    
+    for (Property prop : envProperties) {
+      if (propContext.lookup(prop.getName()) != null){
+        cmd.addElement(prop.convert());
       }
     }
     

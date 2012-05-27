@@ -91,7 +91,7 @@
         For the sake of clarity, we are providing such a descriptor below:
       </p>
       <sapia:code><![CDATA[
-<distribution name="jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+<distribution name="jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
   <process  name="server" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 

@@ -9,6 +9,7 @@ import org.apache.log4j.Level;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
+import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.ConsoleOutput;
@@ -39,7 +40,7 @@ public class CorusCli extends CommandConsole {
   private List<CliError> 	 errors;
 
   public CorusCli(CorusConnector corus) throws IOException {
-    super(ConsoleInputFactory.createJLineConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
+    super(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
     super.setCommandListener(new CliConsoleListener());
     this.corus = corus;
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
@@ -55,6 +56,18 @@ public class CorusCli extends CommandConsole {
     prompt.append("@").append(corus.getContext().getDomain()).append("]>> ");
 
     setPrompt(prompt.toString());
+  }
+  
+  private static ConsoleInput selectConsoleInput() {
+    if(System.getProperty("os.name").indexOf("win") >= 0) {
+      return ConsoleInputFactory.createJdk6ConsoleInput();
+    } else {
+      try {
+        return ConsoleInputFactory.createJLineConsoleInput();
+      } catch (IOException e) {
+        return ConsoleInputFactory.createJdk6ConsoleInput();
+      }
+    }
   }
 
   public static void main(String[] args) {

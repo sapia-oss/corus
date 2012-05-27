@@ -107,7 +107,7 @@
         caches. This is materialized in the Corus descriptor:
       </p>
       
-      <sapia:code><![CDATA[<distribution name="scalable-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+      <sapia:code><![CDATA[<distribution name="scalable-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
 
   <process  name="server" 
             maxKillRetry="3" 

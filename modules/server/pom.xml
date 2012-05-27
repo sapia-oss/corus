@@ -1,533 +1,534 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
-  <name>Sapia Corus Server</name>
-  <description>The Corus server module</description>
-  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
-  <groupId>org.sapia</groupId>
-  <artifactId>sapia_corus_server</artifactId>
+	<modelVersion>4.0.0</modelVersion>
+	<name>Sapia Corus Server</name>
+	<description>The Corus server module</description>
+	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
+	<groupId>org.sapia</groupId>
+	<artifactId>sapia_corus_server</artifactId>
 
-  <parent>
-    <groupId>org.sapia</groupId>
-    <artifactId>sapia_corus_parent</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
-    <relativePath>../..</relativePath>
-  </parent>
+	<parent>
+		<groupId>org.sapia</groupId>
+		<artifactId>sapia_corus_parent</artifactId>
+        <version>3.0-RC2-SNAPSHOT</version>
+		<relativePath>../..</relativePath>
+	</parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
-  <licenses>
-    <license>
-      <name>GNU General Public License (GPL), version 3</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-    </license>
-  </licenses>
+	<licenses>
+		<license>
+			<name>GNU General Public License (GPL), version 3</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+		</license>
+	</licenses>
 
-  <packaging>jar</packaging>
+	<packaging>jar</packaging>
 
-  <dependencies>
+	<dependencies>
 
-    <dependency>
-        <groupId>avalon-logkit</groupId>
-        <artifactId>avalon-logkit</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>avalon-logkit</groupId>
+			<artifactId>avalon-logkit</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>commons-logging</groupId>
-        <artifactId>commons-logging</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>dom4j</groupId>
-        <artifactId>dom4j</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>jdbm</groupId>
-        <artifactId>jdbm</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>jdbm</groupId>
+			<artifactId>jdbm</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>jdring</groupId>
-        <artifactId>jdring</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>jdring</groupId>
+			<artifactId>jdring</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>org.apache.ant</groupId>
-        <artifactId>ant</artifactId>
-    </dependency>
-  
-    <dependency>
-      <groupId>org.sapia</groupId>
-      <artifactId>sapia_corus_client</artifactId>
-    </dependency>
-  
-    <dependency>
-      <groupId>org.sapia</groupId>
-      <artifactId>sapia_corus_tomcat</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>org.apache.ant</groupId>
+			<artifactId>ant</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>org.sapia</groupId>
-      <artifactId>sapia_corus_iop</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_corus_client</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>org.sapia</groupId>
-      <artifactId>sapia_corus_iop_api</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_corus_tomcat</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>org.sapia</groupId>
-      <artifactId>sapia_as</artifactId>
-    </dependency>
-    
-    <dependency>
-	    <groupId>org.sapia</groupId>
-	    <artifactId>sapia_magnet</artifactId>
-	    <scope>compile</scope>
-    </dependency>
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_corus_iop</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_corus_iop_api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_as</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_magnet</artifactId>
+			<scope>compile</scope>
+		</dependency>
 
 
-    <dependency>
-        <groupId>org.syslog4j</groupId>
-        <artifactId>syslog4j</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>org.syslog4j</groupId>
+			<artifactId>syslog4j</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>piccolo</groupId>
-        <artifactId>piccolo</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>piccolo</groupId>
+			<artifactId>piccolo</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>tanukisoft</groupId>
-        <artifactId>wrapper</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>tanukisoft</groupId>
+			<artifactId>wrapper</artifactId>
+		</dependency>
 
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring</artifactId>
-    </dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring</artifactId>
+		</dependency>
 
-    <dependency>
-      <groupId>jline</groupId>
-      <artifactId>jline</artifactId>
-    </dependency>
-    
-	<dependency>
-		<groupId>javax.mail</groupId>
-		<artifactId>mail</artifactId>
-	</dependency>
-	
-    <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-all</artifactId>
-        <scope>test</scope>
-    </dependency>
-    
-  </dependencies>
+		<dependency>
+			<groupId>jline</groupId>
+			<artifactId>jline</artifactId>
+		</dependency>
 
-  <build>
-    <finalName>${artifactId}-${version}</finalName>
-    <plugins>
-		  <plugin>
-		    <artifactId>maven-clean-plugin</artifactId>
-		    <configuration>
-		      <filesets>
-		        <fileset>
-		          <directory>${basedir}/lib</directory>
-		          <includes>
-		            <include>**/*</include>
-		          </includes>
-		        </fileset>
-            <fileset>
-              <directory>${basedir}/etc/demoApp/lib</directory>
-              <includes>
-                <include>**/*</include>
-              </includes>
-            </fileset>
-		      </filesets>
-		    </configuration>
-		  </plugin>
-		  
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <executions>
-        
-          <!-- building server jar that's put in server classpath -->
-          <execution>
-            <id>server-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>server</classifier>
-              <outputDirectory>${basedir}/lib/server</outputDirectory>
-              <excludes>
-                <exclude>**/examples/**/*</exclude>
-                <exclude>org/sapia/**/starter/Starter*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+		</dependency>
 
-          <!-- building demo jar -->
-          <execution>
-            <id>demo-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>demo</classifier>
-              <finalName>sapia_corus</finalName>
-              <outputDirectory>${basedir}/etc/demoApp/lib</outputDirectory>
-              <includes>
-                <include>**/examples/**/*</include>
-              </includes>
-            </configuration>
-          </execution>
-          
-          <!-- building starter jar that's put in server classpath -->
-          <execution>
-            <id>starter-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>starter</classifier>
-              <finalName>sapia_corus</finalName>
-              <outputDirectory>${basedir}/lib/server</outputDirectory>
-              <includes>
-                <include>org/sapia/**/starter/Starter*</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-       
-          <!-- copying server dependencies -->
-          <execution>
-            <id>copy-server-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/lib/server</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <excludeArtifactIds>sapia_magnet</excludeArtifactIds>
-            </configuration>
-          </execution>
-          
-          <!-- copying VM bootstrap dependencies -->
-          <execution>
-            <id>copy-vm-bootstrap</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/lib/vm-boot</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_as,sapia_corus_iop_api</includeArtifactIds>
-            </configuration>
-          </execution>
-          
-          <!-- copying 3rd-party dependencies -->
-          <execution>
-            <id>copy-thirdparty</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/lib/thirdparty</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_corus_tomcat</includeArtifactIds>
-            </configuration>
-          </execution>
-          
-          <!-- copying Magnet dependencies -->
-          <execution>
-            <id>copy-magnet-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/lib/magnet</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
-            </configuration>
-          </execution>          
-          
-          <!-- copying Demo dependencies -->
-          <execution>
-            <id>copy-demo-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/etc/demoApp/lib</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
-            </configuration>
-          </execution>          
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>make-server-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-		        <configuration>
-		          <descriptors>
-		            <descriptor>src/main/assembly/server.xml</descriptor>
-		          </descriptors>
-		        </configuration>
-          </execution>
-          <execution>
-            <id>make-server-linux32-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-linux32.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-linux64-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-linux64.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-osx32-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-osx32.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-osx64-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-osx64.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-solarisx86-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-solaris32-x86.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-solarissparc-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-solaris32-sparc.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-            <id>make-server-windows32-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-                <configuration>
-                  <descriptors>
-                    <descriptor>src/main/assembly/server-windows32.xml</descriptor>
-                  </descriptors>
-                </configuration>
-          </execution>
-          <execution>
-	          <id>make-demo-dist</id>
-	          <phase>package</phase>
-	          <goals>
-	            <goal>single</goal>
-	          </goals>
-	          <configuration>
-              <includeBaseDirectory>false</includeBaseDirectory>
-	            <descriptors>
-	              <descriptor>src/main/assembly/demo.xml</descriptor>
-	            </descriptors>
-	          </configuration>
-          </execution>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  <profiles>
-    <profile>
-      <id>google-code-upload</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.googlecode.maven-gcu-plugin</groupId>
-            <artifactId>maven-gcu-plugin</artifactId>
-            <version>1.1</version>
-            <executions>
-              <execution>
-                <id>default-cli</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>upload</goal>
-                </goals>          
-                <configuration>
-                  <serverId>sapia.googlecode.com</serverId>
-                  <failsOnError>true</failsOnError>
-                  <projectName>sapia</projectName>
-                  <uploads>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-bin.zip</file>
-                      <summary>Corus ${project.version} (generic zip)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-linux32.tar.gz</file>
-                      <summary>Corus ${project.version} (linux 32bits)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-linux64.tar.gz</file>
-                      <summary>Corus ${project.version} (linux 64bits)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-osx32.tar.gz</file>
-                      <summary>Corus ${project.version} (OSX 32bits)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-osx64.tar.gz</file>
-                      <summary>Corus ${project.version} (OSX 64bits)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-solaris32-x86.tar.gz</file>
-                      <summary>Corus ${project.version} (Solaris 32bits x86)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-solaris32-sparc.tar.gz</file>
-                      <summary>Corus ${project.version} (Solaris Sparc)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                    <upload>
-                      <file>${project.build.directory}/sapia_corus_server-${project.version}-win32.zip</file>
-                      <summary>Corus ${project.version} (Solaris Windows 32bits)</summary>
-                      <labels>
-                        <label>Featured</label>
-                        <label>Type-Archive</label>
-                      </labels>
-                    </upload>
-                 </uploads>
-                </configuration>
-              </execution>
-            </executions>            
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles> 
+	</dependencies>
+
+	<build>
+		<finalName>${artifactId}-${version}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${basedir}/lib</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+						<fileset>
+							<directory>${basedir}/etc/demoApp/lib</directory>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<executions>
+
+					<!-- building server jar that's put in server classpath -->
+					<execution>
+						<id>server-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>server</classifier>
+							<outputDirectory>${basedir}/lib/server</outputDirectory>
+							<excludes>
+								<exclude>**/examples/**/*</exclude>
+								<exclude>org/sapia/**/starter/Starter*</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+
+					<!-- building demo jar -->
+					<execution>
+						<id>demo-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>demo</classifier>
+							<finalName>sapia_corus</finalName>
+							<outputDirectory>${basedir}/etc/demoApp/lib</outputDirectory>
+							<includes>
+								<include>**/examples/**/*</include>
+							</includes>
+						</configuration>
+					</execution>
+
+					<!-- building starter jar that's put in server classpath -->
+					<execution>
+						<id>starter-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<classifier>starter</classifier>
+							<finalName>sapia_corus</finalName>
+							<outputDirectory>${basedir}/lib/server</outputDirectory>
+							<includes>
+								<include>org/sapia/**/starter/Starter*</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+
+					<!-- copying server dependencies -->
+					<execution>
+						<id>copy-server-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/server</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<excludeArtifactIds>sapia_magnet</excludeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying VM bootstrap dependencies -->
+					<execution>
+						<id>copy-vm-bootstrap</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/vm-boot</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_as,sapia_corus_iop_api,jdom,sapia_utils</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying 3rd-party dependencies -->
+					<execution>
+						<id>copy-thirdparty</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/thirdparty</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_corus_tomcat</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying Magnet dependencies -->
+					<execution>
+						<id>copy-magnet-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/magnet</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying Demo dependencies -->
+					<execution>
+						<id>copy-demo-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/etc/demoApp/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-server-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-linux32-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-linux32.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-linux64-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-linux64.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-osx32-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-osx32.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-osx64-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-osx64.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-solarisx86-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-solaris32-x86.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-solarissparc-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-solaris32-sparc.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-server-windows32-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/server-windows32.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>make-demo-dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<includeBaseDirectory>false</includeBaseDirectory>
+							<descriptors>
+								<descriptor>src/main/assembly/demo.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>google-code-upload</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.googlecode.maven-gcu-plugin</groupId>
+						<artifactId>maven-gcu-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<phase>package</phase>
+								<goals>
+									<goal>upload</goal>
+								</goals>
+								<configuration>
+									<serverId>sapia.googlecode.com</serverId>
+									<failsOnError>true</failsOnError>
+									<projectName>sapia</projectName>
+									<uploads>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-bin.zip</file>
+											<summary>Corus ${project.version} (generic zip)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-linux32.tar.gz</file>
+											<summary>Corus ${project.version} (linux 32bits)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-linux64.tar.gz</file>
+											<summary>Corus ${project.version} (linux 64bits)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-osx32.tar.gz</file>
+											<summary>Corus ${project.version} (OSX 32bits)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-osx64.tar.gz</file>
+											<summary>Corus ${project.version} (OSX 64bits)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-solaris32-x86.tar.gz</file>
+											<summary>Corus ${project.version} (Solaris 32bits x86)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-solaris32-sparc.tar.gz</file>
+											<summary>Corus ${project.version} (Solaris Sparc)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+										<upload>
+											<file>${project.build.directory}/sapia_corus_server-${project.version}-win32.zip</file>
+											<summary>Corus ${project.version} (Solaris Windows 32bits)</summary>
+											<labels>
+												<label>Featured</label>
+												<label>Type-Archive</label>
+											</labels>
+										</upload>
+									</uploads>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

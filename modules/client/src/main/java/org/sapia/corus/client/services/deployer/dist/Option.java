@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import org.sapia.console.CmdElement;
+import org.sapia.ubik.util.Strings;
 
 
 /**
@@ -18,7 +19,11 @@ public class Option extends Property implements java.io.Serializable {
    * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
    */
   public CmdElement convert() {
-    return new org.sapia.console.Option(name, value);
+    if (Strings.isBlank(name)) {
+      return new org.sapia.console.Arg(value);
+    } else {
+      return new org.sapia.console.Option(name, value);
+    }
   }
 
   public String toString() {

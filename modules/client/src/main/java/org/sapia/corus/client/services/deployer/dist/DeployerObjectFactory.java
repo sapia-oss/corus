@@ -24,6 +24,7 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("java", Java.class);
     register("magnet", Magnet.class);
     register("option", Option.class);
+    register("arg", VmArg.class);
     register("property", Property.class);
     register("xoption", XOption.class);
     register("process", ProcessConfig.class);

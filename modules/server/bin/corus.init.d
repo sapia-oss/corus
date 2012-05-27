@@ -20,8 +20,8 @@
 # Description:                  Start Sapia Corus Server
 ### END INIT INFO
 #
-# INSTALLATION PROCEDURE (must be root)
-# -------------------------------------
+# INSTALLATION PROCEDURE (must be root, or have sudo access)
+# ----------------------------------------------------------
 #
 # 1) Rename this file corus in the directory /etc/init.d and make sure it is executable
 #

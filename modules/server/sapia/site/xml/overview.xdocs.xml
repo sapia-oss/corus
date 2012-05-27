@@ -31,7 +31,7 @@
       </p>
       
         <sapia:code><![CDATA[
-<distribution name="myapp" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-2.0.xsd">
+<distribution name="myapp" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
   <process  name="myapp-web" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 

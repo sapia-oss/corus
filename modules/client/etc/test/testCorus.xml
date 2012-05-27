@@ -3,8 +3,10 @@
     <java mainClass="org.sapia.corus.examples.RestartApplication"
           profile="test">
       <vmType>-client</vmType>
-      <xoption  name="ms" value="16M" />
-      <property  name="corus.process.log.level" value="debug" />
+      <arg value="-javaagent:someAgent.jar" />
+      <option name="foo" value="bar" />
+      <xoption name="ms" value="16M" />
+      <property name="corus.process.log.level" value="debug" />
     </java>
   </process>
   
