@@ -1,4 +1,21 @@
 #!/bin/bash
+
+# chkconfig: 2345 25 75
+# description: Sapia Corus is a server that manages Java Virtual Machines.
+#
+### BEGIN INIT INFO
+# Provides:                     corus
+# Required-Start:               $local_fs $network
+# Should-Start:                 
+# Required-Stop:                $local_fs $network
+# Should-Stop:                  
+# Default-Start:                2 3 4 5
+# Default-Stop:                 0 1 6
+# Short-Description:            Sapia Corus Server
+# Description:                  Start Sapia Corus Server
+### END INIT INFO
+
+############################################################
 # 
 # This script should be used if the Java Wrapper fails (that is: it it
 # cannot be used to start Corus on certain *NIX/*NUX platforms).
@@ -31,14 +48,14 @@
 # Set the following variables according to your Corus installation.
 # These variables are used later on in the script.
 
-JAVA_HOME=<PATH_TO_JAVA_HOME>
-CORUS_HOME=<PATH_TO_CORUS_HOME>
+JAVA_HOME=/usr/java/jdk1.7.0_04
+CORUS_HOME=/usr/bin/sapia-corus/current
 CORUS_PORT=33000
 CORUS_USER=corus
-CORUS_GROUP=corus
+CORUS_GROUP=infra
 
 # Log level can be either DEBUG, INFO, WARNING, ERROR.
-CORUS_LOG_LEVEL=WARNING
+CORUS_LOG_LEVEL=DEBUG
 
 CORUS_OPTS="-Xms32M -Xms32M -Djava.net.preferIPv4Stack=true -Duser.dir=$CORUS_HOME -Dcorus.home=$CORUS_HOME"
 
@@ -59,12 +76,13 @@ do
 done
  
 serviceNameLo="corus"                                            # service name with the first letter in lowercase
-serviceName="Corus"                                   	         # service name
+serviceName="Corus"                                              # service name
 serviceUser="$CORUS_USER"                                        # OS user name for the service
 serviceGroup="$CORUS_GROUP"                                      # OS group name for the service
-applDir="$CORUS_HOME"                       		         # home directory of the service application
+applDir="$CORUS_HOME"                                            # home directory of the service application
 serviceUserHome="/home/$serviceUser"                             # home directory of the service user
-serviceLogFile="$CORUS_HOME/logs/$serviceNameLo-$CORUS_PORT-stdout.log"  # log file for StdOut/StdErr
+serviceLogDir="$CORUS_HOME/logs"
+serviceLogFile="$serviceLogDir/$serviceNameLo-$CORUS_PORT-stdout.log"  # log file for StdOut/StdErr
 maxShutdownTime=15                                               # maximum number of seconds to wait for the daemon to terminate normally
 pidFile="$CORUS_HOME/bin/$serviceNameLo.pid"                     # name of PID file (PID = process ID number)
 javaCommand="java"                                               # name of the Java launcher without the path
@@ -75,6 +93,7 @@ javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH or
 
 javaCommandLine="$javaExe $javaArgs"                             # command line to start the Java service application
  
+
 # Makes the file $1 writable by the group $serviceGroup.
 function makeFileWritable {
    local filename="$1"
@@ -108,7 +127,8 @@ function getServicePID {
  
 function startServiceProcess {
    cd $applDir || return 1
-   rm -f $pidFile
+   rm -f $pidFile 
+   mkdir -p $serviceLogDir
    makeFileWritable $pidFile || return 1
    makeFileWritable $serviceLogFile || return 1
    cmd="nohup $javaCommandLine >>$serviceLogFile 2>&1 & echo \$! >$pidFile"

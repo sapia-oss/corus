@@ -59,7 +59,10 @@ public class CorusCli extends CommandConsole {
   }
   
   private static ConsoleInput selectConsoleInput() {
-    if(System.getProperty("os.name").indexOf("win") >= 0) {
+    String osName = System.getProperty("os.name").toLowerCase();
+    
+    // note: a case of the os.name being set to Vista has been reported.
+    if(osName.indexOf("win") >= 0 || osName.indexOf("vista") >= 0) {
       return ConsoleInputFactory.createJdk6ConsoleInput();
     } else {
       try {

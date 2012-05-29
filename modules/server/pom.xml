@@ -515,7 +515,7 @@
 										</upload>
 										<upload>
 											<file>${project.build.directory}/sapia_corus_server-${project.version}-win32.zip</file>
-											<summary>Corus ${project.version} (Solaris Windows 32bits)</summary>
+											<summary>Corus ${project.version} (Windows 32bits)</summary>
 											<labels>
 												<label>Featured</label>
 												<label>Type-Archive</label>
