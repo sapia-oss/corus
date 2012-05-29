@@ -17,8 +17,9 @@
 
 ############################################################
 # 
-# This script should be used if the Java Wrapper fails (that is: it it
-# cannot be used to start Corus on certain *NIX/*NUX platforms).
+# This script should be used if the Java Wrapper fails (that 
+# is: when the Wrapper cannot be used to start Corus on certain 
+# *NIX/*NUX platforms).
 #
 # INSTALLATION PROCEDURE (must be root, or have sudo access)
 # ----------------------------------------------------------
