@@ -49,11 +49,11 @@
 # Set the following variables according to your Corus installation.
 # These variables are used later on in the script.
 
-JAVA_HOME=/usr/java/jdk1.7.0_04
-CORUS_HOME=/usr/bin/sapia-corus/current
+JAVA_HOME=<PATH_TO_JAVA_HOME>
+CORUS_HOME=<PATH_TO_CORUS_HOME>
 CORUS_PORT=33000
 CORUS_USER=corus
-CORUS_GROUP=infra
+CORUS_GROUP=<GROUP_OF_CORUS_USER>
 
 # Log level can be either DEBUG, INFO, WARNING, ERROR.
 CORUS_LOG_LEVEL=DEBUG
@@ -130,6 +130,7 @@ function startServiceProcess {
    cd $applDir || return 1
    rm -f $pidFile 
    mkdir -p $serviceLogDir
+   makeFileWritable $serviceLogDir || return 1   
    makeFileWritable $pidFile || return 1
    makeFileWritable $serviceLogFile || return 1
    cmd="nohup $javaCommandLine >>$serviceLogFile 2>&1 & echo \$! >$pidFile"

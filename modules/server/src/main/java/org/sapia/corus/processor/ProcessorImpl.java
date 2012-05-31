@@ -129,6 +129,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         
       } else {
         proc.touch();
+        proc.save();
       }
     }
     

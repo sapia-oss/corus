@@ -5,6 +5,7 @@ import java.util.List;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.util.CompositeMatcher;
 import org.sapia.corus.util.IteratorFilter;
@@ -74,7 +75,19 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
           return criteria.getProfile().equals(object.getDistributionInfo().getProfile());
         }
       }
+    )
+    .add(
+      new Matcher<Process>() {
+        public boolean matches(Process object) {
+          if (object.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
+            _processes.remove(object.getKey());
+            return false;
+          }
+          return true;
+        }
+      }  
     );
+    
     
     return new IteratorFilter<Process>(matcher).filter(_processes.values()).sort(new ProcessComparator()).get();
   }

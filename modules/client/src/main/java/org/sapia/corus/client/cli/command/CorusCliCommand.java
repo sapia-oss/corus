@@ -2,7 +2,6 @@ package org.sapia.corus.client.cli.command;
 
 import java.util.List;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.sapia.console.AbortException;
 import org.sapia.console.Command;
 import org.sapia.console.Context;
@@ -43,11 +42,6 @@ public abstract class CorusCliCommand implements Command {
     } catch (InputException ie) {
       CliError err = cliCtx.createAndAddErrorFor(this, ie);
       ctx.getConsole().println(err.getSimpleMessage());
-      if (cliCtx.isAbordOnError()) {
-      	ctx.getConsole().out().println(ExceptionUtils.getStackTrace(ie));
-        throw new AbortException();
-      }
-      
     } catch (AbortException ae) {
       if (!(ae instanceof SystemExitException)) {
         CliError err = cliCtx.createAndAddErrorFor(this, ae);
@@ -58,10 +52,6 @@ public abstract class CorusCliCommand implements Command {
     } catch (RuntimeException re) {
       CliError err = cliCtx.createAndAddErrorFor(this, re);
       ctx.getConsole().println(err.getSimpleMessage());
-      if (cliCtx.isAbordOnError()) {
-      	ctx.getConsole().out().println(ExceptionUtils.getStackTrace(re));
-        throw new AbortException();
-      }
     }
   }
   

@@ -7,6 +7,7 @@ import java.util.List;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.ubik.util.Collections2;
 
 /**
  * An instance of this class holds the {@link ProcessDatabase}s that

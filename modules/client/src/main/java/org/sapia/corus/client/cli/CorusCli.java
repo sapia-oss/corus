@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Calendar;
@@ -13,6 +14,7 @@ import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.ConsoleOutput;
+import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.CorusVersion;
@@ -32,15 +34,18 @@ import org.sapia.ubik.util.Localhost;
 public class CorusCli extends CommandConsole {
 	
   public static final int    DEFAULT_PORT = 33000;
-  public static final String HOST_OPT = "h";
-  public static final String PORT_OPT = "p";
+  public static final String HOST_OPT   = "h";
+  public static final String PORT_OPT   = "p";
+  public static final String SCRIPT_OPT = "s";
   public static final int    MAX_ERROR_HISTORY = 20;
   
   protected CorusConnector corus;
   private List<CliError> 	 errors;
+  private boolean          abortOnError;
 
-  public CorusCli(CorusConnector corus) throws IOException {
-    super(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
+  public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
+    super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
+    this.corus = corus;
     super.setCommandListener(new CliConsoleListener());
     this.corus = corus;
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
@@ -56,6 +61,10 @@ public class CorusCli extends CommandConsole {
     prompt.append("@").append(corus.getContext().getDomain()).append("]>> ");
 
     setPrompt(prompt.toString());
+  }
+  
+  public CorusCli(CorusConnector corus) throws IOException {
+    this(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), corus);
   }
   
   private static ConsoleInput selectConsoleInput() {
@@ -74,7 +83,6 @@ public class CorusCli extends CommandConsole {
   }
 
   public static void main(String[] args) {
-  	
   	
   	// disabling log4j output
   	org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
@@ -108,12 +116,46 @@ public class CorusCli extends CommandConsole {
         }
         CorusConnectionContext connection = new CorusConnectionContext(host, port);
         CorusConnector connector = new CorusConnector(connection);
-        CorusCli    cli = new CorusCli(connector);
         
-        try{
+        if (cmd.containsOption(SCRIPT_OPT, false)) {
+         String path = cmd.assertOption(SCRIPT_OPT, true).getValue();
+         try {
+           final CorusCli cli = new CorusCli(new FileConsoleInput(new File(path)), DefaultConsoleOutput.newInstance(), connector);
+           cli.abortOnError = true;
+           cli.setCommandListener(new ConsoleListener() {
+            
+            @Override
+            public void onStart(Console cons) {
+            }
+            
+            @Override
+            public void onCommandNotFound(Console cons, String commandName) {
+            }
+            
+            @Override
+            public void onAbort(Console cons) {
+              if (cli.errors.size() > 0) {
+                for(CliError err : cli.errors) {
+                  err.getCause().printStackTrace();
+                } 
+                System.exit(1);
+              } else {
+                System.exit(0);
+              }
+            }
+          });
           cli.start();
-        }catch(NullPointerException e){
-        	e.printStackTrace();
+         } catch (Exception e) {
+           e.printStackTrace();
+           System.exit(1);
+         } 
+        } else {
+         try{
+           CorusCli cli = new CorusCli(connector);
+            cli.start();
+          }catch(NullPointerException e){
+          	e.printStackTrace();
+          }
         }
       }
     } catch (InputException e) {
@@ -137,7 +179,9 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    return new CliContextImpl(corus, errors);
+    CliContextImpl context = new CliContextImpl(corus, errors);
+    context.setAbortOnError(abortOnError);
+    return context;
   }
 
   private static void help() {
@@ -157,6 +201,8 @@ public class CorusCli extends CommandConsole {
     System.out.println();
     System.out.println("  -ver  indicates that the version of this command-line");
     System.out.println("        is to be displayed in the terminal.");
+    System.out.println();
+    System.out.println("  -s    specifies the path to a script to execute");
     System.out.println();
     System.out.println("  -help displays this help.");
   }

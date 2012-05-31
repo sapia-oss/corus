@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli.command;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -23,17 +24,27 @@ public class Script extends CorusCliCommand{
   
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-     
+    
     if (!ctx.getCommandLine().hasNext()) {
       throw new InputException("Path to script file expected");
     }
+   
+    try {
+      File scriptFile = new File(ctx.getCommandLine().next().getName());
+      processScript(scriptFile, ctx);
+    } catch (FileNotFoundException e) {
+      throw new InputException(e.getMessage());
+    } catch (Exception e) {
+      CliError err = ctx.createAndAddErrorFor(this, "Unable to execute script", e);
+      ctx.getConsole().println(err.getSimpleMessage());      
+    }
+  }
     
-    File f = new File(ctx.getCommandLine().next().getName());
-    
-    if (f.exists()) {
+  public static void processScript(File scriptFile, CliContext ctx) throws IOException, CommandNotFoundException, Exception{
+    if (scriptFile.exists()) {
       BufferedReader reader = null;
       try {
-        reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(scriptFile)));
         String line;
         while((line = reader.readLine()) != null){
           if(!line.startsWith(COMMENT_MARKER)){
@@ -47,15 +58,6 @@ public class Script extends CorusCliCommand{
             }
           }
         }
-        
-      } catch (IOException e) {
-        CliError err = ctx.createAndAddErrorFor(this, "Unable to execute script", e);
-        ctx.getConsole().println(err.getSimpleMessage());
-        
-      } catch (CommandNotFoundException e) {
-        CliError err = ctx.createAndAddErrorFor(this, "Unable to execute script", e);
-        ctx.getConsole().println(err.getSimpleMessage());
-        
       } finally {
         try {
           if(reader != null) reader.close();
@@ -65,7 +67,7 @@ public class Script extends CorusCliCommand{
       }
       
     } else {
-      throw new InputException("File not found: " + f.getAbsolutePath());
+      throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());
     }
   }
   

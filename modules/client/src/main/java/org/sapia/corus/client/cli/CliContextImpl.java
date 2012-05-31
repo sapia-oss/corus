@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.console.AbortException;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -40,6 +41,10 @@ public class CliContextImpl extends Context implements CliContext {
       errors.add(created);
     }
     
+    if (abortOnError) {
+      throw new AbortException();
+    }
+    
     return created;
   }
 
@@ -49,6 +54,10 @@ public class CliContextImpl extends Context implements CliContext {
       created = new CliError(ERROR_COUNTER++, aDescription, aCause, getCommandLine(), aCommand);
       errors.add(created);
     }
+
+    if (abortOnError) {
+      throw new AbortException();
+    }    
     
     return created;
   }
