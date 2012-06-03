@@ -1,6 +1,7 @@
 package org.sapia.corus.alert;
 
 import java.text.DateFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import org.sapia.corus.client.services.alert.AlertManager.AlertLevel;
+import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Assertions;
@@ -50,19 +52,14 @@ public class AlertBuilder {
   private AlertLevel    level;
   private String        summary;
   private String        details;
-  private String        corusHost;
+  private ServerContext serverContext;
   private List<Field>   fields = new ArrayList<Field>();
   
   private AlertBuilder() {
   }
   
-  public AlertBuilder corusHost(ServerAddress addr) {
-    if (addr instanceof TCPAddress) {
-      TCPAddress tcpAddr = (TCPAddress) addr;
-      corusHost = ((TCPAddress) addr).getHost() + ":" + tcpAddr.getPort();
-    } else {
-      corusHost = addr.toString();
-    }
+  public AlertBuilder serverContext(ServerContext ctx) {
+    this.serverContext = ctx;
     return this;
   }
   
@@ -94,14 +91,15 @@ public class AlertBuilder {
   }
   
   public String build() {
-    Assertions.notNull(corusHost, "Corus host not specified");
+    Assertions.notNull(serverContext, "Corus server context not specified");
     Assertions.notNull(level, "Level not specified");
     Assertions.notNull(summary, "Summary not specified");
-    
+
     StringBuilder builder = new StringBuilder();
     builder.append("LEVEL: ").append(level.name()).append("\r\n");
     builder.append("SUMMARY: ").append(summary).append("\r\n");
-    builder.append("HOST: ").append(corusHost).append("\r\n");
+    builder.append("HOST: ").append(serverContext.getServerAddress().getHost() + ":" + serverContext.getServerAddress().getPort()).append("\r\n");
+    builder.append("DOMAIN: ").append(serverContext.getDomain()).append("\r\n");    
     builder.append("TIME: ").append(DATE_FORMAT.format(new Date())).append("\r\n");    
     for (Field f : fields) {
       builder.append(f.getName().toUpperCase()).append(": ").append(f.getValue()).append("\r\n");
@@ -114,10 +112,6 @@ public class AlertBuilder {
   
   public static AlertBuilder newInstance() {
     return new AlertBuilder();
-  }
-  
-  public static void main(String[] args) {
-    System.out.println(DATE_FORMAT.format(new Date()));
   }
 
 }

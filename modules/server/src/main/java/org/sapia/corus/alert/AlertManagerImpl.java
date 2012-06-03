@@ -132,7 +132,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
             sendAlert(
                 subject(AlertLevel.WARNING, "Process restarted"),
                 AlertBuilder.newInstance()
-                  .corusHost(serverContext().getServerAddress())                
+                  .serverContext(serverContext())                
                   .level(AlertLevel.WARNING)
                   .summary("Process restarted")
                   .details("Process " + event.getProcess().getProcessID() + " was restarted by the Corus server")
@@ -150,7 +150,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
             sendAlert(
                 subject(AlertLevel.ERROR, "Process terminated"),            
                 AlertBuilder.newInstance()
-                  .corusHost(serverContext().getServerAddress())
+                  .serverContext(serverContext())
                   .level(AlertLevel.ERROR)
                   .summary("Process terminated")
                   .details("Process " + event.getProcess().getProcessID() + " was terminated by the Corus server")
@@ -173,7 +173,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
         sendAlert(
             subject(AlertLevel.INFO, "Distribution deployed"),
             AlertBuilder.newInstance()
-              .corusHost(serverContext().getServerAddress())            
+              .serverContext(serverContext())            
               .level(AlertLevel.INFO)
               .summary("Distribution deployed")
               .field("Distribution", event.getDistribution().getName())
@@ -190,7 +190,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
         sendAlert(
             subject(AlertLevel.WARNING,"Distribution undeployed"),
             AlertBuilder.newInstance()
-              .corusHost(serverContext().getServerAddress())
+              .serverContext(serverContext())
               .level(AlertLevel.WARNING)
               .summary("Distribution undeployed")
               .field("Distribution", event.getDistribution().getName())
@@ -210,7 +210,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
         } else {
           message.setFrom("corus-no-reply@" + smtpHost);          
         }
-        message.setSubject(subject);
+        message.setSubject("[" + serverContext().getDomain() + "] " + subject);
         message.setText(content);
         message.setTo(recipientList.toArray(new String[recipientList.size()]));
         mailSender.send(message);
