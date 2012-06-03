@@ -189,7 +189,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>1.8-SNAPSHOT</version>
+        <version>1.8</version>
       </dependency>
 
       <dependency>
