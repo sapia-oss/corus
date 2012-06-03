@@ -11,7 +11,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.client.cli.Interpreter;
-import org.sapia.corus.client.cli.InterpreterConsole;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.ubik.rmi.server.Hub;
@@ -25,8 +24,6 @@ import org.sapia.ubik.rmi.server.Hub;
  */
 public class CorusMojo extends AbstractMojo {
 
-  private static final String CRLF = System.getProperty("line.separator");
-  
   /**
    * The host of the Corus server to which to connect.
    * 
