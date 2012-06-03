@@ -114,6 +114,6 @@ public class InterpreterTest {
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
     assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());    
     assertTrue("Expected clustered", inputClusterInfo.get().isClustered());    
-  }  
+  }
 
 }

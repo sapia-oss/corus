@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Command;
@@ -68,17 +70,22 @@ public class Interpreter extends Console {
    * @throws Throwable if an undefined error occurs.
    */  
   public void interpret(Reader reader, Map<String, String>  vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
+
+    Level old = Logger.getRootLogger().getLevel();
+    Logger.getRootLogger().setLevel(Level.OFF);
+    
     try {
       BufferedReader bufReader = new BufferedReader(reader);
       StrSubstitutor subs = new StrSubstitutor(new CompositeLookup().add(StrLookup.mapLookup(vars)).add(StrLookup.systemPropertiesLookup()));
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
-        commandLine = subs.replace(commandLine);
+        commandLine = subs.replace(commandLine).trim();
         if (!commandLine.isEmpty() && !commandLine.startsWith(COMMENT_MARKER)) {
-          interpret(subs.replace(commandLine));
+          interpret(commandLine);
         }
       }
     } finally {
+      Logger.getRootLogger().setLevel(old);
       try {
         reader.close();
       } catch (IOException e) {
@@ -98,24 +105,33 @@ public class Interpreter extends Console {
    * @throws Throwable if an undefined error occurs.
    */
   public void interpret(String commandLine) throws CommandNotFoundException, InputException, AbortException, Throwable  {
-    CmdLine cmdLine = CmdLine.parse(commandLine);
-    if (cmdLine.isNextArg()) {
-      Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
-      CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10));
-      ctx.setUp(this, cmdLine);
-      ctx.setAbortOnError(true);
-      try {
-        cmd.execute(ctx);
-      } catch (AbortException e) {
-        if (!ctx.getErrors().isEmpty()) {
-          throw ctx.getErrors().get(0).getCause();
-        } else {
-          throw e;
+
+    Level old = Logger.getRootLogger().getLevel();
+    Logger.getRootLogger().setLevel(Level.OFF);
+    
+    try {
+      CmdLine cmdLine = CmdLine.parse(commandLine);
+      if (cmdLine.isNextArg()) {
+        Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
+        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10));
+        ctx.setUp(this, cmdLine);
+        ctx.setAbortOnError(true);
+        try {
+          cmd.execute(ctx);
+        } catch (AbortException e) {
+          if (!ctx.getErrors().isEmpty()) {
+            throw ctx.getErrors().get(0).getCause();
+          } else {
+            throw e;
+          }
         }
+      } else {
+        throw new IllegalArgumentException("Command expected (got empty command-line)");
       }
-    } else {
-      throw new IllegalArgumentException("Command expected (got empty command-line)");
+    } finally {
+      Logger.getRootLogger().setLevel(old);
     }
+      
   }
   
   // ==========================================================================

@@ -10,6 +10,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.sapia.console.ConsoleOutput;
+import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.cli.InterpreterConsole;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -51,8 +52,10 @@ public class CorusMojo extends AbstractMojo {
   private File scriptFile;
   
   /**
-   * @param default-value="${project}"
-   * @required
+   * The maven project.
+   * 
+   * @parameter expression="${project}"
+   * @readonly
    */
   private MavenProject project;
   
@@ -64,8 +67,20 @@ public class CorusMojo extends AbstractMojo {
   private Properties scriptProperties;
   
   public void execute() throws MojoExecutionException {
-    if (!scriptFile.exists()) {
+    if (host == null) {
+      throw new MojoExecutionException("host not specified");
+    }
+    
+    if (port == 0) {
+      throw new MojoExecutionException("port not specified");
+    }
+    
+    if (scriptFile == null) {
       throw new MojoExecutionException("scriptFile not specified");
+    }
+    
+    if (!scriptFile.exists()) {
+      throw new MojoExecutionException("scriptFile does not exist: " + scriptFile.getAbsolutePath());
     }
 
     CorusConnectionContext context = null;
@@ -85,6 +100,7 @@ public class CorusMojo extends AbstractMojo {
       vars.put("project.name", project.getName());
       vars.put("project.version", project.getVersion());      
       vars.put("project.baseDir", project.getBasedir().getAbsolutePath());
+      vars.put("project.basedir", project.getBasedir().getAbsolutePath());
       vars.put("project.build.directory", project.getBuild().getDirectory());
       vars.put("project.build.outputDirectory", project.getBuild().getOutputDirectory());
       vars.put("project.build.sourceDirectory", project.getBuild().getSourceDirectory());
@@ -93,12 +109,12 @@ public class CorusMojo extends AbstractMojo {
       
       if (scriptProperties != null) {
         for (String key : scriptProperties.stringPropertyNames()) {
-          vars.put(key, vars.get(key));
+          vars.put(key, scriptProperties.getProperty(key));
         }
       }
       
-      InterpreterConsole console = new InterpreterConsole(new LogConsoleOutput(), connection);
-      console.interpret(new FileReader(scriptFile), vars);
+      Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection);
+      interpreter.interpret(new FileReader(scriptFile), vars);
       
     } catch (Throwable e) {
       throw new MojoExecutionException("Could not execute script " + scriptFile.getName(), e);
@@ -129,13 +145,13 @@ public class CorusMojo extends AbstractMojo {
     
     @Override
     public void println() {
-      buffer.append(CRLF);
+      buffer.append("");
       flushBuffer();
     }
     
     @Override
     public void println(String s) {
-      buffer.append(s).append(CRLF);
+      buffer.append(s);
       flushBuffer();
     }
     

@@ -61,6 +61,36 @@
 		</dependency>
   </dependencies>
   
+  <profiles>
+    <profile>
+      <id>deploy-to-corus</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sapia</groupId>
+            <artifactId>sapia_corus_mvn_plugin</artifactId>
+            <version>${project.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <scriptProperties>
+                    <distType>basic</distType>
+                  </scriptProperties>
+                  <host>127.0.1.1</host>
+                  <port>33000</port>
+                  <scriptFile>${project.basedir}/etc/mvnScript.txt</scriptFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
   <build>
     <plugins>
       <plugin>
@@ -102,7 +132,7 @@
         </executions>
       </plugin>
       
-      <plugin>
+      <!--plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
@@ -142,7 +172,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
+      </plugin-->
       
     </plugins>
   </build>
