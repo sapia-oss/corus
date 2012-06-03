@@ -10,6 +10,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.sapia.console.ConsoleOutput;
+import org.sapia.corus.client.cli.CorusCli;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -23,7 +24,7 @@ import org.sapia.ubik.rmi.server.Hub;
  * @phase package
  */
 public class CorusMojo extends AbstractMojo {
-
+  
   /**
    * The host of the Corus server to which to connect.
    * 
@@ -36,9 +37,8 @@ public class CorusMojo extends AbstractMojo {
    * The port of the Corus server to which to connect.
    * 
    * @parameter expression="${port}"
-   * @required
    */
-  private int port;
+  private int port = CorusCli.DEFAULT_PORT ;
   
   /**
    * Location of the script file to execute.
@@ -66,10 +66,6 @@ public class CorusMojo extends AbstractMojo {
   public void execute() throws MojoExecutionException {
     if (host == null) {
       throw new MojoExecutionException("host not specified");
-    }
-    
-    if (port == 0) {
-      throw new MojoExecutionException("port not specified");
     }
     
     if (scriptFile == null) {

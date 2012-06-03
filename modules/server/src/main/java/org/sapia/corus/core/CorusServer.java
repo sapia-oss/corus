@@ -2,6 +2,7 @@ package org.sapia.corus.core;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
@@ -206,10 +207,22 @@ public class CorusServer {
       h.setDefaultPriority(p);
       
       if (cmd.containsOption(DEBUG_FILE, false)) {
-        Formatter     formatter = FormatterFactory.createDefaultFormatter();
-        RotateStrategyByTime strategy = new RotateStrategyByTime(1000 * 60 * 60 * 24);
-        File                 logsDir  = new File(corusHome + File.separator + "logs");
+
+        File logsDir;
+        
+        if (cmd.containsOption(DEBUG_FILE, true)) {
+          logsDir = new File(cmd.assertOption(DEBUG_FILE, true).getValue());
+        } else {
+          logsDir = new File(corusHome + File.separator + "logs");
+        }
         logsDir.mkdirs();
+        
+        if (!logsDir.exists()) {
+          throw new IOException("Log directory does not exist and could not be created: " + logsDir.getAbsolutePath());
+        }
+        
+        Formatter            formatter = FormatterFactory.createDefaultFormatter();
+        RotateStrategyByTime strategy  = new RotateStrategyByTime(1000 * 60 * 60 * 24);
         
         File logFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_" + port + ".log");
         
@@ -309,7 +322,7 @@ public class CorusServer {
     System.out.println();
     System.out.println("Corus server command-line syntax:");
     System.out.println();
-    System.out.println("corus [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f] [-http]");
+    System.out.println("corus [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f [path_to_log_dir]]");
     System.out.println();
     System.out.println("where:");
     System.out.println("  -c      specifies the corus configuration file to use (in the CORUS_HOME/config directory).");
@@ -323,13 +336,16 @@ public class CorusServer {
     System.out.println();
     System.out.println("  -v      specifies the logging verbosity (defaults to DEBUG).");
     System.out.println();
-    System.out.println("  -f      specifies if logging should be done to a file");
-    System.out.println("          (if specified, the file will be under:");
-    System.out.println("           CORUS_HOME/logs/domain_port.log");
+    System.out.println("  -f      specifies if logging should be done to a file.");
+    System.out.println("          If no option value is specified, the file will be:");
+    System.out.println("          CORUS_HOME/logs/<domain>_<port>.log. If a value is specified");
+    System.out.println("          it will be interpreted as the directory in which logs should");
+    System.out.println("          be generated, that is, the Corus log will be:");
+    System.out.println("          ${f_option_value}/<domain>_<port>.log.");
     System.out.println();
-    System.out.println("  -http   specifies the usage of the http transport provider.");
-    System.out.println("          If not present, the default tcp transport provider is used.");
-    System.out.println();
+//    System.out.println("  -http   specifies the usage of the http transport provider.");
+//    System.out.println("          If not present, the default tcp transport provider is used.");
+//    System.out.println();
   }
 
 }
