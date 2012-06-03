@@ -46,6 +46,14 @@ public class PatternArg implements Arg{
     return match(new HashMap(5), str, _pattern);
   }
   
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof PatternArg) {
+      return _token.equals(((PatternArg) obj)._token);
+    }
+    return false;
+  }
+  
   public String toString() {
     return _token;
   }

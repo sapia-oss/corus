@@ -8,7 +8,7 @@ import java.io.Serializable;
  * @author yduchesne
  *
  */
-public interface Arg extends Serializable{
+public interface Arg extends Serializable {
 
   /**
    * @param str a {@link String}

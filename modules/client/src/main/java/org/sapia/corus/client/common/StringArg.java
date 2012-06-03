@@ -23,6 +23,14 @@ public class StringArg implements Arg {
     else return token.equals(str);
   }
   
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof StringArg) {
+      return token.equals(((StringArg) obj).token);
+    }
+    return false;
+  }
+  
   public String toString(){
     return token;
   }

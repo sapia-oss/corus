@@ -1,12 +1,17 @@
 package org.sapia.corus.client.cli;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.rmi.RemoteException;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
+import org.sapia.console.CmdElement;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -17,6 +22,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
@@ -118,37 +124,33 @@ public class CorusCli extends CommandConsole {
         CorusConnector connector = new CorusConnector(connection);
         
         if (cmd.containsOption(SCRIPT_OPT, false)) {
-         String path = cmd.assertOption(SCRIPT_OPT, true).getValue();
-         try {
-           final CorusCli cli = new CorusCli(new FileConsoleInput(new File(path)), DefaultConsoleOutput.newInstance(), connector);
-           cli.abortOnError = true;
-           cli.setCommandListener(new ConsoleListener() {
-            
-            @Override
-            public void onStart(Console cons) {
-            }
-            
-            @Override
-            public void onCommandNotFound(Console cons, String commandName) {
-            }
-            
-            @Override
-            public void onAbort(Console cons) {
-              if (cli.errors.size() > 0) {
-                for(CliError err : cli.errors) {
-                  err.getCause().printStackTrace();
-                } 
-                System.exit(1);
-              } else {
-                System.exit(0);
+          String path = cmd.assertOption(SCRIPT_OPT, true).getValue();
+         
+          Reader input = null;
+          try {    
+            input = new FileReader(new File(path));
+          } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+          }
+          Map<String, String> vars = new HashMap<String, String>();
+          for (int i = 0; i < cmd.size(); i++) {
+            CmdElement elem = cmd.get(i);
+            if (elem instanceof Option) {
+              Option opt = (Option) elem;
+              if (opt.getValue() != null) {
+                vars.put(elem.getName(), ((Option) elem).getValue());
               }
             }
-          });
-          cli.start();
-         } catch (Exception e) {
-           e.printStackTrace();
-           System.exit(1);
-         } 
+          }
+          try {
+            InterpreterConsole console = new InterpreterConsole(DefaultConsoleOutput.newInstance(), connector);
+            console.interpret(input, vars);
+            System.exit(0);
+          } catch (Throwable err) {
+            err.printStackTrace();
+            System.exit(1);
+          }
         } else {
          try{
            CorusCli cli = new CorusCli(connector);

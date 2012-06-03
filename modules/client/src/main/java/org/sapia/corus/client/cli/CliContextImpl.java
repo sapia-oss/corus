@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.CmdLine;
+import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -77,7 +79,7 @@ public class CliContextImpl extends Context implements CliContext {
     
     return size;
   }
-
+  
   public boolean isAbordOnError() {
     return abortOnError;
   }
@@ -85,5 +87,10 @@ public class CliContextImpl extends Context implements CliContext {
   public void setAbortOnError(boolean abortOnError) {
     this.abortOnError = abortOnError;
   }
-  
+
+  @Override
+  protected void setUp(Console cons, CmdLine cmdLine) {
+    super.setUp(cons, cmdLine);
+  }
+
 }

@@ -42,6 +42,7 @@
 
   <modules>
     <module>tomcat</module>
+    <module>maven</module>
   </modules>
 
 </project>
