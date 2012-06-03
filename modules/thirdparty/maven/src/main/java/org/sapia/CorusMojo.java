@@ -107,11 +107,17 @@ public class CorusMojo extends AbstractMojo {
       vars.put("project.build.scriptSourceDirectory", project.getBuild().getScriptSourceDirectory());
       vars.put("project.build.finalName", project.getBuild().getFinalName());
       
+      for (String key : project.getProperties().stringPropertyNames()) {
+        vars.put(key, project.getProperties().getProperty(key));
+      }
+      
       if (scriptProperties != null) {
         for (String key : scriptProperties.stringPropertyNames()) {
           vars.put(key, scriptProperties.getProperty(key));
         }
       }
+      
+
       
       Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection);
       interpreter.interpret(new FileReader(scriptFile), vars);
