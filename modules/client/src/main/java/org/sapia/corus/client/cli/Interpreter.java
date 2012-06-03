@@ -27,7 +27,7 @@ import org.sapia.corus.client.facade.CorusConnector;
  * @author yduchesne
  *
  */
-public class InterpreterConsole extends Console {
+public class Interpreter extends Console {
   
   private static final String COMMENT_MARKER = "#";
   
@@ -39,7 +39,7 @@ public class InterpreterConsole extends Console {
    * 
    * @param corus the {@link CorusConnector} to use.
    */
-  public InterpreterConsole(CorusConnector corus) {
+  public Interpreter(CorusConnector corus) {
     this(DefaultConsoleOutput.newInstance(), corus);
   }
   
@@ -47,7 +47,7 @@ public class InterpreterConsole extends Console {
    * @param output the {@link ConsoleOutput} to which command output will be sent.
    * @param corus the {@link CorusConnector} to use.
    */
-  public InterpreterConsole(ConsoleOutput output, CorusConnector corus) {
+  public Interpreter(ConsoleOutput output, CorusConnector corus) {
     super(new InterpreterConsoleInput(), output);
     this.corus = corus;
   }

@@ -144,7 +144,7 @@ public class CorusCli extends CommandConsole {
             }
           }
           try {
-            InterpreterConsole console = new InterpreterConsole(DefaultConsoleOutput.newInstance(), connector);
+            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             console.interpret(input, vars);
             System.exit(0);
           } catch (Throwable err) {

@@ -11,7 +11,7 @@ import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
-import org.sapia.corus.client.cli.InterpreterConsole;
+import org.sapia.corus.client.cli.Interpreter;
 
 public class Script extends CorusCliCommand{
 
@@ -35,7 +35,7 @@ public class Script extends CorusCliCommand{
     
   public static void processScript(File scriptFile, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
-      InterpreterConsole interpreter = new InterpreterConsole(ctx.getCorus());
+      Interpreter interpreter = new Interpreter(ctx.getCorus());
       interpreter.interpret(new FileReader(scriptFile), new HashMap<String, String>());
     } else {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());

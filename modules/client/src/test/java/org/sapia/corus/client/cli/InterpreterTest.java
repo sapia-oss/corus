@@ -26,15 +26,15 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
-public class InterpreterConsoleTest {
+public class InterpreterTest {
   
   private CorusConnector     connector;
-  private InterpreterConsole console;
+  private Interpreter console;
   
   @Before
   public void setUp() {
     this.connector = mock(CorusConnector.class);
-    this.console   = new InterpreterConsole(DefaultConsoleOutput.newInstance(), connector);
+    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
   }
 
   @Test
