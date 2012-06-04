@@ -1,7 +1,6 @@
 package org.sapia.corus.alert;
 
 import java.text.DateFormat;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,8 +9,6 @@ import java.util.TimeZone;
 
 import org.sapia.corus.client.services.alert.AlertManager.AlertLevel;
 import org.sapia.corus.core.ServerContext;
-import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Assertions;
 
 /**
