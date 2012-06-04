@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.sapia</groupId>
 	<artifactId>corus_sample_grails_app</artifactId>
@@ -7,7 +8,7 @@
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_samples_parent</artifactId>
-		<version>3.0-RC6</version>
+		<version>3.0-RC6-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
