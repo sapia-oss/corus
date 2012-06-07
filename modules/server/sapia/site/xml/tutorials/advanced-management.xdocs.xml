@@ -359,6 +359,18 @@ exec -e jetty-server
         what this means: being able to execute multiple commands in one shot
         across a whole domain.
       </sapia:note>
+      
+      <p>
+        In addition, the CLI supports executing a script right away, without 
+        entering prompt mode, using the <sapia:command>-s</sapia:command> switch:
+      </p>
+      
+      <sapia:code>
+corucsli -s etc/script.txt      
+      </sapia:code>
+      
+      <p>In this case the CLI executes the script and then exits immediately.</p>
+      
     </sapia:sect2>
     
     <sapia:sect2 title="Maven Plugin" alias="mvnplugin">
@@ -426,6 +438,46 @@ deploy ${project.build.directory}/*-${project.version}.zip]]></sapia:code>
         
       </p>
     
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Stored Properties" alias="storedproperties">
+      <p>
+        Corus allows storing properties, which are passed to processes through <sapia:command>-D</sapia:command> 
+        options (thus, as JVM or system properties).
+      </p>
+      
+      <p>
+        To store process properties in Corus, you use the <sapia:command>conf</sapia:command> command. Here's an example:
+      </p>
+      
+      <sapia:code>conf -p myapp.xms=32M</sapia:code>
+   
+      <p>You can pass multiple properties as such:</p>
+    
+      <sapia:code>conf -p myapp.xms=32M;myapp.env.type=dev</sapia:code>
+      
+      <p>If you have many properties, it becomes cumbersome to specify them all at the command-line. As a convenience, the command
+      allows specifying the path to a Java properties file, whose properties will be loaded and sent to Corus: </p>
+      
+      <sapia:code>conf -p etc/conf/myprops.properties</sapia:code>
+      
+      <p>The command will check the value of the <sapia:command>-p</sapia:command> option and interpret it as specifying a 
+      properties file if it detects a <sapia:command>.properties</sapia:command> extension.</p>
+      
+      <p>You can also list properties and delete them (wildcard matching is supported for deletion):</p>
+      
+      <sapia:code>conf ls
+conf del -p myapp.*</sapia:code>
+      
+      <p>Of course, the command also supports the <sapia:command>-cluster</sapia:command> option, allowing you
+      to manage the storage of properties across a whole cluster.</p>
+      
+      <sapia:note>It is not recommended to store all your properties in Corus: the feature has not been developed with
+      that practice in mind. Rather, you should store in Corus the properties that are environment-specific and are used
+      in the context of your application's startup, for determining certain states. For example, you could store a property
+      identifying the environment itself (dev, QA, UAT, prod, etc.) and load your application configuration based on that
+      single environment-determining property.</sapia:note>
+      
     </sapia:sect2>
     
     <sapia:sect2 title="HTTP Extensions" alias="httpExtensions">

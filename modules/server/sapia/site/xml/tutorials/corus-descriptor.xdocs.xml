@@ -76,8 +76,7 @@
         This becomes obvious when looking at the Corus descriptor:
       </p>
       
-      <sapia:code><![CDATA[
-<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
   <process  name="server" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 
@@ -178,6 +177,37 @@
       </sapia:note>
       
      </sapia:sect2>
-    
+     
+     <sapia:sect2 title="Variable Substitution" alias="variables">
+     
+       <p>The descriptor supports the substition of configuration variables expressed in the following format: <sapia:command>${variable_name}</sapia:command></p>
+       
+       <p>The values for those variables are gathered from:</p>
+       <ul>
+          <li>JVM (or system) properties (such as <tt>user.home</tt>, <tt>user.name</tt>...)</li>
+          <li><a href="advanced-management.html#storedproperties">Process properties</a></li>
+       </ul>
+       
+      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true">
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="dev" vmType="server">
+      <arg value="-javaagent:${user.dir}/aop/spring-instrument.jar" />
+      <xoption  name="ms" value="${dev.xms}" />
+      <property name="server.logs.dir" value="${user.dir}/logs" />    
+    </java>
+    <java mainClass="org.sapia.corus.sample.jetty.BasicJettyServer"
+          profile="prod" vmType="server">
+      <xoption  name="ms" value="${prod.xms} />
+     <property name="server.logs.dir" value="${logs.dir}" />
+    </java>
+  </process> 
+</distribution>]]>
+      </sapia:code>     
+     </sapia:sect2>
+   
   </sapia:sect1>
 </sapia:page>

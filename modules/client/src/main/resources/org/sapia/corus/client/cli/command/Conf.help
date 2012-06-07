@@ -6,21 +6,21 @@
     <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete):</p>
     <p/> 
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
-    <p>conf add [-s svr | proc] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
+    <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
     <p/>
     <p>OR</p>    
     <p/>
-    <p>conf add [-s svr | proc] -p file.properties [-clear] [-cluster]</p>
+    <p>conf add [-s s | p] -p file.properties [-clear] [-cluster]</p>
     <p/>    
     <p>OR</p>    
     <p/>    
     <p>conf ls -t [-cluster]</p>
-    <p>conf ls [-p] [-s svr | proc] [-cluster]</p>
+    <p>conf ls [-p] [-s s | p] [-cluster]</p>
     <p/>
     <p>OR</p>    
     <p/>
     <p>conf del -t tag_name</p>
-    <p>conf del -s svr | proc -p property_name</p>
+    <p>conf del [-s s | p] -p property_name</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -30,28 +30,28 @@
     <p/>    
     <p>- clear: indicates that existing properties must be cleared (taken into account when -p corresponds to a properties file).</p>    
     <p/>
-    <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be svr (for server) and proc (for process) - defaults to proc.</p>
+    <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be s (for server) and p (for process) - defaults to p.</p>
     <p/>
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Examples">
-    <p>conf add -s svr -p corus.process.timeout=25,corus.process.kill-interval=30</p>
+    <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
     <p/>
-    <p>conf add -s svr -p myServerProperties.properties</p>
+    <p>conf add -s s -p myServerProperties.properties</p>
     <p/>
     <p>conf add -p myProcessProperties.properties</p>
     <p/>            
     <p>conf ls -t</p>
     <p/>     
-    <p>conf ls -p -s svr</p>
+    <p>conf ls -p -s s</p>
     <p/>
     <p>conf ls -p</p>
     <p/>      
     <p>conf ls</p>
     <p/>    
-    <p>conf del -s svr -p corus.process.timeout</p>
+    <p>conf del -s s -p corus.process.timeout</p>
     <p/> 
-    <p>conf del -s svr -p corus.process.*</p>
+    <p>conf del -s s -p corus.process.*</p>
     <p/> 
     <p>conf add -t singletons</p>
     <p/> 

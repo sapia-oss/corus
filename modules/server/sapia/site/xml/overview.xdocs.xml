@@ -47,11 +47,11 @@
   </process> 
 </distribution>]]></sapia:code> 
 
-	<p>The deployment unit in Corus is the <tt>distribution</tt>. One distribution can define one to many 
-	processes, each corresponding to an actual application bootstapped by a <tt>main()</tt>. Each process
-	can define or or multiple profile, each consisting of different startup parameters - such as JVM options
-	or properties.</p>
-      
+			<p>The deployment unit in Corus is the <tt>distribution</tt>. One distribution can define one to many 
+			processes, each corresponding to an actual application bootstapped by a <tt>main()</tt>. Each process
+			can define or or multiple profile, each consisting of different startup parameters - such as JVM options
+			or properties. The descriptor supports <a href="tutorials/corus-descriptor.html#variables">variable substitution</a>.</p>
+	    
     </sapia:sect2>
     <sapia:sect2 title="Package your App">
       <p>
@@ -112,9 +112,36 @@ deploy myapp-2.0.zip
 exec -d * -v * -n * -p dev -cluster</sapia:code>
 
 		<p>
-		Now execute the script:
+		Now execute the script with the <sapia:command>script</sapia:command> command from within the CLI:
 		</p>
-<sapia:code>script myapp2.0.txt</sapia:code>
+<sapia:code>script etc/scripts/myapp-2.0.txt</sapia:code>
+
+    <p>
+    You can also launch the script directly with CLI, without entering prompt mode:
+    </p>
+    
+<sapia:code>coruscli -s etc/scripts/myapp-2.0.txt</sapia:code>
+    
+    <p>You can also use the <a href="tutorials/advanced-management.html#mvnplugin">Maven plugin</a>:</p>
+      
+      <sapia:code><![CDATA[<plugin>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_mvn_plugin</artifactId>
+  <version>]]><sapia:param value="project.version" /><![CDATA[</version>
+  <executions>
+    <execution>
+      <id>deploy-to-dev</id>
+      <goals>
+        <goal>run</goal>
+      </goals>
+      <configuration>
+        <host>172.31.1.2</host>
+        <port>33000</port>
+        <scriptFile>${project.basedir}/etc/scripts/myapp-2.0.txt</scriptFile>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>]]></sapia:code>    
     
     </sapia:sect2>
    
@@ -132,7 +159,8 @@ exec -d * -v * -n * -p dev -cluster</sapia:code>
     		<li>Automate startup: invoking <sapia:command>exec</sapia:command> for each process that you want to start can become tedious. Rather,
     			you can use <a href="tutorials/advanced-management.html#exec-configs">execution configurations</a> to automate process startup.</li>
     		<li>Automate assignment of network ports, through the built-in <a href="tutorials/corus-domain.html#portrange">port management</a> feature.</li>
-    		<li>Store JVM properties in Corus - they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
+    		<li><a href="tutorials/advanced-management.html#storedproperties">Store JVM properties</a> in Corus - 
+    		they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
     		<li>Receive email notifications when Corus restarts unresponsive processes.</li>
     		<li>Trigger JVM restart from your application.</li>
     		<li>etc.</li>
