@@ -54,6 +54,7 @@ CORUS_HOME=<PATH_TO_CORUS_HOME>
 CORUS_PORT=33000
 CORUS_USER=corus
 CORUS_GROUP=<GROUP_OF_CORUS_USER>
+CORUS_LOG_DIR="$CORUS_HOME/logs"
 
 # Log level can be either DEBUG, INFO, WARNING, ERROR.
 CORUS_LOG_LEVEL=DEBUG
@@ -82,7 +83,7 @@ serviceUser="$CORUS_USER"                                        # OS user name 
 serviceGroup="$CORUS_GROUP"                                      # OS group name for the service
 applDir="$CORUS_HOME"                                            # home directory of the service application
 serviceUserHome="/home/$serviceUser"                             # home directory of the service user
-serviceLogDir="$CORUS_HOME/logs"
+serviceLogDir="$CORUS_LOG_DIR"
 serviceLogFile="$serviceLogDir/$serviceNameLo-$CORUS_PORT-stdout.log"  # log file for StdOut/StdErr
 maxShutdownTime=15                                               # maximum number of seconds to wait for the daemon to terminate normally
 pidFile="$CORUS_HOME/bin/$serviceNameLo.pid"                     # name of PID file (PID = process ID number)
@@ -90,7 +91,7 @@ javaCommand="java"                                               # name of the J
 javaCommandLineKeyword="$serviceNameLo_$CORUS_PORT"              # a keyword that occurs on the commandline, used to detect an already running service process and to distinguish it from others
 javaExe="$JAVA_HOME/bin/$javaCommand"                            # file name of the Java application launcher executable
 
-javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f"
+javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir"
 
 javaCommandLine="$javaExe $javaArgs"                             # command line to start the Java service application
  

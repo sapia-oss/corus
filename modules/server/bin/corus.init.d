@@ -60,6 +60,5 @@ if [ -z "${CORUS_HOME}" ] ; then
     export CORUS_HOME
 fi
 
-
 # Calling the corus script as the corus user (using the default server port)
 su - corus -c "${CORUS_HOME}/bin/corus_service.sh $* 33000"

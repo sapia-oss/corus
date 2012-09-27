@@ -45,7 +45,7 @@ fi
 PRIORITY=
 
 # Location of the pid file.
-PIDDIR="$CORUS_HOME/logs"
+PIDDIR="$CORUS_HOME/bin"
 
 
 WRAPPER_DAEMONIZE="TRUE"
