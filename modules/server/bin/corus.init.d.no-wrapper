@@ -57,7 +57,7 @@ CORUS_GROUP=<GROUP_OF_CORUS_USER>
 CORUS_LOG_DIR="$CORUS_HOME/logs"
 
 # Log level can be either DEBUG, INFO, WARNING, ERROR.
-CORUS_LOG_LEVEL=DEBUG
+CORUS_LOG_LEVEL=INFO
 
 CORUS_OPTS="-Xms32M -Xms32M -Djava.net.preferIPv4Stack=true -Duser.dir=$CORUS_HOME -Dcorus.home=$CORUS_HOME"
 
