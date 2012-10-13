@@ -7,7 +7,7 @@
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -20,9 +20,9 @@
   </parent>
 
   <scm>
-    <connection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</connection>
-    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</developerConnection>
-    <url>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</url>
+    <connection>scm:svn:https://sapia.googlecode.com/svn/tags/sapia_corus_parent-3.0.1</connection>
+    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/tags/sapia_corus_parent-3.0.1</developerConnection>
+    <url>scm:svn:https://sapia.googlecode.com/svn/tags/sapia_corus_parent-3.0.1</url>
   </scm>
 
   <licenses>
