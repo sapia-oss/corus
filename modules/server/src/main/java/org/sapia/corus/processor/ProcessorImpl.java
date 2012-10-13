@@ -133,6 +133,10 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       }
     }
     
+    if (!configuration.autoRestartStaleProcesses()) {
+      log.warn("Process auto-restart is disabled. Stale processes will not automatically be restarted");
+    }
+    
   }
   
   public void start() throws Exception {

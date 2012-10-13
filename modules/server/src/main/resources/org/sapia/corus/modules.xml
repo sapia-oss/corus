@@ -50,6 +50,7 @@
     <property name="startInterval"        value="${corus.process.start-interval}" />
     <property name="restartInterval"      value="${corus.process.restart-interval}" />
     <property name="processTimeout"       value="${corus.process.timeout}" />
+    <property name="autoRestart"          value="${corus.process.auto-restart}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.processor.Processor" 

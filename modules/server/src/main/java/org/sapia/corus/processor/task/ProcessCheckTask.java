@@ -1,11 +1,13 @@
 package org.sapia.corus.processor.task;
 
+import java.util.Date;
 import java.util.List;
 
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -47,13 +49,20 @@ public class ProcessCheckTask extends Task<Void,Void>{
       proc = processes.get(i);
       if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) &&
             proc.isTimedOut(processorConf.getProcessTimeoutMillis())) {
-        if (proc.getLock().isLocked()) {
+        if(!processorConf.autoRestartStaleProcesses()) {
+          ctx.warn(String.format(
+              "Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s", 
+              proc, new Date(proc.getLastAccess())));          
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessStaleEvent(proc));
+        } else if (proc.getLock().isLocked()) {
           ctx.warn(String.format("Process timed out but locked, probably terminating or restarting: %s", proc));
         } else {
           proc.setStatus(Process.LifeCycleStatus.KILL_REQUESTED);
           proc.save();
 
-          ctx.warn(String.format("Process timed out - ordering kill: %s. Will retry %s time(s)", proc, proc.getMaxKillRetry()));
+          ctx.warn(String.format(
+              "Process timed out - ordering kill: %s. Will retry %s time(s). Last poll: %s", 
+              proc, proc.getMaxKillRetry(), new Date(proc.getLastAccess())));
           ctx.getTaskManager().executeBackground(
               new KillTask(proc.getMaxKillRetry()), 
               TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER),

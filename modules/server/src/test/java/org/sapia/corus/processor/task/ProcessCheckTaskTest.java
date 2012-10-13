@@ -12,8 +12,11 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 
 /**
  * @author Yanick Duchesne
@@ -61,5 +64,32 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     );
     
   }
+  
+  @Test
+  public void testStaleVmCheckNoAutoRestart() throws Exception {
+    final CountDownLatch latch = new CountDownLatch(1);
+    
+    OsModule os = mock(OsModule.class);
+    EventDispatcher dispatcher = mock(EventDispatcher.class);
+    ctx.getServices().rebind(OsModule.class, os);
+    ctx.getServices().rebind(EventDispatcher.class, dispatcher);
+    
+    super.processorConf.setAutoRestart(false);
+    ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
+    ctx.getProc().getConfigurationImpl().setKillInterval(1);
+
+    Thread.sleep(1100);
+    ProcessCheckTask task = new ProcessCheckTask();
+    ctx.getTm().executeAndWait(task, null).get();
+    
+    assertTrue(
+        "Process should not have been removed from active process list", 
+        ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+    
+    verify(dispatcher).dispatch(any(ProcessStaleEvent.class));
+    verify(os, never()).killProcess(any(LogCallback.class), anyString());
+    
+  }  
   
 }

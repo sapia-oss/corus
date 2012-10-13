@@ -42,6 +42,17 @@ public interface ProcessorConfiguration extends Remote{
    */
   public long getRestartIntervalMillis();
 
+  /**
+   * The amount of time to wait for (in millis) before automatically starting processes
+   * after Corus startup.
+   * 
+   * @return the boot process execution delay.
+   */
   public long getBootExecDelayMillis();
+  
+  /**
+   * @return <code>true</code> if Corus should auto-restart stale processes.
+   */
+  public boolean autoRestartStaleProcesses();
 
 }

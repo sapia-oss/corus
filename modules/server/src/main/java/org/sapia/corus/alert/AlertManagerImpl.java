@@ -11,6 +11,7 @@ import org.sapia.corus.client.services.deployer.event.DeploymentEvent;
 import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
+import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Strings;
@@ -99,6 +100,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
     super.serverContext.getServices().getEventDispatcher().addInterceptor(ProcessKilledEvent.class, this);
     super.serverContext.getServices().getEventDispatcher().addInterceptor(DeploymentEvent.class, this);
     super.serverContext.getServices().getEventDispatcher().addInterceptor(UndeploymentEvent.class, this);
+    super.serverContext.getServices().getEventDispatcher().addInterceptor(ProcessStaleEvent.class, this);
     alertSenders = Executors.newFixedThreadPool(ALERT_SENDERS);
     JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
     javaMailSender.setHost(this.smtpHost);
@@ -122,6 +124,27 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
   
   // --------------------------------------------------------------------------
   // interception methods
+  
+  public void onProcessStaleEvent(final ProcessStaleEvent event) {
+    alertSenders.execute(new Runnable() {
+      @Override
+      public void run() {
+        sendAlert(
+            subject(AlertLevel.WARNING, "Process is stale"),
+            AlertBuilder.newInstance()
+              .serverContext(serverContext())                
+              .level(AlertLevel.WARNING)
+              .summary("Process is stale")
+              .details("Process " + event.getProcess().getProcessID() + " has been detected as stale by the Corus server " 
+                  + "(the process has not been restarted since auto-restart is disabled)")
+              .field("Distribution", event.getProcess().getDistributionInfo().getName())
+              .field("Version", event.getProcess().getDistributionInfo().getVersion())
+              .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
+              .field("Profile", event.getProcess().getDistributionInfo().getProfile())
+              .build());
+      }
+    });
+  }
   
   public void onProcessKilledEvent(final ProcessKilledEvent event) {
     if (event.getRequestor() == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
