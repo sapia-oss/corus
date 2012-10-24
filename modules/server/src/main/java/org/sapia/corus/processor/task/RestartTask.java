@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -28,8 +29,18 @@ public class RestartTask extends KillTask{
   }
   
   @Override
-  protected void doKillConfirmed(TaskExecutionContext ctx) {
+  protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) {
     try {
+      
+      try {
+        OsModule os = ctx.getServerContext().lookup(OsModule.class);
+        if (performOsKill && proc.getOsPid() != null) {
+          os.killProcess(osKillCallback(), proc.getOsPid());
+        }
+      } catch (IOException e) {
+        ctx.warn("Error caught trying to kill process", e);        
+      } 
+      
       PortManager          ports      = ctx.getServerContext().lookup(PortManager.class);
       DistributionDatabase dists      = ctx.getServerContext().getServices().getDistributions();
       ProcessRepository    processes  = ctx.getServerContext().getServices().getProcesses();

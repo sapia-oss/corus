@@ -1,9 +1,17 @@
 package org.sapia.corus.processor.task;
 
 import static org.junit.Assert.assertEquals;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +19,7 @@ import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.LockOwner;
@@ -52,6 +61,9 @@ public class KillTaskTest extends TestBaseTask{
 
   @Test
   public void testKillFromCorusConfirmed() throws Exception {
+    OsModule os = mock(OsModule.class);
+    ctx.getServices().rebind(OsModule.class, os);
+
     proc.confirmKilled();
     proc.save();
     KillTask kill = new KillTask(3);  
@@ -62,10 +74,15 @@ public class KillTaskTest extends TestBaseTask{
         ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
     );
     assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    
+    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());
   }
 
   @Test
   public void testKillMaxAttemptReachedNoRestart() throws Exception {
+    OsModule os = mock(OsModule.class);
+    ctx.getServices().rebind(OsModule.class, os);
+    
     int      maxAttempts = 3;
     KillTask kill        = new KillTask(maxAttempts);
     for(int i = 0; i < maxAttempts; i++){
@@ -90,6 +107,7 @@ public class KillTaskTest extends TestBaseTask{
         "Process should have been killed and not restarted", 
         ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
     );
+    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
   }
 
   @Test
