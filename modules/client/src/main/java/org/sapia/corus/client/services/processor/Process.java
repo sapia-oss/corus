@@ -89,6 +89,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
   private int                _maxKillRetry                 = DEFAULT_KILL_RETRY;
   private LifeCycleStatus    _status                       = LifeCycleStatus.ACTIVE;
   private transient List<AbstractCommand>  _commands       = new ArrayList<AbstractCommand>();
+  private transient int      _staleDetectionCount;
   private List<ActivePort>   _activePorts                  = new ArrayList<ActivePort>();
   private transient org.sapia.corus.interop.Status _processStatus;
   
@@ -299,6 +300,21 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   public long getLastAccess() {
     return _lastAccess;
+  }
+  
+  /**
+   * @return this instance's stale detection count.
+   */
+  @Transient
+  public int getStaleDetectionCount() {
+    return _staleDetectionCount;
+  }
+  
+  /**
+   * Increments this instance's stale detection count.
+   */
+  public void incrementStaleDetectionCount() {
+    _staleDetectionCount++;
   }
 
   /**

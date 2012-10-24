@@ -49,10 +49,11 @@ public class ProcessCheckTask extends Task<Void,Void>{
       proc = processes.get(i);
       if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) &&
             proc.isTimedOut(processorConf.getProcessTimeoutMillis())) {
+        proc.incrementStaleDetectionCount();
         if(!processorConf.autoRestartStaleProcesses()) {
           ctx.warn(String.format(
               "Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s", 
-              proc, new Date(proc.getLastAccess())));          
+              proc, new Date(proc.getLastAccess())));
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessStaleEvent(proc));
         } else if (proc.getLock().isLocked()) {
           ctx.warn(String.format("Process timed out but locked, probably terminating or restarting: %s", proc));

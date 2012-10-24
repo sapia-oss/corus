@@ -124,26 +124,29 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
   
   // --------------------------------------------------------------------------
   // interception methods
-  
+   
   public void onProcessStaleEvent(final ProcessStaleEvent event) {
-    alertSenders.execute(new Runnable() {
-      @Override
-      public void run() {
-        sendAlert(
-            subject(AlertLevel.WARNING, "Process is stale"),
-            AlertBuilder.newInstance()
-              .serverContext(serverContext())                
-              .level(AlertLevel.WARNING)
-              .summary("Process is stale")
-              .details("Process " + event.getProcess().getProcessID() + " has been detected as stale by the Corus server " 
-                  + "(the process has not been restarted since auto-restart is disabled)")
-              .field("Distribution", event.getProcess().getDistributionInfo().getName())
-              .field("Version", event.getProcess().getDistributionInfo().getVersion())
-              .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
-              .field("Profile", event.getProcess().getDistributionInfo().getProfile())
-              .build());
-      }
-    });
+    
+    if (event.getProcess().getStaleDetectionCount() == 1) {
+      alertSenders.execute(new Runnable() {
+        @Override
+        public void run() {
+          sendAlert(
+              subject(AlertLevel.WARNING, "Process is stale"),
+              AlertBuilder.newInstance()
+                .serverContext(serverContext())                
+                .level(AlertLevel.WARNING)
+                .summary("Process is stale")
+                .details("Process " + event.getProcess().getProcessID() + " has been detected as stale by the Corus server " 
+                    + "(the process has not been restarted since auto-restart is disabled)")
+                .field("Distribution", event.getProcess().getDistributionInfo().getName())
+                .field("Version", event.getProcess().getDistributionInfo().getVersion())
+                .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
+                .field("Profile", event.getProcess().getDistributionInfo().getProfile())
+                .build());
+        }
+      });
+    }
   }
   
   public void onProcessKilledEvent(final ProcessKilledEvent event) {
