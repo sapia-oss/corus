@@ -11,6 +11,7 @@
 package org.sapia.corus.client.services.port;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
@@ -92,6 +93,7 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
     if(!available.contains(portObj)){
       available.add(portObj);
     }
+    Collections.sort(available);
   }
   
   /**
@@ -103,6 +105,7 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
     }
     Integer portObj = (Integer)available.remove(0);
     active.add(portObj);
+    Collections.sort(active);    
     return portObj.intValue();
   }
   
@@ -123,6 +126,7 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
         available.add(busy);
       }
     }
+    Collections.sort(available);    
     active.clear();
   }
   
