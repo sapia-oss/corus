@@ -19,7 +19,6 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
-import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
@@ -43,11 +42,12 @@ import org.sapia.ubik.util.Props;
 public class ClusterManagerImpl extends ModuleHelper
   implements ClusterManager, AsyncEventListener, EventChannelStateListener {
    
-  private static final int  MAX_PUB_EXEC         = 2;
-  private static final int  PUB_DELAY_RANGE      = 500;
-  private static final int  PUB_DELAY_RANGE_BASE = 100;
-  private static final long PUB_INTERVAL         = 5000;
-  private static final long START_UP_DELAY       = 15000;
+  private static final int  MAX_PUB_EXEC            = 2;
+  private static final int  PUB_DELAY_RANGE         = 500;
+  private static final int  PUB_DELAY_RANGE_BASE    = 100;
+  private static final int  PUB_INTERVAL_RANGE      = 3000;
+  private static final int  PUB_INTERVAL_RANGE_BASE = 8000;
+  private static final long START_UP_DELAY          = 15000;
   
   private EventChannel                 channel;
   private Set<ServerAddress>           hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
@@ -59,7 +59,6 @@ public class ClusterManagerImpl extends ModuleHelper
   /**
    * @see Service#init()
    */
-	@SuppressWarnings("unchecked")  
   public void init() throws Exception {
     
     channel = new EventChannel(
@@ -73,6 +72,7 @@ public class ClusterManagerImpl extends ModuleHelper
     channel.start();
   }
   
+  @SuppressWarnings("unchecked")
   @Override
   public void start() throws Exception {
     super.start();
@@ -97,7 +97,7 @@ public class ClusterManagerImpl extends ModuleHelper
         null, 
         BackgroundTaskConfig.create()
           .setExecDelay(PUB_DELAY_RANGE_BASE + new Random().nextInt(PUB_DELAY_RANGE))
-          .setExecInterval(PUB_INTERVAL)
+          .setExecInterval(PUB_INTERVAL_RANGE_BASE + new Random().nextInt(PUB_INTERVAL_RANGE))
     );
     
   }
@@ -272,7 +272,16 @@ public class ClusterManagerImpl extends ModuleHelper
     }
     
     @Override
+    protected void onMaxExecutionReached(TaskExecutionContext ctx)
+        throws Throwable {
+      log.debug("Completed signaling presence to cluster");
+    }
+    
+    @Override
     public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
+      
+      log.debug("Dispatching cluster presence event (attempt: " + getExecutionCount() + ")");
+      
       channel.dispatch(
           CorusPubEvent.class.getName(),
           new CorusPubEvent(
