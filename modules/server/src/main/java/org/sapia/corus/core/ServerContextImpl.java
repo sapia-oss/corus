@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.cluster.ServerHost;
+import org.sapia.corus.client.services.configurator.InternalConfigurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
@@ -151,7 +152,7 @@ public class ServerContextImpl implements ServerContext {
     
     // ------------------------------------------------------------------------
     // copying configurator props to process props
-    Properties configuratorProps = services.getConfigurator().getProperties(PropertyScope.PROCESS);
+    Properties configuratorProps = services.lookup(InternalConfigurator.class).getInternalProperties(PropertyScope.PROCESS);
     PropertiesUtil.copy(configuratorProps, processProps);
     return processProps;
   }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
@@ -15,6 +16,10 @@ import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.ServerHost;
 import org.sapia.corus.core.ModuleHelper;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
@@ -38,7 +43,11 @@ import org.sapia.ubik.util.Props;
 public class ClusterManagerImpl extends ModuleHelper
   implements ClusterManager, AsyncEventListener, EventChannelStateListener {
    
-  private static final long START_UP_DELAY = 15000;
+  private static final int  MAX_PUB_EXEC         = 2;
+  private static final int  PUB_DELAY_RANGE      = 500;
+  private static final int  PUB_DELAY_RANGE_BASE = 100;
+  private static final long PUB_INTERVAL         = 5000;
+  private static final long START_UP_DELAY       = 15000;
   
   private EventChannel                 channel;
   private Set<ServerAddress>           hostsAddresses   = Collections.synchronizedSet(new HashSet<ServerAddress>());
@@ -62,26 +71,6 @@ public class ClusterManagerImpl extends ModuleHelper
     channel.registerAsyncListener(CorusDiscoEvent.class.getName(), this);
     channel.addEventChannelStateListener(this);
     channel.start();
-    if(log.isInfoEnabled()) {
-      log.info("Signaling presence to cluster:");
-    	Properties mcastProperties = PropertiesUtil.filter(
-    			System.getProperties(), 
-    			PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast")
-      );
-      Enumeration<String> names = (Enumeration<String>) mcastProperties.propertyNames();
-    	while(names.hasMoreElements()) {
-    		String name = names.nextElement();
-    		log.info(name + "=" + mcastProperties.getProperty(names.nextElement()));
-    	}
-    }
-    
-    channel.dispatch(
-        CorusPubEvent.class.getName(),
-        new CorusPubEvent(
-            serverContext().getServerAddress(), 
-            serverContext().getHostInfo()
-        )
-    );
   }
   
   @Override
@@ -89,6 +78,28 @@ public class ClusterManagerImpl extends ModuleHelper
     super.start();
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
+
+    if(log.isInfoEnabled()) {
+      log.info("Signaling presence to cluster");
+      Properties mcastProperties = PropertiesUtil.filter(
+          System.getProperties(), 
+          PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast")
+      );
+      Enumeration<String> names = (Enumeration<String>) mcastProperties.propertyNames();
+      while(names.hasMoreElements()) {
+        String name = names.nextElement();
+        log.info(name + "=" + mcastProperties.getProperty(names.nextElement()));
+      }
+    }
+    
+    super.serverContext().getServices().getTaskManager().executeBackground(
+        new PublishToClusterTask(), 
+        null, 
+        BackgroundTaskConfig.create()
+          .setExecDelay(PUB_DELAY_RANGE_BASE + new Random().nextInt(PUB_DELAY_RANGE))
+          .setExecInterval(PUB_INTERVAL)
+    );
+    
   }
   
   /**
@@ -247,6 +258,31 @@ public class ClusterManagerImpl extends ModuleHelper
         log.error("Error sending publish event", e);
       }
     }
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Signals presence to cluster. 
+   */
+  public class PublishToClusterTask extends Task<Void, Void> {
+    
+    public PublishToClusterTask() {
+      super.setMaxExecution(MAX_PUB_EXEC);
+    }
+    
+    @Override
+    public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
+      channel.dispatch(
+          CorusPubEvent.class.getName(),
+          new CorusPubEvent(
+              serverContext().getServerAddress(), 
+              serverContext().getHostInfo()
+          )
+      );      
+      return null;
+    }
+    
   }
 
 }

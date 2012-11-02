@@ -7,6 +7,7 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
@@ -103,7 +104,9 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     try{
       ctx.debug(String.format("Releasing lock on: %s", proc));
       proc.getLock().release(lockOwner);
-      proc.save();
+      if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+    	  proc.save();
+      }
     }catch(Throwable err){
       // noop
     }finally{

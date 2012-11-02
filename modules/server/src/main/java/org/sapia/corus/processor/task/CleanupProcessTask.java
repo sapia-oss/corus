@@ -6,6 +6,7 @@ import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
@@ -53,8 +54,10 @@ public class CleanupProcessTask extends Task<Void, Process>{
     proc.releasePorts(ports);
     
     ctx.debug(String.format("Removing from active process list: %s", proc));
-    ctx.getServerContext().getServices().getProcesses().getActiveProcesses()
-        .removeProcess(proc.getProcessID());
+    ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+    processes.getActiveProcesses().removeProcess(proc.getProcessID());
+    processes.getProcessesToRestart().removeProcess(proc.getProcessID());
+    processes.getSuspendedProcesses().removeProcess(proc.getProcessID());    
     if (proc.isDeleteOnKill()) {
       ctx.warn(String.format("Process successfully terminated and cleaned up: %s", proc));
     } else {
@@ -65,3 +68,4 @@ public class CleanupProcessTask extends Task<Void, Process>{
   }
 
 }
+

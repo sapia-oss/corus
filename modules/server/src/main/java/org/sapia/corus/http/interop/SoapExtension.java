@@ -8,6 +8,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.interop.AbstractCommand;
@@ -72,8 +73,10 @@ public class SoapExtension implements HttpExtension, RequestListener {
     
     logger.info("Process: " + proc + " confirming shutdown");
     org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
-    corusProcess.confirmKilled();
-    corusProcess.save();
+    if (corusProcess.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+	    corusProcess.confirmKilled();
+	    corusProcess.save();
+    }
   }
   
   public synchronized List<AbstractCommand> onPoll(Process proc, Poll poll)

@@ -79,10 +79,6 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {
-          if (object.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
-            _processes.remove(object.getKey());
-            return false;
-          }
           return true;
         }
       }  

@@ -63,6 +63,96 @@
   
   <profiles>
     <profile>
+      <id>build-sample-distributions</id>
+	  <build>
+	    <plugins>
+	      <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-dependency-plugin</artifactId>
+	        <executions>
+	       
+	          <!-- copying webapp dependencies -->
+	          <execution>
+	            <id>copy-webapps</id>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>copy-dependencies</goal>
+	            </goals>
+	            <configuration>
+	              <outputDirectory>${basedir}/webapps</outputDirectory>
+	              <overWriteReleases>false</overWriteReleases>
+	              <overWriteSnapshots>false</overWriteSnapshots>
+	              <overWriteIfNewer>true</overWriteIfNewer>
+	              <includeArtifactIds>corus_sample_grails_app</includeArtifactIds>
+	            </configuration>
+	          </execution>
+	          
+	          <!-- copying server dependencies -->
+	          <execution>
+	            <id>copy-server-libs</id>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>copy-dependencies</goal>
+	            </goals>
+	            <configuration>
+	              <outputDirectory>${basedir}/lib</outputDirectory>
+	              <overWriteReleases>false</overWriteReleases>
+	              <overWriteSnapshots>false</overWriteSnapshots>
+	              <overWriteIfNewer>true</overWriteIfNewer>
+	              <excludeArtifactIds>corus_sample_grails_app</excludeArtifactIds>
+	            </configuration>
+	          </execution>
+	        </executions>
+	      </plugin>
+	      
+	      <plugin>
+	        <artifactId>maven-assembly-plugin</artifactId>
+	        <executions>
+	          <execution>
+	            <id>make-basic-dist</id>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>single</goal>
+	            </goals>
+	            <configuration>
+	              <descriptors>
+	                <descriptor>src/main/assembly/basic.xml</descriptor>
+	              </descriptors>
+	            </configuration>
+	          </execution>
+	          <execution>
+	            <id>make-advanced-dist</id>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>single</goal>
+	            </goals>
+	            <configuration>
+	              <descriptors>
+	                <descriptor>src/main/assembly/advanced.xml</descriptor>
+	              </descriptors>
+	            </configuration>
+	          </execution>
+	          <execution>
+	            <id>make-scalable-dist</id>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>single</goal>
+	            </goals>
+	            <configuration>
+	              <descriptors>
+	                <descriptor>src/main/assembly/scalable.xml</descriptor>
+	              </descriptors>
+	            </configuration>
+	          </execution>
+	        </executions>
+	      </plugin>
+	      
+	    </plugins>
+	  </build>
+      
+    </profile>        
+  
+    <profile>
       <id>deploy-to-corus</id>
       <build>
         <plugins>
@@ -91,89 +181,4 @@
     </profile>
   </profiles>
   
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-       
-          <!-- copying webapp dependencies -->
-          <execution>
-            <id>copy-webapps</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/webapps</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>corus_sample_grails_app</includeArtifactIds>
-            </configuration>
-          </execution>
-          
-          <!-- copying server dependencies -->
-          <execution>
-            <id>copy-server-libs</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/lib</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>false</overWriteSnapshots>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <excludeArtifactIds>corus_sample_grails_app</excludeArtifactIds>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <!--plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>make-basic-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/basic.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-          <execution>
-            <id>make-advanced-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/advanced.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-          <execution>
-            <id>make-scalable-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/scalable.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin-->
-      
-    </plugins>
-  </build>
 </project>
