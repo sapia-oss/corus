@@ -34,7 +34,7 @@ public class TimeIntervalThrottle implements Throttle{
    */
   public TimeIntervalThrottle(TimeUnit unit, long interval) {
     this.interval = TimeUnit.MILLISECONDS.convert(interval, unit);
-    Thread t = new Thread(new ThrottleThread̈());
+    Thread t = new Thread(new ThrottleThread());
     t.setDaemon(true);
     t.start();
   }
@@ -44,7 +44,7 @@ public class TimeIntervalThrottle implements Throttle{
     queue.offer(toRun);
   }
   
-  private class ThrottleThread̈ implements Runnable{
+  private class ThrottleThread implements Runnable{
     
     @Override
     public void run() {
