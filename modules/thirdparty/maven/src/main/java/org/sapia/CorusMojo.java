@@ -11,6 +11,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.client.cli.CorusCli;
+import org.sapia.corus.client.cli.DefaultClientFileSystem;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -78,7 +79,7 @@ public class CorusMojo extends AbstractMojo {
 
     CorusConnectionContext context = null;
     try {
-      context    = new CorusConnectionContext(host, port);
+      context    = new CorusConnectionContext(host, port, new DefaultClientFileSystem(project.getBasedir()));
     } catch (Exception e) {
       throw new MojoExecutionException(String.format("Could not connect to Corus daemon at %s:%s", host, port), e);
     }
@@ -110,7 +111,7 @@ public class CorusMojo extends AbstractMojo {
         }
       }
       
-      Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection);
+      Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection, new DefaultClientFileSystem(project.getBasedir()));
       interpreter.interpret(new FileReader(scriptFile), vars);
       
     } catch (Throwable e) {

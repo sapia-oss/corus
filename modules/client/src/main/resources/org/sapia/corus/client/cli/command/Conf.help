@@ -3,14 +3,16 @@
    <p>Allows managing server or process propertie, as well as server tags.</p>
   </section>
   <section title="Syntax">
-    <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete):</p>
+    <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete, export):</p>
     <p/> 
+    <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
     <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
     <p/>
     <p>OR</p>    
     <p/>
-    <p>conf add [-s s | p] -p file.properties [-clear] [-cluster]</p>
+    <p>conf add -t &lt;file&gt; [-cluster]</p>
+    <p>conf add [-s s | p] -p &lt;file&gt;.properties [-clear] [-cluster]</p>
     <p/>    
     <p>OR</p>    
     <p/>    
@@ -19,12 +21,18 @@
     <p/>
     <p>OR</p>    
     <p/>
+    <p>conf export -t -f &lt;file&gt;</p>
+    <p>conf export -p -f &lt;file&gt;</p>
+    <p/>
+    <p>OR</p>    
+    <p/>
     <p>conf del -t tag_name</p>
     <p>conf del [-s s | p] -p property_name</p>
     <p/>
     <p>Where:</p>
     <p/>
-    <p>- t : indicates a tagging operation (if not specified, -p is assumed).</p>
+    <p>- t : indicates a tagging operation (if not specified, -p is assumed). Value can be a comma-delimited list of tags, or a path to a file containing 
+        a comma-delimited lists of tags per line.</p>
     <p/>
     <p>- p : indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
     <p/>    
@@ -32,15 +40,30 @@
     <p/>
     <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be s (for server) and p (for process) - defaults to p.</p>
     <p/>
+    <p>- f : in the context of an export, indicates to which the tags or properties should be exported.</p>
+    <p/>
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Notes">
+    <p>Export operations are not clustered (passing the -cluster switch in such cases will have no effect).</p>
   </section>
   <section title="Examples">
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
     <p/>
+    <p>conf add -p myprop=myvalue</p>
+    <p/>
     <p>conf add -s s -p myServerProperties.properties</p>
     <p/>
-    <p>conf add -p myProcessProperties.properties</p>
+    <p>conf add myProcessProperties.properties</p>
     <p/>            
+    <p>conf add -t singletons</p>
+    <p/>
+    <p>conf add -t /home/foo/mytags.txt</p>
+    <p/> 
+    <p>conf export -p -f /home/foo/myProcessProperties.properties</p>
+    <p/>            
+    <p>conf export -t -f /home/foo/mytags.txt</p>
+    <p/>
     <p>conf ls -t</p>
     <p/>     
     <p>conf ls -p -s s</p>
@@ -53,10 +76,9 @@
     <p/> 
     <p>conf del -s s -p corus.process.*</p>
     <p/> 
-    <p>conf add -t singletons</p>
-    <p/> 
     <p>conf del -t singletons</p>
     <p/> 
     <p>conf ls -t</p>
+    <p/>
   </section>
 </help>

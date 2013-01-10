@@ -72,11 +72,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
     }
     
     logger.info("Process: " + proc + " confirming shutdown");
-    org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
-    if (corusProcess.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
-	    corusProcess.confirmKilled();
-	    corusProcess.save();
-    }
+    Processor processor = serverContext.lookup(Processor.class);
+    processor.confirmShutdown(proc.getCorusPid());
   }
   
   public synchronized List<AbstractCommand> onPoll(Process proc, Poll poll)

@@ -63,7 +63,7 @@ public class Deploy extends CorusCliCommand {
   
   private void deployExec(CliContext ctx, String fileName) 
   throws AbortException, InputException {
-    File file = new File(fileName);
+    File file = ctx.getFileSystem().getFile(fileName);
     if (!file.exists()) {
       CliError err = ctx.createAndAddErrorFor(this, new DeploymentException("File not found: " + fileName));
       ctx.getConsole().println(err.getSimpleMessage());

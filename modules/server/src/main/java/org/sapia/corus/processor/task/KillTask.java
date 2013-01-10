@@ -121,7 +121,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
   
     if(ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get()){
       doKillConfirmed(false, ctx);
-    } else{
+    } else {
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ctx.error(String.format("Process %s could not be killed forcefully; auto-restart is aborted", proc));
       proc.releasePorts(ports);

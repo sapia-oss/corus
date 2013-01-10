@@ -34,7 +34,7 @@ public class InterpreterTest {
   @Before
   public void setUp() {
     this.connector = mock(CorusConnector.class);
-    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector, new DefaultClientFileSystem());
   }
 
   @Test

@@ -35,7 +35,7 @@ public class Script extends CorusCliCommand{
     
   public static void processScript(File scriptFile, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
-      Interpreter interpreter = new Interpreter(ctx.getCorus());
+      Interpreter interpreter = new Interpreter(ctx.getCorus(), ctx.getFileSystem());
       interpreter.interpret(new FileReader(scriptFile), new HashMap<String, String>());
     } else {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());

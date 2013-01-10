@@ -38,6 +38,7 @@ import org.sapia.corus.processor.task.BootstrapExecConfigStartTask;
 import org.sapia.corus.processor.task.EndUserExecConfigStartTask;
 import org.sapia.corus.processor.task.KillTask;
 import org.sapia.corus.processor.task.MultiExecTask;
+import org.sapia.corus.processor.task.ProcessAutoshutDownConfirmTask;
 import org.sapia.corus.processor.task.ProcessCheckTask;
 import org.sapia.corus.processor.task.RestartTask;
 import org.sapia.corus.processor.task.ResumeTask;
@@ -341,6 +342,22 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
               .setExecInterval(configuration.getKillIntervalMillis())
         );
       }
+  }
+  
+  @Override
+  public void confirmShutdown(String corusPid) throws ProcessNotFoundException {
+    Process process = getProcess(corusPid);
+    
+    // if the process is currently active, it means it shut down autonomously
+    if (process.getStatus() == LifeCycleStatus.ACTIVE) {
+      taskman.execute(new ProcessAutoshutDownConfirmTask(), process);
+      
+    // else, just making sure the status is set to confirm, the current background 
+    // kill task will complete the work based on that status being set.
+    } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+      process.confirmKilled();
+      process.save();
+    }
   }
 
   @Override

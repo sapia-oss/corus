@@ -23,6 +23,11 @@ public interface CliContext {
   public CorusConnector getCorus();
 
   /**
+   * @return the {@link ClientFileSystem}.
+   */
+  public ClientFileSystem getFileSystem();
+  
+  /**
    * @return the {@link CmdLine} instance corresponding to the command
    * line that was entered.
    */
@@ -77,5 +82,4 @@ public interface CliContext {
    */
   public void setAbortOnError(boolean abortOnError);
   
-
 }

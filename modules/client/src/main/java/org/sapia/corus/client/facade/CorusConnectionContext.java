@@ -19,6 +19,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
@@ -52,25 +53,28 @@ public class CorusConnectionContext {
   private Map<ServerAddress, Corus> 	 cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
   private ExecutorService 						 executor;
   private ClientSideClusterInterceptor interceptor;
+  private ClientFileSystem             fileSys;
 
   /**
    * @param host the host of the Corus server to connect to.
    * @param port the port of the Corus server to connect to.
+   * @param fileSys the {@link ClientFileSystem}.
    * @param invokerThreads the number of threads to use when dispatching clustered method calls
    * to targeted Corus instances.
    * @throws Exception if a problem occurs when attempting to connect to the Corus server.
    * @throws ConnectionException if not Corus server exists at the given host/port, or if a network-related
    * problem occurs while attempting to connect to the given host/port.
    */
-  public CorusConnectionContext(String host, int port, int invokerThreads) throws ConnectionException, Exception {
+  public CorusConnectionContext(String host, int port, ClientFileSystem fileSys, int invokerThreads) throws ConnectionException, Exception {
     reconnect(host, port);
     interceptor = new ClientSideClusterInterceptor();
+    this.fileSys = fileSys;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
     executor = Executors.newFixedThreadPool(invokerThreads);
   }
 
-  public CorusConnectionContext(String host, int port) throws Exception {
-    this(host, port, INVOKER_THREADS);
+  public CorusConnectionContext(String host, int port, ClientFileSystem fileSys) throws Exception {
+    this(host, port, fileSys, INVOKER_THREADS);
   }
 
   /**
@@ -79,6 +83,13 @@ public class CorusConnectionContext {
   public String getVersion(){
     refresh();
     return corus.getVersion();
+  }
+  
+  /**
+   * @return the {@link ClientFileSystem}.
+   */
+  public ClientFileSystem getFileSystem() {
+    return fileSys;
   }
 
   /**

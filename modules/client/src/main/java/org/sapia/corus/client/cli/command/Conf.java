@@ -1,9 +1,13 @@
 package org.sapia.corus.client.cli.command;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -20,14 +24,17 @@ import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Collections2;
 
 public class Conf extends CorusCliCommand{
   
   public static final String ARG_ADD 				= "add";
   public static final String ARG_DEL 				= "del";
   public static final String ARG_LS  				= "ls";
+  public static final String ARG_EXPORT     = "export";
   
   public static final String OPT_PROPERTY 	= "p";
+  public static final String OPT_FILE       = "f";
   public static final String OPT_TAG 				= "t";
   public static final String OPT_SCOPE 			= "s";
   public static final String OPT_SCOPE_SVR 	= "s";
@@ -41,7 +48,8 @@ public class Conf extends CorusCliCommand{
   public enum Op{
     ADD,
     DELETE,
-    LIST;
+    LIST,
+    EXPORT
   }
   
   @Override
@@ -52,48 +60,59 @@ public class Conf extends CorusCliCommand{
       String opArg = ctx.getCommandLine().assertNextArg().getName();
       if(opArg.equalsIgnoreCase(ARG_ADD)){
         op = Op.ADD;
-      }
-      else if(opArg.equalsIgnoreCase(ARG_DEL)){
+      } else if(opArg.equalsIgnoreCase(ARG_DEL)){
         op = Op.DELETE;
-      }
-      else if(opArg.equalsIgnoreCase(ARG_LS)){
+      } else if(opArg.equalsIgnoreCase(ARG_LS)){
         op = Op.LIST;
-      }
-      else{
+      } else if(opArg.equalsIgnoreCase(ARG_EXPORT)){
+        op = Op.EXPORT;
+      } else{
         throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
       }
-    }
-    else{
+    } else{
       throw new InputException("Missing argument; expecting one of: add | del | ls");
     }
 
     if(op != null){
       if(ctx.getCommandLine().containsOption(OPT_TAG, false)){
-        handleTag(op, ctx);
-      }
-       else{
+        try {
+          handleTag(op, ctx);
+        } catch (IOException e) {
+          throw new InputException(e.getMessage());
+        }
+      } else{
         handlePropertyOp(op, ctx);
       }
     }
   }
   
-  private void handleTag(Op op, CliContext ctx) throws InputException{
+  private void handleTag(Op op, CliContext ctx) throws InputException, IOException {
     if(op == Op.ADD){
-      String[] toAdd = ctx.getCommandLine().assertOption(OPT_TAG, true)
-        .getValue().split(",");
-      Set<String> set = new HashSet<String>();
-      for(int i = 0; i < toAdd.length; i++){
-        set.add(toAdd[i].trim());
+      String      tagString  = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
+      Set<String> toAdd      = new HashSet<String>();
+      File        tagFile    = ctx.getFileSystem().getFile(tagString);
+      if (tagFile.exists()) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile)));
+        String line = null;
+        try {
+          while ((line = reader.readLine()) != null) {
+            toAdd.addAll(Collections2.arrayToSet(line.split(",")));
+          }
+        } finally {
+          reader.close();
+        }
+        ctx.getConsole().println("Added tags from file: " + tagFile.getAbsolutePath());
+      } else {
+        toAdd.addAll(Collections2.arrayToSet(tagString.split(",")));
       }
-      
-      ctx.getCorus().getConfigFacade().addTags(set, getClusterInfo(ctx));
-    }
-    else if(op == Op.DELETE){
+      ctx.getCorus().getConfigFacade().addTags(toAdd, getClusterInfo(ctx));
+    } else if(op == Op.DELETE){
       String toRemove = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
       ctx.getCorus().getConfigFacade().removeTag(toRemove, getClusterInfo(ctx));
-    }
-    else if(op == Op.LIST){
+    } else if(op == Op.LIST){
       displayTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
+    } else if(op == Op.EXPORT){
+      exportTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
     }
   }
   
@@ -115,7 +134,7 @@ public class Conf extends CorusCliCommand{
       String pair = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();
       
       if(!pair.contains("=") && pair.endsWith(".properties")){
-        File propFile = new File(pair);
+        File propFile = ctx.getFileSystem().getFile(pair);
         if(!propFile.exists()){
           throw new InputException("File does not exist: " + pair);
         }
@@ -130,34 +149,55 @@ public class Conf extends CorusCliCommand{
           props.load(input);
           boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
           ctx.getCorus().getConfigFacade().addProperties(scope, props, clearExisting, getClusterInfo(ctx));          
-        }catch(IOException e){
+        } catch(IOException e) {
           CliError err = ctx.createAndAddErrorFor(this, e);
           ctx.getConsole().println(err.getSimpleMessage());
-        }finally{
+        } finally {
           try{
             input.close();
           }catch(IOException e){}
         }
-      }
-      else{
+      } else{
         String[] nameValue = pair.split("=");
         if(nameValue.length != 2){
           throw new InputException("Invalid property format; expected: <name>=<value>");
-        }
-        else{
+        } else{
           ctx.getCorus().getConfigFacade().addProperty(scope, nameValue[0], nameValue[1], getClusterInfo(ctx));
         }
       }
-    }
-    else if(op == Op.DELETE){
+    } else if(op == Op.DELETE){
       String name = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();
       ctx.getCorus().getConfigFacade().removeProperty(scope, name, getClusterInfo(ctx));
-    }
-    else if(op == Op.LIST){
+    } else if(op == Op.LIST){
       Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
       displayPropertyResults(results, ctx);
+    } else if(op == Op.EXPORT){
+      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
+      exportPropertyResults(results, ctx);
     }
-    
+  }
+  
+  private void exportTagResults(Results<Set<String>> res, CliContext ctx) throws InputException {
+    File        exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+    try  {
+      PrintWriter writer     = new PrintWriter(new FileOutputStream(exportFile));
+      try  {
+        while (res.hasNext()) {
+          Result<Set<String>> result = res.next();
+          for(String tag:result.getData()){
+            writer.println(tag);
+          }
+        }
+      } finally {
+        writer.flush();
+        writer.close();
+      }
+      ctx.getConsole().println("Tags exported to: " + exportFile.getAbsolutePath());
+    } catch (IOException e) {
+      CliError err = ctx.createAndAddErrorFor(this, e);
+      ctx.getConsole().println(err.getSimpleMessage());
+    }
+  
   }
   
   private void displayTagResults(Results<Set<String>> res, CliContext ctx) {
@@ -204,7 +244,32 @@ public class Conf extends CorusCliCommand{
     row = distTable.newRow();
     row.getCellAt(COL_PROP_TAG).append(tag);
     row.flush();
-  }  
+  }
+  
+  // --------------------------------------------------------------------------
+
+  private void exportPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) throws InputException {
+    File        exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+    try {
+      PrintWriter writer     = new PrintWriter(new FileOutputStream(exportFile));
+      try  {
+        while (res.hasNext()) {
+          Result<List<NameValuePair>> result = res.next();
+          for(NameValuePair props:result.getData()){
+            writer.println(props.getName() + "=" + props.getValue());
+          }
+        }
+      } finally {
+        writer.flush();
+        writer.close();
+      }
+      ctx.getConsole().println("Properties exported to: " + exportFile.getAbsolutePath());
+    } catch (IOException e) {
+      CliError err = ctx.createAndAddErrorFor(this, e);
+      ctx.getConsole().println(err.getSimpleMessage());
+    }
+    
+  }
   
   private void displayPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) {
     while (res.hasNext()) {

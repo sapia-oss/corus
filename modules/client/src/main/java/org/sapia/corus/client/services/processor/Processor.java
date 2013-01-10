@@ -81,6 +81,13 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param suspend if <code>true</code>, indicates that the process should be suspended.
    */
   public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException;
+  
+  /**
+   * Performs cleanup following process shutdown confirmation.
+   *
+   * @param corusPid a process identifier.
+   */
+  public void confirmShutdown(String corusPid) throws ProcessNotFoundException;
 
   /**
    * Return the process whose identifier is given.

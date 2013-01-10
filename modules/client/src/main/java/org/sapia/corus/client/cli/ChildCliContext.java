@@ -34,6 +34,11 @@ public class ChildCliContext extends Context implements CliContext {
     return parent.getConsole();
   }
   
+  @Override
+  public ClientFileSystem getFileSystem() {
+    return parent.getFileSystem();
+  }
+  
   /* (non-Javadoc)
    * @see org.sapia.corus.client.cli.CliContext#getCorus()
    */

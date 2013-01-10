@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.ProgressMsg;
@@ -44,11 +45,12 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     Exception{
     final ProgressQueueImpl queue = new ProgressQueueImpl();
     
+    
     if(ArgFactory.isPattern(fileName)){
       Thread deployer = new Thread(new Runnable(){
           public void run() {
             try{
-              Object[] baseDirAndFilePattern = split(fileName);
+              Object[] baseDirAndFilePattern = split(context.getFileSystem(), fileName);
               File baseDir = (File)baseDirAndFilePattern[0];
               Arg pattern = ArgFactory.parse((String)baseDirAndFilePattern[1]);
               File[] files = baseDir.listFiles();
@@ -169,9 +171,9 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     return results;    
   }
 
-  static Object[] split(String fileName){
+  static Object[] split(ClientFileSystem fileSys, String fileName){
     if(fileName.startsWith(ArgFactory.PATTERN)){
-      return new Object[]{new File(System.getProperty("user.dir")), fileName};
+      return new Object[]{fileSys.getBaseDir(), fileName};
     }
     else{
       String baseDirName = fileName.substring(0, fileName.indexOf(ArgFactory.PATTERN));
@@ -183,7 +185,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       else{
         idx = fileName.indexOf(ArgFactory.PATTERN);
       }
-      File baseDir = new File(baseDirName);
+      File baseDir = fileSys.getFile(baseDirName);
      
       if(baseDir.exists()){
         String pattern = fileName.substring(idx);
@@ -191,7 +193,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       }
       else{
         String pattern = fileName.substring(idx);
-        return new Object[]{new File(System.getProperty("user.dir")), pattern};
+        return new Object[]{fileSys.getBaseDir(), pattern};
       }
       
     }

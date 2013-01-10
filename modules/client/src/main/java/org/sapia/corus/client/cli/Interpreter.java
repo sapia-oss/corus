@@ -35,23 +35,27 @@ public class Interpreter extends Console {
   
   private CorusCommandFactory commandFactory = new CorusCommandFactory();
   private CorusConnector      corus;
+  private ClientFileSystem    fileSys;
   
   /**
    * Creates an instance of this class that sends command output to the console.
    * 
    * @param corus the {@link CorusConnector} to use.
+   * @param fileSys the {@link ClientFileSystem} to use.
    */
-  public Interpreter(CorusConnector corus) {
-    this(DefaultConsoleOutput.newInstance(), corus);
+  public Interpreter(CorusConnector corus, ClientFileSystem fileSys) {
+    this(DefaultConsoleOutput.newInstance(), corus, fileSys);
   }
   
   /**
    * @param output the {@link ConsoleOutput} to which command output will be sent.
    * @param corus the {@link CorusConnector} to use.
+   * @param fileSys the {@link ClientFileSystem} to use.
    */
-  public Interpreter(ConsoleOutput output, CorusConnector corus) {
+  public Interpreter(ConsoleOutput output, CorusConnector corus, ClientFileSystem fileSys) {
     super(new InterpreterConsoleInput(), output);
     this.corus = corus;
+    this.fileSys = fileSys;
   }
   
   /**
@@ -113,7 +117,7 @@ public class Interpreter extends Console {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
         Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
-        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10));
+        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), fileSys);
         ctx.setUp(this, cmdLine);
         ctx.setAbortOnError(true);
         try {

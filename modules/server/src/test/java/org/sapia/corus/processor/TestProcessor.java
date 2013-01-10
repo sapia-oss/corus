@@ -79,6 +79,10 @@ public class TestProcessor implements Processor{
   }
   
   @Override
+  public void confirmShutdown(String corusPid) throws ProcessNotFoundException {
+  }
+  
+  @Override
   public void restart(String pid) throws ProcessNotFoundException{
   }
   

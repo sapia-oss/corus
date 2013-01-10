@@ -7,6 +7,14 @@
     </java>
   </process>
   
+  <process name="shutdownApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <java mainClass="org.sapia.corus.examples.ShutdownApplication"
+          profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </java>
+  </process>
+  
   <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.NoopApplication"
           profile="test" vmType="server">

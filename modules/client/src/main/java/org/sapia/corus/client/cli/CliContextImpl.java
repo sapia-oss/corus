@@ -18,22 +18,30 @@ public class CliContextImpl extends Context implements CliContext {
   
   private static int ERROR_COUNTER = 1;
   
-  private CorusConnector corus;
-  private List<CliError> errors; 
-  private boolean 			 abortOnError;
+  private CorusConnector   corus;
+  private ClientFileSystem fileSys;
+  private List<CliError>   errors; 
+  private boolean 			   abortOnError;
 
   /**
    * Creates a new {@link CliContextImpl} instance.
    *
    * @param corus
    */
-  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList) {
-    this.corus = corus;
+  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, ClientFileSystem fileSys) {
+    this.corus   = corus;
+    this.fileSys = fileSys;
     errors = anErrorList;
   }
   
+  @Override
   public CorusConnector getCorus() {
     return corus;
+  }
+  
+  @Override
+  public ClientFileSystem getFileSystem() {
+    return fileSys;
   }
 
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {

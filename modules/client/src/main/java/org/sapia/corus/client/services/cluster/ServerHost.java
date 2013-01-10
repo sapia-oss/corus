@@ -1,22 +1,45 @@
 package org.sapia.corus.client.services.cluster;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Strings;
 
 /**
  * Holds misc information about a Corus host.
  * 
  * @author J-C Desrochers
  */
-public class ServerHost implements Serializable {
+public class ServerHost implements Externalizable {
+  
+  /**
+   * Indicates the role of the Corus node corresponding to this instance.
+   */
+  public enum Role {
+    
+    /**
+     * Indicates a basic node.
+     */
+    BASIC,
+    
+    /**
+     * Indicates a repository node.
+     */
+    REPO;
+    
+  }
   
   static final long serialVersionUID = 1L;
 
   private ServerAddress serverAddress;
   private String 				osInfo;
   private String 				javaVmInfo;
-
+  private Role          role            = Role.BASIC;
+  
+ 
   public static ServerHost createNew(ServerAddress anAddress, String anOsInfo, String aJavaVmInfo) {
     ServerHost created = new ServerHost();
     created.setServerAddress(anAddress);
@@ -86,6 +109,45 @@ public class ServerHost implements Serializable {
     javaVmInfo = aJavaVmInfo;
   }
   
+  /**
+   * @return this instance's {@link Role}.
+   */
+  public Role getRole() {
+    return role;
+  }
+
+  /**
+   * Sets this instance's {@link Role}.
+   * 
+   * @param role
+   */
+  public void setRole(Role role) {
+    this.role = role;
+  }
+
+  // --------------------------------------------------------------------------
+  // Externalization
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    this.serverAddress = (ServerAddress) in.readObject();
+    this.osInfo        = (String) in.readObject();
+    this.javaVmInfo    = (String) in.readObject();
+    this.role          = (Role) in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(serverAddress);
+    out.writeObject(osInfo);
+    out.writeObject(javaVmInfo);
+    out.writeObject(role);
+  }
+
+  // --------------------------------------------------------------------------
+  // Object overrides
+  
   @Override
   public int hashCode() {
     return serverAddress.hashCode();
@@ -101,15 +163,13 @@ public class ServerHost implements Serializable {
    
   }
 
-  /* (non-Javadoc)
-   * @see java.lang.Object#toString()
-   */
+  @Override
   public String toString() {
-    return new StringBuffer().append("[").
-            append("address=").append(String.valueOf(serverAddress)).
-            append(" osInfo=").append(osInfo).
-            append(" javaVmInfo=").append(javaVmInfo).
-            append("]").toString();
+    return Strings.toString(this, 
+        "address", serverAddress, 
+        "os", osInfo, 
+        "jvm", javaVmInfo, 
+        "role", role);
   }
   
 }
