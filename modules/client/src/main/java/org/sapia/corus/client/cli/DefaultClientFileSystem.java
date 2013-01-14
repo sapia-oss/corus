@@ -1,6 +1,7 @@
 package org.sapia.corus.client.cli;
 
 import java.io.File;
+import java.util.regex.Pattern;
 
 /**
  * Default {@link ClientFileSystem} implementation.
@@ -10,6 +11,8 @@ import java.io.File;
  */
 public class DefaultClientFileSystem implements ClientFileSystem {
  
+  private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-z]:");
+  
   private File baseDir;
   
   /**
@@ -46,9 +49,11 @@ public class DefaultClientFileSystem implements ClientFileSystem {
    * @return <code>true</code> if the given name corresponding to an absolute file.
    */
   static boolean isAbsolute(String fileName) {
+    String theFileName = fileName.trim();
     return 
-        fileName.trim().length() > 0
-        && (Character.isLetter(fileName.toLowerCase().charAt(0)) 
-        || fileName.startsWith("/"));
+        theFileName.length() > 0
+        && 
+        (WINDOWS_DRIVE_PATTERN.matcher(theFileName).find()
+         || theFileName.startsWith("/"));
   }
 }
