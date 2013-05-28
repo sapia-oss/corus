@@ -34,6 +34,20 @@ public interface OsModule {
    */
   public String executeProcess(LogCallback log, File rootDirectory, CmdLine commandLine) throws IOException;
   
+  
+  /**
+   * Executes the shell script specified by the given command-line.
+   * 
+   * @param log a {@link LogCallback}.
+   * @param rootDirectory a {@link File} corresponding to the script's execution directory.
+   * @param commandLine a {@link CmdLine} corresponding to the script to execute.
+   * @throws IOException if an error occurred while trying to execute the script.
+   */  
+  public void executeScript(
+      LogCallback log, 
+      File rootDirectory,
+      CmdLine commandLine) throws IOException;  
+  
   /**
    * Kills the process specified by the given PID.
    * 
@@ -42,4 +56,5 @@ public interface OsModule {
    * @throws IOException if an error occurred while trying to kill the process.
    */
   public void killProcess(LogCallback log, String pid) throws IOException;
+  
 }

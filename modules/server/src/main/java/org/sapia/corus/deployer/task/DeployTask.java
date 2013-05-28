@@ -16,6 +16,7 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
+import org.sapia.corus.util.FilePath;
 
 
 /**
@@ -48,7 +49,10 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
     DistributionDatabase dists    = ctx.getServerContext().lookup(DistributionDatabase.class);
     Deployer             deployer = ctx.getServerContext().getServices().getDeployer();
     FileSystemModule     fs       = ctx.getServerContext().getServices().getFileSystem();
-    File                 src      = new File(deployer.getConfiguration().getTempDir() + File.separator + fileName);               
+    File                 src      = FilePath.newInstance()
+                                      .addDir(deployer.getConfiguration()
+                                      .getTempDir())
+                                      .setRelativeFile(fileName).createFile();               
     
     try {
     	
@@ -56,13 +60,15 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
 
       // extracting corus.xml from archive and checking if already exists...
       Distribution dist    = Distribution.newInstance(src, fs);
-      String       baseDir = deployer.getConfiguration().getDeployDir() + File.separator + dist.getName() +
-                             File.separator + dist.getVersion();
+      String       baseDir = FilePath.newInstance()
+                               .addDir(deployer.getConfiguration().getDeployDir())
+                               .addDir(dist.getName())
+                               .addDir(dist.getVersion()).createFilePath();
       dist.setBaseDir(baseDir);
 
       synchronized (dists) {
-        File commonDir  = new File(baseDir + File.separator + "common");
-        File processDir = new File(baseDir + File.separator + "processes");
+        File commonDir  = FilePath.newInstance().addDir(baseDir).addDir("common").createFile();
+        File processDir = FilePath.newInstance().addDir(baseDir).addDir("processes").createFile();
 
         DistributionCriteria criteria = DistributionCriteria.builder()
           .name(dist.getName())
@@ -110,7 +116,7 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
     } catch (DeploymentException e) {
       ctx.error(e);
     } finally {
-      fs.deleteFile(src);
+      //fs.deleteFile(src);
     }
     return null;
   }

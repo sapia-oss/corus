@@ -9,6 +9,7 @@ import java.net.URL;
 import org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClient;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.Uri;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
 /**
@@ -16,12 +17,14 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
  * 
  * @author Yanick Duchesne
  */
-public class HttpDeploymentClient extends AbstractDeploymentClient{
+public class HttpDeploymentClient extends AbstractDeploymentClient {
  
   public static final String DEPLOYER_CONTEXT = "/corus/deployer";
 
 	private URL 						  url;
 	private HttpURLConnection conn;    
+	private InputStream       input;
+	private OutputStream      output;
 
   /**
    * @see org.sapia.corus.client.services.deployer.transport.DeploymentClient#close()
@@ -29,13 +32,13 @@ public class HttpDeploymentClient extends AbstractDeploymentClient{
   public void close() {
 		if(conn != null){
 			try{
-  			conn.getOutputStream().close();
+  			getOutputStream().close();
 			}catch(IOException e){
 				// noop
 			}
 			
 			try{
-				conn.getInputStream().close();
+				getInputStream().close();
 			}catch(IOException e){
 				// noop
 			}			
@@ -47,24 +50,27 @@ public class HttpDeploymentClient extends AbstractDeploymentClient{
    */
   public void connect(ServerAddress addr) throws IOException {
   	try{
-      url = new URL(((HttpAddress)addr).toString());
+  	  HttpAddress targetAddress  = (HttpAddress) addr;
+      url = new URL(Uri.parse("http://" + targetAddress.getHost() + ":" + targetAddress.getPort() + DEPLOYER_CONTEXT).toString());
   	}catch(ClassCastException e){
   		throw new IllegalArgumentException("Instance of " + HttpAddress.class.getName() + " expected");
   	}
   }
 
-  /**
-   * @see org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient#getInputStream()
-   */
-  protected InputStream getInputStream() throws IOException {
-    return connection().getInputStream();
+  @Override
+  public InputStream getInputStream() throws IOException {
+    if (input == null) {
+      input = connection().getInputStream();
+    }
+    return input;
   }
 
-  /**
-   * @see org.sapia.corus.client.services.deployer.transport.AbstractDeploymentClient#getOutputStream()
-   */
-  protected OutputStream getOutputStream() throws IOException {
-		return connection().getOutputStream();
+  @Override
+  public OutputStream getOutputStream() throws IOException {
+    if (output == null) {
+      output = connection().getOutputStream();
+    }
+    return output;
   }
   
   private HttpURLConnection connection() throws IOException{

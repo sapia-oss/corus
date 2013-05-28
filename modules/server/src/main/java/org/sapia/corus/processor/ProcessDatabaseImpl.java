@@ -5,7 +5,6 @@ import java.util.List;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.util.CompositeMatcher;
 import org.sapia.corus.util.IteratorFilter;
@@ -18,8 +17,8 @@ import org.sapia.corus.util.Matcher;
  * @author Yanick Duchesne
  */
 public class ProcessDatabaseImpl implements ProcessDatabase {
+  
   private DbMap<String, Process> _processes;
-
   
   public ProcessDatabaseImpl(DbMap<String, Process> map) {
     _processes = map;
@@ -76,6 +75,13 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
         }
       }
     )
+    .add(
+      new Matcher<Process>() {
+        public boolean matches(Process object) {
+          return criteria.getPid().matches(object.getProcessID());
+        }
+      }
+    )    
     .add(
       new Matcher<Process>() {
         public boolean matches(Process object) {

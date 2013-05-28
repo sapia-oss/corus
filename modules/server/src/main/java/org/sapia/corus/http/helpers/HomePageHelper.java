@@ -8,11 +8,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
-
-import simple.http.Request;
-import simple.http.Response;
+import org.simpleframework.http.Request;
+import org.simpleframework.http.Response;
 
 /**
  * Generates HTML content for the home page.
@@ -32,8 +32,8 @@ public class HomePageHelper {
   
   public void print(Request req, Response res) throws Exception{
     try{
-      res.set("Content-Type", "text/html");
-      res.setCode(200);
+      res.setValue("Content-Type", "text/html");
+      res.setCode(HttpResponseFacade.STATUS_OK);
       PrintStream ps = res.getPrintStream();
       ps.println("<html><body><h1>Welcome to Corus @ " + context.getDomain() + "</h1> ");
       ps.println("<h2>Available Extensions</h2>");

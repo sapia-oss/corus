@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli.command;
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.ubik.net.TCPAddress;
 
 public class Connect extends CorusCliCommand{
@@ -15,8 +16,9 @@ public class Connect extends CorusCliCommand{
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,
       InputException {
- 
-    String host = ((TCPAddress)ctx.getCorus().getContext().getAddress()).getHost();
+
+    TCPAddress currentAddress = (TCPAddress)ctx.getCorus().getContext().getAddress();
+    String host = currentAddress.getHost();
     int port = DEFAULT_PORT;
     
     if(ctx.getCommandLine().containsOption(OPT_HOST, true)){
@@ -31,18 +33,9 @@ public class Connect extends CorusCliCommand{
       }
     }
     ctx.getCorus().getContext().reconnect(host, port);
-    ctx.getConsole().println(String.format("Connecting on %s:%s", host, port));
-    
-    // Change the prompt
-    StringBuffer prompt = new StringBuffer().append("[");
-    if (ctx.getCorus().getContext().getAddress().getTransportType().equals("tcp/socket")) {
-      prompt.append(((TCPAddress) ctx.getCorus().getContext().getAddress()).getHost()).append(":").
-             append(((TCPAddress) ctx.getCorus().getContext().getAddress()).getPort());
-    } else {
-      prompt.append(ctx.getCorus().getContext().getAddress().toString());
-    }
-    prompt.append("@").append(ctx.getCorus().getContext().getDomain()).append("]>> ");
-    ctx.getConsole().setPrompt(prompt.toString());
 
+    // Change the prompt
+    ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
+    ctx.getCorus().getContext().getConnectionHistory().push(currentAddress);
   }
 }

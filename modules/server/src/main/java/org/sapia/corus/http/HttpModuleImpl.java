@@ -9,7 +9,6 @@ import org.sapia.corus.http.filesystem.FileSystemExtension;
 import org.sapia.corus.http.interop.SoapExtension;
 import org.sapia.corus.http.jmx.JmxExtension;
 import org.sapia.ubik.rmi.server.transport.http.HttpTransportProvider;
-import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvider;
 
 
 /**
@@ -40,16 +39,9 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
    * @see Service#init()
    */
   public void init() throws Exception {
-    // Create the interop and http extension transports
-    String transportType = serverContext().getTransport().getTransportProvider().getTransportType();
-    if (transportType.equals(MultiplexSocketTransportProvider.MPLEX_TRANSPORT_TYPE)) {
-      httpExt = new HttpExtensionManager(logger(), serverContext());      
-    } else if (transportType.equals(HttpTransportProvider.DEFAULT_HTTP_TRANSPORT_TYPE)) {
-      httpExt = new HttpExtensionManager(logger(), serverContext());      
-    } else {
-      throw new IllegalStateException("Could not initialize the http module using the transport type: " + transportType);
-    }
-    httpExt.init();      
+    httpExt = new HttpExtensionManager(logger(), serverContext());
+    HttpTransportProvider transportProvider = (HttpTransportProvider) serverContext().getTransport().getTransportProvider();
+    transportProvider.getRouter().setCatchAllHandler(httpExt);
   }
   
   /**
@@ -63,15 +55,12 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
     addHttpExtension(new JmxExtension(serverContext()));    
     SoapExtension ext = new SoapExtension(serverContext());
     addHttpExtension(ext);    
-    
-    httpExt.start();
   }  
   
   /**
    * @see Service#dispose()
    */
   public void dispose() {
-    httpExt.dispose();    
   }
  
   /**

@@ -38,6 +38,7 @@
     <p>- f: indicates that the port range should be forcefully remove (i.e.: even if 
             corresponding ports are flagged as being active).</p>
     <p/>
-    <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>
+    <p/>        
   </section>
 </help>

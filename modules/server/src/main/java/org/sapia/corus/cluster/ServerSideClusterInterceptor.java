@@ -69,7 +69,7 @@ public class ServerSideClusterInterceptor implements Interceptor, CorusCallback 
   
   @Override
   public ServerAddress getCorusAddress() {
-    return context.getServerAddress();
+    return context.getCorusHost().getEndpoint().getServerAddress();
   }
   
   @Override

@@ -16,8 +16,9 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
-
 /**
+ * Kills running processes.
+ * 
  * @author Yanick Duchesne
  */
 public class Kill extends CorusCliCommand {

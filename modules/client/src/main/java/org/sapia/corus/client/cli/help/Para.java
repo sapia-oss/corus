@@ -48,10 +48,5 @@ public class Para {
     }
     return buf.toString();
   }
-  
-//  public static void main(String[] args) {
-//    String s = "to chop   spaces \r next line   ";
-//    System.out.println(s);    
-//    System.out.println(Para.chopSpaces(s));
-//  }
+ 
 }

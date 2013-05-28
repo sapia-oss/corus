@@ -17,24 +17,37 @@ import org.sapia.corus.client.exceptions.deployer.DeploymentException;
  */
 public class Deploy extends CorusCliCommand {
   
-  public static final String OPT_EXEC_CONF = "e";
+  private static final String SCRIPT_DESC_UNDEFINED = "no desc.";
+  
+  public static final String OPT_EXEC_CONF      = "e";
+  public static final String OPT_FILE           = "f";
+  public static final String OPT_SCRIPT         = "s";
+  public static final String OPT_DESC_OR_DIR    = "d";
+  public static final String OPT_ALIAS          = "a";
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     
-    if(ctx.getCommandLine().isNextArg()){
-      while(ctx.getCommandLine().hasNext()){
-        CmdElement elem = ctx.getCommandLine().next();
-        if(elem instanceof Arg){
-          deployDistribution(ctx, elem.getName());
-        }
-      }
-    }
-    else if(ctx.getCommandLine().containsOption(OPT_EXEC_CONF, true)){
+    if(ctx.getCommandLine().containsOption(OPT_EXEC_CONF, true)){
       deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF, true).getValue());
-    }
-    else{
-      throw new InputException("File name expected as argument");
+    } else if(ctx.getCommandLine().containsOption(OPT_FILE, true)){
+      deployFile(ctx, ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+    } else if(ctx.getCommandLine().containsOption(OPT_SCRIPT, true)){
+      deployScript(
+          ctx, 
+          ctx.getCommandLine().assertOption(OPT_SCRIPT, true).getValue(),
+          ctx.getCommandLine().assertOption(OPT_ALIAS, true).getValue());
+    } else {
+      if(ctx.getCommandLine().isNextArg()){
+        while(ctx.getCommandLine().hasNext()){
+          CmdElement elem = ctx.getCommandLine().next();
+          if(elem instanceof Arg){
+            deployDistribution(ctx, elem.getName());
+          }
+        }
+      } else{
+        throw new InputException("File name expected as argument");
+      }
     }
   }
   
@@ -45,7 +58,7 @@ public class Deploy extends CorusCliCommand {
     else {
       try {
         displayProgress(
-                ctx.getCorus().getDeployerFacade().deploy(
+                ctx.getCorus().getDeployerFacade().deployDistribution(
                         fileName,
                         getClusterInfo(ctx)),
                         ctx);
@@ -53,13 +66,53 @@ public class Deploy extends CorusCliCommand {
       } catch (ConcurrentDeploymentException e) {
         CliError err = ctx.createAndAddErrorFor(this, "Distribution file already being deployed", e);
         ctx.getConsole().println(err.getSimpleMessage());
-
       } catch (Exception e) {
         CliError err = ctx.createAndAddErrorFor(this, "Problem deploying distribution", e);
         ctx.getConsole().println(err.getSimpleMessage());
       }
     }
   }
+  
+  private void deployScript(CliContext ctx, String fileName, String alias) throws AbortException, InputException {
+    String desc = null;
+    if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true)) {
+      desc = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue();
+    } else {
+      desc = SCRIPT_DESC_UNDEFINED;
+    }  
+    try {
+      displayProgress(
+              ctx.getCorus().getDeployerFacade().deployScript(
+                      fileName,
+                      alias,
+                      desc,
+                      getClusterInfo(ctx)),
+                      ctx);
+      
+    } catch (Exception e) {
+      CliError err = ctx.createAndAddErrorFor(this, "Problem deploying script", e);
+      ctx.getConsole().println(err.getSimpleMessage());
+    }
+  }  
+  
+  private void deployFile(CliContext ctx, String fileName) throws AbortException, InputException {
+    String destDir = null;
+    if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true)) {
+      destDir = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue();
+    }   
+    try {
+      displayProgress(
+              ctx.getCorus().getDeployerFacade().deployFile(
+                      fileName,
+                      destDir,
+                      getClusterInfo(ctx)),
+                      ctx);
+      
+    } catch (Exception e) {
+      CliError err = ctx.createAndAddErrorFor(this, "Problem deploying file", e);
+      ctx.getConsole().println(err.getSimpleMessage());
+    }
+  }  
   
   private void deployExec(CliContext ctx, String fileName) 
   throws AbortException, InputException {

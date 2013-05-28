@@ -1,14 +1,18 @@
 <help>
   <section title="Description">
-   <p>Deploys a distribution or an execution configuration to a given Corus server.</p>
+   <p>Deploys a distribution, an execution configuration, a shell script, or a file to a given Corus server.</p>
   </section>
   <section title="Syntax">
     <p>deploy file [file2 [file3 [...]]] [-cluster]</p>
     <p/>
     <p>or:</p>
-	<p/>
+  	<p/>
     <p>deploy -e exec_config_file [-cluster]</p>
     <p/>
+    <p>deploy -f arbitrary_file.tar [-d remote_dir] [-cluster]</p>
+    <p/>    
+    <p>deploy -s restart_memcached.sh -a restart-memcached [-d "restarts memcached" ] [-cluster]</p>
+    <p/>    
     <p>Where:</p>
     <p/>
     <p>- file [file2 [file3 [...]]]: a single file, or a space-delimited list of files to deploy. 
@@ -20,12 +24,27 @@
     <p/>
     <p>- e: the path to an execution configuration file.</p>
     <p/>
+    <p>- f: the path to an arbitrary file to deploy.</p>
+    <p/>
+    <p>- s: the path to a shell script to deploy.</p>
+    <p/>
+    <p>- d: in the context of the -f option, interpreted as the directory on the remote Corus note to which to upload the file.</p>
+    <p/>    
+    <p>- d: in the context of the -f option, interpreted as the directory on the remote Corus note to which to upload the file.
+    In the context of the -s option, the -d option is rather interpreted as the description to assign to the shell script being deployed.</p>
+    <p/>
+    <p>- a: the alias of the shell script being deployed, which will be used in conjonction with the exec and undeploy commands to refer to the shell script.</p>
+    <p/>    
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Examples">
     <p>deploy myDistribution.zip</p>
     <p/>
     <p>deploy -e myExecConfig.xml</p>
+    <p/>    
+    <p>deploy -f someArchice.tar</p>
+    <p/>    
+    <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
     <p/>    
   </section>
 </help>

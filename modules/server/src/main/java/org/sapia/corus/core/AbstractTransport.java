@@ -12,7 +12,7 @@ import org.sapia.ubik.rmi.server.transport.TransportProvider;
  * 
  * @author Yanick Duchesne
  */
-public abstract class AbstractTransport implements CorusTransport{
+public abstract class AbstractTransport implements CorusTransport {
 	
 	private boolean isInit;
 	

@@ -49,6 +49,15 @@ public class TestPersistentObject implements Persistent<String, TestPersistentOb
   }
   
   @Override
+  public boolean delete() {
+    return true;
+  }
+  
+  @Override
+  public void markDeleted() {
+  }
+  
+  @Override
   public void setDbMap(DbMap<String, TestPersistentObject> db) {
   }
   

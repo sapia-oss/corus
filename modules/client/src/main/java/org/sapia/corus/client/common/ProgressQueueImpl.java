@@ -9,8 +9,8 @@ import java.util.List;
  * @author Yanick Duchesne
  */
 public class ProgressQueueImpl implements ProgressQueue {
-  private List<ProgressMsg>    _msgs = new ArrayList<ProgressMsg>();
-  private boolean _over;
+  private List<ProgressMsg> _msgs = new ArrayList<ProgressMsg>();
+  private boolean           _over;
 
   public synchronized boolean hasNext() {
     while ((_msgs.size() == 0) && !_over) {

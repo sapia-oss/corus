@@ -50,14 +50,23 @@ public abstract class Task<R,P> {
    * 
    * @see #isMaxExecutionReached()
    */
-  public void setMaxExecution(int maxExecution) {
+  public Task<R, P> setMaxExecution(int maxExecution) {
     this.maxExecution = maxExecution;
+    return this;
+  }
+  
+  /**
+   * Sets this instance's maximum number of executions to 1.
+   */
+  public Task<R, P> executeOnce() {
+    maxExecution = 1;
+    return this;
   }
 
   /**
    * Executes this task.
    * 
-   * @param ctx a {@link TaskExecutionContext}
+   * @param ctx a {@link TaskExecutionContextImpl}
    * @return an arbitrary object resulting from the execution.
    * @throws Throwable if an error occurs during execution.
    */
@@ -106,7 +115,7 @@ public abstract class Task<R,P> {
   /**
    * Flags this task as aborted.
    * 
-   * @param ctx a {@link TaskExecutionContext}
+   * @param ctx a {@link TaskExecutionContextImpl}
    */
   protected synchronized void abort(TaskExecutionContext ctx){
     abort();
@@ -116,7 +125,7 @@ public abstract class Task<R,P> {
    * Method that is internally called when the maximum number of executions
    * has been reached, if any maximum is specified.
    * 
-   * @param ctx the {@link TaskExecutionContext}
+   * @param ctx the {@link TaskExecutionContextImpl}
    * @throws Throwable
    * @see #setMaxExecution(int)
    */

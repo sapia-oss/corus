@@ -28,5 +28,6 @@
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
     <p/>
     <p>- When used with the -i option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
+    <p/>    
   </section>
 </help>

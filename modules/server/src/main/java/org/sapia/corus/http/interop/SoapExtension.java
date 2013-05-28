@@ -54,7 +54,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
   }
   
   public void process(HttpContext ctx) throws Exception {
-    ctx.getResponse().set("Content-Type", "text/xml");
+    ctx.getResponse().setHeader("Content-Type", "text/xml");
     try {
       helper.processRequest(ctx.getRequest().getInputStream(), ctx.getResponse().getOutputStream());
     } catch (Exception e) {

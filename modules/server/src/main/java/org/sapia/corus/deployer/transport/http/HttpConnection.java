@@ -5,9 +5,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.sapia.corus.client.services.deployer.transport.Connection;
-
-import simple.http.Request;
-import simple.http.Response;
+import org.simpleframework.http.Request;
+import org.simpleframework.http.Response;
 
 /**
  * Implements the {@link Connection} interface over HTTP response/request
@@ -17,8 +16,10 @@ import simple.http.Response;
  */
 public class HttpConnection implements Connection {
 	
-	private Request  req;
-	private Response res;
+	private Request     req;
+	private Response    res;
+  private OutputStream out;
+	private InputStream  is;
 
   HttpConnection(Request req, Response res){
   	this.req = req;
@@ -29,23 +30,20 @@ public class HttpConnection implements Connection {
    * @see Connection#getInputStream()
    */
   public InputStream getInputStream() throws IOException {
-    try{
-      return req.getInputStream();
-    }catch(Exception e){
-      throw new IOException(e);
+    if (is == null) {
+      is = req.getInputStream();
     }
+    return is;
   }
 
   /**
    * @see Connection#getOutputStream()
    */
   public OutputStream getOutputStream() throws IOException {
-    try{
-      return res.getOutputStream();
-    }catch(Exception e){
-      throw new IOException(e);
+    if (out == null) {
+      out = res.getOutputStream();
     }
-
+    return out;
   }
   
   /**

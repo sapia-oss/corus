@@ -1,17 +1,23 @@
 package org.sapia.corus.file;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Expand;
+import org.apache.tools.ant.taskdefs.Zip;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ZipUtils;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.core.ModuleHelper;
+import org.springframework.util.Assert;
 
 /**
  * Implementation of the {@link FileSystemModule} interface.
@@ -78,6 +84,9 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
   
   @Override
   public void unzip(File toUnzip, File destDir) throws IOException {
+    Assert.isTrue(!toUnzip.isDirectory(), "File to unzip is in fact a directory: " + toUnzip.getAbsolutePath());
+    Assert.isTrue(destDir.isDirectory(), "Destination directory is a file: " + destDir.getAbsolutePath());
+
     Expand unzip = new Expand();
     unzip.setSrc(toUnzip);
     unzip.setDest(destDir);
@@ -87,5 +96,36 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
     }catch(BuildException e){
       throw new IOException(e.getMessage(), e);
     }
+  }
+  
+  @Override
+  public void zip(File srcDir, File destFile) throws IOException {
+    Assert.isTrue(srcDir.isDirectory(), "Directory to zip is not a directory: " + srcDir.getAbsolutePath());
+    
+    Zip zip = new Zip();
+    zip.setBasedir(srcDir);
+    zip.setDestFile(destFile);
+    zip.setProject(new Project());    
+    try{
+      zip.execute();
+    }catch(BuildException e){
+      throw new IOException(e.getMessage(), e);
+    }
+  }
+  
+  @Override
+  public List<File> listFiles(File baseDir) {
+    File[] files = baseDir.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File f) {
+        return !f.isDirectory() && !f.isHidden();
+      }
+    });
+    
+    if (files == null) {
+      return new ArrayList<File>(0);
+    }
+    
+    return Arrays.asList(files);
   }
 }

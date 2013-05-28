@@ -35,7 +35,8 @@ public class ZipUtils {
                                  int increment) throws IOException {
     ZipEntry entry = null;
 
-    while ((is.available() > 0) && ((entry = is.getNextEntry()) != null)) {
+    
+    while (((entry = is.getNextEntry()) != null)) {
       if (entry.getName().equals(name)) {
         return readBytes(is, capacity, increment);
       }
@@ -133,4 +134,5 @@ public class ZipUtils {
       theByte = b;
     }
   }
+
 }

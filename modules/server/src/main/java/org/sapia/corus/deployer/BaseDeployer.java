@@ -17,7 +17,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
  * @author yduchesne
  *
  */
-public class BaseDeployer implements Deployer{
+public class BaseDeployer implements Deployer {
 
   protected DeployerConfigurationImpl configuration = new DeployerConfigurationImpl();
   private   DistributionDatabase      store         = new DistributionDatabaseImpl();

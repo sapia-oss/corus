@@ -18,6 +18,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
+import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -25,30 +26,35 @@ import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
 
 /**
- *
+ * Allows port management.
+ * 
  * @author yduchesne
  */
-public class Port extends CorusCliCommand{
+public class Port extends CorusCliCommand {
   
-  public static final String ADD       = "add";
-  public static final String DELETE    = "del";
-  public static final String RELEASE   = "release";
-  public static final String LIST      = "ls";
-  public static final String OPT_NAME  = "n";
-  public static final String OPT_PROPS = "p";
-  public static final String OPT_FORCE = "f";
-  public static final String OPT_CLEAR = "clear";
-  public static final String OPT_MIN   = "min";
-  public static final String OPT_MAX   = "max";
+  private static final TableDef RANGE_TBL = TableDef.newInstance()
+      .createCol("name", 10)
+      .createCol("range", 15)
+      .createCol("avail", 24)
+      .createCol("active", 24);
+
+  private static TableDef TITLE_TBL = TableDef.newInstance()
+      .createCol("val", 78);
   
-  public static final int COL_NAME   = 0;
-  public static final int COL_RANGE  = 1;
-  public static final int COL_AVAIL  = 2;
-  public static final int COL_ACTIVE = 3;
+  // --------------------------------------------------------------------------
   
-  /** Creates a new instance of Port */
-  public Port() {
-  }
+  private static final String ADD       = "add";
+  private static final String DELETE    = "del";
+  private static final String RELEASE   = "release";
+  private static final String LIST      = "ls";
+  private static final String OPT_NAME  = "n";
+  private static final String OPT_PROPS = "p";
+  private static final String OPT_FORCE = "f";
+  private static final String OPT_CLEAR = "clear";
+  private static final String OPT_MIN   = "min";
+  private static final String OPT_MAX   = "max";
+  
+  // --------------------------------------------------------------------------  
   
   @Override
   public void doExecute(CliContext ctx) throws InputException{
@@ -173,55 +179,40 @@ public class Port extends CorusCliCommand{
   }
 
   private void displayPorts(PortRange range, CliContext ctx) {
-    Table   rangeTable;
-    Row     row;
-
-    rangeTable = new Table(ctx.getConsole().out(), 4, 20);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_NAME).setWidth(10);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_RANGE).setWidth(15);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_AVAIL).setWidth(24);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_ACTIVE).setWidth(24);
+    Table table = RANGE_TBL.createTable(ctx.getConsole().out());
     
-    rangeTable.drawLine('-', 0, 80);
+    table.drawLine('-', 0, CONSOLE_WIDTH);
 
-    row = rangeTable.newRow();
-    row.getCellAt(COL_NAME).append(range.getName());
-    row.getCellAt(COL_RANGE).append(
+    Row row = table.newRow();
+    row.getCellAt(RANGE_TBL.col("name").index()).append(range.getName());
+    row.getCellAt(RANGE_TBL.col("range").index()).append(
       new StringBuffer("[")
         .append(range.getMin())
         .append(" - ")
         .append(range.getMax())
         .append("]").toString());
-    row.getCellAt(COL_AVAIL).append(range.getAvailable().toString());
-    row.getCellAt(COL_ACTIVE).append(range.getActive().toString());
+    row.getCellAt(RANGE_TBL.col("avail").index()).append(range.getAvailable().toString());
+    row.getCellAt(RANGE_TBL.col("active").index()).append(range.getActive().toString());
     row.flush();
   }
 
   private void displayHeader(ServerAddress addr, CliContext ctx) {
-    Table   rangeTable;
-    Row     row;
-    Row     headers;
-
-    rangeTable = new Table(ctx.getConsole().out(), 1, 78);
-    rangeTable.drawLine('=');
-    row = rangeTable.newRow();
-    row.getCellAt(0).append("Host: ").append(addr.toString());
+    Table ranges = RANGE_TBL.createTable(ctx.getConsole().out());
+    Table title  = TITLE_TBL.createTable(ctx.getConsole().out());
+    
+    title.drawLine('=', 0, CONSOLE_WIDTH);
+    
+    Row row = title.newRow();
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
     row.flush();
 
-    rangeTable.drawLine(' ');
+    title.drawLine(' ', 0, CONSOLE_WIDTH);
 
-    rangeTable = new Table(ctx.getConsole().out(), 4, 20);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_NAME).setWidth(10);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_RANGE).setWidth(15);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_AVAIL).setWidth(24);
-    rangeTable.getTableMetaData().getColumnMetaDataAt(COL_ACTIVE).setWidth(24);
-
-    headers = rangeTable.newRow();
-
-    headers.getCellAt(COL_NAME).append("Name");
-    headers.getCellAt(COL_RANGE).append("Range");
-    headers.getCellAt(COL_AVAIL).append("Available");
-    headers.getCellAt(COL_ACTIVE).append("Active");
+    Row headers = ranges.newRow();
+    headers.getCellAt(RANGE_TBL.col("name").index()).append("Name");
+    headers.getCellAt(RANGE_TBL.col("range").index()).append("Range");
+    headers.getCellAt(RANGE_TBL.col("avail").index()).append("Available");
+    headers.getCellAt(RANGE_TBL.col("active").index()).append("Active");
 
     headers.flush();
   }  

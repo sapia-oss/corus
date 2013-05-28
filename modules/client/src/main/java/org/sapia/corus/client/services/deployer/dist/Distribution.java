@@ -209,6 +209,16 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   }
   
   /**
+   * Returns a name in the following format: <code>name</code>-<code>version</code>.<code>zip</code>
+   * 
+   * @return the file name of the .zip file corresponding to the distribution that
+   * this instance represents.
+   */
+  public String getDistributionFileName() {
+    return this.name + "-" + version + ".zip";
+  }
+  
+  /**
    * Tests if this distribution's name and version match the given corresponding
    * arguments.
    * 
@@ -262,7 +272,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
       return newInstance(fs.openZipEntryStream(zipFile, DEPLOYMENT_DESCRIPTOR));
     } catch (IOException e) {
       throw new DeploymentException("could not extract entry: " +
-                                    DEPLOYMENT_DESCRIPTOR, e);
+                                    DEPLOYMENT_DESCRIPTOR + " from " + zipFile.getAbsolutePath(), e);
     }
   }
   

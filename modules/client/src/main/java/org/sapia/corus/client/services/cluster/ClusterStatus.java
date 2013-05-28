@@ -1,7 +1,11 @@
 package org.sapia.corus.client.services.cluster;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
+import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannel.Role;
 
 /**
@@ -10,14 +14,18 @@ import org.sapia.ubik.mcast.EventChannel.Role;
  * @author yduchesne
  *
  */
-public class ClusterStatus implements Serializable {
+public class ClusterStatus implements Externalizable {
 	
 	static final long serialVersionUID = 1L;
 
 	private Role 				role;
-	private ServerHost 	host;
+	private CorusHost 	host;
+	
+	/** DO NOT USE: meant for externalization only.  */
+	public ClusterStatus() {
+  }
 
-	public ClusterStatus(Role role, ServerHost host) {
+	public ClusterStatus(Role role, CorusHost host) {
 		this.role = role;
 		this.host = host;
   }
@@ -32,7 +40,23 @@ public class ClusterStatus implements Serializable {
 	/**
 	 * @return the Corus host information.
 	 */
-	public ServerHost getHost() {
+	public CorusHost getHost() {
 	  return host;
   }
+	
+	// --------------------------------------------------------------------------
+	// Externalizable interface
+	
+	@Override
+	public void readExternal(ObjectInput in) throws IOException,
+	    ClassNotFoundException {
+	  role = (EventChannel.Role) in.readObject();
+	  host = (CorusHost) in.readObject();
+	}
+	
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+	  out.writeObject(role);
+	  out.writeObject(host);
+	}
 }

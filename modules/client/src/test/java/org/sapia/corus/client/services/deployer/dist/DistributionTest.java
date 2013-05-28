@@ -104,6 +104,12 @@ public class DistributionTest {
   }
   
   @Test
+  public void testGetDistributionFileName() {
+    Distribution dist = new Distribution("dist", "2.0");
+    Assert.assertEquals("dist-2.0.zip", dist.getDistributionFileName());
+  }
+  
+  @Test
   public void testTags(){
     Distribution dist = new Distribution("dist", "2.0");
     dist.setTags("tag1, tag2, tag3");

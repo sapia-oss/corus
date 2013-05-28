@@ -8,8 +8,8 @@ import java.util.Properties;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
-import org.sapia.corus.client.services.cluster.ServerHost;
-import org.sapia.ubik.net.TCPAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.ubik.mcast.EventChannel;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 
@@ -56,13 +56,13 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider{
   }
   
   @Override
-  public TCPAddress getServerAddress() {
-    return delegate.getServerAddress();
+  public EventChannel getEventChannel() {
+    return delegate.getEventChannel();
   }
   
   @Override
-  public ServerHost getHostInfo() {
-    return delegate.getHostInfo();
+  public CorusHost getCorusHost() {
+    return delegate.getCorusHost();
   }
 
   @Override
@@ -121,10 +121,6 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider{
   
   ServerContext getServerContext(){
     return delegate;
-  }
-  
-  void setServerAddress(TCPAddress addr){
-    delegate.setServerAddress(addr);
   }
   
   void addApplicationContext(ApplicationContext ctx){

@@ -4,6 +4,12 @@ import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 
+/**
+ * Displays the Corus version.
+ * 
+ * @author yduchesne
+ *
+ */
 public class Ver extends CorusCliCommand{
   
   @Override

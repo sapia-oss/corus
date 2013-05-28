@@ -3,7 +3,7 @@ package org.sapia.corus.client.services.processor;
 import java.rmi.Remote;
 
 
-public interface ProcessorConfiguration extends Remote{
+public interface ProcessorConfiguration extends Remote {
 
   /**
    * Returns the delay after which processes that have not polled their Corus server 
@@ -55,4 +55,8 @@ public interface ProcessorConfiguration extends Remote{
    */
   public boolean autoRestartStaleProcesses();
 
+  /**
+   * @return <code>true</code> if process startup at Corus boot time is enabled.
+   */
+  public boolean isBootExecEnabled();
 }

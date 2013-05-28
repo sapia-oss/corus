@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
  *
  */
 public interface HttpExtension {
+
   
   /**
    * @return the {@link HttpExtensionInfo} holding this 

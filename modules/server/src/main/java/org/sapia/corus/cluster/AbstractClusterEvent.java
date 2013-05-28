@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.services.cluster.ServerHost;
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.ubik.util.Strings;
 
 /**
  * The abstract class for Corus clustering events.
@@ -16,8 +16,7 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public class AbstractClusterEvent implements Externalizable {
 	
-  private ServerAddress origin;
-  private ServerHost    hostInfo;
+  private CorusHost origin;
   
 	/**
 	 * Meant for externalization
@@ -26,41 +25,34 @@ public class AbstractClusterEvent implements Externalizable {
   }
   
   /**
-   * @param origin the {@link ServerAddress} of the node from which this event originates.
-   * @param hostInfo the {@link ServerHost} of the node from which this event originates.
+   * @param origin the {@link CorusHost} of the node from which this event originates.
    */
-  public AbstractClusterEvent(ServerAddress origin, ServerHost hostInfo) {
+  public AbstractClusterEvent(CorusHost origin) {
 	  this.origin   = origin;
-	  this.hostInfo = hostInfo;
   }
   
   /**
-   * @return this instance's {@link ServerHost}, identifying the node from which
-   * this event originates.
-   */
-  public ServerHost getHostInfo() {
-	  return hostInfo;
-  }
-  
-  /**
-   * @return the {@link ServerAddress} of the node from which this event
+   * @return the {@link CorusHost} of the node from which this event
    * originates.
    */
-  public ServerAddress getOrigin() {
+  public CorusHost getOrigin() {
 	  return origin;
   }  
+  
+  @Override
+  public String toString() {
+    return Strings.toStringFor(this, "origin", origin);
+  }
 	
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 	    ClassNotFoundException {
-		origin   = (ServerAddress) in.readObject();
-		hostInfo = (ServerHost) in.readObject();
+		origin   = (CorusHost) in.readObject();
 	}
 	
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(origin);
-		out.writeObject(hostInfo);
 	}
 
 }

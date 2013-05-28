@@ -16,6 +16,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
  * @author Yanick Duchesne
  */
 public interface Deployer extends java.rmi.Remote, Module {
+  
   String ROLE = Deployer.class.getName();
   
   /**
@@ -55,4 +56,6 @@ public interface Deployer extends java.rmi.Remote, Module {
    */
   public Distribution getDistribution(DistributionCriteria criteria)
                                throws DistributionNotFoundException;
+  
+  
 }

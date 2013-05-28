@@ -20,5 +20,9 @@ public interface Persistent<K, V> {
   
   public boolean save();
   
+  public boolean delete();
+  
+  public void markDeleted();
+  
   public boolean refresh();
 }

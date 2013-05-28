@@ -33,14 +33,40 @@
   <!-- ============ DEPLOYER ============ -->
 
   <bean name="deployer.configuration" class="org.sapia.corus.deployer.DeployerConfigurationImpl">
-    <property name="tempDir"   value="${corus.server.tmp.dir}" />
-    <property name="deployDir" value="${corus.server.deploy.dir}" />
+    <property name="tempDir"    value="${corus.server.tmp.dir}" />
+    <property name="deployDir"  value="${corus.server.deploy.dir}" />
+    <property name="uploadDir"  value="${corus.server.uploads.dir}" />    
+    <property name="scriptDir"  value="${corus.server.scripts.dir}" />
+    <property name="repoDir"    value="${corus.server.repo.dir}" />
   </bean>
+  
+  <bean name="deployer.shellScriptManager" 
+        class="org.sapia.corus.deployer.ShellScriptManagerImpl" 
+        scope="singleton"
+        autowire="autodetect" />
+        
+  <bean name="deployer.fileManager" 
+        class="org.sapia.corus.deployer.FileManagerImpl" 
+        scope="singleton"
+        autowire="autodetect" />        
+  
+  <bean name="fileDeploymentHandler"         class="org.sapia.corus.deployer.handler.FileDeploymentHandler" />
+  <bean name="distributionDeploymentHandler" class="org.sapia.corus.deployer.handler.DistributionDeploymentHandler" />
+  <bean name="scriptDeploymentHandler"       class="org.sapia.corus.deployer.handler.ScriptDeploymentHandler" />
   
   <bean name="org.sapia.corus.client.services.deployer.Deployer" 
         class="org.sapia.corus.deployer.DeployerImpl" 
         scope="singleton" 
-        autowire="autodetect"/>
+        autowire="autodetect">
+        
+    <property name="deploymentHandlers">
+        <list>
+            <ref bean="fileDeploymentHandler" />
+            <ref bean="distributionDeploymentHandler" />
+            <ref bean="scriptDeploymentHandler" />
+        </list>
+    </property>
+  </bean>
   
   <!-- ============ PROCESSOR ============ -->
 
@@ -51,6 +77,7 @@
     <property name="restartInterval"      value="${corus.process.restart-interval}" />
     <property name="processTimeout"       value="${corus.process.timeout}" />
     <property name="autoRestart"          value="${corus.process.auto-restart}" />
+    <property name="bootExecEnabled"      value="${corus.process.start-at-boot.enabled}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.processor.Processor" 
@@ -75,9 +102,34 @@
     <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
     <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
   </bean>
+
+  <!-- ============ REPO ============ -->
   
+  <bean name="repository.configuration" class="org.sapia.corus.repository.RepositoryConfigurationImpl">
+    <property name="maxConcurrentDeploymentRequests"      value="${corus.server.repository.max.concurrent-deployments}" />
+    <property name="distributionDiscoveryMaxAttempts"     value="${corus.server.repository.dist.disco.max-attempts}" />    
+    <property name="distributionDiscoveryIntervalSeconds" value="${corus.server.repository.dist.disco.interval}" />
+    <property name="pushTagsEnabled"                      value="${corus.server.repository.tags.push.enabled}" />
+    <property name="pullTagsEnabled"                      value="${corus.server.repository.tags.pull.enabled}" />    
+    <property name="pushPropertiesEnabled"                value="${corus.server.repository.properties.push.enabled}" />    
+    <property name="pullPropertiesEnabled"                value="${corus.server.repository.properties.pull.enabled}" />
+    <property name="pushFilesEnabled"                     value="${corus.server.repository.uploads.push.enabled}" />    
+    <property name="pullFilesEnabled"                     value="${corus.server.repository.uploads.pull.enabled}" />    
+    <property name="pushScriptsEnabled"                   value="${corus.server.repository.scripts.push.enabled}" />    
+    <property name="pullScriptsEnabled"                   value="${corus.server.repository.scripts.pull.enabled}" />    
+    <property name="pushPortRangesEnabled"                value="${corus.server.repository.port-ranges.push.enabled}" />    
+    <property name="pullPortRangesEnabled"                value="${corus.server.repository.port-ranges.pull.enabled}" />    
+    <property name="bootExecEnabled"                      value="${corus.process.start-at-boot.enabled}" />
+  </bean>
+
+  <bean name="org.sapia.corus.client.services.repository.Repository" 
+        class="org.sapia.corus.repository.RepositoryImpl" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+
   <!-- ============ ALERTS ============ -->
-  
+
   <bean name="org.sapia.corus.client.services.alert.AlertManager" 
         class="org.sapia.corus.alert.AlertManagerImpl" 
         scope="singleton"

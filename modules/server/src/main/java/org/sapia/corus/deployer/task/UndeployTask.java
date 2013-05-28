@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
@@ -15,6 +16,7 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
+import org.sapia.corus.util.FilePath;
 
 
 /**
@@ -38,13 +40,20 @@ public class UndeployTask extends Task<Void,TaskParams<Arg, Arg, Void, Void>> im
     
     FileSystemModule     fs = ctx.getServerContext().getServices().getFileSystem();
     DistributionDatabase db = ctx.getServerContext().getServices().getDistributions();
+    DeployerConfiguration config = ctx.getServerContext().getServices().getDeployer().getConfiguration();
     
     List<Distribution> dists    = db.getDistributions(criteria);
     for(Distribution dist:dists){
       File         distDir = new File(dist.getBaseDir());
       ctx.info(String.format("Undeploying distribution %s", dist.getDislayInfo()));
       fs.deleteDirectory(distDir);
+      fs.deleteFile(
+          FilePath.newInstance()
+              .addDir(config.getRepoDir())
+              .setRelativeFile(dist.getDistributionFileName()).createFile()
+      );
       db.removeDistribution(criteria);
+      
       ctx.info("Undeployment successful");
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentEvent(dist));
     }

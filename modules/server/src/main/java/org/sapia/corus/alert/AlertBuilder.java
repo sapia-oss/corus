@@ -95,7 +95,7 @@ public class AlertBuilder {
     StringBuilder builder = new StringBuilder();
     builder.append("LEVEL: ").append(level.name()).append("\r\n");
     builder.append("SUMMARY: ").append(summary).append("\r\n");
-    builder.append("HOST: ").append(serverContext.getServerAddress().getHost() + ":" + serverContext.getServerAddress().getPort()).append("\r\n");
+    builder.append("HOST: ").append(serverContext.getCorusHost().getEndpoint().getServerAddress()).append("\r\n");
     builder.append("DOMAIN: ").append(serverContext.getDomain()).append("\r\n");    
     builder.append("TIME: ").append(DATE_FORMAT.format(new Date())).append("\r\n");    
     for (Field f : fields) {

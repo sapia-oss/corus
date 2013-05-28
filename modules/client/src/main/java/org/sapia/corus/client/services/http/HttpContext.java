@@ -1,8 +1,5 @@
 package org.sapia.corus.client.services.http;
 
-import simple.http.Request;
-import simple.http.Response;
-
 /**
  * Encapsulates HTTP request/response data.
  * 
@@ -11,29 +8,29 @@ import simple.http.Response;
  */
 public class HttpContext {
 
-  private Request  request;
-  private Response response;
+  private HttpRequestFacade  request;
+  private HttpResponseFacade response;
   private String 	 contextPath, pathInfo;
   
   /**
-   * @return this instance's <code>Request</code> object.
+   * @return this instance's {@link HttpRequestFacade}.
    */
-  public Request getRequest() {
+  public HttpRequestFacade getRequest() {
     return request;
   }
   
-  public void setRequest(Request request) {
+  public void setRequest(HttpRequestFacade request) {
     this.request = request;
   }
 
   /**
-   * @return this instance's <code>Response</code> object.
+   * @return this instance's {@link HttpResponseFacade} object.
    */  
-  public Response getResponse() {
+  public HttpResponseFacade getResponse() {
     return response;
   }
   
-  public void setResponse(Response response) {
+  public void setResponse(HttpResponseFacade response) {
     this.response = response;
   }
 

@@ -12,20 +12,15 @@ import org.sapia.ubik.serialization.SerializationStreams;
 /**
  * @author Yanick Duchesne
  */
-public class ClientDeployOutputStream implements DeployOutputStream{
+public class ClientDeployOutputStream implements DeployOutputStream {
 	
-	private OutputStream 						 out;
-  private AbstractDeploymentClient client;
-  private ProgressQueue 					 queue;
-  private boolean 								 closed;
+	private OutputStream 		 out;
+  private DeploymentClient client;
+  private ProgressQueue 	 queue;
+  private boolean 				 closed;
 	
-	public ClientDeployOutputStream(DeploymentMetadata meta, DeploymentClient client) throws IOException{
-		try{
-			this.client = (AbstractDeploymentClient)client;			
-		}catch(ClassCastException e){
-			throw new IllegalArgumentException("Instance of " + DeploymentClient.class.getName() + " expected");
-		}
-
+	public ClientDeployOutputStream(DeploymentMetadata meta, DeploymentClient client) throws IOException {
+  	this.client = client;			
 		out = this.client.getOutputStream();
 		ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(out);
 		oos.writeObject(meta);
@@ -44,8 +39,6 @@ public class ClientDeployOutputStream implements DeployOutputStream{
 			queue = (ProgressQueue)ois.readObject();
 		}catch(ClassNotFoundException e){
 			throw new IOException("Could not deserialize response: " + e.getMessage());
-		}catch(IOException e){
-		  e.printStackTrace();
 		} 	
     client.close();
     closed = true;

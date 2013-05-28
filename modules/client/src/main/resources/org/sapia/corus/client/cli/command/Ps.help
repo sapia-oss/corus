@@ -36,5 +36,6 @@
     <p>ps -d myapp -v 1.* -n * -p qa</p>
     <p/>    
     <p>ps -d * -v * -n * -p qa</p>
+    <p/>    
   </section>      
 </help>

@@ -16,16 +16,36 @@ import org.springframework.context.ApplicationContextAware;
  * 
  * @author Yanick Duchesne
  */
-public abstract class ModuleHelper implements ApplicationContextAware, Service, Module, InitializingBean, DisposableBean{
+public abstract class ModuleHelper implements ApplicationContextAware, Service, Module, InitializingBean, DisposableBean {
   
   protected Logger  					 log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+  
   protected ApplicationContext appContext;
+  
   @Autowired
   protected ServerContext 		 serverContext;
-
+  
   public ModuleHelper() {
     super();
   }
+  
+  // --------------------------------------------------------------------------
+  // Setters provided for testing purposes.
+  
+  public void setServerContext(ServerContext serverContext) {
+    this.serverContext = serverContext;
+  }
+  
+  // --------------------------------------------------------------------------
+  // ApplicationContextAware
+
+  @Override
+  public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+    appContext = appCtx;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Lifecyle
   
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -37,21 +57,21 @@ public abstract class ModuleHelper implements ApplicationContextAware, Service, 
     this.dispose();
   }
 
-  @Override
-  public void setApplicationContext(ApplicationContext appCtx)
-      throws BeansException {
-    appContext = appCtx;
-  }
-    
   public void start() throws Exception {}
 
-  public Logger logger(){
+  // --------------------------------------------------------------------------
+  // protected methods (to be used by inheriting classes)
+
+  protected Logger logger(){
     return log;  
   }
 
-  public ApplicationContext env(){
+  protected ApplicationContext env(){
     return appContext;
   }
+
+  // --------------------------------------------------------------------------
+  // protected methods (to be used by inheriting classes)
   
   protected ServerContext serverContext(){
     return serverContext;

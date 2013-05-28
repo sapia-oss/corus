@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
-import org.sapia.corus.client.services.cluster.ServerHost;
-import org.sapia.ubik.net.TCPAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.ubik.mcast.EventChannel;
 
 /**
  * An instance of this class holds the state for a Corus server. 
@@ -58,12 +58,9 @@ public interface ServerContext {
   public Properties getProcessProperties() throws IOException;
   
   /**
-   * @return the address of the Corus server corresponding to this
-   * instance.
+   * @return the {@link CorusHost} instance corresponding to this Corus node.
    */
-  public TCPAddress getServerAddress();
-  
-  public ServerHost getHostInfo();
+  public CorusHost getCorusHost();
   
   /**
    * @return the {@link CorusTransport}.
@@ -75,6 +72,11 @@ public interface ServerContext {
    * of the Corus server.
    */
   public InternalServiceContext getServices();
+  
+  /**
+   * @return the {@link EventChannel} used by the Corus node corresponding to this instance.
+   */
+  public EventChannel getEventChannel();
   
   /**
    * Looks up a service of the given interface (internally delegates the call to

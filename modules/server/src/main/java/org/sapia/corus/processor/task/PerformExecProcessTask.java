@@ -171,9 +171,9 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     try {
       host = Localhost.getAnyLocalAddress().getHostAddress();
     } catch (Exception e) {
-      host = ctx.getServerContext().getServerAddress().getHost();
+      host = ctx.getServerContext().getCorusHost().getEndpoint().getServerTcpAddress().getHost();
     }
-    int port = ctx.getServerContext().getServerAddress().getPort();
+    int port = ctx.getServerContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort();
     props.add(new Property("corus.home", ctx.getServerContext().getHomeDir()));
     props.add(new Property("corus.server.host", host));
     props.add(new Property("corus.server.port", "" + port));

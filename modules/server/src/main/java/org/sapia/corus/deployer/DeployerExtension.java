@@ -14,10 +14,9 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.http.HttpRequestFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.net.TCPAddress;
-
-import simple.http.Request;
 
 public class DeployerExtension implements HttpExtension{
   
@@ -55,7 +54,7 @@ public class DeployerExtension implements HttpExtension{
     outputDists(ctx, filterDists(ctx.getRequest()), false);
   }
   
-  private Arg arg(String name, Request r) throws IOException{
+  private Arg arg(String name, HttpRequestFacade r) throws IOException{
     try{
       String value = r.getParameter(name);
       if(value != null){
@@ -68,17 +67,17 @@ public class DeployerExtension implements HttpExtension{
   }
   
   private void outputDists(HttpContext ctx, List<Distribution> dists, boolean status) throws IOException{
-    ctx.getResponse().set("Content-Type", "text/xml");    
+    ctx.getResponse().setHeader("Content-Type", "text/xml");    
     PrintStream ps = null;
     try{
-      ps = ctx.getResponse().getPrintStream();
+      ps = new PrintStream(ctx.getResponse().getOutputStream());
     }catch(Exception e){
       throw new IOException("Error caught while processing request", e);
     }
     ps.println("<distributions");
     attribute("domain", context.getDomain(), ps);
     try{
-      TCPAddress addr = context.getServerAddress();
+      TCPAddress addr = context.getCorusHost().getEndpoint().getServerTcpAddress();
       attribute("host", addr.getHost(), ps);      
       attribute("port", Integer.toString(addr.getPort()), ps);
     }catch(ClassCastException e){}
@@ -114,7 +113,7 @@ public class DeployerExtension implements HttpExtension{
     ps.close();
   }
   
-  private List<Distribution> filterDists(Request req) throws IOException{
+  private List<Distribution> filterDists(HttpRequestFacade req) throws IOException{
     Arg d = arg(PARAM_DIST, req);
     Arg v = arg(PARAM_VERSION, req);
     

@@ -13,6 +13,7 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.http.HttpRequestFacade;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
@@ -21,8 +22,6 @@ import org.sapia.corus.interop.Context;
 import org.sapia.corus.interop.Param;
 import org.sapia.corus.interop.Status;
 import org.sapia.ubik.net.TCPAddress;
-
-import simple.http.Request;
 
 /**
  * An {@link HttpExtension} that handles requests pertaining to processes.
@@ -78,7 +77,7 @@ public class ProcessorExtension implements HttpExtension{
     outputProcesses(ctx, filterProcesses(ctx.getRequest()), true);
   }  
   
-  private Arg arg(String name, Request r) throws IOException, Exception{
+  private Arg arg(String name, HttpRequestFacade r) throws IOException, Exception{
     String value = r.getParameter(name);
     if(value != null){
       return ArgFactory.parse(value);
@@ -87,12 +86,12 @@ public class ProcessorExtension implements HttpExtension{
   }
   
   private void outputProcesses(HttpContext ctx, List<Process> processes, boolean status) throws IOException, Exception{
-    ctx.getResponse().set("Content-Type", "text/xml");    
-    PrintStream ps = ctx.getResponse().getPrintStream();
+    ctx.getResponse().setHeader("Content-Type", "text/xml");    
+    PrintStream ps = new PrintStream(ctx.getResponse().getOutputStream());
     ps.print("<processes ");
     attribute("domain", context.getDomain(), ps);
     try{
-      TCPAddress addr = context.getServerAddress();
+      TCPAddress addr = context.getCorusHost().getEndpoint().getServerTcpAddress();
       attribute("host", addr.getHost(), ps);      
       attribute("port", Integer.toString(addr.getPort()), ps);
     }catch(ClassCastException e){}
@@ -161,7 +160,7 @@ public class ProcessorExtension implements HttpExtension{
     ps.close();
   }
   
-  private List<Process> filterProcesses(Request req) throws IOException, Exception{
+  private List<Process> filterProcesses(HttpRequestFacade req) throws IOException, Exception{
     Arg d = arg(PARAM_DIST, req);
     Arg v = arg(PARAM_VERSION, req);    
     Arg n = arg(PARAM_PROC, req);

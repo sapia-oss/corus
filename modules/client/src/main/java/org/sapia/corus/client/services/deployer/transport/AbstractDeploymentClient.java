@@ -2,7 +2,6 @@ package org.sapia.corus.client.services.deployer.transport;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.ubik.net.ServerAddress;
@@ -59,21 +58,5 @@ public abstract class AbstractDeploymentClient implements DeploymentClient{
 		}
 		return client.getProgressQueue();
   }
-  
-  /**
-   * This method returns a stream that will be used to upload deployment data.
-   * 
-   * @return an {@link OutputStream}.
-   * @throws IOException if a problem occurs acquiring the given stream.
-   */
-  protected abstract OutputStream getOutputStream() throws IOException;
-
-	/**
-	 * This method returns a stream that will be used to acquire the deployment result.
-	 * 
-	 * @return an {@link InputStream}.
-	 * @throws IOException if a problem occurs acquiring the given stream.
-	 */
-  protected abstract InputStream getInputStream() throws IOException;
   
 }

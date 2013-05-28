@@ -11,30 +11,48 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
+import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
 
-
 /**
+ * Displays process info.
+ * 
  * @author Yanick Duchesne
  */
 public class Ps extends CorusCliCommand {
-  private static final int COL_DIST    = 0;
-  private static final int COL_VERSION = 1;
-  private static final int COL_PROFILE = 2;
-  private static final int COL_VM_NAME = 3;
-  private static final int COL_VM_ID   = 4;
-  private static final int COL_OS_PID  = 5;
-  private static final int COL_STATUS  = 6;  
-  private static final int COL_PORTS   = 5;  
+  
+  private static final TableDef PROC_TBL = TableDef.newInstance()
+      .createCol("dist", 15)
+      .createCol("version", 7)
+      .createCol("profile", 8)
+      .createCol("name", 11)
+      .createCol("pid", 14)
+      .createCol("ospid", 6)
+      .createCol("status", 9);
+  
+  private static final TableDef PROC_PORTS_TBL = TableDef.newInstance()
+      .createCol("dist", 15)
+      .createCol("version", 7)
+      .createCol("profile", 8)
+      .createCol("name", 11)
+      .createCol("pid", 14)
+      .createCol("ports", 15);
+
+  private static TableDef TITLE_TBL = TableDef.newInstance()
+      .createCol("val", 78);
+  
+  // --------------------------------------------------------------------------
   
   private static final String TERMINATING = "shutd.";
   private static final String ACTIVE      = "act.";
   private static final String RESTART     = "rest.";  
   private static final String SUSPENDED   = "susp.";  
   
-  private static final String OPT_PORTS = "ports";
+  private static final String OPT_PORTS   = "ports";
+  
+  // --------------------------------------------------------------------------  
   
   @Override
   protected void doExecute(CliContext ctx)
@@ -107,93 +125,68 @@ public class Ps extends CorusCliCommand {
   }
 
   private void displayProcess(Process proc, CliContext ctx, boolean displayPorts) {
-    Table   procTable;
-    Row     row;
+    Table procTable = displayPorts ? PROC_PORTS_TBL.createTable(ctx.getConsole().out()) : PROC_TBL.createTable(ctx.getConsole().out());
+        
+    procTable.drawLine('-', 0, CONSOLE_WIDTH);
 
-    procTable = new Table(ctx.getConsole().out(), 7, 20);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_DIST).setWidth(15);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VERSION).setWidth(7);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_PROFILE).setWidth(8);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VM_NAME).setWidth(11);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VM_ID).setWidth(14);
-    if(displayPorts){
-     procTable.getTableMetaData().getColumnMetaDataAt(COL_PORTS).setWidth(15);  
-    }
-    else{
-      procTable.getTableMetaData().getColumnMetaDataAt(COL_OS_PID).setWidth(6);   
-      procTable.getTableMetaData().getColumnMetaDataAt(COL_STATUS).setWidth(9);  
-    }
-    procTable.drawLine('-', 0, 80);
-
-    row = procTable.newRow();
-    row.getCellAt(COL_DIST).append(proc.getDistributionInfo().getName());
-    row.getCellAt(COL_VERSION).append(proc.getDistributionInfo().getVersion());
-    row.getCellAt(COL_PROFILE).append(proc.getDistributionInfo().getProfile());
-    row.getCellAt(COL_VM_NAME).append(proc.getDistributionInfo().getProcessName());
-    row.getCellAt(COL_VM_ID).append(proc.getProcessID());
+    Row row = procTable.newRow();
+    row.getCellAt(PROC_TBL.col("dist").index()).append(proc.getDistributionInfo().getName());
+    row.getCellAt(PROC_TBL.col("version").index()).append(proc.getDistributionInfo().getVersion());
+    row.getCellAt(PROC_TBL.col("profile").index()).append(proc.getDistributionInfo().getProfile());
+    row.getCellAt(PROC_TBL.col("name").index()).append(proc.getDistributionInfo().getProcessName());
+    row.getCellAt(PROC_TBL.col("pid").index()).append(proc.getProcessID());
     if(displayPorts){    
-      row.getCellAt(COL_PORTS).append(proc.getActivePorts().toString());
+      row.getCellAt(PROC_PORTS_TBL.col("ports").index()).append(proc.getActivePorts().toString());
     }
     else{
-      row.getCellAt(COL_OS_PID).append(proc.getOsPid() == null ? "n/a" : proc.getOsPid());
-
-      if(proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED || 
-         proc.getStatus() == Process.LifeCycleStatus.KILL_REQUESTED){
-        row.getCellAt(COL_STATUS).append(TERMINATING);      
-      }
-      else if(proc.getStatus() == Process.LifeCycleStatus.SUSPENDED){
-        row.getCellAt(COL_STATUS).append(SUSPENDED);      
-      }
-      else if(proc.getStatus() == Process.LifeCycleStatus.RESTARTING){
-        row.getCellAt(COL_STATUS).append(RESTART);    
-      }
-      else{
-        row.getCellAt(COL_STATUS).append(ACTIVE);      
+      row.getCellAt(PROC_TBL.col("ospid").index()).append(proc.getOsPid() == null ? "n/a" : proc.getOsPid());
+      
+      switch (proc.getStatus()) {
+        case KILL_CONFIRMED:
+        case KILL_REQUESTED:
+          row.getCellAt(PROC_TBL.col("status").index()).append(TERMINATING);        
+          break;
+        case SUSPENDED:
+          row.getCellAt(PROC_TBL.col("status").index()).append(SUSPENDED);        
+          break;
+        case RESTARTING:
+          row.getCellAt(PROC_TBL.col("status").index()).append(RESTART);        
+          break;                    
+        case ACTIVE:
+          row.getCellAt(PROC_TBL.col("status").index()).append(ACTIVE);        
+          break;          
+        default:
+          row.getCellAt(PROC_TBL.col("status").index()).append("n/a");        
+          break;
       }
     }
     row.flush();
   }
 
   private void displayHeader(ServerAddress addr, CliContext ctx, boolean displayPorts) {
-    Table   procTable;
-    Row     row;
-    Row     headers;
+    Table procTable = displayPorts ? PROC_PORTS_TBL.createTable(ctx.getConsole().out()) : PROC_TBL.createTable(ctx.getConsole().out());
+    Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
 
-    procTable = new Table(ctx.getConsole().out(), 1, 78);
-    procTable.drawLine('=');
-    row = procTable.newRow();
-    row.getCellAt(0).append("Host: ").append(addr.toString());
+    titleTable.drawLine('=', 0, CONSOLE_WIDTH);
+    
+    Row row = titleTable.newRow();
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
     row.flush();
 
-    procTable.drawLine(' ');
+    procTable.drawLine(' ', 0, CONSOLE_WIDTH);
 
-    procTable = new Table(ctx.getConsole().out(), 7, 20);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_DIST).setWidth(15);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VERSION).setWidth(7);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_PROFILE).setWidth(8);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VM_NAME).setWidth(11);
-    procTable.getTableMetaData().getColumnMetaDataAt(COL_VM_ID).setWidth(14);
+    Row headers = procTable.newRow();
+    headers.getCellAt(PROC_TBL.col("dist").index()).append("Distribution");
+    headers.getCellAt(PROC_TBL.col("version").index()).append("Version");
+    headers.getCellAt(PROC_TBL.col("profile").index()).append("Profile");
+    headers.getCellAt(PROC_TBL.col("name").index()).append("Name");
+    headers.getCellAt(PROC_TBL.col("pid").index()).append("PID");
     if(displayPorts){
-      procTable.getTableMetaData().getColumnMetaDataAt(COL_PORTS).setWidth(15);    
+      headers.getCellAt(PROC_PORTS_TBL.col("ports").index()).append("Ports");    
     }
     else{
-      procTable.getTableMetaData().getColumnMetaDataAt(COL_OS_PID).setWidth(6);    
-      procTable.getTableMetaData().getColumnMetaDataAt(COL_STATUS).setWidth(9);    
-    }
-
-    headers = procTable.newRow();
-
-    headers.getCellAt(COL_DIST).append("Distribution");
-    headers.getCellAt(COL_VERSION).append("Version");
-    headers.getCellAt(COL_PROFILE).append("Profile");
-    headers.getCellAt(COL_VM_NAME).append("Name");
-    headers.getCellAt(COL_VM_ID).append("Process ID");
-    if(displayPorts){
-      headers.getCellAt(COL_PORTS).append("Ports");    
-    }
-    else{
-      headers.getCellAt(COL_OS_PID).append("OS PID");    
-      headers.getCellAt(COL_STATUS).append("Status");          
+      headers.getCellAt(PROC_TBL.col("ospid").index()).append("OS PID");    
+      headers.getCellAt(PROC_TBL.col("status").index()).append("Status");          
     }
     headers.flush();
   }

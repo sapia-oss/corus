@@ -9,7 +9,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.services.os.OsModule;
-import org.sapia.corus.util.IOUtils;
+import org.sapia.corus.util.IOUtil;
 
 
 /**
@@ -113,12 +113,12 @@ public class WindowsProcess implements NativeProcess {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 1000);
+    IOUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 1000);
     log.debug(anOutput.toString("UTF-8"));
 
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtils.extractAvailable(vmHandle.getErrStream(), anOutput);
+    IOUtil.extractAvailable(vmHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error starting the process: " + anOutput.toString("UTF-8"));
     }
@@ -131,7 +131,7 @@ public class WindowsProcess implements NativeProcess {
 
     // Extract the output stream of the process
     anOutput.reset();
-    IOUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
+    IOUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
     log.debug(anOutput.toString("UTF-8"));
 
     // Generates a string of the format "\njavaw.exe       (284)\n" 
@@ -153,7 +153,7 @@ public class WindowsProcess implements NativeProcess {
 
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtils.extractAvailable(pvHandle.getErrStream(), anOutput);
+    IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error getting the process id: " + anOutput.toString("UTF-8"));
     }
@@ -174,12 +174,12 @@ public class WindowsProcess implements NativeProcess {
     
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
+    IOUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
     log.debug(anOutput.toString("UTF-8"));
 
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtils.extractAvailable(pvHandle.getErrStream(), anOutput);
+    IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error killing the process: " + anOutput.toString("UTF-8"));
     }

@@ -29,15 +29,14 @@ public interface Processor extends java.rmi.Remote, Module {
    */
   public ProgressQueue exec(ProcessCriteria criteria,
                             int instances) throws TooManyProcessInstanceException;
-                            
+  
   /**
-   * 
    * @param execConfigName the name of the execution configuration from which to start
    * processes.
    * @return a {@link ProgressQueue}
    */
-  public ProgressQueue exec(String execConfigName);
-
+  public ProgressQueue execConfig(String execConfigName);
+  
   /**
    * Resumes all suspended processes.
    *
@@ -73,14 +72,20 @@ public interface Processor extends java.rmi.Remote, Module {
    */
   public void kill(ProcessCriteria criteria,
                    boolean suspend);
-
-  /**
+  
+   /**
    * Kills the process with the given identifier.
    *
    * @param corusPid a process identifier.
    * @param suspend if <code>true</code>, indicates that the process should be suspended.
    */
   public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException;
+  
+  /**
+   * @param criteria a {@link ProcessCriteria}.
+   * @return a {@link ProgressQueue}.
+   */
+  public ProgressQueue resume(ProcessCriteria criteria);
   
   /**
    * Performs cleanup following process shutdown confirmation.

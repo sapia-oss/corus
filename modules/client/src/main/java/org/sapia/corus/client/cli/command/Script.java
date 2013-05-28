@@ -13,7 +13,13 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.Interpreter;
 
-public class Script extends CorusCliCommand{
+/**
+ * Interprets a Corus script specified at the command-line.
+ *  
+ * @author yduchesne
+ *
+ */
+public class Script extends CorusCliCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
@@ -23,7 +29,7 @@ public class Script extends CorusCliCommand{
     }
    
     try {
-      File scriptFile = new File(ctx.getCommandLine().next().getName());
+      File scriptFile = ctx.getFileSystem().getFile(ctx.getCommandLine().next().getName());
       processScript(scriptFile, ctx);
     } catch (FileNotFoundException e) {
       throw new InputException(e.getMessage());

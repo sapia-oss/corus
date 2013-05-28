@@ -1,5 +1,7 @@
 package org.sapia.corus.taskmanager.core;
 
+import java.util.UUID;
+
 /**
  * A default {@link ThrottleKey} implementation.
  * 
@@ -10,6 +12,9 @@ public class DefaultThrottleKey implements ThrottleKey{
   
   private String name;
   
+  public DefaultThrottleKey() {
+    this(UUID.randomUUID().toString());
+  }
   public DefaultThrottleKey(String name) {
     this.name = name;
   }

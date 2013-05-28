@@ -14,4 +14,13 @@ public interface Matcher<T>{
    */
   public boolean matches(T object);
   
+  // --------------------------------------------------------------------------
+  
+  public static class MatchAll<T> implements Matcher<T>{
+    public boolean matches(T object) {
+      return true;
+    }
+    
+  }
+  
 }

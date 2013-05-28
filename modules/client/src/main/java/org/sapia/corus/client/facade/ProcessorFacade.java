@@ -69,8 +69,8 @@ public interface ProcessorFacade {
    * @param cluster a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
-  public ProgressQueue exec(String configName, ClusterInfo cluster);
-
+  public ProgressQueue execConfig(String configName, ClusterInfo cluster);
+  
   /**
    * Starts process(es) corresponding to the passed in parameters.
    *
@@ -97,6 +97,14 @@ public interface ProcessorFacade {
    * @param cluster a {@link ClusterInfo} instance.
    */
   public ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster);
+  
+  /**
+   * Resumes the suspended process(es) corresponding to the passed in parameters.
+   *
+   * @param criteria a {@link ProcessCriteria}.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public ProgressQueue resume(ProcessCriteria criteria, ClusterInfo cluster);  
 
   /**
    * Kills the process with the given identifier.

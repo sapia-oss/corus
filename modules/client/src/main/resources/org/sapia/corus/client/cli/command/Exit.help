@@ -1,8 +1,13 @@
 <help>
   <section title="Description">
-   <p>Exits from the client console.</p>
+   <p>
+    If this command-line was connected to the current server using the connect
+    command, then this command will connect to the previous server in this CLI's history.
+    Otherwise, this command terminates the CLI and goes back to the OS prompt.    
+   </p>
   </section>
   <section title="Syntax">
     <p>exit</p>
+    <p/>    
   </section>
 </help>

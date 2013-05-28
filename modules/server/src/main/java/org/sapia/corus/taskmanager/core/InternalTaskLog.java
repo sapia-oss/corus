@@ -3,7 +3,7 @@ package org.sapia.corus.taskmanager.core;
 import org.sapia.corus.taskmanager.core.log.NullTaskLog;
 
 /**
- * An instance of this class is internally used by a {@link TaskExecutionContext} to route
+ * An instance of this class is internally used by a {@link TaskExecutionContextImpl} to route
  * task logging output to the task manager's task log, and to the task's log itself.
  * 
  * @author yduchesne

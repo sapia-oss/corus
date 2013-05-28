@@ -24,10 +24,10 @@ import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.CorusVersion;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
-import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Localhost;
 
 
@@ -57,16 +57,7 @@ public class CorusCli extends CommandConsole {
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
     
     // Change the prompt
-    StringBuffer prompt = new StringBuffer().append("[");
-    if (corus.getContext().getAddress().getTransportType().equals("tcp/mplex")) {
-      prompt.append(((TCPAddress) corus.getContext().getAddress()).getHost()).append(":").
-             append(((TCPAddress) corus.getContext().getAddress()).getPort());
-    } else {
-      prompt.append(corus.getContext().getAddress().toString());
-    }
-    prompt.append("@").append(corus.getContext().getDomain()).append("]>> ");
-
-    setPrompt(prompt.toString());
+    setPrompt(CliUtils.getPromptFor(corus.getContext()));
   }
   
   public CorusCli(CorusConnector corus) throws IOException {
@@ -166,6 +157,7 @@ public class CorusCli extends CommandConsole {
     } catch (Exception e) {
       if(e instanceof ConnectionException || e instanceof RemoteException){
         System.out.println("No server listening at " + host + ":" + port);
+        e.printStackTrace();
       }
       else{
         e.printStackTrace();

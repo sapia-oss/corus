@@ -1,5 +1,7 @@
 package org.sapia.corus.os;
 
+import org.sapia.corus.util.OsUtil;
+
 /**
  * A factory of {@link NativeProcess} instance. 
  *
@@ -11,7 +13,7 @@ public class NativeProcessFactory {
    * @return a NativeProcess instance corresponding to the OS.
    */
   public static NativeProcess newNativeProcess() {
-    if (System.getProperty("os.name").toLowerCase().indexOf("win") > -1) {
+    if (OsUtil.isWindowsFamily()) {
       return new WindowsProcess();
     } else {
       return new UnixProcess();

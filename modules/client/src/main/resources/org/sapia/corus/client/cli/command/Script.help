@@ -30,5 +30,6 @@
     <p>kill all -w 30</p>
     <p>undeploy all</p>
     <p>deploy /opt/apps/v1.2/dist/*.zip</p>
+    <p/>    
   </section>    
 </help>

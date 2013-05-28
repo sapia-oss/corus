@@ -49,6 +49,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   private int startInterval        = DEFAULT_START_INTERVAL;
   private int restartInterval 		 = DEFAULT_RESTART_INTERVAL;
   private int bootExecDelay 			 = DEFAULT_BOOT_EXEC_DELAY;
+  private boolean bootExecEnabled  = true;
   private boolean autoRestart      = true;
   
   
@@ -127,5 +128,12 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   public boolean autoRestartStaleProcesses() {
     return autoRestart;
   }
+
+  public void setBootExecEnabled(boolean bootExecEnabled) {
+    this.bootExecEnabled = bootExecEnabled;
+  }
   
+  public boolean isBootExecEnabled() {
+    return bootExecEnabled;
+  }
 }

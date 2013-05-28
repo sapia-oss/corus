@@ -1,22 +1,16 @@
 package org.sapia.corus.core;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.rmi.RemoteException;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
-import org.sapia.corus.client.common.CompositeStrLookup;
-import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
-import org.sapia.corus.client.services.cluster.ServerHost;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.naming.JndiModule;
-import org.sapia.corus.util.IOUtils;
-import org.sapia.corus.util.PropertiesFilter;
-import org.sapia.corus.util.PropertiesTransformer;
-import org.sapia.corus.util.PropertiesUtil;
-import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.mcast.EventChannel;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.RemoteContextProvider;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -37,12 +31,13 @@ public class CorusImpl implements Corus, RemoteContextProvider {
   private String                      domain;
 
   CorusImpl(
-      InputStream config, 
+      Properties config, 
       String domain,
-      TCPAddress serverAddress,
+      ServerAddress serverAddress,
+      EventChannel channel,
       CorusTransport aTransport, 
       String corusHome) throws IOException, Exception{
-    init(config, domain, serverAddress, aTransport, corusHome);
+    init(config, domain, serverAddress, channel, aTransport, corusHome);
   }
 
   public String getVersion() {
@@ -58,60 +53,25 @@ public class CorusImpl implements Corus, RemoteContextProvider {
     return module.getRemoteContext();
   }
 
-  public ServerHost getHostInfo() {
-    return lifeCycle.getHostInfo();
+  public CorusHost getHostInfo() {
+    return lifeCycle.getCorusHost();
   }
 
   public ServerContext getServerContext(){
     return lifeCycle;
   }
   
-  void setServerAddress(TCPAddress addr){
-    lifeCycle.setServerAddress(addr);
-  }
-  
-  @SuppressWarnings("deprecation")
   private ServerContext init(
-                          InputStream config, 
+                          final Properties props, 
                           String domain,
-                          TCPAddress address,
+                          ServerAddress address,
+                          EventChannel channel,
                           CorusTransport aTransport, 
                           String corusHome) throws IOException, Exception {
     this.domain = domain;
     
-    // loading default properties.
-    final Properties props = new Properties();
-    InputStream defaults = Thread.currentThread().getContextClassLoader().getResourceAsStream("org/sapia/corus/default.properties");
-    if(defaults == null){
-      throw new IllegalStateException("Resource 'org/sapia/corus/default.properties' not found");
-    }
-    
-    InputStream tmp = IOUtils.replaceVars(new PropertiesStrLookup(System.getProperties()), defaults);
-    defaults.close();
-    props.load(tmp);
-    
-    CompositeStrLookup lookup = new CompositeStrLookup();
-    lookup.add(new PropertiesStrLookup(props)).add(new PropertiesStrLookup(System.getProperties()));
-    tmp = IOUtils.replaceVars(lookup, config);
-    props.load(tmp);
-    
-    // transforming Corus properties that correspond 1-to-1 to Ubik properties into their Ubik counterpart
-    PropertiesUtil.transform(
-    		props, 
-    		PropertiesTransformer.MappedPropertiesTransformer.createInstance()
-    			.add(CorusConsts.PROPERTY_CORUS_ADDRESS_PATTERN, org.sapia.ubik.rmi.Consts.IP_PATTERN_KEY)
-    			.add(CorusConsts.PROPERTY_CORUS_MCAST_ADDRESS, 	org.sapia.ubik.rmi.Consts.MCAST_ADDR_KEY)
-    			.add(CorusConsts.PROPERTY_CORUS_MCAST_PORT, 			org.sapia.ubik.rmi.Consts.MCAST_PORT_KEY)
-    );
-    
-    // copying Ubik-specific properties to the System properties. 
-    PropertiesUtil.copy(
-    		PropertiesUtil.filter(props, PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik")), 
-    		System.getProperties()
-    );
-    
     InternalServiceContext services = new InternalServiceContext();
-    ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, domain, corusHome, services, props);
+    ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, channel, domain, corusHome, services, props);
     
     // root context
     PropertyContainer propContainer = new PropertyContainer() {

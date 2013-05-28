@@ -7,6 +7,8 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
 
 
 /**
+ * Terminates the CLI.
+ * 
  * @author Yanick Duchesne
  */
 public class Quit extends CorusCliCommand {

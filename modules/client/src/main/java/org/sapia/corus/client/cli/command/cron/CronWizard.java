@@ -18,6 +18,9 @@ import org.sapia.corus.client.services.cron.CronJobInfo;
  * @author Yanick Duchesne
  */
 public class CronWizard {
+  
+  private static final String STAR = "*";
+  
   public void execute(CmdLine cmd, CliContext ctx)
                throws AbortException, InputException {
     String dist    = cmd.assertOption(Cron.DIST_OPT, true).getValue();
@@ -139,7 +142,7 @@ public class CronWizard {
       throw new AbortException();
     }
 
-    if (!input.equals(Cron.STAR)) {
+    if (!input.equals(STAR)) {
       try {
         return Integer.parseInt(input);
       } catch (NumberFormatException e) {

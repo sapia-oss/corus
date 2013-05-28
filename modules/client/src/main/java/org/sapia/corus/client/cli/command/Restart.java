@@ -14,9 +14,13 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
+ * Restarts processes.
+ * 
  * @author Yanick Duchesne
  */
 public class Restart extends CorusCliCommand {
+  
+  private static final long PAUSE = 1000;
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,
@@ -42,7 +46,7 @@ public class Restart extends CorusCliCommand {
       restartProcessByVmId(ctx, pid);
 
       while (cmd.hasNext()) {
-        sleep(1000);
+        sleep(PAUSE);
         if (cmd.isNextArg()) {
           Arg argument = cmd.assertNextArg();
           restartProcessByVmId(ctx, argument.getName());
@@ -57,7 +61,7 @@ public class Restart extends CorusCliCommand {
       restartProcessByOsPid(ctx, osPid);
       
       while (cmd.hasNext()) {
-        sleep(1000);
+        sleep(PAUSE);
         if (cmd.isNextArg()) {
           Arg argument = cmd.assertNextArg();
           restartProcessByOsPid(ctx, argument.getName());

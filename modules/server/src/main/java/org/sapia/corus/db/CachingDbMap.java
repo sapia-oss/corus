@@ -19,9 +19,9 @@ import org.sapia.corus.client.services.db.persistence.Persistent;
  */
 public class CachingDbMap<K, V> implements DbMap<K, V>{
 
-  private static final int DEFAULT_MAX_SIZE = 50;
+  private static final int DEFAULT_MAX_SIZE = 100;
   
-  private DbMap<K, V> delegate;
+  private DbMap<K, V>         delegate;
   private LinkedHashMap<K, V> cache; 
 
   /**
@@ -62,7 +62,7 @@ public class CachingDbMap<K, V> implements DbMap<K, V>{
 
   @Override
   public RecordMatcher<V> createMatcherFor(V template) {
-    return createMatcherFor(template);
+    return delegate.createMatcherFor(template);
   }
 
   @Override
@@ -103,7 +103,7 @@ public class CachingDbMap<K, V> implements DbMap<K, V>{
   public synchronized void remove(K key) {
     V value = get(key);
     if(value != null && value instanceof Persistent<?, ?>){
-      ((Persistent<?,?>)value).setDbMap(null);
+      ((Persistent<?,?>)value).markDeleted();
     }
     cache.remove(key);
     delegate.remove(key);

@@ -25,4 +25,25 @@ public interface DeployerConfiguration extends Remote{
    */
   public String getTempDir();
 
+  /**
+   * @return the path to the repo directory.
+   */
+  public String getRepoDir();
+  
+  /**
+   * @return the path to the directory where shell script files are kept.
+   */
+  public String getScriptDir();
+
+  /**
+   * @return the path to the upload directory (where arbitrary files are kept).
+   */
+  public String getUploadDir();
+  
+  /**
+   * Copies the given configuration's values to this instance.
+   * 
+   * @param other another {@link DeployerConfiguration}.
+   */
+  public void copyFrom(DeployerConfiguration other);
 }

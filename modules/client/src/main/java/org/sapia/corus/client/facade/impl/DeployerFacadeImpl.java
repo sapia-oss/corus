@@ -28,21 +28,85 @@ import org.sapia.corus.client.services.deployer.transport.DeployOsAdapter;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
+import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
+import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
+import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
+import org.sapia.ubik.util.Streams;
 
-public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements DeployerFacade{
+public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements DeployerFacade {
+
+  /**
+   * Interface meant for internal use.
+   *
+   */
+  interface MetadataFactory {
+
+    /**
+     * @param fileName the name of the file that will be uploaded.
+     * @param fileLen the length of the file (in bytes).
+     * @param clustered <code>true</code> if the deployment shall be clustered.
+     * @return the {@link DeploymentMetadata} corresponding to the file to upload.
+     */
+    public DeploymentMetadata create(String fileName, long fileLen, boolean clustered);
+    
+  }
   
-  static final int             BUFSZ = 2048;
-  
+  // --------------------------------------------------------------------------
+
+  private static final int BUFSZ = 2048;
+
   public DeployerFacadeImpl(CorusConnectionContext context){
     super(context, Deployer.class);
   }
   
   @Override
-  public synchronized ProgressQueue deploy(final String fileName, final ClusterInfo cluster)
+  public synchronized ProgressQueue deployDistribution(final String fileName, final ClusterInfo cluster)
   throws IOException,
     ConcurrentDeploymentException,
     DuplicateDistributionException,
-    Exception{
+    Exception {
+    return doDeployArtifact(fileName, cluster, new MetadataFactory() {
+      @Override
+      public DeploymentMetadata create(String fileName, long fileLen,
+          boolean clustered) {
+        return new DistributionDeploymentMetadata(fileName, fileLen, clustered);
+      }
+    });
+  }
+  
+  @Override
+  public ProgressQueue deployFile(String fileName, final String destinationDir,
+      ClusterInfo cluster) throws IOException, Exception {
+    return doDeployArtifact(fileName, cluster, new MetadataFactory() {
+      @Override
+      public DeploymentMetadata create(String fileName, long fileLen,
+          boolean clustered) {
+        return new FileDeploymentMetadata(fileName, fileLen, clustered, destinationDir);
+      }
+    });
+  }
+  
+  @Override
+  public ProgressQueue deployScript(String scriptFileName, final String alias, final String description,
+      ClusterInfo cluster) throws IOException, Exception {
+    return doDeployArtifact(scriptFileName, cluster, new MetadataFactory() {
+      @Override
+      public DeploymentMetadata create(String fileName, long fileLen,
+          boolean clustered) {
+        return new ShellScriptDeploymentMetadata(fileName, fileLen, clustered, alias, description);
+      }
+    });
+  }
+  
+  private ProgressQueue doDeployArtifact(
+      final String fileName, 
+      final ClusterInfo cluster,
+      final MetadataFactory factory)
+      throws IOException,
+        ConcurrentDeploymentException,
+        DuplicateDistributionException,
+        Exception {
+   
     final ProgressQueueImpl queue = new ProgressQueueImpl();
     
     
@@ -61,7 +125,9 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
                   queue.info("Deploying: " + files[i].getName());
                   try{
                     fileCount++;
-                    tmp = doDeploy(files[i].getAbsolutePath(), cluster);
+                    DeploymentMetadata meta = factory.create(
+                        files[i].getName(), files[i].length(), cluster.isClustered());
+                    tmp = doDeploy(files[i], meta, cluster);
                     while(tmp.hasNext()){
                       List<ProgressMsg> lst = tmp.fetchNext();
                       for(int j = 0; j < lst.size(); j++){
@@ -88,12 +154,14 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       deployer.start();
       return queue;
     } else{
-      return doDeploy(fileName, cluster);
+      File toDeploy = new File(fileName);
+      DeploymentMetadata meta = factory.create(toDeploy.getName(), toDeploy.length(), cluster.isClustered());
+      return doDeploy(toDeploy, meta, cluster);
     }
     
   }
   
-  private ProgressQueue doDeploy(String fileName, ClusterInfo cluster)   
+  private ProgressQueue doDeploy(File toDeploy, DeploymentMetadata meta, ClusterInfo cluster)   
   throws IOException,
     ConcurrentDeploymentException,
     DuplicateDistributionException,
@@ -101,11 +169,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
 
     OutputStream        os     = null;
     BufferedInputStream bis    = null;
-    boolean             closed = false;
-    
     try {
-      File toDeploy = new File(fileName);
-      
       if (!toDeploy.exists()) {
         throw new IOException(toDeploy.getAbsolutePath() + " does not exist");
       }
@@ -114,51 +178,33 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
         throw new IOException(toDeploy.getAbsolutePath() + " is a directory");
       }
       
-      DeploymentMetadata meta = new DeploymentMetadata(toDeploy.getName(), toDeploy.length(), cluster.isClustered());
       DeployOutputStream dos  = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
 
       os  = new DeployOsAdapter(dos);
-      bis = new BufferedInputStream(new FileInputStream(fileName));
+      bis = new BufferedInputStream(new FileInputStream(toDeploy));
       
       byte[] b    = new byte[BUFSZ];
       int    read;
-      
       while ((read = bis.read(b)) > -1) {
         os.write(b, 0, read);
       }
-      
-      os.flush();
-      os.close();
-      closed = true;
-      
       return dos.getProgressQueue();
     } finally {
-      if ((os != null) && !closed) {
-        try {
-          os.close();
-        } catch (IOException e) {
-        }
-      }
-      
-      if (bis != null) {
-        try {
-          bis.close();
-        } catch (IOException e) {
-        }
-      }
+      Streams.flushAndCloseSilently(os);
+      Streams.closeSilently(bis);        
     }
   }
 
   @Override
-  public synchronized ProgressQueue undeploy(DistributionCriteria criteria, ClusterInfo cluster) throws RunningProcessesException{
+  public synchronized ProgressQueue undeployDistribution(DistributionCriteria criteria, ClusterInfo cluster) throws RunningProcessesException{
     proxy.undeploy(criteria);
-    try{
+    try {
       return invoker.invoke(ProgressQueue.class, cluster);
-    }catch(RunningProcessesException e){
+    } catch(RunningProcessesException e) {
       throw (RunningProcessesException)e;
-    }catch(RuntimeException e){
+    } catch(RuntimeException e){
       throw e;
-    }catch(Throwable e){
+    } catch(Throwable e){
       throw new RuntimeException(e);
     }
   }

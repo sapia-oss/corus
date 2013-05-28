@@ -18,6 +18,9 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
  * @author Yanick Duchesne
  */
 public abstract class CorusCliCommand implements Command {
+  
+  public static final int CONSOLE_WIDTH   = 80;
+  
   public static final String CLUSTER_OPT  = "cluster";
   public static final String DIST_OPT     = "d";
   public static final String VERSION_OPT  = "v";

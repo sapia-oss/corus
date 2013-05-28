@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface=Processor.class)
+@Bind(moduleInterface= Processor.class)
 @Remote(interfaces=Processor.class)
 public class ProcessorImpl extends ModuleHelper implements Processor {
     
@@ -81,6 +81,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public ProcessorConfiguration getConfiguration() {
     return configuration;
   }
+
 
   public void init() throws Exception {
 
@@ -143,15 +144,19 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public void start() throws Exception {
     ProcessorExtension ext = new ProcessorExtension(this, serverContext());
     http.addHttpExtension(ext);
-    
-    BootstrapExecConfigStartTask boot = new BootstrapExecConfigStartTask();
-    
-    taskman.executeBackground(
-        boot,
-        null,
-        BackgroundTaskConfig.create()
-          .setExecDelay(configuration.getBootExecDelayMillis())
-          .setExecInterval(configuration.getStartIntervalMillis()));
+   
+    if (configuration.isBootExecEnabled()) {
+      BootstrapExecConfigStartTask boot = new BootstrapExecConfigStartTask();
+      
+      taskman.executeBackground(
+          boot,
+          null,
+          BackgroundTaskConfig.create()
+            .setExecDelay(configuration.getBootExecDelayMillis())
+            .setExecInterval(configuration.getStartIntervalMillis()));
+    } else {
+      log.warn("Automatic startup of processes at boot time is disabled for this node");
+    }
     
     ProcessCheckTask check = new ProcessCheckTask();
     taskman.executeBackground(
@@ -182,7 +187,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
                        Processor INTERFACE METHODS
   ////////////////////////////////////////////////////////////////////*/
   
-  public ProgressQueue exec(String execConfigName) {
+  public ProgressQueue execConfig(String execConfigName) {
     ProgressQueue progress = new ProgressQueueImpl();
     EndUserExecConfigStartTask start = new EndUserExecConfigStartTask(execConfigName);
     try{
@@ -401,7 +406,12 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public ProgressQueue resume() {
-    Iterator<Process> procs  = processes.getSuspendedProcesses().getProcesses(ProcessCriteria.builder().all()).iterator();
+    return resume(ProcessCriteria.builder().all());
+  }
+  
+  @Override  
+  public ProgressQueue resume(ProcessCriteria processCriteria) {
+    Iterator<Process> procs  = processes.getSuspendedProcesses().getProcesses(processCriteria).iterator();
     ResumeTask  			resume;
     Process     			proc;
 

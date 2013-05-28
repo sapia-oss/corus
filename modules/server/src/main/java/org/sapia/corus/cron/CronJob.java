@@ -1,6 +1,7 @@
 package org.sapia.corus.cron;
 
 
+import org.apache.log.Hierarchy;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.cron.CronJobInfo;
@@ -21,6 +22,8 @@ import fr.dyade.jdring.AlarmListener;
 public class CronJob extends AbstractPersistent<String, CronJob> implements java.io.Serializable, AlarmListener {
 
   static final long serialVersionUID = 1L;
+  
+  private static final org.apache.log.Logger LOG = Hierarchy.getDefaultHierarchy().getLoggerFor(CronJob.class.getName());
   
   private transient CronModuleImpl owner;
   private transient ServerContext  serverContext;
@@ -79,8 +82,8 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
         .name(info.getProcessName())
         .build();
       ProgressQueue queue = proc.exec(criteria, 1);
-      owner.logger().info("Executing scheduled VM " + info);
-      ProgressQueueLogger.transferMessages(owner.logger(), queue);
+      LOG.info("Executing scheduled VM " + info);
+      ProgressQueueLogger.transferMessages(LOG, queue);
     } catch (Throwable t) {
       entry.isRepetitive = false;
       owner.removeCronJob(info.getId());

@@ -39,6 +39,8 @@
     <p>- err</p>
     <p>- exit</p>
     <p>- quit</p>
+    <p>- man</p>    
     <p>- ver</p>
+    <p/>    
   </section>
 </help>

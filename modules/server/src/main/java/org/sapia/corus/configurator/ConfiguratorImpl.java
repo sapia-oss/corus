@@ -29,13 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yduchesne
  *
  */
-@Bind(moduleInterface=Configurator.class)
+@Bind(moduleInterface={Configurator.class, InternalConfigurator.class})
 @Remote(interfaces=Configurator.class)
 public class ConfiguratorImpl extends ModuleHelper implements Configurator, InternalConfigurator{
   
   public static final String PROP_SERVER_NAME = "corus.server.name";
 
-  private static final String PASSWORD = "password";
+  private static final String PASSWORD             = "password";
   private static final String PASSWORD_PLACEHOLDER = "********";
   
   @Autowired
@@ -68,8 +68,6 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
     } else{
       serverContext().overrideServerName(serverName);
     }
-    
-    serverContext().getServices().bind(InternalConfigurator.class, this);
   }
   
   @Override

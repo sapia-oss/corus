@@ -1,0 +1,11 @@
+<help>
+  <section title="Description">
+   <p>Forces a pull from Corus nodes that act as repository servers. This command is only executed by nodes
+   that are configured as repository clients.</p>
+  </section>
+  <section title="Syntax">
+    <p/>
+    <p>pull [-cluster]</p>
+    <p/>    
+  </section>
+</help>

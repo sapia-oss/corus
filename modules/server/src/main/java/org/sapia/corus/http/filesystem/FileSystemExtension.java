@@ -15,6 +15,7 @@ import javax.activation.MimetypesFileTypeMap;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
 import org.sapia.corus.http.helpers.NotFoundHelper;
@@ -29,7 +30,7 @@ import org.sapia.corus.http.helpers.NotFoundHelper;
  * @author yduchesne
  *
  */
-public class FileSystemExtension implements HttpExtension{
+public class FileSystemExtension implements HttpExtension {
 
   public static final String HTTP_FILESYSTEM_CONTEXT = "files";
 
@@ -78,9 +79,9 @@ public class FileSystemExtension implements HttpExtension{
   }
   
   private void listDir(File dir, HttpContext ctx) throws Exception{
-    ctx.getResponse().setCode(200);
-    ctx.getResponse().set("Content-Type", "text/html");    
-    PrintStream ps = ctx.getResponse().getPrintStream();
+    ctx.getResponse().setStatusCode(200);
+    ctx.getResponse().setHeader("Content-Type", "text/html");    
+    PrintStream ps = new PrintStream(ctx.getResponse().getOutputStream());
     String title = ctx.getPathInfo();
     if(title.length() == 0){
       title = "/";
@@ -117,11 +118,11 @@ public class FileSystemExtension implements HttpExtension{
   private void streamFile(File file, HttpContext ctx) throws Exception{
     ctx.getResponse().setContentLength((int)file.length());
     if(!file.exists()){
-      ctx.getResponse().setCode(404);
+      ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_NOT_FOUND);
     }
     else{
-      ctx.getResponse().set("Content-Type", MIME_TYPES.getContentType(file));
-      ctx.getResponse().setCode(200);      
+      ctx.getResponse().setHeader("Content-Type", MIME_TYPES.getContentType(file));
+      ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_OK);      
       FileInputStream fis = new FileInputStream(file);
       OutputStream os = null;
       try{

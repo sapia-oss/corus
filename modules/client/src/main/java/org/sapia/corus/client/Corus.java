@@ -1,7 +1,7 @@
 package org.sapia.corus.client;
 
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
-import org.sapia.corus.client.services.cluster.ServerHost;
+import org.sapia.corus.client.services.cluster.CorusHost;
 
 /**
  * This class is the corus server's remote interface.
@@ -22,9 +22,9 @@ public interface Corus extends java.rmi.Remote {
   
   /**
    * 
-   * @return the {@link ServerHost} instance which holds information about the Corus server.
+   * @return the {@link CorusHost} instance which holds information about the Corus server.
    */
-  public ServerHost getHostInfo();
+  public CorusHost getHostInfo();
   
   /**
    * @param moduleName the name of the module to lookup.

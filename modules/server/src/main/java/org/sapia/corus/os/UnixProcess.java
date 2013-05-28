@@ -8,7 +8,7 @@ import java.util.StringTokenizer;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
-import org.sapia.corus.util.IOUtils;
+import org.sapia.corus.util.IOUtil;
 
 
 /**
@@ -47,7 +47,7 @@ public class UnixProcess implements NativeProcess {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 5000);
+    IOUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 5000);
     log.debug(anOutput.toString("UTF-8").trim());
     
     // Extract the process id
@@ -60,7 +60,7 @@ public class UnixProcess implements NativeProcess {
     
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtils.extractAvailable(vmHandle.getErrStream(), anOutput);
+    IOUtil.extractAvailable(vmHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error starting the process: " + anOutput.toString("UTF-8").trim());
     }
@@ -79,12 +79,12 @@ public class UnixProcess implements NativeProcess {
     
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtils.extractUntilAvailable(handle.getInputStream(), anOutput, 5000);
+    IOUtil.extractUntilAvailable(handle.getInputStream(), anOutput, 5000);
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtils.extractAvailable(handle.getErrStream(), anOutput);
+    IOUtil.extractAvailable(handle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error killing the process: " + anOutput.toString("UTF-8").trim());
     }

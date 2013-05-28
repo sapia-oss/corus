@@ -34,5 +34,6 @@
     <p>status -d myapp -v 1.* -n * -p qa</p>
     <p/>    
     <p>status -d * -v * -n * -p qa</p>
+    <p/>    
   </section>    
 </help>

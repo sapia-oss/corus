@@ -1,7 +1,6 @@
 package org.sapia.corus.cluster;
 
-import org.sapia.corus.client.services.cluster.ServerHost;
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
 
 
 /**
@@ -17,8 +16,8 @@ public class CorusPubEvent extends AbstractClusterEvent {
 	public CorusPubEvent() {
   }
   
-  public CorusPubEvent(ServerAddress origin, ServerHost hostInfo) {
-  	super(origin, hostInfo);
+  public CorusPubEvent(CorusHost hostInfo) {
+  	super(hostInfo);
   }
   
 }

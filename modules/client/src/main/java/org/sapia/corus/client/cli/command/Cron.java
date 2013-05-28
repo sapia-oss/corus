@@ -11,6 +11,7 @@ import org.sapia.console.table.Table;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
+import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.cli.command.cron.CronWizard;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.ubik.net.ServerAddress;
@@ -20,26 +21,36 @@ import org.sapia.ubik.net.ServerAddress;
  * @author Yanick Duchesne
  */
 public class Cron extends CorusCliCommand {
-  public static final String STAR        = "*";
-  public static final String ADD         = "add";
-  public static final String LIST        = "list";
-  public static final String LS          = "ls";
-  public static final String REMOVE      = "delete";
-  public static final String JOB_ID      = "i";
-  static final int           COL_ID      = 0;
-  static final int           COL_DIST    = 1;
-  static final int           COL_VERSION = 2;
-  static final int           COL_PROFILE = 3;
-  static final int           COL_VM      = 4;
-  static final int           COL_HOUR    = 5;
-  static final int           COL_MINUTE  = 6;
-  static final int           COL_DAY     = 7;
-  static final int           COL_MONTH   = 8;
-  static final int           COL_YEAR    = 9;
-  static final String[]      DAYS        = new String[] {
-                                             "Su", "Mo", "Tu", "We", "Th", "Fr",
-                                             "Sa"
-                                           };
+  
+  private static TableDef CRON_TBL = TableDef.newInstance()
+      .createCol("id", 17)
+      .createCol("dist", 7)
+      .createCol("version", 7)
+      .createCol("vm", 7)
+      .createCol("profile", 10)
+      .createCol("hour", 2)
+      .createCol("minute", 2)
+      .createCol("day", 2)
+      .createCol("month", 2)
+      .createCol("year", 4);
+  
+  private static TableDef HOST_TBL = TableDef.newInstance()
+      .createCol("val", 78);  
+  
+  // --------------------------------------------------------------------------
+ 
+  private static final String STAR        = "*";
+  private static final String ADD         = "add";
+  private static final String LIST        = "list";
+  private static final String LS          = "ls";
+  private static final String REMOVE      = "delete";
+  private static final String JOB_ID      = "i";
+  
+  // --------------------------------------------------------------------------
+      
+  private static final String[] DAYS  = new String[] { "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" };
+
+  // --------------------------------------------------------------------------  
 
   @Override
   protected void doExecute(CliContext ctx)
@@ -78,39 +89,27 @@ public class Cron extends CorusCliCommand {
   }
 
   private void displayJob(CronJobInfo info, CliContext ctx) {
-    Table cronTable = new Table(ctx.getConsole().out(), 10, 20);
-    Row   row;
+    Table cronTable = CRON_TBL.createTable(ctx.getConsole().out());
 
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_ID).setWidth(17);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_DIST).setWidth(7);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_VERSION).setWidth(7);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_VM).setWidth(7);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_PROFILE).setWidth(10);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_HOUR).setWidth(2);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_MINUTE).setWidth(2);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_DAY).setWidth(2);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_MONTH).setWidth(2);
-    cronTable.getTableMetaData().getColumnMetaDataAt(COL_YEAR).setWidth(4);
+    cronTable.drawLine('-', 0, CONSOLE_WIDTH);
 
-    cronTable.drawLine('-');
-
-    row = cronTable.newRow();
-    row.getCellAt(COL_ID).append(info.getId());
-    row.getCellAt(COL_DIST).append(info.getDistribution());
-    row.getCellAt(COL_VERSION).append(info.getVersion());
-    row.getCellAt(COL_VM).append(info.getProcessName());
-    row.getCellAt(COL_PROFILE).append(info.getProfile());
-    row.getCellAt(COL_HOUR).append(doAppend(info.getHour()));
-    row.getCellAt(COL_MINUTE).append(doAppend(info.getMinute()));
+    Row row = cronTable.newRow();
+    row.getCellAt(CRON_TBL.col("id").index()).append(info.getId());
+    row.getCellAt(CRON_TBL.col("dist").index()).append(info.getDistribution());
+    row.getCellAt(CRON_TBL.col("version").index()).append(info.getVersion());
+    row.getCellAt(CRON_TBL.col("vm").index()).append(info.getProcessName());
+    row.getCellAt(CRON_TBL.col("profile").index()).append(info.getProfile());
+    row.getCellAt(CRON_TBL.col("hour").index()).append(doAppend(info.getHour()));
+    row.getCellAt(CRON_TBL.col("minute").index()).append(doAppend(info.getMinute()));
 
     if (info.getDayOfWeek() == CronJobInfo.UNDEFINED) {
-      row.getCellAt(COL_DAY).append(STAR);
+      row.getCellAt(CRON_TBL.col("day").index()).append(STAR);
     } else {
-      row.getCellAt(COL_DAY).append(DAYS[info.getDayOfWeek() - 1]);
+      row.getCellAt(CRON_TBL.col("day").index()).append(DAYS[info.getDayOfWeek() - 1]);
     }
 
-    row.getCellAt(COL_MONTH).append(doAppend(info.getMonth()));
-    row.getCellAt(COL_YEAR).append(doAppend(info.getYear()));
+    row.getCellAt(CRON_TBL.col("month").index()).append(doAppend(info.getMonth()));
+    row.getCellAt(CRON_TBL.col("year").index()).append(doAppend(info.getYear()));
     row.flush();
   }
 
@@ -129,43 +128,27 @@ public class Cron extends CorusCliCommand {
   }
 
   private void displayHeader(ServerAddress addr, CliContext ctx) {
-    Table hostTable;
-    Table infoTable;
-    Row   row;
-    Row   headers;
+    Table hostTable = HOST_TBL.createTable(ctx.getConsole().out());
+    Table infoTable = CRON_TBL.createTable(ctx.getConsole().out());
 
-    hostTable = new Table(ctx.getConsole().out(), 1, 78);
-    hostTable.drawLine('=');
-    row = hostTable.newRow();
-    row.getCellAt(0).append("Host: ").append(addr.toString());
+    hostTable.drawLine('=', 0, CONSOLE_WIDTH);
+    Row row = hostTable.newRow();
+    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(addr.toString());
     row.flush();
 
-    hostTable.drawLine(' ');
+    hostTable.drawLine(' ', 0, CONSOLE_WIDTH);
 
-    infoTable = new Table(ctx.getConsole().out(), 10, 20);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_ID).setWidth(17);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_DIST).setWidth(7);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_VERSION).setWidth(7);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_VM).setWidth(7);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_PROFILE).setWidth(10);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_HOUR).setWidth(2);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_MINUTE).setWidth(2);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_DAY).setWidth(2);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_MONTH).setWidth(2);
-    infoTable.getTableMetaData().getColumnMetaDataAt(COL_YEAR).setWidth(4);
-
-    headers = infoTable.newRow();
-
-    headers.getCellAt(COL_ID).append("ID");
-    headers.getCellAt(COL_DIST).append("Dist.");
-    headers.getCellAt(COL_VERSION).append("Version");
-    headers.getCellAt(COL_VM).append("Process   Name");
-    headers.getCellAt(COL_PROFILE).append("Profile");
-    headers.getCellAt(COL_HOUR).append("hh");
-    headers.getCellAt(COL_MINUTE).append("mm");
-    headers.getCellAt(COL_DAY).append("DD");
-    headers.getCellAt(COL_MONTH).append("MM");
-    headers.getCellAt(COL_YEAR).append("YYYY");
+    Row headers = infoTable.newRow();
+    headers.getCellAt(CRON_TBL.col("id").index()).append("ID");
+    headers.getCellAt(CRON_TBL.col("dist").index()).append("Dist.");
+    headers.getCellAt(CRON_TBL.col("version").index()).append("Version");
+    headers.getCellAt(CRON_TBL.col("vm").index()).append("Process Name");
+    headers.getCellAt(CRON_TBL.col("profile").index()).append("Profile");
+    headers.getCellAt(CRON_TBL.col("hour").index()).append("hh");
+    headers.getCellAt(CRON_TBL.col("minute").index()).append("mm");
+    headers.getCellAt(CRON_TBL.col("day").index()).append("DD");
+    headers.getCellAt(CRON_TBL.col("month").index()).append("MM");
+    headers.getCellAt(CRON_TBL.col("year").index()).append("YYYY");
     headers.flush();
   }
 }

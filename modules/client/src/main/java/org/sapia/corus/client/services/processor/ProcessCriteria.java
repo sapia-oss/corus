@@ -25,6 +25,11 @@ public class ProcessCriteria implements Serializable{
   private Arg name;
   
   /**
+   * Corresponds to the process id.
+   */
+  private Arg pid;  
+  
+  /**
    * Corresponds to the process profile.
    */
   private String profile;
@@ -44,6 +49,13 @@ public class ProcessCriteria implements Serializable{
   }
   public void setName(Arg name) {
     this.name = name;
+  }
+  
+  public Arg getPid() {
+    return pid;
+  }
+  public void setPid(Arg pid) {
+    this.pid = pid;
   }
   
   public String getProfile() {
@@ -91,7 +103,7 @@ public class ProcessCriteria implements Serializable{
   ////////////// Builder class
   
   public static final class Builder{
-    private Arg name, distribution, version;
+    private Arg name, distribution, version, pid;
     private String profile;
     
     private Builder(){}
@@ -103,6 +115,11 @@ public class ProcessCriteria implements Serializable{
     
     public Builder name(String name){
       return name(parse(name));
+    }
+    
+    public Builder pid(Arg pid) {
+      this.pid = pid;
+      return this;
     }
     
     public Builder profile(String profile){
@@ -133,6 +150,7 @@ public class ProcessCriteria implements Serializable{
       criteria.setDistribution(any());
       criteria.setName(any());
       criteria.setVersion(any());
+      criteria.setPid(any());
       return criteria;      
     }
     
@@ -142,7 +160,9 @@ public class ProcessCriteria implements Serializable{
       criteria.setName(anyIfNull(name));
       criteria.setProfile(profile);
       criteria.setVersion(anyIfNull(version));
+      criteria.setPid(anyIfNull(pid));
       return criteria;
     }
   }
 }
+

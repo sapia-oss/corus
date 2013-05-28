@@ -1,9 +1,12 @@
 package org.sapia.corus.client.services.cluster;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.sapia.corus.client.Module;
 import org.sapia.ubik.mcast.EventChannel;
+import org.sapia.ubik.mcast.Response;
+import org.sapia.ubik.mcast.TimeoutException;
 import org.sapia.ubik.net.ServerAddress;
 
 
@@ -28,9 +31,9 @@ public interface ClusterManager extends java.rmi.Remote, Module {
   /**
    * Returns information of the other Corus servers in the cluster/domain.
    *
-   * @return a {@link Set} of {@link ServerHost} instances.
+   * @return a {@link Set} of {@link CorusHost} instances.
    */
-  public Set<ServerHost> getHosts();
+  public Set<CorusHost> getHosts();
 
   /**
    * Returns the event channel used to dispatch events to
@@ -47,4 +50,13 @@ public interface ClusterManager extends java.rmi.Remote, Module {
    */
   public ClusterStatus getClusterStatus();
   
+  
+  /**
+   * @param notif a {@link ClusterNotification} to send.
+   * @return the {@link Response} returned by the targeted node.
+   * @throws IOException if an IO problem occurs.
+   * @throws TimeoutException if no response could be obtained from the next target node in a timely fashion.
+   */
+  public Response send(ClusterNotification notif) throws IOException, TimeoutException;
+
 }

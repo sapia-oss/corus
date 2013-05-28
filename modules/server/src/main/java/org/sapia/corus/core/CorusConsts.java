@@ -23,6 +23,11 @@ public interface CorusConsts {
 	 */
   public static final String PROPERTY_CORUS_TRANSPORT 			= "corus.server.transport";
   
+  /**
+   * Corresponds to the property indicating if repository functionality is enabled or not.
+   */
+  public static final String PROPERTY_REPO_TYPE             = "corus.server.repository.node.type";
+  
 	/**
 	 * Corresponds to the property that defines to which network interface(s) the Corus server will be bound.
 	 * @deprecated

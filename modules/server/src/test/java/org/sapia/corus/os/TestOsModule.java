@@ -17,6 +17,11 @@ public class TestOsModule implements OsModule{
   }
   
   @Override
+  public void executeScript(LogCallback log, File rootDirectory,
+      CmdLine commandLine) throws IOException {
+  }
+  
+  @Override
   public void killProcess(LogCallback log, String pid) throws IOException {
   }
 

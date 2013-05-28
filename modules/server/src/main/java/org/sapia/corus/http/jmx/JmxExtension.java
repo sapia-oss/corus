@@ -46,7 +46,7 @@ public class JmxExtension implements HttpExtension{
   }
   
   public void process(HttpContext ctx) throws Exception {
-    ctx.getResponse().set("Content-Type", "text/xml");
+    ctx.getResponse().setHeader("Content-Type", "text/xml");
     try{
       doProcess(ctx);
     }catch(Exception e){
@@ -57,11 +57,11 @@ public class JmxExtension implements HttpExtension{
   
   private void doProcess(HttpContext ctx) throws Exception{
     
-    PrintStream ps = ctx.getResponse().getPrintStream();
+    PrintStream ps = new PrintStream(ctx.getResponse().getOutputStream());
     ps.print("<vmStatus");
     xmlAttribute("domain", context.getDomain(), ps);
     try{
-      TCPAddress addr = context.getServerAddress();
+      TCPAddress addr = context.getCorusHost().getEndpoint().getServerTcpAddress();
       xmlAttribute("host", addr.getHost(), ps);      
       xmlAttribute("port", Integer.toString(addr.getPort()), ps);
     }catch(ClassCastException e){}
@@ -154,8 +154,7 @@ public class JmxExtension implements HttpExtension{
     ps.println("</vmStatus>");
     ps.flush();
     ps.close();
-    
-    
+    ctx.getResponse().commit();
   }
   
   private void attribute(String name, Object value, PrintStream ps){

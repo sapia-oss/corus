@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,12 +25,11 @@ import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
-import org.sapia.corus.client.services.cluster.ServerHost;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
-import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
+import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
 /**
  * An instance of this class encapsulates objects pertaining to the connection to a
@@ -46,11 +46,12 @@ public class CorusConnectionContext {
   private long 												 lastReconnect = System.currentTimeMillis();
   private Corus 											 corus;
   private ServerAddress 					     connectAddress;
-  private ServerHost 									 serverHost;
+  private CorusHost 									 serverHost;
   private String 										   domain;
   private Map<Class<?>, Object> 		   modules 		 = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
-  private Set<ServerHost> 						 otherHosts  = Collections.synchronizedSet(new HashSet<ServerHost>());
+  private Set<CorusHost> 						   otherHosts  = Collections.synchronizedSet(new HashSet<CorusHost>());
   private Map<ServerAddress, Corus> 	 cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
+  private Stack<ServerAddress>         connectionHistory = new Stack<ServerAddress>();
   private ExecutorService 						 executor;
   private ClientSideClusterInterceptor interceptor;
   private ClientFileSystem             fileSys;
@@ -104,7 +105,7 @@ public class CorusConnectionContext {
    * @return the {@link ServerAddress} of the other Corus instances in the
    *         cluster.
    */
-  public Collection<ServerHost> getOtherHosts() {
+  public Collection<CorusHost> getOtherHosts() {
     refresh();
     return Collections.unmodifiableCollection(otherHosts);
   }
@@ -118,7 +119,7 @@ public class CorusConnectionContext {
     return corus;
   }
 
-  public ServerHost getServerHost() {
+  public CorusHost getServerHost() {
     return serverHost;
   }
   
@@ -128,7 +129,7 @@ public class CorusConnectionContext {
    */
   public ServerAddress getAddress() {
     if (serverHost != null) {
-      return serverHost.getServerAddress();
+      return serverHost.getEndpoint().getServerAddress();
     } else {
       return connectAddress;
     }
@@ -144,7 +145,7 @@ public class CorusConnectionContext {
    * @throws CorusException
    */
   public synchronized void reconnect(String host, int port) {
-    connectAddress = new MultiplexSocketAddress(host, port);
+    connectAddress = HttpAddress.newDefaultInstance(host, port);
     reconnect();
   }
 
@@ -220,14 +221,14 @@ public class CorusConnectionContext {
     
     List<ServerAddress> hostList = new ArrayList<ServerAddress>();
     hostList.add(connectAddress);
-    for (ServerHost otherHost: otherHosts) {
-      hostList.add(otherHost.getServerAddress());
+    for (CorusHost otherHost: otherHosts) {
+      hostList.add(otherHost.getEndpoint().getServerAddress());
     }
     
     Iterator<ServerAddress> itr = hostList.iterator();
     List<Runnable> invokers = new ArrayList<Runnable>(hostList.size());
     while (itr.hasNext()) {
-      final TCPAddress addr = (TCPAddress)itr.next();
+      final ServerAddress addr = itr.next();
       
       Runnable invoker = new Runnable(){
         Object module;
@@ -240,7 +241,7 @@ public class CorusConnectionContext {
 
           if (corus == null) {
             try {
-              corus = (Corus) Hub.connect(addr.getHost(), addr.getPort());
+              corus = (Corus) Hub.connect(addr);
               cachedStubs.put(addr, corus);
             } catch (java.rmi.RemoteException e) {
               results.decrementInvocationCount();
@@ -253,9 +254,7 @@ public class CorusConnectionContext {
             returnValue = method.invoke(module, params);
             results.addResult(new Result(addr, returnValue));
           } catch (Exception err) {
-            //err.printStackTrace();
             results.decrementInvocationCount();
-            // noop
           } 
 
         }
@@ -267,6 +266,13 @@ public class CorusConnectionContext {
     for(Runnable invoker:invokers){
       executor.execute(invoker);
     }
+  }
+  
+  /**
+   * @return the {@link Stack} of addresses corresponding to the CLI's connection history.
+   */
+  public Stack<ServerAddress> getConnectionHistory() {
+    return connectionHistory;
   }
   
   public synchronized <T> T lookup(Class<T> moduleInterface){

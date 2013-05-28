@@ -18,7 +18,7 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 
-public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements ProcessorFacade{
+public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements ProcessorFacade {
 
   
   public ProcessorFacadeImpl(CorusConnectionContext context) {
@@ -56,8 +56,8 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
   
   @Override
-  public synchronized ProgressQueue exec(String configName, ClusterInfo cluster) {
-    proxy.exec(configName);
+  public synchronized ProgressQueue execConfig(String configName, ClusterInfo cluster) {
+    proxy.execConfig(configName);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
   
@@ -102,6 +102,12 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   public synchronized ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster) {
     proxy.restart(criteria);
     return invoker.invokeLenient(ProgressQueue.class, cluster);  
+  }
+  
+  @Override
+  public ProgressQueue resume(ProcessCriteria criteria, ClusterInfo cluster) {
+    proxy.resume(criteria);
+    return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
   
   @Override

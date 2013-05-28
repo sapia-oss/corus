@@ -34,7 +34,7 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public ProgressQueue exec(String execConfigName) {
+  public ProgressQueue execConfig(String execConfigName) {
     ProgressQueue q = new ProgressQueueImpl();
     return q;
   }
@@ -92,6 +92,11 @@ public class TestProcessor implements Processor{
   
   @Override
   public void restart(ProcessCriteria criteria) {
+  }
+  
+  @Override
+  public ProgressQueue resume(ProcessCriteria criteria) {
+    return new ProgressQueueImpl();
   }
   
   public ProgressQueue resume() {

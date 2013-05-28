@@ -7,7 +7,7 @@
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>3.0.6-SNAPSHOT</version>
+  <version>4.1-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,7 +19,7 @@
     <version>1.15</version>
   </parent>
 
-  <scm>
+ <scm>
     <connection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</connection>
     <developerConnection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</developerConnection>
     <url>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</url>
@@ -199,11 +199,35 @@
       </dependency>
 
       <!-- Ubik -->
+
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>3.2</version>
+        <version>3.3</version>
       </dependency>
+      
+    <!-- http client-->
+
+    <dependency>
+	  <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.4</version>
+    </dependency>                
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.2</version>
+    </dependency>
+
+    <!-- simple web server integration -->
+
+    <dependency>
+      <groupId>org.simpleframework</groupId>
+      <artifactId>simple</artifactId>
+      <version>5.1.1</version>
+      <optional>true</optional>        
+    </dependency>
 
       <!-- Spring -->
       <dependency>

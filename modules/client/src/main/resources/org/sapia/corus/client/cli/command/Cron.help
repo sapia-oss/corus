@@ -24,6 +24,7 @@
   <section title="Notes">
     <p>- The "add" action triggers a wizard that helps in providing the information necessary to schedule processes.</p>
     <p/>
-    <p>- A scheduled process cannot be configured cluster-wide. Schedules are defined on a per-Corus server basis.</p>    
+    <p>- A scheduled process cannot be configured cluster-wide. Schedules are defined on a per-Corus server basis.</p>
+    <p/>    
   </section>
 </help>

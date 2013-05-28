@@ -40,7 +40,7 @@ public class DbModuleImpl extends ModuleHelper implements DbModule{
     if (_dbDir != null) {
       String aFilename = new StringBuffer(_dbDir.getAbsolutePath()).
               append(File.separator).append(serverContext().getDomain()).
-              append("_").append(serverContext().getServerAddress().getPort()).
+              append("_").append(serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort()).
               toString();
       _dbDir = new File(aFilename);
 
@@ -48,7 +48,7 @@ public class DbModuleImpl extends ModuleHelper implements DbModule{
       String aFilename = new StringBuffer(serverContext().getHomeDir()).
               append(File.separator).append("db").
               append(File.separator).append(serverContext().getDomain()).
-              append("_").append(serverContext().getServerAddress().getPort()).
+              append("_").append(serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort()).
               toString();
       _dbDir = new File(aFilename);
     }

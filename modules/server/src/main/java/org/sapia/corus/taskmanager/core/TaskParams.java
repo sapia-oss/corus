@@ -35,6 +35,11 @@ public class TaskParams<P1,P2,P3,P4> {
     return param4;
   }
   
+  public static <P1> TaskParams<P1, Void, Void, Void> createFor(P1 p1){
+    TaskParams<P1, Void, Void, Void> params = new TaskParams<P1, Void, Void, Void>();
+    params.param1 = p1;
+    return params;
+}
   
   public static <P1, P2> TaskParams<P1, P2, Void, Void> createFor(P1 p1, P2 p2){
       TaskParams<P1, P2, Void, Void> params = new TaskParams<P1, P2, Void, Void>();

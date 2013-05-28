@@ -112,10 +112,10 @@ public class ClassDescriptor<T> {
   
   private void analyze(){
     
-    try{
+    try {
       constructor = type.getDeclaredConstructor(new Class<?>[0]);
       constructor.setAccessible(true);
-    }catch(Exception e){
+    } catch(Exception e){
       throw new ConstructorAccessException(
           String.format("No-args constructor access problem for %s (make sure class has one)", type.getName()), e);
     }
