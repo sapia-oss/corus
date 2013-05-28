@@ -14,6 +14,7 @@ import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
+import org.sapia.corus.taskmanager.core.FutureResult;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -36,6 +37,8 @@ public class DistributionDeploymentHandlerTest {
     handler.setTaskman(taskManager);
 
     when(config.getTempDir()).thenReturn("tempDir");
+    FutureResult res = mock(FutureResult.class);
+    when(taskManager.executeAndWait(any(Task.class), anyString(), any(TaskConfig.class))).thenReturn(res);
   }
 
   @Test
