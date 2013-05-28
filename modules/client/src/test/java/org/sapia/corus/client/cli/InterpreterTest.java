@@ -1,10 +1,13 @@
 package org.sapia.corus.client.cli;
 
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.PrintWriter;
@@ -22,8 +25,10 @@ import org.sapia.console.AbortException;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 public class InterpreterTest {
@@ -67,6 +72,16 @@ public class InterpreterTest {
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
     assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());    
     assertTrue("Expected clustered", inputClusterInfo.get().isClustered());
+  }
+
+  @Test
+  public void testInterpret_confCommand() throws Throwable {
+    ConfiguratorFacade config = mock(ConfiguratorFacade.class);
+    when(connector.getConfigFacade()).thenReturn(config);
+
+    console.interpret("conf add -p name=value\\=123");    
+    
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
   }
   
   @Test (expected = AbortException.class)
