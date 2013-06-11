@@ -1,0 +1,18 @@
+<help>
+  <section title="Description">
+   <p>Changes the CLI's base directory to the one given as an argument</p>
+  </section>
+  <section title="Syntax">
+    <p>cd the_new_directory</p>
+  </section>
+  <section title="Examples">
+    <p>cd ..</p>
+    <p/>
+    <p>cd dist</p>
+    <p/>    
+    <p>cd ../dist</p>
+    <p/>    
+    <p>cd /home/jbloe/dist</p>
+    <p/>    
+  </section>  
+</help>

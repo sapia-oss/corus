@@ -74,6 +74,7 @@ public class Java extends BaseJavaStarter {
     String pathSep = System.getProperty("path.separator");
 
     String classpath = env.getCorusIopLibPath() + pathSep + 
+                       getCp(env,env.getJavaLibDir()) + pathSep +
                        env.getJavaStarterLibPath() + pathSep +
                        getProcessCp(result.variables, env) + pathSep + 
                        getMainCp(env);

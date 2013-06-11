@@ -5,8 +5,7 @@
   <section title="Syntax">
     <p>ps [-d distribution_name][-v version][-n process_name][-p profile][-ports][-cluster]</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>ps [-i process_identifier][-ports]</p>
     <p/>
     <p>Where:</p>

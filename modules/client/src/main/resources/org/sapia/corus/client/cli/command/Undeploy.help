@@ -9,12 +9,17 @@
     <p>undeploy -d distribution_name -v version [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p/>
     <p>undeploy all [-cluster]</p>
     <p/>
-    <p>or:</p>    
+    <p>OR:</p>    
     <p>undeploy -e exec_config_name [-cluster]</p>
     <p/>
+    <p>OR:</p>    
+    <p>undeploy -s shell_script_alias [-cluster]</p>
+    <p/>    
+    <p>OR:</p>    
+    <p>undeploy -f file_name [-cluster]</p>
+    <p/>    
     <p>Where:</p>
     <p/>
     <p>- d: the name of the distribution to undeploy.</p>
@@ -23,6 +28,10 @@
     <p/>
     <p>- e: the name of the execution configuration to undeploy.</p>
     <p/>
+    <p>- s: the alias of the shell script to undeploy.</p>
+    <p/>    
+    <p>- f: the name of the file to undeploy.</p>
+    <p/>    
     <p>all: corresponds to the following options: -d * -v *.</p>
     <p/>    
     <p>- cluster: if specified, the given distribution will be undeployed cluster-wide.</p>
@@ -37,6 +46,11 @@
     <p>undeploy -d myDistribution -v 1.*</p>
     <p/>
     <p>undeploy -e myConf</p>
+    <p/>    
+    <p/>
+    <p>undeploy -s restart-memcached</p>
+    <p/>    
+    <p>undeploy -f static-content.tar</p>
     <p/>    
   </section>
 </help>

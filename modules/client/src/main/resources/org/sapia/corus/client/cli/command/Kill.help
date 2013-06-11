@@ -5,16 +5,13 @@
   <section title="Syntax">
     <p>kill [-w] -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>kill all [-w] [-cluster]</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>kill [-w] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>kill [-w] -op os_pid [os_pid2 [os_pid3 [...]]]</p>
     <p/>
     <p>Where:</p>

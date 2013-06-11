@@ -1,5 +1,6 @@
 package org.sapia.corus.client.facade;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -23,12 +24,12 @@ import org.sapia.corus.client.services.processor.Processor;
 public interface ProcessorFacade {
   
   /**
-   * Deploys the execution configuration whose file name is given.
+   * Deploys the execution configuration whose file is given.
    * 
-   * @param fileName the name of the file of the execution configuration to deploy.
+   * @param file the the {@link File} of the execution configuration to deploy.
    * @param cluster
    */
-  public void deployExecConfig(String fileName, ClusterInfo cluster) throws IOException, Exception;
+  public void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception;
   
   /**
    * Undeploys the execution configurations matching the given name. 

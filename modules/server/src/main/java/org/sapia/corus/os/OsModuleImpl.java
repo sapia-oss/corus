@@ -7,9 +7,9 @@ import java.io.IOException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * Implements the {@link OsModule} interface. 
@@ -18,6 +18,9 @@ import org.sapia.corus.util.IOUtil;
  */
 @Bind(moduleInterface=OsModule.class)
 public class OsModuleImpl extends ModuleHelper implements OsModule {
+  
+  private static int BUFSZ = 1024;
+  private static int COMMAND_TIME_OUT = 5000;
   
   /////////////// Lifecycle 
   
@@ -58,14 +61,14 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
     ExecHandle processHandle = commandLine.exec(rootDirectory, null);
 
     // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtil.extractUntilAvailable(processHandle.getInputStream(), anOutput, 5000);
+    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+    CliUtils.extractUntilAvailable(processHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     
     log.debug(anOutput.toString("UTF-8").trim());
     
     // Extract the error stream of the process
     anOutput.reset();
-    IOUtil.extractAvailable(processHandle.getErrStream(), anOutput);
+    CliUtils.extractAvailable(processHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error starting the process: " + anOutput.toString("UTF-8").trim());
     }

@@ -1,5 +1,6 @@
 package org.sapia.corus.client.facade.impl;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +27,8 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void deployExecConfig(String fileName, ClusterInfo cluster) throws IOException, Exception{
-    FileInputStream fis = new FileInputStream(fileName); 
+  public synchronized void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception{
+    FileInputStream fis = new FileInputStream(file); 
     ExecConfig conf = ExecConfig.newInstance(fis);
     proxy.addExecConfig(conf);
     try{

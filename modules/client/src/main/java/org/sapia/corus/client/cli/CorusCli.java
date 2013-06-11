@@ -45,9 +45,12 @@ public class CorusCli extends CommandConsole {
   public static final String SCRIPT_OPT = "s";
   public static final int    MAX_ERROR_HISTORY = 20;
   
+  private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();  
+  
   protected CorusConnector corus;
   private List<CliError> 	 errors;
   private boolean          abortOnError;
+
 
   public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
     super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
@@ -111,7 +114,7 @@ public class CorusCli extends CommandConsole {
         if (cmd.containsOption(PORT_OPT, true)) {
           port = cmd.assertOption(PORT_OPT, true).asInt();
         }
-        CorusConnectionContext connection = new CorusConnectionContext(host, port, new DefaultClientFileSystem());
+        CorusConnectionContext connection = new CorusConnectionContext(host, port, FILE_SYSTEM);
         CorusConnector connector = new CorusConnector(connection);
         
         if (cmd.containsOption(SCRIPT_OPT, false)) {
@@ -135,7 +138,7 @@ public class CorusCli extends CommandConsole {
             }
           }
           try {
-            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector, new DefaultClientFileSystem());
+            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector, FILE_SYSTEM);
             console.interpret(input, vars);
             System.exit(0);
           } catch (Throwable err) {
@@ -173,7 +176,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    CliContextImpl context = new CliContextImpl(corus, errors, new DefaultClientFileSystem());
+    CliContextImpl context = new CliContextImpl(corus, errors, FILE_SYSTEM);
     context.setAbortOnError(abortOnError);
     return context;
   }

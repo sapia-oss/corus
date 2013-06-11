@@ -239,13 +239,67 @@ import org.sapia.corus.interop.api.StatusRequestListener;
     <center><img src="img/status.png"/></center>
     
   </sapia:sect2>
+  
+  <sapia:sect2 title="Repository">
+    <p>
+      The repository functionality has been introduced as of version 4.0. The
+      <a href="CorusGuide.pdf">Corus Guide</a> provides exhaustive documentation as
+      to what the functionality consists of, and how to configure Corus in order to
+      activate it. We'll nevertheless cover the basics here.
+    </p>
+    <p>
+      Briefly said, the repo functionality involves having Corus instances acting 
+      as repository servers (typically, one instance per cluster), while others
+      act as repository clients. 
+    </p>
+    
+    <p>
+      The role of a a repo server node (on top of offering the usual Corus functionality)
+      is to push its state (distributions, port range configs, process properties, tags...)
+      to repo client nodes, on demand (that is, at it's requested by client nodes, in 
+      the form of a "pull").
+    </p>
+    
+    <p>
+      The pull that is initiated by repo client nodes occurs automatically, when these
+      start up.
+    </p>    
+    
+    <center><img src="img/corus_repo.png"/></center>
+
+    <p>
+      This means that new repo client nodes appearing in a cluster need not having an
+      explicit deployment performed on them. Rather, this is done automatically, through
+      the automatic pull at startup. 
+    </p>
+    
+    <p>
+      In addition, as part of that bootstrap phase, client nodes will automatically 
+      start processes that require it (see the section on 
+      <a href="tutorials/advanced-management.html#exec-configs">execution configurations</a>
+      for more details about the process "start-on-boot" feature).
+    </p>
+    
+    <p>
+      The repo functionality was introduced in order to ease the setup of new Corus instances
+      in a domain: the fact that any new instance automatically becomes a copy of
+      the existing ones saves a configuration step for sysadmins.
+    </p>    
+    <p>
+      Also, in cloud environment, where VMs are spawned in a dynamic fashion, the feature
+      makes Corus deployment a breeze: appearing Corus instances automatically fetch their
+      state from the existing Corus repo server node, without necessitating an explicit application 
+      deployment step.      
+    </p>
+    
+  </sapia:sect2>
 
   <sapia:sect2 title="Conclusion">
     <p>
       Corus has advanced features that you'll come to appreciate as you work
       with them. The <a href="tutorials/index.html">tutorials</a> and the 
       <a href="CorusGuide.pdf">Corus Guide</a> provide additional information.
-    </p>
+    </p>                                                
   </sapia:sect2>
   
   </sapia:sect1>

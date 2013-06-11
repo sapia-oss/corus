@@ -1,6 +1,8 @@
 package org.sapia.corus.client.cli;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Abstracts the file system.
@@ -14,6 +16,13 @@ public interface ClientFileSystem {
    * @return the base directory.
    */
   public File getBaseDir();
+  
+  /**
+   * @param dirName a directory name.
+   * @throws IOException if the given directory name does not correspond to a directory.
+   * @throws FileNotFoundException if no such directory exists. 
+   */
+  public void changeBaseDir(String dirName) throws IOException, FileNotFoundException;
   
   /**
    * Returns the file object corresponding to the given file name. The actual physical

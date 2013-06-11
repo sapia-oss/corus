@@ -32,11 +32,11 @@
         processes in the following languages: Scala, Jython, Clojure, JRuby.
       </p>
     </sapia:sect2>
-    <sapia:sect2 title="Corus-enabled Web Servers">
+    <sapia:sect2 title="Cloud Deployment">
       <p>
-        Corus is an infrastructure, not a solution per say. We plan on 
-        providing enterprise-scale, Corus-aware versions of Tomcat 7 and/or 
-        Jetty 7. 
+        Corus as it is now can be deployed in the Cloud. But we're aiming at a tighter
+        integration with Cloud infrastructure (namely AWS), in order to make Corus
+        cloud deployment a breeze.
       </p>
     </sapia:sect2>
     <sapia:sect2 title="Enterprise-grade management console">
@@ -46,14 +46,6 @@
         offering a robust management console that will allow managing Corus 
         domains (whether cloud-based or not) from a single web-based user 
         interface. 
-      </p>
-    </sapia:sect2>
-    <sapia:sect2 title="Robust Security">
-      <p>
-        Currently, security in Corus is only supported through IP filtering. 
-        This firewall-like, coarse-grained approach works, but is not the 
-        most flexible and robust. We are planning on implementing full-fledge 
-        authentication and authorization.
       </p>
     </sapia:sect2>
   </sapia:sect1>

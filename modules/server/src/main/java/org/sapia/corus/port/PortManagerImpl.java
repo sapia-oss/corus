@@ -114,6 +114,26 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     store.writeRange(range);
   }  
   
+  @Override
+  public synchronized void updatePortRange(String name, int min, int max)
+      throws PortRangeInvalidException, PortRangeConflictException {
+    PortRange range = new PortRange(name, min, max);
+    if(max < min){
+      throw new PortRangeInvalidException("Max port must be greater than min port for: " + range);
+    }
+    
+    Iterator<PortRange> ranges = store.getPortRanges();
+    while(ranges.hasNext()){
+      PortRange existing = (PortRange)ranges.next();
+      
+      if(!existing.getName().equals(range.getName()) && existing.isConflicting(range)){
+        throw new PortRangeConflictException("Existing port range (" + existing.getName() +
+          ") conflicting with range");
+      }
+    }
+    store.writeRange(range);    
+  }
+  
   public synchronized void removePortRange(Arg name, boolean force) throws PortActiveException{
     Collection<PortRange> ranges = store.readRange(name);
     

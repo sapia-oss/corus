@@ -181,8 +181,7 @@ public class Conf extends CorusCliCommand {
         } finally {
           try {
             input.close();
-          } catch (IOException e) {
-          }
+          }catch(IOException e){}
         }
       } else {
       	int index = pair.indexOf('=');

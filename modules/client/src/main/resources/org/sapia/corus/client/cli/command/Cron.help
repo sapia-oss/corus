@@ -7,12 +7,10 @@
     <p/>
     <p>cron add</p>
     <p/>
-    <p>OR</p>    
-    <p/>
+    <p>OR:</p>    
     <p>cron list [-cluster]</p>
     <p/>
-    <p>OR</p>    
-    <p/>
+    <p>OR:</p>    
     <p>cron delete -i cron_identifier</p>
     <p/>
     <p>Where:</p>

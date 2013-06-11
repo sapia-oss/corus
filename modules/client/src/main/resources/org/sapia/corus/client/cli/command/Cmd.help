@@ -1,0 +1,14 @@
+<help>
+  <section title="Description">
+   <p>Executes an OS command</p>
+  </section>
+  <section title="Syntax">
+    <p>cmd command_line</p>
+  </section>
+  <section title="Examples">
+    <p>cmd ls -lat</p>
+    <p/>
+    <p>cmd cp backup-20130901.tar ../backups</p>
+    <p/>    
+  </section>  
+</help>

@@ -9,23 +9,19 @@
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
     <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-cluster]</p>
     <p/>
-    <p>OR</p>    
-    <p/>
+    <p>OR:</p>    
     <p>conf add -t &lt;file&gt; [-cluster]</p>
     <p>conf add [-s s | p] -p &lt;file&gt;.properties [-clear] [-cluster]</p>
     <p/>    
-    <p>OR</p>    
-    <p/>    
+    <p>OR:</p>    
     <p>conf ls -t [-cluster]</p>
     <p>conf ls [-p] [-s s | p] [-cluster]</p>
     <p/>
-    <p>OR</p>    
-    <p/>
+    <p>OR:</p>    
     <p>conf export -t -f &lt;file&gt;</p>
     <p>conf export -p -f &lt;file&gt;</p>
     <p/>
-    <p>OR</p>    
-    <p/>
+    <p>OR:</p>    
     <p>conf del -t tag_name</p>
     <p>conf del [-s s | p] -p property_name</p>
     <p/>

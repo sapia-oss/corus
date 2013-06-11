@@ -48,8 +48,8 @@
 </distribution>]]></sapia:code> 
 
 			<p>The deployment unit in Corus is the <tt>distribution</tt>. One distribution can define one to many 
-			processes, each corresponding to an actual application bootstapped by a <tt>main()</tt>. Each process
-			can define or or multiple profile, each consisting of different startup parameters - such as JVM options
+			processes, each corresponding to an actual application bootstrapped by a <tt>main()</tt> method. Each process
+			can define one or multiple profiles, each consisting of different startup parameters - such as JVM options
 			or properties. The descriptor supports <a href="tutorials/corus-descriptor.html#variables">variable substitution</a>.</p>
 	    
     </sapia:sect2>
@@ -71,7 +71,7 @@ lib/
     
     <sapia:sect2 title="Deploy">
       <p>
-      You interact with Corus through a command-line (the Corus CLI). Using the CLI, you 
+      You interact with Corus through a command-line interface (the Corus CLI). Using the CLI, you 
       execute commands against a single Corus instance, or the whole cluster. You use the CLI
       to deploy your application to the cluster:
       </p>
@@ -163,6 +163,7 @@ exec -d * -v * -n * -p dev -cluster</sapia:code>
     		they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
     		<li>Receive email notifications when Corus restarts unresponsive processes.</li>
     		<li>Trigger JVM restart from your application.</li>
+    		<li>Have newly deployed Corus nodes in a cluster automatically download distributions from existing nodes and execute the corresponding processes.</li>
     		<li>etc.</li>
     	</ul>
     </sapia:sect2>

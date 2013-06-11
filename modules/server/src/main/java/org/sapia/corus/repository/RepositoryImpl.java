@@ -1,9 +1,7 @@
 package org.sapia.corus.repository;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +50,6 @@ import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.SyncEventListener;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
-import org.sapia.ubik.util.Collections2;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -388,8 +385,6 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
             currentRangesByName.put(c.getName(), c);
           }
           
-          List<PortRange> toAdd = new ArrayList<PortRange>();          
-          
           for (PortRange r : notif.getPortRanges()) {
             PortRange current = currentRangesByName.get(r.getName());
             if (current != null) {
@@ -398,15 +393,14 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
               } else if (!current.getActive().isEmpty()) {
                 logger().warn("This node has range with same and ports currently active, so not adding: " + r);
               } else {
-                logger().warn("Adding new port range version: " + r);                
-                toAdd.add(current);
+                logger().warn("Adding new port range version: " + r);
+                portManager.updatePortRange(r.getName(), r.getMin(), r.getMax());
               }
             } else {
               logger().warn("Adding new port range: " + r);              
-              toAdd.add(r);
+              portManager.updatePortRange(r.getName(), r.getMin(), r.getMax());
             }
           }
-          portManager.addPortRanges(notif.getPortRanges(), true);
         } catch (Exception e) {
           logger().error("Could not add port ranges", e);          
         }

@@ -127,7 +127,7 @@ public class Deploy extends CorusCliCommand {
       
     } else {
       try {
-        ctx.getCorus().getProcessorFacade().deployExecConfig(fileName, getClusterInfo(ctx));
+        ctx.getCorus().getProcessorFacade().deployExecConfig(file, getClusterInfo(ctx));
       } catch (Exception e) {
         CliError err = ctx.createAndAddErrorFor(this, "Could not deploy execution configuration", e);
         ctx.getConsole().println(err.getSimpleMessage());

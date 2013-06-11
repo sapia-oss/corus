@@ -1,6 +1,8 @@
 package org.sapia.corus.client.cli;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 /**
@@ -20,7 +22,7 @@ public class DefaultClientFileSystem implements ClientFileSystem {
    * as a base directory.
    */
   public DefaultClientFileSystem() {
-    this(new File("."));
+    this(new File(System.getProperty("user.dir")));
   }
   
   /**
@@ -42,6 +44,35 @@ public class DefaultClientFileSystem implements ClientFileSystem {
     } else {
       return new File(baseDir, name);
     }
+  }
+  
+  @Override
+  public void changeBaseDir(String dirName) throws IOException,
+      FileNotFoundException {
+    File dir;
+
+    if (isAbsolute(dirName)) {
+      dir = new File(dirName);
+    } else if (dirName.equals(".")) {
+      return;
+    } else if (dirName.equals("..")) {
+      dir = baseDir.getParentFile();
+      if (dir == null) {
+        throw new IOException(String.format("Current directory (%s) has no parent", baseDir.getAbsolutePath()));
+      }
+    } else {
+      dir = new File(baseDir, dirName);
+    }
+    if (!dir.isDirectory()) {
+      throw new IOException("Not a directory: " + dir.getAbsolutePath());
+    }
+    if (!dir.exists()) {
+      throw new FileNotFoundException("Directory does not exist" + dir.getAbsolutePath());
+    }
+    if (!dir.canRead()) {
+      throw new IOException("You do not have access to this directory");
+    }
+    baseDir = dir;
   }
 
   /**

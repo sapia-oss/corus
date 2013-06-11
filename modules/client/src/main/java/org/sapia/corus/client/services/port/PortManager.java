@@ -37,6 +37,14 @@ public interface PortManager extends java.rmi.Remote, Module{
     PortRangeInvalidException, PortRangeConflictException;
   
   /**
+   * @param name the name of the port range to update.
+   * @param min the lowerbound port.
+   * @param max the higherbound port.
+   */
+  public void updatePortRange(String name, int min, int max) 
+      throws PortRangeInvalidException, PortRangeConflictException;  
+  
+  /**
    * @param ranges a {@link List} of {@link PortRange}s.
    * @param clearExisting if <code>true</code>, indicates that the existing port ranges should
    * be deleted.

@@ -275,7 +275,7 @@
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
-							<includeArtifactIds>sapia_as,sapia_corus_iop_api,jdom,sapia_utils</includeArtifactIds>
+							<includeArtifactIds>sapia_as,sapia_corus_iop_api</includeArtifactIds>
 						</configuration>
 					</execution>
 
@@ -294,6 +294,22 @@
 							<includeArtifactIds>sapia_corus_tomcat</includeArtifactIds>
 						</configuration>
 					</execution>
+					
+          <!-- copying Java starter dependencies -->
+          <execution>
+            <id>copy-java-starter-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/lib/java</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
+            </configuration>
+          </execution>					
 
 					<!-- copying Magnet dependencies -->
 					<execution>

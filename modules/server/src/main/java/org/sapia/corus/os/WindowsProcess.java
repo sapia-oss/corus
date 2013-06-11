@@ -8,6 +8,7 @@ import java.util.StringTokenizer;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.util.IOUtil;
 
@@ -19,6 +20,9 @@ import org.sapia.corus.util.IOUtil;
  *
  */
 public class WindowsProcess implements NativeProcess {
+  
+  private static int BUFSZ = 1024;
+  private static int COMMAND_TIME_OUT = 5000;
 
   private static String pvPath;
   
@@ -112,8 +116,8 @@ public class WindowsProcess implements NativeProcess {
     ExecHandle vmHandle = cmd.exec(baseDir, null);
 
     // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 1000);
+    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+    CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8"));
 
     // Extract the error stream of the process
@@ -131,7 +135,7 @@ public class WindowsProcess implements NativeProcess {
 
     // Extract the output stream of the process
     anOutput.reset();
-    IOUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
+    CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8"));
 
     // Generates a string of the format "\njavaw.exe       (284)\n" 
@@ -173,8 +177,8 @@ public class WindowsProcess implements NativeProcess {
     ExecHandle pvHandle = aKillCommand.exec();
     
     // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, 5000);
+    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+    CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8"));
 
     // Extract the error stream of the process

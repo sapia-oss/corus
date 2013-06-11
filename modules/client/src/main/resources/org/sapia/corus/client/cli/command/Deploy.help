@@ -5,12 +5,13 @@
   <section title="Syntax">
     <p>deploy file [file2 [file3 [...]]] [-cluster]</p>
     <p/>
-    <p>or:</p>
-  	<p/>
+    <p>OR:</p>
     <p>deploy -e exec_config_file [-cluster]</p>
     <p/>
+    <p>OR:</p>    
     <p>deploy -f arbitrary_file.tar [-d remote_dir] [-cluster]</p>
     <p/>    
+    <p>OR:</p>    
     <p>deploy -s restart_memcached.sh -a restart-memcached [-d "restarts memcached" ] [-cluster]</p>
     <p/>    
     <p>Where:</p>

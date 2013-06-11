@@ -22,7 +22,7 @@
         which produces a library (jar file) that can be placed into the 
         classpath of client applications, allowing these applications to 
         connect to Corus instances and use the Corus server API directly
-        (a rarely necessary thing, unless one wants to develop his own tools
+        (a rarely necessary thing, unless one wants to develop his/her own tools
         for interacting with Corus).
       </p>
       <p> 

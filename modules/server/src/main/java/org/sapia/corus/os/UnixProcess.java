@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.util.IOUtil;
 
@@ -18,6 +19,9 @@ import org.sapia.corus.util.IOUtil;
  *
  */
 public class UnixProcess implements NativeProcess {
+  
+  private static int BUFSZ = 1024;
+  private static int COMMAND_TIME_OUT = 5000;
   
   @Override
   public String exec(LogCallback log, File baseDir, CmdLine cmd) throws IOException {
@@ -46,8 +50,8 @@ public class UnixProcess implements NativeProcess {
     ExecHandle vmHandle = javaCmd.exec(baseDir, null);
 
     // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, 5000);
+    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+    CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8").trim());
     
     // Extract the process id
@@ -78,8 +82,8 @@ public class UnixProcess implements NativeProcess {
     ExecHandle handle = aKillCommand.exec();
     
     // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(1024);
-    IOUtil.extractUntilAvailable(handle.getInputStream(), anOutput, 5000);
+    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+    CliUtils.extractUntilAvailable(handle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the error stream of the process

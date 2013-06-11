@@ -1,6 +1,7 @@
 package org.sapia.corus.port;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,8 +53,19 @@ public class PortManagerImplTest {
     }catch(PortRangeConflictException e){
       //ok
     }
-     
   }
+  
+  @Test
+  public void testUpdateExistingPortRange() throws Exception {
+    ports.updatePortRange("single", 40, 50);
+    assertEquals(40, ports.aquirePort("single"));
+  }
+  
+  @Test
+  public void testUpdateNonExistingPortRange() throws Exception {
+    ports.updatePortRange("single2", 40, 50);
+    assertEquals(40, ports.aquirePort("single2"));
+  }  
 
   @Test
   public void testRemovePortRange() throws Exception{

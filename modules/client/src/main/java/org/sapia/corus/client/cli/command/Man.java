@@ -22,11 +22,14 @@ public class Man extends CorusCliCommand{
   private static final Map<String,Class<?>> COMMANDS = new HashMap<String, Class<?>>();
   
   static{
+    COMMANDS.put("cd", Cd.class);
   	COMMANDS.put("cluster", Cluster.class);
+    COMMANDS.put("cmd", Cmd.class);  	
     COMMANDS.put("conf", Conf.class);
     COMMANDS.put("connect", Connect.class);
     COMMANDS.put("cron", Cron.class);
     COMMANDS.put("deploy", Deploy.class);
+    COMMANDS.put("dir", Dir.class);
     COMMANDS.put("err", Err.class);
     COMMANDS.put("exec", Exec.class);
     COMMANDS.put("exit", Exit.class);
@@ -37,7 +40,8 @@ public class Man extends CorusCliCommand{
     COMMANDS.put("man", Man.class);
     COMMANDS.put("port", Port.class);
     COMMANDS.put("ps", Ps.class);
-    COMMANDS.put("pull", Pull.class);    
+    COMMANDS.put("pull", Pull.class);
+    COMMANDS.put("pwd", Pwd.class);
     COMMANDS.put("quit", Quit.class);
     COMMANDS.put("restart", Restart.class);
     COMMANDS.put("resume", Resume.class);

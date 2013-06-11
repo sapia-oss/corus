@@ -60,8 +60,6 @@
       cutting-edge Hotspot JVM. Indeed, over the years, the JVM has gradually 
       become a great multi-language environment: applications in Scala, Clojure, 
       JRuby, Jython can all potentially run under Corus seamlessly. 
-      For server-side applications developed in these languages, JEE simply does 
-      not cut it. 
       </p>
       <p>
       It is also a growing tendency to use multiple languages,

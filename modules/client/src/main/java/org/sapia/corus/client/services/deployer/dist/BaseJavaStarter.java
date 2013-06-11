@@ -287,6 +287,24 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     return substitutor.replace(value);
   }
   
+  protected String getCp(Env env, String basedir) {
+    PathFilter filter = env.createPathFilter(basedir);
+    filter.setIncludes(new String[] { "**/*.jar" });
+    
+    String[]     jars = filter.filter();
+    StringBuffer buf = new StringBuffer();
+
+    for (int i = 0; i < jars.length; i++) {
+      buf.append(basedir).append(File.separator).append(jars[i]);
+
+      if (i < (jars.length - 1)) {
+        buf.append(System.getProperty("path.separator"));
+      }
+    }
+
+    return buf.toString();    
+  }
+  
   static final class CmdLineBuildResult{
     CmdLine command;
     StrLookup variables;

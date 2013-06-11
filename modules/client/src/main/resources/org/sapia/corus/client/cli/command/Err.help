@@ -5,8 +5,7 @@
   <section title="Syntax">
     <p>err</p>
     <p/>
-    <p>or:</p>
-    <p/>
+    <p>OR:</p>
     <p>err -c | -i [error id] | -l {number}</p>
     <p/>
     <p>Where:</p>

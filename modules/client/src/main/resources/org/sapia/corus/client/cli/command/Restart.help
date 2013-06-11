@@ -5,13 +5,13 @@
   <section title="Syntax">
     <p>restart -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
     <p/>
-    <p>OR</p>      
+    <p>OR:</p>      
     <p>restart all</p>
     <p/>
-    <p>OR</p>  
+    <p>OR:</p>  
     <p>restart -i process_id [process_id2 [process_id3 [...]]]</p>
     <p/>
-    <p>OR</p>
+    <p>OR:</p>
     <p/>
     <p>restart -op os_pid [os_pid2 [os_pid3 [...]]]</p>
     <p/>

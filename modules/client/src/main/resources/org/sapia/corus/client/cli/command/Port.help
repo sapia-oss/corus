@@ -5,16 +5,13 @@
   <section title="Syntax">
     <p>port add -n range_name -min min_port -max max_port [-cluster]</p>
     <p/>
-    <p>OR</p>
-    <p/>    
+    <p>OR:</p>
     <p>port add -p ranges.properties [-clear] [-cluster] (where properties must have format: range=min,max or range=singlePort)</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>port del -n range_name [-f][-cluster]</p>
     <p/>
-    <p>OR</p>
-    <p/>
+    <p>OR:</p>
     <p>port ls [-cluster]</p>
     <p/>
     <p>Where:</p>
