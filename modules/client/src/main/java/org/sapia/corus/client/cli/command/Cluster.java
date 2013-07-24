@@ -1,6 +1,7 @@
 package org.sapia.corus.client.cli.command;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.Arg;
 import org.sapia.console.InputException;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
@@ -16,6 +17,9 @@ import org.sapia.ubik.net.TCPAddress;
  * @author Yanick Duchesne
  */
 public class Cluster extends CorusCliCommand {
+  
+  private static final String STATUS = "status";
+  private static final String RESYNC = "resync";
 
   private static final TableDef TBL = TableDef.newInstance()
         .createCol("host", 14)
@@ -29,8 +33,13 @@ public class Cluster extends CorusCliCommand {
                     throws AbortException, InputException {
   	
   	if(ctx.getCommandLine().hasNext()) {
-  		ctx.getCommandLine().assertNextArg(new String[]{"status"});
-  		displayStatus(ctx);
+  		Arg arg = ctx.getCommandLine().assertNextArg(new String[]{STATUS, RESYNC});
+  		if (arg.getName().equals(STATUS)) {
+  		  displayStatus(ctx);
+  		} else {
+  		  resync(ctx);
+  		}
+  		
   	} else {
   		displayStatus(ctx);
   	}
@@ -52,6 +61,10 @@ public class Cluster extends CorusCliCommand {
       row.getCellAt(TBL.col("role").index()).append(status.getData().getRole().name());
       row.flush();
     }
+  }
+  
+  private void resync(CliContext ctx) {
+    ctx.getCorus().getCluster().resync(getClusterInfo(ctx));
   }
 
   private void displayHeader(CliContext ctx) {

@@ -1,9 +1,25 @@
 <help>
   <section title="Description">
-   <p>Displays cluster status information for a Corus instance.</p>
+   <p>Provides cluster-related functionality.</p>
   </section>
   <section title="Syntax">
-    <p>cluster [status] [-cluster]</p>
+    <p>cluster status [-cluster]</p>
     <p/>     
+    <p>OR:</p>    
+    <p>cluster resync [-cluster]</p>
+    <p/>    
+    <p>Where:</p>
+    <p/>
+    <p>- status : displays the cluster status info.</p>
+    <p/>
+    <p>- resync : forces a resync of the targeted node(s) with the other nodes in the cluster.</p>
+    <p/>    
+    <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Examples">
+    <p>cluster status -cluster</p>
+    <p/>
+    <p>cluster resync</p>
+    <p/>    
   </section>
 </help>

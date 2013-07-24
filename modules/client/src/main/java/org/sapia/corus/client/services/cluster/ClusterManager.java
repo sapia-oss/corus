@@ -50,6 +50,10 @@ public interface ClusterManager extends java.rmi.Remote, Module {
    */
   public ClusterStatus getClusterStatus();
   
+  /**
+   * Forces a resync of this node with the other nodes in the cluster.
+   */
+  public void resync();
   
   /**
    * @param notif a {@link ClusterNotification} to send.

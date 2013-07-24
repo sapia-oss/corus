@@ -2,7 +2,6 @@ package org.sapia.corus.cluster;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,8 +13,8 @@ import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
-import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
@@ -55,7 +54,6 @@ public class ClusterManagerImpl extends ModuleHelper
   /**
    * @see Service#init()
    */
-	@SuppressWarnings("unchecked")  
   public void init() throws Exception {
 	  channel = serverContext().getEventChannel();
     
@@ -72,10 +70,8 @@ public class ClusterManagerImpl extends ModuleHelper
     			System.getProperties(), 
     			PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast")
       );
-      Enumeration<String> names = (Enumeration<String>) mcastProperties.propertyNames();
-    	while(names.hasMoreElements()) {
-    		String name = names.nextElement();
-    		log.info(name + "=" + mcastProperties.getProperty(names.nextElement()));
+    	for(String name : mcastProperties.stringPropertyNames()) {
+    		log.info(name + "=" + mcastProperties.getProperty(name));
     	}
     }
     
@@ -131,6 +127,11 @@ public class ClusterManagerImpl extends ModuleHelper
   @Override
   public ClusterStatus getClusterStatus() {
     return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo());
+  }
+  
+  @Override
+  public void resync() {
+    channel.resync();
   }
 
   @Override
