@@ -23,9 +23,7 @@ public interface ClusterFacade {
   
   /**
    * Forces a resync of the curent node (or all nodes) witht the other nodes in the cluster.
-   * 
-   * @param cluster a {@link ClusterInfo}.
    */
-  public void resync(ClusterInfo cluster);
+  public void resync();
 
 }

@@ -132,6 +132,7 @@ public class ClusterManagerImpl extends ModuleHelper
   @Override
   public void resync() {
     channel.resync();
+    channel.forceResync();
   }
 
   @Override

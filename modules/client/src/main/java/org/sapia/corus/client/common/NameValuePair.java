@@ -2,6 +2,8 @@ package org.sapia.corus.client.common;
 
 import java.io.Serializable;
 
+import org.sapia.ubik.util.Strings;
+
 /**
  * This class models a name/value pair.
  * 
@@ -35,5 +37,10 @@ public class NameValuePair implements Serializable, Comparable<NameValuePair>{
 
   public int compareTo(NameValuePair o) {
     return name.compareTo(o.getName());
+  }
+  
+  @Override
+  public String toString() {
+    return Strings.toStringFor(this, "name", name, "value", value);
   }
 }

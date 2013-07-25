@@ -35,9 +35,6 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   
   public static final String PROP_SERVER_NAME = "corus.server.name";
 
-  private static final String PASSWORD             = "password";
-  private static final String PASSWORD_PLACEHOLDER = "********";
-  
   @Autowired
   private PropertyProvider propertyProvider;
   
@@ -102,7 +99,6 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
     if(value == null){
       value = processProperties.getProperty(name);
     }
-    value = replace(name, value);
     return value;
   }
   
@@ -122,7 +118,7 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   
   @Override
   public Properties getProperties(PropertyScope scope) {
-    return replace(store(scope).getProperties());
+    return store(scope).getProperties();
   }
   
   @Override
@@ -133,25 +129,23 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   @Override
   public List<NameValuePair> getInternalPropertiesAsNameValuePairs(
       PropertyScope scope) {
-    return doGetPropertiesAsNameValuePairs(scope, false);
+    return doGetPropertiesAsNameValuePairs(scope);
   }
   
   @Override
   public List<NameValuePair> getPropertiesAsNameValuePairs(PropertyScope scope) {
-    return doGetPropertiesAsNameValuePairs(scope, true);
+    return doGetPropertiesAsNameValuePairs(scope);
   }
   
-  private List<NameValuePair> doGetPropertiesAsNameValuePairs(PropertyScope scope, boolean hide) {
+  private List<NameValuePair> doGetPropertiesAsNameValuePairs(PropertyScope scope) {
     Properties props = store(scope).getProperties();
     List<NameValuePair> toReturn = new ArrayList<NameValuePair>(props.size());
     Enumeration<?> keys = props.propertyNames();
     while(keys.hasMoreElements()){
       String key = (String)keys.nextElement();
       String value = props.getProperty(key);
-      if(hide){
-        value = replace(key, value);
-      }
       NameValuePair pair = new NameValuePair(key, value);
+      System.out.println(pair);
       toReturn.add(pair);
     }
     Collections.sort(toReturn);
@@ -219,24 +213,5 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
       return value;
     }
   }
-  
-  @SuppressWarnings(value="unchecked")
-  private Properties replace(Properties props){
-   
-    Enumeration<String> names = (Enumeration<String>)props.propertyNames();
-    Properties toReturn = new Properties();
-    while(names.hasMoreElements()){
-      String name = names.nextElement();
-      String value = props.getProperty(name);
-      toReturn.setProperty(name, replace(name, value));
-    }
-    return toReturn;
-  }
-  
-  private String replace(String name, String value){
-    if(name.indexOf(PASSWORD) >= 0){
-      return PASSWORD_PLACEHOLDER;
-    }
-    return value;
-  }
+
 }

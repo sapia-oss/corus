@@ -64,7 +64,7 @@ public class Cluster extends CorusCliCommand {
   }
   
   private void resync(CliContext ctx) {
-    ctx.getCorus().getCluster().resync(getClusterInfo(ctx));
+    ctx.getCorus().getCluster().resync();
   }
 
   private void displayHeader(CliContext ctx) {

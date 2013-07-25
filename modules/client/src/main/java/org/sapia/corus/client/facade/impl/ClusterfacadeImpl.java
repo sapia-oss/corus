@@ -22,9 +22,9 @@ public class ClusterfacadeImpl extends FacadeHelper<ClusterManager> implements C
 	}
 	
 	@Override
-	public void resync(ClusterInfo cluster) {
+	public void resync() {
     proxy.resync();
-    invoker.invokeLenient(void.class, cluster);
+    invoker.invokeLenient(void.class, new ClusterInfo(false));
 	}
 
 }
