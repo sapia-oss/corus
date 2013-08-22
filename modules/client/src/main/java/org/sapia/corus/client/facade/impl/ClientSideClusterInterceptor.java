@@ -4,6 +4,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.cluster.ClusteredCommand;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
+import org.sapia.ubik.util.Assertions;
 
 
 /**
@@ -21,11 +22,11 @@ public class ClientSideClusterInterceptor implements Interceptor {
 
   public void onClientPreInvokeEvent(ClientPreInvokeEvent evt) {
     if (isCurrentThreadClustered()) {
-      evt.setCommand(
-          new ClusteredCommand(
-              evt.getCommand()
-          )
-      );
+      ClusteredCommand command = new ClusteredCommand(evt.getCommand());
+      ClusterInfo cluster = registration.get();
+      Assertions.illegalState(cluster == null, "ClusterInfo instance not set");
+      command.addTargets(cluster.getTargets());
+      evt.setCommand(command);
     }
   }
 

@@ -1,0 +1,9 @@
+<help>
+  <section title="Description">
+   <p>Forces a pause, for a given amount of seconds.</p>
+  </section>
+  <section title="Syntax">
+    <p>pause number_of_seconds</p>
+    <p/>    
+  </section>
+</help>

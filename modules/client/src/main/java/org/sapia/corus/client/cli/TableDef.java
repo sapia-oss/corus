@@ -16,8 +16,6 @@ import org.sapia.console.table.Table;
  */
 public class TableDef {
 
-  private static final int MAX_WIDTH = 80;
-
   private List<ColumnDef> columns = new ArrayList<ColumnDef>();
   private Map<String, ColumnDef> columnsByName = new HashMap<String, ColumnDef>();
 

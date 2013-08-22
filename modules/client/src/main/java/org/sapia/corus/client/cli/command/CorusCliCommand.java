@@ -1,17 +1,23 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.Arg;
+import org.sapia.console.CmdElement;
 import org.sapia.console.Command;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.cli.SystemExitException;
+import org.sapia.ubik.util.Function;
 
 
 /**
@@ -86,14 +92,22 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  protected ClusterInfo getClusterInfo(CliContext ctx) {
-  	ClusterInfo info = new ClusterInfo(
-  	    ctx.getCommandLine().containsOption(CLUSTER_OPT, false)
-    );
-    return info;
+  protected ClusterInfo getClusterInfo(CliContext ctx) throws InputException {
+    if (ctx.getCommandLine().containsOption(CLUSTER_OPT, false)) {
+      Option opt = ctx.getCommandLine().assertOption(CLUSTER_OPT, false);
+      if (opt.getValue() != null) {
+        ClusterInfo info = new ClusterInfo(true);
+        info.addTargets(CliUtils.parseServerAddresses(opt.getValue()));
+        return info;
+      } else {
+        return new ClusterInfo(true);
+      }
+    } else {
+      return new ClusterInfo(false);
+    }
   }
   
-  protected void sleep(long millis) throws AbortException {
+  static void sleep(long millis) throws AbortException {
     try {
       Thread.sleep(1000);
     } catch (InterruptedException ie) {
@@ -101,4 +115,71 @@ public abstract class CorusCliCommand implements Command {
       throw new AbortException();
     }
   }
+  
+  static Option getOpt(CliContext ctx, String name, String defaultVal) throws InputException {
+    if (ctx.getCommandLine().containsOption(name,true)) {
+      return ctx.getCommandLine().assertOption(name, true);
+    } else {
+      return new Option(name, defaultVal);
+    }
+  }
+  
+  static Option getOpt(CliContext ctx, String name) throws InputException {
+    if (ctx.getCommandLine().containsOption(name, false)) {
+      return ctx.getCommandLine().assertOption(name, false);
+    } else {
+      return null;
+    }
+  }
+  
+  /**
+   * @param ctx the {@link CliContext}.
+   * @param name the name of the option whose value should be returned.
+   * @return the option's value, or <code>null</code> if it has no value.
+   * @throws InputException
+   */
+  static String getOptValue(CliContext ctx, String name) throws InputException {
+    if (ctx.getCommandLine().containsOption(name,true)) {
+      return ctx.getCommandLine().assertOption(name, true).getValue();
+    } else {
+      return null;
+    }
+  }
+  
+  /**
+   * Extracts the values of an option that is specifed as a comma-delimited list of elements.
+   * 
+   * @param ctx the {@link CliContext}.
+   * @param name the name of the option whose value should be used.
+   * @param converter the converter {@link Function}, used to convert the option value to a list
+   * of strongly-typed elements.
+   * @return the {@link List} of values that to which the option's value was converted.
+   * @throws InputException if no value was specified for the given option.
+   */
+  static <T> List<T> getOptValues(CliContext ctx, String name, Function<T, String> converter) throws InputException {
+    if (ctx.getCommandLine().containsOption(name,true)) {
+      String[] valueList = ctx.getCommandLine().assertOption(name, true).getValue().split(",");
+      List<T> toReturn = new ArrayList<T>(valueList.length);
+      for (String v : valueList) {
+        toReturn.add(converter.call(v));
+      }
+      return toReturn;
+    } else {
+      return new ArrayList<T>();
+    }
+  }
+  
+  /**
+   * @param ctx the {@link CliContext}.
+   * @return the first {@link Arg} in the command-line, or <code>null</code> if no such instance exists.
+   */
+  protected Arg getFirstArg(CliContext ctx) {
+    while (ctx.getCommandLine().hasNext()) {
+      CmdElement e = ctx.getCommandLine().next();
+      if (e instanceof Arg) {
+        return (Arg)e;
+      }
+    }
+    return null;
+  } 
 }

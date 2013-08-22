@@ -31,6 +31,7 @@ public class Delay {
   
   public Delay(long duration, TimeUnit timeUnit) {
     this.durationMillis = TimeUnit.MILLISECONDS.convert(duration, timeUnit);
+    start = System.currentTimeMillis();
   }
   
   /**

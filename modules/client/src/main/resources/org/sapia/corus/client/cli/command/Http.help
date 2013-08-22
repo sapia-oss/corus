@@ -1,0 +1,54 @@
+<help>
+  <section title="Description">
+   <p>The HTTP command provides HTTP-related functionality: 1) the ability to poll HTTP endpoints in 
+    order to determine if startup of given servers has completed; 2) the ability to send HTTP post requests to arbitrary URLs.</p>
+   <p/>
+   <p>This command is convenient when there's a need for confirming that servers have completely started up before moving
+   on with deployment: the http check command will block until the polled HTTP server returns the expected status code (200 by default),
+   or until a given maximum number of attempts, after which an exception is thrown if the expected outcome was not fulfilled.</p>
+   <p/>
+  </section>
+  <section title="Syntax">
+    <p>http &lt;command&gt; [-u url] [-p [port_range_patterns]] [-c context_path] [-m max_poll_attempts] [-t poll_interval] [-s expected_status_code] </p>
+    <p/>
+    <p>Where:</p>
+    <p/> 
+    <p>&lt;command&gt; is expected to be check or post.</p>
+    <p/>
+    <p>- u: is the URL to check or to post to (used by check and post).</p>
+    <p/>
+    <p>- p: a comma-delimited list of HTTP port range patterns, as configured in Corus (if this option is used, the -u option is ignored and should
+    therefore not be specified). If the option is not provided with a pattern list, attempt will be made to poll servers corresponding to all
+    port ranges.</p>
+    <p/>
+    <p>- c: the context path that is to be appended to the HTTP URLs that will be dynamically built when using the -p option.</p>
+    <p/>
+    <p>- m: the maximum number of time to poll, until the 200 HTTP status code is returned by the server - or until a status code corresponding to the
+    one specified by the -s option is returned (see below). If this option is not specified, polling is done forever.</p>
+    <p/>
+    <p>- t: the interval (in seconds) between polling attempts (defaults to 10).</p>
+    <p/>
+    <p>- s: the expected status code (defaults to 200 HTTP status code).</p>
+    <p/>    
+  </section>
+  <section title="Notes">
+    <p>- When using the -p option with http check, the command will internally create a HTTP URLs of the form http://${corus_host}:${active_port}. 
+    If the -c option was specified, it's value will be appended to each URL that is built in such a manner.
+    </p>
+    <p/>    
+    <p>- The -cluster option only makes sense using in conjunction with the -p option: it is used to obtain the active ports (for given port ranges) at
+    each node in the cluster (or at the nodes that are targeted by the cluster command).</p>
+    <p/>
+  </section>    
+  <section title="Examples">
+    <p>- Polls the given URL every 5 seconds until 10 attempts are reached, or until the 200 HTTP status code is obtained:</p>
+    <p>http check -u http://192.168.0.101:8080/demo -m 10 -t 5</p>
+    <p/>    
+    <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node in the Corus cluster:</p>
+    <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster</p>
+    <p/>    
+    <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node specified by the ${cluster.targets} variable 
+    (see the ripple command for more on how the value of that variable is made available to scripts):</p>
+    <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster ${cluster.targets}</p>
+  </section>    
+</help>

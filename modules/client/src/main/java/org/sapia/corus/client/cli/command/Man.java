@@ -38,6 +38,7 @@ public class Man extends CorusCliCommand{
     COMMANDS.put("kill", Kill.class);
     COMMANDS.put("ls", Ls.class);
     COMMANDS.put("man", Man.class);
+    COMMANDS.put("pause", Pause.class);
     COMMANDS.put("port", Port.class);
     COMMANDS.put("ps", Ps.class);
     COMMANDS.put("pull", Pull.class);
@@ -45,6 +46,7 @@ public class Man extends CorusCliCommand{
     COMMANDS.put("quit", Quit.class);
     COMMANDS.put("restart", Restart.class);
     COMMANDS.put("resume", Resume.class);
+    COMMANDS.put("ripple", Ripple.class);
     COMMANDS.put("script", Script.class);
     COMMANDS.put("status", Status.class);
     COMMANDS.put("suspend", Suspend.class);

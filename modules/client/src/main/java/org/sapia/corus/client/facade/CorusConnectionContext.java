@@ -20,6 +20,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.Results.ResultListener;
 import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
@@ -169,6 +170,13 @@ public class CorusConnectionContext {
       throw new ConnectionException("Could not reconnect to Corus server", e);
     }
   }
+  
+  /**
+   * Disconnects this instance, releases its resources. This instance should not be used thereafter.
+   */
+  public void disconnect() {
+    this.executor.shutdownNow();
+  }
 
   public void clusterCurrentThread(ClusterInfo info) {
     refresh();
@@ -179,6 +187,15 @@ public class CorusConnectionContext {
   public <T,M> void invoke(Results<T> results, Class<M> moduleInterface, Method method,
       Object[] params, ClusterInfo cluster) throws Throwable {
     refresh();
+    
+    final List<Result<T>> resultList = new ArrayList<Result<T>>();
+    results.addListener(new ResultListener<T>() {
+       @Override
+      public void onResult(Result<T> result) {
+         resultList.add(result);
+      }
+    });
+    FacadeInvocationContext.set(resultList);
     
     try {
       if (cluster.isClustered()) {
@@ -195,18 +212,18 @@ public class CorusConnectionContext {
   }
   
   public <T,M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable{
-    try{
+    try {
       
       ClientSideClusterInterceptor.clusterCurrentThread(info);
       
       Object toReturn = method.invoke(lookup(moduleInterface), params);
       if(toReturn != null){
+        FacadeInvocationContext.set(toReturn);
         return returnType.cast(toReturn);
-      }
-      else{
+      } else {
         return null;
       }
-    }catch(InvocationTargetException e){
+    } catch(InvocationTargetException e) {
       throw e.getTargetException();
     }
   }
@@ -220,9 +237,13 @@ public class CorusConnectionContext {
       final ClusterInfo cluster) {
     
     List<ServerAddress> hostList = new ArrayList<ServerAddress>();
-    hostList.add(connectAddress);
-    for (CorusHost otherHost: otherHosts) {
-      hostList.add(otherHost.getEndpoint().getServerAddress());
+    if (cluster.isTargetingAllHosts()) {
+      hostList.add(connectAddress);
+      for (CorusHost otherHost: otherHosts) {
+        hostList.add(otherHost.getEndpoint().getServerAddress());
+      }
+    } else {
+      hostList.addAll(cluster.getTargets());
     }
     
     Iterator<ServerAddress> itr = hostList.iterator();

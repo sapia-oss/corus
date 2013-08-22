@@ -18,6 +18,9 @@ import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.core.ModuleHelper;
+import org.sapia.corus.port.task.PortCleanupTask;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
+import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,8 +33,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces=PortManager.class)
 public class PortManagerImpl extends ModuleHelper implements Service, PortManager {
   
+  private static final long EXEC_INTERVAL_MILLIS = 30000;
+  
   @Autowired
   private DbModule 			 db;
+  
+  @Autowired
+  private TaskManager    taskMan;
+  
   private PortRangeStore store;
   
   /** Creates a new instance of PortManagerImpl */
@@ -51,7 +60,14 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     return new PortRangeStore(ports);
   }
   
-  public void start(){}
+  public void start(){
+    taskMan.executeBackground(
+        new PortCleanupTask(), 
+        null, 
+        BackgroundTaskConfig.create()
+          .setExecDelay(EXEC_INTERVAL_MILLIS)
+          .setExecInterval(EXEC_INTERVAL_MILLIS));
+  }
   
   public void dispose(){}
   

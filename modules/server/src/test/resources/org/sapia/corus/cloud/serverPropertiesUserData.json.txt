@@ -1,0 +1,18 @@
+{ 
+  "corus": {
+    
+    "server": {
+    
+      "properties": [
+        { 
+          "name": "theName1",
+          "value": "theValue1"
+        },
+        { 
+          "name": "theName2",
+          "value": "theValue2"
+        }        
+      ]  
+    }
+  }
+}

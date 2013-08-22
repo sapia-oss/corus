@@ -111,7 +111,7 @@ public class CorusMojo extends AbstractMojo {
         }
       }
       
-      Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection, new DefaultClientFileSystem(project.getBasedir()));
+      Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection);
       interpreter.interpret(new FileReader(scriptFile), vars);
       
     } catch (Throwable e) {

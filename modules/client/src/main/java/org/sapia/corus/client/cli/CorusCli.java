@@ -138,7 +138,7 @@ public class CorusCli extends CommandConsole {
             }
           }
           try {
-            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector, FILE_SYSTEM);
+            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             console.interpret(input, vars);
             System.exit(0);
           } catch (Throwable err) {
@@ -176,7 +176,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    CliContextImpl context = new CliContextImpl(corus, errors, FILE_SYSTEM);
+    CliContextImpl context = new CliContextImpl(corus, errors);
     context.setAbortOnError(abortOnError);
     return context;
   }

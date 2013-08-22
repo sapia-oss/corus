@@ -1,0 +1,64 @@
+<help>
+  <section title="Description">
+   <p>Executes the Corus commands given in a provided script. It is similar to the script command, 
+   with the difference that it runs the provided script against batches of nodes in the cluster.</p>
+   <p/>
+   <p>Given that there are 10 nodes in a cluster, the command allows "rippling" the effect of the script 
+   against, say, 2 nodes at a time: the script will then be executed a total of 5 times.</p>
+   <p/>
+   <p>This commands exports to the specified script the string representation of the list of hosts
+   corresponding to the batch of Corus nodes being currently targeted. That representation is bound under the
+   corus.targets variable, and can then be used in the script using ${corus.targets}. This is convenient
+   in order to reuse it as a value for the -cluster switch.
+   </p>
+  </section>
+  <section title="Syntax">
+    <p>ripple -s script_file_path -b batch_size  [-m min_hosts]</p>
+    <p/>
+    <p>ripple -c "command_line_to_execute" -b batch_size  [-m min_hosts]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>    
+    <p>- s: the path to the script to execute (either relative or absolute).</p>
+    <p/>
+    <p>- c: the command line to "ripple".</p>
+    <p/>
+    <p>- b: the size of the batches of Corus hosts to which to deploy at a time (the batch size can also be expressed
+    as a percentage of nodes in the cluster).</p>
+    <p/>
+    <p>- m: the minimum number number of hosts in the cluster for the -b switch to take effect (a batch size of 1 will
+    be used if the number of hosts in the cluster is less than the value of this option). If that option is not 
+    specified, the default is 1.</p>
+  </section>
+  <section title="Notes">
+    <p>The -m is used in the following case: suppose you specified a batch size of 3 and a value of 2 for -m, 
+    but you have only two hosts in the cluster: the batch size that will be used will be automatically be 1.</p>
+    <p/>
+    <p>As indicated above, the value of the -b option can also be expressed as a percentage: 10%, 50%, etc. It is
+    required to add the percentage symbol (%) in order for the value to be interpreted as such.</p>   
+  </section>
+  <section title="Examples">
+    <p>Given the following command:</p>
+    <p/>
+    <p>ripple -c "kill all" -b 2 -m 5</p>
+    <p/>
+    <p>ripple -s myDeploymentScript.txt -b 2 -m 5</p>
+    <p/>    
+    <p>The above means: execute the "kill all" command (in the first case) or the "myDeploymentScript.txt" script 
+    (in the second case) for batches of 2 nodes at a time, if there's at least 
+    5 nodes in the cluster (otherwise, execution will be performed 1 node at a time). </p>
+    <p/>    
+    <p>The content of the myDeploymentScript.txt file specified above could be as follows: </p>
+    <p/>      
+    <p>echo "deploying to: ${cluster.targets}"</p>
+    <p>kill all -w -cluster ${cluster.targets}</p>
+    <p>undeploy all -cluster ${cluster.targets}</p>
+    <p>deploy *.zip -cluster ${cluster.targets}</p>
+    <p>pause 45</p>
+    <p/>
+    <p>The convenience of the ripple command can clearly be seen above: the kill/undeploy/deploy sequence 
+    will only be performed against a subset of the cluster, sparing the whole cluster from being brought to
+    a halt when upgrading an application.</p>
+    <p/>
+  </section>    
+</help>

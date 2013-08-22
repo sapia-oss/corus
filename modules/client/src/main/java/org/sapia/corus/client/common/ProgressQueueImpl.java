@@ -74,6 +74,26 @@ public class ProgressQueueImpl implements ProgressQueue {
   public synchronized void warning(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.WARNING));
   }
+  
+  @Override
+  public List<ProgressMsg> waitFor() {
+    List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>();
+    while(this.hasNext()) {
+      List<ProgressMsg> batch = fetchNext();
+      for (ProgressMsg m : batch) {
+        if (m.isError()) {
+          if (m.isThrowable()) {
+            Throwable err = (Throwable) m.getMessage();
+            throw new ProgressException("Error performing operation", err);
+          } else {
+            throw new ProgressException("Error performing operation: " + m.getMessage().toString());
+          } 
+        } 
+        toReturn.add(m);
+      }
+    }
+    return toReturn;
+  }
 
   /**
    * This template method is internally called from within the {@link #addMsg(ProgressMsg)} method, 

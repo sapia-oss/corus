@@ -18,7 +18,7 @@ import java.io.Serializable;
  *
  * @author yduchesne
  */
-public class ActivePort implements Serializable{
+public class ActivePort implements Serializable {
   
   static final long serialVersionUID = 1L;
 

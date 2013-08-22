@@ -39,7 +39,7 @@ public class InterpreterTest {
   @Before
   public void setUp() {
     this.connector = mock(CorusConnector.class);
-    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector, new DefaultClientFileSystem());
+    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
   }
 
   @Test
@@ -65,7 +65,7 @@ public class InterpreterTest {
       }
     }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
     
-    console.interpret("kill -d test -v 1.0 -n proc -p dev -cluster");    
+    console.eval("kill -d test -v 1.0 -n proc -p dev -cluster");    
     
     assertEquals(expectedCriteria.getDistribution(), inputCriteria.get().getDistribution());
     assertEquals(expectedCriteria.getVersion(), inputCriteria.get().getVersion());
@@ -79,14 +79,14 @@ public class InterpreterTest {
     ConfiguratorFacade config = mock(ConfiguratorFacade.class);
     when(connector.getConfigFacade()).thenReturn(config);
 
-    console.interpret("conf add -p name=value\\=123");    
+    console.eval("conf add -p name=value\\=123");    
     
     verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
   }
   
   @Test (expected = AbortException.class)
   public void testAbort() throws Throwable {
-    console.interpret("quit");    
+    console.eval("quit");    
   }
   
   @Test

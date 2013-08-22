@@ -12,6 +12,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.command.InvokeCommand;
 import org.sapia.ubik.rmi.server.oid.OID;
+import org.sapia.ubik.util.Assertions;
 
 
 /**
@@ -19,6 +20,7 @@ import org.sapia.ubik.rmi.server.oid.OID;
  */
 public class ClusteredCommand extends InvokeCommand {
   
+  private           Set<ServerAddress>  targeted    = new HashSet<ServerAddress>();
   private           Set<ServerAddress>  visited     = new HashSet<ServerAddress>();
   private transient CorusCallback       callback;
   private           String              moduleName;
@@ -30,6 +32,10 @@ public class ClusteredCommand extends InvokeCommand {
 
   public ClusteredCommand(InvokeCommand cmd) {
   	super(cmd.getOID(), cmd.getMethodName(), cmd.getParams(), cmd.getParameterTypes(), null);
+  }
+  
+  public void addTargets(Set<ServerAddress> targets) {
+    targeted.addAll(targets);
   }
   
   public void setCallback(CorusCallback callback) {
@@ -60,16 +66,23 @@ public class ClusteredCommand extends InvokeCommand {
   }
   
 	public Object execute() throws Throwable {
-	  if (callback == null) {
-	    throw new IllegalStateException("Corus callback not set");
-	  }
+	  Assertions.illegalState(callback == null, "Corus callback not set");
 	  
     try {
       callback.debug("Executing clustered command " + getMethodName());
-      Object returnValue = super.execute();
-      if (!disable) {
-        visited.add(callback.getCorusAddress());
-        cascade();
+      Object returnValue = null;
+      if (targeted.isEmpty() || targeted.contains(callback.getCorusAddress())) {
+        returnValue = super.execute();
+        if (!disable) {
+          visited.add(callback.getCorusAddress());
+          cascade();
+        }
+      } else {
+        callback.debug("Not executing clustered command " + getMethodName() + "; host not targeted: " + callback.getCorusAddress());
+        if (!disable) {
+          visited.add(callback.getCorusAddress());
+          returnValue = cascade();
+        } 
       }
       return returnValue;
     } catch (Throwable t) {
@@ -78,7 +91,7 @@ public class ClusteredCommand extends InvokeCommand {
     }
 	}
 	
-	private void cascade() throws Throwable {
+	private Object cascade() throws Throwable {
 	  ServerAddress nextAddress = selectNextAddress();
 	  if (nextAddress != null) {
 	    callback.debug("Sending clustered command " + getMethodName() + " to " + nextAddress);
@@ -86,9 +99,11 @@ public class ClusteredCommand extends InvokeCommand {
 	    if (returnValue instanceof Throwable) {
 	      throw (Throwable) returnValue;
 	    }	    
+	    return returnValue;
 	  } else {
 	    callback.debug("No more host to target");
 	  }
+	  return null;
 	}
 	
 	ServerAddress selectNextAddress() {

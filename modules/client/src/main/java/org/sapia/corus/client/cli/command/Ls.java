@@ -85,7 +85,7 @@ public class Ls extends CorusCliCommand {
     }
   }
    
-  private void doListExecConfigs(CliContext ctx){
+  private void doListExecConfigs(CliContext ctx) throws InputException {
     ClusterInfo cluster = getClusterInfo(ctx);
     try {
       Results<List<ExecConfig>> res = ctx.getCorus().getProcessorFacade().getExecConfigs(cluster);

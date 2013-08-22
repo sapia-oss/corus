@@ -2,6 +2,7 @@ package org.sapia.corus.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,12 +22,16 @@ import org.apache.log4j.Level;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.event.EventDispatcher;
+import org.sapia.corus.cloud.CorusUserData;
+import org.sapia.corus.cloud.CorusUserDataFactory;
 import org.sapia.corus.log.CompositeTarget;
 import org.sapia.corus.log.FormatterFactory;
 import org.sapia.corus.log.StdoutTarget;
@@ -51,6 +56,7 @@ public class CorusServer {
   public static final String  BIND_ADDR_OPT        = "a";
   public static final String  DEBUG_VERBOSITY      = "v";
   public static final String  DEBUG_FILE           = "f";
+  public static final String  USER_DATA            = "u";
   public static final String  HELP            		 = "help";
   public static final String  PROP_SYSLOG_HOST     = "corus.server.syslog.host";
   public static final String  PROP_SYSLOG_PORT     = "corus.server.syslog.port";
@@ -75,8 +81,6 @@ public class CorusServer {
         System.setProperty("corus.home", corusHome);
       }
       
-      int     port = DEFAULT_PORT;
-      
       CmdLine cmd;
       if(args.length == 0){
         cmd = new CmdLine();
@@ -93,9 +97,27 @@ public class CorusServer {
         return;
       }
       
-      if (cmd.containsOption(PORT_OPT, true)) {
+      CorusUserData userData;
+      if (cmd.containsOption(USER_DATA, false)) {
+        Option userDataOpt = cmd.assertOption(USER_DATA, false);
+        if (userDataOpt.getValue() != null) {
+          userData = CorusUserDataFactory.fetchUserData(URI.create(userDataOpt.getValue()));
+        } else {
+          userData = CorusUserDataFactory.fetchUserData();
+        }
+      } else {
+        userData = new CorusUserData();
+      }
+
+      // ----------------------------------------------------------------------
+      // If user-data specifies port, use it (has priority).
+
+      int  port = DEFAULT_PORT;
+      if (userData.getServerProperties().containsKey(CorusConsts.PROPERTY_CORUS_PORT)) {
+        port = Integer.parseInt(userData.getServerProperties().getProperty(CorusConsts.PROPERTY_CORUS_PORT));
+      } else if (cmd.containsOption(PORT_OPT, true)) {
         port = cmd.assertOption(PORT_OPT, true).asInt();
-      }      
+      }
       
       // ----------------------------------------------------------------------
       // Determining location of server properties 
@@ -165,6 +187,11 @@ public class CorusServer {
       Properties corusProps = new Properties(System.getProperties());
       PropertiesUtil.copy(includedProps, corusProps);
       CorusPropertiesLoader.load(corusProps, configFiles);
+
+      //-----------------------------------------------------------------------
+      // Overridding config properties with user-data properties
+      
+      PropertiesUtil.copy(userData.getServerProperties(), corusProps);
       
       // ----------------------------------------------------------------------
       // Determining domain: can be specified at command line, or in server 
@@ -187,6 +214,10 @@ public class CorusServer {
       // Determining port: if a port other than the default was passed at the 
       // command-line, we're using it. Otherwise, we're using the configured
       // port.
+      //
+      // We're checking for the port property again since it can be configured
+      // in property files loaded after the port was taken from the user-data
+      // properties.
       
       if (port == DEFAULT_PORT && corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT) != null) {
         port = Integer.parseInt(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT));
@@ -276,6 +307,16 @@ public class CorusServer {
       		serverLog.debug(String.format("%s=%s", prop.getKey(), prop.getValue()));
       	}
       	serverLog.debug("--------------------------------------------------------------------------------------------");
+      	
+      	if (!userData.getServerTags().isEmpty()) {
+      	  serverLog.debug("Server tags (user data): " + userData.getServerTags());
+      	}
+        if (!userData.getProcessProperties().isEmpty()) {
+          serverLog.debug("Process properties (user data): ");
+          for(String n : userData.getProcessProperties().stringPropertyNames()){
+            serverLog.debug(String.format("%s=%s", n, userData.getProcessProperties().getProperty(n)));
+          }          
+        }      	
       }
       
       // ----------------------------------------------------------------------
@@ -312,6 +353,14 @@ public class CorusServer {
           transport, corusHome);
       
       ServerContext context =  corus.getServerContext();
+
+      // Adding user data
+      if (!userData.getServerTags().isEmpty()) {
+        context.getServices().getConfigurator().addTags(userData.getServerTags());
+      }
+      if (!userData.getProcessProperties().isEmpty()) {
+        context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), false);
+      }
       
       // keeping reference to stub
       @SuppressWarnings("unused")
@@ -329,7 +378,7 @@ public class CorusServer {
       Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
       
       while (true) {
-        Thread.sleep(100000);
+        Thread.sleep(Integer.MAX_VALUE);
       }
       
     } catch (InputException e) {
@@ -346,7 +395,7 @@ public class CorusServer {
     System.out.println();
     System.out.println("Corus server command-line syntax:");
     System.out.println();
-    System.out.println("corus [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f [path_to_log_dir]]");
+    System.out.println("corus [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f [path_to_log_dir] [-u [user_data_url]]]");
     System.out.println();
     System.out.println("where:");
     System.out.println("  -c      specifies the corus configuration file to use (in the CORUS_HOME/config directory).");
@@ -366,10 +415,9 @@ public class CorusServer {
     System.out.println("          it will be interpreted as the directory in which logs should");
     System.out.println("          be generated, that is, the Corus log will be:");
     System.out.println("          ${f_option_value}/<domain>_<port>.log.");
+    System.out.println();    
+    System.out.println("  -u      specifies the user data URL to load Corus user data from.");
     System.out.println();
-//    System.out.println("  -http   specifies the usage of the http transport provider.");
-//    System.out.println("          If not present, the default tcp transport provider is used.");
-//    System.out.println();
   }
 
 }

@@ -1,10 +1,12 @@
 <help>
   <section title="Description">
    <p>Executes processes "from" a deployed distribution, or processes corresponding to a given 
-   execution configuration</p>
+   execution configuration. Keep in mind that the command requests from Corus that processes be executed, but that
+   execution of these processes is done asynchronously. By default, the command returns immediately; if you wish 
+   for the command to block until the processes have been started, use the -w option (see below).</p>
   </section>
   <section title="Syntax">
-    <p>exec -d distribution_name -v version -p profile [-n process_name] [-i instances] [-cluster]</p>
+    <p>exec -d distribution_name -v version -p profile [-n process_name] [-i instances] [-w [seconds]] [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>exec -e exec_config_name [-cluster]</p>
@@ -28,6 +30,8 @@
     <p/>    
     <p>- s: the alias of the shell script to execute.</p>
     <p/>    
+    <p>- w: the amount of time to wait for the requested processes to start up (defaults to 120).</p>
+    <p/>       
     <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
   </section>
   <section title="Notes">
@@ -43,8 +47,12 @@
     <p>exec -d myapp -v 1.* -n * -p qa</p>
     <p/>    
     <p>exec -d * -v * -n * -p qa</p>
+    <p/> 
+    <p>exec -d * -v * -n * -p qa -w 60</p>
     <p/>    
     <p>exec -e myExecConfig</p>
+    <p/>
+    <p>exec -e myExecConfig -w</p>
     <p/>
     <p>exec -s restart-memcached</p>
     <p/>        

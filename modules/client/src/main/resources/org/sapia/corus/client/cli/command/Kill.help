@@ -1,22 +1,24 @@
 <help>
   <section title="Description">
-   <p>Terminates processes corresponding to a deployed distribution.</p>
+   <p>Terminates processes corresponding to a deployed distribution. Keep in mind that this operation is performed
+   asynchronously by the Corus server, and that the command returns immediately by default, regardless. If you wish
+   the command to block until the kill has completed, use the -w option (see documentation below).</p>
   </section>
   <section title="Syntax">
-    <p>kill [-w] -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
+    <p>kill [-w [seconds]] -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p> 
     <p/>
     <p>OR:</p>
-    <p>kill all [-w] [-cluster]</p>
+    <p>kill all [-w [seconds]] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>kill [-w] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
+    <p>kill [-w [seconds]] -i process_identifier [process_identifier2 [process_identifier3 [...]]]</p>
     <p/>
     <p>OR:</p>
-    <p>kill [-w] -op os_pid [os_pid2 [os_pid3 [...]]]</p>
+    <p>kill [-w [seconds]] -op os_pid [os_pid2 [os_pid3 [...]]]</p>
     <p/>
     <p>Where:</p>
     <p/>
-    <p>- w: if specified, waits for process termination before given back control to user.</p>
+    <p>- w: if specified, waits for process termination before given back control to user (wait time defaults to 60 seconds).</p>
     <p/>
     <p>- d: the name of the distribution for which to terminate processes.</p>
     <p/>
@@ -45,6 +47,10 @@
     <p>kill -d * -v * -n * -p qa</p>
     <p/>    
     <p>kill -d * -v *</p>
+    <p/>    
+    <p>kill -d * -v * -w</p>
+    <p/>   
+    <p>kill -d * -v * -w 30</p>
     <p/>    
     <p>kill all</p>
     <p/>    

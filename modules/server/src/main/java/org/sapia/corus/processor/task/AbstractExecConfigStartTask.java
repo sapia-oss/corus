@@ -88,19 +88,18 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void>{
     }
     
     // no existing processes found
-    if(toStop.size() == 0){
+    if (toStop.size() == 0) {
       ctx.info("Did not find old processes");
-      if(toStart.size() > 0){
-        ctx.info("Will be starting at least " + toStart.size() + " process(es)");
-      }
-      else{
-        ctx.info("Did not find any processes to start");
+      if (toStart.size() > 0) {
+        ctx.info("Starting process(es)...");
+      } else {
+        ctx.info("Did not find any process to start");
       }
 
       execNewProcesses(ctx.getTaskManager(), toStart);
     }
     // existing processes found, killing
-    else{
+    else {
       KillListener listener = new KillListener(ctx.getTaskManager(), toStop.size(), toStart);
       for(Process p : toStop){
         ctx.warn("Found old processes; proceeding to kill");

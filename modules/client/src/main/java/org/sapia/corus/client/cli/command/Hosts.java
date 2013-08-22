@@ -1,6 +1,8 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
@@ -8,6 +10,7 @@ import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.facade.FacadeInvocationContext;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.ubik.net.TCPAddress;
@@ -34,6 +37,10 @@ public class Hosts extends CorusCliCommand {
     Collection<CorusHost> others = ctx.getCorus().getContext().getOtherHosts();
     displayHeader(ctx);
     displayHosts(others, ctx);
+    List<CorusHost> hosts = new ArrayList<CorusHost>();
+    hosts.add(ctx.getCorus().getContext().getServerHost());
+    hosts.addAll(others);
+    FacadeInvocationContext.set(hosts);
   }
 
   private void displayHosts(Collection<CorusHost> others, CliContext ctx) {

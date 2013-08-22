@@ -28,7 +28,7 @@ public class ClusterInvoker<M>{
   }
 
   /**
-   * Performs a "lenient" invocation (only {@link RuntimeException}s will be throw; non-runtime exceptions will be wrapped
+   * Performs a "lenient" invocation (only {@link RuntimeException}s will be thrown; non-runtime exceptions will be wrapped
    * in runtime exceptions).
    * 
    * @param results a {@link Result}s instance that will be filled with the results of the clustered invocation.
@@ -54,7 +54,7 @@ public class ClusterInvoker<M>{
    * 
    * @see InvocationDispatcher#invoke(Results, Class, Method, Object[], ClusterInfo)
    */
-  public synchronized <T> void invoke(Results<T> results, ClusterInfo info) throws Throwable{
+  public synchronized <T> void invoke(Results<T> results, ClusterInfo info) throws Throwable {
     dispatcher.invoke(results, moduleInterface, toInvoke, params, info);
   }
 

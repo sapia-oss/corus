@@ -45,7 +45,7 @@ public class Cluster extends CorusCliCommand {
   	}
   }
 
-  private void displayStatus(CliContext ctx) {
+  private void displayStatus(CliContext ctx) throws InputException {
     displayHeader(ctx);
     Results<ClusterStatus> results = ctx.getCorus().getCluster().getClusterStatus(getClusterInfo(ctx)); 
     Table      table = TBL.createTable(ctx.getConsole().out());

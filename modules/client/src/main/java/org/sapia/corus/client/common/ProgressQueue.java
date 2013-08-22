@@ -38,7 +38,6 @@ public interface ProgressQueue extends java.rmi.Remote {
    */
 	public List<ProgressMsg> fetchNext();
   
-
   /**
    * Adds the given message to this queue.
    *
@@ -95,4 +94,11 @@ public interface ProgressQueue extends java.rmi.Remote {
    * been called on this instance.
    */
   public boolean isClosed();
+ 
+  /**
+   * @return the {@link List} of {@link ProgressMsg} that this method has fetched.
+   * @throws ProgressException if an error occurs while waiting for completion.
+   * 
+   */
+  public List<ProgressMsg> waitFor() throws ProgressException;
 }

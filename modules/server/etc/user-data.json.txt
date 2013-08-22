@@ -1,0 +1,27 @@
+{ 
+  "corus": {
+    
+    "server": {
+    
+      "properties": [
+        { 
+          "name": "corus.server.domain",
+          "value": "test1"
+        }        
+      ],
+      
+      "tags": [ "tag1", "tag2"]
+    
+    },
+    
+    "processes" : {
+
+      "properties": [
+        { 
+          "name": "test.process.property",
+          "value": "testProcessValue1"
+        }
+      ]    
+    }
+  }
+}

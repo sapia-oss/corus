@@ -19,7 +19,6 @@ public class CliContextImpl extends Context implements CliContext {
   private static int ERROR_COUNTER = 1;
   
   private CorusConnector   corus;
-  private ClientFileSystem fileSys;
   private List<CliError>   errors; 
   private boolean 			   abortOnError;
 
@@ -28,9 +27,8 @@ public class CliContextImpl extends Context implements CliContext {
    *
    * @param corus
    */
-  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, ClientFileSystem fileSys) {
+  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList) {
     this.corus   = corus;
-    this.fileSys = fileSys;
     errors = anErrorList;
   }
   
@@ -41,7 +39,7 @@ public class CliContextImpl extends Context implements CliContext {
   
   @Override
   public ClientFileSystem getFileSystem() {
-    return fileSys;
+    return corus.getContext().getFileSystem();
   }
 
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {

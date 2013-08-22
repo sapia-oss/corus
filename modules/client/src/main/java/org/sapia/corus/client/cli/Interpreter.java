@@ -21,6 +21,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.console.InputException;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.facade.FacadeInvocationContext;
 
 /**
  * This class implements a {@link Console} that may be embedded in applications
@@ -35,27 +36,30 @@ public class Interpreter extends Console {
   
   private CorusCommandFactory commandFactory = new CorusCommandFactory();
   private CorusConnector      corus;
-  private ClientFileSystem    fileSys;
   
   /**
    * Creates an instance of this class that sends command output to the console.
    * 
    * @param corus the {@link CorusConnector} to use.
-   * @param fileSys the {@link ClientFileSystem} to use.
    */
-  public Interpreter(CorusConnector corus, ClientFileSystem fileSys) {
-    this(DefaultConsoleOutput.newInstance(), corus, fileSys);
+  public Interpreter(CorusConnector corus) {
+    this(DefaultConsoleOutput.newInstance(), corus);
   }
   
   /**
    * @param output the {@link ConsoleOutput} to which command output will be sent.
    * @param corus the {@link CorusConnector} to use.
-   * @param fileSys the {@link ClientFileSystem} to use.
    */
-  public Interpreter(ConsoleOutput output, CorusConnector corus, ClientFileSystem fileSys) {
+  public Interpreter(ConsoleOutput output, CorusConnector corus) {
     super(new InterpreterConsoleInput(), output);
     this.corus = corus;
-    this.fileSys = fileSys;
+  }
+  
+  /**
+   * @return this instance's {@link CorusConnector}.
+   */
+  public CorusConnector getCorus() {
+    return corus;
   }
   
   /**
@@ -85,7 +89,7 @@ public class Interpreter extends Console {
       while ((commandLine = bufReader.readLine()) != null) {
         commandLine = subs.replace(commandLine).trim();
         if (!commandLine.isEmpty() && !commandLine.startsWith(COMMENT_MARKER)) {
-          interpret(commandLine);
+          eval(commandLine);
         }
       }
     } finally {
@@ -107,8 +111,9 @@ public class Interpreter extends Console {
    * @throws InputException if some command arguments/options are missing/invalid.
    * @throws AbortException if execution of the command has been aborted.
    * @throws Throwable if an undefined error occurs.
+   * @return this instance.
    */
-  public void interpret(String commandLine) throws CommandNotFoundException, InputException, AbortException, Throwable  {
+  public Object eval(String commandLine) throws CommandNotFoundException, InputException, AbortException, Throwable  {
 
     Level old = Logger.getRootLogger().getLevel();
     Logger.getRootLogger().setLevel(Level.OFF);
@@ -117,7 +122,7 @@ public class Interpreter extends Console {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
         Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
-        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), fileSys);
+        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10));
         ctx.setUp(this, cmdLine);
         ctx.setAbortOnError(true);
         try {
@@ -135,7 +140,16 @@ public class Interpreter extends Console {
     } finally {
       Logger.getRootLogger().setLevel(old);
     }
-      
+    return FacadeInvocationContext.get();
+  }
+  
+  /**
+   * Corus commands may return values that may then be acquired using this method.
+   * 
+   * @return the return value (if any) of the last interpreted command-line.
+   */
+  public Object get() {
+    return FacadeInvocationContext.get();
   }
   
   // ==========================================================================

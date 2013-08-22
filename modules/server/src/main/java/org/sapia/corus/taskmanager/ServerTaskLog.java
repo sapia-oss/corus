@@ -3,6 +3,7 @@ package org.sapia.corus.taskmanager;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.corus.client.common.ProgressException;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.taskmanager.core.Task;
@@ -112,6 +113,11 @@ public class ServerTaskLog implements TaskLog{
           owner.msgs.clear();
         }
       }
+    }
+    
+    @Override
+    public List<ProgressMsg> waitFor() throws ProgressException {
+      return new ArrayList<ProgressMsg>(owner.msgs);
     }
     
     public void close() {

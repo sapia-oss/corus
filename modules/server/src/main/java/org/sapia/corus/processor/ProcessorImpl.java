@@ -256,7 +256,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       List<ProcessRef> toStart = new ArrayList<ProcessRef>();
       filter.filterDependencies(deployer, this);
       for(ProcessRef fp : filter.getFilteredProcesses()){
-        q.info("Scheduling execution of process: " + fp);
+        q.info("Process execution requested for: " + fp);
         ProcessRef copy = fp.getCopy();
         toStart.add(copy);
       }

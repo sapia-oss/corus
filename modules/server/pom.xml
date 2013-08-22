@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_parent</artifactId>
-        <version>4.0.2-SNAPSHOT</version>
+        <version>4.1-RC1-SNAPSHOT</version>
 		<relativePath>../..</relativePath>
 	</parent>
 
@@ -152,6 +152,12 @@
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
 		</dependency>
+		
+    <dependency>
+      <groupId>net.sf.json-lib</groupId>
+      <artifactId>json-lib</artifactId>
+      <classifier>jdk15</classifier>      
+     </dependency>
 
 		<dependency>
 			<groupId>org.mockito</groupId>

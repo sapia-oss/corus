@@ -245,7 +245,7 @@ public class Kill extends CorusCliCommand {
   ///////////////////////////// INNER CLASSES ///////////////////////////////
 
   interface KillCompletionHook{
-    boolean isCompleted(CliContext ctx);
+    boolean isCompleted(CliContext ctx) throws InputException;
   }
   
   class PidCompletionHook implements KillCompletionHook{
@@ -277,7 +277,7 @@ public class Kill extends CorusCliCommand {
       this.criteria = criteria;
     }
     
-    public boolean isCompleted(CliContext ctx) {
+    public boolean isCompleted(CliContext ctx) throws InputException {
       ClusterInfo cluster = getClusterInfo(ctx);
       return isCompleted(ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster));
     }

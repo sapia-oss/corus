@@ -4,8 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.sapia.corus.client.facade.CorusConnectionContext;
+import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
 /**
  * Holds various command-line utility methods.
@@ -18,6 +22,29 @@ public final class CliUtils {
   private static int BUFSZ = 1024;
   
   private CliUtils() {
+  }
+  
+  /**
+   * Parses a comma-delimited list of hosts, in the following format:
+   * <pre>
+   * host1:port1,host2:port2[,...[,hostN:portN]
+   * </pre>
+   * 
+   * 
+   * @param commaDelimitedList a comma-delimited list of hosts.
+   * @return the {@link Set} of {@link ServerAddress}es corresponding to the given list of hosts.
+   */
+  public static Set<ServerAddress> parseServerAddresses(String commaDelimitedList) {
+    Set<ServerAddress> addresses = new HashSet<ServerAddress>();
+    String[] items = commaDelimitedList.split(",");
+    for (String item : items) {
+      String[] hostPort = item.split(":");
+      if (hostPort.length != 2) {
+        throw new IllegalArgumentException(String.format("Invalid format for %s. Expected host:port", item));
+      }
+      addresses.add(HttpAddress.newDefaultInstance(hostPort[0].trim(), Integer.parseInt(hostPort[1].trim())));
+    }
+    return addresses;
   }
 
   /**

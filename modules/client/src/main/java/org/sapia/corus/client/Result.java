@@ -1,6 +1,7 @@
 package org.sapia.corus.client;
 
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Strings;
 
 /**
  * An instance of this class holds the return value of a clustered 
@@ -35,5 +36,10 @@ public class Result<T> {
    */
   public ServerAddress getOrigin() {
     return origin;
+  }
+  
+  @Override
+  public String toString() {
+    return Strings.toStringFor(this, "origin", origin, "data", data);
   }
 }
