@@ -107,7 +107,7 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  static void sleep(long millis) throws AbortException {
+  protected static void sleep(long millis) throws AbortException {
     try {
       Thread.sleep(1000);
     } catch (InterruptedException ie) {
@@ -116,7 +116,7 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  static Option getOpt(CliContext ctx, String name, String defaultVal) throws InputException {
+  protected static Option getOpt(CliContext ctx, String name, String defaultVal) throws InputException {
     if (ctx.getCommandLine().containsOption(name,true)) {
       return ctx.getCommandLine().assertOption(name, true);
     } else {
@@ -124,7 +124,7 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  static Option getOpt(CliContext ctx, String name) throws InputException {
+  protected static Option getOpt(CliContext ctx, String name) throws InputException {
     if (ctx.getCommandLine().containsOption(name, false)) {
       return ctx.getCommandLine().assertOption(name, false);
     } else {
@@ -138,7 +138,7 @@ public abstract class CorusCliCommand implements Command {
    * @return the option's value, or <code>null</code> if it has no value.
    * @throws InputException
    */
-  static String getOptValue(CliContext ctx, String name) throws InputException {
+  protected static String getOptValue(CliContext ctx, String name) throws InputException {
     if (ctx.getCommandLine().containsOption(name,true)) {
       return ctx.getCommandLine().assertOption(name, true).getValue();
     } else {
@@ -156,7 +156,7 @@ public abstract class CorusCliCommand implements Command {
    * @return the {@link List} of values that to which the option's value was converted.
    * @throws InputException if no value was specified for the given option.
    */
-  static <T> List<T> getOptValues(CliContext ctx, String name, Function<T, String> converter) throws InputException {
+  protected static <T> List<T> getOptValues(CliContext ctx, String name, Function<T, String> converter) throws InputException {
     if (ctx.getCommandLine().containsOption(name,true)) {
       String[] valueList = ctx.getCommandLine().assertOption(name, true).getValue().split(",");
       List<T> toReturn = new ArrayList<T>(valueList.length);

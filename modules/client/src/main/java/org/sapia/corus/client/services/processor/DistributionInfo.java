@@ -11,6 +11,8 @@ import java.io.Serializable;
 public class DistributionInfo implements Serializable, Comparable<DistributionInfo> {
   
   static final long serialVersionUID = 1L;
+  
+  private static final int PRIME = 31;
 
   private String name;
   private String version;
@@ -85,6 +87,29 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
       c = profile.compareTo(other.getProfile());
     }
     return c;
+  }
+  
+  @Override
+  public int hashCode() {
+    return name.hashCode() * PRIME
+        + processName.hashCode() * PRIME
+        + profile.hashCode() * PRIME
+        + version.hashCode() * PRIME
+        + profile.hashCode() * PRIME;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof DistributionInfo) {
+      DistributionInfo other = (DistributionInfo) obj;
+      return other.getName().equals(name) 
+          && other.getProcessName().equals(processName)
+          && other.getProfile().equals(profile)
+          && other.getVersion().equals(version)
+          && other.getProfile().equals(profile);
+      
+    }
+    return false;
   }
   
   /**
