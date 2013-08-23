@@ -58,11 +58,11 @@ public class ExecProcessesByConfig extends AbstractExecCommand {
         waitForProcessStartup(
             ctx, 
             criteria, 
-            1, 
+            pd.getInstances(), 
             waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(), 
             cluster);
       }
-      ctx.getConsole().println("Process startup completed");
+      ctx.getConsole().println("Process startup completed on all nodes");
     }
   }
 

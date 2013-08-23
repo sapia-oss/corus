@@ -3,13 +3,13 @@
    <p>Restarts a process.</p>
   </section>
   <section title="Syntax">
-    <p>restart -d distribution_name -v version [-p profile] [-n process_name] [-cluster]</p>
+    <p>restart -d distribution_name -v version [-p profile] [-n process_name] [-w] [-cluster]</p>
     <p/>
     <p>OR:</p>      
-    <p>restart all</p>
+    <p>restart all [-w]</p>
     <p/>
     <p>OR:</p>  
-    <p>restart -i process_id [process_id2 [process_id3 [...]]]</p>
+    <p>restart -i process_id [process_id2 [process_id3 [...]]] </p>
     <p/>
     <p>OR:</p>
     <p/>

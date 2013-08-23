@@ -109,9 +109,8 @@ public abstract class CorusCliCommand implements Command {
   
   protected static void sleep(long millis) throws AbortException {
     try {
-      Thread.sleep(1000);
+      Thread.sleep(millis);
     } catch (InterruptedException ie) {
-      ie.printStackTrace();
       throw new AbortException();
     }
   }

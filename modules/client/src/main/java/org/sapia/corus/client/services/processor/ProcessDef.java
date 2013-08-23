@@ -10,11 +10,12 @@ import java.io.Serializable;
  * @author yduchesne
  *
  */
-public class ProcessDef implements Serializable{
+public class ProcessDef implements Serializable {
   
   static final long serialVersionUID = 1L;
   
   private String dist, process, version, profile;
+  private int instances;
 
   public String getDist() {
     return dist;
@@ -47,9 +48,20 @@ public class ProcessDef implements Serializable{
   public String getProfile() {
     return profile;
   }
-
+  
   public void setProfile(String profile) {
     this.profile = profile;
+  }
+  
+  public void setInstances(int instances) {
+    this.instances = instances;
+  }
+  
+  public int getInstances() {
+    if (instances == 0) {
+      instances = 1;
+    }
+    return instances;
   }
   
   public String toString(){
@@ -58,6 +70,7 @@ public class ProcessDef implements Serializable{
       .append("version=").append(version).append(", ")
       .append("name=").append(process).append(", ")
       .append("profile=").append(profile)
+      .append("instances=").append(instances)      
       .append("]")
       .toString();
   }

@@ -43,21 +43,35 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
    * @param cluster a {@link ClusterInfo}.
    */
   protected final void waitForProcessShutdown(CliContext ctx, ProcessCriteria criteria, int seconds, ClusterInfo cluster) {
+    List<Process> currentProcesses = getProcessInstances(ctx.getCorus().getProcessorFacade(), criteria, cluster);
+    
+    Set<String> existing = new HashSet<String>();
+    for (Process p : currentProcesses) {
+      existing.add(p.getOsPid() + ":" + p.getProcessID());
+    }
+    
     Delay delay = new Delay(seconds, TimeUnit.SECONDS);    
-    int instances = 0;
+    int oldProcessCount = 0;
     do {
-      instances = getProcessInstanceCount(ctx.getCorus().getProcessorFacade(), criteria, cluster);
-    } while (instances > 0 && delay.isNotOver());
+      currentProcesses = getProcessInstances(ctx.getCorus().getProcessorFacade(), criteria, cluster);
+      oldProcessCount = 0;
+      for (Process p : currentProcesses) {
+        if(existing.contains(p.getOsPid() + ":" + p.getProcessID())) {
+          oldProcessCount++;
+        }
+      }
+      sleep(WAIT_INTERVAL_MILLIS);
+    } while (oldProcessCount > 0 && delay.isNotOver());
   }
   
   /**
    * @param ctx the {@link CliContext}.
    * @param criteria a {@link ProcessCriteria}.
-   * @param startedInstances the expected number started instances.
+   * @param instancesPerHost the expected number of started instances per host.
    * @param seconds the max number of seconds to wait for.
    * @param cluster a {@link ClusterInfo}.
    */  
-  protected final void waitForProcessStartup(CliContext ctx, ProcessCriteria criteria, int startedInstances, int seconds, ClusterInfo cluster) {
+  protected final void waitForProcessStartup(CliContext ctx, ProcessCriteria criteria, int instancesPerHost, int seconds, ClusterInfo cluster) {
     Delay delay = new Delay(seconds, TimeUnit.SECONDS);
     
     
@@ -66,21 +80,19 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Results<List<Distribution>> distResults = ctx.getCorus().getDeployerFacade().getDistributions(
         criteria.getDistributionCriteria(), 
         cluster);
-    Distribution dist = null;
+    Set<Distribution> dists = new HashSet<Distribution>();
     
     Map<ServerAddress, Set<String>> hostsWithDist = new HashMap<ServerAddress, Set<String>>();
     while (distResults.hasNext()) {
       Result<List<Distribution>> distResult = distResults.next();
       if (!distResult.getData().isEmpty()) {
-        if (dist == null) {
-          dist = distResult.getData().get(0);
-        }
-        hostsWithDist.put(distResult.getOrigin(), new HashSet<String>());
+          dists.addAll(distResult.getData());
       }
+      hostsWithDist.put(distResult.getOrigin(), new HashSet<String>());
     }
     
-    // distribution should not be null, but considering anyway
-    if (dist != null) {
+    // distribution set should not be empty, but considering anyway
+    if (!dists.isEmpty()) {
       
       // obtaining the tags for each targeted host in the cluster
       Results<Set<String>> tagResults = ctx.getCorus().getConfigFacade().getTags(cluster);
@@ -93,24 +105,25 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       }
      
       // now checking which hosts are supposed to run the processes, based on the tags
-      List<ProcessConfig> procConfigs = dist.getProcesses(criteria.getName());
       Set<ServerAddress> targets = new HashSet<ServerAddress>();
-      for (ProcessConfig procConfig : procConfigs) {
-        for (ServerAddress host : hostsWithDist.keySet()) {
-          Set<String> hostTags = hostsWithDist.get(host);
-          if (procConfig.getTagSet().isEmpty() || hostTags.containsAll(procConfig.getTagSet())) {
-            targets.add(host);
-          } 
+      for (Distribution dist : dists) {
+        List<ProcessConfig> procConfigs = dist.getProcesses(criteria.getName());
+        for (ProcessConfig procConfig : procConfigs) {
+          for (ServerAddress host : hostsWithDist.keySet()) {
+            Set<String> hostTags = hostsWithDist.get(host);
+            if (procConfig.getTagSet().isEmpty() || hostTags.containsAll(procConfig.getTagSet())) {
+              targets.add(host);
+            } 
+          }
         }
       }
       
       // we've got the target hosts: checking on them
-      int expectedNumberOfProcesses = targets.size() * startedInstances;
-      if (expectedNumberOfProcesses > 0) {
+      if (instancesPerHost > 0 && !targets.isEmpty()) {
+        int totalExpectedInstances = instancesPerHost * targets.size();
         int currentCount = 0;
         ClusterInfo targetInfo = new ClusterInfo(true);
         targetInfo.addTargets(targets);
-        ctx.getConsole().println(String.format("Waiting for startup: expecting a total of %s process(es) on %s Corus node(s)", expectedNumberOfProcesses, targets.size()));
         while (delay.isNotOver()) {
           currentCount = 0;
           Results<List<Process>> processes = ctx.getCorus().getProcessorFacade().getProcesses(criteria, targetInfo);
@@ -118,21 +131,19 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
             Result<List<Process>> proc = processes.next();
             currentCount += proc.getData().size();
           }
-          if (currentCount < expectedNumberOfProcesses) {
+          if (currentCount < totalExpectedInstances) {
             sleep(WAIT_INTERVAL_MILLIS);
           } else {
             break;
           }
         }
         
-        if (currentCount < expectedNumberOfProcesses) {
-          throw new IllegalStateException("Expected number of processes not started. Got: " + currentCount + ", expected: " + expectedNumberOfProcesses);
+        if (currentCount < totalExpectedInstances) {
+          throw new IllegalStateException("Expected number of processes not started. Got: " + currentCount + ", expected: " + totalExpectedInstances);
         } else {
-          ctx.getConsole().println(String.format("All processes started (got %s)", currentCount));
+          ctx.getConsole().println(String.format("Completed startup of %s process(es) on: %s", totalExpectedInstances, targets));          
         }
-      } else {
-        ctx.getConsole().println("No process will be started (are process tags matching Corus tags?)");
-      }
+      } 
     } 
   }
   
@@ -154,7 +165,11 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Results<List<Process>> processes = processor.getProcesses(criteria, cluster);
     int instances = 0;
     while(processes.hasNext()) {
-      instances += processes.next().getData().size();
+      Result<List<Process>> processList = processes.next();
+      if (processList == null) {
+        break;
+      }
+      instances += processList.getData().size();        
     } 
     return instances;
   }
@@ -169,8 +184,13 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Results<List<Process>> processes = processor.getProcesses(criteria, cluster);
     List<Process> instances = new ArrayList<Process>();
     while(processes.hasNext()) {
-      instances.addAll(processes.next().getData());
+      Result<List<Process>> processList = processes.next();
+      if (processList == null) {
+        break;
+      }
+      instances.addAll(processList.getData());        
     } 
     return instances;
   }  
+  
 }

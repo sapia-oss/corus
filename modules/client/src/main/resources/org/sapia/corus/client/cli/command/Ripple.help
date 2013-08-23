@@ -15,7 +15,7 @@
   <section title="Syntax">
     <p>ripple -s script_file_path -b batch_size  [-m min_hosts]</p>
     <p/>
-    <p>ripple -c "command_line_to_execute" -b batch_size  [-m min_hosts]</p>
+    <p>ripple -c "command_line_to_execute-1 [| command_line_to_execute-2 [| command_line_to_execute-n]" -b batch_size  [-m min_hosts]</p>
     <p/>
     <p>Where:</p>
     <p/>    
@@ -37,8 +37,8 @@
     <p>As indicated above, the value of the -b option can also be expressed as a percentage: 10%, 50%, etc. It is
     required to add the percentage symbol (%) in order for the value to be interpreted as such.</p>   
   </section>
-  <section title="Examples">
-    <p>Given the following command:</p>
+  <section title="Basic Examples">
+    <p>Given the following commands:</p>
     <p/>
     <p>ripple -c "kill all" -b 2 -m 5</p>
     <p/>
@@ -60,5 +60,11 @@
     will only be performed against a subset of the cluster, sparing the whole cluster from being brought to
     a halt when upgrading an application.</p>
     <p/>
-  </section>    
+  </section>
+  <section title="Additional Examples">
+    <p>ripple -c "restart all | pause 45"</p>
+    <p/>
+    <p>The above illustrates the use of a pipe to pass in mutiple commands at once.</p>
+    <p/>    
+  </section>      
 </help>

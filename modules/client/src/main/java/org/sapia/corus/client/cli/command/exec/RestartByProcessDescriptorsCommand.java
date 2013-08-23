@@ -45,7 +45,7 @@ public class RestartByProcessDescriptorsCommand extends RestartAndWaitCommandSup
           criteria, 
           wait.getValue() == null ? Restart.DEFAULT_RESTART_WAIT_TIME_SECONDS : wait.asInt());
     } else {
-      ctx.getConsole().println("Proceeding to process restart...");      
+      ctx.getConsole().println("Triggering process restart...");      
       ctx.getCorus().getProcessorFacade().restart(criteria, getClusterInfo(ctx));      
     }
   }

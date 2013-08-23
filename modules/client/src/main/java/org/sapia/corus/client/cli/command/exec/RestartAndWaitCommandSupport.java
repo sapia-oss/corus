@@ -8,11 +8,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.Result;
+import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.ubik.net.ServerAddress;
 
 /**
  * Implements restart-an-wait logic. 
@@ -37,45 +40,58 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
   protected final void doRestartAndWait(CliContext ctx, ClusterInfo cluster, ProcessCriteria criteria, int waitSeconds) throws AbortException,
       InputException {
     
-      List<Process> instances = getProcessInstances(ctx.getCorus().getProcessorFacade(), criteria, cluster);
-
-      Map<DistributionInfo, AtomicInteger> processCounts = new HashMap<DistributionInfo, AtomicInteger>();
+    Results<List<Process>> instances = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
+    
+    Map<ServerAddress, Map<DistributionInfo, AtomicInteger>> processesByHosts = new HashMap<ServerAddress, Map<DistributionInfo,AtomicInteger>>();
+    
+    while (instances.hasNext()) {
+      Result<List<Process>> processList = instances.next();
       
-      for (Process i : instances) {
-        AtomicInteger count = processCounts.get(i.getDistributionInfo());
-        if (count == null) {
-          count = new AtomicInteger(1);
-          processCounts.put(i.getDistributionInfo(), count);
-        } else {
-          count.incrementAndGet();
-        }
+      Map<DistributionInfo, AtomicInteger> processes = processesByHosts.get(processList.getOrigin());
+      if (processes == null) {
+        processes = new HashMap<DistributionInfo, AtomicInteger>();
+        processesByHosts.put(processList.getOrigin(), processes);
       }
-      
-      ctx.getCorus().getProcessorFacade().restart(criteria, cluster);
+      for (Process p : processList.getData()) {
+        AtomicInteger processCount = processes.get(p.getDistributionInfo());
+        if (processCount == null) {
+          processCount = new AtomicInteger();
+          processes.put(p.getDistributionInfo(), processCount);
+        }
+        processCount.incrementAndGet();
+      }
+    }
+    
+    ctx.getCorus().getProcessorFacade().restart(criteria, cluster);
 
-      waitForProcessShutdown(
-          ctx, 
-          criteria, 
-          waitSeconds, 
-         cluster);
-      
-      for (Map.Entry<DistributionInfo, AtomicInteger> proc : processCounts.entrySet()) {
+    waitForProcessShutdown(
+        ctx, 
+        criteria, 
+        waitSeconds, 
+        cluster);
+    
+
+    for (ServerAddress node : processesByHosts.keySet()) {
+      Map<DistributionInfo, AtomicInteger> processes = processesByHosts.get(node);
+      for (DistributionInfo proc : processes.keySet()) {
         criteria = ProcessCriteria.builder()
-            .distribution(proc.getKey().getName())
-            .profile(proc.getKey().getProfile())
-            .name(proc.getKey().getProcessName())
-            .version(proc.getKey().getVersion())
+            .distribution(proc.getName())
+            .profile(proc.getProfile())
+            .name(proc.getProcessName())
+            .version(proc.getVersion())
             .build();
-        
+        ClusterInfo subset = new ClusterInfo(true);
+        subset.addTarget(node);
         waitForProcessStartup(
             ctx, 
             criteria, 
-            proc.getValue().get(), 
+            processes.get(proc).get(), 
             waitSeconds, 
-            cluster);        
+            subset);        
+        
       }
-      
-      
+    }
+    ctx.getConsole().println("Process restart completed on all nodes");
   }
-
+  
 }

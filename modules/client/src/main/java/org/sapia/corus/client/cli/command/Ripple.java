@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.CommandNotFoundException;
@@ -34,6 +35,7 @@ public class Ripple extends CorusCliCommand {
   private static final String COMMAND_OPT      = "c";
   private static final String MIN_HOST_OPT     = "m";
   private static final String BATCH_POLICY_OPT = "b";
+  private static final String PIPE             = "|";
   
   private static final int    DEFAULT_BATCH_SIZE = 1;
   private static final int    DEFAULT_MIN_HOSTS  = 1;
@@ -84,9 +86,11 @@ public class Ripple extends CorusCliCommand {
     for (List<CorusHost> batch : hostBatches) {
       try {
         Map<String, String> vars = new HashMap<String, String>();
-        Option cmdOpt = getOpt(ctx, COMMAND_OPT);
-        if (cmdOpt != null) {
-          processCommand(batch, cmdOpt.getValue(), ctx);
+        if (ctx.getCommandLine().containsOption(COMMAND_OPT, true)) {
+          StringTokenizer tk = new StringTokenizer(ctx.getCommandLine().assertOption(COMMAND_OPT, true).getValue().trim(), PIPE);
+          while (tk.hasMoreTokens()) {
+            processCommand(batch, tk.nextToken(), ctx);
+          }
         } else {
           String scriptFilePath = ctx.getCommandLine().assertOption(SCRIPT_OPT, true).getValue();
           File scriptFile = ctx.getFileSystem().getFile(scriptFilePath);

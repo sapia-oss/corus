@@ -61,7 +61,7 @@ public class ExecNewProcessesTask extends Task<Void, Void>{
         .build();
       
       List<Process> activeProcesses = processes.getActiveProcesses().getProcesses(criteria);
-      if(activeProcesses.size() == 0){
+      if(activeProcesses.size() < pd.getInstances()){
         try{
           DistributionCriteria distCriteria = DistributionCriteria.builder()
             .name(distName)
@@ -75,7 +75,7 @@ public class ExecNewProcessesTask extends Task<Void, Void>{
         if(dist != null){
           for(ProcessConfig conf: dist.getProcesses(processName)){
             if(conf.containsProfile(pd.getProfile())){
-              filter.addRootProcess(dist, conf, pd.getProfile(), 1);
+              filter.addRootProcess(dist, conf, pd.getProfile(), pd.getInstances());
             }
             else{
               ctx.warn("No profile " + pd.getProfile() + " found for " + pd.getProfile());
