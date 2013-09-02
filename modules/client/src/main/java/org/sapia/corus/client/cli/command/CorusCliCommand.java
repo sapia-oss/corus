@@ -111,7 +111,7 @@ public abstract class CorusCliCommand implements Command {
     try {
       Thread.sleep(millis);
     } catch (InterruptedException ie) {
-      throw new AbortException();
+      throw new AbortException("Thread interrupted");
     }
   }
   

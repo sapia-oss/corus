@@ -26,8 +26,8 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
-import org.sapia.corus.client.facade.CorusConnectionContext;
-import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.facade.CorusConnectionContextImpl;
+import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.util.Localhost;
 
 
@@ -47,12 +47,12 @@ public class CorusCli extends CommandConsole {
   
   private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();  
   
-  protected CorusConnector corus;
+  protected CorusConnectorImpl corus;
   private List<CliError> 	 errors;
   private boolean          abortOnError;
 
 
-  public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
+  public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnectorImpl corus) throws IOException {
     super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
     this.corus = corus;
     super.setCommandListener(new CliConsoleListener());
@@ -63,7 +63,7 @@ public class CorusCli extends CommandConsole {
     setPrompt(CliUtils.getPromptFor(corus.getContext()));
   }
   
-  public CorusCli(CorusConnector corus) throws IOException {
+  public CorusCli(CorusConnectorImpl corus) throws IOException {
     this(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), corus);
   }
   
@@ -114,8 +114,8 @@ public class CorusCli extends CommandConsole {
         if (cmd.containsOption(PORT_OPT, true)) {
           port = cmd.assertOption(PORT_OPT, true).asInt();
         }
-        CorusConnectionContext connection = new CorusConnectionContext(host, port, FILE_SYSTEM);
-        CorusConnector connector = new CorusConnector(connection);
+        CorusConnectionContextImpl connection = new CorusConnectionContextImpl(host, port, FILE_SYSTEM);
+        CorusConnectorImpl connector = new CorusConnectorImpl(connection);
         
         if (cmd.containsOption(SCRIPT_OPT, false)) {
           String path = cmd.assertOption(SCRIPT_OPT, true).getValue();

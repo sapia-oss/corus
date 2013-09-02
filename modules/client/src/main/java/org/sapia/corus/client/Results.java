@@ -110,6 +110,15 @@ public class Results<T> implements Iterable<Result<T>> {
   }
   
   /**
+   * Use for testing purposes only.
+   * 
+   * @param invocationCount the invocation count.
+   */
+  public void setInvocationCount(int invocationCount) {
+    this.invocationCount = invocationCount;
+  }
+  
+  /**
    * decrements the internal "invocation count".
    */
   public synchronized void decrementInvocationCount(){

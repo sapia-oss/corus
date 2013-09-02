@@ -18,8 +18,8 @@ import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.Console;
 import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleOutput;
-import org.sapia.console.InputException;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
+import org.sapia.console.InputException;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
 

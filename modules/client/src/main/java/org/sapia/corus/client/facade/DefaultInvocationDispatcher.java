@@ -7,7 +7,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 
 /**
- * The default {@link InvocationDispatcher}, which wraps a {@link CorusConnectionContext}. The
+ * The default {@link InvocationDispatcher}, which wraps a {@link CorusConnectionContextImpl}. The
  * invocations are sent over the wire to the appropriate Corus instances.
  * 
  * @author yduchesne

@@ -2,7 +2,6 @@ package org.sapia.corus.client.cli.command.cron;
 
 import java.io.IOException;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
@@ -41,9 +40,7 @@ public class CronWizard {
     } catch (AbortException e) {
       ctx.getConsole().println("Operation aborted.");
     } catch (IOException e) {
-      ctx.getConsole().println("Error entering data.");
-      ctx.getConsole().out().println(ExceptionUtils.getStackTrace(e));
-      throw new AbortException();
+      throw new AbortException("Error entering data", e);
     }
 
     try {
@@ -55,9 +52,7 @@ public class CronWizard {
     } catch(ProcessConfigurationNotFoundException e){
       throw new InputException(e.getMessage());
     } catch (Exception e) {
-      ctx.getConsole().println("Error entering data.");
-     ctx.getConsole().out().println(ExceptionUtils.getStackTrace(e));
-      throw new AbortException();
+      throw new AbortException("Error entering data", e);      
     }
   }
 
@@ -139,7 +134,7 @@ public class CronWizard {
 
   private int process(String input) throws AbortException, InputException {
     if ((input == null) || (input.length() == 0)) {
-      throw new AbortException();
+      throw new AbortException("No input provided");
     }
 
     if (!input.equals(STAR)) {

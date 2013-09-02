@@ -5,6 +5,7 @@ import java.util.List;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
+import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.facade.CorusConnector;
 
 /**
@@ -17,7 +18,7 @@ import org.sapia.corus.client.facade.CorusConnector;
 public interface CliContext {
 
   /**
-   * @return the {@link CorusConnector} used by the
+   * @return the {@link CorusConnectorImpl} used by the
    * command line interface.
    */
   public CorusConnector getCorus();

@@ -38,7 +38,7 @@ public class Cmd extends CorusCliCommand {
       CliUtils.extractAvailable(handle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
         ctx.getConsole().println(anOutput.toString("UTF-8").trim());
-        throw new AbortException();
+        throw new AbortException("Aborting on process error");
       }
     } catch (IOException e) {
       ctx.createAndAddErrorFor(this, e);

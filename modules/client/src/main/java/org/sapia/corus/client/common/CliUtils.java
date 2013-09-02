@@ -4,9 +4,13 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.sapia.corus.client.Result;
+import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
@@ -19,7 +23,10 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
  */
 public final class CliUtils {
   
-  private static int BUFSZ = 1024;
+  private static final int BUFSZ = 1024;
+
+  private static final int HOST_INDEX = 0;
+  private static final int PORT_INDEX = 1;
   
   private CliUtils() {
   }
@@ -42,14 +49,14 @@ public final class CliUtils {
       if (hostPort.length != 2) {
         throw new IllegalArgumentException(String.format("Invalid format for %s. Expected host:port", item));
       }
-      addresses.add(HttpAddress.newDefaultInstance(hostPort[0].trim(), Integer.parseInt(hostPort[1].trim())));
+      addresses.add(HttpAddress.newDefaultInstance(hostPort[HOST_INDEX].trim(), Integer.parseInt(hostPort[PORT_INDEX].trim())));
     }
     return addresses;
   }
 
   /**
    * 
-   * @param corus the {@link CorusConnectionContext} instance for which to generate a command-line prompt.
+   * @param corus the {@link CorusConnectionContextO} instance for which to generate a command-line prompt.
    * @return a command-line prompt.
    */
   public static final String getPromptFor(CorusConnectionContext context) {
@@ -113,7 +120,7 @@ public final class CliUtils {
     InputStream is = new BufferedInputStream(anInput);
 
     try {
-      byte[] someData = new byte[1024];
+      byte[] someData = new byte[BUFSZ];
       while (!hasRead) {
         int length = 0;
         int size = is.available();
@@ -144,5 +151,22 @@ public final class CliUtils {
       } catch (IOException ioe) {
       }
     }
-  }  
+  }
+  
+  /**
+   * Collects results from different hosts, and puts them in a {@link Map}, where each result
+   * is bound on a per-host basis.
+   * 
+   * @param results a {@link Results} instance.
+   * @return the {@link Map} of results, on a per-host basis.
+   */
+  public static <T> Map<ServerAddress, T> collectResultsPerHost(Results<T> results) {
+    Map<ServerAddress, T> resultsPerHost = new HashMap<ServerAddress, T>();
+    while (results.hasNext()) {
+      Result<T> result = results.next();
+      resultsPerHost.put(result.getOrigin(), result.getData());
+    }
+    return resultsPerHost;
+  } 
+  
 }

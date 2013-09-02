@@ -26,19 +26,19 @@ import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
-import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 public class InterpreterTest {
   
-  private CorusConnector     connector;
+  private CorusConnectorImpl     connector;
   private Interpreter console;
   
   @Before
   public void setUp() {
-    this.connector = mock(CorusConnector.class);
+    this.connector = mock(CorusConnectorImpl.class);
     this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
   }
 

@@ -50,7 +50,7 @@ public class CliContextImpl extends Context implements CliContext {
     }
     
     if (abortOnError) {
-      throw new AbortException();
+      throw new AbortException("Error occurred", aCause);
     }
     
     return created;
@@ -64,7 +64,7 @@ public class CliContextImpl extends Context implements CliContext {
     }
 
     if (abortOnError) {
-      throw new AbortException();
+      throw new AbortException("Error occurred", aCause);
     }    
     
     return created;

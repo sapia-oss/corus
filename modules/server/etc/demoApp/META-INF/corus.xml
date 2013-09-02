@@ -1,5 +1,14 @@
 <distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
 
+  <process name="httpServer" maxKillRetry="3" shutdownTimeout="30000" invoke="true" tags="http-server">
+    <port name="http.server" />
+    <java mainClass="org.sapia.corus.examples.HttpServer"
+          profile="test" vmType="server">
+      <property  name="corus.process.log.level" value="debug" />
+      <xoption  name="ms" value="16M" />
+    </java>
+  </process>
+
   <process name="restartApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.RestartApplication"
           profile="test" vmType="server">

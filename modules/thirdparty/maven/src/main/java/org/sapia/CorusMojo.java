@@ -13,8 +13,8 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.client.cli.CorusCli;
 import org.sapia.corus.client.cli.DefaultClientFileSystem;
 import org.sapia.corus.client.cli.Interpreter;
-import org.sapia.corus.client.facade.CorusConnectionContext;
-import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.facade.CorusConnectionContextImpl;
+import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.rmi.server.Hub;
 
 /**
@@ -77,14 +77,14 @@ public class CorusMojo extends AbstractMojo {
       throw new MojoExecutionException("scriptFile does not exist: " + scriptFile.getAbsolutePath());
     }
 
-    CorusConnectionContext context = null;
+    CorusConnectionContextImpl context = null;
     try {
-      context    = new CorusConnectionContext(host, port, new DefaultClientFileSystem(project.getBasedir()));
+      context    = new CorusConnectionContextImpl(host, port, new DefaultClientFileSystem(project.getBasedir()));
     } catch (Exception e) {
       throw new MojoExecutionException(String.format("Could not connect to Corus daemon at %s:%s", host, port), e);
     }
     try {
-      CorusConnector connection = new CorusConnector(context);      
+      CorusConnectorImpl connection = new CorusConnectorImpl(context);      
       Map<String, String> vars = new HashMap<String, String>();
       vars.put("project.groupId", project.getGroupId());
       vars.put("project.artifactId", project.getArtifactId());

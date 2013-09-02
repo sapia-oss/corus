@@ -107,11 +107,15 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       // now checking which hosts are supposed to run the processes, based on the tags
       Set<ServerAddress> targets = new HashSet<ServerAddress>();
       for (Distribution dist : dists) {
+        
         List<ProcessConfig> procConfigs = dist.getProcesses(criteria.getName());
         for (ProcessConfig procConfig : procConfigs) {
           for (ServerAddress host : hostsWithDist.keySet()) {
             Set<String> hostTags = hostsWithDist.get(host);
-            if (procConfig.getTagSet().isEmpty() || hostTags.containsAll(procConfig.getTagSet())) {
+            Set<String> procTags = new HashSet<String>();
+            procTags.addAll(dist.getTagSet());
+            procTags.addAll(procConfig.getTagSet());
+            if (procTags.isEmpty() || hostTags.containsAll(procTags)) {
               targets.add(host);
             } 
           }

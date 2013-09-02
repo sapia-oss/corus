@@ -12,4 +12,7 @@ public class SystemExitException extends AbortException {
 	
 	static final long serialVersionUID = 1L;
 
+	public SystemExitException() {
+	  super("Exiting");
+  }
 }

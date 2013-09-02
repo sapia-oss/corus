@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.configurator.InternalConfigurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
@@ -121,8 +122,11 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
   
   private File makeProcessDir(TaskExecutionContext ctx, ProcessInfo info) {
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
-    File processDir = new File(info.getDistribution().getProcessesDir()
-        + File.separator + info.getProcess().getProcessID());
+    File processDir = new File(
+        PathUtils.toPath(
+            info.getDistribution().getProcessesDir(), 
+            info.getProcess().getProcessID())
+    );
 
     if (info.isRestart() && !fs.exists(processDir)) {
       ctx.warn(
@@ -187,6 +191,9 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     props.add(new Property("corus.distribution.version", dist.getVersion()));
     props.add(new Property("corus.process.dir", proc.getProcessDir()));
     props.add(new Property("corus.process.id", proc.getProcessID()));
+    if (proc.getOsPid() != null) {
+      props.add(new Property("corus.process.os.pid", proc.getOsPid()));
+    }
     props.add(new Property("corus.process.poll.interval", ""
         + conf.getPollInterval()));
     props.add(new Property("corus.process.status.interval", ""

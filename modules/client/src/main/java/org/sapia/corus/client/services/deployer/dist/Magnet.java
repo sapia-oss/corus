@@ -6,6 +6,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
+import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 /**
@@ -73,7 +74,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
     result.command.addArg(APP_STARTER_CLASS_NAME);
     result.command.addOpt("ascp", getAsCp(env));
     result.command.addArg("org.sapia.magnet.MagnetRunner");
-    result.command.addOpt("magnetfile", env.getCommonDir() + File.separator + magnetFile);
+    result.command.addOpt("magnetfile", PathUtils.toPath(env.getCommonDir(), magnetFile));
     result.command.addOpt("p", profile);
     if (magnetOptions != null && magnetOptions.length() > 0) {
       result.command.addArg(magnetOptions);

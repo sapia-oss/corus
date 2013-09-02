@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.util.xml.ProcessingException;
@@ -177,8 +178,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public void setBaseDir(String baseDir) {
     this.baseDir = baseDir;
-    commonDir 	 = baseDir + File.separator + "common";
-    processesDir = baseDir + File.separator + "processes";
+    commonDir 	 = PathUtils.toPath(baseDir, "common");
+    processesDir = PathUtils.toPath(baseDir, "processes");
   }
 
   /**

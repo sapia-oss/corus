@@ -27,8 +27,8 @@ import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
-import org.sapia.corus.client.facade.CorusConnectionContext;
-import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.facade.CorusConnectionContextImpl;
+import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.util.Localhost;
 
 
@@ -53,7 +53,7 @@ public class CorusScript {
   private ScriptEngineFacade  scriptEngine;
   private Interpreter         interpreter;
   
-  public CorusScript(CorusConnectionContext connection, String[] includes) throws IOException {
+  public CorusScript(CorusConnectionContextImpl connection, String[] includes) throws IOException {
     this(connection, includes, GROOVY);
   }
   
@@ -97,8 +97,8 @@ public class CorusScript {
 
   }
   
-  public CorusScript(CorusConnectionContext context, String[] includes, String scriptEngineName) throws IOException {
-    this(new Interpreter(new CorusConnector(context)), includes, scriptEngineName);
+  public CorusScript(CorusConnectionContextImpl context, String[] includes, String scriptEngineName) throws IOException {
+    this(new Interpreter(new CorusConnectorImpl(context)), includes, scriptEngineName);
   }
 
   /**
@@ -121,7 +121,7 @@ public class CorusScript {
     String host = null;
     int port = DEFAULT_PORT;
     
-    CorusConnectionContext connection = null;
+    CorusConnectionContextImpl connection = null;
     try {
       CmdLine cmd = CmdLine.parse(args);
 
@@ -152,7 +152,7 @@ public class CorusScript {
         } else {
           includes = new String[]{};
         }
-        connection = new CorusConnectionContext(host, port, FILE_SYSTEM);
+        connection = new CorusConnectionContextImpl(host, port, FILE_SYSTEM);
         String scriptPath = cmd.assertOption(SCRIPT_OPT, true).getValue();
         CorusScript script = new CorusScript(connection, includes);
         

@@ -16,6 +16,7 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
+import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Strings;
@@ -167,7 +168,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if(!javaHomeDir.exists()){
       throw new MissingDataException("java.home not found");
     }        
-    cmd.addArg(javaHomeDir.getAbsolutePath() + File.separator + "bin" + File.separator + javaCmd);
+    cmd.addArg(PathUtils.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
     
     if (vmType != null) {
       if(!vmType.startsWith("-")){
@@ -244,7 +245,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
         currentDir = baseDir;        
       }
       else{
-        currentDir = processUserDir + FileUtils.FILE_SEPARATOR + baseDir;
+        currentDir = PathUtils.toPath(processUserDir, baseDir);
       }
       
       FileInfo fileInfo = FileUtils.getFileInfo(currentDir);        
