@@ -41,10 +41,12 @@
     <p>- exit</p>    
     <p>- host</p>
     <p>- hosts</p>
+    <p>- http</p>
     <p>- man</p>
     <p>- pull</p>
     <p>- pwd</p>
     <p>- quit</p>
+    <p>- ripple</p>
     <p>- ver</p>
     <p/>    
   </section>
