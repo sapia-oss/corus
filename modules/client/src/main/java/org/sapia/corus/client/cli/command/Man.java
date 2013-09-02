@@ -35,6 +35,7 @@ public class Man extends CorusCliCommand{
     COMMANDS.put("exit", Exit.class);
     COMMANDS.put("host", Host.class);
     COMMANDS.put("hosts", Hosts.class);
+    COMMANDS.put("http", Http.class);
     COMMANDS.put("kill", Kill.class);
     COMMANDS.put("ls", Ls.class);
     COMMANDS.put("man", Man.class);

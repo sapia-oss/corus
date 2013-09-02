@@ -5,7 +5,7 @@
    <p/>
    <p>This command is convenient when there's a need for confirming that servers have completely started up before moving
    on with deployment: the http check command will block until the polled HTTP server returns the expected status code (200 by default),
-   or until a given maximum number of attempts, after which an exception is thrown if the expected outcome was not fulfilled.</p>
+   or until a given maximum number of attempts, after which an exception is thrown if the expected outcome was not realized.</p>
    <p/>
   </section>
   <section title="Syntax">
@@ -17,7 +17,7 @@
     <p/>
     <p>- u: is the URL to check or to post to (used by check and post).</p>
     <p/>
-    <p>- p: a comma-delimited list of HTTP port range patterns, as configured in Corus (if this option is used, the -u option is ignored and should
+    <p>- p: a comma-delimited list of HTTP port range patterns, expected to match those configured in Corus (if this option is used, the -u option is ignored and should
     therefore not be specified). If the option is not provided with a pattern list, attempt will be made to poll servers corresponding to all
     port ranges.</p>
     <p/>
@@ -33,15 +33,19 @@
   </section>
   <section title="Notes">
     <p>- When using the -p option with http check, the command will internally create a HTTP URLs of the form http://${corus_host}:${active_port}. 
-    If the -c option was specified, it's value will be appended to each URL that is built in such a manner.
+    If the -c option was specified, its value will be appended to each URL that is built in such a manner.
     </p>
     <p/>    
     <p>- The -cluster option only makes sense using in conjunction with the -p option: it is used to obtain the active ports (for given port ranges) at
     each node in the cluster (or at the nodes that are targeted by the cluster command).</p>
     <p/>
+    <p>- When the -p option is specified, the command takes process tags into account (port ranges are checked for processes that are supposed to be 
+    running, given their tags).</p>
+    <p/>
   </section>    
   <section title="Examples">
     <p>- Polls the given URL every 5 seconds until 10 attempts are reached, or until the 200 HTTP status code is obtained:</p>
+    <p/>   
     <p>http check -u http://192.168.0.101:8080/demo -m 10 -t 5</p>
     <p/>    
     <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node in the Corus cluster:</p>
@@ -49,6 +53,7 @@
     <p/>    
     <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node specified by the ${cluster.targets} variable 
     (see the ripple command for more on how the value of that variable is made available to scripts):</p>
+    <p/>
     <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster ${cluster.targets}</p>
   </section>    
 </help>
