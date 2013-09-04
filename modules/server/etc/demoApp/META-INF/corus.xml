@@ -4,7 +4,8 @@
     <port name="http.server" />
     <java mainClass="org.sapia.corus.examples.HttpServer"
           profile="test" vmType="server">
-      <property  name="corus.process.log.level" value="debug" />
+      <property name="corus.process.log.level" value="debug" />
+      <property name="server.port" value="8${corus.process.port.http.server}" />
       <xoption  name="ms" value="16M" />
     </java>
   </process>

@@ -33,14 +33,16 @@
   </section>
   <section title="Notes">
     <p>- When using the -p option with http check, the command will internally create a HTTP URLs of the form http://${corus_host}:${active_port}. 
-    If the -c option was specified, its value will be appended to each URL that is built in such a manner.
+    If the -c option was specified, its value will be appended to each URL, as follows: http://${corus_host}:${active_port}/${context_path} (where 
+    context_path corresponds to the value of the -c option). In addition, if the -x option is specified, its value will be used as a port prefix, 
+    as such http://${corus_host}:${port_prefix}${active_port} (where port_prefix corresponds to the value of the -x option). 
     </p>
-    <p/>    
-    <p>- The -cluster option only makes sense using in conjunction with the -p option: it is used to obtain the active ports (for given port ranges) at
-    each node in the cluster (or at the nodes that are targeted by the cluster command).</p>
     <p/>
     <p>- When the -p option is specified, the command takes process tags into account (port ranges are checked for processes that are supposed to be 
     running, given their tags).</p>
+    <p/>    
+    <p>- The -cluster option only makes sense using in conjunction with the -p option: it is used to obtain the active ports (for given port ranges) at
+    each node in the cluster (or at the nodes that are targeted by the cluster command).</p>
     <p/>
   </section>    
   <section title="Examples">

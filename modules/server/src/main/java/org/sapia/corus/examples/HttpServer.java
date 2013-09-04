@@ -15,7 +15,7 @@ import org.simpleframework.transport.connect.SocketConnection;
 
 public class HttpServer implements Container {
   
-  private static final String HTTP_SERVER_PORT_KEY = "corus.process.port.http.server";
+  private static final String HTTP_SERVER_PORT_KEY = "server.port";
 
   public void handle(Request request, Response response) {
      try {

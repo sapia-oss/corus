@@ -51,7 +51,7 @@ public class Http extends CorusCliCommand {
   private static final String STATUS_OPT       = "s";
   private static final String PORT_RANGE_OPT   = "p";
   private static final String CONTEXT_PATH_OPT = "c";
-
+  private static final String PREFIX_OPT       = "x";
   
   private static final int DEFAULT_STATUS       = 200;
   private static final int DEFAULT_MAX_ATTEMPTS = 3;
@@ -105,7 +105,7 @@ public class Http extends CorusCliCommand {
       Map<ServerAddress, Set<String>> tagsByNode = CliUtils.collectResultsPerHost(
           ctx.getCorus().getConfigFacade().getTags(cluster)
       );
-      
+         
       List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT, new Function<Arg, String>() {
         @Override
         public Arg call(String arg) {
@@ -116,6 +116,7 @@ public class Http extends CorusCliCommand {
       if (portRangesByNode.isEmpty()) {
         ctx.getConsole().println("Found not port ranges that apply: bypassing HTTP check");
       } else {
+        String portPrefix = getOptValue(ctx, PREFIX_OPT);
         for (ServerAddress node : portRangesByNode.keySet()) {
           List<PortRange> ranges = portRangesByNode.get(node);
           for (PortRange r : ranges) {
@@ -127,11 +128,11 @@ public class Http extends CorusCliCommand {
               HttpAddress address = (HttpAddress) node;
               
               for (Integer port : r.getActive()) {
-                String url = "http://" + address.getHost() + ":" + port;
+                String url = "http://" + address.getHost() + ":" + (portPrefix != null ? portPrefix + port : port);
                 url = PathUtils.append(url, contextPath);
                 doCheck(ctx, url, maxAttempts, expected, interval);
               }
-            }
+            } 
           }
         }
       }
