@@ -47,5 +47,9 @@ public interface CorusConsts {
   public static final String PROPERTY_CORUS_MCAST_PORT 			= "corus.server.multicast.port";
   
   public static final String CORUS_TRANSPORT_TCP 						= "tcp";
-  
+
+  /**
+   * Defines the property prefix of a symbolic link definition.
+   */
+  public static final String PROPERTY_CORUS_FILE_LINK_PREFIX = "corus.server.file.link.";
 }
