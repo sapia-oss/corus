@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.sapia.console.CmdElement;
+import org.sapia.console.CmdLine;
+import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.CorusConnectionContext;
@@ -29,6 +32,25 @@ public final class CliUtils {
   private static final int PORT_INDEX = 1;
   
   private CliUtils() {
+  }
+  
+  /**
+   * @param cmd the {@link CmdLine} to execute.
+   * @return the {@link Map} of option values corresponding to the {@link Option}s of
+   * the given {@link CmdLine} instance.
+   */
+  public static Map<String, String> getOptionsMap(CmdLine cmd) {
+    Map<String, String> vars = new HashMap<String, String>();
+    for (int i = 0; i < cmd.size(); i++) {
+      CmdElement elem = cmd.get(i);
+      if (elem instanceof Option) {
+        Option opt = (Option) elem;
+        if (opt.getValue() != null) {
+          vars.put(elem.getName(), ((Option) elem).getValue());
+        }
+      }
+    }
+    return vars;
   }
   
   /**
@@ -169,4 +191,12 @@ public final class CliUtils {
     return resultsPerHost;
   } 
   
+  /**
+   * @param cmdLine a {@link CmdLine} instance.
+   * @return <code>true</code> if the given instance has the help option specified.
+   */
+  public static boolean isHelp(CmdLine cmdLine) {
+    return cmdLine.containsOption("help", false) 
+        || cmdLine.containsOption("-help", false);
+  }
 }

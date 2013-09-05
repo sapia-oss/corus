@@ -19,11 +19,15 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Condition;
+import org.sapia.ubik.util.Function;
 
 /**
  * Allows port management.
@@ -168,7 +172,22 @@ public class Port extends CorusCliCommand {
     displayResults(ctx.getCorus().getPortManagementFacade().getPortRanges(getClusterInfo(ctx)), ctx);
   }
   
-  private void displayResults(Results<List<PortRange>> res, CliContext ctx) {
+  private void displayResults(Results<List<PortRange>> res, CliContext ctx) throws InputException {
+    String nameFilter = getOptValue(ctx, OPT_NAME);
+    if (nameFilter != null) {
+      final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
+      res = res.filter(new Function<List<PortRange>, List<PortRange>>() {
+        @Override
+        public List<PortRange> call(List<PortRange> toFilter) {
+          return Collections2.filterAsList(toFilter, new Condition<PortRange>() {
+            @Override
+            public boolean apply(PortRange item) {
+              return pattern.matches(item.getName());
+            }
+          });
+        }
+      });
+    }
     while (res.hasNext()) {
       Result<List<PortRange>> result = res.next();
       displayHeader(result.getOrigin(), ctx);

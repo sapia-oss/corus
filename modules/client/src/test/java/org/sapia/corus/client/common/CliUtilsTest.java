@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+import org.sapia.console.CmdLine;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.ubik.net.ServerAddress;
@@ -35,5 +36,11 @@ public class CliUtilsTest {
     for (int i = 0; i < 5; i++) {
       assertEquals(resultsPerHost.get(new HttpAddress(Uri.parse("http://test_" + i))), "data_i");
     }    
+  }
+  
+  @Test
+  public void testIsHelp() {
+    assertTrue(CliUtils.isHelp(CmdLine.parse("-help")));
+    assertTrue(CliUtils.isHelp(CmdLine.parse("--help")));
   }
 }

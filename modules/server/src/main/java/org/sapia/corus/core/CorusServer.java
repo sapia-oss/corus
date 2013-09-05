@@ -19,12 +19,12 @@ import org.apache.log.output.io.rotate.RevolvingFileStrategy;
 import org.apache.log.output.io.rotate.RotateStrategyByTime;
 import org.apache.log.output.io.rotate.RotatingFileTarget;
 import org.apache.log4j.Level;
-import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
@@ -57,7 +57,6 @@ public class CorusServer {
   public static final String  DEBUG_VERBOSITY      = "v";
   public static final String  DEBUG_FILE           = "f";
   public static final String  USER_DATA            = "u";
-  public static final String  HELP            		 = "help";
   public static final String  PROP_SYSLOG_HOST     = "corus.server.syslog.host";
   public static final String  PROP_SYSLOG_PORT     = "corus.server.syslog.port";
   public static final String  PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
@@ -82,18 +81,14 @@ public class CorusServer {
       }
       
       CmdLine cmd;
-      if(args.length == 0){
+      if(args.length == 0) {
         cmd = new CmdLine();
-      }
-      else{
+      } else {
         cmd = CmdLine.parse(args);
       }
       
-      CmdLine argsCmd = cmd.filterArgs();
-      
-      if (argsCmd.hasNext() && ((Arg) argsCmd.next()).getName().equals(HELP)) {
+      if (CliUtils.isHelp(cmd)) {
         help();
-        
         return;
       }
       
@@ -395,7 +390,7 @@ public class CorusServer {
     System.out.println();
     System.out.println("Corus server command-line syntax:");
     System.out.println();
-    System.out.println("corus [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f [path_to_log_dir] [-u [user_data_url]]]");
+    System.out.println("corus [-help] [-c filename] [-d domain] [-p port] [-v DEBUG|INFO|WARN|ERROR] [-f [path_to_log_dir] [-u [user_data_url]]]");
     System.out.println();
     System.out.println("where:");
     System.out.println("  -c      specifies the corus configuration file to use (in the CORUS_HOME/config directory).");
@@ -417,6 +412,8 @@ public class CorusServer {
     System.out.println("          ${f_option_value}/<domain>_<port>.log.");
     System.out.println();    
     System.out.println("  -u      specifies the user data URL to load Corus user data from.");
+    System.out.println();    
+    System.out.println("  -help   displays this help and exits immediately.");
     System.out.println();
   }
 

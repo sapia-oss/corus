@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.sapia.ubik.util.Function;
+
 /**
  * An instance of this class aggregates {@link Result} instances.
  * 
@@ -134,6 +136,20 @@ public class Results<T> implements Iterable<Result<T>> {
     return new ResultIterator();
   }
   
+  /**
+   * @param filter the filter {@link Function} to use.
+   * @return the filtered {@link Results}.
+   */
+  public Results<T> filter(Function<T, T> filter) {
+    Results<T> filtered = new Results<T>();
+    while (hasNext()) {
+      Result<T> result = next();
+      filtered.addResult(new Result<T>(result.getOrigin(), filter.call(result.getData())));
+    }
+    filtered.invocationFinished = true;
+    return filtered;
+  }
+   
   // ==========================================================================
   // Inner classes
   

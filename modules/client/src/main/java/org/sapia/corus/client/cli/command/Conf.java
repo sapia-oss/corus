@@ -22,10 +22,13 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Condition;
+import org.sapia.ubik.util.Function;
 
 /**
  * @author yduchesne
@@ -236,7 +239,23 @@ public class Conf extends CorusCliCommand {
 
   }
 
-  private void displayTagResults(Results<Set<String>> res, CliContext ctx) {
+  private void displayTagResults(Results<Set<String>> res, CliContext ctx) throws InputException {
+    String nameFilter = getOptValue(ctx, OPT_TAG);
+    if (nameFilter != null) {
+      final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
+      res = res.filter(new Function<Set<String>, Set<String>>() {
+        @Override
+        public Set<String> call(Set<String> toFilter) {
+          return Collections2.filterAsSet(toFilter, new Condition<String>() {
+            @Override
+            public boolean apply(String item) {
+              return pattern.matches(item);
+            }
+          });
+        }
+      });
+    }
+    
     while (res.hasNext()) {
       Result<Set<String>> result = res.next();
       displayTagsHeader(result.getOrigin(), ctx);
@@ -304,7 +323,23 @@ public class Conf extends CorusCliCommand {
   }
 
   private void displayPropertyResults(Results<List<NameValuePair>> res,
-      CliContext ctx) {
+      CliContext ctx) throws InputException {
+    String nameFilter = getOptValue(ctx, OPT_PROPERTY);
+    if (nameFilter != null) {
+      final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
+      res = res.filter(new Function<List<NameValuePair>, List<NameValuePair>>() {
+        @Override
+        public List<NameValuePair> call(List<NameValuePair> toFilter) {
+          return Collections2.filterAsList(toFilter, new Condition<NameValuePair>() {
+            @Override
+            public boolean apply(NameValuePair item) {
+              return pattern.matches(item.getName());
+            }
+          });
+        }
+      });
+    }
+    
     while (res.hasNext()) {
       Result<List<NameValuePair>> result = res.next();
       displayPropertiesHeader(result.getOrigin(), ctx);

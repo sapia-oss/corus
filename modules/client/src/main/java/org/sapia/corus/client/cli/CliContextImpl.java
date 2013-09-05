@@ -42,6 +42,7 @@ public class CliContextImpl extends Context implements CliContext {
     return corus.getContext().getFileSystem();
   }
 
+  @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {
     CliError created = null;
     synchronized (errors) {
@@ -49,13 +50,16 @@ public class CliContextImpl extends Context implements CliContext {
       errors.add(created);
     }
     
-    if (abortOnError) {
+    if (aCause instanceof AbortException) {
+      throw (AbortException) aCause;
+    } else if (abortOnError) {
       throw new AbortException("Error occurred", aCause);
-    }
+    }    
     
     return created;
   }
 
+  @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, String aDescription, Throwable aCause) {
     CliError created = null;
     synchronized (errors) {
@@ -63,19 +67,23 @@ public class CliContextImpl extends Context implements CliContext {
       errors.add(created);
     }
 
-    if (abortOnError) {
+    if (aCause instanceof AbortException) {
+      throw (AbortException) aCause;
+    } else if (abortOnError) {
       throw new AbortException("Error occurred", aCause);
     }    
     
     return created;
   }
 
+  @Override
   public List<CliError> getErrors() {
     synchronized (errors) {
       return new ArrayList<CliError>(errors);
     }
   }
 
+  @Override
   public int removeAllErrors() {
     int size = 0;
     synchronized (errors) {
@@ -86,10 +94,12 @@ public class CliContextImpl extends Context implements CliContext {
     return size;
   }
   
+  @Override
   public boolean isAbordOnError() {
     return abortOnError;
   }
 
+  @Override
   public void setAbortOnError(boolean abortOnError) {
     this.abortOnError = abortOnError;
   }
