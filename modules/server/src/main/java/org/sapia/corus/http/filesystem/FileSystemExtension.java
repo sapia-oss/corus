@@ -1,6 +1,7 @@
 package org.sapia.corus.http.filesystem;
 
 import java.io.File;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,24 +9,29 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
+import org.sapia.corus.configurator.PropertyChangeEvent;
+import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
 import org.sapia.corus.http.helpers.NotFoundHelper;
+import org.sapia.ubik.rmi.interceptor.Interceptor;
 
 /**
  * This extension serves files from the corus.home dir. 
@@ -37,7 +43,7 @@ import org.sapia.corus.http.helpers.NotFoundHelper;
  * @author yduchesne
  *
  */
-public class FileSystemExtension implements HttpExtension {
+public class FileSystemExtension implements HttpExtension, Interceptor {
 
   public static final String HTTP_FILESYSTEM_CONTEXT = "files";
   
@@ -58,12 +64,43 @@ public class FileSystemExtension implements HttpExtension {
   public FileSystemExtension(ServerContext context) {
     this.context = context;
     
-    symlinks = new HashMap<String, String>();
+    symlinks = new ConcurrentHashMap<String, String>();
     for (Map.Entry<Object, Object> entry: context.getCorusProperties().entrySet()) {
     	String key = (String) entry.getKey();
     	if (key.startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
     		symlinks.put(key.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), (String) entry.getValue()); 
     	}
+    }
+    
+    Properties serverProps = context.getServices().getConfigurator().getProperties(PropertyScope.SERVER);
+    for (String propName : serverProps.stringPropertyNames()) {
+      if (propName.startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
+        symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName)); 
+      }
+    }
+    
+    context.getServices().getEventDispatcher().addInterceptor(PropertyChangeEvent.class, this);
+  }
+  
+  /**
+   * @param event a {@link PropertyChangeEvent}.
+   */
+  public void onPropertyChangeEvent(PropertyChangeEvent event) {
+    if (event.getScope() == PropertyScope.SERVER) {
+      if (event.getName().startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
+        String linkName = event.getName().substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length());
+        if (event.getType() == Type.ADD) {
+          if (log.isDebugEnabled()) {
+            log.debug("Adding new symbolic link " + linkName);
+          }
+          symlinks.put(linkName, event.getValue()); 
+        } else {
+          if (log.isDebugEnabled()) {
+            log.debug("Removing symbolic link " + linkName);
+          }
+          symlinks.remove(linkName); 
+        }
+      }
     }
   }
   

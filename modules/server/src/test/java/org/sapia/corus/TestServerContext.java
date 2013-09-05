@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import java.util.Properties;
 
 import org.sapia.corus.client.services.configurator.Configurator;
-import org.sapia.corus.client.services.configurator.InternalConfigurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
@@ -61,7 +60,6 @@ public class TestServerContext extends ServerContextImpl{
     created.getServices().bind(PortManager.class, created._ports);
     created.getServices().bind(TaskManager.class, created._tm);
     created.getServices().bind(Configurator.class, created._tc);
-    created.getServices().bind(InternalConfigurator.class, created._tc);
     created.getServices().bind(ProcessRepository.class, created._proc.getProcessRepository());
     created.getServices().bind(FileSystemModule.class, created._fs);
     created.getServices().bind(OsModule.class, created._os);

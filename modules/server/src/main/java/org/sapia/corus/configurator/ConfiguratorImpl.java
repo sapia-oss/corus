@@ -1,6 +1,7 @@
 package org.sapia.corus.configurator;
 
 import java.util.ArrayList;
+
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -11,12 +12,12 @@ import java.util.TreeSet;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
-import org.sapia.corus.client.services.configurator.InternalConfigurator;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.event.EventDispatcher;
+import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
@@ -29,9 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yduchesne
  *
  */
-@Bind(moduleInterface={Configurator.class, InternalConfigurator.class})
+@Bind(moduleInterface={Configurator.class})
 @Remote(interfaces=Configurator.class)
-public class ConfiguratorImpl extends ModuleHelper implements Configurator, InternalConfigurator{
+public class ConfiguratorImpl extends ModuleHelper implements Configurator {
   
   public static final String PROP_SERVER_NAME = "corus.server.name";
 
@@ -40,6 +41,9 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   
   @Autowired
   private DbModule db;
+ 
+  @Autowired
+  private EventDispatcher dispatcher;
   
   private PropertyStore processProperties, serverProperties, internalProperties;
   private DbMap<String, ConfigProperty> tags;
@@ -70,9 +74,11 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   @Override
   public void dispose() {}
 
+ 
   @Override
-  public void addProperty(PropertyScope scope, String name, String value) {
+  public void addProperty(final PropertyScope scope, final String name, final String value) {
     store(scope).addProperty(name, value);
+    dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.ADD));
   }
   
   @SuppressWarnings("rawtypes")
@@ -81,7 +87,12 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
       boolean clearExisting) {
     PropertyStore store = store(scope);
     if(clearExisting){
-      store.removeProperty(ArgFactory.any());
+      Properties stored = store.getProperties();
+      for (String name : stored.stringPropertyNames()) {
+        String value = stored.getProperty(name);
+        store.removeProperty(name);
+        dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.REMOVE));
+      }
     }
     Enumeration names = props.propertyNames();
     while(names.hasMoreElements()){
@@ -89,6 +100,7 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
       String value = props.getProperty(name);
       if(value != null){
         store.addProperty(name, value);
+        dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.ADD));
       }
     }
   }
@@ -103,33 +115,21 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
   }
   
   @Override
-  public String getInternalProperty(String name) {
-    String value = serverProperties.getProperty(name);
-    if(value == null){
-      value = processProperties.getProperty(name);
+  public void removeProperty(PropertyScope scope, Arg pattern) {
+    PropertyStore store = store(scope);
+    Properties stored = store.getProperties();
+    for (String name : stored.stringPropertyNames()) {
+      if (pattern.matches(name)) {
+        String value = stored.getProperty(name);
+        store.removeProperty(name);
+        dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.REMOVE));
+      }
     }
-    return value;
-  }
-  
-  @Override
-  public void removeProperty(PropertyScope scope, Arg name) {
-    store(scope).removeProperty(name);
   }
   
   @Override
   public Properties getProperties(PropertyScope scope) {
     return store(scope).getProperties();
-  }
-  
-  @Override
-  public Properties getInternalProperties(PropertyScope scope) {
-    return store(scope).getProperties();
-  }
-  
-  @Override
-  public List<NameValuePair> getInternalPropertiesAsNameValuePairs(
-      PropertyScope scope) {
-    return doGetPropertiesAsNameValuePairs(scope);
   }
   
   @Override
@@ -145,7 +145,6 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator, Inte
       String key = (String)keys.nextElement();
       String value = props.getProperty(key);
       NameValuePair pair = new NameValuePair(key, value);
-      System.out.println(pair);
       toReturn.add(pair);
     }
     Collections.sort(toReturn);
