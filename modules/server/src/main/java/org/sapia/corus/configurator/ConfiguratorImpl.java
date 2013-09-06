@@ -45,35 +45,60 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
   @Autowired
   private EventDispatcher dispatcher;
   
-  private PropertyStore processProperties, serverProperties, internalProperties;
+  private PropertyStore processProperties, serverProperties;
   private DbMap<String, ConfigProperty> tags;
+  
+  // --------------------------------------------------------------------------
+  // Visible for testing
+  
+  void setPropertyProvider(PropertyProvider propertyProvider) {
+    this.propertyProvider = propertyProvider;
+  }
+  
+  void setDb(DbModule db) {
+    this.db = db;
+  }
+  
+  void setDispatcher(EventDispatcher dispatcher) {
+    this.dispatcher = dispatcher;
+  }
+  
+  void setTags(DbMap<String, ConfigProperty> tags) {
+    this.tags = tags;
+  }
+  
+  void setProcessProperties(PropertyStore processProperties) {
+    this.processProperties = processProperties;
+  }
+  
+  void setServerProperties(PropertyStore serverProperties) {
+    this.serverProperties = serverProperties;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Module interface impl
   
   @Override
   public String getRoleName() {
     return Configurator.ROLE;
   }
   
+  // --------------------------------------------------------------------------
+  // Lifecycle
+  
   @Override
   public void init() throws Exception {
-    
     processProperties   = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process"));
     serverProperties    = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.server"));
-    internalProperties  = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.internal"));
-
-    tags = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
+    tags                = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
     propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
-
-    String serverName = internalProperties.getProperty(PROP_SERVER_NAME);
-    if(serverName == null){
-      internalProperties.addProperty(PROP_SERVER_NAME, serverContext().getServerName());
-    } else{
-      serverContext().overrideServerName(serverName);
-    }
   }
   
   @Override
   public void dispose() {}
 
+  // --------------------------------------------------------------------------
+  // Property operations
  
   @Override
   public void addProperty(final PropertyScope scope, final String name, final String value) {
@@ -137,6 +162,65 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
     return doGetPropertiesAsNameValuePairs(scope);
   }
   
+  // --------------------------------------------------------------------------
+  // Tag operation
+  
+  @Override
+  public void addTag(String tag) {
+    tags.put(tag, new ConfigProperty(tag, tag));
+  }
+  
+  @Override
+  public void clearTags() {
+    tags.clear();
+  }
+  
+  @Override
+  public Set<String> getTags() {
+    Iterator<String> names = tags.keys();
+    Set<String> tags = new TreeSet<String>();
+    while(names.hasNext()){
+      String name = names.next();
+      tags.add(name);
+    }
+    return tags;
+  }
+  
+  @Override
+  public void removeTag(String tag) {
+    tags.remove(tag);
+  }
+  
+  @Override
+  public void removeTag(Arg tag) {
+    for(String t:getTags()){
+      if(tag.matches(t)){
+        removeTag(t);
+      }
+    }
+  }
+  
+  @Override
+  public void addTags(Set<String> tags) {
+    for(String t:tags){
+      if(t != null){
+        addTag(t);
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Restricted methods
+  
+  private PropertyStore store(PropertyScope scope){
+    if(scope == PropertyScope.SERVER){
+      return serverProperties;
+    }
+    else{
+      return processProperties;
+    }
+  }
+  
   private List<NameValuePair> doGetPropertiesAsNameValuePairs(PropertyScope scope) {
     Properties props = store(scope).getProperties();
     List<NameValuePair> toReturn = new ArrayList<NameValuePair>(props.size());
@@ -151,52 +235,8 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
     return toReturn;
   }
   
-  public void addTag(String tag) {
-    tags.put(tag, new ConfigProperty(tag, tag));
-  }
-  
-  public void clearTags() {
-    tags.clear();
-  }
-  
-  public Set<String> getTags() {
-    Iterator<String> names = tags.keys();
-    Set<String> tags = new TreeSet<String>();
-    while(names.hasNext()){
-      String name = names.next();
-      tags.add(name);
-    }
-    return tags;
-  }
-  
-  public void removeTag(String tag) {
-    tags.remove(tag);
-  }
-  
-  public void removeTag(Arg tag) {
-    for(String t:getTags()){
-      if(tag.matches(t)){
-        removeTag(t);
-      }
-    }
-  }
-  
-  public void addTags(Set<String> tags) {
-    for(String t:tags){
-      if(t != null){
-        addTag(t);
-      }
-    }
-  }
-  
-  private PropertyStore store(PropertyScope scope){
-    if(scope == PropertyScope.SERVER){
-      return serverProperties;
-    }
-    else{
-      return processProperties;
-    }
-  }
+  // ==========================================================================
+  // Inner class
   
   class ConfigPropertyContainer implements PropertyContainer{
     private PropertyContainer nested;

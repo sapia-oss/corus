@@ -43,4 +43,20 @@ public class NameValuePair implements Serializable, Comparable<NameValuePair>{
   public String toString() {
     return Strings.toStringFor(this, "name", name, "value", value);
   }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof NameValuePair) {
+      NameValuePair other = (NameValuePair) obj;
+      return ObjectUtils.safeEquals(name, other.name) 
+          && ObjectUtils.safeEquals(value, other.value);
+    } 
+    return false;
+  }
+  
+  @Override
+  public int hashCode() {
+    return ObjectUtils.safeHashCode(name, value);
+  }
+  
 }

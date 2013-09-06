@@ -308,9 +308,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     }
   }
   
- 
   static final class FileComparator implements Comparator<FileEntry>{
-	    
 	  public int compare(FileEntry arg0, FileEntry arg1) {
 	    return arg0.getName().compareTo(arg1.getName());
 	  }
