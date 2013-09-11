@@ -22,8 +22,7 @@ public class Cluster extends CorusCliCommand {
   private static final String RESYNC = "resync";
 
   private static final TableDef TBL = TableDef.newInstance()
-        .createCol("host", 14)
-        .createCol("port", 8)
+        .createCol("host", 22)
         .createCol("role", 30);
   
   // --------------------------------------------------------------------------
@@ -56,8 +55,7 @@ public class Cluster extends CorusCliCommand {
     	Result<ClusterStatus> status = results.next();
       TCPAddress addr = (TCPAddress) status.getOrigin();
       Row row  = table.newRow();
-      row.getCellAt(TBL.col("host").index()).append(addr.getHost());
-      row.getCellAt(TBL.col("port").index()).append("" + addr.getPort());
+      row.getCellAt(TBL.col("host").index()).append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
       row.getCellAt(TBL.col("role").index()).append(status.getData().getRole().name());
       row.flush();
     }
@@ -71,7 +69,6 @@ public class Cluster extends CorusCliCommand {
     Table table = TBL.createTable(ctx.getConsole().out());
     Row   headers   = table.newRow();
     headers.getCellAt(TBL.col("host").index()).append("Host");
-    headers.getCellAt(TBL.col("port").index()).append("Port");
     headers.getCellAt(TBL.col("role").index()).append("Role");
     headers.flush();
   }

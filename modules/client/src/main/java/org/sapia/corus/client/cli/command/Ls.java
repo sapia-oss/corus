@@ -275,7 +275,9 @@ public class Ls extends CorusCliCommand {
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -294,7 +296,9 @@ public class Ls extends CorusCliCommand {
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -315,7 +319,9 @@ public class Ls extends CorusCliCommand {
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -333,7 +339,9 @@ public class Ls extends CorusCliCommand {
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);

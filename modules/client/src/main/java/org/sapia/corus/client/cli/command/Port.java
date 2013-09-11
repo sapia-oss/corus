@@ -222,7 +222,9 @@ public class Port extends CorusCliCommand {
     title.drawLine('=', 0, CONSOLE_WIDTH);
     
     Row row = title.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     title.drawLine(' ', 0, CONSOLE_WIDTH);

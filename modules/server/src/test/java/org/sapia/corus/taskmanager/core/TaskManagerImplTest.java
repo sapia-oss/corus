@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 import org.apache.log.Hierarchy;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.taskmanager.core.log.LoggerTaskLog;
+import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
 
 public class TaskManagerImplTest extends TestCase {
 
@@ -16,7 +17,8 @@ public class TaskManagerImplTest extends TestCase {
     super.setUp();
     tm = new TaskManagerImpl(
         new LoggerTaskLog(Hierarchy.getDefaultHierarchy().getLoggerFor("taskmanager")), 
-        TestServerContext.create());
+        TestServerContext.create(), 
+        ThreadingConfiguration.newInstance());
   }
 
   protected void tearDown() throws Exception {

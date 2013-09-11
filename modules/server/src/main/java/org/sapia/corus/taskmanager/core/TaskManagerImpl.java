@@ -5,9 +5,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.sapia.corus.core.ServerContext;
+import org.sapia.ubik.concurrent.ConfigurableExecutor;
+import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
+import org.sapia.ubik.concurrent.NamedThreadFactory;
 
 public class TaskManagerImpl implements TaskManager {
   
@@ -17,11 +19,13 @@ public class TaskManagerImpl implements TaskManager {
   private TaskLog         globalTaskLog;
   private Map<ThrottleKey, Throttle> throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
   
-  public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext) {
+  public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext, ThreadingConfiguration conf) {
     this.globalTaskLog = globalTaskLog;
     this.serverContext = serverContext;
     this.background = new Timer("TaskManagerDaemon", true);
-    this.threadpool = Executors.newCachedThreadPool();
+    this.threadpool = new ConfigurableExecutor(
+        conf, 
+        NamedThreadFactory.createWith("TaskManager"));
   }
   
   @Override
@@ -91,8 +95,7 @@ public class TaskManagerImpl implements TaskManager {
         task.cleanup(ctx);
         result.completed(value);
       }
-    }
-    else{
+    } else{
       final TaskExecutionContext ctx = createExecutionContext(task, conf);
       
       Runnable toRun = new Runnable(){

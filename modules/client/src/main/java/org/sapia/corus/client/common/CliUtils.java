@@ -15,6 +15,7 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.CorusConnectionContext;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
@@ -84,8 +85,13 @@ public final class CliUtils {
   public static final String getPromptFor(CorusConnectionContext context) {
     StringBuffer prompt = new StringBuffer()
     .append("[")
-    .append(context.getAddress().toString())
-    .append("@")
+    .append(
+        context.getServerHost().getHostName().equals(CorusHost.UNDEFINED_HOSTNAME) ?
+        context.getServerHost().getEndpoint().getServerTcpAddress() :
+        context.getServerHost().getHostName() + ":" 
+        + context.getServerHost().getEndpoint().getServerTcpAddress().getPort()
+            
+    ).append("@")
     .append(context.getDomain())
     .append("]>> ");
     return prompt.toString();

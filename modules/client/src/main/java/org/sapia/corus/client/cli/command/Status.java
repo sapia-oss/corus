@@ -151,7 +151,7 @@ public class Status extends CorusCliCommand {
     procTable.drawLine('=', 0, CONSOLE_WIDTH);
     
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     procTable.drawLine(' ', 0, CONSOLE_WIDTH);

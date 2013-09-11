@@ -10,7 +10,7 @@ import org.sapia.ubik.rmi.interceptor.InvalidInterceptorException;
  * 
  * @author Yanick Duchesne
  */
-public interface EventDispatcher extends Module{
+public interface EventDispatcher extends Module {
 	
   public static String ROLE = EventDispatcher.class.getName();
   

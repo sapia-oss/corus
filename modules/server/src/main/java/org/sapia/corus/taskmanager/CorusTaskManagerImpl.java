@@ -14,36 +14,30 @@ import org.sapia.corus.taskmanager.core.TaskManagerImpl;
 import org.sapia.corus.taskmanager.core.Throttle;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.log.LoggerTaskLog;
+import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
 import org.sapia.ubik.rmi.Remote;
-
+import org.sapia.ubik.util.Time;
 
 /**
- * This module implements the <code>TaskManager</code> interface.
+ * This module implements the {@link CorusTaskManager} interface.
  * 
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface={TaskManager.class, CorusTaskManager.class})
-@Remote(interfaces=CorusTaskManager.class)
-public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager{
+@Bind(moduleInterface = { TaskManager.class, CorusTaskManager.class })
+@Remote(interfaces = CorusTaskManager.class)
+public class CorusTaskManagerImpl extends ModuleHelper implements
+    CorusTaskManager {
+
+  private static final int  CORE_POOL_SIZE     = 5;
+  private static final int  MAX_POOL_SIZE      = 100;
+  private static final long KEEP_ALIVE_SECONDS = 30;
+  private static final int  WORK_QUEUE_SIZE    = 1000;
   
-  private TaskManager 	 delegate; 
+  private TaskManagerImpl delegate;
   private ProgressQueues queues = new ProgressQueues();
 
-  /*////////////////////////////////////////////////////////////////////
-                        Service INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
-
-  public void init() throws Exception {
-    delegate = new TaskManagerImpl(
-        new ServerTaskLog(queues, new LoggerTaskLog(log)), serverContext());
-  }
-
-  public void dispose() {
-  }
-
-  /*////////////////////////////////////////////////////////////////////
-                         Module INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
+  // --------------------------------------------------------------------------
+  // Module interface
 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -52,39 +46,69 @@ public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManag
     return CorusTaskManager.ROLE;
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                       TaskManager INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
-  
+  // --------------------------------------------------------------------------
+  // Lifecycle
+
+  public void init() throws Exception {
+    ThreadingConfiguration conf = ThreadingConfiguration.newInstance()
+        .setCorePoolSize(CORE_POOL_SIZE)
+        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS))
+        .setMaxPoolSize(MAX_POOL_SIZE)
+        .setQueueSize(WORK_QUEUE_SIZE);
+
+    delegate = new TaskManagerImpl(
+        new ServerTaskLog(queues, new LoggerTaskLog(log)), 
+        serverContext(), 
+        conf
+    );
+  }
+
+  public void dispose() {
+    if (delegate != null) {
+      delegate.shutdown();
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // TaskManager interface
+
   @Override
   public void registerThrottle(ThrottleKey key, Throttle throttle) {
-  	delegate.registerThrottle(key, throttle);
+    delegate.registerThrottle(key, throttle);
   }
-  
-  public <R,P> void execute(Task<R,P> task, P param) {
+
+  @Override
+  public <R, P> void execute(Task<R, P> task, P param) {
     delegate.execute(task, param);
   }
-  
-  public <R,P> void execute(Task<R,P> task, P param, SequentialTaskConfig conf) {
+
+  @Override
+  public <R, P> void execute(Task<R, P> task, P param, SequentialTaskConfig conf) {
     delegate.execute(task, param, conf);
   }
-  
-  public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param) {
+
+  @Override
+  public <R, P> FutureResult<R> executeAndWait(Task<R, P> task, P param) {
     return delegate.executeAndWait(task, param);
   }
-  
-  public <R,P> FutureResult<R> executeAndWait(Task<R,P> task, P param, TaskConfig cfg) {
+
+  @Override
+  public <R, P> FutureResult<R> executeAndWait(Task<R, P> task, P param,
+      TaskConfig cfg) {
     return delegate.executeAndWait(task, param, cfg);
   }
-  
-  public <R,P> void executeBackground(Task<R,P> task, P param, BackgroundTaskConfig cfg) {
+
+  @Override
+  public <R, P> void executeBackground(Task<R, P> task, P param,
+      BackgroundTaskConfig cfg) {
     delegate.executeBackground(task, param, cfg);
   }
 
-  public ProgressQueue getProgressQueue(int level){
-  	ProgressQueue queue = new ProgressQueueImpl();
-  	queues.addProgressQueue(queue, level);
-  	return queue;
+  @Override
+  public ProgressQueue getProgressQueue(int level) {
+    ProgressQueue queue = new ProgressQueueImpl();
+    queues.addProgressQueue(queue, level);
+    return queue;
   }
 
 }

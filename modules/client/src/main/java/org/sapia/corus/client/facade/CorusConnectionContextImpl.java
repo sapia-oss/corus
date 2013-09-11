@@ -7,11 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,6 +28,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * An instance of this class encapsulates objects pertaining to the connection to a
@@ -43,18 +42,18 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   static final int INVOKER_THREADS 		 = 10;
   static final long RECONNECT_INTERVAL = 15000;
   
-  private long 												 lastReconnect = System.currentTimeMillis();
-  private Corus 											 corus;
-  private ServerAddress 					     connectAddress;
-  private CorusHost 									 serverHost;
-  private String 										   domain;
-  private Map<Class<?>, Object> 		   modules 		 = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
-  private Set<CorusHost> 						   otherHosts  = Collections.synchronizedSet(new HashSet<CorusHost>());
-  private Map<ServerAddress, Corus> 	 cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
-  private Stack<ServerAddress>         connectionHistory = new Stack<ServerAddress>();
-  private ExecutorService 						 executor;
-  private ClientSideClusterInterceptor interceptor;
-  private ClientFileSystem             fileSys;
+  private long 												  lastReconnect = System.currentTimeMillis();
+  private Corus 											  corus;
+  private ServerAddress 					      connectAddress;
+  private CorusHost 									  serverHost;
+  private String 										    domain;
+  private Map<Class<?>, Object> 		    modules 		      = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
+  private Map<ServerAddress, CorusHost> otherHosts        = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
+  private Map<ServerAddress, Corus> 	  cachedStubs       = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
+  private Stack<ServerAddress>          connectionHistory = new Stack<ServerAddress>();
+  private ExecutorService 						  executor;
+  private ClientSideClusterInterceptor  interceptor;
+  private ClientFileSystem              fileSys;
 
   /**
    * @param host the host of the Corus server to connect to.
@@ -97,7 +96,17 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   @Override
   public Collection<CorusHost> getOtherHosts() {
     refresh();
-    return Collections.unmodifiableCollection(otherHosts);
+    return Collections.unmodifiableCollection(otherHosts.values());
+  }
+  
+  @Override
+  public CorusHost resolve(ServerAddress addr) throws IllegalArgumentException {
+    if (addr.equals(serverHost.getEndpoint().getServerAddress())) {
+      return serverHost;
+    }
+    CorusHost toReturn = otherHosts.get(addr);
+    Assertions.notNull(toReturn, "Could not resolve address: %s", addr);
+    return toReturn;
   }
   
   @Override
@@ -137,7 +146,9 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       modules.clear();
 
       ClusterManager mgr = (ClusterManager) corus.lookup(ClusterManager.ROLE);
-      otherHosts.addAll(mgr.getHosts());
+      for (CorusHost host : mgr.getHosts()) {
+        otherHosts.put(host.getEndpoint().getServerAddress(), host);
+      }
     } catch (RemoteException e) {
       throw new ConnectionException("Could not reconnect to Corus server", e);
     }
@@ -212,7 +223,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
     List<ServerAddress> hostList = new ArrayList<ServerAddress>();
     if (cluster.isTargetingAllHosts()) {
       hostList.add(connectAddress);
-      for (CorusHost otherHost: otherHosts) {
+      for (CorusHost otherHost: otherHosts.values()) {
         hostList.add(otherHost.getEndpoint().getServerAddress());
       }
     } else {

@@ -4,7 +4,9 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.net.UnknownHostException;
 
+import org.sapia.ubik.util.Localhost;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -52,10 +54,22 @@ public class CorusHost implements Externalizable {
   
   static final long serialVersionUID = 1L;
 
+  public static String localHostName;
+  public static final String UNDEFINED_HOSTNAME = "N/A";
+  
   private Endpoint      endpoint;
   private String 				osInfo;
   private String 				javaVmInfo;
   private RepoRole      role            = RepoRole.NONE;
+  private String        hostName;
+  
+  static {
+    try {
+      localHostName = Localhost.getAnyLocalAddress().getHostName();
+    } catch (UnknownHostException e) {
+      localHostName = UNDEFINED_HOSTNAME;
+    }
+  }
   
   /**
    * Do not use directly: meant for externalization.
@@ -71,10 +85,11 @@ public class CorusHost implements Externalizable {
    * @return a new {@link CorusHost}.
    */
   public static CorusHost newInstance(Endpoint endpoint, String anOsInfo, String aJavaVmInfo) {
-    CorusHost created = new CorusHost();
+    CorusHost created  = new CorusHost();
     created.endpoint   = endpoint;
     created.osInfo     = anOsInfo;
     created.javaVmInfo = aJavaVmInfo;
+    created.hostName   = localHostName;
     return created;
   }
   
@@ -127,7 +142,7 @@ public class CorusHost implements Externalizable {
   public RepoRole getRepoRole() {
     return role;
   }
-
+  
   /**
    * Sets this instance's {@link RepoRole}.
    * 
@@ -135,6 +150,30 @@ public class CorusHost implements Externalizable {
    */
   public void setRepoRole(RepoRole role) {
     this.role = role;
+  }
+  
+  
+  /**
+   * @param hostName a host name.
+   */
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
+  }
+  
+  /**
+   * @return the host name to which this instance corresponds.
+   */
+  public String getHostName() {
+    return hostName;
+  }
+  
+  /**
+   * @return a pretty-print address corresponding to this instance, meant for display to users.
+   */
+  public String getFormattedAddress() {
+    return hostName.equals(CorusHost.UNDEFINED_HOSTNAME) ?
+           endpoint.getServerTcpAddress().toString() :
+           hostName + ":" + endpoint.getServerTcpAddress().getPort();
   }
   
   // --------------------------------------------------------------------------
@@ -147,6 +186,7 @@ public class CorusHost implements Externalizable {
     this.osInfo        = (String) in.readObject();
     this.javaVmInfo    = (String) in.readObject();
     this.role          = (RepoRole) in.readObject();
+    this.hostName      = (String) in.readObject();
   }
   
   @Override
@@ -155,6 +195,7 @@ public class CorusHost implements Externalizable {
     out.writeObject(osInfo);
     out.writeObject(javaVmInfo);
     out.writeObject(role);
+    out.writeObject(hostName);
   }
 
   // --------------------------------------------------------------------------
@@ -178,7 +219,8 @@ public class CorusHost implements Externalizable {
   @Override
   public String toString() {
     return Strings.toStringFor(this, 
-        "endpoint", endpoint, 
+        "endpoint", endpoint,
+        "hostName", hostName,
         "os", osInfo, 
         "jvm", javaVmInfo, 
         "role", role);

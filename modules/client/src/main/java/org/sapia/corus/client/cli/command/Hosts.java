@@ -23,10 +23,10 @@ import org.sapia.ubik.net.TCPAddress;
 public class Hosts extends CorusCliCommand {
   
   private static final TableDef TBL = TableDef.newInstance()
-      .createCol("host", 14)
-      .createCol("port", 8)
+      .createCol("host", 10)
+      .createCol("addr", 15)
       .createCol("os", 15)
-      .createCol("java", 25)
+      .createCol("java", 20)
       .createCol("repo", 10);
   
   // --------------------------------------------------------------------------
@@ -48,10 +48,10 @@ public class Hosts extends CorusCliCommand {
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
 
-    TCPAddress addr = (TCPAddress) ctx.getCorus().getContext().getAddress();
     Row row  = hostTable.newRow();
-    row.getCellAt(TBL.col("host").index()).append(addr.getHost());
-    row.getCellAt(TBL.col("port").index()).append("" + addr.getPort());
+    row.getCellAt(TBL.col("host").index()).append(ctx.getCorus().getContext().getServerHost().getHostName());
+    TCPAddress addr = ctx.getCorus().getContext().getServerHost().getEndpoint().getServerTcpAddress();
+    row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
     row.getCellAt(TBL.col("os").index()).append(ctx.getCorus().getContext().getServerHost().getOsInfo());
     row.getCellAt(TBL.col("java").index()).append(ctx.getCorus().getContext().getServerHost().getJavaVmInfo());
     if (ctx.getCorus().getContext().getServerHost().getRepoRole() == RepoRole.NONE) {
@@ -63,10 +63,10 @@ public class Hosts extends CorusCliCommand {
     row.flush();
 
     for(CorusHost other:others) {
-      addr = (TCPAddress) other.getEndpoint().getServerAddress();
       row  = hostTable.newRow();
-      row.getCellAt(TBL.col("host").index()).append(addr.getHost());
-      row.getCellAt(TBL.col("port").index()).append("" + addr.getPort());
+      row.getCellAt(TBL.col("host").index()).append(other.getHostName());
+      addr = other.getEndpoint().getServerTcpAddress();
+      row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
       row.getCellAt(TBL.col("os").index()).append(other.getOsInfo());
       row.getCellAt(TBL.col("java").index()).append(other.getJavaVmInfo());
       if (other.getRepoRole() == RepoRole.NONE) {
@@ -83,7 +83,7 @@ public class Hosts extends CorusCliCommand {
     
     Row headers = distTable.newRow();
     headers.getCellAt(TBL.col("host").index()).append("Host");
-    headers.getCellAt(TBL.col("port").index()).append("Port");
+    headers.getCellAt(TBL.col("addr").index()).append("Addr");
     headers.getCellAt(TBL.col("os").index()).append("OS");
     headers.getCellAt(TBL.col("java").index()).append("JVM");
     headers.getCellAt(TBL.col("repo").index()).append("Repo");

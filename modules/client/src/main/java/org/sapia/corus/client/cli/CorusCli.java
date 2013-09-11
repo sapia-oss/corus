@@ -34,7 +34,6 @@ import org.sapia.ubik.util.Localhost;
 /**
  * This class is the entry point into the Corus command-line interface.
  * 
- * 
  * @author Yanick Duchesne
  */
 public class CorusCli extends CommandConsole {
@@ -51,7 +50,6 @@ public class CorusCli extends CommandConsole {
   protected CorusConnector corus;
   private List<CliError> 	 errors;
   private boolean          abortOnError;
-
 
   public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
     super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
@@ -94,21 +92,18 @@ public class CorusCli extends CommandConsole {
     try {
       CmdLine cmd = CmdLine.parse(args);
 
-      if(cmd.containsOption("ver", false)){
+      if(cmd.containsOption("ver", false)) {
         System.out.println("Corus client version: " + CorusVersion.create());
         System.out.println("Java version: " + System.getProperty("java.version"));
-      }
-      else if(CliUtils.isHelp(cmd)){
+      } else if(CliUtils.isHelp(cmd)) {
         help();
-      }
-      else{
-        if(cmd.containsOption(HOST_OPT, true)){
+      } else {
+        if(cmd.containsOption(HOST_OPT, true)) {
           host = cmd.assertOption(HOST_OPT, true).getValue();
-          if(host.equalsIgnoreCase("localhost")){
+          if(host.equalsIgnoreCase("localhost")) {
             host = Localhost.getAnyLocalAddress().getHostAddress();
           }
-        }
-        else{
+        } else{
           host = Localhost.getAnyLocalAddress().getHostAddress();
         }
   
@@ -170,7 +165,7 @@ public class CorusCli extends CommandConsole {
       System.out.println(e.getMessage());
       help();
     } catch (Exception e) {
-      if(e instanceof ConnectionException || e instanceof RemoteException){
+      if(e instanceof ConnectionException || e instanceof RemoteException) {
         System.out.println("No server listening at " + host + ":" + port);
         e.printStackTrace();
       }

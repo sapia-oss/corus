@@ -273,7 +273,7 @@ public class Conf extends CorusCliCommand {
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ")
-        .append(addr.toString());
+        .append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -357,7 +357,7 @@ public class Conf extends CorusCliCommand {
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ")
-        .append(addr.toString());
+        .append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);

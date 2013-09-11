@@ -133,7 +133,9 @@ public class Cron extends CorusCliCommand {
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = hostTable.newRow();
-    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(addr.toString());
+    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(
+        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
+    );
     row.flush();
 
     hostTable.drawLine(' ', 0, CONSOLE_WIDTH);

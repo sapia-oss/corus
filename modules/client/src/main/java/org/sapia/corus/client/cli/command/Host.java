@@ -15,7 +15,7 @@ public class Host extends CorusCliCommand {
                     throws AbortException, InputException {
     StringBuilder hostInfo = new StringBuilder();
     hostInfo
-      .append(ctx.getCorus().getContext().getAddress())
+      .append(ctx.getCorus().getContext().getServerHost().getFormattedAddress())
       .append(" at domain '")
       .append(ctx.getCorus().getContext().getDomain())
       .append("'");

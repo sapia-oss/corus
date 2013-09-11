@@ -5,9 +5,9 @@ import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.InvalidInterceptorException;
 
-public class TestDispatcher implements EventDispatcher{
+public class TestDispatcher implements EventDispatcher {
   
-  public void addInterceptor(Class event, Interceptor it)
+  public void addInterceptor(Class<?> event, Interceptor it)
       throws InvalidInterceptorException {
   }
   
