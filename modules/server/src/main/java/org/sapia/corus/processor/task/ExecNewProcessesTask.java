@@ -57,6 +57,7 @@ public class ExecNewProcessesTask extends Task<Void, Void>{
       ProcessCriteria criteria = ProcessCriteria.builder()
         .distribution(distName)
         .version(version)
+        .name(processName)
         .profile(pd.getProfile())
         .build();
       

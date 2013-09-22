@@ -28,7 +28,9 @@ public class EndUserExecConfigStartTask extends AbstractExecConfigStartTask{
     ExecConfigDatabase execConfigs = ctx.getServerContext().getServices().getExecConfigs();
     ExecConfig config = execConfigs.getConfigFor(execConfigName);
     List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    toReturn.add(config);
+    if (config != null)  {
+      toReturn.add(config);
+    }
     return toReturn;
   }
 }
