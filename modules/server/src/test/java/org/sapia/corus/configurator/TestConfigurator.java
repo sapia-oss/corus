@@ -1,5 +1,6 @@
 package org.sapia.corus.configurator;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -11,19 +12,25 @@ import org.sapia.corus.client.services.configurator.Configurator;
 
 public class TestConfigurator implements Configurator {
 
+  private Properties processProps = new Properties();
+  private Properties serverProps = new Properties();
+
+  
   public String getRoleName() {
     return Configurator.ROLE;
   }
 
   @Override
   public void addProperty(PropertyScope scope, String name, String value) {
+    props(scope).setProperty(name, value);
   }
   
   @Override
   public void addProperties(PropertyScope scope, Properties props,
       boolean clearExisting) {
+    props(scope).putAll(props);
   }
-
+  
   @Override
   public void addTag(String tag) {
   }
@@ -38,12 +45,17 @@ public class TestConfigurator implements Configurator {
 
   @Override
   public Properties getProperties(PropertyScope scope) {
-    return getProperties(scope);
+    return props(scope);
   }
   
   @Override
   public List<NameValuePair> getPropertiesAsNameValuePairs(PropertyScope scope) {
-    return getPropertiesAsNameValuePairs(scope);
+    Properties props = props(scope);
+    List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    for (String n : props.stringPropertyNames()) {
+      pairs.add(new NameValuePair(n, props.getProperty(n)));
+    }
+    return pairs;
   }
 
   @Override
@@ -67,4 +79,12 @@ public class TestConfigurator implements Configurator {
   @Override
   public void removeTag(String tag) {
   }
+  
+  private Properties props(PropertyScope scope) {
+    if (scope == PropertyScope.SERVER) {
+      return serverProps;
+    }
+    return processProps;
+  }
+
 }
