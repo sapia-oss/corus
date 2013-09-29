@@ -22,8 +22,8 @@ public class Cluster extends CorusCliCommand {
   private static final String RESYNC = "resync";
 
   private static final TableDef TBL = TableDef.newInstance()
-        .createCol("host", 22)
-        .createCol("role", 30);
+        .createCol("host", 30)
+        .createCol("role", 32);
   
   // --------------------------------------------------------------------------
   

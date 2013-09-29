@@ -219,24 +219,6 @@ public class ClusterManagerImpl extends ModuleHelper
         }
       }
     }
-
-    Thread async = new Thread(getClass().getSimpleName()+"Discovery@"+event.getAddress()){
-      
-      @Override
-      public void run() {
-        try {
-          log.debug(String.format("Trying to trigger discovery of down Corus server %s", event.getAddress()));
-          channel.dispatch(
-              event.getAddress(), CorusPubEvent.class.getName(),
-              new CorusPubEvent(serverContext().getCorusHost())
-          );
-        }catch(IOException e) {
-          log.error(String.format("Could not send pub event to %s", event.getAddress()), e);
-        }
-      }
-    };
-    async.setDaemon(true);
-    async.run();
   }
   
   @Override
