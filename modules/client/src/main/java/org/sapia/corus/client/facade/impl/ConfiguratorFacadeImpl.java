@@ -74,4 +74,10 @@ public class ConfiguratorFacadeImpl
     proxy.removeTag(ArgFactory.parse(tag));
     invoker.invokeLenient(void.class, cluster); 
   }
+  
+  @Override
+  public void renameTags(List<NameValuePair> tags, ClusterInfo cluster) {
+    proxy.renameTags(tags);
+    invoker.invokeLenient(void.class, cluster);
+  }
 }

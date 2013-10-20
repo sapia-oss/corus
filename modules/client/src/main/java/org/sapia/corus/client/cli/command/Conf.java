@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -35,6 +36,9 @@ import org.sapia.ubik.util.Function;
  * 
  */
 public class Conf extends CorusCliCommand {
+  
+  private static final String PASSWORD_PATTERN     = "password";
+  private static final String PASSWORD_OBFUSCATION = "********";
 
   private static final TableDef PROPS_TBL = TableDef.newInstance()
       .createCol("name", 38).createCol("val", 38);
@@ -47,9 +51,10 @@ public class Conf extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  public static final String ARG_ADD = "add";
-  public static final String ARG_DEL = "del";
-  public static final String ARG_LS = "ls";
+  public static final String ARG_ADD    = "add";
+  public static final String ARG_RENAME = "ren";
+  public static final String ARG_DEL    = "del";
+  public static final String ARG_LS     = "ls";
   public static final String ARG_EXPORT = "export";
 
   private static final String OPT_PROPERTY = "p";
@@ -63,7 +68,7 @@ public class Conf extends CorusCliCommand {
   // --------------------------------------------------------------------------
 
   private enum Op {
-    ADD, DELETE, LIST, EXPORT
+    ADD, DELETE, LIST, EXPORT, RENAME
   }
 
   // --------------------------------------------------------------------------
@@ -83,6 +88,8 @@ public class Conf extends CorusCliCommand {
         op = Op.LIST;
       } else if (opArg.equalsIgnoreCase(ARG_EXPORT)) {
         op = Op.EXPORT;
+      } else if (opArg.equalsIgnoreCase(ARG_RENAME)) {
+        op = Op.RENAME;
       } else {
         throw new InputException("Unknown argument " + opArg
             + "; expecting one of: add | del | ls");
@@ -123,8 +130,7 @@ public class Conf extends CorusCliCommand {
         } finally {
           reader.close();
         }
-        ctx.getConsole().println(
-            "Added tags from file: " + tagFile.getAbsolutePath());
+        ctx.getConsole().println("Added tags from file: " + tagFile.getAbsolutePath());
       } else {
         toAdd.addAll(Collections2.arrayToSet(tagString.split(",")));
       }
@@ -139,6 +145,18 @@ public class Conf extends CorusCliCommand {
     } else if (op == Op.EXPORT) {
       exportTagResults(
           ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
+    } else if (op == Op.RENAME) {
+      String tagString = ctx.getCommandLine().assertOption(OPT_TAG, true)
+          .getValue();
+      String[] tagNameValues = tagString.split(",");
+      List<NameValuePair> nvPairs = new ArrayList<NameValuePair>();
+      for (String nv : tagNameValues) {
+        String[] nameValuePair = nv.split("=");
+        if (nameValuePair.length == 2) {
+          nvPairs.add(new NameValuePair(nameValuePair[0], nameValuePair[1]));
+        }
+      }
+      ctx.getCorus().getConfigFacade().renameTags(nvPairs, getClusterInfo(ctx));
     }
   }
 
@@ -209,8 +227,9 @@ public class Conf extends CorusCliCommand {
       Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade()
           .getProperties(scope, getClusterInfo(ctx));
       exportPropertyResults(results, ctx);
+    } else if (op == Op.RENAME) {
+      throw new InputException("Rename option not supported for properties");
     }
-
   }
 
   private void exportTagResults(Results<Set<String>> res, CliContext ctx)
@@ -376,7 +395,11 @@ public class Conf extends CorusCliCommand {
 
     Row row = propsTable.newRow();
     row.getCellAt(PROPS_TBL.col("name").index()).append(prop.getName());
-    row.getCellAt(PROPS_TBL.col("val").index()).append(prop.getValue());
+    if (prop.getName().contains(PASSWORD_PATTERN)) {
+      row.getCellAt(PROPS_TBL.col("val").index()).append(PASSWORD_OBFUSCATION);
+    } else {
+      row.getCellAt(PROPS_TBL.col("val").index()).append(prop.getValue());
+    }
     row.flush();
   }
 

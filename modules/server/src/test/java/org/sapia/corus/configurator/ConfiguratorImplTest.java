@@ -232,5 +232,15 @@ public class ConfiguratorImplTest {
     verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
     verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));
   }
+  
+  @Test
+  public void testReplaceTags() {
+    when(tagsProperties.get("test1")).thenReturn(new ConfigProperty("test1", "test1"));
+    configurator.addTags(Collections2.arrayToSet("test1"));
+    configurator.renameTags(Collections2.arrayToList(new NameValuePair("test1", "test2")));
+    verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
+    verify(tagsProperties).remove("test1");
+    verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));
+  }
 
 }

@@ -80,6 +80,11 @@ public class TestConfigurator implements Configurator {
   public void removeTag(String tag) {
   }
   
+  @Override
+  public void renameTags(List<NameValuePair> tags) {
+
+  }
+  
   private Properties props(PropertyScope scope) {
     if (scope == PropertyScope.SERVER) {
       return serverProps;

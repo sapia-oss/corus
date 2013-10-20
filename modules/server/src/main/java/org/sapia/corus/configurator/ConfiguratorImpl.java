@@ -208,6 +208,16 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
       }
     }
   }
+  
+  @Override
+  public synchronized void renameTags(List<NameValuePair> tags) {
+    for (NameValuePair t : tags) {
+      if (this.tags.get(t.getName()) != null) {
+        this.tags.remove(t.getName());
+        addTag(t.getValue());
+      }
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Restricted methods

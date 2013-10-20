@@ -25,10 +25,13 @@
     <p>conf del -t tag_name</p>
     <p>conf del [-s s | p] -p property_name</p>
     <p/>
+    <p>OR:</p>    
+    <p>conf ren -t current_tag_name1=new_tag_name1,current_tag_name2=new_tag_name2...</p>
+    <p/>
     <p>Where:</p>
     <p/>
     <p>- t : indicates a tagging operation (if not specified, -p is assumed). Value can be a comma-delimited list of tags, or a path to a file containing 
-        a comma-delimited lists of tags per line.</p>
+        a comma-delimited lists of tags per line. May also indicate a comma-delimited list of tag renaming rules, used with the 'rename' operation.</p>
     <p/>
     <p>- p : indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
     <p/>    
@@ -42,6 +45,10 @@
   </section>
   <section title="Notes">
     <p>Export operations are not clustered (passing the -cluster switch in such cases will have no effect).</p>
+    <p>The 'ren' argument (standing for 'rename') takes a comma-delimited list of tag renaming pairs: 
+    the tags in a pair are separated by an equal ('=') sign. The tag on the left-hand side of the sign corresponds
+    to the current tag, the one on the right-hand side to the tag that will replace it. Only tags that exist on
+    the respective Corus will be impacted (i.e.: will be renamed).</p>
   </section>
   <section title="Examples">
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>

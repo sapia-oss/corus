@@ -70,6 +70,13 @@ public interface ConfiguratorFacade {
   public void removeTag(String tag, ClusterInfo cluster);
   
   /**
+   * @param tags a {@link List} of {@link NameValuePair}s corresponding to the 
+   * old vs new tag names.
+   * @param cluster
+   */
+  public void renameTags(List<NameValuePair>  tags, ClusterInfo cluster);
+  
+  /**
    * The tags of the Corus server.
    * 
    * @return a {@link Results} holding tags.

@@ -95,6 +95,15 @@ public interface Configurator extends java.rmi.Remote, Module {
    * @param tags a {@link Set} of tags.
    */
   public void addTags(Set<String> tags);
+  
+  /**
+   * Replaces the tags corresponding to the names in the given name-value pairs with
+   * their value counterpart.
+   * 
+   * @param tags the {@link List} of {@link NameValuePair}s holding the 
+   * old tag vs new tag names.
+   */
+  public void renameTags(List<NameValuePair> tags);
 
   /**
    * Removes the given tag from this instance.
