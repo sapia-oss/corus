@@ -10,12 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.AbortException;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.Interpreter;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
@@ -99,13 +100,13 @@ public class Ripple extends CorusCliCommand {
           String targetString = getTargetString(batch);
           vars.put(TARGETS_VAR_NAME, targetString);
           ctx.getConsole().println("Rippling execution of script " + scriptFile + " against targets: " + targetString);          
-          processScript(scriptFile, ctx, vars);
+          processScript(scriptFile, ctx, new CompositeStrLookup().add(StrLookup.mapLookup(vars)).add(ctx.getVars()).add(StrLookup.systemPropertiesLookup()));
         }
       } catch (FileNotFoundException e) {
         throw new InputException(e.getMessage());
       } catch (Throwable e) {
-        CliError err = ctx.createAndAddErrorFor(this, "Unable to perform ripple operation", e);
-        ctx.getConsole().println(err.getSimpleMessage());      
+        ctx.getConsole().println("Unable to perform ripple operation:");
+        e.printStackTrace();
         break;
       }
     }
@@ -123,7 +124,7 @@ public class Ripple extends CorusCliCommand {
     return targets.toString();
   }
     
-  private void processScript(File scriptFile, CliContext ctx, Map<String, String> vars) throws IOException, CommandNotFoundException, Throwable {
+  private void processScript(File scriptFile, CliContext ctx, StrLookup vars) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
       Interpreter interpreter = new Interpreter(ctx.getCorus());
       interpreter.interpret(new FileReader(scriptFile), vars);
@@ -139,7 +140,7 @@ public class Ripple extends CorusCliCommand {
     }
     String toExecute = cmdLine + " -cluster " + getTargetString(batch);
     ctx.getConsole().println("Rippling command: " + toExecute);        
-    interpreter.eval(toExecute);
+    interpreter.eval(toExecute, ctx.getVars());
   }  
   
 }

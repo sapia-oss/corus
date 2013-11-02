@@ -1,8 +1,11 @@
 package org.sapia.corus.client;
 
+import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
 
 
@@ -12,10 +15,12 @@ import org.sapia.ubik.net.ServerAddress;
  * 
  * @author Yanick Duchesne
  */
-public class ClusterInfo {
+public class ClusterInfo implements Serializable {
   
-  private boolean	cluster;
-  private Set<ServerAddress> targets = new HashSet<ServerAddress>(); 
+  private static final long serialVersionUID = 1L;
+  
+  private boolean	           cluster;
+  private Set<ServerAddress> targets  = new HashSet<ServerAddress>(); 
   
   public ClusterInfo(boolean cluster){
   	this.cluster = cluster;
@@ -38,9 +43,22 @@ public class ClusterInfo {
 
   /**
    * @param targets a {@link Set} of {@link ServerAddress}es corresponding to target Corus servers.
+   * @return this instance.
    */
-  public void addTargets(Set<ServerAddress> targets) {
+  public ClusterInfo addTargets(Set<ServerAddress> targets) {
     this.targets.addAll(targets);
+    return this;
+  }
+  
+  /*
+   * @param endpoints a {@link Collection} of {@link Endpoint}s whose addresses correspond to target Corus servers.
+   * @return this instance.
+   */
+  public ClusterInfo addTargets(Collection<Endpoint> endpoints) {
+    for (Endpoint ep : endpoints) {
+      this.targets.add(ep.getServerAddress());
+    }
+    return this;
   }
   
   /**

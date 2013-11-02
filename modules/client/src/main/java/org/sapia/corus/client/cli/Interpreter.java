@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -39,7 +38,7 @@ public class Interpreter extends Console {
   
   /**
    * Creates an instance of this class that sends command output to the console.
-   * 
+   *
    * @param corus the {@link CorusConnector} to use.
    */
   public Interpreter(CorusConnector corus) {
@@ -69,7 +68,7 @@ public class Interpreter extends Console {
    * This method closes the reader provided as input upon exiting.
    * 
    * @param reader a {@link Reader} to read commands from.
-   * @param the {@link Map} of variables to use when performing variable substitution.
+   * @param the {@link StrLookup} of variables to use when performing variable substitution.
    * 
    * @throws IOException if a problem occurs while trying to read commands from the given reader.
    * @throws CommandNotFoundException if the command on the command-line is unknown.
@@ -77,19 +76,19 @@ public class Interpreter extends Console {
    * @throws AbortException if execution of the command has been aborted.
    * @throws Throwable if an undefined error occurs.
    */  
-  public void interpret(Reader reader, Map<String, String>  vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
+  public void interpret(Reader reader, StrLookup vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
 
     Level old = Logger.getRootLogger().getLevel();
     Logger.getRootLogger().setLevel(Level.OFF);
     
     try {
       BufferedReader bufReader = new BufferedReader(reader);
-      StrSubstitutor subs = new StrSubstitutor(new CompositeLookup().add(StrLookup.mapLookup(vars)).add(StrLookup.systemPropertiesLookup()));
+      StrSubstitutor subs = new StrSubstitutor(vars);
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
         commandLine = subs.replace(commandLine).trim();
         if (!commandLine.isEmpty() && !commandLine.startsWith(COMMENT_MARKER)) {
-          eval(commandLine);
+          eval(commandLine, vars);
         }
       }
     } finally {
@@ -107,13 +106,14 @@ public class Interpreter extends Console {
    * it into a command - executing the said command.
    * 
    * @param commandLine the command-line to interpret.
+   * @param the {@link StrLookup} holding variables to use.
    * @throws CommandNotFoundException if the command on the command-line is unknown.
    * @throws InputException if some command arguments/options are missing/invalid.
    * @throws AbortException if execution of the command has been aborted.
    * @throws Throwable if an undefined error occurs.
    * @return this instance.
    */
-  public Object eval(String commandLine) throws CommandNotFoundException, InputException, AbortException, Throwable  {
+  public Object eval(String commandLine, StrLookup vars) throws CommandNotFoundException, InputException, AbortException, Throwable  {
 
     Level old = Logger.getRootLogger().getLevel();
     Logger.getRootLogger().setLevel(Level.OFF);
@@ -122,7 +122,7 @@ public class Interpreter extends Console {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
         Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
-        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10));
+        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), vars);
         ctx.setUp(this, cmdLine);
         ctx.setAbortOnError(true);
         try {

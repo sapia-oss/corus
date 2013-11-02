@@ -1,7 +1,9 @@
 package org.sapia.corus.client.cli;
 
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
@@ -81,5 +83,10 @@ public interface CliContext {
    * @see #isAbordOnError()
    */
   public void setAbortOnError(boolean abortOnError);
+  
+  /**
+   * @return the {@link StrLookup} of variables that this instance holds.
+   */
+  public StrLookup getVars();
   
 }

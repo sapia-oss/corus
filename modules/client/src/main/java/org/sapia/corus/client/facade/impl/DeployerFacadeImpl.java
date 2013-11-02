@@ -44,10 +44,10 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     /**
      * @param fileName the name of the file that will be uploaded.
      * @param fileLen the length of the file (in bytes).
-     * @param clustered <code>true</code> if the deployment shall be clustered.
+     * @param cluster the {@link ClusterInfo} providing information about the operation's clustering.
      * @return the {@link DeploymentMetadata} corresponding to the file to upload.
      */
-    public DeploymentMetadata create(String fileName, long fileLen, boolean clustered);
+    public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster);
     
   }
   
@@ -68,8 +68,8 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     return doDeployArtifact(fileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen,
-          boolean clustered) {
-        return new DistributionDeploymentMetadata(fileName, fileLen, clustered);
+          ClusterInfo cluster) {
+        return new DistributionDeploymentMetadata(fileName, fileLen, cluster);
       }
     });
   }
@@ -80,20 +80,20 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     return doDeployArtifact(fileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen,
-          boolean clustered) {
-        return new FileDeploymentMetadata(fileName, fileLen, clustered, destinationDir);
+          ClusterInfo cluster) {
+        return new FileDeploymentMetadata(fileName, fileLen, destinationDir, cluster);
       }
     });
   }
   
   @Override
   public ProgressQueue deployScript(String scriptFileName, final String alias, final String description,
-      ClusterInfo cluster) throws IOException, Exception {
+      final ClusterInfo cluster) throws IOException, Exception {
     return doDeployArtifact(scriptFileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen,
-          boolean clustered) {
-        return new ShellScriptDeploymentMetadata(fileName, fileLen, clustered, alias, description);
+          ClusterInfo cluster) {
+        return new ShellScriptDeploymentMetadata(fileName, fileLen, alias, description, cluster);
       }
     });
   }
@@ -126,7 +126,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
                   try{
                     fileCount++;
                     DeploymentMetadata meta = factory.create(
-                        files[i].getName(), files[i].length(), cluster.isClustered());
+                        files[i].getName(), files[i].length(), cluster);
                     tmp = doDeploy(files[i], meta, cluster);
                     while(tmp.hasNext()){
                       List<ProgressMsg> lst = tmp.fetchNext();
@@ -155,7 +155,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       return queue;
     } else{
       File toDeploy = context.getFileSystem().getFile(fileName);
-      DeploymentMetadata meta = factory.create(toDeploy.getName(), toDeploy.length(), cluster.isClustered());
+      DeploymentMetadata meta = factory.create(toDeploy.getName(), toDeploy.length(), cluster);
       return doDeploy(toDeploy, meta, cluster);
     }
     
@@ -178,6 +178,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
         throw new IOException(toDeploy.getAbsolutePath() + " is a directory");
       }
       
+      meta.getClusterInfo().getTargets().addAll(cluster.getTargets());
       DeployOutputStream dos  = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
 
       os  = new DeployOsAdapter(dos);

@@ -2,7 +2,9 @@ package org.sapia.corus.client.cli;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
@@ -18,18 +20,20 @@ public class CliContextImpl extends Context implements CliContext {
   
   private static int ERROR_COUNTER = 1;
   
-  private CorusConnector   corus;
-  private List<CliError>   errors; 
-  private boolean 			   abortOnError;
+  private CorusConnector      corus;
+  private List<CliError>      errors; 
+  private boolean 			      abortOnError;
+  private StrLookup           vars;
 
   /**
    * Creates a new {@link CliContextImpl} instance.
    *
    * @param corus
    */
-  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList) {
-    this.corus   = corus;
-    errors = anErrorList;
+  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookup vars) {
+    this.corus  = corus;
+    this.errors = anErrorList;
+    this.vars   = vars;
   }
   
   @Override
@@ -41,7 +45,12 @@ public class CliContextImpl extends Context implements CliContext {
   public ClientFileSystem getFileSystem() {
     return corus.getContext().getFileSystem();
   }
-
+  
+  @Override
+  public StrLookup getVars() {
+    return vars;
+  }
+  
   @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {
     CliError created = null;

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.text.StrLookup;
 import org.apache.log4j.Level;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
@@ -50,6 +51,7 @@ public class CorusCli extends CommandConsole {
   protected CorusConnector corus;
   private List<CliError> 	 errors;
   private boolean          abortOnError;
+  private StrLookup        vars = StrLookup.systemPropertiesLookup();
 
   public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
     super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
@@ -129,7 +131,7 @@ public class CorusCli extends CommandConsole {
           Map<String, String> vars = CliUtils.getOptionsMap(cmd);
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
-            console.interpret(input, vars);
+            console.interpret(input, StrLookup.mapLookup(vars));
             System.exit(0);
           } catch (Throwable err) {
             err.printStackTrace();
@@ -143,7 +145,7 @@ public class CorusCli extends CommandConsole {
           String commandLine = cmd.assertOption(COMMAND_OPT, true).getValue();
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
-            console.eval(commandLine);
+            console.eval(commandLine, StrLookup.systemPropertiesLookup());
           } catch (Throwable err) {
             err.printStackTrace();
             System.exit(1);
@@ -182,7 +184,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    CliContextImpl context = new CliContextImpl(corus, errors);
+    CliContextImpl context = new CliContextImpl(corus, errors, vars);
     context.setAbortOnError(abortOnError);
     return context;
   }

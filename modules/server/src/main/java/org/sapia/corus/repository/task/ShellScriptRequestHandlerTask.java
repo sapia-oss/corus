@@ -3,6 +3,7 @@ package org.sapia.corus.repository.task;
 import java.io.File;
 import java.util.List;
 
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
@@ -23,11 +24,11 @@ public class ShellScriptRequestHandlerTask extends ArtifactRequestHandlerTaskSup
    * @param script the {@link ShellScript} holding the script's information.
    * @param targets the {@link List} of {@link Endpoint}s corresponding to the Corus nodes to deploy to.
    */
-  public ShellScriptRequestHandlerTask(final File scriptFile, final ShellScript script, List<Endpoint> targets) {
+  public ShellScriptRequestHandlerTask(final File scriptFile, final ShellScript script, final List<Endpoint> targets) {
     super(scriptFile, targets, new Function<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
-        return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), clustered, script.getAlias(), script.getDescription());
+        return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(), new ClusterInfo(clustered).addTargets(targets));
       }
     });
   }

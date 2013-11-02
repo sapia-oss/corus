@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.ShellScript;
@@ -46,20 +47,20 @@ public class ShellScriptDeploymentHandlerTest {
 
   @Test
   public void testAccepts() {
-    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, true, "alias", "desc");
+    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, "alias", "desc", new ClusterInfo(true));
     assertTrue(handler.accepts(meta));
   }
 
   @Test
   public void testGetDestFile() {
-    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, true, "alias", "desc");
+    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, "alias", "desc", new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("scriptDir/test"));
   }
 
   @Test
   public void testCompleteDeployment() {
-    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, true, "alias", "desc");
+    DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, "alias", "desc", new ClusterInfo(true));
     ProgressQueue q = handler.completeDeployment(meta, new File("test"));
     assertNotNull(q);
   }

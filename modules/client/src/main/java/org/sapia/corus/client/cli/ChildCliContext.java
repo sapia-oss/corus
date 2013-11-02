@@ -2,6 +2,7 @@ package org.sapia.corus.client.cli;
 
 import java.util.List;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.console.Context;
@@ -18,10 +19,17 @@ public class ChildCliContext extends Context implements CliContext {
   private CliContext parent;
   private CmdLine 	 childCmd;
   private boolean 	 abortOnError;
+  private StrLookup  vars;
   
-  public ChildCliContext(CliContext parent, CmdLine childCmd) {
-    this.parent = parent;
+  public ChildCliContext(CliContext parent, CmdLine childCmd, StrLookup vars) {
+    this.parent   = parent;
     this.childCmd = childCmd;
+    this.vars     = vars;
+  }
+  
+  @Override
+  public StrLookup getVars() {
+    return vars;
   }
   
   @Override
@@ -38,51 +46,38 @@ public class ChildCliContext extends Context implements CliContext {
   public ClientFileSystem getFileSystem() {
     return parent.getFileSystem();
   }
-  
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#getCorus()
-   */
+
+  @Override
   public CorusConnector getCorus() {
     return parent.getCorus();
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#createAndAddErrorFor(org.sapia.corus.client.cli.command.CorusCliCommand, java.lang.Throwable)
-   */
+  @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {
     return parent.createAndAddErrorFor(aCommand, aCause);
   }
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#createAndAddErrorFor(org.sapia.corus.client.cli.command.CorusCliCommand, java.lang.String, java.lang.Throwable)
-   */
+  
+  @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, String aDescription, Throwable aCause) {
     return parent.createAndAddErrorFor(aCommand, aDescription, aCause);
   }
   
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#getErrors()
-   */
+  @Override
   public List<CliError> getErrors() {
     return parent.getErrors();
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#removeAllErrors()
-   */
+  @Override
   public int removeAllErrors() {
     return parent.removeAllErrors();
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#isAbordOnError()
-   */
+  @Override
   public boolean isAbordOnError() {
     return abortOnError;
   }
   
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.cli.CliContext#setAbortOnError(boolean)
-   */
+  @Override
   public void setAbortOnError(boolean abortOnError) {
     this.abortOnError = abortOnError;
   }

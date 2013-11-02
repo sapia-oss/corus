@@ -20,7 +20,7 @@ import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvid
 public class TcpCorusTransport extends AbstractTransport{
 
   /** The server address. */
-  private TCPAddress _theAddress;
+  private TCPAddress address;
 
   /**
    * Creates a new TcpCorusTransport instance.
@@ -34,14 +34,14 @@ public class TcpCorusTransport extends AbstractTransport{
       throw new IllegalStateException("The port number is invalid: " + aPort);
     }
     
-    _theAddress = new MultiplexSocketAddress(aHost, aPort);
+    address = new MultiplexSocketAddress(aHost, aPort);
   }
 
   /**
    * @return The server address used by this Corus transport.
    */
   public ServerAddress getServerAddress() {
-    return _theAddress;
+    return address;
   }
   
   /**
@@ -49,8 +49,8 @@ public class TcpCorusTransport extends AbstractTransport{
    */
   protected Object initExport(Object anObject) throws RemoteException {
     Properties props = new Properties();
-    props.setProperty(MultiplexSocketTransportProvider.BIND_ADDRESS, _theAddress.getHost());
-    props.setProperty(MultiplexSocketTransportProvider.PORT, ""+_theAddress.getPort());
+    props.setProperty(MultiplexSocketTransportProvider.BIND_ADDRESS, address.getHost());
+    props.setProperty(MultiplexSocketTransportProvider.PORT, "" + address.getPort());
     props.setProperty(Consts.TRANSPORT_TYPE, MultiplexSocketTransportProvider.MPLEX_TRANSPORT_TYPE);
     return Hub.exportObject(anObject, props);
   }

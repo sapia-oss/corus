@@ -363,7 +363,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
       ServerAddress       addr;
       ServerAddress       current = serverContext().getCorusHost().getEndpoint().getServerAddress();
       
-      log.debug("Targeted hosts: " + meta.getTargeted());
+      log.debug("Targeted hosts: " + meta.getClusterInfo().getTargets());
       log.debug("Visited hosts: " + meta.getVisited());
       log.debug("Current host: " + current);
 			

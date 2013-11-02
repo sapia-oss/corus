@@ -54,7 +54,7 @@ public class Script extends CorusCliCommand {
     if (scriptFile.exists()) {
       Interpreter interpreter = new Interpreter(ctx.getCorus());
       if (scriptEngineName == null) {
-        interpreter.interpret(new FileReader(scriptFile), new HashMap<String, String>());
+        interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
       } else {
         String[] includes = getOpt(ctx, INCLUDES_OPT, "").getValue().split(";");
         CorusScript scriptRunner = new CorusScript(interpreter, includes, scriptEngineName);

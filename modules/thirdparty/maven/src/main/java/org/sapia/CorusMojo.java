@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
@@ -13,6 +14,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.client.cli.CorusCli;
 import org.sapia.corus.client.cli.DefaultClientFileSystem;
 import org.sapia.corus.client.cli.Interpreter;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.rmi.server.Hub;
@@ -112,7 +114,7 @@ public class CorusMojo extends AbstractMojo {
       }
       
       Interpreter interpreter = new Interpreter(new LogConsoleOutput(), connection);
-      interpreter.interpret(new FileReader(scriptFile), vars);
+      interpreter.interpret(new FileReader(scriptFile), new CompositeStrLookup().add(StrLookup.mapLookup(vars)).add(StrLookup.systemPropertiesLookup()));
       
     } catch (Throwable e) {
       throw new MojoExecutionException("Could not execute script " + scriptFile.getName(), e);

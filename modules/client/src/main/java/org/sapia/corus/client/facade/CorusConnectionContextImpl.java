@@ -209,6 +209,8 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       }
     } catch(InvocationTargetException e) {
       throw e.getTargetException();
+    } finally {
+      ClientSideClusterInterceptor.unregister();
     }
   }
 

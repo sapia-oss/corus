@@ -22,8 +22,8 @@ import org.sapia.ubik.util.Localhost;
 public class HttpCorusTransport extends AbstractTransport {
   
   /** The server address. */
-  private HttpAddress address;
-
+  private HttpAddress              address;
+  
   /**
    * Creates a new TcpCorusTransport instance.
    * 

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -65,7 +66,7 @@ public class InterpreterTest {
       }
     }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
     
-    console.eval("kill -d test -v 1.0 -n proc -p dev -cluster");    
+    console.eval("kill -d test -v 1.0 -n proc -p dev -cluster", StrLookup.systemPropertiesLookup());    
     
     assertEquals(expectedCriteria.getDistribution(), inputCriteria.get().getDistribution());
     assertEquals(expectedCriteria.getVersion(), inputCriteria.get().getVersion());
@@ -79,14 +80,14 @@ public class InterpreterTest {
     ConfiguratorFacade config = mock(ConfiguratorFacade.class);
     when(connector.getConfigFacade()).thenReturn(config);
 
-    console.eval("conf add -p name=value\\=123");    
+    console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());    
     
     verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
   }
   
   @Test (expected = AbortException.class)
   public void testAbort() throws Throwable {
-    console.eval("quit");    
+    console.eval("quit", StrLookup.systemPropertiesLookup());    
   }
   
   @Test
@@ -122,7 +123,7 @@ public class InterpreterTest {
     StringReader reader = new StringReader(writer.toString());
     Map<String, String> vars = new HashMap<String, String>();
     vars.put("proc.name", "proc");
-    console.interpret(reader, vars);
+    console.interpret(reader, StrLookup.mapLookup(vars));
     
     assertEquals(expectedCriteria.getDistribution(), inputCriteria.get().getDistribution());
     assertEquals(expectedCriteria.getVersion(), inputCriteria.get().getVersion());

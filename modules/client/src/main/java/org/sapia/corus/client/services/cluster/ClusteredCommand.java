@@ -6,8 +6,7 @@ import java.io.ObjectOutput;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.sapia.corus.client.Module;
-import org.sapia.ubik.module.ModuleNotFoundException;
+import org.sapia.corus.client.transport.CorusModuleOID;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.command.InvokeCommand;
@@ -23,7 +22,6 @@ public class ClusteredCommand extends InvokeCommand {
   private           Set<ServerAddress>  targeted    = new HashSet<ServerAddress>();
   private           Set<ServerAddress>  visited     = new HashSet<ServerAddress>();
   private transient CorusCallback       callback;
-  private           String              moduleName;
   private           boolean             disable;
   
   /* Do not call; used for externalization only */
@@ -42,47 +40,43 @@ public class ClusteredCommand extends InvokeCommand {
     this.callback = callback;
   }
   
-  public void setModuleName(String moduleName) {
-    this.moduleName = moduleName;
-  }
-  
   @Override
   protected Object doGetObjectFor(OID oid) throws NoSuchObjectException {
-    if (moduleName != null) {
-      try {
-        return callback.lookup(moduleName);
-      } catch (ModuleNotFoundException e) {
-        throw new NoSuchObjectException("No object found for module: " + moduleName);
-      }
-    } else {
-      Object target = super.doGetObjectFor(oid);
-      if (target instanceof Module) {
-        this.moduleName = ((Module) target).getRoleName();
-      } else {
-        disable = true;
-      }
-      return target;
+    if (oid instanceof CorusModuleOID) {
+      return callback.lookup(((CorusModuleOID) oid).getModuleName());
     }
+    return super.doGetObjectFor(oid);
   }
   
 	public Object execute() throws Throwable {
 	  Assertions.illegalState(callback == null, "Corus callback not set");
-	  
+
+	  // not clustering if command does not target a module.
+	  disable = !(getOID() instanceof CorusModuleOID);
+
     try {
-      callback.debug("Executing clustered command " + getMethodName());
+      if (callback.isDebug()) {
+        callback.debug(String.format("Executing clustered command %s on %s", getMethodName(), getOID()));
+      }
       Object returnValue = null;
+      
+      // if the target set is empty, or if this node is specifically targeted (in the target set)
       if (targeted.isEmpty() || targeted.contains(callback.getCorusAddress())) {
         returnValue = super.execute();
         if (!disable) {
           visited.add(callback.getCorusAddress());
           cascade();
         }
+      // otherwise, this command is not meant for this node (cascading to the next host if required).
       } else {
-        callback.debug("Not executing clustered command " + getMethodName() + "; host not targeted: " + callback.getCorusAddress());
+        if (callback.isDebug()) {
+          callback.debug(String.format("Not executing clustered command %s on %s; host not targeted: %s", 
+              getMethodName(),  getOID(), callback.getCorusAddress()));
+        }
         if (!disable) {
           visited.add(callback.getCorusAddress());
           returnValue = cascade();
-        } 
+        }
       }
       return returnValue;
     } catch (Throwable t) {
@@ -121,14 +115,14 @@ public class ClusteredCommand extends InvokeCommand {
 	public void readExternal(ObjectInput in) throws IOException,
 	    ClassNotFoundException {
 	  super.readExternal(in);
-	  visited = (Set<ServerAddress>) in.readObject();
-	  moduleName = (String) in.readObject();
+	  visited    = (Set<ServerAddress>) in.readObject();
+	  targeted   = (Set<ServerAddress>) in.readObject();
 	}
 	
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 	  super.writeExternal(out);
 	  out.writeObject(visited);
-	  out.writeObject(moduleName);
+	  out.writeObject(targeted);
 	}
 }

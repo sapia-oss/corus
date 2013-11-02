@@ -15,7 +15,10 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.Arg;
+import org.sapia.console.CmdElement;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
 import org.sapia.corus.client.Result;
@@ -344,6 +347,23 @@ public class Conf extends CorusCliCommand {
   private void displayPropertyResults(Results<List<NameValuePair>> res,
       CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_PROPERTY);
+    if (nameFilter == null) {
+      if (ctx.getCommandLine().size() > 0) {
+        CmdElement element = ctx.getCommandLine().get(ctx.getCommandLine().size() - 1);
+        if (element instanceof Option) {
+          int    index = ctx.getCommandLine().size() - 2;
+          if (index > 0) {
+            element = ctx.getCommandLine().get(index);
+          }
+        }
+        if (element instanceof Arg) {
+          String argValue = ((Arg) element).getName().trim();
+          if (!argValue.equals(ARG_LS)) {
+            nameFilter = argValue;
+          }
+        }
+      }
+    }
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
       res = res.filter(new Function<List<NameValuePair>, List<NameValuePair>>() {

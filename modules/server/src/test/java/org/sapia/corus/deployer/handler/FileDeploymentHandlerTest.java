@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
@@ -34,27 +35,27 @@ public class FileDeploymentHandlerTest {
 
   @Test
   public void testAccepts() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, true, "destDir");
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
     assertTrue(handler.accepts(meta));
   }
 
   @Test
   public void testGetDestFileWithDestDir() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, true, "destDir");
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("destDir/test"));
   }
   
   @Test
   public void testGetDestFileWithoutDestDir() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, true, null);
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, null, new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("uploadDir/test"));
   }  
 
   @Test
   public void testCompleteDeployment() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, true, "destDir");
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
     ProgressQueue q = handler.completeDeployment(meta, new File("test"));
     assertNotNull(q);
   }

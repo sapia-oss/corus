@@ -72,7 +72,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
       
       Endpoint first = targetsCopy.get(0);
       
-      meta.getTargeted().addAll(Collections2.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
+      meta.getClusterInfo().getTargets().addAll(Collections2.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
         public ServerAddress call(Endpoint arg) {
           return arg.getServerAddress();
         }

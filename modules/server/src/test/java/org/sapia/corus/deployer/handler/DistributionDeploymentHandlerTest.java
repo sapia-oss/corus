@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
@@ -47,20 +48,20 @@ public class DistributionDeploymentHandlerTest {
 
   @Test
   public void testAccepts() {
-    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, true);
+    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, new ClusterInfo(true));
     assertTrue(handler.accepts(meta));
   }
 
   @Test
   public void testGetDestFile() {
-    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, true);
+    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("tempDir/test"));
   }
 
   @Test
   public void testCompleteDeployment() {
-    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, true);
+    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, new ClusterInfo(true));
     handler.completeDeployment(meta, new File("test"));
     verify(taskManager).executeAndWait(any(Task.class), anyString(), any(TaskConfig.class));
   }

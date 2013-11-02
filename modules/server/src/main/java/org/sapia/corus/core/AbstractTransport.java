@@ -3,6 +3,7 @@ package org.sapia.corus.core;
 import java.rmi.RemoteException;
 
 import org.sapia.ubik.rmi.server.Hub;
+import org.sapia.ubik.rmi.server.oid.OIDCreationStrategy;
 import org.sapia.ubik.rmi.server.transport.TransportProvider;
 
 /**
@@ -14,7 +15,13 @@ import org.sapia.ubik.rmi.server.transport.TransportProvider;
  */
 public abstract class AbstractTransport implements CorusTransport {
 	
-	private boolean isInit;
+	private boolean             isInit;
+  private OIDCreationStrategy oids = new CorusOidCreationStrategy();
+
+	
+	public AbstractTransport() {
+    Hub.getModules().getStubProcessor().insertOIDCreationStrategy(oids);
+  }
 	
 	/**
 	 * This method will, the first time it is invoked, delegate the export operation

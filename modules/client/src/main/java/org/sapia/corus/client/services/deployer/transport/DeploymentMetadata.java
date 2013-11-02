@@ -3,6 +3,7 @@ package org.sapia.corus.client.services.deployer.transport;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.VmId;
 
@@ -37,27 +38,26 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
 	private VmId origin = VmId.getInstance();
 	
 	private Set<ServerAddress> visited 		= new HashSet<ServerAddress>();
-	private Set<ServerAddress> targeted   = new HashSet<ServerAddress>();
 	private String 						 fileName;
 	private long 							 contentLen;
-	private boolean 					 clustered;
+	private ClusterInfo        clusterInfo;
 	private Type               type;
 	
 	/**
 	 * @param fileName the name of the file being deployed.
 	 * @param contentLen the length of the file (in bytes).
-	 * @param clustered the flag indicating if the deployment is clustered or not.
+	 * @param cluster the {@link ClusterInfo} that indicates if deployment should be clustered or not.
 	 * @param type the deployment type.
 	 */
 	protected DeploymentMetadata(
 	    String fileName, 
 	    long contentLen, 
-	    boolean clustered,
+	    ClusterInfo cluster,
 	    Type type){
-		this.fileName   = fileName;
-		this.contentLen = contentLen;
-		this.clustered  = clustered;
-		this.type       = type;
+		this.fileName    = fileName;
+		this.contentLen  = contentLen;
+		this.clusterInfo = cluster;
+		this.type        = type;
 	}
 	
 	/**
@@ -85,7 +85,7 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
 	 * @return <code>true</code> if deployment is clustered.
 	 */
 	public boolean isClustered(){
-		return clustered;
+		return clusterInfo.isClustered();
 	}
 	
 	/**
@@ -96,12 +96,12 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
 	public Set<ServerAddress> getVisited(){
 		return visited;
 	}
-	
+
 	/**
-	 * @return the {@link Set} of {@link ServerAddress} instances that are targeted.
+	 * @return the {@link ClusterInfo} that this instance wraps.
 	 */
-	public Set<ServerAddress> getTargeted() {
-    return targeted;
+	public ClusterInfo getClusterInfo() {
+    return clusterInfo;
   }
 	
 	/**
@@ -110,7 +110,7 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
 	 * target by this deployment.
 	 */
 	public boolean isTargeted(ServerAddress addr) {
-	  return targeted.isEmpty() || targeted.contains(addr);
+	  return clusterInfo.getTargets().isEmpty() || clusterInfo.getTargets().contains(addr);
 	}
 	
 	/**
