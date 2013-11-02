@@ -88,7 +88,9 @@ public class ClusteredCommand extends InvokeCommand {
 	private Object cascade() throws Throwable {
 	  ServerAddress nextAddress = selectNextAddress();
 	  if (nextAddress != null) {
-	    callback.debug("Sending clustered command " + getMethodName() + " to " + nextAddress);
+	    if (callback.isDebug()) {
+	      callback.debug(String.format("Sending clustered command %s to %s", getMethodName(), nextAddress));
+	    }
 	    Object returnValue = callback.send(this, nextAddress);
 	    if (returnValue instanceof Throwable) {
 	      throw (Throwable) returnValue;
