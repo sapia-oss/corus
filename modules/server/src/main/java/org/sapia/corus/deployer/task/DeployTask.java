@@ -116,7 +116,7 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
     } catch (DeploymentException e) {
       ctx.error(e);
     } finally {
-      //fs.deleteFile(src);
+      fs.deleteFile(src);
     }
     return null;
   }
