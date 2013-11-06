@@ -3,6 +3,7 @@ package org.sapia.corus.deployer.task;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.file.FileSystemModule;
@@ -41,6 +43,13 @@ public class DeployTaskTest {
     ctx.getTm().executeAndWait(task, "testFile.zip").get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    
+    verify(fs).openZipEntryStream(new File("tmpDir/testFile.zip"), "META-INF/corus.xml");
+    verify(fs).exists(any(File.class));
+    verify(fs, Mockito.times(2)).createDirectory(any(File.class));
+    verify(fs).unzip(any(File.class), any(File.class));
+    verify(fs).deleteFile(new File("tmpDir/testFile.zip"));
+    Mockito.verifyNoMoreInteractions(fs);
   }
   
   private InputStream getCorusXmlStream() throws IOException{
