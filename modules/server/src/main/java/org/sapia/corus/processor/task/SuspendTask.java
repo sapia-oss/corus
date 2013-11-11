@@ -36,7 +36,8 @@ public class SuspendTask extends KillTask {
 
       synchronized (processes) {
         proc.releasePorts(ports);
-        proc.setStatus(Process.LifeCycleStatus.SUSPENDED);     
+        proc.setStatus(Process.LifeCycleStatus.SUSPENDED);
+        proc.save();
         processes.getSuspendedProcesses().addProcess(proc);
         processes.getActiveProcesses().removeProcess(proc.getProcessID());
       }

@@ -72,7 +72,13 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * Corresponds to the "suspended" status: the process is in the "suspended" queue.
      * @see #getStatus() 
      */
-    SUSPENDED;  
+    SUSPENDED,  
+    
+    /**
+     * Corresponds to the "stale" status: the process is in the active queue still, bug flagged as stale.
+     * @see #getStatus()
+     */
+    STALE
   }
   
   public static final int    DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;

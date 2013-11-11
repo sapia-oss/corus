@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log4j.Level;
+import org.sapia.console.CmdElement;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -22,6 +23,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
@@ -39,11 +41,11 @@ import org.sapia.ubik.util.Localhost;
  */
 public class CorusCli extends CommandConsole {
 	
-  public static final int    DEFAULT_PORT = 33000;
-  public static final String HOST_OPT   = "h";
-  public static final String PORT_OPT   = "p";
-  public static final String SCRIPT_OPT = "s";
-  public static final String COMMAND_OPT = "c";
+  public static final int    DEFAULT_PORT      = 33000;
+  public static final String HOST_OPT          = "h";
+  public static final String PORT_OPT          = "p";
+  public static final String SCRIPT_OPT        = "s";
+  public static final String COMMAND_OPT       = "c";
   public static final int    MAX_ERROR_HISTORY = 20;
   
   private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();  
@@ -142,14 +144,28 @@ public class CorusCli extends CommandConsole {
         // -c option  
           
         } else if (cmd.containsOption(COMMAND_OPT, false)) {
-          String commandLine = cmd.assertOption(COMMAND_OPT, true).getValue();
+          Option        opt         = cmd.assertOption(COMMAND_OPT, true);
+          StringBuilder commandLine = new StringBuilder(opt.getValue());          
+          
+          for (int i = 0; i < cmd.size(); i++) {
+            CmdElement ce = cmd.get(i);
+            if (ce.equals(opt)) {
+              for (int j = i + 1; j < cmd.size(); j++) {
+                ce = cmd.get(j);
+                commandLine.append(" ").append(ce.toString());
+              }
+              break;
+            }
+          }
+          
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
-            console.eval(commandLine, StrLookup.systemPropertiesLookup());
+            console.eval(commandLine.toString(), StrLookup.systemPropertiesLookup());
+            System.exit(0);
           } catch (Throwable err) {
             err.printStackTrace();
             System.exit(1);
-          }
+          } 
           
         // --------------------------------------------------------------------
         // default behavior
@@ -170,8 +186,7 @@ public class CorusCli extends CommandConsole {
       if(e instanceof ConnectionException || e instanceof RemoteException) {
         System.out.println("No server listening at " + host + ":" + port);
         e.printStackTrace();
-      }
-      else{
+      } else{
         e.printStackTrace();
       }
     }

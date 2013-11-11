@@ -80,6 +80,8 @@ public class ExecConfigDatabaseImpl implements ExecConfigDatabase {
       c.removeAll(d);
       if(c.getProcesses().size() == 0){
         configs.remove(c.getName());
+      } else {
+        c.save();
       }
     }
   }

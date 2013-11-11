@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.processor;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * A {@link ProcessDef} is held within an {@link ExecConfig}.
@@ -64,6 +65,26 @@ public class ProcessDef implements Serializable {
     return instances;
   }
   
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof ProcessDef) {
+      ProcessDef other = (ProcessDef) obj;
+      return 
+          other.getDist().equals(dist) 
+          && other.getVersion().equals(version)
+          && other.getName().equals(process)
+          && other.getProfile().equals(profile);
+    }
+    return false;
+
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(dist, version, process, profile);
+  }
+
+  @Override
   public String toString(){
     return new StringBuilder("[")
       .append("dist=").append(dist).append(", ")

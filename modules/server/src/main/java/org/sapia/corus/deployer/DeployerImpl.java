@@ -115,25 +115,30 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
         ThrottleFactory.createMaxConcurrentThrottle(1)
     );
 
-    String defaultDeployDir = FilePath.newInstance().addDir(serverContext().getHomeDir())
+    String defaultDeployDir = FilePath.newInstance()
+        .addDir(serverContext().getHomeDir())
         .addDir("deploy")
         .createFilePath();
     
-    String defaultRepoDir   = FilePath.newInstance().addDir(serverContext().getHomeDir())
+    String defaultRepoDir   = FilePath.newInstance()
+        .addDir(serverContext().getHomeDir())
         .addDir("files")        
         .addDir("repo")
         .createFilePath();
     
-    String defaultTmpDir    = FilePath.newInstance().addDir(serverContext().getHomeDir())
+    String defaultTmpDir    = FilePath.newInstance()
+        .addDir(serverContext().getHomeDir())
         .addDir("tmp")
         .createFilePath();
     
-    String defaultScriptDir = FilePath.newInstance().addDir(serverContext().getHomeDir())
+    String defaultScriptDir = FilePath.newInstance()
+        .addDir(serverContext().getHomeDir())
         .addDir("files")
         .addDir("scripts")
         .createFilePath();
     
-    String defaultUploadDir = FilePath.newInstance().addDir(serverContext().getHomeDir())
+    String defaultUploadDir = FilePath.newInstance()
+        .addDir(serverContext().getHomeDir())
         .addDir("files")
         .addDir("uploads")
         .createFilePath();    
@@ -184,6 +189,13 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     f.mkdirs();
     assertFile(f);
     log.debug(String.format("Temporary dir: %s", f.getAbsolutePath()));
+    File[] tmpFiles = f.listFiles();
+    if (tmpFiles != null) {
+      for (File tmp : tmpFiles) {
+        log.debug(String.format("Deleting tmp file: %s", tmp.getName()));
+        tmp.delete();
+      }
+    }
     
     f = new File(configuration.getRepoDir());
     f.mkdirs();

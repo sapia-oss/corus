@@ -57,6 +57,7 @@ public class RestartTask extends KillTask{
         proc.setStatus(Process.LifeCycleStatus.RESTARTING);        
         proc.clearCommands();
         proc.releasePorts(ports);
+        proc.save();
         processes.getProcessesToRestart().addProcess(proc);
         processes.getActiveProcesses().removeProcess(proc.getProcessID());
       }

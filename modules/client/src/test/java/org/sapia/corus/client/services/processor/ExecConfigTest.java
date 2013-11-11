@@ -1,15 +1,19 @@
 package org.sapia.corus.client.services.processor;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
+
 
 import org.junit.Test;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 public class ExecConfigTest {
   
@@ -19,7 +23,7 @@ public class ExecConfigTest {
     conf.setName("testConf");
     conf.createProcess();
     conf.createProcess();
-    Assert.assertEquals(2, conf.getProcesses().size());
+    assertEquals(2, conf.getProcesses().size());
   }
 
   @Test
@@ -31,6 +35,31 @@ public class ExecConfigTest {
     }finally{
       fis.close();
     }
+  }
+  
+  @Test
+  public void testRemoveAll() {
+    ExecConfig conf = new ExecConfig();
+    conf.setName("testConf");
+    
+    ProcessDef proc1 = conf.createProcess();
+    proc1.setDistribution("dist1");
+    proc1.setVersion("1.0");
+    proc1.setName("proc1");
+    proc1.setProfile("test");
+    
+    ProcessDef proc2 = conf.createProcess();
+    proc2.setDistribution("dist2");
+    proc2.setVersion("1.0");
+    proc2.setName("proc2");
+    proc2.setProfile("test");    
+    
+    Distribution dist = new Distribution("dist1", "1.0");
+    conf.removeAll(dist);
+    
+    assertFalse("Process definition should have been removed", conf.getProcesses().contains(proc1));
+    assertTrue("Process definition should not have been removed" ,conf.getProcesses().contains(proc2));
+    
   }
 
   @Test
@@ -52,9 +81,9 @@ public class ExecConfigTest {
     
     Collections.sort(confs);
     
-    Assert.assertEquals(conf3, confs.get(0));
-    Assert.assertEquals(conf1, confs.get(1));    
-    Assert.assertEquals(conf2, confs.get(2));
+    assertEquals(conf3, confs.get(0));
+    assertEquals(conf1, confs.get(1));    
+    assertEquals(conf2, confs.get(2));
   }
 
 }

@@ -49,6 +49,7 @@ public class Ps extends CorusCliCommand {
   private static final String ACTIVE      = "act.";
   private static final String RESTART     = "rest.";  
   private static final String SUSPENDED   = "susp.";  
+  private static final String STALLED     = "stal.";  
   
   private static final String OPT_PORTS   = "ports";
   
@@ -154,7 +155,10 @@ public class Ps extends CorusCliCommand {
           break;                    
         case ACTIVE:
           row.getCellAt(PROC_TBL.col("status").index()).append(ACTIVE);        
-          break;          
+          break;
+        case STALE:
+          row.getCellAt(PROC_TBL.col("status").index()).append(STALLED);        
+          break;
         default:
           row.getCellAt(PROC_TBL.col("status").index()).append("n/a");        
           break;

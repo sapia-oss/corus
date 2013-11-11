@@ -125,6 +125,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ctx.error(String.format("Process %s could not be killed forcefully; auto-restart is aborted", proc));
       proc.releasePorts(ports);
+      proc.save();
       ctx.getServerContext().getServices().getProcesses().getActiveProcesses().removeProcess(proc.getProcessID());
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
         ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));

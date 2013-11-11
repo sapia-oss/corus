@@ -4,9 +4,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
-import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
@@ -54,6 +55,8 @@ public class ProcessCheckTask extends Task<Void,Void>{
           ctx.warn(String.format(
               "Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s", 
               proc, new Date(proc.getLastAccess())));
+          proc.setStatus(LifeCycleStatus.STALE);
+          proc.save();
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessStaleEvent(proc));
         } else if (proc.getLock().isLocked()) {
           ctx.warn(String.format("Process timed out but locked, probably terminating or restarting: %s", proc));

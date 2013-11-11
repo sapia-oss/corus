@@ -128,16 +128,15 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
    */
   public void removeAll(Distribution d){
     List<ProcessDef> toRemove = new ArrayList<ProcessDef>();
-    for(ProcessConfig pc : d.getProcesses()){
-      for(ProcessDef ref:processes){
-        if(ref.getDist().equals(d.getName()) &&
-           ref.getVersion().equals(d.getVersion()) &&
-           ref.getName().equals(pc.getName())){
-           toRemove.add(ref);
-        }
+    for(ProcessDef ref:processes){
+      if(ref.getDist().equals(d.getName()) &&
+         ref.getVersion().equals(d.getVersion())){
+         toRemove.add(ref);
       }
     } 
-    processes.removeAll(toRemove);
+    List<ProcessDef> toKeep = new ArrayList<ProcessDef>(processes);
+    toKeep.removeAll(toRemove);
+    processes = toKeep;
   }
   
   @Override
