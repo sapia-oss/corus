@@ -6,9 +6,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -152,7 +154,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       if (requested.isDirectory()) {
         listDir(requested, ctx);
       } else {
-        streamFile(requested, ctx);
+        streamFile(requested, true, ctx);
       }
     }
   }
@@ -186,7 +188,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     ps.println("</h3>");
     
     ps.println("<b>Actions:</b>");
-    ps.println("<ul><li><a href=\"?action=" + ACTION_COMPRESS + "\">Zip files and sub directories</a></li></ul><br/>");
+    ps.println("<ul><li><a href=\"?action=" + ACTION_COMPRESS + "\">Zip files and sub directories</a></li></ul>");
     
     File[] fileElems = dir.listFiles();
     if(fileElems != null && fileElems.length > 0){
@@ -212,39 +214,38 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       Collections.sort(dirs, fc);    
       Collections.sort(files, fc);
       
-      ps.println("<b>Content:</b><ul>");
+      ps.println("<p><b>Content:</b></p><ul>");
+      ps.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\" width=\"80%\">");
+      ps.println("<th width=\"5%\"></th><th width=\"40%\">Name</th><th width=\"10%\">Size</th><th width=\"15%\">Last Modified</th>");
       for(int i = 0; i < dirs.size(); i++){
         printFileInfo(dirs.get(i), ps, ctx);
       }
       for(int i = 0; i < files.size(); i++){
         printFileInfo(files.get(i), ps, ctx);
       }
-      ps.println("</ul>");
+      ps.println("</table></ul><br/>");
     }
     ps.println("<p>" + HttpExtensionManager.FOOTER  +"</body></html></body></html>");
     ps.flush();
     ps.close();
   }
   
-  private void streamFile(File file, HttpContext ctx) throws Exception{
-    long fileLengthBytes = file.length();
-    ctx.getResponse().setContentLength((int) fileLengthBytes);
+  private void streamFile(File file, boolean isTextContent, HttpContext ctx) throws Exception{
+    ctx.getResponse().setContentLength((int) file.length());
     if(!file.exists()){
       ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_NOT_FOUND);
     }
-    else{
-      ctx.getResponse().setHeader("Content-Type", MIME_TYPES.getContentType(file));
-      ctx.getResponse().setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+    else {
+      if (isTextContent) {
+        ctx.getResponse().setHeader("Content-Type", "text/plain;charset=UTF-8");
+      } else {
+        ctx.getResponse().setHeader("Content-Type", MIME_TYPES.getContentType(file));
+        ctx.getResponse().setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+      }
       ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_OK);      
       FileInputStream fis = new FileInputStream(file);
 
-      if (fileLengthBytes < 1048576) {
-        double lengthKilo = ((long) (fileLengthBytes / 102.4d)) / 10d; 
-        log.debug("Sending out file " + file.getName() + " (" + lengthKilo + " KB) ...");
-      } else {
-        double lengthMega = ((long) (fileLengthBytes / 104857.6d)) / 10d; 
-        log.debug("Sending out file " + file.getName() + " (" + lengthMega + " MB) ...");
-      }
+      log.info("Sending out file " + file.getName() + " (" + formatFileSize(file) + ") ...");
       OutputStream os = null;
       try{
         byte[] buf = new byte[BUFSZ];
@@ -261,51 +262,85 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         if(os != null){
           os.close();  
         }
-        log.debug("Streaming of file " + file.getName() + " is completed");
+        log.info("Streaming of file " + file.getName() + " is completed");
       }
 
     }
   }
   
   private void printFileInfo(FileEntry file, PrintStream ps, HttpContext ctx) throws Exception {
+    SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
+
+    ps.print("<tr><td align=\"center\">");
     if (file.isLink()) {
-      ps.print("&lt;ln&gt; ");
+      ps.print("ln");
     } else if (file.isDirectory()) {
-      ps.print("&lt;dir&gt; ");
+      ps.print("dir");
     }
+    ps.print("</td>");
+    
+    ps.print("<td>");
     String fName = file.isDirectory() ? file.getName() + "/" : file.getName();
     if (file.isLink() && !file.getFile().exists()) {
-      ps.println(file.getName() + "<br>");
+      ps.println(file.getName());
     } else {
-      ps.println("<a href=\"" + fName + "?action=" + ACTION_LIST + "\">" + file.getName() + "</a><br>");
+      ps.println("<a href=\"" + fName + "?action=" + ACTION_LIST + "\">" + file.getName() + "</a>");
     }
+    ps.print("</td>");
+    
+    ps.print("<td align=\"right\">");
+    if (!file.isLink() && !file.isDirectory()) {
+      ps.print(formatFileSize(file.getFile()));
+    }
+    ps.print("</td>");
+    
+    ps.print("<td align=\"center\">");
+    ps.print(dateFormatter.format(new Date(file.getFile().lastModified())));
+    ps.print("</td>");
   }
   
   private void compressDirContent(File file, HttpContext ctx) throws Exception {
     String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
     String tmpDir = context.getServices().getDeployer().getConfiguration().getTempDir();
+    String hostName = context.getCorusHost().getHostName();
     String dirName = file.getName();
     
     int counter = 0;
-    File zipFile = new File(tmpDir, "corusfiles@" + domainName + "-" + dirName + ".zip");
+    File zipFile = new File(tmpDir, dirName + "@" + domainName + "-" + hostName + ".zip");
     while (zipFile.exists()) {
       String suffix = String.valueOf(++counter);
       while (suffix.length() < 4) {
         suffix = "0" + suffix;
       }
       
-      zipFile = new File(tmpDir, "corusfiles@" + domainName + "-" + dirName + "_" + suffix +".zip");
+      zipFile = new File(tmpDir, dirName + "@" + domainName + "-" + hostName + "_" + suffix +".zip");
     }
     
     FileSystemModule fsService = context.getServices().getFileSystem();
     try {
       log.debug("Compressing content of directory " + file.getName() + " into file: " + zipFile);
       fsService.zip(file, zipFile);
-      streamFile(zipFile, ctx);
+      streamFile(zipFile, false, ctx);
     } finally {
       fsService.deleteFile(zipFile);
       log.debug("Deleted zip file: " + zipFile);
     }
+  }
+  
+  private String formatFileSize(File aFile) {
+    long fileLengthBytes = aFile.length();
+    
+    if (fileLengthBytes < 1048576L) {
+      double lengthKilo = ((long) (fileLengthBytes / 102.4d)) / 10d; 
+      return lengthKilo + " KB";
+    } else if (fileLengthBytes < 1073741824L) {
+      double lengthMega = ((long) (fileLengthBytes / 104857.6d)) / 10d; 
+      return lengthMega + " MB";
+    } else {
+      double lengthGiga = ((long) (fileLengthBytes / 107374182.4d)) / 10d; 
+      return lengthGiga + " GB";
+    }
+    
   }
   
   static final class FileComparator implements Comparator<FileEntry>{

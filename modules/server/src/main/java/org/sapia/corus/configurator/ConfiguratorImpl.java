@@ -1,7 +1,6 @@
 package org.sapia.corus.configurator;
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -17,6 +16,7 @@ import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.event.EventDispatcher;
+import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.PropertyContainer;
@@ -44,6 +44,9 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
  
   @Autowired
   private EventDispatcher dispatcher;
+  
+  @Autowired
+  private HttpModule httpModule;
   
   private PropertyStore processProperties, serverProperties;
   private DbMap<String, ConfigProperty> tags;
@@ -86,6 +89,9 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
   // --------------------------------------------------------------------------
   // Lifecycle
   
+  /* (non-Javadoc)
+   * @see org.sapia.corus.client.services.Service#init()
+   */
   @Override
   public void init() throws Exception {
     processProperties   = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process"));
@@ -93,9 +99,26 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
     tags                = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
     propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
   }
-  
+
+  /* (non-Javadoc)
+   * @see org.sapia.corus.core.ModuleHelper#start()
+   */
   @Override
-  public void dispose() {}
+  public void start() {
+    try {
+      ConfiguratorHttpExtension extension = new ConfiguratorHttpExtension(this, super.serverContext());
+      httpModule.addHttpExtension(extension);
+    } catch (Exception e) {
+      log.error("Could not add configurator HTTP extension", e);
+    }
+  }
+  
+  /* (non-Javadoc)
+   * @see org.sapia.corus.client.services.Service#dispose()
+   */
+  @Override
+  public void dispose() {
+  }
 
   // --------------------------------------------------------------------------
   // Property operations
