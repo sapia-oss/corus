@@ -51,6 +51,10 @@ public class ServerSideClusterInterceptor implements Interceptor, CorusCallback 
   // --------------------------------------------------------------------------
   // CorusCallback interface
   
+  public org.sapia.corus.client.Corus getCorus() {
+    return context.getCorus();
+  }
+  
   @Override
   public void debug(String message) {
     log.debug(message);
@@ -68,18 +72,8 @@ public class ServerSideClusterInterceptor implements Interceptor, CorusCallback 
   }
   
   @Override
-  public ServerAddress getCorusAddress() {
-    return context.getCorusHost().getEndpoint().getServerAddress();
-  }
-  
-  @Override
   public Set<ServerAddress> getSiblings() {
     return cluster.getHostAddresses();
-  }
-  
-  @Override
-  public Object lookup(String moduleName) {
-    return context.lookup(moduleName);
   }
   
   @Override

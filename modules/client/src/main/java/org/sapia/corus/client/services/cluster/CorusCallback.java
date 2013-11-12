@@ -2,15 +2,14 @@ package org.sapia.corus.client.services.cluster;
 
 import java.util.Set;
 
+import org.sapia.corus.client.Corus;
 import org.sapia.ubik.net.ServerAddress;
 
 public interface CorusCallback {
 
-  public ServerAddress getCorusAddress();
-  
   public Set<ServerAddress> getSiblings();
   
-  public Object lookup(String moduleName);
+  public Corus getCorus();
   
   public void debug(String message);
   

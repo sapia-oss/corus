@@ -62,6 +62,30 @@ public interface PropertiesFilter {
 	}
 	
 	// ==========================================================================
+
+	/**
+	 * A {@link PropertiesFilter} that negates the outcome of a delegate {@link PropertiesFilter}.
+	 *
+	 */
+	public static class NotPropertiesFilter implements PropertiesFilter {
+	  
+	  private PropertiesFilter delegate;
+	   
+	  public NotPropertiesFilter(PropertiesFilter delegate) {
+      this.delegate = delegate;
+    }
+	  
+	  @Override
+	  public boolean accepts(String name, String value) {
+	    return !delegate.accepts(name, value);
+	  }
+	  
+	  public static NotPropertiesFilter createInstance(PropertiesFilter delegate) {
+	    return new NotPropertiesFilter(delegate);
+	  }
+	}
+	
+	// ==========================================================================
 	
 	/**
 	 * This method is used to filter out property.

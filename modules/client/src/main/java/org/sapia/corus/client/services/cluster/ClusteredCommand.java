@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.sapia.corus.client.transport.CorusModuleOID;
+import org.sapia.corus.client.transport.CorusOID;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.command.InvokeCommand;
@@ -43,7 +44,9 @@ public class ClusteredCommand extends InvokeCommand {
   @Override
   protected Object doGetObjectFor(OID oid) throws NoSuchObjectException {
     if (oid instanceof CorusModuleOID) {
-      return callback.lookup(((CorusModuleOID) oid).getModuleName());
+      return callback.getCorus().lookup(((CorusModuleOID) oid).getModuleName());
+    } else if (oid instanceof CorusOID) {
+      return callback.getCorus();
     }
     return super.doGetObjectFor(oid);
   }
@@ -56,26 +59,37 @@ public class ClusteredCommand extends InvokeCommand {
 
     try {
       if (callback.isDebug()) {
-        callback.debug(String.format("Executing clustered command %s on %s", getMethodName(), getOID()));
+        callback.debug(String.format("Processing clustered command %s on %s", getMethodName(), getOID()));
       }
       Object returnValue = null;
       
-      // if the target set is empty, or if this node is specifically targeted (in the target set)
-      if (targeted.isEmpty() || targeted.contains(callback.getCorusAddress())) {
+      if (disable) {
+        if (callback.isDebug()) {
+          callback.debug(String.format("Command %s does not target a Corus module (will be executed on this host)", getMethodName()));
+        }                
         returnValue = super.execute();
-        if (!disable) {
-          visited.add(callback.getCorusAddress());
-          cascade();
+        
+      // if the target set is empty, or if this node is specifically targeted (in the target set)
+      } else if (targeted.isEmpty() || targeted.contains(callback.getCorus().getHostInfo().getEndpoint().getServerAddress())) {
+        if (callback.isDebug()) {
+          callback.debug(String.format("Command %s will be executed on this host", getMethodName()));
+        }        
+        returnValue = super.execute();
+        visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
+        ServerAddress nextAddress = selectNextAddress();
+        if (nextAddress != null) {
+          cascade(nextAddress);
         }
       // otherwise, this command is not meant for this node (cascading to the next host if required).
       } else {
         if (callback.isDebug()) {
           callback.debug(String.format("Not executing clustered command %s on %s; host not targeted: %s", 
-              getMethodName(),  getOID(), callback.getCorusAddress()));
+              getMethodName(),  getOID(), callback.getCorus().getHostInfo().getEndpoint().getServerAddress()));
         }
-        if (!disable) {
-          visited.add(callback.getCorusAddress());
-          returnValue = cascade();
+        visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
+        ServerAddress nextAddress = selectNextAddress();
+        if (nextAddress != null) {
+          returnValue = cascade(nextAddress);
         }
       }
       return returnValue;
@@ -85,25 +99,22 @@ public class ClusteredCommand extends InvokeCommand {
     }
 	}
 	
-	private Object cascade() throws Throwable {
-	  ServerAddress nextAddress = selectNextAddress();
-	  if (nextAddress != null) {
-	    if (callback.isDebug()) {
-	      callback.debug(String.format("Sending clustered command %s to %s", getMethodName(), nextAddress));
-	    }
-	    Object returnValue = callback.send(this, nextAddress);
-	    if (returnValue instanceof Throwable) {
-	      throw (Throwable) returnValue;
-	    }	    
-	    return returnValue;
-	  } else {
-	    callback.debug("No more host to target");
-	  }
-	  return null;
+	private Object cascade(ServerAddress nextAddress) throws Throwable {
+    if (callback.isDebug()) {
+      callback.debug(String.format("Sending clustered command %s to %s", getMethodName(), nextAddress));
+    }
+    Object returnValue = callback.send(this, nextAddress);
+    if (returnValue instanceof Throwable) {
+      throw (Throwable) returnValue;
+    }
+    if (callback.isDebug()) {
+      callback.debug(String.format("Receive %s from %s", returnValue, nextAddress));
+    }	    
+    return returnValue;
 	}
 	
 	ServerAddress selectNextAddress() {
-	  visited.add(callback.getCorusAddress());
+	  visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
 	  Set<ServerAddress> siblings  = callback.getSiblings();
     if (callback.isDebug()) {
       callback.debug("Got siblings: " + siblings);

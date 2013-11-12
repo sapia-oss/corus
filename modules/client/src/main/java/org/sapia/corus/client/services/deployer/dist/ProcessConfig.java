@@ -18,7 +18,7 @@ import org.sapia.util.xml.confix.ObjectHandlerIF;
  *
  * @author Yanick Duchesne
  */
-public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF{
+public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
   
   static final long serialVersionUID = 1L;
 

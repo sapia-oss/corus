@@ -5,10 +5,11 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.sapia.corus.client.Module;
 import org.sapia.ubik.rmi.server.oid.OID;
 
 /**
- * An {@link OID} implementation used for Corus modules published as remote objects.
+ * An {@link OID} implementation used for Corus {@link Module}s published as remote objects.
  * 
  * @author yduchesne
  *

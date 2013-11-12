@@ -3,7 +3,7 @@ package org.sapia.corus.core;
 import java.rmi.RemoteException;
 
 import org.sapia.ubik.rmi.server.Hub;
-import org.sapia.ubik.rmi.server.oid.OIDCreationStrategy;
+import org.sapia.ubik.rmi.server.StubProcessor;
 import org.sapia.ubik.rmi.server.transport.TransportProvider;
 
 /**
@@ -15,12 +15,14 @@ import org.sapia.ubik.rmi.server.transport.TransportProvider;
  */
 public abstract class AbstractTransport implements CorusTransport {
 	
+  private static final int SHUTDOWN_TIMEOUT = 30000;
+  
 	private boolean             isInit;
-  private OIDCreationStrategy oids = new CorusOidCreationStrategy();
-
 	
 	public AbstractTransport() {
-    Hub.getModules().getStubProcessor().insertOIDCreationStrategy(oids);
+	  StubProcessor processor = Hub.getModules().getStubProcessor();
+    processor.insertOIDCreationStrategy(new CorusOIDCreationStrategy());
+    processor.insertOIDCreationStrategy(new CorusModuleOIDCreationStrategy());
   }
 	
 	/**
@@ -46,7 +48,7 @@ public abstract class AbstractTransport implements CorusTransport {
 	 */
 	public void shutdown() {
 		try {
-			Hub.shutdown(30000);
+			Hub.shutdown(SHUTDOWN_TIMEOUT);
 		} catch (InterruptedException ie) {
 			ie.printStackTrace();
 		}

@@ -12,8 +12,6 @@ import java.util.Set;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
-import org.sapia.corus.client.services.configurator.Configurator;
-import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -165,7 +163,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       Distribution dist, TaskExecutionContext ctx, Properties processProperties)
       throws PortUnavailableException {
 
-    Configurator configurator = ctx.getServerContext().getServices().lookup(Configurator.class);
     PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
 
     List<Property> props = new ArrayList<Property>(10);
@@ -200,17 +197,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
         .getProfile()));
     props.add(new Property("user.dir", dist.getCommonDir()));
 
-    Properties allProps = new Properties(processProperties);
-    Properties confProps = configurator.getProperties(PropertyScope.PROCESS);
-
-    Enumeration names = confProps.propertyNames();
-
-    while (names.hasMoreElements()) {
-      String name = (String) names.nextElement();
-      allProps.put(name, confProps.getProperty(name));
-    }
-
-    names = processProperties.propertyNames();
+    Enumeration names = processProperties.propertyNames();
 
     // process properties...
     while (names.hasMoreElements()) {

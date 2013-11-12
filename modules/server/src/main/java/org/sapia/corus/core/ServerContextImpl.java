@@ -12,6 +12,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.util.PropertiesFilter;
+import org.sapia.corus.util.PropertiesFilter.NotPropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
@@ -146,6 +147,12 @@ public class ServerContextImpl implements ServerContext {
     Properties ubikProperties = PropertiesUtil.filter(
     		System.getProperties(), 
     		PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik")
+    );
+    
+    // removing ubik log config properties
+    ubikProperties = PropertiesUtil.filter(
+        ubikProperties, 
+        NotPropertiesFilter.createInstance(PropertiesFilter.NameContainsPropertiesFilter.createInstance("ubik.rmi.log"))
     );
     PropertiesUtil.copy(ubikProperties, processProps);
 
