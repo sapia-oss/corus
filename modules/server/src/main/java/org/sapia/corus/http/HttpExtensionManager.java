@@ -29,6 +29,12 @@ import org.simpleframework.http.Response;
  */
 public class HttpExtensionManager implements Handler {
 
+  public static final String STYLE_HEADER = "<style media=\"screen\" type=\"text/css\">"
+      + "table { border-color: lightsteelblue; } "
+      + "tr:hover { background-color: lightyellow; } "
+      + "tr:first-child:hover { background-color: white; } "
+      + "</style>";
+  
   public static final String FOOTER = "<hr><i>Corus HTTP Service - <a href=\"http://www.sapia-oss.org/projects/corus\">www.sapia-oss.org</a></i>";
 
   private Logger logger;

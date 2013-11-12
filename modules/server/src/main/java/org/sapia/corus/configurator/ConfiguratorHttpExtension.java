@@ -62,7 +62,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     httpContext.getResponse().setStatusCode(HttpResponseFacade.STATUS_OK);
     
     PrintStream responseStream = new PrintStream(httpContext.getResponse().getOutputStream());
-    responseStream.println("<html><title>Corus Configurator</title><body>");
+    responseStream.println("<html><title>Corus Configurator</title><head>" + HttpExtensionManager.STYLE_HEADER + "</head><body>");
 
     responseStream.println("<h3>Process Configuration Properties</h3>");
     generatePropertiesTable(configurator.getProperties(PropertyScope.PROCESS), responseStream);

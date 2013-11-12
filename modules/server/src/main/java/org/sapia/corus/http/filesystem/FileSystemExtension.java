@@ -167,7 +167,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     if(title.length() == 0){
       title = "/";
     }
-    ps.println("<html><title>Corus Files - "+ title +"</title><body>");
+    ps.println("<html><title>Corus Files - "+ title +"</title><head>" + HttpExtensionManager.STYLE_HEADER + "</head><body>");
 
     List<String> pathElements = new ArrayList<String>();
     for (StringTokenizer tokenizer = new StringTokenizer(title, "/", false); tokenizer.hasMoreTokens(); ) {
@@ -306,14 +306,14 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     String dirName = file.getName();
     
     int counter = 0;
-    File zipFile = new File(tmpDir, dirName + "@" + domainName + "-" + hostName + ".zip");
+    File zipFile = new File(tmpDir, dirName + "-" + hostName + "@" + domainName + ".zip");
     while (zipFile.exists()) {
       String suffix = String.valueOf(++counter);
       while (suffix.length() < 4) {
         suffix = "0" + suffix;
       }
       
-      zipFile = new File(tmpDir, dirName + "@" + domainName + "-" + hostName + "_" + suffix +".zip");
+      zipFile = new File(tmpDir, dirName + "-" + hostName + "@" + domainName + "_" + suffix +".zip");
     }
     
     FileSystemModule fsService = context.getServices().getFileSystem();
