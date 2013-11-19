@@ -181,33 +181,40 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     
     for (VmArg arg : vmArgs) {
       String value = render(propContext, arg.getValue());
-      arg.setValue(value);
-      cmd.addElement(arg.convert());
+      VmArg copy = new VmArg();
+      copy.setValue(value);
+      cmd.addElement(copy.convert());
     }
     
     for (XOption opt : xoptions) {
       String value = render(propContext, opt.getValue());
-      opt.setValue(value);
-      if (!Strings.isBlank(opt.getName())) {
-        cmdLineVars.put(opt.getName(), value);
+      XOption copy = new XOption();
+      copy.setName(opt.getName());
+      copy.setValue(value);
+      if (!Strings.isBlank(copy.getName())) {
+        cmdLineVars.put(copy.getName(), value);
       }
-      cmd.addElement(opt.convert());
+      cmd.addElement(copy.convert());
     }
   
     for (Option opt : options) {
       String value = render(propContext, opt.getValue());
-      opt.setValue(value);
-      if (!Strings.isBlank(opt.getName())) {
-        cmdLineVars.put(opt.getName(), value);
+      Option copy = new Option();
+      copy.setName(opt.getName());
+      copy.setValue(value);
+      if (!Strings.isBlank(copy.getName())) {
+        cmdLineVars.put(copy.getName(), value);
       }      
-      cmd.addElement(opt.convert());
+      cmd.addElement(copy.convert());
     }
   
     for (Property prop : vmProps) {
       String value = render(propContext, prop.getValue());
-      prop.setValue(value);
-      cmdLineVars.put(prop.getName(), value);
-      cmd.addElement(prop.convert());
+      Property copy = new Property();
+      copy.setName(prop.getName());
+      copy.setValue(value);
+      cmdLineVars.put(copy.getName(), value);
+      cmd.addElement(copy.convert());
     }
     
     for (Property prop : envProperties) {
