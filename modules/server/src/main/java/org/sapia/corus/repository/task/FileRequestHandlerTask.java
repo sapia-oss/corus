@@ -11,16 +11,20 @@ import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.ubik.util.Function;
 
 /**
- * This task performs the deployment to a provided list of nodes, following a {@link FileDeploymentRequest}.
+ * This task performs the deployment to a provided list of nodes, following a
+ * {@link FileDeploymentRequest}.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class FileRequestHandlerTask extends ArtifactRequestHandlerTaskSupport {
 
   /**
-   * @param file the {@link File} consisting of the file to deploy.
-   * @param targets the {@link List} of {@link Endpoint}s corresponding to the Corus nodes to deploy to.
+   * @param file
+   *          the {@link File} consisting of the file to deploy.
+   * @param targets
+   *          the {@link List} of {@link Endpoint}s corresponding to the Corus
+   *          nodes to deploy to.
    */
   public FileRequestHandlerTask(final File file, final List<Endpoint> targets) {
     super(file, targets, new Function<DeploymentMetadata, Boolean>() {

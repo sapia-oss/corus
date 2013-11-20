@@ -11,13 +11,12 @@ import org.sapia.ubik.rmi.server.transport.TransportProvider;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketAddress;
 import org.sapia.ubik.rmi.server.transport.socket.MultiplexSocketTransportProvider;
 
-
 /**
  * Raw-socket implementation of the <code>CorusTransport</code> interface.
- *
+ * 
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  */
-public class TcpCorusTransport extends AbstractTransport{
+public class TcpCorusTransport extends AbstractTransport {
 
   /** The server address. */
   private TCPAddress address;
@@ -25,15 +24,16 @@ public class TcpCorusTransport extends AbstractTransport{
   /**
    * Creates a new TcpCorusTransport instance.
    * 
-   * @param aPort The number of port on which to export objects.
+   * @param aPort
+   *          The number of port on which to export objects.
    */
   public TcpCorusTransport(String aHost, int aPort) {
-    if (aHost == null || aHost.length()== 0) {
+    if (aHost == null || aHost.length() == 0) {
       throw new IllegalStateException("The host passed in is invalid: " + aHost);
     } else if (aPort <= 0) {
       throw new IllegalStateException("The port number is invalid: " + aPort);
     }
-    
+
     address = new MultiplexSocketAddress(aHost, aPort);
   }
 
@@ -43,7 +43,7 @@ public class TcpCorusTransport extends AbstractTransport{
   public ServerAddress getServerAddress() {
     return address;
   }
-  
+
   /**
    * @see org.sapia.corus.core.AbstractTransport#initExport(java.lang.Object)
    */
@@ -56,7 +56,8 @@ public class TcpCorusTransport extends AbstractTransport{
   }
 
   /**
-   * @return The Ubik transport provider used by this corus transport implementation.
+   * @return The Ubik transport provider used by this corus transport
+   *         implementation.
    */
   public TransportProvider getTransportProvider() {
     return Hub.getModules().getTransportManager().getDefaultProvider();

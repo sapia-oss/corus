@@ -20,30 +20,27 @@ import org.sapia.ubik.util.Collections2;
 import org.sapia.ubik.util.Function;
 
 /**
- * This task provides the basic behavior for deploying artifacts to a provided list of nodes.
+ * This task provides the basic behavior for deploying artifacts to a provided
+ * list of nodes.
  * 
  * @author yduchesne
- *
+ * 
  */
 public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
-    
+
   private static final int BUFSZ = 2048;
-  
+
   private List<Endpoint> targets;
-  private File           artifactFile;
+  private File artifactFile;
   private Function<DeploymentMetadata, Boolean> metadataFunc;
-  
-  protected ArtifactRequestHandlerTaskSupport(
-      File artifactFile, 
-      List<Endpoint> targets, 
-      Function<DeploymentMetadata, Boolean> metadataFunc
-  ) {
+
+  protected ArtifactRequestHandlerTaskSupport(File artifactFile, List<Endpoint> targets, Function<DeploymentMetadata, Boolean> metadataFunc) {
     this.artifactFile = artifactFile;
-    this.targets      = targets;
+    this.targets = targets;
     this.metadataFunc = metadataFunc;
   }
-  
-  public void run() { 
+
+  public void run() {
     if (targets.isEmpty()) {
       context().debug("No targets to deploy to");
     } else {
@@ -58,42 +55,42 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
 
   // --------------------------------------------------------------------------
   // Restricted visibility methods - for unit testing
-  
+
   void doDeploy() throws IOException {
-    OutputStream        os     = null;
-    BufferedInputStream bis    = null;
-    boolean             closed = false;
-    
+    OutputStream os = null;
+    BufferedInputStream bis = null;
+    boolean closed = false;
+
     List<Endpoint> targetsCopy = new ArrayList<Endpoint>(targets);
-    
+
     try {
-      
+
       DeploymentMetadata meta = metadataFunc.call(Boolean.TRUE);
-      
+
       Endpoint first = targetsCopy.get(0);
-      
+
       meta.getClusterInfo().getTargets().addAll(Collections2.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
         public ServerAddress call(Endpoint arg) {
           return arg.getServerAddress();
         }
       }));
-      
+
       DeployOutputStream dos = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(first.getServerAddress()));
 
-      os  = new DeployOsAdapter(dos);
+      os = new DeployOsAdapter(dos);
       bis = new BufferedInputStream(new FileInputStream(artifactFile));
-      
-      byte[] b    = new byte[BUFSZ];
-      int    read;
-      
+
+      byte[] b = new byte[BUFSZ];
+      int read;
+
       while ((read = bis.read(b)) > -1) {
         os.write(b, 0, read);
       }
-      
+
       os.flush();
       os.close();
       closed = true;
-      
+
     } finally {
       if ((os != null) && !closed) {
         try {
@@ -101,7 +98,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
         } catch (IOException e) {
         }
       }
-      
+
       if (bis != null) {
         try {
           bis.close();

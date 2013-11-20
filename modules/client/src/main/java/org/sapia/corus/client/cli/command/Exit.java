@@ -8,15 +8,15 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
 import org.sapia.ubik.net.TCPAddress;
 
 /**
- * Either terminates the CLI, or connects to the "previous" Corus node in the history - if any.
+ * Either terminates the CLI, or connects to the "previous" Corus node in the
+ * history - if any.
  * 
  * @author Yanick Duchesne
  */
 public class Exit extends CorusCliCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx)
-                    throws AbortException, InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     if (ctx.getCorus().getContext().getConnectionHistory().isEmpty()) {
       throw new SystemExitException();
     } else {

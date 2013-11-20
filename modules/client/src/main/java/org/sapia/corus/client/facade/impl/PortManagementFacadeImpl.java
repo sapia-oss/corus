@@ -14,25 +14,24 @@ import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 
 public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implements PortManagementFacade {
-  
+
   public PortManagementFacadeImpl(CorusConnectionContext context) {
     super(context, PortManager.class);
   }
-  
+
   @Override
-  public void addPortRange(String name, int min, int max, ClusterInfo cluster)
-      throws PortRangeConflictException, PortRangeInvalidException {
+  public void addPortRange(String name, int min, int max, ClusterInfo cluster) throws PortRangeConflictException, PortRangeInvalidException {
     proxy.addPortRange(name, min, max);
     invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
-  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster)
-      throws PortRangeConflictException, PortRangeInvalidException {
+  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster) throws PortRangeConflictException,
+      PortRangeInvalidException {
     proxy.addPortRanges(ranges, clearExisting);
-    invoker.invokeLenient(void.class, cluster);    
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public Results<List<PortRange>> getPortRanges(ClusterInfo cluster) {
     Results<List<PortRange>> results = new Results<List<PortRange>>();
@@ -40,18 +39,17 @@ public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implemen
     invoker.invokeLenient(results, cluster);
     return results;
   }
-  
+
   @Override
   public void releasePortRange(String rangeName, ClusterInfo cluster) {
     proxy.releasePortRange(ArgFactory.parse(rangeName));
     invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
-  public void removePortRange(String name, boolean force, ClusterInfo cluster)
-      throws PortActiveException {
+  public void removePortRange(String name, boolean force, ClusterInfo cluster) throws PortActiveException {
     proxy.removePortRange(ArgFactory.parse(name), force);
     invoker.invokeLenient(void.class, cluster);
   }
- 
+
 }

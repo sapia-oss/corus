@@ -12,8 +12,8 @@ import org.sapia.ubik.rmi.server.Stateless;
 /**
  * @author Yanick Duchesne
  */
-public class TimeServer implements TimeService, Stateless, java.rmi.Remote{
-  
+public class TimeServer implements TimeService, Stateless, java.rmi.Remote {
+
   /**
    * @see org.sapia.corus.naming.example.TimeService#getTime()
    */
@@ -21,10 +21,10 @@ public class TimeServer implements TimeService, Stateless, java.rmi.Remote{
     System.out.println("Returning time...");
     return new Date();
   }
-  
+
   public static void main(String[] args) {
-    
-    try{
+
+    try {
       TimeServer svr = new TimeServer();
       Properties props = new Properties();
       props.setProperty(Context.INITIAL_CONTEXT_FACTORY, RemoteInitialContextFactory.class.getName());
@@ -33,10 +33,10 @@ public class TimeServer implements TimeService, Stateless, java.rmi.Remote{
       InitialContext ctx = new InitialContext(props);
       ctx.bind("timeService", svr);
       System.out.println("Time server bound...");
-      while(true){
+      while (true) {
         Thread.sleep(100000);
       }
-    }catch(Throwable t){
+    } catch (Throwable t) {
       t.printStackTrace();
     }
   }

@@ -14,24 +14,24 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  * @author Yanick Duchesne
  */
 public class SuspendTask extends KillTask {
-  
+
   public SuspendTask(int maxRetry) {
     super(maxRetry);
   }
-  
+
   @Override
   protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) {
     try {
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
-      
+
       try {
         OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {
           os.killProcess(osKillCallback(), proc.getOsPid());
         }
       } catch (IOException e) {
-        ctx.warn("Error caught trying to kill process", e);        
+        ctx.warn("Error caught trying to kill process", e);
       }
 
       synchronized (processes) {

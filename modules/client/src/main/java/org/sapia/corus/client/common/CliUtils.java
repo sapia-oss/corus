@@ -23,22 +23,23 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
  * Holds various command-line utility methods.
  * 
  * @author yduchesne
- *
+ * 
  */
 public final class CliUtils {
-  
+
   private static final int BUFSZ = 1024;
 
   private static final int HOST_INDEX = 0;
   private static final int PORT_INDEX = 1;
-  
+
   private CliUtils() {
   }
-  
+
   /**
-   * @param cmd the {@link CmdLine} to execute.
-   * @return the {@link Map} of option values corresponding to the {@link Option}s of
-   * the given {@link CmdLine} instance.
+   * @param cmd
+   *          the {@link CmdLine} to execute.
+   * @return the {@link Map} of option values corresponding to the
+   *         {@link Option}s of the given {@link CmdLine} instance.
    */
   public static Map<String, String> getOptionsMap(CmdLine cmd) {
     Map<String, String> vars = new HashMap<String, String>();
@@ -53,16 +54,19 @@ public final class CliUtils {
     }
     return vars;
   }
-  
+
   /**
    * Parses a comma-delimited list of hosts, in the following format:
+   * 
    * <pre>
    * host1:port1,host2:port2[,...[,hostN:portN]
    * </pre>
    * 
    * 
-   * @param commaDelimitedList a comma-delimited list of hosts.
-   * @return the {@link Set} of {@link ServerAddress}es corresponding to the given list of hosts.
+   * @param commaDelimitedList
+   *          a comma-delimited list of hosts.
+   * @return the {@link Set} of {@link ServerAddress}es corresponding to the
+   *         given list of hosts.
    */
   public static Set<ServerAddress> parseServerAddresses(String commaDelimitedList) {
     Set<ServerAddress> addresses = new HashSet<ServerAddress>();
@@ -79,32 +83,33 @@ public final class CliUtils {
 
   /**
    * 
-   * @param corus the {@link CorusConnectionContextO} instance for which to generate a command-line prompt.
+   * @param corus
+   *          the {@link CorusConnectionContextO} instance for which to generate
+   *          a command-line prompt.
    * @return a command-line prompt.
    */
   public static final String getPromptFor(CorusConnectionContext context) {
     StringBuffer prompt = new StringBuffer()
-    .append("[")
-    .append(
-        context.getServerHost().getHostName().equals(CorusHost.UNDEFINED_HOSTNAME) ?
-        context.getServerHost().getEndpoint().getServerTcpAddress() :
-        context.getServerHost().getHostName() + ":" 
-        + context.getServerHost().getEndpoint().getServerTcpAddress().getPort()
-            
-    ).append("@")
-    .append(context.getDomain())
-    .append("]>> ");
+        .append("[")
+        .append(
+            context.getServerHost().getHostName().equals(CorusHost.UNDEFINED_HOSTNAME) ? context.getServerHost().getEndpoint().getServerTcpAddress()
+                : context.getServerHost().getHostName() + ":" + context.getServerHost().getEndpoint().getServerTcpAddress().getPort()
+
+        ).append("@").append(context.getDomain()).append("]>> ");
     return prompt.toString();
   }
-  
+
   /**
-   * Extracts all the available data of the passed in input stream and add it
-   * to the output stream. When no data is available, it closes the input stream and
-   * flush the data of the output stream.
+   * Extracts all the available data of the passed in input stream and add it to
+   * the output stream. When no data is available, it closes the input stream
+   * and flush the data of the output stream.
    * 
-   * @param anInput The input stream from which to read the data.
-   * @param anOutput The output stream to which to write the data.
-   * @throws IOException If an error occurs extracting the data.
+   * @param anInput
+   *          The input stream from which to read the data.
+   * @param anOutput
+   *          The output stream to which to write the data.
+   * @throws IOException
+   *           If an error occurs extracting the data.
    */
   public static void extractAvailable(InputStream anInput, OutputStream anOutput) throws IOException {
     InputStream is = new BufferedInputStream(anInput);
@@ -120,27 +125,33 @@ public final class CliUtils {
         }
         anOutput.write(someData, 0, length);
         size = is.available();
-      } 
+      }
     } finally {
       try {
-        if (anOutput != null) anOutput.flush();
-        if (is != null) is.close();
+        if (anOutput != null)
+          anOutput.flush();
+        if (is != null)
+          is.close();
       } catch (IOException ioe) {
       }
     }
   }
-  
+
   /**
-   * Extracts the available data of the passed in input stream and add it to the output
-   * stream. If no current data is available, it will wait up to the timeout value passed
-   * in for data. When all the available data is retrieved or when no data is available and
-   * the timeout value is reached, it closes the input stream and flush the data of the
-   * output stream.
+   * Extracts the available data of the passed in input stream and add it to the
+   * output stream. If no current data is available, it will wait up to the
+   * timeout value passed in for data. When all the available data is retrieved
+   * or when no data is available and the timeout value is reached, it closes
+   * the input stream and flush the data of the output stream.
    * 
-   * @param anInput The input stream from which to read the data.
-   * @param anOutput The output stream to which to write the data.
-   * @param aTimeout The timeout value to stop wainting on available data.
-   * @throws IOException If an error occurs extracting the data.
+   * @param anInput
+   *          The input stream from which to read the data.
+   * @param anOutput
+   *          The output stream to which to write the data.
+   * @param aTimeout
+   *          The timeout value to stop wainting on available data.
+   * @throws IOException
+   *           If an error occurs extracting the data.
    */
   public static void extractUntilAvailable(InputStream anInput, OutputStream anOutput, int aTimeout) throws IOException {
     boolean hasRead = false;
@@ -161,8 +172,8 @@ public final class CliUtils {
           hasRead = true;
           anOutput.write(someData, 0, length);
           size = is.available();
-        } 
-        
+        }
+
         if (!hasRead && ((System.currentTimeMillis() - aStart) <= aTimeout)) {
           try {
             Thread.sleep(250);
@@ -171,21 +182,24 @@ public final class CliUtils {
         } else {
           break;
         }
-      } 
+      }
     } finally {
       try {
-        if (anOutput != null) anOutput.flush();
-        if (is != null) is.close();
+        if (anOutput != null)
+          anOutput.flush();
+        if (is != null)
+          is.close();
       } catch (IOException ioe) {
       }
     }
   }
-  
+
   /**
-   * Collects results from different hosts, and puts them in a {@link Map}, where each result
-   * is bound on a per-host basis.
+   * Collects results from different hosts, and puts them in a {@link Map},
+   * where each result is bound on a per-host basis.
    * 
-   * @param results a {@link Results} instance.
+   * @param results
+   *          a {@link Results} instance.
    * @return the {@link Map} of results, on a per-host basis.
    */
   public static <T> Map<ServerAddress, T> collectResultsPerHost(Results<T> results) {
@@ -195,14 +209,15 @@ public final class CliUtils {
       resultsPerHost.put(result.getOrigin(), result.getData());
     }
     return resultsPerHost;
-  } 
-  
+  }
+
   /**
-   * @param cmdLine a {@link CmdLine} instance.
-   * @return <code>true</code> if the given instance has the help option specified.
+   * @param cmdLine
+   *          a {@link CmdLine} instance.
+   * @return <code>true</code> if the given instance has the help option
+   *         specified.
    */
   public static boolean isHelp(CmdLine cmdLine) {
-    return cmdLine.containsOption("help", false) 
-        || cmdLine.containsOption("-help", false);
+    return cmdLine.containsOption("help", false) || cmdLine.containsOption("-help", false);
   }
 }

@@ -15,13 +15,11 @@ import org.sapia.ubik.util.Streams;
  */
 public class NotFoundHelper implements OutputHelper {
 
-  public void print(HttpRequestFacade req, HttpResponseFacade res)
-      throws Exception {
+  public void print(HttpRequestFacade req, HttpResponseFacade res) throws Exception {
     res.setHeader("Content-Type", "text/html");
     res.setStatusCode(HttpResponseFacade.STATUS_NOT_FOUND);
     PrintStream ps = new PrintStream(res.getOutputStream());
-    ps.println("<html><body><h1>404 - NOT FOUND</h1> "
-        + HttpExtensionManager.FOOTER + "</body></html>");
+    ps.println("<html><body><h1>404 - NOT FOUND</h1> " + HttpExtensionManager.FOOTER + "</body></html>");
     Streams.flushAndCloseSilently(ps);
   }
 }

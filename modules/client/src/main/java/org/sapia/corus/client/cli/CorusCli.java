@@ -33,27 +33,26 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.util.Localhost;
 
-
 /**
  * This class is the entry point into the Corus command-line interface.
  * 
  * @author Yanick Duchesne
  */
 public class CorusCli extends CommandConsole {
-	
-  public static final int    DEFAULT_PORT      = 33000;
-  public static final String HOST_OPT          = "h";
-  public static final String PORT_OPT          = "p";
-  public static final String SCRIPT_OPT        = "s";
-  public static final String COMMAND_OPT       = "c";
-  public static final int    MAX_ERROR_HISTORY = 20;
-  
-  private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();  
-  
+
+  public static final int DEFAULT_PORT = 33000;
+  public static final String HOST_OPT = "h";
+  public static final String PORT_OPT = "p";
+  public static final String SCRIPT_OPT = "s";
+  public static final String COMMAND_OPT = "c";
+  public static final int MAX_ERROR_HISTORY = 20;
+
+  private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();
+
   protected CorusConnector corus;
-  private List<CliError> 	 errors;
-  private boolean          abortOnError;
-  private StrLookup        vars = StrLookup.systemPropertiesLookup();
+  private List<CliError> errors;
+  private boolean abortOnError;
+  private StrLookup vars = StrLookup.systemPropertiesLookup();
 
   public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
     super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
@@ -61,20 +60,20 @@ public class CorusCli extends CommandConsole {
     super.setCommandListener(new CliConsoleListener());
     this.corus = corus;
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
-    
+
     // Change the prompt
     setPrompt(CliUtils.getPromptFor(corus.getContext()));
   }
-  
+
   public CorusCli(CorusConnector corus) throws IOException {
     this(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), corus);
   }
-  
+
   private static ConsoleInput selectConsoleInput() {
     String osName = System.getProperty("os.name").toLowerCase();
-    
+
     // note: a case of the os.name being set to Vista has been reported.
-    if(SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
+    if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
       return ConsoleInputFactory.createJdk6ConsoleInput();
     } else {
       try {
@@ -86,45 +85,45 @@ public class CorusCli extends CommandConsole {
   }
 
   public static void main(String[] args) {
-  	
-  	// disabling log4j output
-  	org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
-  	
+
+    // disabling log4j output
+    org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
+
     String host = null;
     int port = DEFAULT_PORT;
 
     try {
       CmdLine cmd = CmdLine.parse(args);
 
-      if(cmd.containsOption("ver", false)) {
+      if (cmd.containsOption("ver", false)) {
         System.out.println("Corus client version: " + CorusVersion.create());
         System.out.println("Java version: " + System.getProperty("java.version"));
-      } else if(CliUtils.isHelp(cmd)) {
+      } else if (CliUtils.isHelp(cmd)) {
         help();
       } else {
-        if(cmd.containsOption(HOST_OPT, true)) {
+        if (cmd.containsOption(HOST_OPT, true)) {
           host = cmd.assertOption(HOST_OPT, true).getValue();
-          if(host.equalsIgnoreCase("localhost")) {
+          if (host.equalsIgnoreCase("localhost")) {
             host = Localhost.getAnyLocalAddress().getHostAddress();
           }
-        } else{
+        } else {
           host = Localhost.getAnyLocalAddress().getHostAddress();
         }
-  
+
         if (cmd.containsOption(PORT_OPT, true)) {
           port = cmd.assertOption(PORT_OPT, true).asInt();
         }
         CorusConnectionContext connection = new CorusConnectionContextImpl(host, port, FILE_SYSTEM);
-        CorusConnector         connector  = new CorusConnectorImpl(connection);
+        CorusConnector connector = new CorusConnectorImpl(connection);
 
         // --------------------------------------------------------------------
-        // -s option  
+        // -s option
 
         if (cmd.containsOption(SCRIPT_OPT, false)) {
           String path = cmd.assertOption(SCRIPT_OPT, true).getValue();
-         
+
           Reader input = null;
-          try {    
+          try {
             input = new FileReader(new File(path));
           } catch (IOException e) {
             e.printStackTrace();
@@ -139,14 +138,14 @@ public class CorusCli extends CommandConsole {
             err.printStackTrace();
             System.exit(1);
           }
-          
-        // --------------------------------------------------------------------
-        // -c option  
-          
+
+          // --------------------------------------------------------------------
+          // -c option
+
         } else if (cmd.containsOption(COMMAND_OPT, false)) {
-          Option        opt         = cmd.assertOption(COMMAND_OPT, true);
-          StringBuilder commandLine = new StringBuilder(opt.getValue());          
-          
+          Option opt = cmd.assertOption(COMMAND_OPT, true);
+          StringBuilder commandLine = new StringBuilder(opt.getValue());
+
           for (int i = 0; i < cmd.size(); i++) {
             CmdElement ce = cmd.get(i);
             if (ce.equals(opt)) {
@@ -157,7 +156,7 @@ public class CorusCli extends CommandConsole {
               break;
             }
           }
-          
+
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             console.eval(commandLine.toString(), StrLookup.systemPropertiesLookup());
@@ -165,17 +164,17 @@ public class CorusCli extends CommandConsole {
           } catch (Throwable err) {
             err.printStackTrace();
             System.exit(1);
-          } 
-          
-        // --------------------------------------------------------------------
-        // default behavior
-   
+          }
+
+          // --------------------------------------------------------------------
+          // default behavior
+
         } else {
-         try {
-           CorusCli cli = new CorusCli(connector);
-           cli.start();
-          } catch(NullPointerException e){
-          	e.printStackTrace();
+          try {
+            CorusCli cli = new CorusCli(connector);
+            cli.start();
+          } catch (NullPointerException e) {
+            e.printStackTrace();
           }
         }
       }
@@ -183,10 +182,10 @@ public class CorusCli extends CommandConsole {
       System.out.println(e.getMessage());
       help();
     } catch (Exception e) {
-      if(e instanceof ConnectionException || e instanceof RemoteException) {
+      if (e instanceof ConnectionException || e instanceof RemoteException) {
         System.out.println("No server listening at " + host + ":" + port);
         e.printStackTrace();
-      } else{
+      } else {
         e.printStackTrace();
       }
     }
@@ -194,7 +193,7 @@ public class CorusCli extends CommandConsole {
 
   // ==========================================================================
   // Restricted methods
-  
+
   /**
    * @see org.sapia.console.CommandConsole#newContext()
    */
@@ -232,7 +231,7 @@ public class CorusCli extends CommandConsole {
 
   // ==========================================================================
   // Inner classes
-  
+
   public static class CliConsoleListener implements ConsoleListener {
     /**
      * @see org.sapia.console.ConsoleListener#onAbort(Console)
@@ -254,10 +253,10 @@ public class CorusCli extends CommandConsole {
      */
     public void onStart(Console cons) {
       line(cons);
-      
+
       Calendar cal = Calendar.getInstance();
       int year = cal.get(Calendar.YEAR);
-      
+
       center(cons, "");
       center(cons, "Corus Command Line Interface (" + CorusVersion.create().toString() + ")");
       center(cons, "");
@@ -269,7 +268,7 @@ public class CorusCli extends CommandConsole {
       center(cons, "");
       line(cons);
       cons.println();
-      
+
       cons.println("-> Type man to see the list of available commands.");
       cons.println("-> Type man <command_name> to see help about a specific command.");
       cons.println();

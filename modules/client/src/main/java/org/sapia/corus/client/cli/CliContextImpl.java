@@ -12,45 +12,44 @@ import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
 
-
 /**
  * @author Yanick Duchesne
  */
 public class CliContextImpl extends Context implements CliContext {
-  
+
   private static int ERROR_COUNTER = 1;
-  
-  private CorusConnector      corus;
-  private List<CliError>      errors; 
-  private boolean 			      abortOnError;
-  private StrLookup           vars;
+
+  private CorusConnector corus;
+  private List<CliError> errors;
+  private boolean abortOnError;
+  private StrLookup vars;
 
   /**
    * Creates a new {@link CliContextImpl} instance.
-   *
+   * 
    * @param corus
    */
   public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookup vars) {
-    this.corus  = corus;
+    this.corus = corus;
     this.errors = anErrorList;
-    this.vars   = vars;
+    this.vars = vars;
   }
-  
+
   @Override
   public CorusConnector getCorus() {
     return corus;
   }
-  
+
   @Override
   public ClientFileSystem getFileSystem() {
     return corus.getContext().getFileSystem();
   }
-  
+
   @Override
   public StrLookup getVars() {
     return vars;
   }
-  
+
   @Override
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause) {
     CliError created = null;
@@ -58,13 +57,13 @@ public class CliContextImpl extends Context implements CliContext {
       created = new CliError(ERROR_COUNTER++, null, aCause, getCommandLine(), aCommand);
       errors.add(created);
     }
-    
+
     if (aCause instanceof AbortException) {
       throw (AbortException) aCause;
     } else if (abortOnError) {
       throw new AbortException("Error occurred", aCause);
-    }    
-    
+    }
+
     return created;
   }
 
@@ -80,8 +79,8 @@ public class CliContextImpl extends Context implements CliContext {
       throw (AbortException) aCause;
     } else if (abortOnError) {
       throw new AbortException("Error occurred", aCause);
-    }    
-    
+    }
+
     return created;
   }
 
@@ -99,10 +98,10 @@ public class CliContextImpl extends Context implements CliContext {
       size = errors.size();
       errors.clear();
     }
-    
+
     return size;
   }
-  
+
   @Override
   public boolean isAbordOnError() {
     return abortOnError;

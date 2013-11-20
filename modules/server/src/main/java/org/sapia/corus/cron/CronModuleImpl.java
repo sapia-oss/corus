@@ -25,31 +25,30 @@ import fr.dyade.jdring.AlarmEntry;
 import fr.dyade.jdring.AlarmManager;
 import fr.dyade.jdring.PastDateException;
 
-
 /**
  * This class implements the {@link CronModule} interface.
  * 
  * @author yduchesne
  */
-@Bind(moduleInterface=CronModule.class)
-@Remote(interfaces={CronModule.class})
+@Bind(moduleInterface = CronModule.class)
+@Remote(interfaces = { CronModule.class })
 public class CronModuleImpl extends ModuleHelper implements CronModule {
-  
+
   static CronModuleImpl instance;
-  
+
   @Autowired
-  private DbModule 							 db;
+  private DbModule db;
   @Autowired
-  private Deployer 							 deployer;
+  private Deployer deployer;
   private DbMap<String, CronJob> jobs;
-  private AlarmManager  				 alarms = new AlarmManager();
+  private AlarmManager alarms = new AlarmManager();
 
   /**
    * @see Service#init()
    */
   public void init() throws Exception {
     instance = this;
-    jobs    = db.getDbMap(String.class, CronJob.class, "cron.jobs");
+    jobs = db.getDbMap(String.class, CronJob.class, "cron.jobs");
     initAlarms();
   }
 
@@ -57,14 +56,17 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
    * @see Service#dispose()
    */
   public void dispose() {
-    try{
+    try {
       alarms.removeAllAlarms();
-    }catch(RuntimeException e){}
+    } catch (RuntimeException e) {
+    }
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                        Module INTERFACE METHOD
-  ////////////////////////////////////////////////////////////////////*/
+  /*
+   * //////////////////////////////////////////////////////////////////// Module
+   * INTERFACE METHOD
+   * ////////////////////////////////////////////////////////////////////
+   */
 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -73,24 +75,22 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
     return CronModule.ROLE;
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                    CronModule INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
+  /*
+   * ////////////////////////////////////////////////////////////////////
+   * CronModule INTERFACE METHODS
+   * ////////////////////////////////////////////////////////////////////
+   */
 
   /**
    * @see org.sapia.corus.client.services.cron.CronModule#addCronJob(CronJobInfo)
    */
-  public synchronized void addCronJob(CronJobInfo info)
-                               throws InvalidTimeException, ProcessConfigurationNotFoundException, 
-                                      CorusException {
+  public synchronized void addCronJob(CronJobInfo info) throws InvalidTimeException, ProcessConfigurationNotFoundException, CorusException {
     if (log.isInfoEnabled()) {
       log.info("adding cron job: " + info);
     }
-    
-    if (!deployer.getDistribution(DistributionCriteria.builder()
-        .name(info.getDistribution())
-        .version(info.getVersion()).build())
-        .containsProcess(info.getProcessName())) {
+
+    if (!deployer.getDistribution(DistributionCriteria.builder().name(info.getDistribution()).version(info.getVersion()).build()).containsProcess(
+        info.getProcessName())) {
       throw new ProcessConfigurationNotFoundException("Invalid process name: " + info.getProcessName());
     }
 
@@ -98,11 +98,10 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
 
     CronJob job = new CronJob(info);
     job.init(this, serverContext());
-    
+
     try {
-      AlarmEntry entry = new AlarmEntry(info.getMinute(), info.getHour(),
-                                        info.getDayOfMonth(), info.getMonth(),
-                                        info.getDayOfWeek(), info.getYear(), job);
+      AlarmEntry entry = new AlarmEntry(info.getMinute(), info.getHour(), info.getDayOfMonth(), info.getMonth(), info.getDayOfWeek(), info.getYear(),
+          job);
 
       if (alarms.containsAlarm(entry)) {
         throw new DuplicateScheduleException("A cron job with the same schedule is already present; change the schedule of the new cron job");
@@ -128,9 +127,9 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
   }
 
   public synchronized List<CronJobInfo> listCronJobs() {
-    List<CronJobInfo>     infos = new ArrayList<CronJobInfo>(10);
+    List<CronJobInfo> infos = new ArrayList<CronJobInfo>(10);
     Iterator<CronJob> itr = jobs.values();
-    CronJob  job;
+    CronJob job;
 
     while (itr.hasNext()) {
       job = itr.next();
@@ -142,17 +141,14 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
 
   private synchronized void initAlarms() {
     Iterator<CronJob> itr = jobs.values();
-    CronJob  job;
+    CronJob job;
 
     while (itr.hasNext()) {
       job = (CronJob) itr.next();
       job.init(this, super.serverContext());
       try {
-        alarms.addAlarm(job.getInfo().getMinute(), job.getInfo().getHour(),
-                         job.getInfo().getDayOfMonth(),
-                         job.getInfo().getMonth(),
-                         job.getInfo().getDayOfWeek(), job.getInfo().getYear(),
-                         job);
+        alarms.addAlarm(job.getInfo().getMinute(), job.getInfo().getHour(), job.getInfo().getDayOfMonth(), job.getInfo().getMonth(), job.getInfo()
+            .getDayOfWeek(), job.getInfo().getYear(), job);
       } catch (PastDateException e) {
         jobs.remove(job.getInfo().getId());
       }

@@ -22,7 +22,7 @@ public class CliUtilsTest {
     assertTrue(addresses.contains(HttpAddress.newDefaultInstance("host1", 33000)));
     assertTrue(addresses.contains(HttpAddress.newDefaultInstance("host2", 33000)));
   }
-  
+
   @Test
   public void testCollectResultsPerHost() {
     Results<String> results = new Results<String>();
@@ -31,13 +31,13 @@ public class CliUtilsTest {
       Result<String> r = new Result<String>(new HttpAddress(Uri.parse("http://test_" + i)), "data_i");
       results.addResult(r);
     }
-    
+
     Map<ServerAddress, String> resultsPerHost = CliUtils.collectResultsPerHost(results);
     for (int i = 0; i < 5; i++) {
       assertEquals(resultsPerHost.get(new HttpAddress(Uri.parse("http://test_" + i))), "data_i");
-    }    
+    }
   }
-  
+
   @Test
   public void testIsHelp() {
     assertTrue(CliUtils.isHelp(CmdLine.parse("-help")));

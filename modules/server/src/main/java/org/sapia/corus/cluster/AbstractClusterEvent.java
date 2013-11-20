@@ -12,47 +12,47 @@ import org.sapia.ubik.util.Strings;
  * The abstract class for Corus clustering events.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class AbstractClusterEvent implements Externalizable {
-	
+
   private CorusHost origin;
-  
-	/**
-	 * Meant for externalization
-	 */
+
+  /**
+   * Meant for externalization
+   */
   public AbstractClusterEvent() {
   }
-  
+
   /**
-   * @param origin the {@link CorusHost} of the node from which this event originates.
+   * @param origin
+   *          the {@link CorusHost} of the node from which this event
+   *          originates.
    */
   public AbstractClusterEvent(CorusHost origin) {
-	  this.origin   = origin;
+    this.origin = origin;
   }
-  
+
   /**
-   * @return the {@link CorusHost} of the node from which this event
-   * originates.
+   * @return the {@link CorusHost} of the node from which this event originates.
    */
   public CorusHost getOrigin() {
-	  return origin;
-  }  
-  
+    return origin;
+  }
+
   @Override
   public String toString() {
     return Strings.toStringFor(this, "origin", origin);
   }
-	
-	@Override
-	public void readExternal(ObjectInput in) throws IOException,
-	    ClassNotFoundException {
-		origin   = (CorusHost) in.readObject();
-	}
-	
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(origin);
-	}
+
+  @Override
+  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    origin = (CorusHost) in.readObject();
+  }
+
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(origin);
+  }
 
 }

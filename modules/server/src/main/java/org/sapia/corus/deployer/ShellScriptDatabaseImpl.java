@@ -11,17 +11,19 @@ import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 
 /**
- * Implements the {@link ShellScriptDatabase} interface on top of a {@link DbMap}.
+ * Implements the {@link ShellScriptDatabase} interface on top of a
+ * {@link DbMap}.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ShellScriptDatabaseImpl implements ShellScriptDatabase {
-  
+
   private DbMap<String, ShellScript> scripts;
-  
+
   /**
-   * @param map the {@link DbMap} that this instance will use.
+   * @param map
+   *          the {@link DbMap} that this instance will use.
    */
   public ShellScriptDatabaseImpl(DbMap<String, ShellScript> map) {
     this.scripts = map;
@@ -49,16 +51,13 @@ public class ShellScriptDatabaseImpl implements ShellScriptDatabase {
     for (ShellScript s : toReturn) {
       scripts.remove(s.getAlias());
     }
-    
+
     return toReturn;
   }
 
   @Override
   public List<ShellScript> getScripts() {
-    return new IteratorFilter<ShellScript>(new Matcher.MatchAll<ShellScript>())
-        .filter(scripts.values())
-        .sort(new ShellScriptComparator())
-        .get();
+    return new IteratorFilter<ShellScript>(new Matcher.MatchAll<ShellScript>()).filter(scripts.values()).sort(new ShellScriptComparator()).get();
   }
 
   @Override
@@ -71,7 +70,7 @@ public class ShellScriptDatabaseImpl implements ShellScriptDatabase {
     }).filter(scripts.values()).sort(new ShellScriptComparator()).get();
 
   }
-  
+
   @Override
   public ShellScript getScript(String alias) throws ScriptNotFoundException {
     ShellScript script = scripts.get(alias);
@@ -80,16 +79,16 @@ public class ShellScriptDatabaseImpl implements ShellScriptDatabase {
     }
     return script;
   }
-  
+
   // ==========================================================================
   // Inner classes
-  
+
   public class ShellScriptComparator implements Comparator<ShellScript> {
-    
+
     @Override
     public int compare(ShellScript s1, ShellScript s2) {
       return s1.getAlias().compareTo(s2.getAlias());
     }
-    
+
   }
 }

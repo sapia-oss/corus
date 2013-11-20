@@ -13,30 +13,23 @@ import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * This task perform a native OS kill on a process (on Linux/Unix, using
- * <code>kill -9</code>). As a matter of precaution, it releases all ports currently 
- * held by the given process, if any.
+ * <code>kill -9</code>). As a matter of precaution, it releases all ports
+ * currently held by the given process, if any.
  * 
  * @author yduchesne
  */
-public class ForcefulKillTask extends
-    Task<Boolean, TaskParams<Process, ProcessTerminationRequestor, Void, Void>> {
+public class ForcefulKillTask extends Task<Boolean, TaskParams<Process, ProcessTerminationRequestor, Void, Void>> {
 
   @Override
-  public Boolean execute(TaskExecutionContext ctx,
-      TaskParams<Process, ProcessTerminationRequestor, Void, Void> params)
-      throws Throwable {
+  public Boolean execute(TaskExecutionContext ctx, TaskParams<Process, ProcessTerminationRequestor, Void, Void> params) throws Throwable {
 
-    Process                     process     = params.getParam1();
-    ProcessTerminationRequestor requestor   = params.getParam2();
-    PortManager                 ports       = ctx.getServerContext().lookup(PortManager.class);
-    OsModule                    os          = ctx.getServerContext().lookup(OsModule.class);
-    boolean                     killSuccess = true;
+    Process process = params.getParam1();
+    ProcessTerminationRequestor requestor = params.getParam2();
+    PortManager ports = ctx.getServerContext().lookup(PortManager.class);
+    OsModule os = ctx.getServerContext().lookup(OsModule.class);
+    boolean killSuccess = true;
 
-    ctx.warn(String.format(
-        "Process %s did not confirm kill; requestor: %s. Trying to perform a hard kill", 
-        process, 
-        requestor
-    ));
+    ctx.warn(String.format("Process %s did not confirm kill; requestor: %s. Trying to perform a hard kill", process, requestor));
 
     // try forceful kill if OS pid not null...
     if (process.getOsPid() != null) {

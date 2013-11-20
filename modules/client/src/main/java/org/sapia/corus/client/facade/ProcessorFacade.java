@@ -19,130 +19,152 @@ import org.sapia.corus.client.services.processor.Processor;
  * This interface specifies a facade to the Corus {@link Processor}
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface ProcessorFacade {
-  
+
   /**
    * Deploys the execution configuration whose file is given.
    * 
-   * @param file the the {@link File} of the execution configuration to deploy.
+   * @param file
+   *          the the {@link File} of the execution configuration to deploy.
    * @param cluster
    */
   public void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception;
-  
+
   /**
-   * Undeploys the execution configurations matching the given name. 
+   * Undeploys the execution configurations matching the given name.
    * 
-   * @param name the name of the exec config to undeploy.
+   * @param name
+   *          the name of the exec config to undeploy.
    * @param cluster
    */
   public void undeployExecConfig(String name, ClusterInfo cluster);
-  
+
   /**
    * Returns the {@link ExecConfig}s in the system.
    * 
-   * @param cluster a {@link ClusterInfo} instance.
-   * @return the {@link Results} containing the {@link ExecConfig}s in the system.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   * @return the {@link Results} containing the {@link ExecConfig}s in the
+   *         system.
    */
-  public  Results<List<ExecConfig>> getExecConfigs(ClusterInfo cluster);
+  public Results<List<ExecConfig>> getExecConfigs(ClusterInfo cluster);
 
   /**
    * Return the process whose identifier is given..
-   *
-   * @param pid a process identifier.
+   * 
+   * @param pid
+   *          a process identifier.
    * @return the {@link Process} instance whose ID is given.
    */
   public Process getProcess(String pid) throws ProcessNotFoundException;
 
   /**
-   * Returns the processes corresponding to the given criteria, per Corus server.
-   *
-   * @param cluster a {@link ClusterInfo} instance.
-   * @return a {@link Results} containing the matching {@link Process} instances.
+   * Returns the processes corresponding to the given criteria, per Corus
+   * server.
+   * 
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   * @return a {@link Results} containing the matching {@link Process}
+   *         instances.
    */
   public Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster);
 
   /**
    * Starts process(es) corresponding to an existing execution configuration.
    * 
-   * @param configName the name of an execution configuration
-   * @param cluster a {@link ClusterInfo} instance.
+   * @param configName
+   *          the name of an execution configuration
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
   public ProgressQueue execConfig(String configName, ClusterInfo cluster);
-  
+
   /**
    * Starts process(es) corresponding to the passed in parameters.
-   *
-   * @param criteria a {@link ProcessCriteria}.
-   * @param instances the number of process(es) to start.
-   * @param cluster a {@link ClusterInfo} instance.
+   * 
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param instances
+   *          the number of process(es) to start.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
-  public ProgressQueue exec(
-      ProcessCriteria criteria,
-      int instances, 
-      ClusterInfo cluster) throws TooManyProcessInstanceException;
+  public ProgressQueue exec(ProcessCriteria criteria, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException;
 
   /**
    * Restarts the process with the given process UD.
-   * @param pid a Corus process ID.
+   * 
+   * @param pid
+   *          a Corus process ID.
    */
   public void restart(String pid) throws ProcessNotFoundException;
-  
+
   /**
    * Restarts the process(es) corresponding to the passed in parameters.
-   *
-   * @param criteria a {@link ProcessCriteria}.
-   * @param cluster a {@link ClusterInfo} instance.
+   * 
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
   public ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster);
-  
+
   /**
-   * Resumes the suspended process(es) corresponding to the passed in parameters.
-   *
-   * @param criteria a {@link ProcessCriteria}.
-   * @param cluster a {@link ClusterInfo} instance.
+   * Resumes the suspended process(es) corresponding to the passed in
+   * parameters.
+   * 
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public ProgressQueue resume(ProcessCriteria criteria, ClusterInfo cluster);  
+  public ProgressQueue resume(ProcessCriteria criteria, ClusterInfo cluster);
 
   /**
    * Kills the process with the given identifier.
-   *
-   * @param pid a process identifier.
+   * 
+   * @param pid
+   *          a process identifier.
    */
   public void kill(String pid) throws ProcessNotFoundException;
-  
+
   /**
    * Kills the process(es) corresponding to the passed in parameters.
-   *
-   * @param criteria a {@link ProcessCriteria}.
-   * @param cluster a {@link ClusterInfo} instance.
+   * 
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public void kill(ProcessCriteria criteria,
-                   ClusterInfo cluster);
+  public void kill(ProcessCriteria criteria, ClusterInfo cluster);
 
   /**
    * Suspends the process(es) corresponding to the passed in parameters.
-   *
-   * @param criteria a {@link ProcessCriteria}.
-   * @param cluster a {@link ClusterInfo} instance.
+   * 
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public void suspend(ProcessCriteria criteria,
-                      ClusterInfo cluster);
+  public void suspend(ProcessCriteria criteria, ClusterInfo cluster);
 
   /**
    * Suspends the process with the given identifier.
-   *
-   * @param pid a process identifier.
+   * 
+   * @param pid
+   *          a process identifier.
    */
   public void suspend(String pid) throws ProcessNotFoundException;
-  
+
   /**
    * Return the status of the process whose identifier is given..
-   *
-   * @param pid a process identifier.
+   * 
+   * @param pid
+   *          a process identifier.
    * @return a {@link ProcStatus} instance.
    */
   public ProcStatus getStatusFor(String pid) throws ProcessNotFoundException;
@@ -150,8 +172,10 @@ public interface ProcessorFacade {
   /**
    * Returns the status of the processes corresponding to the given criteria.
    * 
-   * @param criteria a {@link ProcessCriteria}.
-   * @param cluster a {@link ClusterInfo} instance.
+   * @param criteria
+   *          a {@link ProcessCriteria}.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
   public Results<List<ProcStatus>> getStatus(ProcessCriteria criteria, ClusterInfo cluster);
 

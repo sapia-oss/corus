@@ -14,37 +14,35 @@ import org.sapia.corus.client.services.cron.CronModule;
  * This interface specifies a facade to the Corus {@link CronModule}
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface CronFacade {
-  
+
   /**
    * Adds a "cron job" (scheduled process) to the Corus server.
-   *
-   * @param info a {@link CronJobInfo} instance.
+   * 
+   * @param info
+   *          a {@link CronJobInfo} instance.
    */
-  public void addCronJon(CronJobInfo info) 
-  throws     
-  InvalidTimeException,
-  DuplicateScheduleException, 
-  ProcessConfigurationNotFoundException, 
-  Exception;
+  public void addCronJon(CronJobInfo info) throws InvalidTimeException, DuplicateScheduleException, ProcessConfigurationNotFoundException, Exception;
 
   /**
    * Removes the Cron job corresponding to the given identifier.
-   *
-   * @param pid the identifier of the Cron job to remove.
+   * 
+   * @param pid
+   *          the identifier of the Cron job to remove.
    */
   public void removeCronJob(String pid);
 
   /**
    * List the currently configured Cron jobs.
-   *
-   * @param cluster a {@link ClusterInfo} instance.
-   *
-   * @return a {@link Results} instance containing {@link CronJobInfo} instances.
+   * 
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   * 
+   * @return a {@link Results} instance containing {@link CronJobInfo}
+   *         instances.
    * @see org.sapia.corus.client.services.cron.CronJobInfo
-
    */
   public Results<List<CronJobInfo>> getCronJobs(ClusterInfo cluster);
 

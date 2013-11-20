@@ -12,45 +12,43 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 /**
- * A base {@link Deployer} implementation. 
+ * A base {@link Deployer} implementation.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class BaseDeployer implements Deployer {
 
   protected DeployerConfigurationImpl configuration = new DeployerConfigurationImpl();
-  private   DistributionDatabase      store         = new DistributionDatabaseImpl();
-  
+  private DistributionDatabase store = new DistributionDatabaseImpl();
+
   public DeployerConfiguration getConfiguration() {
     return configuration;
   }
-  
+
   @Override
-  public Distribution getDistribution(DistributionCriteria criteria)
-      throws DistributionNotFoundException {
+  public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException {
     return store.getDistribution(criteria);
   }
-  
+
   @Override
   public List<Distribution> getDistributions(DistributionCriteria criteria) {
     return store.getDistributions(criteria);
   }
-  
+
   @Override
-  public ProgressQueue undeploy(DistributionCriteria criteria)
-      throws RunningProcessesException {
+  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException {
     ProgressQueue q = new ProgressQueueImpl();
     q.close();
     return q;
   }
-  
+
   public String getRoleName() {
     return Deployer.ROLE;
   }
-  
-  protected DistributionDatabase getDistributionDatabase(){
+
+  protected DistributionDatabase getDistributionDatabase() {
     return store;
   }
-  
+
 }

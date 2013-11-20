@@ -12,10 +12,10 @@ import org.sapia.ubik.rmi.server.oid.OID;
  * An {@link OID} implementation used the {@link Corus} instance.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class CorusOID implements OID, Externalizable {
-  
+
   private static final String NAME = Corus.class.getName();
 
   /**
@@ -23,30 +23,28 @@ public class CorusOID implements OID, Externalizable {
    */
   public CorusOID() {
   }
-  
-  
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof CorusOID) {
       return true;
-    } 
+    }
     return false;
   }
-  
+
   @Override
   public int hashCode() {
     return NAME.hashCode();
   }
-  
+
   @Override
-  public void readExternal(ObjectInput in) throws IOException,
-      ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
   }
-  
+
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
   }
-  
+
   @Override
   public String toString() {
     return NAME;

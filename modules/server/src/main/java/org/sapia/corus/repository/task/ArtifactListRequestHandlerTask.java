@@ -23,17 +23,18 @@ import org.sapia.ubik.util.Collections2;
 import org.sapia.ubik.util.Function;
 
 /**
- * Internally removes {@link ArtifactListRequest}s from the passed in queue, sending back 
- * the corresponding response {@link DistributionListResponse} for each such request. 
- *  
+ * Internally removes {@link ArtifactListRequest}s from the passed in queue,
+ * sending back the corresponding response {@link DistributionListResponse} for
+ * each such request.
+ * 
  * @author yduchesne
- *
+ * 
  */
 public class ArtifactListRequestHandlerTask extends RunnableTask {
-  
+
   private org.sapia.corus.util.Queue<ArtifactListRequest> requestQueue;
   private RepositoryConfiguration config;
-  
+
   public ArtifactListRequestHandlerTask(RepositoryConfiguration config, org.sapia.corus.util.Queue<ArtifactListRequest> requests) {
     this.config = config;
     this.requestQueue = requests;
@@ -46,7 +47,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
       processRequest(req, context());
     }
   }
-  
+
   // --------------------------------------------------------------------------
   // Package visibility for testing purposes
 
@@ -65,24 +66,21 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
       ctx.debug("File push disabled, will not send file list to " + request.getEndpoint());
     }
   }
-  
-  void doSendDistributionListResponse(ArtifactListRequest request, TaskExecutionContext ctx) {
-    ServerAddress  addr     = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
-    Deployer       deployer = ctx.getServerContext().getServices().getDeployer();
-    ClusterManager cluster  = ctx.getServerContext().getServices().getClusterManager();
 
-    List<RepoDistribution> dists = Collections2.convertAsList(
-        deployer.getDistributions(DistributionCriteria.builder().all()),
+  void doSendDistributionListResponse(ArtifactListRequest request, TaskExecutionContext ctx) {
+    ServerAddress addr = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
+    Deployer deployer = ctx.getServerContext().getServices().getDeployer();
+    ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
+
+    List<RepoDistribution> dists = Collections2.convertAsList(deployer.getDistributions(DistributionCriteria.builder().all()),
         new Function<RepoDistribution, Distribution>() {
           @Override
           public RepoDistribution call(Distribution dist) {
             return new RepoDistribution(dist.getName(), dist.getVersion());
           }
         });
-    
-    DistributionListResponse response = new DistributionListResponse(
-        ctx.getServerContext().getCorusHost().getEndpoint()
-    );
+
+    DistributionListResponse response = new DistributionListResponse(ctx.getServerContext().getCorusHost().getEndpoint());
     response.addDistributions(dists);
     try {
       cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), DistributionListResponse.EVENT_TYPE, response);
@@ -90,12 +88,12 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
       ctx.error(String.format("Could not send distribution list to %s", addr), e);
     }
   }
-  
+
   void doSendScriptListResponse(ArtifactListRequest request, TaskExecutionContext ctx) {
-    ServerAddress  addr        = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
+    ServerAddress addr = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
     ShellScriptManager manager = ctx.getServerContext().getServices().getScriptManager();
-    ClusterManager cluster     = ctx.getServerContext().getServices().getClusterManager();
-    
+    ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
+
     List<ShellScript> scripts = manager.getScripts();
     ShellScriptListResponse response = new ShellScriptListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), scripts);
 
@@ -104,13 +102,13 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     } catch (Exception e) {
       ctx.error(String.format("Could not send script list to %s", addr), e);
     }
-  }  
-  
+  }
+
   void doSendFileListResponse(ArtifactListRequest request, TaskExecutionContext ctx) {
-    ServerAddress  addr    = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
-    FileManager    manager = ctx.getServerContext().getServices().getFileManager();
+    ServerAddress addr = ctx.getServerContext().getCorusHost().getEndpoint().getServerAddress();
+    FileManager manager = ctx.getServerContext().getServices().getFileManager();
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
-    
+
     List<FileInfo> files = manager.getFiles();
     FileListResponse response = new FileListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), files);
 
@@ -119,5 +117,5 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     } catch (Exception e) {
       ctx.error(String.format("Could not send files list to %s", addr), e);
     }
-  }  
+  }
 }

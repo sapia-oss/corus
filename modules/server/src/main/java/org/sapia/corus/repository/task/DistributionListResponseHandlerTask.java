@@ -17,44 +17,39 @@ import org.sapia.ubik.mcast.EventChannel;
  * Task that handles {@link DistributionListResponse}ss.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class DistributionListResponseHandlerTask extends RunnableTask {
-  
+
   private DistributionListResponse distsRes;
-  
+
   /**
-   * @param distsRes the {@link DistributionListResponse} to handle.
+   * @param distsRes
+   *          the {@link DistributionListResponse} to handle.
    */
   public DistributionListResponseHandlerTask(DistributionListResponse distsRes) {
     this.distsRes = distsRes;
   }
-  
+
   @Override
   public void run() {
-    ClusterManager cluster  = context().getServerContext().getServices().getClusterManager();
-    Deployer       deployer = context().getServerContext().getServices().getDeployer();
+    ClusterManager cluster = context().getServerContext().getServices().getClusterManager();
+    Deployer deployer = context().getServerContext().getServices().getDeployer();
     Set<RepoDistribution> toReceive = new HashSet<RepoDistribution>();
-    context().debug(String.format(
-        "Got distribution list (%s) from %s", 
-        distsRes.getDistributions(), 
-        distsRes.getEndpoint()));
+    context().debug(String.format("Got distribution list (%s) from %s", distsRes.getDistributions(), distsRes.getEndpoint()));
     for (RepoDistribution dist : distsRes.getDistributions()) {
       try {
-        deployer.getDistribution(
-            DistributionCriteria.builder()
-              .name(dist.getName())
-              .version(dist.getVersion()).build());      
+        deployer.getDistribution(DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build());
       } catch (DistributionNotFoundException e) {
         context().info(String.format("Will be requesting distribution %s", dist));
         toReceive.add(dist);
       }
     }
-    
+
     context().debug("Sending deployment request");
-    EventChannel                  channel = cluster.getEventChannel();
+    EventChannel channel = cluster.getEventChannel();
     DistributionDeploymentRequest request = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
-    request.addDistributions(toReceive); 
+    request.addDistributions(toReceive);
     try {
       channel.dispatch(distsRes.getEndpoint().getChannelAddress(), DistributionDeploymentRequest.EVENT_TYPE, request);
     } catch (Exception e) {

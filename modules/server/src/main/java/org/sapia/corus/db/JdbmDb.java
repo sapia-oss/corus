@@ -6,7 +6,6 @@ import jdbm.JDBMRecordManager;
 
 import org.sapia.corus.client.services.db.DbMap;
 
-
 /**
  * Wraps a {@link JDBMRecordManager}.
  * 
@@ -22,7 +21,7 @@ public class JdbmDb {
     _recman = recman;
   }
 
-  <K,V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) throws IOException {
+  <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) throws IOException {
     return new DbMapImpl<K, V>(keyType, valueType, _recman.getHashtable(name));
   }
 
@@ -37,14 +36,10 @@ public class JdbmDb {
       // noop;
     }
   }
-  
-  /*
 
-  public static void main(String[] args) {
-    try {
-      JdbmDb db = JdbmDb.open("test");
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }*/
+  /*
+   * 
+   * public static void main(String[] args) { try { JdbmDb db =
+   * JdbmDb.open("test"); } catch (IOException e) { e.printStackTrace(); } }
+   */
 }

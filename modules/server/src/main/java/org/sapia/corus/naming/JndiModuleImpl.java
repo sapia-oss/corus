@@ -18,25 +18,24 @@ import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.archie.UbikRemoteContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
 /**
  * This class implements a remote JNDI provider.
  * 
  * @author yduchesne
  */
-@Bind(moduleInterface=JndiModule.class)
-@Remote(interfaces=JndiModule.class)
-public class JndiModuleImpl extends ModuleHelper implements JndiModule, Interceptor{
+@Bind(moduleInterface = JndiModule.class)
+@Remote(interfaces = JndiModule.class)
+public class JndiModuleImpl extends ModuleHelper implements JndiModule, Interceptor {
 
   @Autowired
   EventDispatcher events;
   @Autowired
-  ClusterManager 	cluster;
+  ClusterManager cluster;
   private Context context;
-  
+
   // keeping reference to avoid garbage-collection
   private ClientListener listener;
-  
+
   /**
    * @see Service#init()
    */
@@ -45,58 +44,64 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
     events.addInterceptor(ServerStartedEvent.class, this);
     context = UbikRemoteContext.newInstance(ec);
   }
-  
+
   /**
    * @see Service#dispose()
    */
   public void dispose() {
-    try{
-    	context.close();
-    }catch(NamingException e){}
-    
+    try {
+      context.close();
+    } catch (NamingException e) {
+    }
+
   }
-  
-  /*////////////////////////////////////////////////////////////////////
-                          Module INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
-  
+
+  /*
+   * //////////////////////////////////////////////////////////////////// Module
+   * INTERFACE METHODS
+   * ////////////////////////////////////////////////////////////////////
+   */
+
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
    */
   public String getRoleName() {
     return JndiModule.ROLE;
   }
-  
-  /*////////////////////////////////////////////////////////////////////
-                        JndiModule INTERFACE METHODS
-  ////////////////////////////////////////////////////////////////////*/
-  
+
+  /*
+   * ////////////////////////////////////////////////////////////////////
+   * JndiModule INTERFACE METHODS
+   * ////////////////////////////////////////////////////////////////////
+   */
+
   /**
    * @see JndiModule#getContext()
    */
   public Context getContext() {
     return context;
   }
-  
+
   /**
-   * This method is called once the corus server in which this instance
-   * lives has started listening to requests.
-   *
-   * @param evt a <code>ServerStartedEvent</code> instance.
+   * This method is called once the corus server in which this instance lives
+   * has started listening to requests.
+   * 
+   * @param evt
+   *          a <code>ServerStartedEvent</code> instance.
    */
-  public void onServerStartedEvent(ServerStartedEvent evt){
-    try{
+  public void onServerStartedEvent(ServerStartedEvent evt) {
+    try {
       EventChannel ec = cluster.getEventChannel();
       serverContext().getTransport().exportObject(context);
       listener = new ClientListener(ec, serverContext().getTransport().getServerAddress());
       listener.registerWithChannel();
-    }catch(Exception e){
+    } catch (Exception e) {
       logger().error("Could not initialize client listener properly in JNDI module", e);
     }
   }
-  
-  public RemoteContext getRemoteContext(){
+
+  public RemoteContext getRemoteContext() {
     return (RemoteContext) context;
   }
-  
+
 }

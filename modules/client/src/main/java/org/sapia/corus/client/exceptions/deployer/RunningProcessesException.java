@@ -10,15 +10,15 @@ import org.sapia.corus.client.exceptions.ExceptionCode;
  * @author Yanick Duchesne
  */
 public class RunningProcessesException extends CorusException {
-  
+
   static final long serialVersionUID = 1L;
-  
+
   /**
    * Constructor for DuplicateDistributionException.
+   * 
    * @param msg
    */
   public RunningProcessesException(String msg) {
     super(msg, ExceptionCode.RUNNING_PROCESSES.getFullCode());
   }
 }
- 

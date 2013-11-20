@@ -22,57 +22,50 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Handles distribution deployment.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class DistributionDeploymentHandler implements DeploymentHandler {
- 
+
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-  
+
   @Autowired
   private TaskManager taskman;
-  
+
   @Autowired
   private DeployerConfiguration configuration;
-  
+
   // --------------------------------------------------------------------------
   // Provided for testing
-  
+
   public final void setConfiguration(DeployerConfiguration configuration) {
     this.configuration = configuration;
   }
-  
+
   public final void setTaskman(TaskManager taskman) {
     this.taskman = taskman;
   }
-  
+
   // --------------------------------------------------------------------------
   // DeploymentHandler interface
-  
+
   @Override
   public boolean accepts(DeploymentMetadata meta) {
     return meta.getType() == Type.DISTRIBUTION;
   }
-  
+
   @Override
   public File getDestFile(DeploymentMetadata meta) {
-    return FilePath.newInstance()
-        .addDir(configuration.getTempDir())
-        .setRelativeFile(meta.getFileName() + "." + IDGenerator.makeId())
-        .createFile();
+    return FilePath.newInstance().addDir(configuration.getTempDir()).setRelativeFile(meta.getFileName() + "." + IDGenerator.makeId()).createFile();
   }
-  
+
   @Override
   public ProgressQueue completeDeployment(DeploymentMetadata meta, File file) {
     log.info("Finished uploading " + meta.getFileName());
     ProgressQueue progress = new ProgressQueueImpl();
     progress.info("Distribution file uploaded, proceeding to deployment completion");
     try {
-      taskman.executeAndWait(
-        new DeployTask(),
-        file.getName(),
-        TaskConfig.create(new TaskLogProgressQueue(progress))
-      ).get();
-      
+      taskman.executeAndWait(new DeployTask(), file.getName(), TaskConfig.create(new TaskLogProgressQueue(progress))).get();
+
     } catch (Throwable e) {
       log.error("Could not deploy", e);
       progress.error(e);
@@ -80,5 +73,5 @@ public class DistributionDeploymentHandler implements DeploymentHandler {
     }
     return progress;
   }
-  
+
 }

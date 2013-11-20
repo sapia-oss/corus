@@ -14,51 +14,63 @@ import org.sapia.corus.client.services.port.PortRange;
  * This interface specifies a facade to the Corus {@link PortManager}
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface PortManagementFacade {
-  
+
   /**
-   * @param name the name of the port range to add.
-   * @param min the lowerbound port of the range.
-   * @param max the higherbound port of the range.
-   * @param cluster a {@link ClusterInfo} instance. 
+   * @param name
+   *          the name of the port range to add.
+   * @param min
+   *          the lowerbound port of the range.
+   * @param max
+   *          the higherbound port of the range.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public void addPortRange(String name, int min, int max, ClusterInfo cluster)
-   throws PortRangeConflictException, PortRangeInvalidException;
-  
+  public void addPortRange(String name, int min, int max, ClusterInfo cluster) throws PortRangeConflictException, PortRangeInvalidException;
+
   /**
-   * @param ranges a {@link List} of {@link PortRange}
-   * @param clearExisting if <code>true</code>, indicates that the existing port ranges must be deleted.
-   * @param cluster a {@link ClusterInfo} instance. 
+   * @param ranges
+   *          a {@link List} of {@link PortRange}
+   * @param clearExisting
+   *          if <code>true</code>, indicates that the existing port ranges must
+   *          be deleted.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster)
-    throws PortRangeConflictException, PortRangeInvalidException;  
-  
+  public void addPortRanges(List<PortRange> ranges, boolean clearExisting, ClusterInfo cluster) throws PortRangeConflictException,
+      PortRangeInvalidException;
+
   /**
-   * @param name the name of the port range to add.
-   * @param force if <code>true</code>, indicates that the port range should 
-   * be removed even if the Corus server has corresponding ports flagged as
-   * active.
-   * @param cluster a {@link ClusterInfo} instance. 
+   * @param name
+   *          the name of the port range to add.
+   * @param force
+   *          if <code>true</code>, indicates that the port range should be
+   *          removed even if the Corus server has corresponding ports flagged
+   *          as active.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
-  public void removePortRange(String name, boolean force, ClusterInfo cluster)
-    throws PortActiveException;  
-  
+  public void removePortRange(String name, boolean force, ClusterInfo cluster) throws PortActiveException;
+
   /**
    * Forces the releases of all ports of the given range.
-   *
-   * @param rangeName the name of an existing port range.
-   * @param cluster a {@link ClusterInfo} instance. 
+   * 
+   * @param rangeName
+   *          the name of an existing port range.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
    */
   public void releasePortRange(String rangeName, ClusterInfo cluster);
-  
+
   /**
-   * Returns the {@link PortRange} instances that hold the pre-configured
-   * ports of the specified Corus servers.
-   *
-   * @param cluster a <code>ClusterInfo</code> instance. 
+   * Returns the {@link PortRange} instances that hold the pre-configured ports
+   * of the specified Corus servers.
+   * 
+   * @param cluster
+   *          a <code>ClusterInfo</code> instance.
    */
-  public Results<List<PortRange>> getPortRanges(ClusterInfo cluster);  
+  public Results<List<PortRange>> getPortRanges(ClusterInfo cluster);
 
 }

@@ -22,14 +22,14 @@ import org.sapia.ubik.rmi.server.transport.RmiConnection;
  * @author Yanick Duchesne
  */
 public class ServerSideClusterInterceptor implements Interceptor, CorusCallback {
-	
+
   private static ThreadLocal<ClusterInfo> registration = new ThreadLocal<ClusterInfo>();
-  private Logger             log;
-  private ClusterManager     cluster;
-  private ServerContext      context;
+  private Logger log;
+  private ClusterManager cluster;
+  private ServerContext context;
 
   ServerSideClusterInterceptor(Logger log, ServerContext context) {
-    this.log 		 = log;
+    this.log = log;
     this.context = context;
     this.cluster = context.getServices().lookup(ClusterManager.class);
   }
@@ -37,50 +37,48 @@ public class ServerSideClusterInterceptor implements Interceptor, CorusCallback 
   public static void clusterCurrentThread(ClusterInfo cluster) {
     registration.set(cluster);
   }
-  
+
   public void onIncomingCommandEvent(IncomingCommandEvent evt) {
     if (evt.getCommand() instanceof ClusteredCommand) {
       ClusteredCommand cmd = (ClusteredCommand) evt.getCommand();
       if (log.isErrorEnabled()) {
         log.debug("Received clustered command " + cmd.getMethodName());
-      }      
+      }
       cmd.setCallback(this);
     }
   }
-  
+
   // --------------------------------------------------------------------------
   // CorusCallback interface
-  
+
   public org.sapia.corus.client.Corus getCorus() {
     return context.getCorus();
   }
-  
+
   @Override
   public void debug(String message) {
     log.debug(message);
   }
-  
+
   @Override
   public boolean isDebug() {
     return log.isDebugEnabled();
   }
-  
-  
+
   @Override
   public void error(String message, Throwable err) {
     log.error(message, err);
   }
-  
+
   @Override
   public Set<ServerAddress> getSiblings() {
     return cluster.getHostAddresses();
   }
-  
+
   @Override
-  public Object send(ClusteredCommand cmd, ServerAddress nextTarget)
-      throws Exception {
-    Connections    pool = Hub.getModules().getTransportManager().getConnectionsFor(nextTarget);
-    RmiConnection  conn =  null;
+  public Object send(ClusteredCommand cmd, ServerAddress nextTarget) throws Exception {
+    Connections pool = Hub.getModules().getTransportManager().getConnectionsFor(nextTarget);
+    RmiConnection conn = null;
     try {
       conn = pool.acquire();
       conn.send(cmd);
@@ -88,19 +86,19 @@ public class ServerSideClusterInterceptor implements Interceptor, CorusCallback 
       pool.release(conn);
       return returnValue;
     } catch (RemoteException re) {
-      if(conn != null) {
+      if (conn != null) {
         pool.invalidate(conn);
       }
       pool.clear();
       throw re;
     } catch (Exception e) {
       log.error("Problem sending clustered command to " + nextTarget, e);
-      if(conn != null) {
+      if (conn != null) {
         conn.close();
       }
       throw e;
-    }   
-    
+    }
+
   }
 
 }

@@ -8,7 +8,7 @@ import org.sapia.corus.client.exceptions.ExceptionCode;
  * 
  * @author yduchesne
  */
-public class PortRangeInvalidException extends CorusException{
+public class PortRangeInvalidException extends CorusException {
 
   static final long serialVersionUID = 1L;
 
@@ -16,5 +16,5 @@ public class PortRangeInvalidException extends CorusException{
   public PortRangeInvalidException(String msg) {
     super(msg, ExceptionCode.PORT_RANGE_INVALID.getFullCode());
   }
-  
+
 }

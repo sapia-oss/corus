@@ -20,62 +20,62 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
- * Implements alert management. An instance of this class sends email alerts corresponding to the following
- * events:
+ * Implements alert management. An instance of this class sends email alerts
+ * corresponding to the following events:
  * <ul>
- *   <li> {@link DeploymentEvent}
- *   <li> {@link UndeploymentEvent}
- *   <li> {@link ProcessKilledEvent}
+ * <li> {@link DeploymentEvent}
+ * <li> {@link UndeploymentEvent}
+ * <li> {@link ProcessKilledEvent}
  * </ul>
  * 
  * @author yduchesne
- *
+ * 
  */
 @Bind(moduleInterface = AlertManager.class)
 public class AlertManagerImpl extends ModuleHelper implements AlertManager, Interceptor {
-  
-  private static final int ALERT_SENDERS        = 3;
-  private static final int DEFAULT_SMTP_PORT    = 25;
+
+  private static final int ALERT_SENDERS = 3;
+  private static final int DEFAULT_SMTP_PORT = 25;
   private static final String DEFAULT_SMTP_HOST = "localhost";
-  
-  private String       smtpHost        = DEFAULT_SMTP_HOST;
-  private int          smtpPort        = DEFAULT_SMTP_PORT;
-  private String       smtpPassword;
+
+  private String smtpHost = DEFAULT_SMTP_HOST;
+  private int smtpPort = DEFAULT_SMTP_PORT;
+  private String smtpPassword;
   private List<String> recipientList;
-  private String       sender;
-  private boolean      enabled;
-  private MailSender   mailSender;
-  
+  private String sender;
+  private boolean enabled;
+  private MailSender mailSender;
+
   private ExecutorService alertSenders;
-  
+
   public void setSmtpHost(String smtpHost) {
     if (!Strings.isBlank(smtpHost)) {
       this.smtpHost = smtpHost;
     }
   }
-  
+
   public void setFromEmail(String from) {
     if (!Strings.isBlank(from)) {
       this.sender = from;
     }
   }
-  
+
   public void setSmtpPort(String smtpPort) {
     if (!Strings.isBlank(smtpPort)) {
       this.smtpPort = Integer.parseInt(smtpPort);
     }
   }
-  
+
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
-  
+
   public void setSmtpPassword(String smtpPassword) {
     if (!Strings.isBlank(smtpPassword)) {
       this.smtpPassword = smtpPassword;
     }
   }
-  
+
   public void setRecipientEmails(String recipientEmailCsv) {
     recipientList = new ArrayList<String>();
     String[] recipientEmails = recipientEmailCsv.split(";");
@@ -86,15 +86,15 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
       }
     }
   }
-  
+
   @Override
   public String getRoleName() {
     return ROLE;
   }
-  
+
   // --------------------------------------------------------------------------
   // Lifecycle
-  
+
   @Override
   public void init() throws Exception {
     super.serverContext.getServices().getEventDispatcher().addInterceptor(ProcessKilledEvent.class, this);
@@ -109,46 +109,47 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
     }
     javaMailSender.setPort(smtpPort);
     mailSender = javaMailSender;
-    
+
     if (log.isDebugEnabled()) {
       log.debug("Alert recipients: " + recipientList);
       log.debug("Alerting enabled: " + enabled);
     }
-    
+
   }
-  
+
   @Override
   public void dispose() throws Exception {
     alertSenders.shutdown();
   }
-  
+
   // --------------------------------------------------------------------------
   // interception methods
-   
+
   public void onProcessStaleEvent(final ProcessStaleEvent event) {
-    
+
     if (event.getProcess().getStaleDetectionCount() == 1) {
       alertSenders.execute(new Runnable() {
         @Override
         public void run() {
           sendAlert(
               subject(AlertLevel.WARNING, "Process is stale"),
-              AlertBuilder.newInstance()
-                .serverContext(serverContext())                
-                .level(AlertLevel.WARNING)
-                .summary("Process is stale")
-                .details("Process " + event.getProcess().getProcessID() + " has been detected as stale by the Corus server " 
-                    + "(the process has not been restarted since auto-restart is disabled)")
-                .field("Distribution", event.getProcess().getDistributionInfo().getName())
-                .field("Version", event.getProcess().getDistributionInfo().getVersion())
-                .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
-                .field("Profile", event.getProcess().getDistributionInfo().getProfile())
-                .build());
+              AlertBuilder
+                  .newInstance()
+                  .serverContext(serverContext())
+                  .level(AlertLevel.WARNING)
+                  .summary("Process is stale")
+                  .details(
+                      "Process " + event.getProcess().getProcessID() + " has been detected as stale by the Corus server "
+                          + "(the process has not been restarted since auto-restart is disabled)")
+                  .field("Distribution", event.getProcess().getDistributionInfo().getName())
+                  .field("Version", event.getProcess().getDistributionInfo().getVersion())
+                  .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
+                  .field("Profile", event.getProcess().getDistributionInfo().getProfile()).build());
         }
       });
     }
   }
-  
+
   public void onProcessKilledEvent(final ProcessKilledEvent event) {
     if (event.getRequestor() == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
       if (event.wasRestarted()) {
@@ -157,16 +158,12 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
           public void run() {
             sendAlert(
                 subject(AlertLevel.WARNING, "Process restarted"),
-                AlertBuilder.newInstance()
-                  .serverContext(serverContext())                
-                  .level(AlertLevel.WARNING)
-                  .summary("Process restarted")
-                  .details("Process " + event.getProcess().getProcessID() + " was restarted by the Corus server")
-                  .field("Distribution", event.getProcess().getDistributionInfo().getName())
-                  .field("Version", event.getProcess().getDistributionInfo().getVersion())
-                  .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
-                  .field("Profile", event.getProcess().getDistributionInfo().getProfile())
-                  .build());
+                AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.WARNING).summary("Process restarted")
+                    .details("Process " + event.getProcess().getProcessID() + " was restarted by the Corus server")
+                    .field("Distribution", event.getProcess().getDistributionInfo().getName())
+                    .field("Version", event.getProcess().getDistributionInfo().getVersion())
+                    .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
+                    .field("Profile", event.getProcess().getDistributionInfo().getProfile()).build());
           }
         });
       } else {
@@ -174,58 +171,44 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
           @Override
           public void run() {
             sendAlert(
-                subject(AlertLevel.ERROR, "Process terminated"),            
-                AlertBuilder.newInstance()
-                  .serverContext(serverContext())
-                  .level(AlertLevel.ERROR)
-                  .summary("Process terminated")
-                  .details("Process " + event.getProcess().getProcessID() + " was terminated by the Corus server")
-                  .field("Distribution", event.getProcess().getDistributionInfo().getName())
-                  .field("Version", event.getProcess().getDistributionInfo().getVersion())
-                  .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
-                  .field("Profile", event.getProcess().getDistributionInfo().getProfile())
-                  .build());        
+                subject(AlertLevel.ERROR, "Process terminated"),
+                AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.ERROR).summary("Process terminated")
+                    .details("Process " + event.getProcess().getProcessID() + " was terminated by the Corus server")
+                    .field("Distribution", event.getProcess().getDistributionInfo().getName())
+                    .field("Version", event.getProcess().getDistributionInfo().getVersion())
+                    .field("Process name", event.getProcess().getDistributionInfo().getProcessName())
+                    .field("Profile", event.getProcess().getDistributionInfo().getProfile()).build());
           }
         });
       }
     }
-    
+
   }
-  
+
   public void onDeploymentEvent(final DeploymentEvent event) {
     alertSenders.execute(new Runnable() {
       @Override
       public void run() {
         sendAlert(
             subject(AlertLevel.INFO, "Distribution deployed"),
-            AlertBuilder.newInstance()
-              .serverContext(serverContext())            
-              .level(AlertLevel.INFO)
-              .summary("Distribution deployed")
-              .field("Distribution", event.getDistribution().getName())
-              .field("Version", event.getDistribution().getVersion())
-              .build());
+            AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.INFO).summary("Distribution deployed")
+                .field("Distribution", event.getDistribution().getName()).field("Version", event.getDistribution().getVersion()).build());
       }
     });
-  }  
-  
+  }
+
   public void onUndeploymentEvent(final UndeploymentEvent event) {
     alertSenders.execute(new Runnable() {
       @Override
       public void run() {
         sendAlert(
-            subject(AlertLevel.WARNING,"Distribution undeployed"),
-            AlertBuilder.newInstance()
-              .serverContext(serverContext())
-              .level(AlertLevel.WARNING)
-              .summary("Distribution undeployed")
-              .field("Distribution", event.getDistribution().getName())
-              .field("Version", event.getDistribution().getVersion())
-              .build());    
+            subject(AlertLevel.WARNING, "Distribution undeployed"),
+            AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.WARNING).summary("Distribution undeployed")
+                .field("Distribution", event.getDistribution().getName()).field("Version", event.getDistribution().getVersion()).build());
       }
     });
-  } 
-  
+  }
+
   void sendAlert(String subject, String content) {
     if (enabled && !Strings.isBlank(smtpHost) && !recipientList.isEmpty()) {
       log.debug(content);
@@ -234,7 +217,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
         if (!Strings.isBlank(sender)) {
           message.setFrom(sender);
         } else {
-          message.setFrom("corus-no-reply@" + smtpHost);          
+          message.setFrom("corus-no-reply@" + smtpHost);
         }
         message.setSubject("[" + serverContext().getDomain() + "] " + subject);
         message.setText(content);
@@ -247,7 +230,7 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
       log.debug("Alerting disabled, not sending");
     }
   }
-  
+
   private String subject(AlertLevel level, String title) {
     return new StringBuilder().append("[").append(level.name()).append("]").append(title).toString();
   }

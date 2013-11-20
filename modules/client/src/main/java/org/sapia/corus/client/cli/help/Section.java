@@ -11,23 +11,23 @@ import org.sapia.console.table.Table;
  */
 public class Section {
   private String _title;
-  private List<Para>   _paras = new ArrayList<Para>();
-  
-  public void setTitle(String title){
+  private List<Para> _paras = new ArrayList<Para>();
+
+  public void setTitle(String title) {
     _title = title;
   }
-  
-  public String getTitle(){
+
+  public String getTitle() {
     return _title;
-  }  
-  
-  public Para createP(){
+  }
+
+  public Para createP() {
     Para p = new Para();
     _paras.add(p);
     return p;
   }
-  
-  public void display(Table t){
+
+  public void display(Table t) {
     t.newRow().flush();
     Row r = t.newRow();
     r.getCellAt(0).append(_title);
@@ -35,8 +35,8 @@ public class Section {
     t.drawLine('=', 1, _title.length());
     t.newRow().flush();
     Para p;
-    for(int i = 0; i < _paras.size(); i++){
-      p = (Para)_paras.get(i);
+    for (int i = 0; i < _paras.size(); i++) {
+      p = (Para) _paras.get(i);
       p.display(t);
     }
   }

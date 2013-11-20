@@ -33,27 +33,27 @@ public class FileUtilsTest {
     assertTrue(FileUtils.isWindowsDrive("E:"));
     assertFalse(FileUtils.isWindowsDrive("C"));
   }
-  
+
   @Test
-  public void testGetFileInfoForDirectory(){
+  public void testGetFileInfoForDirectory() {
     FileInfo info = FileUtils.getFileInfo("/some/directory");
     assertEquals("/some/directory", info.directory);
     assertTrue(info.fileName == null);
   }
-  
+
   @Test
-  public void testGetFileInfoForFile(){
+  public void testGetFileInfoForFile() {
     FileInfo info = FileUtils.getFileInfo("/some/directory/file.txt");
     assertEquals("/some/directory", info.directory);
     assertEquals("file.txt", info.fileName);
-  }  
-  
+  }
+
   @Test
-  public void testIsClassesDirectory(){
+  public void testIsClassesDirectory() {
     FileInfo info = FileUtils.getFileInfo("/some/classes/");
     assertEquals("/some/classes/", info.directory);
     assertTrue("Should be flagged as classes directory", info.isClasses);
     assertTrue(info.fileName == null);
-  }  
+  }
 
 }

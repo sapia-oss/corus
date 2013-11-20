@@ -13,45 +13,41 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.taskmanager.CorusTaskManager;
 import org.sapia.ubik.rmi.server.Hub;
 
-
 /**
  * @author Yanick Duchesne
  */
 public class CorusMonitor {
   public static final String HOST = "h";
   public static final String HELP = "help";
-  
+
   public static void main(String[] args) {
-    int     port = CorusServer.DEFAULT_PORT;
-    String  host;
-    
+    int port = CorusServer.DEFAULT_PORT;
+    String host;
+
     CmdLine cmd = CmdLine.parse(args);
-    
-    if(cmd.containsOption(HELP, false)){
+
+    if (cmd.containsOption(HELP, false)) {
       help();
       return;
-    }
-    else if(cmd.containsOption(HOST, false)){
+    } else if (cmd.containsOption(HOST, false)) {
       try {
         host = cmd.assertOption(HOST, true).getValue();
       } catch (InputException e) {
         System.out.println("Host (-h) not specified");
         help();
-        
+
         return;
       }
-    }
-    else{
+    } else {
       host = "localhost";
     }
-        
+
     int level = ProgressMsg.DEBUG;
-    
+
     try {
-      String verbosity = cmd.assertOption(CorusServer.DEBUG_VERBOSITY, true)
-      .getValue();
+      String verbosity = cmd.assertOption(CorusServer.DEBUG_VERBOSITY, true).getValue();
       verbosity = verbosity.toLowerCase();
-      
+
       if (verbosity.startsWith("debug")) {
         level = ProgressMsg.DEBUG;
       } else if (verbosity.startsWith("info")) {
@@ -63,38 +59,38 @@ public class CorusMonitor {
       }
     } catch (InputException e) {
     }
-    
-    Corus            corus;
+
+    Corus corus;
     CorusTaskManager taskman;
-    
+
     try {
-      corus     = (Corus) Hub.connect(host, port);
-      taskman   = (CorusTaskManager) corus.lookup(CorusTaskManager.ROLE);
+      corus = (Corus) Hub.connect(host, port);
+      taskman = (CorusTaskManager) corus.lookup(CorusTaskManager.ROLE);
     } catch (Exception e) {
       e.printStackTrace();
-      
+
       return;
     }
-    
-    ProgressQueue       queue = taskman.getProgressQueue(level);
-    List<ProgressMsg>   msgs;
-    ProgressMsg         msg;
+
+    ProgressQueue queue = taskman.getProgressQueue(level);
+    List<ProgressMsg> msgs;
+    ProgressMsg msg;
     display();
     System.out.println("Waiting for Corus server output...");
     System.out.println();
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(queue));
-    
+
     StringBuffer buf = new StringBuffer();
-    
-    try{
+
+    try {
       while (!queue.isClosed()) {
         msgs = queue.fetchNext();
-        
+
         for (int i = 0; i < msgs.size(); i++) {
           buf.delete(0, buf.length());
           msg = (ProgressMsg) msgs.get(i);
           buf.append("[").append(ProgressMsg.getLabelFor(msg.getStatus())).append("]");
-          
+
           if (msg.isError()) {
             Throwable err = msg.getError();
             buf.append(err.getMessage());
@@ -106,20 +102,20 @@ public class CorusMonitor {
           }
         }
       }
-    }catch(UndeclaredThrowableException e){
+    } catch (UndeclaredThrowableException e) {
       // we interpret this as being thrown by the progress queue
       // stub because the Corus server has been shut down.
     }
     System.out.println();
     System.out.println("Exiting; Corus server probably shut down.");
-    
+
     try {
       Hub.shutdown(5000);
     } catch (Exception e) {
-      //noop
+      // noop
     }
   }
-  
+
   static final void help() {
     System.out.println();
     System.out.println("Corus monitor command-line syntax:");
@@ -138,10 +134,10 @@ public class CorusMonitor {
     System.out.println("          that will be monitored.");
     System.out.println();
   }
-  
+
   public static void display() {
     line();
-    
+
     Calendar cal = Calendar.getInstance();
     int year = cal.get(Calendar.YEAR);
 
@@ -154,30 +150,30 @@ public class CorusMonitor {
     center("");
     center("Authorized Users Only");
     center("");
-    center("(c)2003-"+year+" sapia-oss.org");
+    center("(c)2003-" + year + " sapia-oss.org");
     center("");
     line();
     System.out.println("");
   }
-  
+
   static void line() {
     for (int i = 0; i < 80; i++) {
       System.out.print("*");
     }
-    
+
     System.out.println("");
   }
-  
+
   static void center(String text) {
     int margin = (80 - text.length()) / 2;
     System.out.print("*");
-       
+
     for (int i = 0; i < (margin - 1); i++) {
       System.out.print(" ");
     }
-    
+
     System.out.print(text);
-    
+
     if ((text.length() % 2) == 0) {
       for (int i = 0; i < (margin - 1); i++) {
         System.out.print(" ");
@@ -187,17 +183,17 @@ public class CorusMonitor {
         System.out.print(" ");
       }
     }
-    
+
     System.out.println("*");
   }
-  
+
   static class ShutdownHook extends Thread {
     private ProgressQueue _queue;
-    
+
     ShutdownHook(ProgressQueue queue) {
       _queue = queue;
     }
-    
+
     /**
      * @see java.lang.Thread#run()
      */
@@ -207,7 +203,7 @@ public class CorusMonitor {
       } catch (Exception e) {
         // noop
       }
-      
+
       try {
         Hub.shutdown(5000);
       } catch (Exception e) {

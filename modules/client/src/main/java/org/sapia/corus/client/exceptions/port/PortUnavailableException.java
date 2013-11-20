@@ -10,13 +10,13 @@ import org.sapia.corus.client.services.port.PortManager;
  * @see PortManager
  * @author yduchesne
  */
-public class PortUnavailableException extends CorusException{
-  
+public class PortUnavailableException extends CorusException {
+
   static final long serialVersionUID = 1L;
 
   /** Creates a new instance of PortUnavailableException */
   public PortUnavailableException(String msg) {
     super(msg, ExceptionCode.PORT_UNAVAILABLE.getFullCode());
   }
-  
+
 }

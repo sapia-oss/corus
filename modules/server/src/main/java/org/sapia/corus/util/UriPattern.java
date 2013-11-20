@@ -6,8 +6,8 @@ import java.util.Map;
 @SuppressWarnings("rawtypes")
 public class UriPattern {
 
-  private int[]  _compiled;
-  
+  private int[] _compiled;
+
   private UriPattern(int[] compiled) {
     _compiled = compiled;
   }
@@ -22,7 +22,8 @@ public class UriPattern {
   }
 
   /**
-   * @param str a {@link String} to match.
+   * @param str
+   *          a {@link String} to match.
    * @return <code>true</code> if this instance matches the given string.
    */
   public boolean matches(String str) {
@@ -49,17 +50,16 @@ public class UriPattern {
    * 
    * @author Yanick Duchesne
    * 
-   * <dl>
-   * <dt><b>Copyright: </b>
-   * <dd>Copyright &#169; 2002-2004 <a href="http://www.sapia-oss.org">Sapia
-   * Open Source Software </a>. All Rights Reserved.</dd>
-   * </dt>
-   * <dt><b>License: </b>
-   * <dd>Read the license.txt file of the jar or visit the <a
-   * href="http://www.sapia-oss.org/license.html">license page </a> at the Sapia
-   * OSS web site</dd>
-   * </dt>
-   * </dl>
+   *         <dl>
+   *         <dt><b>Copyright: </b>
+   *         <dd>Copyright &#169; 2002-2004 <a
+   *         href="http://www.sapia-oss.org">Sapia Open Source Software </a>.
+   *         All Rights Reserved.</dd></dt>
+   *         <dt><b>License: </b>
+   *         <dd>Read the license.txt file of the jar or visit the <a
+   *         href="http://www.sapia-oss.org/license.html">license page </a> at
+   *         the Sapia OSS web site</dd></dt>
+   *         </dl>
    */
   public static final class MatchResult {
 
@@ -68,7 +68,7 @@ public class UriPattern {
      * token are bound under the index corresponding to the order in which they
      * have been matched.
      */
-    public Map     result;
+    public Map result;
 
     /**
      * Returns <code>true</code> if the matching operation was successful.

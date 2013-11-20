@@ -12,23 +12,29 @@ import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.ubik.util.Function;
 
 /**
- * This task performs the deployment to a provided list of nodes, following a {@link ShellScriptDeploymentRequest}.
+ * This task performs the deployment to a provided list of nodes, following a
+ * {@link ShellScriptDeploymentRequest}.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ShellScriptRequestHandlerTask extends ArtifactRequestHandlerTaskSupport {
 
   /**
-   * @param scriptFile the {@link File} consisting of the shell script to deploy.
-   * @param script the {@link ShellScript} holding the script's information.
-   * @param targets the {@link List} of {@link Endpoint}s corresponding to the Corus nodes to deploy to.
+   * @param scriptFile
+   *          the {@link File} consisting of the shell script to deploy.
+   * @param script
+   *          the {@link ShellScript} holding the script's information.
+   * @param targets
+   *          the {@link List} of {@link Endpoint}s corresponding to the Corus
+   *          nodes to deploy to.
    */
   public ShellScriptRequestHandlerTask(final File scriptFile, final ShellScript script, final List<Endpoint> targets) {
     super(scriptFile, targets, new Function<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
-        return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(), new ClusterInfo(clustered).addTargets(targets));
+        return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(),
+            new ClusterInfo(clustered).addTargets(targets));
       }
     });
   }

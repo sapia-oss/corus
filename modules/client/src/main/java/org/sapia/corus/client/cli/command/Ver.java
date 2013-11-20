@@ -8,13 +8,12 @@ import org.sapia.corus.client.cli.CliContext;
  * Displays the Corus version.
  * 
  * @author yduchesne
- *
+ * 
  */
-public class Ver extends CorusCliCommand{
-  
+public class Ver extends CorusCliCommand {
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     ctx.getConsole().println("Server version: " + ctx.getCorus().getContext().getVersion());
   }
 

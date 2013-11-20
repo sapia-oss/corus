@@ -10,13 +10,12 @@ import org.sapia.corus.client.cli.CliContext;
  * This command forces a pause for a given amount of seconds.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class Pause extends CorusCliCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     int seconds = Integer.parseInt(ctx.getCommandLine().assertNextArg().getName());
     try {
       Thread.sleep(TimeUnit.MILLISECONDS.convert(seconds, TimeUnit.SECONDS));

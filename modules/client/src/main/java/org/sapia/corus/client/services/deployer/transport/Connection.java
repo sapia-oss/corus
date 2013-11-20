@@ -10,24 +10,22 @@ import java.io.OutputStream;
  * @author Yanick Duchesne
  */
 public interface Connection {
-	
-	/**
-	 * @return this client's {@link InputStream}.
-	 * @throws IOException
-	 */
-	public InputStream getInputStream() throws IOException;
-	
-	
-	/**
-	 * @return this client's {@link OutputStream}.
-	 * @throws IOException
-	 */
-	public OutputStream getOutputStream() throws IOException;
-	
-	/**
-	 * Closes this connection.
-	 */
-	public void close();
-	
+
+  /**
+   * @return this client's {@link InputStream}.
+   * @throws IOException
+   */
+  public InputStream getInputStream() throws IOException;
+
+  /**
+   * @return this client's {@link OutputStream}.
+   * @throws IOException
+   */
+  public OutputStream getOutputStream() throws IOException;
+
+  /**
+   * Closes this connection.
+   */
+  public void close();
 
 }

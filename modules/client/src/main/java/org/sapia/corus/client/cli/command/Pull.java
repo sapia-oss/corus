@@ -10,10 +10,9 @@ import org.sapia.corus.client.cli.CliContext;
  * @author yduchesne
  */
 public class Pull extends CorusCliCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     ctx.getCorus().getRepoFacade().pull(getClusterInfo(ctx));
   }
 

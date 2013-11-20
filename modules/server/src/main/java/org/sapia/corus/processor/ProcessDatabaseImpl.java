@@ -10,87 +10,68 @@ import org.sapia.corus.util.CompositeMatcher;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 
-
 /**
  * Holds {@link Process} instances.
  * 
  * @author Yanick Duchesne
  */
 public class ProcessDatabaseImpl implements ProcessDatabase {
-  
+
   private DbMap<String, Process> _processes;
-  
+
   public ProcessDatabaseImpl(DbMap<String, Process> map) {
     _processes = map;
   }
-  
+
   @Override
   public synchronized void addProcess(Process process) {
     _processes.put(process.getProcessID(), process);
   }
 
   @Override
-  public synchronized boolean containsProcess(String corusPid){
+  public synchronized boolean containsProcess(String corusPid) {
     return _processes.get(corusPid) != null;
   }
 
   @Override
   public synchronized void removeProcesses(ProcessCriteria criteria) {
-    List<Process>     toRemove  = getProcesses(criteria);
+    List<Process> toRemove = getProcesses(criteria);
     for (int i = 0; i < toRemove.size(); i++) {
       _processes.remove(((Process) toRemove.get(i)).getProcessID());
     }
   }
-   
+
   @Override
   public synchronized List<Process> getProcesses(final ProcessCriteria criteria) {
-    Matcher<Process> matcher = new CompositeMatcher<Process>()
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
-          boolean result = criteria.getDistribution().matches(object.getDistributionInfo().getName());
-          return result;
-        }
+    Matcher<Process> matcher = new CompositeMatcher<Process>().add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        boolean result = criteria.getDistribution().matches(object.getDistributionInfo().getName());
+        return result;
       }
-    )
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
-          return criteria.getVersion().matches(object.getDistributionInfo().getVersion());
-        }
+    }).add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        return criteria.getVersion().matches(object.getDistributionInfo().getVersion());
       }
-    )
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
-          return criteria.getName().matches(object.getDistributionInfo().getProcessName());
-        }
+    }).add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        return criteria.getName().matches(object.getDistributionInfo().getProcessName());
       }
-    )
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
-          if(criteria.getProfile() == null) return true;
-          return criteria.getProfile().equals(object.getDistributionInfo().getProfile());
-        }
-      }
-    )
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
-          return criteria.getPid().matches(object.getProcessID());
-        }
-      }
-    )    
-    .add(
-      new Matcher<Process>() {
-        public boolean matches(Process object) {
+    }).add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        if (criteria.getProfile() == null)
           return true;
-        }
-      }  
-    );
-    
-    
+        return criteria.getProfile().equals(object.getDistributionInfo().getProfile());
+      }
+    }).add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        return criteria.getPid().matches(object.getProcessID());
+      }
+    }).add(new Matcher<Process>() {
+      public boolean matches(Process object) {
+        return true;
+      }
+    });
+
     return new IteratorFilter<Process>(matcher).filter(_processes.values()).sort(new ProcessComparator()).get();
   }
 

@@ -9,34 +9,35 @@ import java.util.regex.Pattern;
  * Default {@link ClientFileSystem} implementation.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class DefaultClientFileSystem implements ClientFileSystem {
- 
+
   private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-z]:");
-  
+
   private File baseDir;
-  
+
   /**
-   * Constructs a {@link DefaultClientFileSystem} with the current process directory
-   * as a base directory.
+   * Constructs a {@link DefaultClientFileSystem} with the current process
+   * directory as a base directory.
    */
   public DefaultClientFileSystem() {
     this(new File(System.getProperty("user.dir")));
   }
-  
+
   /**
-   * @param baseDir a {@link File} corresponding to a base directory.
+   * @param baseDir
+   *          a {@link File} corresponding to a base directory.
    */
   public DefaultClientFileSystem(File baseDir) {
     this.baseDir = baseDir;
   }
-  
+
   @Override
   public File getBaseDir() {
     return baseDir;
   }
-  
+
   @Override
   public File getFile(String name) {
     if (isAbsolute(name)) {
@@ -45,10 +46,9 @@ public class DefaultClientFileSystem implements ClientFileSystem {
       return new File(baseDir, name);
     }
   }
-  
+
   @Override
-  public void changeBaseDir(String dirName) throws IOException,
-      FileNotFoundException {
+  public void changeBaseDir(String dirName) throws IOException, FileNotFoundException {
     File dir;
 
     if (isAbsolute(dirName)) {
@@ -76,15 +76,13 @@ public class DefaultClientFileSystem implements ClientFileSystem {
   }
 
   /**
-   * @param fileName a file name.
-   * @return <code>true</code> if the given name corresponding to an absolute file.
+   * @param fileName
+   *          a file name.
+   * @return <code>true</code> if the given name corresponding to an absolute
+   *         file.
    */
   static boolean isAbsolute(String fileName) {
     String theFileName = fileName.trim();
-    return 
-        theFileName.length() > 0
-        && 
-        (WINDOWS_DRIVE_PATTERN.matcher(theFileName).find()
-         || theFileName.startsWith("/"));
+    return theFileName.length() > 0 && (WINDOWS_DRIVE_PATTERN.matcher(theFileName).find() || theFileName.startsWith("/"));
   }
 }

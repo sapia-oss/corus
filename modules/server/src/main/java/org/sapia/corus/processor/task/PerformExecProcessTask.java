@@ -31,23 +31,23 @@ import org.sapia.ubik.rmi.naming.remote.RemoteInitialContextFactory;
 import org.sapia.ubik.util.Localhost;
 
 /**
- * Actually performs the execution of the OS process corresponding to the given {@link ProcessInfo}.
+ * Actually performs the execution of the OS process corresponding to the given
+ * {@link ProcessInfo}.
  * 
  * @author yduchesne
  */
-public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo, Properties, Void, Void>>{
+public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo, Properties, Void, Void>> {
 
   @Override
-  public Boolean execute(TaskExecutionContext ctx,
-      TaskParams<ProcessInfo, Properties, Void, Void> params) throws Throwable {
-    
-    ProcessInfo   info              = params.getParam1();
-    Properties    processProperties = params.getParam2();
-    ProcessConfig conf              = info.getConfig();
-    Process       process           = info.getProcess();
-    Distribution  dist              = info.getDistribution();
-    PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
-    OsModule      os                = ctx.getServerContext().getServices().getOS();
+  public Boolean execute(TaskExecutionContext ctx, TaskParams<ProcessInfo, Properties, Void, Void> params) throws Throwable {
+
+    ProcessInfo info = params.getParam1();
+    Properties processProperties = params.getParam2();
+    ProcessConfig conf = info.getConfig();
+    Process process = info.getProcess();
+    Distribution dist = info.getDistribution();
+    PortManager ports = ctx.getServerContext().getServices().getPortManager();
+    OsModule os = ctx.getServerContext().getServices().getOS();
 
     if (conf.getMaxKillRetry() >= 0) {
       process.setMaxKillRetry(conf.getMaxKillRetry());
@@ -62,21 +62,15 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     if (processDir == null) {
       return false;
     }
-    
+
     process.setProcessDir(processDir.getAbsolutePath());
     process.setDeleteOnKill(conf.isDeleteOnKill());
 
     EnvImpl env = null;
 
     try {
-      env = new EnvImpl(
-          ctx.getServerContext().getHomeDir(), 
-          process.getDistributionInfo().getProfile(), 
-          dist.getBaseDir(), 
-          dist.getCommonDir(), 
-          process.getProcessDir(),
-          getProcessProps(conf, process, dist, ctx, processProperties)
-      );
+      env = new EnvImpl(ctx.getServerContext().getHomeDir(), process.getDistributionInfo().getProfile(), dist.getBaseDir(), dist.getCommonDir(),
+          process.getProcessDir(), getProcessProps(conf, process, dist, ctx, processProperties));
     } catch (PortUnavailableException e) {
       process.releasePorts(ports);
       ctx.error(e);
@@ -99,7 +93,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     }
 
     ctx.info(String.format("Executing process under: %s ---> %s", processDir, cmd.toString()));
-    
+
     try {
       process.setOsPid(os.executeProcess(callback(ctx), processDir, cmd));
     } catch (IOException e) {
@@ -115,52 +109,34 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     } else {
       ctx.info(String.format("OS pid: %s", process.getOsPid()));
     }
-    return true;  
+    return true;
   }
-  
+
   private File makeProcessDir(TaskExecutionContext ctx, ProcessInfo info) {
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
-    File processDir = new File(
-        PathUtils.toPath(
-            info.getDistribution().getProcessesDir(), 
-            info.getProcess().getProcessID())
-    );
+    File processDir = new File(PathUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
 
     if (info.isRestart() && !fs.exists(processDir)) {
-      ctx.warn(
-          "Process directory: " + processDir
-              + " does not exist; restart aborted");
+      ctx.warn("Process directory: " + processDir + " does not exist; restart aborted");
       return null;
     } else {
-      try{
+      try {
         fs.createDirectory(processDir);
-  
+
         if (!fs.exists(processDir)) {
-          ctx.warn(
-              String.format(
-                  "Could not make process directory: %s; startup aborted", 
-                  processDir.getAbsolutePath()
-              )
-          );
+          ctx.warn(String.format("Could not make process directory: %s; startup aborted", processDir.getAbsolutePath()));
           return null;
         }
-      }catch(IOException e){
-        ctx.error(
-            String.format(
-                "Could not make process directory: %s; startup aborted", 
-                processDir.getAbsolutePath()
-            ),
-            e
-        );
+      } catch (IOException e) {
+        ctx.error(String.format("Could not make process directory: %s; startup aborted", processDir.getAbsolutePath()), e);
         return null;
       }
     }
     return processDir;
   }
-  
+
   @SuppressWarnings("rawtypes")
-  private Property[] getProcessProps(ProcessConfig conf, Process proc,
-      Distribution dist, TaskExecutionContext ctx, Properties processProperties)
+  private Property[] getProcessProps(ProcessConfig conf, Process proc, Distribution dist, TaskExecutionContext ctx, Properties processProperties)
       throws PortUnavailableException {
 
     PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
@@ -177,10 +153,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     props.add(new Property("corus.server.host", host));
     props.add(new Property("corus.server.port", "" + port));
     if (System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
-      props.add(new Property("corus.server.domain", System
-          .getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
-      props.add(new Property(RemoteInitialContextFactory.UBIK_DOMAIN_NAME,
-          System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
+      props.add(new Property("corus.server.domain", System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
+      props.add(new Property(RemoteInitialContextFactory.UBIK_DOMAIN_NAME, System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
     }
     props.add(new Property("corus.distribution.name", dist.getName()));
     props.add(new Property("corus.distribution.version", dist.getVersion()));
@@ -189,12 +163,9 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     if (proc.getOsPid() != null) {
       props.add(new Property("corus.process.os.pid", proc.getOsPid()));
     }
-    props.add(new Property("corus.process.poll.interval", ""
-        + conf.getPollInterval()));
-    props.add(new Property("corus.process.status.interval", ""
-        + conf.getStatusInterval()));
-    props.add(new Property("corus.process.profile", proc.getDistributionInfo()
-        .getProfile()));
+    props.add(new Property("corus.process.poll.interval", "" + conf.getPollInterval()));
+    props.add(new Property("corus.process.status.interval", "" + conf.getStatusInterval()));
+    props.add(new Property("corus.process.profile", proc.getDistributionInfo().getProfile()));
     props.add(new Property("user.dir", dist.getCommonDir()));
 
     Enumeration names = processProperties.propertyNames();
@@ -219,8 +190,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       Port p = ports.get(i);
       if (!added.contains(p.getName())) {
         int portInt = portmgr.aquirePort(p.getName());
-        props.add(new Property("corus.process.port." + p.getName(), Integer
-            .toString(portInt)));
+        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(portInt)));
         proc.addActivePort(new ActivePort(p.getName(), portInt));
         added.add(p.getName());
       }
@@ -228,21 +198,21 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     return (Property[]) props.toArray(new Property[props.size()]);
   }
-  
-  private String hideIfPassword(String name, String value){
-    if(name.contains("password")){
+
+  private String hideIfPassword(String name, String value) {
+    if (name.contains("password")) {
       return "********";
-    }
-    else return value;
+    } else
+      return value;
   }
-  
-  private OsModule.LogCallback callback(final TaskExecutionContext ctx){
+
+  private OsModule.LogCallback callback(final TaskExecutionContext ctx) {
     return new OsModule.LogCallback() {
       @Override
       public void error(String msg) {
         ctx.error(msg);
       }
-      
+
       @Override
       public void debug(String msg) {
         ctx.debug(msg);

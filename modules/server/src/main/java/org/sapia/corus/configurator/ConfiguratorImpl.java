@@ -25,82 +25,87 @@ import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Implements the {@link Configurator} and {@link InternalConfigurator} interfaces.
+ * Implements the {@link Configurator} and {@link InternalConfigurator}
+ * interfaces.
  * 
  * @author yduchesne
- *
+ * 
  */
-@Bind(moduleInterface={Configurator.class})
-@Remote(interfaces=Configurator.class)
+@Bind(moduleInterface = { Configurator.class })
+@Remote(interfaces = Configurator.class)
 public class ConfiguratorImpl extends ModuleHelper implements Configurator {
-  
+
   public static final String PROP_SERVER_NAME = "corus.server.name";
 
   @Autowired
   private PropertyProvider propertyProvider;
-  
+
   @Autowired
   private DbModule db;
- 
+
   @Autowired
   private EventDispatcher dispatcher;
-  
+
   @Autowired
   private HttpModule httpModule;
-  
+
   private PropertyStore processProperties, serverProperties;
   private DbMap<String, ConfigProperty> tags;
-  
+
   // --------------------------------------------------------------------------
   // Visible for testing
-  
+
   void setPropertyProvider(PropertyProvider propertyProvider) {
     this.propertyProvider = propertyProvider;
   }
-  
+
   void setDb(DbModule db) {
     this.db = db;
   }
-  
+
   void setDispatcher(EventDispatcher dispatcher) {
     this.dispatcher = dispatcher;
   }
-  
+
   void setTags(DbMap<String, ConfigProperty> tags) {
     this.tags = tags;
   }
-  
+
   void setProcessProperties(PropertyStore processProperties) {
     this.processProperties = processProperties;
   }
-  
+
   void setServerProperties(PropertyStore serverProperties) {
     this.serverProperties = serverProperties;
   }
-  
+
   // --------------------------------------------------------------------------
   // Module interface impl
-  
+
   @Override
   public String getRoleName() {
     return Configurator.ROLE;
   }
-  
+
   // --------------------------------------------------------------------------
   // Lifecycle
-  
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.sapia.corus.client.services.Service#init()
    */
   @Override
   public void init() throws Exception {
-    processProperties   = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process"));
-    serverProperties    = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.server"));
-    tags                = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
+    processProperties = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process"));
+    serverProperties = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.server"));
+    tags = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
     propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.sapia.corus.core.ModuleHelper#start()
    */
   @Override
@@ -112,8 +117,10 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
       log.error("Could not add configurator HTTP extension", e);
     }
   }
-  
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
+   * 
    * @see org.sapia.corus.client.services.Service#dispose()
    */
   @Override
@@ -122,19 +129,18 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   // --------------------------------------------------------------------------
   // Property operations
- 
+
   @Override
   public void addProperty(final PropertyScope scope, final String name, final String value) {
     store(scope).addProperty(name, value);
     dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.ADD));
   }
-  
+
   @SuppressWarnings("rawtypes")
   @Override
-  public void addProperties(PropertyScope scope, Properties props,
-      boolean clearExisting) {
+  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting) {
     PropertyStore store = store(scope);
-    if(clearExisting){
+    if (clearExisting) {
       Properties stored = store.getProperties();
       for (String name : stored.stringPropertyNames()) {
         String value = stored.getProperty(name);
@@ -143,10 +149,10 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
       }
     }
     Enumeration names = props.propertyNames();
-    while(names.hasMoreElements()){
-      String name  = (String)names.nextElement();
+    while (names.hasMoreElements()) {
+      String name = (String) names.nextElement();
       String value = props.getProperty(name);
-      if(value != null){
+      if (value != null) {
         store.addProperty(name, value);
         dispatcher.dispatch(new PropertyChangeEvent(name, value, scope, Type.ADD));
       }
@@ -156,12 +162,12 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
   @Override
   public String getProperty(String name) {
     String value = serverProperties.getProperty(name);
-    if(value == null){
+    if (value == null) {
       value = processProperties.getProperty(name);
     }
     return value;
   }
-  
+
   @Override
   public void removeProperty(PropertyScope scope, Arg pattern) {
     PropertyStore store = store(scope);
@@ -174,64 +180,64 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
       }
     }
   }
-  
+
   @Override
   public Properties getProperties(PropertyScope scope) {
     return store(scope).getProperties();
   }
-  
+
   @Override
   public List<NameValuePair> getPropertiesAsNameValuePairs(PropertyScope scope) {
     return doGetPropertiesAsNameValuePairs(scope);
   }
-  
+
   // --------------------------------------------------------------------------
   // Tag operation
-  
+
   @Override
   public void addTag(String tag) {
     tags.put(tag, new ConfigProperty(tag, tag));
   }
-  
+
   @Override
   public void clearTags() {
     tags.clear();
   }
-  
+
   @Override
   public Set<String> getTags() {
     Iterator<String> names = tags.keys();
     Set<String> tags = new TreeSet<String>();
-    while(names.hasNext()){
+    while (names.hasNext()) {
       String name = names.next();
       tags.add(name);
     }
     return tags;
   }
-  
+
   @Override
   public void removeTag(String tag) {
     tags.remove(tag);
   }
-  
+
   @Override
   public void removeTag(Arg tag) {
-    for(String t:getTags()){
-      if(tag.matches(t)){
+    for (String t : getTags()) {
+      if (tag.matches(t)) {
         removeTag(t);
       }
     }
   }
-  
+
   @Override
   public void addTags(Set<String> tags) {
-    for(String t:tags){
-      if(t != null){
+    for (String t : tags) {
+      if (t != null) {
         addTag(t);
       }
     }
   }
-  
+
   @Override
   public synchronized void renameTags(List<NameValuePair> tags) {
     for (NameValuePair t : tags) {
@@ -244,22 +250,21 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   // --------------------------------------------------------------------------
   // Restricted methods
-  
-  private PropertyStore store(PropertyScope scope){
-    if(scope == PropertyScope.SERVER){
+
+  private PropertyStore store(PropertyScope scope) {
+    if (scope == PropertyScope.SERVER) {
       return serverProperties;
-    }
-    else{
+    } else {
       return processProperties;
     }
   }
-  
+
   private List<NameValuePair> doGetPropertiesAsNameValuePairs(PropertyScope scope) {
     Properties props = store(scope).getProperties();
     List<NameValuePair> toReturn = new ArrayList<NameValuePair>(props.size());
     Enumeration<?> keys = props.propertyNames();
-    while(keys.hasMoreElements()){
-      String key = (String)keys.nextElement();
+    while (keys.hasMoreElements()) {
+      String key = (String) keys.nextElement();
       String value = props.getProperty(key);
       NameValuePair pair = new NameValuePair(key, value);
       toReturn.add(pair);
@@ -267,19 +272,20 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
     Collections.sort(toReturn);
     return toReturn;
   }
-  
+
   // ==========================================================================
   // Inner class
-  
-  class ConfigPropertyContainer implements PropertyContainer{
+
+  class ConfigPropertyContainer implements PropertyContainer {
     private PropertyContainer nested;
+
     public ConfigPropertyContainer(PropertyContainer nested) {
       this.nested = nested;
     }
-    
+
     public String getProperty(String name) {
       String value = store(PropertyScope.SERVER).getProperty(name);
-      if(value == null){
+      if (value == null) {
         value = nested.getProperty(name);
       }
       return value;

@@ -11,13 +11,12 @@ import org.sapia.corus.client.cli.CliContext;
  * Changes the CLI's current directory.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class Cd extends CorusCliCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     Arg arg = ctx.getCommandLine().assertNextArg();
     try {
       ctx.getFileSystem().changeBaseDir(arg.getName());

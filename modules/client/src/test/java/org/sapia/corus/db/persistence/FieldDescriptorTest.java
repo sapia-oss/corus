@@ -10,7 +10,7 @@ import org.sapia.corus.client.services.db.persistence.FieldDescriptor;
 public class FieldDescriptorTest {
 
   private ClassDescriptor<TestPersistentObject> cd;
-  
+
   @Before
   public void setUp() throws Exception {
     cd = new ClassDescriptor<TestPersistentObject>(TestPersistentObject.class);
@@ -18,13 +18,13 @@ public class FieldDescriptorTest {
 
   @Test
   public void testGetIndex() {
-    
+
     FieldDescriptor activeField = cd.getFieldForName("active");
     assertEquals(0, activeField.getIndex());
-    
+
     FieldDescriptor idField = cd.getFieldForName("id");
     assertEquals(1, idField.getIndex());
-    
+
     FieldDescriptor nameField = cd.getFieldForName("name");
     assertEquals(2, nameField.getIndex());
   }
@@ -41,7 +41,7 @@ public class FieldDescriptorTest {
 
     FieldDescriptor idField = cd.getFieldForName("id");
     assertEquals(10L, idField.invokeAccessor(tpo));
-    
+
     FieldDescriptor nameField = cd.getFieldForName("name");
     assertEquals("test", nameField.invokeAccessor(tpo));
 
@@ -56,7 +56,7 @@ public class FieldDescriptorTest {
     FieldDescriptor activeField = cd.getFieldForName("active");
     activeField.invokeMutator(tpo, false);
     assertEquals(false, tpo.isActive());
-    
+
     FieldDescriptor idField = cd.getFieldForName("id");
     idField.invokeMutator(tpo, 100L);
     assertEquals(100L, tpo.getId());

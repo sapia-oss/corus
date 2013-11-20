@@ -15,7 +15,7 @@ public class ShutdownApplication {
 
     Map.Entry prop = null;
 
-    Iterator  props = System.getProperties().entrySet().iterator();
+    Iterator props = System.getProperties().entrySet().iterator();
 
     System.out.println("=================================================");
 

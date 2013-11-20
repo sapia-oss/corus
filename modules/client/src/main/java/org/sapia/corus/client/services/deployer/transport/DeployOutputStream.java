@@ -4,14 +4,13 @@ import java.io.IOException;
 
 import org.sapia.corus.client.common.ProgressQueue;
 
-
 /**
- * Specifies the behavior an output stream that is used for deployment. 
+ * Specifies the behavior an output stream that is used for deployment.
  * 
  * @author Yanick Duchesne
  */
 public interface DeployOutputStream extends java.rmi.Remote {
-	
+
   void close() throws IOException;
 
   void flush() throws IOException;

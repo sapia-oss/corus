@@ -17,25 +17,25 @@ public class ClassDescriptorTest {
     cd.getFieldForName("name");
     cd.getFieldForName("id");
   }
-  
-  
+
   @Test
   public void testGetVersionDescriptor() {
     ClassDescriptor<TestPersistentObject> cd = new ClassDescriptor<TestPersistentObject>(TestPersistentObject.class);
     FieldDescriptor fd = cd.getFieldForName("version");
     assertTrue(fd.isVersion());
-  }  
-  
+  }
+
   @Test
   public void testGetDescriptorForTransientAccessor() {
     ClassDescriptor<TestPersistentObject> cd = new ClassDescriptor<TestPersistentObject>(TestPersistentObject.class);
-    try{
+    try {
       cd.getFieldForName("key");
       fail("Field 'key' should not be persistent attribute");
-    }catch(NoSuchFieldException e){}
-      
+    } catch (NoSuchFieldException e) {
+    }
+
   }
-  
+
   @Test
   public void testGetDescriptorForIndex() {
     ClassDescriptor<TestPersistentObject> cd = new ClassDescriptor<TestPersistentObject>(TestPersistentObject.class);

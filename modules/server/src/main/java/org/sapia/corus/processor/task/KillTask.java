@@ -17,22 +17,26 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
- * This task insures the destruction of a given process: it attempts performing a 'soft' kill (trying to
- * send a kill command through the Corus IOP protocol). Such attempts will occur up to a predefined
- * amount of times. If after these retries the process has not confirmed its shutdown, this task resorts
- * to an OS kill.
+ * This task insures the destruction of a given process: it attempts performing
+ * a 'soft' kill (trying to send a kill command through the Corus IOP protocol).
+ * Such attempts will occur up to a predefined amount of times. If after these
+ * retries the process has not confirmed its shutdown, this task resorts to an
+ * OS kill.
  * <p>
- * In addition, if the process termination had originally been ordered by the Corus server itself,
- * this task will automatically attempt triggering the process restart.
+ * In addition, if the process termination had originally been ordered by the
+ * Corus server itself, this task will automatically attempt triggering the
+ * process restart.
  * <p>
  * Note that this tasks acquires the process lock while it is executed.
  * <p>
  * Calls:
  * <ol>
- *  <li> {@link AttemptKillTask}: in order to perform the process soft kill attempts.
- *  <li> {@link PerformProcessRestartTask}: in order to restart the killed process.
+ * <li> {@link AttemptKillTask}: in order to perform the process soft kill
+ * attempts.
+ * <li> {@link PerformProcessRestartTask}: in order to restart the killed
+ * process.
  * </ol>
- *
+ * 
  * @author Yanick Duchesne
  */
 public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationRequestor, Void, Void>> {
@@ -40,33 +44,32 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
   /**
    * The {@link Process} to kill.
    */
-  protected Process                     proc;
-  
+  protected Process proc;
+
   /**
-   * The {@link ProcessTerminationRequestor} identifying from whom the kill order originates.
+   * The {@link ProcessTerminationRequestor} identifying from whom the kill
+   * order originates.
    */
   protected ProcessTerminationRequestor requestor;
-  
+
   /**
    * The {@link LockOwner} used to acquired a lock on the process.
    */
-  protected LockOwner                   lockOwner = LockOwner.createInstance();
-  
+  protected LockOwner lockOwner = LockOwner.createInstance();
+
   /**
    * Constructs an instance of this class with the given params.
    */
   public KillTask(int maxRetry) {
     super.setMaxExecution(maxRetry);
   }
-  
+
   @Override
-  public Void execute(TaskExecutionContext ctx,
-      TaskParams<Process, ProcessTerminationRequestor, Void, Void> params)
-      throws Throwable {
-    
-    proc      = params.getParam1();
+  public Void execute(TaskExecutionContext ctx, TaskParams<Process, ProcessTerminationRequestor, Void, Void> params) throws Throwable {
+
+    proc = params.getParam1();
     requestor = params.getParam2();
-    
+
     ctx.debug(String.format("Killing %s", proc));
 
     // refreshing - another thread might have updated the process instance
@@ -75,7 +78,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
 
     // acquiring lock on process (might already be acquired from
     // previous execution - in this case no side effects)
-    try{
+    try {
       proc.getLock().acquire(lockOwner);
       proc.save();
     } catch (ProcessLockException e) {
@@ -83,43 +86,39 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       ctx.error(e);
       abort(ctx);
       return null;
-    } 
-    
+    }
+
     // lock acquired, checking if process had confirmed previous kill
     // (if so, no point in continuing)
     if (proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED) {
       doKillConfirmed(true, ctx);
     } else {
-      ctx.getTaskManager().executeAndWait(
-          new AttemptKillTask(), 
-          TaskParams.createFor(proc, requestor, super.getExecutionCount())
-      ).get();
+      ctx.getTaskManager().executeAndWait(new AttemptKillTask(), TaskParams.createFor(proc, requestor, super.getExecutionCount())).get();
     }
 
     return null;
   }
-  
+
   @Override
   protected void abort(TaskExecutionContext ctx) {
-    try{
+    try {
       ctx.debug(String.format("Releasing lock on: %s", proc));
       proc.getLock().release(lockOwner);
       if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
-    	  proc.save();
+        proc.save();
       }
-    }catch(Throwable err){
+    } catch (Throwable err) {
       // noop
-    }finally{
+    } finally {
       super.abort(ctx);
     }
   }
-  
+
   // maximum kill retry has been reached, proceed to hard kill
   @Override
-  protected void onMaxExecutionReached(TaskExecutionContext ctx)
-      throws Throwable {
-  
-    if(ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get()){
+  protected void onMaxExecutionReached(TaskExecutionContext ctx) throws Throwable {
+
+    if (ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get()) {
       doKillConfirmed(false, ctx);
     } else {
       PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
@@ -133,22 +132,22 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       abort(ctx);
     }
   }
-  
-  protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) throws Throwable{
+
+  protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) throws Throwable {
     try {
       ProcessorConfiguration procConfig = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
       ctx.info(String.format("Process kill (by %s) confirmed for %s", requestor, proc));
-      
+
       try {
         OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {
           os.killProcess(osKillCallback(), proc.getOsPid());
         }
       } catch (IOException e) {
-        ctx.warn("Error caught trying to kill process", e);        
-      } 
-      
-      ctx.getTaskManager().executeAndWait(new CleanupProcessTask(), proc).get(); 
+        ctx.warn("Error caught trying to kill process", e);
+      }
+
+      ctx.getTaskManager().executeAndWait(new CleanupProcessTask(), proc).get();
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
         if ((System.currentTimeMillis() - proc.getCreationTime()) > procConfig.getRestartIntervalMillis()) {
           ctx.warn(String.format("Restarting process: %s", proc));
@@ -167,12 +166,13 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       abort(ctx);
     }
   }
-  
-  protected OsModule.LogCallback osKillCallback(){
+
+  protected OsModule.LogCallback osKillCallback() {
     return new OsModule.LogCallback() {
       @Override
       public void error(String msg) {
       }
+
       @Override
       public void debug(String msg) {
       }

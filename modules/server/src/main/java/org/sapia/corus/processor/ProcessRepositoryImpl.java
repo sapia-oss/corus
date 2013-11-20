@@ -9,30 +9,32 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
- * An instance of this class holds the {@link ProcessDatabase}s that
- * contain {@link Process}es in different states.
- *
+ * An instance of this class holds the {@link ProcessDatabase}s that contain
+ * {@link Process}es in different states.
+ * 
  * @author Yanick Duchesne
- *
+ * 
  */
 public class ProcessRepositoryImpl implements ProcessRepository {
-	
+
   private ProcessDatabase suspended;
   private ProcessDatabase active;
   private ProcessDatabase toRestart;
 
   /**
-   * @param suspended the {@link ProcessDatabase} that will hold {@link Process} instances corresponding
-   * to suspended processes.
-   * @param active the {@link ProcessDatabase} that will hold {@link Process} instances corresponding
-   * to active processes.
-   * @param toRestart the {@link ProcessDatabase} that will hold {@link Process} instances corresponding
-   * to processes in restart mode.
+   * @param suspended
+   *          the {@link ProcessDatabase} that will hold {@link Process}
+   *          instances corresponding to suspended processes.
+   * @param active
+   *          the {@link ProcessDatabase} that will hold {@link Process}
+   *          instances corresponding to active processes.
+   * @param toRestart
+   *          the {@link ProcessDatabase} that will hold {@link Process}
+   *          instances corresponding to processes in restart mode.
    */
-  public ProcessRepositoryImpl(ProcessDatabase suspended, ProcessDatabase active,
-                   ProcessDatabase toRestart) {
+  public ProcessRepositoryImpl(ProcessDatabase suspended, ProcessDatabase active, ProcessDatabase toRestart) {
     this.suspended = suspended;
-    this.active    = active;
+    this.active = active;
     this.toRestart = toRestart;
   }
 
@@ -52,9 +54,9 @@ public class ProcessRepositoryImpl implements ProcessRepository {
   }
 
   @Override
-  public synchronized int getActiveProcessCountFor(ProcessCriteria criteria){
+  public synchronized int getActiveProcessCountFor(ProcessCriteria criteria) {
     return getActiveProcesses().getProcesses(criteria).size();
-  }  
+  }
 
   @Override
   public synchronized List<Process> getProcesses() {
@@ -66,21 +68,19 @@ public class ProcessRepositoryImpl implements ProcessRepository {
     Collections.sort(procs);
     return procs;
   }
-  
+
   @Override
-  public synchronized Process getProcess(String corusPid) throws ProcessNotFoundException{
-    if(active.containsProcess(corusPid)){
+  public synchronized Process getProcess(String corusPid) throws ProcessNotFoundException {
+    if (active.containsProcess(corusPid)) {
       return active.getProcess(corusPid);
-    }
-    else if(suspended.containsProcess(corusPid)){
+    } else if (suspended.containsProcess(corusPid)) {
       return suspended.getProcess(corusPid);
-    }
-    else if(toRestart.containsProcess(corusPid)){
+    } else if (toRestart.containsProcess(corusPid)) {
       return toRestart.getProcess(corusPid);
     }
     throw new ProcessNotFoundException("No process found for ID: " + corusPid);
   }
-  
+
   @Override
   public synchronized List<Process> getProcesses(ProcessCriteria criteria) {
     List<Process> procs = new ArrayList<Process>();
@@ -89,5 +89,5 @@ public class ProcessRepositoryImpl implements ProcessRepository {
     procs.addAll(toRestart.getProcesses(criteria));
     Collections.sort(procs);
     return procs;
-  }  
+  }
 }

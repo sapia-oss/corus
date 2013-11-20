@@ -25,72 +25,73 @@ import org.sapia.ubik.util.Function;
  * A task that handles {@link ArtifactDeploymentRequest}s.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTask {
-  
+
   /**
    * The {@link ThrottleKey} that this class uses.
    */
   public static final ThrottleKey DEPLOY_REQUEST_THROTTLE = new DefaultThrottleKey();
 
-  private RepositoryConfiguration              repoConfig;
-  private Queue<ArtifactDeploymentRequest>     deployRequestQueue;
-  
+  private RepositoryConfiguration repoConfig;
+  private Queue<ArtifactDeploymentRequest> deployRequestQueue;
+
   /**
-   * @param repoConfig the {@link RepositoryConfiguration}.
-   * @param deployRequestQueue a {@link Queue} of pending {@link ArtifactDeploymentRequest}.
+   * @param repoConfig
+   *          the {@link RepositoryConfiguration}.
+   * @param deployRequestQueue
+   *          a {@link Queue} of pending {@link ArtifactDeploymentRequest}.
    */
   public ArtifactDeploymentRequestHandlerTask(RepositoryConfiguration repoConfig, Queue<ArtifactDeploymentRequest> deployRequestQueue) {
     super(DEPLOY_REQUEST_THROTTLE);
-    this.repoConfig         = repoConfig;
+    this.repoConfig = repoConfig;
     this.deployRequestQueue = deployRequestQueue;
   }
-  
+
   @Override
   public void run() {
-    
+
     List<ArtifactDeploymentRequest> requests = deployRequestQueue.removeAll();
     Set<Endpoint> allTargets = Collections2.convertAsSet(requests, new Function<Endpoint, ArtifactDeploymentRequest>() {
       public Endpoint call(ArtifactDeploymentRequest req) {
         return req.getEndpoint();
       }
     });
-    
-    
+
     if (!requests.isEmpty()) {
       PerformDeploymentTask deployTasks = new PerformDeploymentTask();
-      
+
       deployTasks.add(new SendConfigNotificationTask(repoConfig, allTargets));
-      
+
       deployTasks.add(new SendPortRangeNotificationTask(repoConfig, allTargets));
-  
+
       ArtifactDeploymentHandlerTaskHelper distHelper = getDistributionHelper(getDistributionRequests(requests));
       distHelper.addTo(deployTasks);
-  
+
       ArtifactDeploymentHandlerTaskHelper scriptHelper = getShellScriptHelper(getScriptRequests(requests));
       scriptHelper.addTo(deployTasks);
-      
+
       ArtifactDeploymentHandlerTaskHelper fileHelper = getFileHelper(getFileRequests(requests));
       fileHelper.addTo(deployTasks);
-      
-      context().getTaskManager().execute(deployTasks, null);    
+
+      context().getTaskManager().execute(deployTasks, null);
     } else {
       context().debug("Nothing to deploy, terminating");
     }
   }
-  
-  //----------------------------------------------------------------------------
+
+  // ----------------------------------------------------------------------------
   // Provided for testing
 
   public final void setDeployRequestQueue(Queue<ArtifactDeploymentRequest> deployRequestQueue) {
     this.deployRequestQueue = deployRequestQueue;
   }
-  
+
   public final void setRepoConfig(RepositoryConfiguration repoConfig) {
     this.repoConfig = repoConfig;
   }
-  
+
   ArtifactDeploymentHandlerTaskHelper getDistributionHelper(List<DistributionDeploymentRequest> requests) {
     return new DistributionDeploymentRequestHandlerTaskHelper(repoConfig, context(), requests);
   }
@@ -98,11 +99,11 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   ArtifactDeploymentHandlerTaskHelper getShellScriptHelper(List<ShellScriptDeploymentRequest> requests) {
     return new ShellScriptDeploymentRequestHandlerTaskHelper(repoConfig, context(), requests);
   }
-  
+
   ArtifactDeploymentHandlerTaskHelper getFileHelper(List<FileDeploymentRequest> requests) {
     return new FileDeploymentRequestHandlerTaskHelper(repoConfig, context(), requests);
   }
-  
+
   List<DistributionDeploymentRequest> getDistributionRequests(List<ArtifactDeploymentRequest> requests) {
     List<DistributionDeploymentRequest> distRequests = new ArrayList<DistributionDeploymentRequest>();
     for (ArtifactDeploymentRequest req : requests) {
@@ -112,7 +113,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
     }
     return distRequests;
   }
-  
+
   List<ShellScriptDeploymentRequest> getScriptRequests(List<ArtifactDeploymentRequest> requests) {
     List<ShellScriptDeploymentRequest> scriptRequests = new ArrayList<ShellScriptDeploymentRequest>();
     for (ArtifactDeploymentRequest req : requests) {
@@ -133,4 +134,3 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
     return fileRequests;
   }
 }
-

@@ -18,21 +18,17 @@ import org.sapia.corus.client.cli.TableDef;
  * Lists the files in the CLI's current directory.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class Dir extends CorusCliCommand {
-  
-  private static TableDef FILE_TBL = TableDef.newInstance()
-      .createCol("file", 25)
-      .createCol("type", 20)
-      .createCol("date", 31);  
-  
+
+  private static TableDef FILE_TBL = TableDef.newInstance().createCol("file", 25).createCol("type", 20).createCol("date", 31);
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     File[] files = ctx.getFileSystem().getBaseDir().listFiles();
     if (files != null && files.length > 0) {
-      
+
       Table title = FILE_TBL.createTable(ctx.getConsole().out());
       Table content = FILE_TBL.createTable(ctx.getConsole().out());
 
@@ -41,24 +37,23 @@ public class Dir extends CorusCliCommand {
       row.getCellAt(FILE_TBL.col("type").index()).append("Type");
       row.getCellAt(FILE_TBL.col("date").index()).append("Last Modified");
       row.flush();
-      
+
       title.drawLine('-', 0, CONSOLE_WIDTH);
-      
+
       List<File> toDisplay = Arrays.asList(files);
       Collections.sort(toDisplay, new FileComparator());
       for (File f : toDisplay) {
         row = content.newRow();
         row.getCellAt(FILE_TBL.col("file").index()).append(f.getName());
         row.getCellAt(FILE_TBL.col("type").index()).append(f.isDirectory() ? "directory" : "file");
-        row.getCellAt(FILE_TBL.col("date").index()).append(new Date(f.lastModified()).toString());        
+        row.getCellAt(FILE_TBL.col("date").index()).append(new Date(f.lastModified()).toString());
         row.flush();
       }
     }
   }
 
-  
-  private static class FileComparator implements Comparator<File>{
-    
+  private static class FileComparator implements Comparator<File> {
+
     @Override
     public int compare(File o1, File o2) {
       if (o1.isDirectory() && !o2.isDirectory()) {
@@ -69,7 +64,6 @@ public class Dir extends CorusCliCommand {
         return o1.getName().compareTo(o2.getName());
       }
     }
-    
-    
+
   }
 }

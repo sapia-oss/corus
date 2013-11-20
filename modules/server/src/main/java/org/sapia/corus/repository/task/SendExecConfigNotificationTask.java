@@ -12,18 +12,18 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
  * Sends execution configurations to requesting repo clients.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class SendExecConfigNotificationTask extends RunnableTask {
 
   private List<ExecConfig> execConfigs;
-  private Set<Endpoint>    targets;
-  
+  private Set<Endpoint> targets;
+
   public SendExecConfigNotificationTask(List<ExecConfig> configs, Set<Endpoint> targets) {
     this.execConfigs = configs;
-    this.targets     = targets;
+    this.targets = targets;
   }
-  
+
   @Override
   public void run() {
     try {
@@ -31,18 +31,14 @@ public class SendExecConfigNotificationTask extends RunnableTask {
         context().debug("No execution configurations to sent to: " + targets);
       } else {
         context().debug("Sending execution configuration notification to: " + targets);
-        ExecConfigNotification notif   = new ExecConfigNotification(execConfigs);
+        ExecConfigNotification notif = new ExecConfigNotification(execConfigs);
         notif.getTargets().addAll(targets);
-        context()
-          .getServerContext()
-          .getServices()
-          .getClusterManager()
-          .send(notif);
+        context().getServerContext().getServices().getClusterManager().send(notif);
       }
     } catch (Exception e) {
       e.printStackTrace();
       context().error("Could not send execution configurations", e);
     }
-    
+
   }
 }

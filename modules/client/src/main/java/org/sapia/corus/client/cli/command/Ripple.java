@@ -23,38 +23,39 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 import org.sapia.ubik.util.Collections2;
 
 /**
- * This command executes a script against the Corus instances in the cluster, a given number of instances
- * at time. The name of this command comes from the "ripple" effect that it has.
- *  
+ * This command executes a script against the Corus instances in the cluster, a
+ * given number of instances at time. The name of this command comes from the
+ * "ripple" effect that it has.
+ * 
  * @author yduchesne
- *
+ * 
  */
-public class Ripple extends CorusCliCommand {  
-  
-  private static final String SCRIPT_OPT       = "s";
-  private static final String COMMAND_OPT      = "c";
-  private static final String MIN_HOST_OPT     = "m";
+public class Ripple extends CorusCliCommand {
+
+  private static final String SCRIPT_OPT = "s";
+  private static final String COMMAND_OPT = "c";
+  private static final String MIN_HOST_OPT = "m";
   private static final String BATCH_POLICY_OPT = "b";
-  private static final String PIPE             = "|";
-  
-  private static final int    DEFAULT_BATCH_SIZE = 1;
-  private static final int    DEFAULT_MIN_HOSTS  = 1;
-  private static final String TARGETS_VAR_NAME   = "cluster.targets";
-  
+  private static final String PIPE = "|";
+
+  private static final int DEFAULT_BATCH_SIZE = 1;
+  private static final int DEFAULT_MIN_HOSTS = 1;
+  private static final String TARGETS_VAR_NAME = "cluster.targets";
+
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    
-    int    minHosts       = DEFAULT_MIN_HOSTS;
-    
+
+    int minHosts = DEFAULT_MIN_HOSTS;
+
     if (ctx.getCommandLine().containsOption(MIN_HOST_OPT, true)) {
       minHosts = ctx.getCommandLine().assertOption(MIN_HOST_OPT, true).asInt();
-    } 
+    }
     if (minHosts < DEFAULT_BATCH_SIZE) {
       throw new InputException("-m option value should be larger than 1");
     }
-        
-    String policy   = ctx.getCommandLine().assertOption(BATCH_POLICY_OPT, true).getValue();
-    
+
+    String policy = ctx.getCommandLine().assertOption(BATCH_POLICY_OPT, true).getValue();
+
     List<CorusHost> allHosts = new ArrayList<CorusHost>();
     allHosts.add(ctx.getCorus().getContext().getServerHost());
     allHosts.addAll(ctx.getCorus().getContext().getOtherHosts());
@@ -77,11 +78,11 @@ public class Ripple extends CorusCliCommand {
         throw new InputException("Invalid value for -b option: must be greater than 0; got: " + batchSize);
       }
     }
-    
+
     if (allHosts.size() <= minHosts) {
       batchSize = DEFAULT_BATCH_SIZE;
     }
-    
+
     hostBatches = Collections2.splitAsLists(allHosts, batchSize);
     for (List<CorusHost> batch : hostBatches) {
       try {
@@ -99,8 +100,9 @@ public class Ripple extends CorusCliCommand {
           }
           String targetString = getTargetString(batch);
           vars.put(TARGETS_VAR_NAME, targetString);
-          ctx.getConsole().println("Rippling execution of script " + scriptFile + " against targets: " + targetString);          
-          processScript(scriptFile, ctx, new CompositeStrLookup().add(StrLookup.mapLookup(vars)).add(ctx.getVars()).add(StrLookup.systemPropertiesLookup()));
+          ctx.getConsole().println("Rippling execution of script " + scriptFile + " against targets: " + targetString);
+          processScript(scriptFile, ctx,
+              new CompositeStrLookup().add(StrLookup.mapLookup(vars)).add(ctx.getVars()).add(StrLookup.systemPropertiesLookup()));
         }
       } catch (FileNotFoundException e) {
         throw new InputException(e.getMessage());
@@ -111,7 +113,7 @@ public class Ripple extends CorusCliCommand {
       }
     }
   }
-  
+
   private String getTargetString(List<CorusHost> batch) {
     StringBuilder targets = new StringBuilder();
     for (CorusHost h : batch) {
@@ -123,7 +125,7 @@ public class Ripple extends CorusCliCommand {
     }
     return targets.toString();
   }
-    
+
   private void processScript(File scriptFile, CliContext ctx, StrLookup vars) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
       Interpreter interpreter = new Interpreter(ctx.getCorus());
@@ -132,15 +134,15 @@ public class Ripple extends CorusCliCommand {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());
     }
   }
-  
+
   private void processCommand(List<CorusHost> batch, String cmdLine, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
     Interpreter interpreter = new Interpreter(ctx.getCorus());
     if (cmdLine.contains("-cluster")) {
       throw new InputException("Rippled command must not be invoked with -cluster option");
     }
     String toExecute = cmdLine + " -cluster " + getTargetString(batch);
-    ctx.getConsole().println("Rippling command: " + toExecute);        
+    ctx.getConsole().println("Rippling command: " + toExecute);
     interpreter.eval(toExecute, ctx.getVars());
-  }  
-  
+  }
+
 }

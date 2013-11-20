@@ -8,27 +8,26 @@ import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
-
 /**
- * This task rebuilds the internal distribution objects after a restart.
- * It processes each distribution directory and looks for the corresponding
- * corus.xml files. Each internal distribution object is reconstituted
- * from the information that is contained in the corus.xml file.
- *
+ * This task rebuilds the internal distribution objects after a restart. It
+ * processes each distribution directory and looks for the corresponding
+ * corus.xml files. Each internal distribution object is reconstituted from the
+ * information that is contained in the corus.xml file.
+ * 
  * @author Yanick Duchesne
  */
-public class BuildDistTask extends Task<Void,Void> {
-  private String               deployDir;
+public class BuildDistTask extends Task<Void, Void> {
+  private String deployDir;
   private DistributionDatabase store;
 
   public BuildDistTask(String deployDir, DistributionDatabase store) {
     this.deployDir = deployDir;
-    this.store     = store;
+    this.store = store;
   }
 
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
-    File   f = new File(deployDir);
+    File f = new File(deployDir);
 
     File[] distDirs = f.listFiles();
 
@@ -55,9 +54,7 @@ public class BuildDistTask extends Task<Void,Void> {
   }
 
   private void processVersionDir(TaskExecutionContext ctx, File versionDir) {
-    File corusXML = new File(versionDir.getAbsolutePath() + File.separator +
-                              "common" + File.separator + "META-INF" +
-                              File.separator + "corus.xml");
+    File corusXML = new File(versionDir.getAbsolutePath() + File.separator + "common" + File.separator + "META-INF" + File.separator + "corus.xml");
 
     if (corusXML.exists()) {
       try {
@@ -67,7 +64,7 @@ public class BuildDistTask extends Task<Void,Void> {
         ctx.info("Adding distribution: " + dist.getName() + ", " + dist.getVersion());
       } catch (Exception e) {
         ctx.error(e);
-      }     
+      }
     } else {
       ctx.error("File " + corusXML.getAbsolutePath() + " does not exist");
     }

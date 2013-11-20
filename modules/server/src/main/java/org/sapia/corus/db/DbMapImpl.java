@@ -16,14 +16,13 @@ import org.sapia.corus.client.services.db.persistence.Record;
 import org.sapia.corus.client.services.db.persistence.Template;
 import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
 
-
 /**
  * A {@link DbMap} implementation on top of JDBM.
  * 
  * @author Yanick Duchesne
  */
 public class DbMapImpl<K, V> implements DbMap<K, V> {
-  
+
   private JDBMHashtable _hashtable;
   private ClassDescriptor<V> _classDescriptor;
 
@@ -31,7 +30,7 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
     _hashtable = hashtable;
     _classDescriptor = new ClassDescriptor<V>(valueType);
   }
-  
+
   @Override
   public ClassDescriptor<V> getClassDescriptor() {
     return _classDescriptor;
@@ -46,15 +45,14 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
     }
   }
 
-  @SuppressWarnings(value="unchecked")
+  @SuppressWarnings(value = "unchecked")
   @Override
   public V get(K key) {
     try {
-      Record<V> rec = (Record<V>)_hashtable.get(key);
-      if(rec == null){
+      Record<V> rec = (Record<V>) _hashtable.get(key);
+      if (rec == null) {
         return null;
-      }
-      else{
+      } else {
         V obj = rec.toObject(this);
         return obj;
       }
@@ -62,15 +60,14 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       throw new IORuntimeException(e);
     }
   }
-  
-  @SuppressWarnings(value="unchecked")
+
+  @SuppressWarnings(value = "unchecked")
   public void refresh(K key, V value) {
     try {
-      Record<V> rec = (Record<V>)_hashtable.get(key);
-      if(rec == null){
+      Record<V> rec = (Record<V>) _hashtable.get(key);
+      if (rec == null) {
         throw new IllegalArgumentException(String.format("No record found for %s", key));
-      }
-      else{
+      } else {
         rec.populate(this, value);
       }
     } catch (IOException e) {
@@ -105,7 +102,7 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       throw new IORuntimeException(e);
     }
   }
-  
+
   @Override
   public Iterator<V> values() {
     try {
@@ -119,16 +116,16 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
   public org.sapia.corus.client.services.db.RecordMatcher<V> createMatcherFor(V template) {
     return new TemplateMatcher<V>(new Template<V>(_classDescriptor, template));
   }
-  
+
   @Override
-  @SuppressWarnings(value="unchecked")
+  @SuppressWarnings(value = "unchecked")
   public Collection<V> values(RecordMatcher<V> matcher) {
     try {
       Collection<V> result = new ArrayList<V>();
       JDBMEnumeration enumeration = _hashtable.values();
-      while(enumeration.hasMoreElements()){
-        Record<V> rec = (Record<V>)enumeration.nextElement();
-        if(matcher.matches(rec)){
+      while (enumeration.hasMoreElements()) {
+        Record<V> rec = (Record<V>) enumeration.nextElement();
+        if (matcher.matches(rec)) {
           result.add(rec.toObject(this));
         }
       }
@@ -140,30 +137,30 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
 
   @Override
   public void clear() {
-    
-    Iterator<K> keys = keys();    
-    while(keys.hasNext()){
+
+    Iterator<K> keys = keys();
+    while (keys.hasNext()) {
       K key = keys.next();
       remove(key);
     }
 
     // weird bug: some keys may be remaining, so 2nd pass.
     keys = keys();
-    while(keys.hasNext()){
+    while (keys.hasNext()) {
       K key = keys.next();
       remove(key);
     }
   }
-  
-  /*//////////////////////////////////////////////////
-                    INNER CLASSES
-  //////////////////////////////////////////////////*/
 
-  
+  /*
+   * ////////////////////////////////////////////////// INNER CLASSES
+   * //////////////////////////////////////////////////
+   */
+
   class RecordIterator implements Iterator<V> {
     private JDBMEnumeration _enum;
     private DbMapImpl<K, V> _parent;
-    
+
     RecordIterator(DbMapImpl<K, V> parent, JDBMEnumeration anEnum) {
       _parent = parent;
       _enum = anEnum;
@@ -177,11 +174,11 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       }
     }
 
-    @SuppressWarnings(value="unchecked")
+    @SuppressWarnings(value = "unchecked")
     public V next() {
       try {
-        Record<V> record = (Record<V>)_enum.nextElement();
-        return (V)record.toObject(_parent);
+        Record<V> record = (Record<V>) _enum.nextElement();
+        return (V) record.toObject(_parent);
       } catch (IOException e) {
         throw new IORuntimeException(e);
       }
@@ -191,7 +188,7 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       throw new UnsupportedOperationException("remove()");
     }
   }
-  
+
   class KeyIterator implements Iterator<K> {
     private JDBMEnumeration _enum;
 
@@ -207,10 +204,10 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
       }
     }
 
-    @SuppressWarnings(value="unchecked")
+    @SuppressWarnings(value = "unchecked")
     public K next() {
       try {
-        return (K)_enum.nextElement();
+        return (K) _enum.nextElement();
       } catch (IOException e) {
         throw new IORuntimeException(e);
       }

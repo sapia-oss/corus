@@ -15,17 +15,17 @@ import org.simpleframework.http.Response;
  * @author Yanick Duchesne
  */
 public class HttpConnection implements Connection {
-	
-	private Request     req;
-	private Response    res;
-  private OutputStream out;
-	private InputStream  is;
 
-  HttpConnection(Request req, Response res){
-  	this.req = req;
-  	this.res = res;
+  private Request req;
+  private Response res;
+  private OutputStream out;
+  private InputStream is;
+
+  HttpConnection(Request req, Response res) {
+    this.req = req;
+    this.res = res;
   }
-  
+
   /**
    * @see Connection#getInputStream()
    */
@@ -45,12 +45,11 @@ public class HttpConnection implements Connection {
     }
     return out;
   }
-  
+
   /**
    * @see Connection#close()
    */
   public void close() {
   }
-
 
 }

@@ -17,25 +17,25 @@ import org.springframework.context.ApplicationContextAware;
  * @author Yanick Duchesne
  */
 public abstract class ModuleHelper implements ApplicationContextAware, Service, Module, InitializingBean, DisposableBean {
-  
-  protected Logger  					 log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-  
+
+  protected Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+
   protected ApplicationContext appContext;
-  
+
   @Autowired
-  protected ServerContext 		 serverContext;
-  
+  protected ServerContext serverContext;
+
   public ModuleHelper() {
     super();
   }
-  
+
   // --------------------------------------------------------------------------
   // Setters provided for testing purposes.
-  
+
   public void setServerContext(ServerContext serverContext) {
     this.serverContext = serverContext;
   }
-  
+
   // --------------------------------------------------------------------------
   // ApplicationContextAware
 
@@ -43,45 +43,46 @@ public abstract class ModuleHelper implements ApplicationContextAware, Service, 
   public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
     appContext = appCtx;
   }
-  
+
   // --------------------------------------------------------------------------
   // Lifecyle
-  
+
   @Override
   public void afterPropertiesSet() throws Exception {
     this.init();
   }
-  
+
   @Override
   public void destroy() throws Exception {
     this.dispose();
   }
 
-  public void start() throws Exception {}
+  public void start() throws Exception {
+  }
 
   // --------------------------------------------------------------------------
   // protected methods (to be used by inheriting classes)
 
-  protected Logger logger(){
-    return log;  
+  protected Logger logger() {
+    return log;
   }
 
-  protected ApplicationContext env(){
+  protected ApplicationContext env() {
     return appContext;
   }
 
   // --------------------------------------------------------------------------
   // protected methods (to be used by inheriting classes)
-  
-  protected ServerContext serverContext(){
+
+  protected ServerContext serverContext() {
     return serverContext;
   }
-  
-  protected InternalServiceContext services(){
+
+  protected InternalServiceContext services() {
     return serverContext.getServices();
   }
-  
-  protected <S> S lookup(Class<S> serviceInterface){
+
+  protected <S> S lookup(Class<S> serviceInterface) {
     return serverContext.lookup(serviceInterface);
   }
 

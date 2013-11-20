@@ -7,19 +7,20 @@ import java.util.List;
  * A basic, thread-safe queue implementation.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class Queue<T> {
-  
+
   private List<T> items = new ArrayList<T>();
-  
+
   /**
-   * @param item an item to add to this instance.
+   * @param item
+   *          an item to add to this instance.
    */
   public synchronized void add(T item) {
     items.add(item);
   }
-  
+
   /**
    * Returns this instance's elements in a new {@link List} and clears its
    * internal list.
@@ -31,7 +32,7 @@ public class Queue<T> {
     items.clear();
     return toReturn;
   }
-  
+
   /**
    * @return the first item in this queue.
    */
@@ -41,7 +42,7 @@ public class Queue<T> {
     }
     return items.remove(0);
   }
-  
+
   /**
    * @return the last item in this queue.
    */
@@ -51,7 +52,7 @@ public class Queue<T> {
     }
     return items.remove(items.size() - 1);
   }
-  
+
   /**
    * The number of objects that this instance currently holds.
    */

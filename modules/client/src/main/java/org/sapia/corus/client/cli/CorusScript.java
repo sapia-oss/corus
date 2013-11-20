@@ -1,6 +1,5 @@
 package org.sapia.corus.client.cli;
 
-
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;
 import groovy.util.ResourceException;
@@ -31,32 +30,31 @@ import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.util.Localhost;
 
-
 /**
  * This class provides scripting functionality.
  * 
  * @author Yanick Duchesne
  */
 public class CorusScript {
-	
-  private static final int    DEFAULT_PORT       = 33000;
-  private static final String GROOVY             = "groovy";
-  private static final String HOST_OPT           = "h";
-  private static final String PORT_OPT           = "p";
-  private static final String SCRIPT_OPT         = "s";
-  private static final String SCRIPT_INCLUDES    = "i";
+
+  private static final int DEFAULT_PORT = 33000;
+  private static final String GROOVY = "groovy";
+  private static final String HOST_OPT = "h";
+  private static final String PORT_OPT = "p";
+  private static final String SCRIPT_OPT = "s";
+  private static final String SCRIPT_INCLUDES = "i";
   private static final String CORUS_CLI_VAR_NAME = "coruscli";
-  private static final String BASEDIR_VAR_NAME   = "basedir";
- 
-  private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();  
-  
-  private ScriptEngineFacade  scriptEngine;
-  private Interpreter         interpreter;
-  
+  private static final String BASEDIR_VAR_NAME = "basedir";
+
+  private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();
+
+  private ScriptEngineFacade scriptEngine;
+  private Interpreter interpreter;
+
   public CorusScript(CorusConnectionContextImpl connection, String[] includes) throws IOException {
     this(connection, includes, GROOVY);
   }
-  
+
   public CorusScript(Interpreter interpreter, String[] includes, String scriptEngineName) throws IOException {
     this.interpreter = interpreter;
     List<String> paths = new ArrayList<String>();
@@ -65,47 +63,50 @@ public class CorusScript {
     }
     paths.add(interpreter.getCorus().getContext().getFileSystem().getBaseDir().getAbsolutePath());
     ScriptEngineManager factory = new ScriptEngineManager();
-    
+
     if (scriptEngineName.equalsIgnoreCase(GROOVY)) {
-      scriptEngine = new GroovyScriptEngineFacade(
-          paths.toArray(new String[paths.size()])
-      );
+      scriptEngine = new GroovyScriptEngineFacade(paths.toArray(new String[paths.size()]));
     } else {
-      scriptEngine = new JdkScriptEngineFacade(
-          factory.getEngineByName(scriptEngineName), 
-          paths.toArray(new String[paths.size()])
-      );
+      scriptEngine = new JdkScriptEngineFacade(factory.getEngineByName(scriptEngineName), paths.toArray(new String[paths.size()]));
     }
-    
+
     interpreter.setOut(new ConsoleOutput() {
       @Override
       public void flush() {
       }
+
       @Override
       public void print(char c) {
       }
+
       @Override
       public void print(String s) {
       }
+
       @Override
       public void println() {
       }
+
       @Override
       public void println(String s) {
       }
     });
 
   }
-  
+
   public CorusScript(CorusConnectionContextImpl context, String[] includes, String scriptEngineName) throws IOException {
     this(new Interpreter(new CorusConnectorImpl(context)), includes, scriptEngineName);
   }
 
   /**
-   * @param scriptPath the path of the Groovy script to execute.
-   * @param bindings the {@link Map} of variables to passed to the script.
-   * @throws ScriptException if a problem occurs executing the script.
-   * @throws ResourceException if a problem occurs trying to load the given script.
+   * @param scriptPath
+   *          the path of the Groovy script to execute.
+   * @param bindings
+   *          the {@link Map} of variables to passed to the script.
+   * @throws ScriptException
+   *           if a problem occurs executing the script.
+   * @throws ResourceException
+   *           if a problem occurs trying to load the given script.
    */
   public void runScript(String scriptPath, Map<String, Object> bindings) throws ScriptException {
     bindings.put(CORUS_CLI_VAR_NAME, interpreter);
@@ -114,35 +115,32 @@ public class CorusScript {
   }
 
   public static void main(String[] args) {
-  	
-  	// disabling log4j output
-  	org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
-  	
+
+    // disabling log4j output
+    org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
+
     String host = null;
     int port = DEFAULT_PORT;
-    
+
     CorusConnectionContextImpl connection = null;
     try {
       CmdLine cmd = CmdLine.parse(args);
 
-      if(cmd.containsOption("ver", false)){
+      if (cmd.containsOption("ver", false)) {
         System.out.println("Corus client version: " + CorusVersion.create());
         System.out.println("Java version: " + System.getProperty("java.version"));
-      }
-      else if(cmd.containsOption("help", false)){
+      } else if (cmd.containsOption("help", false)) {
         help();
-      }
-      else{
-        if(cmd.containsOption(HOST_OPT, true)){
+      } else {
+        if (cmd.containsOption(HOST_OPT, true)) {
           host = cmd.assertOption(HOST_OPT, true).getValue();
-          if(host.equalsIgnoreCase("localhost")){
+          if (host.equalsIgnoreCase("localhost")) {
             host = Localhost.getAnyLocalAddress().getHostAddress();
           }
-        }
-        else{
+        } else {
           host = Localhost.getAnyLocalAddress().getHostAddress();
         }
-  
+
         if (cmd.containsOption(PORT_OPT, true)) {
           port = cmd.assertOption(PORT_OPT, true).asInt();
         }
@@ -150,12 +148,12 @@ public class CorusScript {
         if (cmd.containsOption(SCRIPT_INCLUDES, true)) {
           includes = cmd.assertOption(SCRIPT_INCLUDES, true).getValue().split(File.pathSeparator);
         } else {
-          includes = new String[]{};
+          includes = new String[] {};
         }
         connection = new CorusConnectionContextImpl(host, port, FILE_SYSTEM);
         String scriptPath = cmd.assertOption(SCRIPT_OPT, true).getValue();
         CorusScript script = new CorusScript(connection, includes);
-        
+
         Map<String, Object> bindings = new HashMap<String, Object>();
         while (cmd.hasNext()) {
           CmdElement e = cmd.next();
@@ -163,18 +161,17 @@ public class CorusScript {
             Option opt = (Option) e;
             bindings.put(e.getName(), opt.getValue());
           }
-        }  
+        }
         script.runScript(scriptPath, bindings);
       }
     } catch (InputException e) {
       System.out.println(e.getMessage());
       help();
     } catch (Throwable e) {
-      if(e instanceof ConnectionException || e instanceof RemoteException){
+      if (e instanceof ConnectionException || e instanceof RemoteException) {
         System.out.println("No server listening at " + host + ":" + port);
         e.printStackTrace();
-      }
-      else{
+      } else {
         e.printStackTrace();
       }
     } finally {
@@ -208,25 +205,24 @@ public class CorusScript {
   }
 
   // ==========================================================================
-  // Inner classes and interfaces 
-  
-  interface ScriptEngineFacade {  
+  // Inner classes and interfaces
+
+  interface ScriptEngineFacade {
     public Object eval(String scriptPath, Map<String, Object> bindings) throws ScriptException;
-  } 
-  
+  }
+
   // --------------------------------------------------------------------------
-  
+
   class GroovyScriptEngineFacade implements ScriptEngineFacade {
-    
+
     private GroovyScriptEngine delegate;
-    
+
     public GroovyScriptEngineFacade(String[] roots) throws IOException {
       this.delegate = new GroovyScriptEngine(roots);
     }
-    
+
     @Override
-    public Object eval(String scriptPath, Map<String, Object> bindings)
-        throws ScriptException {
+    public Object eval(String scriptPath, Map<String, Object> bindings) throws ScriptException {
       Binding binding = new Binding(bindings);
       try {
         return delegate.run(scriptPath, binding);
@@ -234,16 +230,16 @@ public class CorusScript {
         throw new ScriptException(e);
       }
     }
-    
+
   }
-  
+
   // --------------------------------------------------------------------------
-  
+
   class JdkScriptEngineFacade implements ScriptEngineFacade {
-    
+
     private ScriptEngine delegate;
     private File[] roots;
-    
+
     public JdkScriptEngineFacade(ScriptEngine delegate, String[] roots) {
       this.delegate = delegate;
       this.roots = new File[roots.length];
@@ -251,10 +247,9 @@ public class CorusScript {
         this.roots[i] = new File(roots[i]);
       }
     }
-    
+
     @Override
-    public Object eval(String scriptPath, Map<String, Object> bindings)
-        throws ScriptException {
+    public Object eval(String scriptPath, Map<String, Object> bindings) throws ScriptException {
       for (File r : roots) {
         File script = new File(r, scriptPath);
         if (script.exists()) {

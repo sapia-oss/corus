@@ -11,16 +11,20 @@ import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.ubik.util.Function;
 
 /**
- * This task performs the deployment to a provided list of nodes, following a {@link DistributionDeploymentRequest}.
+ * This task performs the deployment to a provided list of nodes, following a
+ * {@link DistributionDeploymentRequest}.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class DistributionRequestHandlerTask extends ArtifactRequestHandlerTaskSupport {
 
   /**
-   * @param distFile the {@link File} corresponding to the distribution to deploy.
-   * @param targets the {@link List} of {@link Endpoint}s corresponding to the Corus nodes to deploy to.
+   * @param distFile
+   *          the {@link File} corresponding to the distribution to deploy.
+   * @param targets
+   *          the {@link List} of {@link Endpoint}s corresponding to the Corus
+   *          nodes to deploy to.
    */
   public DistributionRequestHandlerTask(final File distFile, final List<Endpoint> targets) {
     super(distFile, targets, new Function<DeploymentMetadata, Boolean>() {

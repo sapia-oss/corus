@@ -12,10 +12,10 @@ import org.sapia.corus.taskmanager.core.TaskLog;
  * @author Yanick Duchesne
  */
 public class AntTaskLog implements BuildListener {
-  
+
   private TaskExecutionContext _context;;
-  
-  AntTaskLog(TaskExecutionContext context){
+
+  AntTaskLog(TaskExecutionContext context) {
     _context = context;
   }
 
@@ -23,29 +23,29 @@ public class AntTaskLog implements BuildListener {
    * @see org.apache.tools.ant.BuildListener#messageLogged(BuildEvent)
    */
   public void messageLogged(BuildEvent evt) {
-    String msg      = evt.getMessage();
-    int    priority = evt.getPriority();
+    String msg = evt.getMessage();
+    int priority = evt.getPriority();
 
     switch (priority) {
-      case Project.MSG_DEBUG:
-        _context.debug(msg);
-  
-        break;
-        
-      case Project.MSG_INFO:
-        _context.info(msg);
+    case Project.MSG_DEBUG:
+      _context.debug(msg);
 
-        break;
+      break;
 
-      case Project.MSG_WARN:
-        _context.warn(msg);
+    case Project.MSG_INFO:
+      _context.info(msg);
 
-        break;
+      break;
 
-      case Project.MSG_ERR:
-        _context.error(msg);
+    case Project.MSG_WARN:
+      _context.warn(msg);
 
-        break;
+      break;
+
+    case Project.MSG_ERR:
+      _context.error(msg);
+
+      break;
     }
   }
 

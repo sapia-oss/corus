@@ -18,82 +18,74 @@ import org.sapia.corus.taskmanager.core.TaskParams;
  * Actually performs the restart of a given {@link Process}.
  * 
  * @author yduchesne
- *
+ * 
  */
-public class PerformProcessRestartTask extends Task<Boolean, Process>{
-  
+public class PerformProcessRestartTask extends Task<Boolean, Process> {
+
   @Override
-  public Boolean execute(TaskExecutionContext ctx, Process process)
-      throws Throwable {
-    Deployer          deployer  = ctx.getServerContext().getServices().lookup(Deployer.class);
-    ProcessRepository repo      = ctx.getServerContext().getServices().getProcesses();
-    Distribution      dist; 
+  public Boolean execute(TaskExecutionContext ctx, Process process) throws Throwable {
+    Deployer deployer = ctx.getServerContext().getServices().lookup(Deployer.class);
+    ProcessRepository repo = ctx.getServerContext().getServices().getProcesses();
+    Distribution dist;
 
     ctx.debug("Executing process");
-    try{
-      DistributionCriteria criteria = DistributionCriteria.builder()
-        .name(process.getDistributionInfo().getName())
-        .version(process.getDistributionInfo().getVersion())
-        .build();
-      
+    try {
+      DistributionCriteria criteria = DistributionCriteria.builder().name(process.getDistributionInfo().getName())
+          .version(process.getDistributionInfo().getVersion()).build();
+
       dist = deployer.getDistribution(criteria);
-    }catch(DistributionNotFoundException e){
+    } catch (DistributionNotFoundException e) {
       ctx.error(String.format("Could not find corresponding distribution; process %s will not be restarted", process), e);
       return false;
-    }    
-    
-    if(repo.getProcessesToRestart().containsProcess(process.getProcessID())){
+    }
+
+    if (repo.getProcessesToRestart().containsProcess(process.getProcessID())) {
       ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
-      ProcessInfo   info = new ProcessInfo(process, dist, processConf , true);
+      ProcessInfo info = new ProcessInfo(process, dist, processConf, true);
       Properties processProperties = ctx.getServerContext().getProcessProperties();
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
 
-      try{
-        if(ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()){
+      try {
+        if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
           repo.getProcessesToRestart().removeProcess(process.getProcessID());
           process.touch();
           process.clearCommands();
-          process.setStatus(Process.LifeCycleStatus.ACTIVE);        
+          process.setStatus(Process.LifeCycleStatus.ACTIVE);
           repo.getActiveProcesses().addProcess(process);
           return true;
-        }
-        else{
+        } else {
           return false;
         }
-      }catch(Exception e){
+      } catch (Exception e) {
         ctx.error(String.format("Error trying to restart %s; will not be restarted", process), e);
         return false;
-      }    
-    }
-    else{
-      try{
-        DistributionCriteria criteria = DistributionCriteria.builder()
-        .name(process.getDistributionInfo().getName())
-        .version(process.getDistributionInfo().getVersion())
-        .build();
-        
+      }
+    } else {
+      try {
+        DistributionCriteria criteria = DistributionCriteria.builder().name(process.getDistributionInfo().getName())
+            .version(process.getDistributionInfo().getVersion()).build();
+
         dist = deployer.getDistribution(criteria);
-      }catch(DistributionNotFoundException e){
+      } catch (DistributionNotFoundException e) {
         ctx.error(String.format("Could not find corresponding distribution; process %s will not be restarted", process), e);
         return false;
-      }catch(Exception e){
+      } catch (Exception e) {
         ctx.error(String.format("Error trying to restart %s;  will not be restarted", process), e);
         return false;
-      }    
-      
+      }
+
       ProcessConfig conf = dist.getProcess(process.getDistributionInfo().getProcessName());
-      ProcessInfo   info = new ProcessInfo(process, dist, conf , true);
+      ProcessInfo info = new ProcessInfo(process, dist, conf, true);
       Properties processProperties = ctx.getServerContext().getProcessProperties();
-      
+
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
-      if(ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()){
+      if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
         process.touch();
         process.clearCommands();
-        process.setStatus(Process.LifeCycleStatus.ACTIVE);        
+        process.setStatus(Process.LifeCycleStatus.ACTIVE);
         repo.getActiveProcesses().addProcess(process);
         return true;
-      }
-      else{
+      } else {
         return false;
       }
     }

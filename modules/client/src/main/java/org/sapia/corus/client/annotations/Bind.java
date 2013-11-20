@@ -7,7 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE })
-
 /**
  * This annotation indicates which interfaces a module should be bound under.
  * 
@@ -16,9 +15,9 @@ import java.lang.annotation.Target;
  */
 public @interface Bind {
 
-	/**
-	 * The array of interfaces that a given module should be bound under.
-	 * 
-	 */
+  /**
+   * The array of interfaces that a given module should be bound under.
+   * 
+   */
   Class<?>[] moduleInterface();
 }

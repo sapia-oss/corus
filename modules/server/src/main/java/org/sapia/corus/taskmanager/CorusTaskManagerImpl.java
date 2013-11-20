@@ -25,14 +25,13 @@ import org.sapia.ubik.util.Time;
  */
 @Bind(moduleInterface = { TaskManager.class, CorusTaskManager.class })
 @Remote(interfaces = CorusTaskManager.class)
-public class CorusTaskManagerImpl extends ModuleHelper implements
-    CorusTaskManager {
+public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager {
 
-  private static final int  CORE_POOL_SIZE     = 5;
-  private static final int  MAX_POOL_SIZE      = 100;
+  private static final int CORE_POOL_SIZE = 5;
+  private static final int MAX_POOL_SIZE = 100;
   private static final long KEEP_ALIVE_SECONDS = 30;
-  private static final int  WORK_QUEUE_SIZE    = 1000;
-  
+  private static final int WORK_QUEUE_SIZE = 1000;
+
   private TaskManagerImpl delegate;
   private ProgressQueues queues = new ProgressQueues();
 
@@ -50,17 +49,10 @@ public class CorusTaskManagerImpl extends ModuleHelper implements
   // Lifecycle
 
   public void init() throws Exception {
-    ThreadingConfiguration conf = ThreadingConfiguration.newInstance()
-        .setCorePoolSize(CORE_POOL_SIZE)
-        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS))
-        .setMaxPoolSize(MAX_POOL_SIZE)
-        .setQueueSize(WORK_QUEUE_SIZE);
+    ThreadingConfiguration conf = ThreadingConfiguration.newInstance().setCorePoolSize(CORE_POOL_SIZE)
+        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS)).setMaxPoolSize(MAX_POOL_SIZE).setQueueSize(WORK_QUEUE_SIZE);
 
-    delegate = new TaskManagerImpl(
-        new ServerTaskLog(queues, new LoggerTaskLog(log)), 
-        serverContext(), 
-        conf
-    );
+    delegate = new TaskManagerImpl(new ServerTaskLog(queues, new LoggerTaskLog(log)), serverContext(), conf);
   }
 
   public void dispose() {
@@ -93,14 +85,12 @@ public class CorusTaskManagerImpl extends ModuleHelper implements
   }
 
   @Override
-  public <R, P> FutureResult<R> executeAndWait(Task<R, P> task, P param,
-      TaskConfig cfg) {
+  public <R, P> FutureResult<R> executeAndWait(Task<R, P> task, P param, TaskConfig cfg) {
     return delegate.executeAndWait(task, param, cfg);
   }
 
   @Override
-  public <R, P> void executeBackground(Task<R, P> task, P param,
-      BackgroundTaskConfig cfg) {
+  public <R, P> void executeBackground(Task<R, P> task, P param, BackgroundTaskConfig cfg) {
     delegate.executeBackground(task, param, cfg);
   }
 

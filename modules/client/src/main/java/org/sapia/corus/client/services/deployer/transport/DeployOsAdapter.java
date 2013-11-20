@@ -9,7 +9,7 @@ import java.io.OutputStream;
  * @author Yanick Duchesne
  */
 public class DeployOsAdapter extends OutputStream {
-	
+
   DeployOutputStream os;
 
   public DeployOsAdapter(DeployOutputStream os) {

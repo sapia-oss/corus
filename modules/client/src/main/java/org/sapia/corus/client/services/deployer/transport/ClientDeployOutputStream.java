@@ -13,33 +13,33 @@ import org.sapia.ubik.serialization.SerializationStreams;
  * @author Yanick Duchesne
  */
 public class ClientDeployOutputStream implements DeployOutputStream {
-	
-	private OutputStream 		 out;
+
+  private OutputStream out;
   private DeploymentClient client;
-  private ProgressQueue 	 queue;
-  private boolean 				 closed;
-	
-	public ClientDeployOutputStream(DeploymentMetadata meta, DeploymentClient client) throws IOException {
-  	this.client = client;			
-		out = this.client.getOutputStream();
-		ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(out);
-		oos.writeObject(meta);
-		oos.flush();
-	}
+  private ProgressQueue queue;
+  private boolean closed;
+
+  public ClientDeployOutputStream(DeploymentMetadata meta, DeploymentClient client) throws IOException {
+    this.client = client;
+    out = this.client.getOutputStream();
+    ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(out);
+    oos.writeObject(meta);
+    oos.flush();
+  }
 
   /**
    * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#close()
    */
   public void close() throws IOException {
-  	if(closed){
-  		return;
-  	}
-		try{
-			ObjectInputStream ois = SerializationStreams.createObjectInputStream(client.getInputStream());
-			queue = (ProgressQueue)ois.readObject();
-		}catch(ClassNotFoundException e){
-			throw new IOException("Could not deserialize response: " + e.getMessage());
-		} 	
+    if (closed) {
+      return;
+    }
+    try {
+      ObjectInputStream ois = SerializationStreams.createObjectInputStream(client.getInputStream());
+      queue = (ProgressQueue) ois.readObject();
+    } catch (ClassNotFoundException e) {
+      throw new IOException("Could not deserialize response: " + e.getMessage());
+    }
     client.close();
     closed = true;
   }
@@ -54,25 +54,26 @@ public class ClientDeployOutputStream implements DeployOutputStream {
   /**
    * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#getProgressQueue()
    */
-  public ProgressQueue getProgressQueue(){
-  	if(!closed){
-  		try{
-    		close();
-  		}catch(IOException e){
-  		  throw new IORuntimeException("Could not close client", e);
-  		}
-  	}
-		if(queue == null){
-			throw new IllegalStateException("Progress not received from server");
-		}
-		return queue;
+  public ProgressQueue getProgressQueue() {
+    if (!closed) {
+      try {
+        close();
+      } catch (IOException e) {
+        throw new IORuntimeException("Could not close client", e);
+      }
+    }
+    if (queue == null) {
+      throw new IllegalStateException("Progress not received from server");
+    }
+    return queue;
   }
 
   /**
-   * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#write(byte[], int, int)
+   * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#write(byte[],
+   *      int, int)
    */
   public void write(byte[] b, int off, int len) throws IOException {
-		out.write(b, off, len);
+    out.write(b, off, len);
   }
 
   /**
@@ -86,7 +87,7 @@ public class ClientDeployOutputStream implements DeployOutputStream {
    * @see org.sapia.corus.client.services.deployer.transport.DeployOutputStream#write(int)
    */
   public void write(int b) throws IOException {
- 	 	out.write(b);
+    out.write(b);
   }
 
 }

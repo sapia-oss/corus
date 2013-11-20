@@ -10,47 +10,45 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.ubik.net.ServerAddress;
 
-public class TestInvocationDispatcher implements InvocationDispatcher{
-  
+public class TestInvocationDispatcher implements InvocationDispatcher {
+
   private Map<Class<?>, Object> modules = new HashMap<Class<?>, Object>();
   private ServerAddress addr;
-  
+
   public TestInvocationDispatcher(ServerAddress addr) {
     this.addr = addr;
   }
-  
-  public TestInvocationDispatcher add(Class<?> moduleInterface, Object instance){
+
+  public TestInvocationDispatcher add(Class<?> moduleInterface, Object instance) {
     modules.put(moduleInterface, instance);
     return this;
   }
-  
+
   @Override
-  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface,
-      Method method, Object[] params, ClusterInfo info) throws Throwable {
+  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     M module = moduleInterface.cast(modules.get(moduleInterface));
-    if(module == null){
+    if (module == null) {
       throw new IllegalStateException(String.format("No module found for: %s", moduleInterface));
     }
-    try{
+    try {
       return returnType.cast(method.invoke(module, params));
-    }catch(InvocationTargetException e){
+    } catch (InvocationTargetException e) {
       throw e.getTargetException();
     }
   }
-  
+
   @Override
-  public <T, M> void invoke(Results<T> results, Class<M> moduleInterface,
-      Method method, Object[] params, ClusterInfo cluster) throws Throwable {
+  public <T, M> void invoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
     M module = moduleInterface.cast(modules.get(moduleInterface));
-    if(module == null){
+    if (module == null) {
       throw new IllegalStateException(String.format("No module found for: %s", moduleInterface));
     }
-    
-    try{
-      T result = (T)method.invoke(module, params);
+
+    try {
+      T result = (T) method.invoke(module, params);
       results.incrementInvocationCount();
       results.addResult(new Result<T>(addr, result));
-    }catch(Throwable e){
+    } catch (Throwable e) {
     }
   }
 

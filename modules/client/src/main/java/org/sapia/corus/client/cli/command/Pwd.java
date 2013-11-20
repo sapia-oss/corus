@@ -8,13 +8,12 @@ import org.sapia.corus.client.cli.CliContext;
  * Displays the path to the CLI's current directory.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class Pwd extends CorusCliCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     ctx.getConsole().println(ctx.getFileSystem().getBaseDir().getAbsolutePath());
   }
 

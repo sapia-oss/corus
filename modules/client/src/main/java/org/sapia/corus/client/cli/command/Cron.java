@@ -16,61 +16,47 @@ import org.sapia.corus.client.cli.command.cron.CronWizard;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.ubik.net.ServerAddress;
 
-
 /**
  * @author Yanick Duchesne
  */
 public class Cron extends CorusCliCommand {
-  
-  private static TableDef CRON_TBL = TableDef.newInstance()
-      .createCol("id", 17)
-      .createCol("dist", 7)
-      .createCol("version", 7)
-      .createCol("vm", 7)
-      .createCol("profile", 10)
-      .createCol("hour", 2)
-      .createCol("minute", 2)
-      .createCol("day", 2)
-      .createCol("month", 2)
-      .createCol("year", 4);
-  
-  private static TableDef HOST_TBL = TableDef.newInstance()
-      .createCol("val", 78);  
-  
-  // --------------------------------------------------------------------------
- 
-  private static final String STAR        = "*";
-  private static final String ADD         = "add";
-  private static final String LIST        = "list";
-  private static final String LS          = "ls";
-  private static final String REMOVE      = "delete";
-  private static final String JOB_ID      = "i";
-  
-  // --------------------------------------------------------------------------
-      
-  private static final String[] DAYS  = new String[] { "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" };
 
-  // --------------------------------------------------------------------------  
+  private static TableDef CRON_TBL = TableDef.newInstance().createCol("id", 17).createCol("dist", 7).createCol("version", 7).createCol("vm", 7)
+      .createCol("profile", 10).createCol("hour", 2).createCol("minute", 2).createCol("day", 2).createCol("month", 2).createCol("year", 4);
+
+  private static TableDef HOST_TBL = TableDef.newInstance().createCol("val", 78);
+
+  // --------------------------------------------------------------------------
+
+  private static final String STAR = "*";
+  private static final String ADD = "add";
+  private static final String LIST = "list";
+  private static final String LS = "ls";
+  private static final String REMOVE = "delete";
+  private static final String JOB_ID = "i";
+
+  // --------------------------------------------------------------------------
+
+  private static final String[] DAYS = new String[] { "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" };
+
+  // --------------------------------------------------------------------------
 
   @Override
-  protected void doExecute(CliContext ctx)
-                    throws AbortException, InputException {
-    CmdLine    cmd = ctx.getCommandLine();
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
+    CmdLine cmd = ctx.getCommandLine();
     CronWizard wiz = new CronWizard();
 
     if (cmd.hasNext() && cmd.isNextArg()) {
       Arg arg = (Arg) cmd.next();
 
       if (arg.getName().equals(LIST) || arg.getName().equals(LS)) {
-        displayResults(ctx.getCorus().getCronFacade().getCronJobs(getClusterInfo(ctx)),
-                       ctx);
+        displayResults(ctx.getCorus().getCronFacade().getCronJobs(getClusterInfo(ctx)), ctx);
       } else if (arg.getName().equals(REMOVE)) {
         ctx.getCorus().getCronFacade().removeCronJob(cmd.assertOption(JOB_ID, true).getValue());
       } else if (arg.getName().equals(ADD)) {
         wiz.execute(cmd, ctx);
       } else {
-        throw new InputException("Unrecognized argument: " + arg.getName() +
-                                 "; should be: add | list | delete ");
+        throw new InputException("Unrecognized argument: " + arg.getName() + "; should be: add | list | delete ");
       }
     } else {
       throw new InputException("Missing argument; should be: add | list | delete ");
@@ -82,7 +68,7 @@ public class Cron extends CorusCliCommand {
     while (res.hasNext()) {
       Result<List<CronJobInfo>> result = res.next();
       displayHeader(result.getOrigin(), ctx);
-      for(CronJobInfo job:result.getData()){
+      for (CronJobInfo job : result.getData()) {
         displayJob(job, ctx);
       }
     }
@@ -133,9 +119,7 @@ public class Cron extends CorusCliCommand {
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = hostTable.newRow();
-    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(
-        ctx.getCorus().getContext().resolve(addr).getFormattedAddress()
-    );
+    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     hostTable.drawLine(' ', 0, CONSOLE_WIDTH);

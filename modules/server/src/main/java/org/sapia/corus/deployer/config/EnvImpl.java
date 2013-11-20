@@ -12,33 +12,38 @@ import org.sapia.corus.client.services.deployer.dist.Property;
  * 
  * @author Yanick Duchesne
  */
-public class EnvImpl implements Env{
-	
-  private String     corusHome;
-  private String     distDir;
-  private String     commonDir;
-  private String     processDir;
-  private String     profile;
+public class EnvImpl implements Env {
+
+  private String corusHome;
+  private String distDir;
+  private String commonDir;
+  private String processDir;
+  private String profile;
   private Property[] props;
 
   /**
    * Constructor for Env.
    * 
-   * @param profile the name of the profile under which a process is to be started.
-   * @param distDir the path to the distribution directory of the process to start.
-   * @param commonDir the path to the "common" directory of the process to start - corresponds to user.dir.
-   * @param processDir the path to the process directory.
-   * @param props an array of {@link Property} instances that corresponds to the properties that will
-   * be dynamically passed to the started process.
+   * @param profile
+   *          the name of the profile under which a process is to be started.
+   * @param distDir
+   *          the path to the distribution directory of the process to start.
+   * @param commonDir
+   *          the path to the "common" directory of the process to start -
+   *          corresponds to user.dir.
+   * @param processDir
+   *          the path to the process directory.
+   * @param props
+   *          an array of {@link Property} instances that corresponds to the
+   *          properties that will be dynamically passed to the started process.
    */
-  public EnvImpl(String corusHome, String profile, String distDir, String commonDir, String processDir,
-             Property[] props) {
-    this.corusHome  = corusHome;
-    this.distDir    = distDir;
+  public EnvImpl(String corusHome, String profile, String distDir, String commonDir, String processDir, Property[] props) {
+    this.corusHome = corusHome;
+    this.distDir = distDir;
     this.processDir = processDir;
-    this.props      = props;
-    this.profile    = profile;
-    this.commonDir  = commonDir;
+    this.props = props;
+    this.profile = profile;
+    this.commonDir = commonDir;
   }
 
   /**
@@ -61,7 +66,7 @@ public class EnvImpl implements Env{
   public String getProcessDir() {
     return processDir;
   }
-  
+
   /**
    * @return the name of the profile under which to start the process.
    */
@@ -75,12 +80,12 @@ public class EnvImpl implements Env{
   public Property[] getProperties() {
     return props;
   }
-  
+
   @Override
   public String getLibDir() {
     return corusHome + File.separator + "lib";
   }
-  
+
   @Override
   public String getServerLibDir() {
     return getLibDir() + File.separator + "server";
@@ -90,33 +95,33 @@ public class EnvImpl implements Env{
   public String getVmBootLibDir() {
     return getLibDir() + File.separator + "vm-boot";
   }
-  
+
   @Override
   public String getJavaLibDir() {
     return getLibDir() + File.separator + "java";
   }
-  
+
   @Override
   public String getMagnetLibDir() {
     return getLibDir() + File.separator + "magnet";
   }
-  
+
   @Override
   public String getCorusIopLibPath() {
     return findLibPath(getServerLibDir(), "sapia_corus_iop-");
   }
-  
+
   @Override
   public String getJavaStarterLibPath() {
     return findLibPath(getServerLibDir(), "sapia_corus-starter");
   }
-  
+
   @Override
   public PathFilter createPathFilter(String basedir) {
     return new PathFilterImpl(basedir);
   }
-  
-  protected String findLibPath(String basedirName, final String libName){
+
+  protected String findLibPath(String basedirName, final String libName) {
     File basedir = new File(basedirName);
     File[] matching = basedir.listFiles(new FilenameFilter() {
       @Override
@@ -124,16 +129,12 @@ public class EnvImpl implements Env{
         return name.startsWith(libName);
       }
     });
-    if(matching == null || matching.length == 0){ 
-      throw new IllegalStateException(
-          String.format("Could not find lib %s under %s", libName, basedirName)
-      );
+    if (matching == null || matching.length == 0) {
+      throw new IllegalStateException(String.format("Could not find lib %s under %s", libName, basedirName));
     }
-    if(matching.length > 1){ 
-      throw new IllegalStateException(
-          String.format("More than one match for lib %s under %s", libName, basedirName)
-      );
-    }   
+    if (matching.length > 1) {
+      throw new IllegalStateException(String.format("More than one match for lib %s under %s", libName, basedirName));
+    }
     return matching[0].getAbsolutePath();
   }
 

@@ -1,28 +1,28 @@
 package org.sapia.corus.client.common;
 
-
 /**
- * An instance of this class is used to match given strings
- * exactly.
+ * An instance of this class is used to match given strings exactly.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class StringArg implements Arg {
-  
+
   public static final long serialVersionUID = 1L;
-  
+
   private String token;
-  
+
   public StringArg(String token) {
     this.token = token;
   }
-  
+
   public boolean matches(String str) {
-    if(str == null) return false;
-    else return token.equals(str);
+    if (str == null)
+      return false;
+    else
+      return token.equals(str);
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof StringArg) {
@@ -30,8 +30,8 @@ public class StringArg implements Arg {
     }
     return false;
   }
-  
-  public String toString(){
+
+  public String toString() {
     return token;
   }
 

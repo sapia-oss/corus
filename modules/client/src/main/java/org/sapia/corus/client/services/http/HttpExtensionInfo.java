@@ -4,10 +4,10 @@ package org.sapia.corus.client.services.http;
  * Encapsulates information about a {@link HttpExtension}.
  * 
  * @author yduchesne
- *
+ * 
  */
-public class HttpExtensionInfo implements Comparable<HttpExtensionInfo>{
-  
+public class HttpExtensionInfo implements Comparable<HttpExtensionInfo> {
+
   private String name, description, contextPath;
 
   /**
@@ -42,21 +42,20 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo>{
   public void setName(String name) {
     this.name = name;
   }
-  
+
   public int hashCode() {
     return contextPath.hashCode();
   }
-  
+
   public boolean equals(Object obj) {
-    if(obj instanceof HttpExtensionInfo){
-      HttpExtensionInfo other = (HttpExtensionInfo)obj;
+    if (obj instanceof HttpExtensionInfo) {
+      HttpExtensionInfo other = (HttpExtensionInfo) obj;
       return contextPath.equals(other.contextPath);
-    }
-    else{
+    } else {
       return false;
     }
   }
-  
+
   public int compareTo(HttpExtensionInfo other) {
     return name.compareTo(other.getName());
   }

@@ -21,19 +21,14 @@ import org.sapia.ubik.net.TCPAddress;
  * @author Yanick Duchesne
  */
 public class Hosts extends CorusCliCommand {
-  
-  private static final TableDef TBL = TableDef.newInstance()
-      .createCol("host", 10)
-      .createCol("addr", 15)
-      .createCol("os", 15)
-      .createCol("java", 20)
+
+  private static final TableDef TBL = TableDef.newInstance().createCol("host", 10).createCol("addr", 15).createCol("os", 15).createCol("java", 20)
       .createCol("repo", 10);
-  
+
   // --------------------------------------------------------------------------
-  
+
   @Override
-  protected void doExecute(CliContext ctx)
-                    throws AbortException, InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     Collection<CorusHost> others = ctx.getCorus().getContext().getOtherHosts();
     displayHeader(ctx);
     displayHosts(others, ctx);
@@ -44,43 +39,43 @@ public class Hosts extends CorusCliCommand {
   }
 
   private void displayHosts(Collection<CorusHost> others, CliContext ctx) {
-    Table      hostTable = TBL.createTable(ctx.getConsole().out());
+    Table hostTable = TBL.createTable(ctx.getConsole().out());
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
 
-    Row row  = hostTable.newRow();
+    Row row = hostTable.newRow();
     row.getCellAt(TBL.col("host").index()).append(ctx.getCorus().getContext().getServerHost().getHostName());
     TCPAddress addr = ctx.getCorus().getContext().getServerHost().getEndpoint().getServerTcpAddress();
     row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
     row.getCellAt(TBL.col("os").index()).append(ctx.getCorus().getContext().getServerHost().getOsInfo());
     row.getCellAt(TBL.col("java").index()).append(ctx.getCorus().getContext().getServerHost().getJavaVmInfo());
     if (ctx.getCorus().getContext().getServerHost().getRepoRole() == RepoRole.NONE) {
-      row.getCellAt(TBL.col("repo").index()).append("n/a");        
+      row.getCellAt(TBL.col("repo").index()).append("n/a");
     } else {
-      row.getCellAt(TBL.col("repo").index()).append(ctx.getCorus().getContext().getServerHost().getRepoRole().name().toLowerCase());        
-    }    
+      row.getCellAt(TBL.col("repo").index()).append(ctx.getCorus().getContext().getServerHost().getRepoRole().name().toLowerCase());
+    }
 
     row.flush();
 
-    for(CorusHost other:others) {
-      row  = hostTable.newRow();
+    for (CorusHost other : others) {
+      row = hostTable.newRow();
       row.getCellAt(TBL.col("host").index()).append(other.getHostName());
       addr = other.getEndpoint().getServerTcpAddress();
       row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
       row.getCellAt(TBL.col("os").index()).append(other.getOsInfo());
       row.getCellAt(TBL.col("java").index()).append(other.getJavaVmInfo());
       if (other.getRepoRole() == RepoRole.NONE) {
-        row.getCellAt(TBL.col("repo").index()).append("n/a");        
+        row.getCellAt(TBL.col("repo").index()).append("n/a");
       } else {
-        row.getCellAt(TBL.col("repo").index()).append(other.getRepoRole().name().toLowerCase());        
-      } 
+        row.getCellAt(TBL.col("repo").index()).append(other.getRepoRole().name().toLowerCase());
+      }
       row.flush();
     }
   }
 
   private void displayHeader(CliContext ctx) {
     Table distTable = TBL.createTable(ctx.getConsole().out());
-    
+
     Row headers = distTable.newRow();
     headers.getCellAt(TBL.col("host").index()).append("Host");
     headers.getCellAt(TBL.col("addr").index()).append("Addr");

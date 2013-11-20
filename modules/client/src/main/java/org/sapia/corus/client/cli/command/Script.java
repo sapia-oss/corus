@@ -17,19 +17,19 @@ import org.sapia.corus.client.cli.Interpreter;
 
 /**
  * Interprets a Corus script specified at the command-line.
- *  
+ * 
  * @author yduchesne
- *
+ * 
  */
 public class Script extends CorusCliCommand {
-  
-  private static final String ENGINE_OPT   = "e";
+
+  private static final String ENGINE_OPT = "e";
   private static final String INCLUDES_OPT = "i";
-  
+
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    
-    Arg    fileName;
+
+    Arg fileName;
     String scriptEngineName = null;
     if (ctx.getCommandLine().containsOption(ENGINE_OPT, true)) {
       scriptEngineName = ctx.getCommandLine().assertOption(ENGINE_OPT, true).getValue();
@@ -38,7 +38,7 @@ public class Script extends CorusCliCommand {
     if (fileName == null) {
       throw new InputException("Path to script file expected");
     }
-   
+
     try {
       File scriptFile = ctx.getFileSystem().getFile(fileName.getName());
       processScript(scriptFile, scriptEngineName, ctx);
@@ -46,10 +46,10 @@ public class Script extends CorusCliCommand {
       throw new InputException(e.getMessage());
     } catch (Throwable e) {
       CliError err = ctx.createAndAddErrorFor(this, "Unable to execute script", e);
-      ctx.getConsole().println(err.getSimpleMessage());      
+      ctx.getConsole().println(err.getSimpleMessage());
     }
   }
-    
+
   public void processScript(File scriptFile, String scriptEngineName, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
       Interpreter interpreter = new Interpreter(ctx.getCorus());
@@ -64,5 +64,5 @@ public class Script extends CorusCliCommand {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());
     }
   }
-  
+
 }

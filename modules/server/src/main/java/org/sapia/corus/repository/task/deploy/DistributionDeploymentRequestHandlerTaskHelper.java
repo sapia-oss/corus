@@ -25,37 +25,35 @@ import org.sapia.ubik.util.Condition;
 
 /**
  * Creates the subtasks pertaining to distribution deployment.
- *
+ * 
  * @author yduchesne
- *
+ * 
  */
-public class DistributionDeploymentRequestHandlerTaskHelper  extends ArtifactDeploymentHandlerTaskHelper {
-  
+public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHandlerTaskHelper {
+
   private List<DistributionDeploymentRequest> requests;
-  
-  public DistributionDeploymentRequestHandlerTaskHelper(RepositoryConfiguration config, TaskExecutionContext context, List<DistributionDeploymentRequest> requests) {
+
+  public DistributionDeploymentRequestHandlerTaskHelper(RepositoryConfiguration config, TaskExecutionContext context,
+      List<DistributionDeploymentRequest> requests) {
     super(config, context);
     this.requests = requests;
   }
-  
+
   @Override
   public void addTo(CompositeTask toAddTo) {
     InternalDeployer deployer = context().getServerContext().lookup(InternalDeployer.class);
 
     List<ExecConfig> execConfigs = context().getServerContext().getServices().getProcessor().getExecConfigs();
-    
+
     Map<RepoDistribution, Set<Endpoint>> distributionTargets = getDistributionTargets(requests);
-    
+
     context().info(String.format("Got %s targets to deploy to", distributionTargets));
-    
-    
+
     for (final Map.Entry<RepoDistribution, Set<Endpoint>> entry : distributionTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
-        RunnableTask task = new DistributionRequestHandlerTask(
-            deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()), 
-            new ArrayList<Endpoint>(entry.getValue())
-        );
+        RunnableTask task = new DistributionRequestHandlerTask(deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()),
+            new ArrayList<Endpoint>(entry.getValue()));
         toAddTo.add(task);
         List<ExecConfig> execConfigsForDistribution = CollectionUtil.filterToArrayList(execConfigs, new Condition<ExecConfig>() {
           @Override
@@ -73,13 +71,13 @@ public class DistributionDeploymentRequestHandlerTaskHelper  extends ArtifactDep
         }
       } catch (DistributionNotFoundException e) {
         context().error("Caught error attempting to initiate distribution deployment", e);
-      }    
+      }
     }
   }
-  
+
   // --------------------------------------------------------------------------
   // Package visibility for unit testing
-  
+
   Map<RepoDistribution, Set<Endpoint>> getDistributionTargets(List<DistributionDeploymentRequest> requests) {
     Map<RepoDistribution, Set<Endpoint>> distributionTargets = new HashMap<RepoDistribution, Set<Endpoint>>();
     for (DistributionDeploymentRequest req : requests) {
@@ -92,8 +90,8 @@ public class DistributionDeploymentRequestHandlerTaskHelper  extends ArtifactDep
           distributionTargets.put(dist, targets);
         }
         targets.add(req.getEndpoint());
-      } 
-       
+      }
+
     }
     return distributionTargets;
   }

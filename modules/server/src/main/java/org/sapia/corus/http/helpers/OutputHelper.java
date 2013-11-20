@@ -8,10 +8,10 @@ import org.sapia.corus.client.services.http.HttpResponseFacade;
  * content to a HTTP response, given a request.
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface OutputHelper {
-	
+
   public void print(HttpRequestFacade req, HttpResponseFacade res) throws Exception;
-  
+
 }

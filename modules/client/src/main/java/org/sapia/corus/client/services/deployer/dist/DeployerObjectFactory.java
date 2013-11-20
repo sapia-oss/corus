@@ -7,13 +7,12 @@ import org.sapia.util.xml.confix.CreationStatus;
 import org.sapia.util.xml.confix.ObjectCreationException;
 import org.sapia.util.xml.confix.ReflectionFactory;
 
-
 /**
- * Implements the Confix object factory that creates the objects pertaining
- * to the content of the corus.xml file.
+ * Implements the Confix object factory that creates the objects pertaining to
+ * the content of the corus.xml file.
  * 
  * @author Yanick Duchesne
- *
+ * 
  */
 public class DeployerObjectFactory extends ReflectionFactory {
   private Map<String, Class<?>> localNamesToClasses = new HashMap<String, Class<?>>();
@@ -34,9 +33,7 @@ public class DeployerObjectFactory extends ReflectionFactory {
     localNamesToClasses.put(localName, clazz);
   }
 
-  public CreationStatus newObjectFor(String prefix, String uri,
-                                     String localName, Object parent)
-                              throws ObjectCreationException {
+  public CreationStatus newObjectFor(String prefix, String uri, String localName, Object parent) throws ObjectCreationException {
     Class<?> clazz = localNamesToClasses.get(localName);
 
     if (clazz == null) {
@@ -46,11 +43,9 @@ public class DeployerObjectFactory extends ReflectionFactory {
     try {
       return CreationStatus.create(clazz.newInstance());
     } catch (IllegalAccessException e) {
-      throw new ObjectCreationException("Could not instantiate " + clazz +
-                                        "; not accessible");
+      throw new ObjectCreationException("Could not instantiate " + clazz + "; not accessible");
     } catch (InstantiationException e) {
-      throw new ObjectCreationException("Could not instantiate " + clazz,
-                                        e.getCause());
+      throw new ObjectCreationException("Could not instantiate " + clazz, e.getCause());
     }
   }
 }

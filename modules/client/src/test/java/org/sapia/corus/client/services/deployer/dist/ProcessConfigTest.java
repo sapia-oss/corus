@@ -11,7 +11,7 @@ import org.junit.Test;
 public class ProcessConfigTest {
 
   ProcessConfig conf;
-  
+
   @Before
   public void setUp() throws Exception {
     conf = new ProcessConfig();
@@ -19,7 +19,7 @@ public class ProcessConfigTest {
     conf.setName("server");
     starter.setProfile("test");
     conf.addStarter(starter);
-    
+
     starter = new Java();
     conf.setName("server");
     starter.setProfile("prod");

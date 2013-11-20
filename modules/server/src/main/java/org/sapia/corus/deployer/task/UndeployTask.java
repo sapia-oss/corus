@@ -18,14 +18,13 @@ import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
 import org.sapia.corus.util.FilePath;
 
-
 /**
  * This tasks remove a distribution from the corus server.
  * 
  * @author Yanick Duchesne
  */
-public class UndeployTask extends Task<Void,TaskParams<Arg, Arg, Void, Void>> implements Throttleable{
-  
+public class UndeployTask extends Task<Void, TaskParams<Arg, Arg, Void, Void>> implements Throttleable {
+
   @Override
   public ThrottleKey getThrottleKey() {
     return DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION;
@@ -33,27 +32,20 @@ public class UndeployTask extends Task<Void,TaskParams<Arg, Arg, Void, Void>> im
 
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<Arg, Arg, Void, Void> params) throws Throwable {
-    DistributionCriteria criteria = DistributionCriteria.builder()
-      .name(params.getParam1())
-      .version(params.getParam2())
-      .build();
-    
-    FileSystemModule     fs = ctx.getServerContext().getServices().getFileSystem();
+    DistributionCriteria criteria = DistributionCriteria.builder().name(params.getParam1()).version(params.getParam2()).build();
+
+    FileSystemModule fs = ctx.getServerContext().getServices().getFileSystem();
     DistributionDatabase db = ctx.getServerContext().getServices().getDistributions();
     DeployerConfiguration config = ctx.getServerContext().getServices().getDeployer().getConfiguration();
-    
-    List<Distribution> dists    = db.getDistributions(criteria);
-    for(Distribution dist:dists){
-      File         distDir = new File(dist.getBaseDir());
+
+    List<Distribution> dists = db.getDistributions(criteria);
+    for (Distribution dist : dists) {
+      File distDir = new File(dist.getBaseDir());
       ctx.info(String.format("Undeploying distribution %s", dist.getDislayInfo()));
       fs.deleteDirectory(distDir);
-      fs.deleteFile(
-          FilePath.newInstance()
-              .addDir(config.getRepoDir())
-              .setRelativeFile(dist.getDistributionFileName()).createFile()
-      );
+      fs.deleteFile(FilePath.newInstance().addDir(config.getRepoDir()).setRelativeFile(dist.getDistributionFileName()).createFile());
       db.removeDistribution(criteria);
-      
+
       ctx.info("Undeployment successful");
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentEvent(dist));
     }

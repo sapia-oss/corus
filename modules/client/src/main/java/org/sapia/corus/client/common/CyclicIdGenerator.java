@@ -1,11 +1,10 @@
 package org.sapia.corus.client.common;
 
-
 /**
  * A generator of identifiers for commands and requests. The generator will
- * create numeric identifiers up to a value of 999999; then the internal
- * counter will be reset.
- *
+ * create numeric identifiers up to a value of 999999; then the internal counter
+ * will be reset.
+ * 
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  */
 public class CyclicIdGenerator {

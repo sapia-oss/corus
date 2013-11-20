@@ -7,16 +7,16 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * Dispatched following an "undeployment".
  * 
  * @author yduchesne
- *
+ * 
  */
-public class UndeploymentEvent implements Event{
-  
+public class UndeploymentEvent implements Event {
+
   private Distribution distribution;
-  
+
   public UndeploymentEvent(Distribution dist) {
     this.distribution = dist;
   }
-  
+
   /**
    * @return the {@link Distribution} that was undeployed.
    */

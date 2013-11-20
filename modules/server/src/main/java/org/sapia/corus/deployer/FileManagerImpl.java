@@ -28,97 +28,93 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Implements the {@link FileManager} interface.
  * 
  * @author yduchesne
- *
+ * 
  */
-@Bind(moduleInterface={FileManager.class, InternalFileManager.class})
-@Remote(interfaces={FileManager.class})
+@Bind(moduleInterface = { FileManager.class, InternalFileManager.class })
+@Remote(interfaces = { FileManager.class })
 public class FileManagerImpl extends ModuleHelper implements InternalFileManager {
-  
+
   @Autowired
   private FileSystemModule fileSystem;
-  
+
   @Autowired
   private DeployerConfiguration deployerConfig;
-  
+
   private File baseDir;
 
   // --------------------------------------------------------------------------
   // Provided for testing.
-  
+
   public final void setFileSystem(FileSystemModule fileSystem) {
     this.fileSystem = fileSystem;
   }
-  
+
   public final void setDeployerConfig(DeployerConfiguration deployerConfig) {
     this.deployerConfig = deployerConfig;
   }
-  
+
   // --------------------------------------------------------------------------
   // Module interface
-  
+
   @Override
   public String getRoleName() {
     return FileManager.ROLE;
   }
-  
+
   // --------------------------------------------------------------------------
   // Lifecycle
-  
+
   @Override
   public void init() throws Exception {
   }
-  
+
   @Override
   public void start() throws Exception {
     baseDir = FilePath.newInstance().addDir(deployerConfig.getUploadDir()).createFile();
   }
-  
+
   @Override
   public void dispose() throws Exception {
   }
 
   // --------------------------------------------------------------------------
   // FileManager interface
-  
+
   @Override
   public ProgressQueue deleteFiles(final FileCriteria criteria) {
-    
+
     ProgressQueue progress = new ProgressQueueImpl();
-    
+
     List<File> toDelete = IteratorFilter.newFilter(new Matcher<File>() {
       @Override
       public boolean matches(File file) {
         return criteria.getName().matches(file.getName());
       }
-    })
-    .filter(fileSystem.listFiles(baseDir).iterator())
-    .get();
-    
+    }).filter(fileSystem.listFiles(baseDir).iterator()).get();
+
     for (File f : toDelete) {
       if (!f.delete()) {
         progress.info("Could not delete: " + f.getName());
-      } else  {
+      } else {
         progress.info("Deleted: " + f.getName());
       }
     }
-    
+
     progress.close();
     return progress;
   }
 
   @Override
   public List<FileInfo> getFiles() {
-    List<FileInfo> files = Collections2.convertAsList(
-        fileSystem.listFiles(baseDir), 
-        new Function<FileInfo, File>() {
-          public FileInfo call(File file) {
-            return new FileInfo(file.getName(), file.length(), new Date(file.lastModified()));
-          }
-        });
+    List<FileInfo> files = Collections2.convertAsList(fileSystem.listFiles(baseDir), new Function<FileInfo, File>() {
+      public FileInfo call(File file) {
+        return new FileInfo(file.getName(), file.length(), new Date(file.lastModified()));
+      }
+    });
     Collections.sort(files, new FileInfoComparator());
     return files;
   }
-  
+
   @Override
   public List<FileInfo> getFiles(final FileCriteria criteria) {
     return IteratorFilter.newFilter(new Matcher<FileInfo>() {
@@ -126,24 +122,22 @@ public class FileManagerImpl extends ModuleHelper implements InternalFileManager
       public boolean matches(FileInfo file) {
         return criteria.getName().matches(file.getName());
       }
-    })
-    .filter(getFiles().iterator())
-    .get();
+    }).filter(getFiles().iterator()).get();
   }
-  
+
   @Override
   public File getFile(FileInfo info) throws FileNotFoundException {
     File toReturn = new File(baseDir, info.getName());
-    if(!fileSystem.exists(toReturn)) {
+    if (!fileSystem.exists(toReturn)) {
       throw new FileNotFoundException("File not found: " + toReturn.getAbsolutePath());
     }
     return toReturn;
   }
-  
+
   // ==========================================================================
-  
+
   private static class FileInfoComparator implements Comparator<FileInfo> {
-    
+
     @Override
     public int compare(FileInfo o1, FileInfo o2) {
       return o1.getName().compareTo(o2.getName());

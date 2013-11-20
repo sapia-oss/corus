@@ -2,18 +2,18 @@ package org.sapia.corus.client.services.processor;
 
 import java.io.Serializable;
 
-public class LockOwner implements Serializable{
-  
+public class LockOwner implements Serializable {
+
   static final long serialVersionUID = 1L;
   static int counter;
 
   private int id;
-  
-  public LockOwner(){
+
+  public LockOwner() {
     id = increment();
   }
-  
-  static synchronized int increment(){
+
+  static synchronized int increment() {
     return counter++;
   }
 
@@ -22,21 +22,20 @@ public class LockOwner implements Serializable{
    * 
    * @return a new {@link LockOwner} instance.
    */
-  public static LockOwner createInstance(){
+  public static LockOwner createInstance() {
     return new LockOwner();
   }
-  
+
   @Override
   public int hashCode() {
     return id;
   }
-  
+
   @Override
   public boolean equals(Object obj) {
-    if(obj instanceof LockOwner){
-      return ((LockOwner)obj).id == id;
-    }
-    else{
+    if (obj instanceof LockOwner) {
+      return ((LockOwner) obj).id == id;
+    } else {
       return false;
     }
   }

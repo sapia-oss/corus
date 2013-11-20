@@ -22,14 +22,14 @@ import org.sapia.ubik.util.Time;
  * 
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface=EventDispatcher.class)
+@Bind(moduleInterface = EventDispatcher.class)
 public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher {
-  
-  private static final int CORE_POOL_SIZE      = 2;
-  private static final int MAX_POOL_SIZE       = 5;
+
+  private static final int CORE_POOL_SIZE = 2;
+  private static final int MAX_POOL_SIZE = 5;
   private static final long KEEP_ALIVE_SECONDS = 30;
-  private static final int WORK_QUEUE_SIZE     = 1000;
-  
+  private static final int WORK_QUEUE_SIZE = 1000;
+
   private MultiDispatcher delegate = new MultiDispatcher();
   private ExecutorService executor;
 
@@ -40,21 +40,15 @@ public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher
 
   @Override
   public void init() throws Exception {
-    ThreadingConfiguration conf = ThreadingConfiguration.newInstance()
-        .setCorePoolSize(CORE_POOL_SIZE)
-        .setMaxPoolSize(MAX_POOL_SIZE)
-        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS))
-        .setQueueSize(WORK_QUEUE_SIZE);
-    
-    executor = new ConfigurableExecutor(
-        conf, 
-        NamedThreadFactory
-          .createWith("EventDispatcher")
-          .setDaemon(true));
+    ThreadingConfiguration conf = ThreadingConfiguration.newInstance().setCorePoolSize(CORE_POOL_SIZE).setMaxPoolSize(MAX_POOL_SIZE)
+        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS)).setQueueSize(WORK_QUEUE_SIZE);
+
+    executor = new ConfigurableExecutor(conf, NamedThreadFactory.createWith("EventDispatcher").setDaemon(true));
   }
 
   @Override
-  public void start() throws Exception {}
+  public void start() throws Exception {
+  }
 
   @Override
   public void dispose() {
@@ -62,14 +56,14 @@ public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher
       executor.shutdownNow();
     }
   }
-  
+
   @Override
   @SuppressWarnings("rawtypes")
-  public void addInterceptor(Class event, Interceptor it){
+  public void addInterceptor(Class event, Interceptor it) {
     logger().debug("Adding interceptor: " + it + " for event type: " + event);
     delegate.addInterceptor(event, it);
   }
-  
+
   @Override
   public void dispatch(final Event event) {
     // precaution if this instance is used in unit testing and init()

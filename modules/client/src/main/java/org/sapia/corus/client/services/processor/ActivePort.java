@@ -13,34 +13,34 @@ package org.sapia.corus.client.services.processor;
 import java.io.Serializable;
 
 /**
- * This class models an "active" port: a port that is currently being used
- * by a process.
- *
+ * This class models an "active" port: a port that is currently being used by a
+ * process.
+ * 
  * @author yduchesne
  */
 public class ActivePort implements Serializable {
-  
+
   static final long serialVersionUID = 1L;
 
   private String name;
-  private int 	 port;
-  
+  private int port;
+
   /** Creates a new instance of ActivePort */
   public ActivePort(String name, int port) {
     this.name = name;
     this.port = port;
   }
-  
-  public String getName(){
+
+  public String getName() {
     return name;
   }
-  
-  public int getPort(){
+
+  public int getPort() {
     return port;
   }
-  
-  public String toString(){
+
+  public String toString() {
     return new StringBuffer(name).append('/').append(port).toString();
   }
-  
+
 }

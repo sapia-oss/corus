@@ -23,8 +23,8 @@ import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
  * 
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface=SecurityModule.class)
-public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, Interceptor{
+@Bind(moduleInterface = SecurityModule.class)
+public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, Interceptor {
 
   private static final String LOCALHOST;
   static {
@@ -38,53 +38,55 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
       LOCALHOST = hostAddress;
     }
   }
-  
+
   private List<UriPattern> allowedPatterns = new ArrayList<UriPattern>();
   private List<UriPattern> deniedPatterns = new ArrayList<UriPattern>();
-  
+
   private boolean isRunning = false;
-  
+
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
    */
   public String getRoleName() {
     return ROLE;
   }
-  
+
   public boolean isRunning() {
     return isRunning;
   }
-  
+
   /**
-   * Set the pattern list of the allowed hosts that can connect to
-   * this corus server.
+   * Set the pattern list of the allowed hosts that can connect to this corus
+   * server.
    * 
-   * @param patternList The pattern list of allowed hosts.
-   */  
+   * @param patternList
+   *          The pattern list of allowed hosts.
+   */
   public synchronized void setAllowedHostPatterns(String patternList) {
     allowedPatterns.clear();
-    
+
     if (patternList != null && (patternList = patternList.trim()).length() > 0) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
         if (patterns[i].trim().equals("localhost")) {
-        	allowedPatterns.add(UriPattern.parse(LOCALHOST));
+          allowedPatterns.add(UriPattern.parse(LOCALHOST));
         } else {
           allowedPatterns.add(UriPattern.parse(patterns[i].trim()));
         }
       }
     }
   }
-  
+
   /**
-   * Set the pattern list of the denied hosts that can't connect to
-   * this corus server.
+   * Set the pattern list of the denied hosts that can't connect to this corus
+   * server.
    * 
-   * @param patternList The pattern list of denied hosts.
-   */  
+   * @param patternList
+   *          The pattern list of denied hosts.
+   */
   public synchronized void setDeniedHostPatterns(String patternList) {
     deniedPatterns.clear();
-    
+
     if (patternList != null && (patternList = patternList.trim()).length() > 0) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
@@ -96,7 +98,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
       }
     }
   }
-  
+
   /**
    * @see Service#init()
    */
@@ -104,7 +106,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     logger().info("Initializing the security module");
     Hub.getModules().getServerRuntime().addInterceptor(ServerPreInvokeEvent.class, this);
   }
-  
+
   /**
    * @see Service#start()
    */
@@ -112,7 +114,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     logger().info("Starting the security module");
     isRunning = true;
   }
-  
+
   /**
    * @see Service#dispose()
    */
@@ -120,42 +122,43 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     logger().info("Stopping the security module");
     isRunning = false;
   }
-  
+
   /**
    * 
-   * @param evt a {@link ServerPreInvokeEvent}
+   * @param evt
+   *          a {@link ServerPreInvokeEvent}
    */
   public void onServerPreInvokeEvent(ServerPreInvokeEvent evt) {
     if (!isRunning) {
       throw new IllegalStateException("This security module is currently not running");
     }
-    
+
     TCPAddress addr = (TCPAddress) evt.getInvokeCommand().getConnection().getServerAddress();
     if (!isMatch(addr.getHost())) {
-      logger().error("Security breach; could not execute: " + evt.getInvokeCommand().getMethodName());      
+      logger().error("Security breach; could not execute: " + evt.getInvokeCommand().getMethodName());
       throw new CorusSecurityException("Host does not have access to corus server: " + addr);
     }
   }
-  
+
   protected synchronized boolean isMatch(String hostAddr) {
     if (allowedPatterns.size() == 0 && deniedPatterns.size() == 0) {
       return true;
     }
 
     boolean isMatching = (allowedPatterns.size() == 0);
-    for (Iterator<UriPattern> it = allowedPatterns.iterator(); !isMatching && it.hasNext(); ) {
+    for (Iterator<UriPattern> it = allowedPatterns.iterator(); !isMatching && it.hasNext();) {
       UriPattern pattern = (UriPattern) it.next();
       if (pattern.matches(hostAddr)) {
         isMatching = true;
       }
     }
-    
-    for (Iterator<UriPattern> it = deniedPatterns.iterator(); isMatching && it.hasNext(); ) {
+
+    for (Iterator<UriPattern> it = deniedPatterns.iterator(); isMatching && it.hasNext();) {
       UriPattern pattern = (UriPattern) it.next();
       if (pattern.matches(hostAddr)) {
         isMatching = false;
       }
     }
     return isMatching;
-  }  
+  }
 }

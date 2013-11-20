@@ -4,18 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-
 /**
  * @author Yanick Duchesne
  */
-public class DeploymentClientConnection implements Connection{
-	
-	private AbstractDeploymentClient client;
-	
-	public DeploymentClientConnection(AbstractDeploymentClient client){
-		this.client = client;
-	}
-	
+public class DeploymentClientConnection implements Connection {
+
+  private AbstractDeploymentClient client;
+
+  public DeploymentClientConnection(AbstractDeploymentClient client) {
+    this.client = client;
+  }
+
   /**
    * @see org.sapia.corus.client.services.deployer.transport.Connection#close()
    */

@@ -9,11 +9,13 @@ import org.sapia.corus.taskmanager.core.Throttleable;
  * @author yduchesne
  */
 public abstract class RunnableThrottleableTask extends RunnableTask implements Throttleable {
-  
+
   private ThrottleKey key;
-  
+
   /**
-   * @param key the {@link ThrottleKey} that this instance is meant to correspond to. 
+   * @param key
+   *          the {@link ThrottleKey} that this instance is meant to correspond
+   *          to.
    */
   public RunnableThrottleableTask(ThrottleKey key) {
     this.key = key;
@@ -23,5 +25,5 @@ public abstract class RunnableThrottleableTask extends RunnableTask implements T
   public ThrottleKey getThrottleKey() {
     return key;
   }
-  
+
 }

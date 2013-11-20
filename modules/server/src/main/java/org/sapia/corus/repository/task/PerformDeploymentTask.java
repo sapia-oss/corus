@@ -8,6 +8,5 @@ import org.sapia.corus.taskmanager.util.CompositeTask;
  * @author yduchesne
  */
 public class PerformDeploymentTask extends CompositeTask {
-  
- 
+
 }

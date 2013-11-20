@@ -6,23 +6,20 @@ package org.sapia.corus.client.common;
  * @author Yanick Duchesne
  */
 public class ProgressMsg implements java.io.Serializable {
-  
+
   static final long serialVersionUID = 1L;
-  
-  public static final int DEBUG   = 0;
+
+  public static final int DEBUG = 0;
   public static final int VERBOSE = 1;
-  public static final int INFO    = 2;
+  public static final int INFO = 2;
   public static final int WARNING = 3;
-  public static final int ERROR   = 4;
-  
-  public static final String[] STATUS_LABELS =
-    new String[]{
-    	"DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR"
-    };
-  
-  private int             status = INFO;
-  private Object          msg;
-  
+  public static final int ERROR = 4;
+
+  public static final String[] STATUS_LABELS = new String[] { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR" };
+
+  private int status = INFO;
+  private Object msg;
+
   public ProgressMsg(Object msg) {
     this.msg = msg;
   }
@@ -55,8 +52,8 @@ public class ProgressMsg implements java.io.Serializable {
   }
 
   /**
-   * @return <code>true</code> if this instance's message object
-   * is an instance of {@link Throwable}
+   * @return <code>true</code> if this instance's message object is an instance
+   *         of {@link Throwable}
    * 
    * @see #getError()
    */
@@ -71,9 +68,9 @@ public class ProgressMsg implements java.io.Serializable {
   public boolean isError() {
     return status == ERROR;
   }
-  
-  public static final String getLabelFor(int status){
-  	return STATUS_LABELS[status];
+
+  public static final String getLabelFor(int status) {
+    return STATUS_LABELS[status];
   }
 
   public String toString() {

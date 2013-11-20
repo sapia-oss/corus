@@ -1,6 +1,5 @@
 package org.sapia.corus.client.services.deployer;
 
-
 import static org.sapia.corus.client.common.ArgFactory.any;
 import static org.sapia.corus.client.common.ArgFactory.anyIfNull;
 
@@ -54,16 +53,15 @@ public class DistributionCriteria implements Serializable {
   }
 
   public String toString() {
-    return new ToStringBuilder(this).append("name", name).append("version",
-        version).toString();
+    return new ToStringBuilder(this).append("name", name).append("version", version).toString();
   }
-  
-  ////////////// Builder class
+
+  // //////////// Builder class
 
   public static final class Builder {
 
     private Arg name, version;
-    
+
     private Builder() {
     }
 
@@ -84,8 +82,8 @@ public class DistributionCriteria implements Serializable {
     public Builder version(String version) {
       return version(ArgFactory.parse(version));
     }
-    
-    public DistributionCriteria all(){
+
+    public DistributionCriteria all() {
       return name(any()).version(any()).build();
     }
 

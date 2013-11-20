@@ -8,30 +8,31 @@ import org.sapia.ubik.util.Strings;
 
 /**
  * Corresponds to a VM argument.
- *  
+ * 
  * @author yduchesne
- *
+ * 
  */
 public class VmArg implements Param, Serializable {
-  
+
   static final long serialVersionUID = 1L;
-  
+
   private String value;
-  
+
   /**
-   * @param value a value.
+   * @param value
+   *          a value.
    */
   public void setValue(String value) {
     this.value = value;
   }
-  
+
   /**
    * @return this instance's value.
    */
   public String getValue() {
     return value;
   }
-  
+
   @Override
   public CmdElement convert() {
     if (Strings.isBlank(value)) {

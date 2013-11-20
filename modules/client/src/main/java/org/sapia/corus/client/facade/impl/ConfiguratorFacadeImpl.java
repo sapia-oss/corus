@@ -13,68 +13,64 @@ import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 
-public class ConfiguratorFacadeImpl 
-  extends FacadeHelper<Configurator> implements ConfiguratorFacade{
-  
+public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implements ConfiguratorFacade {
+
   public ConfiguratorFacadeImpl(CorusConnectionContext context) {
     super(context, Configurator.class);
   }
-  
+
   @Override
-  public Results<List<NameValuePair>> getProperties(PropertyScope scope,
-      ClusterInfo cluster) {
-    Results<List<NameValuePair>>  results = new Results<List<NameValuePair>>();
+  public Results<List<NameValuePair>> getProperties(PropertyScope scope, ClusterInfo cluster) {
+    Results<List<NameValuePair>> results = new Results<List<NameValuePair>>();
     proxy.getPropertiesAsNameValuePairs(scope);
     invoker.invokeLenient(results, cluster);
-    return results;   
+    return results;
   }
-  
+
   @Override
   public Results<Set<String>> getTags(ClusterInfo cluster) {
-    Results<Set<String>>  results = new Results<Set<String>>();
+    Results<Set<String>> results = new Results<Set<String>>();
     proxy.getTags();
     invoker.invokeLenient(results, cluster);
-    return results;   
+    return results;
   }
-  
+
   @Override
-  public void addProperty(PropertyScope scope, String name, String value,
-      ClusterInfo cluster) {
+  public void addProperty(PropertyScope scope, String name, String value, ClusterInfo cluster) {
     proxy.addProperty(scope, name, value);
-    invoker.invokeLenient(void.class, cluster); 
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
-  public void addProperties(PropertyScope scope, Properties props,
-      boolean clearExisting, ClusterInfo cluster) {
+  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting, ClusterInfo cluster) {
     proxy.addProperties(scope, props, clearExisting);
     invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public void addTag(String tag, ClusterInfo cluster) {
     proxy.addTag(tag);
-    invoker.invokeLenient(void.class, cluster); 
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public void addTags(Set<String> tags, ClusterInfo cluster) {
     proxy.addTags(tags);
-    invoker.invokeLenient(void.class, cluster); 
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public void removeProperty(PropertyScope scope, String name, ClusterInfo cluster) {
     proxy.removeProperty(scope, ArgFactory.parse(name));
-    invoker.invokeLenient(void.class, cluster); 
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public void removeTag(String tag, ClusterInfo cluster) {
     proxy.removeTag(ArgFactory.parse(tag));
-    invoker.invokeLenient(void.class, cluster); 
+    invoker.invokeLenient(void.class, cluster);
   }
-  
+
   @Override
   public void renameTags(List<NameValuePair> tags, ClusterInfo cluster) {
     proxy.renameTags(tags);

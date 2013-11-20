@@ -21,69 +21,54 @@ import org.sapia.ubik.net.ServerAddress;
  * Implements the {@link ServerContext} interface.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ServerContextImpl implements ServerContext {
 
   static final String CORUS_PROCESS_FILE = "corus_process";
-  
+
   private static final String OS_INFO;
   private static final String JAVA_VM_INFO;
   static {
-    OS_INFO = new StringBuilder().
-            append(System.getProperty("os.name")).
-            append(" ").
-            append(System.getProperty("os.version")).
-            toString();
+    OS_INFO = new StringBuilder().append(System.getProperty("os.name")).append(" ").append(System.getProperty("os.version")).toString();
 
-    JAVA_VM_INFO = new StringBuilder().
-            append(System.getProperty("java.version")).
-            append(" ").
-            append(System.getProperty("java.vm.name")).
-            toString();
+    JAVA_VM_INFO = new StringBuilder().append(System.getProperty("java.version")).append(" ").append(System.getProperty("java.vm.name")).toString();
   }
 
-  private Corus 							   corus;
-  private String 								 serverName = UUID.randomUUID().toString().substring(0, 8);
-  private String 				 				 domain;
-  private CorusHost 						 hostInfo;
-  private CorusTransport 				 transport;
-  private EventChannel           eventChannel;
+  private Corus corus;
+  private String serverName = UUID.randomUUID().toString().substring(0, 8);
+  private String domain;
+  private CorusHost hostInfo;
+  private CorusTransport transport;
+  private EventChannel eventChannel;
   private InternalServiceContext services;
-  private String 								 homeDir;
-  private Properties             properties;
-  
-  public ServerContextImpl(
-      Corus corus,
-      CorusTransport transport,
-      ServerAddress serverAddress,
-      EventChannel channel,
-      String domain, 
-      String homeDir, 
-      InternalServiceContext services,
-      Properties props){
-    this.corus 				 = corus;
-    this.transport     = transport;
-    this.eventChannel  = channel;
-    this.hostInfo      = CorusHost.newInstance(new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO);
-    this.domain        = domain;
-    this.homeDir       = homeDir;
-    this.services      = services;
-    this.properties    = props;
+  private String homeDir;
+  private Properties properties;
+
+  public ServerContextImpl(Corus corus, CorusTransport transport, ServerAddress serverAddress, EventChannel channel, String domain, String homeDir,
+      InternalServiceContext services, Properties props) {
+    this.corus = corus;
+    this.transport = transport;
+    this.eventChannel = channel;
+    this.hostInfo = CorusHost.newInstance(new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO);
+    this.domain = domain;
+    this.homeDir = homeDir;
+    this.services = services;
+    this.properties = props;
     String repoRoleProp = properties.getProperty(CorusConsts.PROPERTY_REPO_TYPE, CorusHost.RepoRole.NONE.name());
     hostInfo.setRepoRole(RepoRole.valueOf(repoRoleProp.toUpperCase()));
   }
-  
+
   @Override
   public Corus getCorus() {
     return corus;
   }
-  
+
   @Override
   public String getServerName() {
     return serverName;
   }
-  
+
   void setServerName(String serverName) {
     this.serverName = serverName;
   }
@@ -92,68 +77,63 @@ public class ServerContextImpl implements ServerContext {
   public void overrideServerName(String serverName) {
     this.serverName = serverName;
   }
-  
+
   @Override
   public String getHomeDir() {
     return homeDir;
   }
-  
+
   @Override
   public String getDomain() {
     return domain;
   }
-  
+
   @Override
   public CorusHost getCorusHost() {
     return hostInfo;
   }
-  
+
   @Override
   public CorusTransport getTransport() {
     return transport;
   }
-  
+
   @Override
   public EventChannel getEventChannel() {
     return eventChannel;
   }
-  
+
   @Override
   public InternalServiceContext getServices() {
     return services;
   }
-  
+
   @Override
-  public <S> S lookup(Class<S> serviceInterface){
+  public <S> S lookup(Class<S> serviceInterface) {
     return services.lookup(serviceInterface);
   }
-  
+
   @Override
   public Object lookup(String name) {
     return services.lookup(name);
   }
-  
+
   @Override
   public Properties getCorusProperties() {
-	  return properties;
+    return properties;
   }
-  
+
   @Override
-  public Properties getProcessProperties() throws IOException{
-    Properties processProps   = new Properties();
-    
+  public Properties getProcessProperties() throws IOException {
+    Properties processProps = new Properties();
+
     // ------------------------------------------------------------------------
     // copying Ubik properties to process properties
-    Properties ubikProperties = PropertiesUtil.filter(
-    		System.getProperties(), 
-    		PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik")
-    );
-    
+    Properties ubikProperties = PropertiesUtil.filter(System.getProperties(), PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik"));
+
     // removing ubik log config properties
-    ubikProperties = PropertiesUtil.filter(
-        ubikProperties, 
-        NotPropertiesFilter.createInstance(PropertiesFilter.NameContainsPropertiesFilter.createInstance("ubik.rmi.log"))
-    );
+    ubikProperties = PropertiesUtil.filter(ubikProperties,
+        NotPropertiesFilter.createInstance(PropertiesFilter.NameContainsPropertiesFilter.createInstance("ubik.rmi.log")));
     PropertiesUtil.copy(ubikProperties, processProps);
 
     // ------------------------------------------------------------------------
@@ -162,15 +142,15 @@ public class ServerContextImpl implements ServerContext {
     File home = new File(getHomeDir() + File.separator + "config");
     PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + ".properties"));
     PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + "_" + getDomain() + ".properties"));
-    
+
     // ------------------------------------------------------------------------
     // copying configurator props to process props
     Properties configuratorProps = services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS);
     PropertiesUtil.copy(configuratorProps, processProps);
     return processProps;
   }
-  
-  void setHostInfo(CorusHost hostInfo){
+
+  void setHostInfo(CorusHost hostInfo) {
     this.hostInfo = hostInfo;
   }
 

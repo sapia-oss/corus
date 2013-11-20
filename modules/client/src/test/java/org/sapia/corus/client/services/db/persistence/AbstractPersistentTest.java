@@ -9,10 +9,10 @@ import org.junit.Test;
 import org.sapia.corus.client.services.db.DbMap;
 
 public class AbstractPersistentTest {
-   
+
   private DbMap<String, TestAbstractPersistent> map;
-  private TestAbstractPersistent                persistent;
-  
+  private TestAbstractPersistent persistent;
+
   @Before
   public void setUp() {
     map = mock(DbMap.class);
@@ -38,7 +38,7 @@ public class AbstractPersistentTest {
     persistent.delete();
     verify(map, times(1)).remove(eq(persistent.getKey()));
   }
-  
+
   @Test
   public void testMarkDeleted() {
     persistent.markDeleted();
@@ -51,16 +51,16 @@ public class AbstractPersistentTest {
     persistent.refresh();
     verify(map).refresh(eq(persistent.getKey()), eq(persistent));
   }
-  
+
   @Test
   public void testRefreshAfterDelete() {
     persistent.delete();
     persistent.refresh();
     verify(map, never()).refresh(eq(persistent.getKey()), eq(persistent));
   }
-  
+
   class TestAbstractPersistent extends AbstractPersistent<String, TestAbstractPersistent> {
-    
+
     @Override
     public String getKey() {
       return "test";

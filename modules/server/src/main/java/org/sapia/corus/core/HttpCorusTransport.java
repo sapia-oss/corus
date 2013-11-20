@@ -12,22 +12,22 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpTransportProvider;
 import org.sapia.ubik.util.Localhost;
 
-
 /**
  * Implements the {@link CorusTransport} interface over HTTP.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class HttpCorusTransport extends AbstractTransport {
-  
+
   /** The server address. */
-  private HttpAddress              address;
-  
+  private HttpAddress address;
+
   /**
    * Creates a new TcpCorusTransport instance.
    * 
-   * @param port the server port.
+   * @param port
+   *          the server port.
    */
   public HttpCorusTransport(int port) throws UnknownHostException {
     if (port <= 0) {
@@ -42,7 +42,7 @@ public class HttpCorusTransport extends AbstractTransport {
   public ServerAddress getServerAddress() {
     return address;
   }
-  
+
   /**
    * @see org.sapia.corus.core.AbstractTransport#initExport(java.lang.Object)
    */
@@ -54,7 +54,8 @@ public class HttpCorusTransport extends AbstractTransport {
   }
 
   /**
-   * @return The Ubik transport provider used by this corus transport implementation.
+   * @return The Ubik transport provider used by this corus transport
+   *         implementation.
    */
   public TransportProvider getTransportProvider() {
     return Hub.getModules().getTransportManager().getProviderFor(HttpTransportProvider.HTTP_TRANSPORT_TYPE);

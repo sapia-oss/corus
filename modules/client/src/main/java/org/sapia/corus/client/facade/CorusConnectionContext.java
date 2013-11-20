@@ -16,7 +16,7 @@ import org.sapia.ubik.net.ServerAddress;
  * Abstracts Corus connection behavior.
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface CorusConnectionContext {
 
@@ -49,8 +49,8 @@ public interface CorusConnectionContext {
   public Corus getCorus();
 
   /**
-   * @return the {@link CorusHost} instance corresponding to the server to which this instance 
-   * is connected.
+   * @return the {@link CorusHost} instance corresponding to the server to which
+   *         this instance is connected.
    */
   public CorusHost getServerHost();
 
@@ -79,55 +79,73 @@ public interface CorusConnectionContext {
   public void reconnect();
 
   /**
-   * Disconnects this instance, releases its resources. This instance should not be used thereafter.
+   * Disconnects this instance, releases its resources. This instance should not
+   * be used thereafter.
    */
   public void disconnect();
 
   /**
-   * Indicates that the current thread should be clustered (or not), based on the passed in {@link ClusterInfo}.
-   * @param info a {@link ClusterInfo}.
+   * Indicates that the current thread should be clustered (or not), based on
+   * the passed in {@link ClusterInfo}.
+   * 
+   * @param info
+   *          a {@link ClusterInfo}.
    */
   public void clusterCurrentThread(ClusterInfo info);
 
   /**
-   * @param results the {@link Results} instance to which to add the results acquired from the different Corus nodes.
-   * @param moduleInterface the interface of the Corus module to on which to invoke a method.
-   * @param method the {@link Method} to invoke.
-   * @param params the method parameters.
-   * @param cluster a {@link ClusterInfo}. 
-   * @throws Throwable if an error occurs performing the method invocation.
+   * @param results
+   *          the {@link Results} instance to which to add the results acquired
+   *          from the different Corus nodes.
+   * @param moduleInterface
+   *          the interface of the Corus module to on which to invoke a method.
+   * @param method
+   *          the {@link Method} to invoke.
+   * @param params
+   *          the method parameters.
+   * @param cluster
+   *          a {@link ClusterInfo}.
+   * @throws Throwable
+   *           if an error occurs performing the method invocation.
    */
-  public <T, M> void invoke(Results<T> results,
-      Class<M> moduleInterface, Method method, Object[] params,
-      ClusterInfo cluster) throws Throwable;
+  public <T, M> void invoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable;
 
   /**
-   * @param returnType the {@link Class} corresponding to the type of object that is returned.
-   * @param moduleInterface the interface of the Corus module to on which to invoke a method.
-   * @param method the {@link Method} to invoke.
-   * @param params the method parameters.
-   * @param cluster a {@link ClusterInfo}. 
-   * @throws Throwable if an error occurs performing the method invocation.
-   */  
-  public <T, M> T invoke(Class<T> returnType,
-      Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info)
-      throws Throwable;
+   * @param returnType
+   *          the {@link Class} corresponding to the type of object that is
+   *          returned.
+   * @param moduleInterface
+   *          the interface of the Corus module to on which to invoke a method.
+   * @param method
+   *          the {@link Method} to invoke.
+   * @param params
+   *          the method parameters.
+   * @param cluster
+   *          a {@link ClusterInfo}.
+   * @throws Throwable
+   *           if an error occurs performing the method invocation.
+   */
+  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable;
 
   /**
-   * @return the {@link Stack} of addresses corresponding to the CLI's connection history.
+   * @return the {@link Stack} of addresses corresponding to the CLI's
+   *         connection history.
    */
   public Stack<ServerAddress> getConnectionHistory();
 
   /**
-   * @param moduleInterface the interface of the Corus module to lookup.
+   * @param moduleInterface
+   *          the interface of the Corus module to lookup.
    * @return the remote module instance.
    */
   public <T> T lookup(Class<T> moduleInterface);
-  
+
   /**
-   * @param addr a {@link ServerAddress}.
+   * @param addr
+   *          a {@link ServerAddress}.
    * @return the {@link CorusHost} corresponding to the given address.
-   * @throws IllegalArgumentException if no such address is found.
+   * @throws IllegalArgumentException
+   *           if no such address is found.
    */
   public CorusHost resolve(ServerAddress addr) throws IllegalArgumentException;
 

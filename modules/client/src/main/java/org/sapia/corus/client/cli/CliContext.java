@@ -10,17 +10,15 @@ import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
 
 /**
- * This interface specifies the behavior common to
- * command line contexts.
+ * This interface specifies the behavior common to command line contexts.
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface CliContext {
 
   /**
-   * @return the {@link CorusConnector} used by the
-   * command line interface.
+   * @return the {@link CorusConnector} used by the command line interface.
    */
   public CorusConnector getCorus();
 
@@ -28,44 +26,49 @@ public interface CliContext {
    * @return the {@link ClientFileSystem}.
    */
   public ClientFileSystem getFileSystem();
-  
+
   /**
-   * @return the {@link CmdLine} instance corresponding to the command
-   * line that was entered.
+   * @return the {@link CmdLine} instance corresponding to the command line that
+   *         was entered.
    */
   public CmdLine getCommandLine();
-  
+
   /**
    * @return the {@link Console} that is used to interact with the user.
    */
   public Console getConsole();
-  
+
   /**
    * Returns the list of errors of this context.
    */
   public List<CliError> getErrors();
 
   /**
-   * Creates a new {@link CliError} for the exception passed in and adds it
-   * to this context.
+   * Creates a new {@link CliError} for the exception passed in and adds it to
+   * this context.
    * 
-   * @param aCommand The corus command executed. 
-   * @param aCause The exception that caused the error.
+   * @param aCommand
+   *          The corus command executed.
+   * @param aCause
+   *          The exception that caused the error.
    * @return The created {@link CliError}.
    */
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, Throwable aCause);
-  
+
   /**
-   * Creates a new {@link CliError} for the exception passed in and adds it
-   * to this context.
+   * Creates a new {@link CliError} for the exception passed in and adds it to
+   * this context.
    * 
-   * @param aCommand The corus command executed. 
-   * @param aDescription The description of th error.
-   * @param aCause The exception that caused the error.
+   * @param aCommand
+   *          The corus command executed.
+   * @param aDescription
+   *          The description of th error.
+   * @param aCause
+   *          The exception that caused the error.
    * @return The created {@link CliError}.
    */
   public CliError createAndAddErrorFor(CorusCliCommand aCommand, String aDescription, Throwable aCause);
-  
+
   /**
    * Removes all errors from this context.
    * 
@@ -75,18 +78,18 @@ public interface CliContext {
 
   /**
    * @return <code>true</code> if the command line interface should abort if an
-   * error occurs.
+   *         error occurs.
    */
   public boolean isAbordOnError();
-  
+
   /**
    * @see #isAbordOnError()
    */
   public void setAbortOnError(boolean abortOnError);
-  
+
   /**
    * @return the {@link StrLookup} of variables that this instance holds.
    */
   public StrLookup getVars();
-  
+
 }

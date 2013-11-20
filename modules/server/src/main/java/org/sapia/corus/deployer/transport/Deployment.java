@@ -24,90 +24,92 @@ import org.sapia.ubik.util.Streams;
  * @author Yanick Duchesne
  */
 public class Deployment {
-	
-	static final int BUFSZ = 2048;
 
-  private Logger             log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-	private ServerContext 		 context;
-  private Connection 				 conn;
-	private DeploymentMetadata meta;
-	
-	/**
-	 * @param conn the {@link Connection} that represents the network
-	 * link with the client that is performing the deployment.
-	 */
-	public Deployment(ServerContext context, Connection conn){
+  static final int BUFSZ = 2048;
+
+  private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+  private ServerContext context;
+  private Connection conn;
+  private DeploymentMetadata meta;
+
+  /**
+   * @param conn
+   *          the {@link Connection} that represents the network link with the
+   *          client that is performing the deployment.
+   */
+  public Deployment(ServerContext context, Connection conn) {
     this.context = context;
-		this.conn = conn;
-	}
-  
-	public DeploymentMetadata getMetadata() throws IOException{
-		if(meta == null){
-			ObjectInputStream ois = SerializationStreams.createObjectInputStream(conn.getInputStream());
-			try{
-				meta = (DeploymentMetadata)ois.readObject();  			
-			}catch(ClassNotFoundException e){
-				throw new IOException("Class not found: " + e.getMessage());
-			}
-		}
-		return meta;
-	}
-  
+    this.conn = conn;
+  }
+
+  public DeploymentMetadata getMetadata() throws IOException {
+    if (meta == null) {
+      ObjectInputStream ois = SerializationStreams.createObjectInputStream(conn.getInputStream());
+      try {
+        meta = (DeploymentMetadata) ois.readObject();
+      } catch (ClassNotFoundException e) {
+        throw new IOException("Class not found: " + e.getMessage());
+      }
+    }
+    return meta;
+  }
+
   /**
    * Closes the {@link Connection} that this instance encapsulates.
-   */  
-	public void close(){
-	  conn.close();
-	}
-	
-	/**
-	 * Streams the deployment data to the passed in stream.
-	 * <p>
-	 * IMPORTANT: this method closes the given stream.
-	 * 
-	 * @param deployOutput an {@link OutputStream}.
-	 * @throws IOException if an IO problem occurs while performing this
-	 * operation.
-	 */
-	public void deploy(DeployOutputStream deployOutput) throws IOException{
-		long length = getMetadata().getContentLength();
-		InputStream is   = conn.getInputStream();
-		long   total     = 0;
-		byte[] buf       = new byte[BUFSZ];
-		int    read      = 0;
-		long   remaining = length;
+   */
+  public void close() {
+    conn.close();
+  }
+
+  /**
+   * Streams the deployment data to the passed in stream.
+   * <p>
+   * IMPORTANT: this method closes the given stream.
+   * 
+   * @param deployOutput
+   *          an {@link OutputStream}.
+   * @throws IOException
+   *           if an IO problem occurs while performing this operation.
+   */
+  public void deploy(DeployOutputStream deployOutput) throws IOException {
+    long length = getMetadata().getContentLength();
+    InputStream is = conn.getInputStream();
+    long total = 0;
+    byte[] buf = new byte[BUFSZ];
+    int read = 0;
+    long remaining = length;
 
     log.debug(String.format("Processing deployment stream of %s bytes : %s", length, meta.getFileName()));
-		try {
-  		while(remaining > 0 && (read = is.read(buf, 0, BUFSZ > remaining ? (int) remaining : BUFSZ)) > 0){
-  			total = total + read;
-  			remaining -= read;
-  			deployOutput.write(buf, 0, read);
-  		}
+    try {
+      while (remaining > 0 && (read = is.read(buf, 0, BUFSZ > remaining ? (int) remaining : BUFSZ)) > 0) {
+        total = total + read;
+        remaining -= read;
+        deployOutput.write(buf, 0, read);
+      }
 
-  		if (length != total) {
-  		  throw new IllegalStateException(String.format("Expected %s bytes, processed %s", length, total));
-  		}
-  		deployOutput.flush();
-  		deployOutput.close();
-		} finally {
-		  Streams.closeSilently(is);
-		}
-		handleResult(deployOutput.getProgressQueue());
-	}
-	
+      if (length != total) {
+        throw new IllegalStateException(String.format("Expected %s bytes, processed %s", length, total));
+      }
+      deployOutput.flush();
+      deployOutput.close();
+    } finally {
+      Streams.closeSilently(is);
+    }
+    handleResult(deployOutput.getProgressQueue());
+  }
+
   private void handleResult(ProgressQueue result) throws IOException {
     ObjectOutputStream os = createObjectOutputStream(conn.getOutputStream());
     os.writeObject(result);
     Streams.flushAndCloseSilently(os);
-  }	
-  
+  }
+
   // --------------------------------------------------------------------------
   // Provided for testing purposes
-  
+
   ObjectOutputStream createObjectOutputStream(OutputStream os) throws IOException {
     ObjectOutputStream oos = MarshalStreamFactory.createOutputStream(os);
-    ((RmiObjectOutput)oos).setUp(getMetadata().getOrigin(), context.getTransport().getServerAddress().getTransportType());
+    ((RmiObjectOutput) oos).setUp(getMetadata().getOrigin(), context.getTransport().getServerAddress().getTransportType());
     return oos;
   }
 }

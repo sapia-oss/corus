@@ -17,49 +17,45 @@ import org.springframework.beans.factory.annotation.Autowired;
  * A {@link DeploymentHandler} for handling native shell scripts.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ScriptDeploymentHandler implements DeploymentHandler {
 
   @Autowired
   private DeployerConfiguration configuration;
-  
+
   @Autowired
   private InternalShellScriptManager manager;
-  
+
   // --------------------------------------------------------------------------
   // Provided for testing
-  
+
   public final void setConfiguration(DeployerConfiguration configuration) {
     this.configuration = configuration;
   }
-  
+
   public final void setManager(InternalShellScriptManager manager) {
     this.manager = manager;
   }
-  
+
   // --------------------------------------------------------------------------
   // DeploymentHandler interface
-  
+
   @Override
   public boolean accepts(DeploymentMetadata meta) {
     return meta.getType() == Type.SCRIPT;
   }
-  
+
   @Override
-  public ProgressQueue completeDeployment(DeploymentMetadata meta,
-      File uploadedFile) {
+  public ProgressQueue completeDeployment(DeploymentMetadata meta, File uploadedFile) {
     ShellScriptDeploymentMetadata scriptMeta = (ShellScriptDeploymentMetadata) meta;
     return manager.addScript(new ShellScript(scriptMeta.getAlias(), scriptMeta.getFileName(), scriptMeta.getDescription()), uploadedFile);
   }
-  
+
   @Override
   public File getDestFile(DeploymentMetadata meta) {
     ShellScriptDeploymentMetadata fileMeta = (ShellScriptDeploymentMetadata) meta;
-    return FilePath.newInstance()
-        .addDir(configuration.getScriptDir())
-        .setRelativeFile(fileMeta.getFileName())
-        .createFile();
+    return FilePath.newInstance().addDir(configuration.getScriptDir()).setRelativeFile(fileMeta.getFileName()).createFile();
   }
 
 }

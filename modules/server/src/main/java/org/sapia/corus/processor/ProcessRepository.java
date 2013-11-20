@@ -10,7 +10,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  * Specifies the behavior for storing/retrieving processes.
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface ProcessRepository {
 
@@ -30,16 +30,16 @@ public interface ProcessRepository {
   public ProcessDatabase getProcessesToRestart();
 
   /**
-   * @param criteria a {@link ProcessCriteria}
+   * @param criteria
+   *          a {@link ProcessCriteria}
    * @return the number of active processes matching the given parameters.
    */
   public int getActiveProcessCountFor(ProcessCriteria criteria);
 
-
   /**
-   * @return the {@link List} of {@link Process} instances that
-   * this instance contains, whatever their status.
-   *
+   * @return the {@link List} of {@link Process} instances that this instance
+   *         contains, whatever their status.
+   * 
    * @see Process
    */
   public List<Process> getProcesses();
@@ -47,19 +47,21 @@ public interface ProcessRepository {
   /**
    * Returns the process that corresponds to the given identifier.
    * 
-   * @param corusPid a process identifier.
+   * @param corusPid
+   *          a process identifier.
    * @return the {@link Process} with the given identifier
-   * @throws ProcessNotFoundException if no process object could be found for the
-   * given identifier.
+   * @throws ProcessNotFoundException
+   *           if no process object could be found for the given identifier.
    */
   public Process getProcess(String corusPid) throws ProcessNotFoundException;
 
   /**
-   * @return the {@link List} of {@link Process} instances that
-   * match the given criteria.
-   *
-   * @param a {@link ProcessCriteria}.
-   *
+   * @return the {@link List} of {@link Process} instances that match the given
+   *         criteria.
+   * 
+   * @param a
+   *          {@link ProcessCriteria}.
+   * 
    * @see Process
    */
   public List<Process> getProcesses(ProcessCriteria criteria);

@@ -9,29 +9,28 @@ import org.sapia.corus.interop.Status;
 /**
  * @author Yanick Duchesne
  */
-public class ProcStatus extends Status{
-  
+public class ProcStatus extends Status {
+
   static final long serialVersionUID = 1L;
-  
-  private String 			  corusPid;
+
+  private String corusPid;
   private List<Context> contexts;
-  
-  public ProcStatus(Process proc){
+
+  public ProcStatus(Process proc) {
     corusPid = proc.getProcessID();
-    if(proc.getProcessStatus() == null){
+    if (proc.getProcessStatus() == null) {
       contexts = new ArrayList<Context>(0);
-    }
-    else{
+    } else {
       contexts = proc.getProcessStatus().getContexts();
     }
   }
-  
-  public List<Context> getContexts(){
+
+  public List<Context> getContexts() {
     return contexts;
   }
-  
-  public String getProcessID(){
+
+  public String getProcessID() {
     return corusPid;
   }
-  
+
 }

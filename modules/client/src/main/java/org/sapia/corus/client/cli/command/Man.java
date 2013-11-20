@@ -17,14 +17,14 @@ import org.sapia.corus.client.cli.help.NoHelpException;
  * 
  * @author Yanick Duchesne
  */
-public class Man extends CorusCliCommand{
-  
-  private static final Map<String,Class<?>> COMMANDS = new HashMap<String, Class<?>>();
-  
-  static{
+public class Man extends CorusCliCommand {
+
+  private static final Map<String, Class<?>> COMMANDS = new HashMap<String, Class<?>>();
+
+  static {
     COMMANDS.put("cd", Cd.class);
-  	COMMANDS.put("cluster", Cluster.class);
-    COMMANDS.put("cmd", Cmd.class);  	
+    COMMANDS.put("cluster", Cluster.class);
+    COMMANDS.put("cmd", Cmd.class);
     COMMANDS.put("conf", Conf.class);
     COMMANDS.put("connect", Connect.class);
     COMMANDS.put("cron", Cron.class);
@@ -55,37 +55,36 @@ public class Man extends CorusCliCommand{
     COMMANDS.put("ver", Ver.class);
   }
 
-  
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     CmdLine cmd = ctx.getCommandLine();
-    if(cmd.hasNext() && cmd.isNextArg()){
+    if (cmd.hasNext() && cmd.isNextArg()) {
       Arg toDisplayHelp = cmd.assertNextArg();
-      Class<?> cmdClass = (Class<?>)COMMANDS.get(toDisplayHelp.getName());
+      Class<?> cmdClass = (Class<?>) COMMANDS.get(toDisplayHelp.getName());
       if (cmdClass == null) {
         ctx.getConsole().out().println("No help available for: " + toDisplayHelp.getName());
         ctx.getConsole().out().println();
         displayHelp(ctx, Man.class);
-      } else{
+      } else {
         displayHelp(ctx, cmdClass);
       }
-    } else{
+    } else {
       displayHelp(ctx, Man.class);
     }
   }
-  
-  private void displayHelp(CliContext ctx, Class<?> clazz){
+
+  private void displayHelp(CliContext ctx, Class<?> clazz) {
     Help h;
     try {
       h = Help.newHelpFor(clazz);
       h.display(ctx.getConsole().out());
-      
+
     } catch (NoHelpException e) {
       ctx.getConsole().out().println("No help available.");
-      
+
     } catch (Exception e) {
       CliError err = ctx.createAndAddErrorFor(this, "Could not display help", e);
       ctx.getConsole().println(err.getSimpleMessage());
     }
   }
-  
+
 }

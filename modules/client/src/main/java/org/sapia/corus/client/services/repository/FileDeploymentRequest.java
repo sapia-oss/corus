@@ -11,19 +11,19 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.FileInfo;
 
 /**
- * Sent to a Corus repository node so that deployment of the files that are specified
- * by an instance of this class is triggered.
+ * Sent to a Corus repository node so that deployment of the files that are
+ * specified by an instance of this class is triggered.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class FileDeploymentRequest extends ArtifactDeploymentRequest {
-  
+
   static final long serialVersionID = 1L;
-  
+
   public static final String EVENT_TYPE = "corus.event.repository.request.files";
-  
-  private Endpoint       endpoint;
+
+  private Endpoint endpoint;
   private List<FileInfo> files = new ArrayList<FileInfo>();
 
   /**
@@ -31,33 +31,36 @@ public class FileDeploymentRequest extends ArtifactDeploymentRequest {
    */
   public FileDeploymentRequest() {
   }
-  
+
   /**
-   * @param endpoint the {@link Endpoint} of the requester from which
-   * this instance originates.
-   * @param files the {@link FileInfo} instances corresponding to the files that are requested.
+   * @param endpoint
+   *          the {@link Endpoint} of the requester from which this instance
+   *          originates.
+   * @param files
+   *          the {@link FileInfo} instances corresponding to the files that are
+   *          requested.
    */
   public FileDeploymentRequest(Endpoint endpoint, List<FileInfo> files) {
     super(endpoint);
     this.files = files;
   }
-  
+
   /**
-   * @return this instance's  unmodifiable {@link List} of {@link FileInfo} instances.
+   * @return this instance's unmodifiable {@link List} of {@link FileInfo}
+   *         instances.
    */
   public List<FileInfo> getFiles() {
     return Collections.unmodifiableList(files);
   }
-  
+
   @SuppressWarnings("unchecked")
   @Override
-  public void readExternal(ObjectInput in) throws IOException,
-      ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
     this.endpoint = (Endpoint) in.readObject();
     this.files = (List<FileInfo>) in.readObject();
   }
-  
+
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     super.writeExternal(out);
@@ -65,5 +68,4 @@ public class FileDeploymentRequest extends ArtifactDeploymentRequest {
     out.writeObject(files);
   }
 
-  
 }

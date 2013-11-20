@@ -12,7 +12,7 @@ public class RecordTest {
 
   private ClassDescriptor<TestPersistentObject> cd;
   private TestPersistentObject tpo;
-  
+
   @Before
   public void setUp() throws Exception {
     cd = new ClassDescriptor<TestPersistentObject>(TestPersistentObject.class);
@@ -27,7 +27,7 @@ public class RecordTest {
     assertEquals(10L, r.getValueAt(cd.getFieldForName("id").getIndex()));
     assertEquals("test", r.getValueAt(cd.getFieldForName("name").getIndex()));
   }
-  
+
   @Test
   public void testGetNullValueAt() {
     tpo.setName(null);
@@ -46,7 +46,7 @@ public class RecordTest {
     assertEquals(100L, r.getValueAt(cd.getFieldForName("id").getIndex()));
     assertEquals("test2", r.getValueAt(cd.getFieldForName("name").getIndex()));
   }
-  
+
   @Test
   public void testUpdateWithNull() {
     Record<TestPersistentObject> r = Record.createFor(cd, tpo);
@@ -64,34 +64,34 @@ public class RecordTest {
     assertEquals(tpo.getName(), tpo2.getName());
     assertEquals(tpo.getId(), tpo2.getId());
   }
-  
+
   @Test
-  public void testPopulate(){
+  public void testPopulate() {
     Record<TestPersistentObject> r = Record.createFor(cd, tpo);
     TestPersistentObject tpo2 = new TestPersistentObject();
     r.populate(cd, tpo2);
     assertEquals(tpo2.getName(), tpo.getName());
     assertEquals(tpo2.getId(), tpo.getId());
   }
-  
+
   @Test
-  public void testVersionInitialization(){
+  public void testVersionInitialization() {
     Record.createFor(cd, tpo);
     assertEquals(Record.MIN_VERSION, new Long(tpo.getVersion()));
   }
-  
+
   @Test
-  public void testVersionIncement(){
+  public void testVersionIncement() {
     Record<TestPersistentObject> r = Record.createFor(cd, tpo);
     long currentVersion = tpo.getVersion();
     r.updateWith(cd, tpo);
-    assertEquals(currentVersion+1, tpo.getVersion());
-  }  
-  
-  @Test(expected=StaleObjectException.class)
-  public void testStaleObject(){
+    assertEquals(currentVersion + 1, tpo.getVersion());
+  }
+
+  @Test(expected = StaleObjectException.class)
+  public void testStaleObject() {
     Record<TestPersistentObject> r1 = Record.createFor(cd, tpo);
-    
+
     TestPersistentObject tpo2 = new TestPersistentObject();
     tpo2.setName(tpo.getName());
     tpo2.setId(tpo.getId());
@@ -99,6 +99,6 @@ public class RecordTest {
 
     r1.updateWith(cd, tpo);
     r1.updateWith(cd, tpo2);
-  }  
+  }
 
 }

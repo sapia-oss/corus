@@ -5,7 +5,6 @@ import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.cli.SystemExitException;
 
-
 /**
  * Terminates the CLI.
  * 
@@ -14,8 +13,7 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
 public class Quit extends CorusCliCommand {
 
   @Override
-  protected void doExecute(CliContext ctx)
-                    throws AbortException, InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
     throw new SystemExitException();
   }
 }

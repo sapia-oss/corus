@@ -12,19 +12,17 @@ import org.sapia.corus.client.facade.CronFacade;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.corus.client.services.cron.CronModule;
 
-public class CronFacadeImpl extends FacadeHelper<CronModule> implements CronFacade{
-  
+public class CronFacadeImpl extends FacadeHelper<CronModule> implements CronFacade {
+
   public CronFacadeImpl(CorusConnectionContext context) {
     super(context, CronModule.class);
   }
-  
+
   @Override
-  public void addCronJon(CronJobInfo info) throws InvalidTimeException,
-      DuplicateScheduleException, ProcessConfigurationNotFoundException,
-      Exception {
+  public void addCronJon(CronJobInfo info) throws InvalidTimeException, DuplicateScheduleException, ProcessConfigurationNotFoundException, Exception {
     context.lookup(CronModule.class).addCronJob(info);
   }
-  
+
   @Override
   public Results<List<CronJobInfo>> getCronJobs(ClusterInfo cluster) {
     Results<List<CronJobInfo>> results = new Results<List<CronJobInfo>>();
@@ -32,7 +30,7 @@ public class CronFacadeImpl extends FacadeHelper<CronModule> implements CronFaca
     invoker.invokeLenient(results, cluster);
     return results;
   }
-  
+
   @Override
   public void removeCronJob(String id) {
     context.lookup(CronModule.class).removeCronJob(id);

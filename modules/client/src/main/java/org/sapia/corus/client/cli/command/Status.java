@@ -25,26 +25,21 @@ import org.sapia.ubik.net.ServerAddress;
  * @author Yanick Duchesne
  */
 public class Status extends CorusCliCommand {
-  
-  private static final TableDef STAT_TBL = TableDef.newInstance()
-      .createCol("pid", 15)
-      .createCol("context", 15)
-      .createCol("name", 15)
+
+  private static final TableDef STAT_TBL = TableDef.newInstance().createCol("pid", 15).createCol("context", 15).createCol("name", 15)
       .createCol("value", 25);
-  
-  private static final TableDef TITLE_TBL = TableDef.newInstance()
-      .createCol("val", 78);  
-  
+
+  private static final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
+
   // --------------------------------------------------------------------------
 
   @Override
-  protected void doExecute(CliContext ctx)
-                    throws AbortException, InputException {
-    String  dist    = null;
-    String  version = null;
-    String  profile = null;
-    String  vmName  = null;
-    String  pid     = null;
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
+    String dist = null;
+    String version = null;
+    String profile = null;
+    String vmName = null;
+    String pid = null;
 
     CmdLine cmd = ctx.getCommandLine();
 
@@ -81,63 +76,58 @@ public class Status extends CorusCliCommand {
         throw new InputException(e.getMessage());
       }
     } else {
-      ProcessCriteria criteria = ProcessCriteria.builder()
-        .name(vmName)
-        .distribution(dist)
-        .version(version)
-        .profile(profile)
-        .build();
-      
+      ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
+
       res = ctx.getCorus().getProcessorFacade().getStatus(criteria, cluster);
       displayResults(res, ctx);
-    } 
+    }
   }
 
   private void displayResults(Results<List<ProcStatus>> res, CliContext ctx) {
-    
+
     while (res.hasNext()) {
       Result<List<ProcStatus>> result = res.next();
       displayHeader(result.getOrigin(), ctx);
 
-      for(ProcStatus stat:result.getData()){
+      for (ProcStatus stat : result.getData()) {
         displayStatus(stat, ctx);
       }
     }
   }
 
   private void displayStatus(ProcStatus stat, CliContext ctx) {
-    Table   procTable = STAT_TBL.createTable(ctx.getConsole().out());
+    Table procTable = STAT_TBL.createTable(ctx.getConsole().out());
 
     procTable.drawLine('-', 0, CONSOLE_WIDTH);
 
     Row row = procTable.newRow();
     row.getCellAt(STAT_TBL.col("pid").index()).append(stat.getProcessID());
     List<Context> contexts = stat.getContexts();
-    if(contexts.size() == 0){
+    if (contexts.size() == 0) {
       row.flush();
       return;
     }
     Context context;
-    for(int i = 0; i < contexts.size(); i++){
-      context = (Context)contexts.get(i);
+    for (int i = 0; i < contexts.size(); i++) {
+      context = (Context) contexts.get(i);
       row.getCellAt(STAT_TBL.col("context").index()).append(context.getName());
       List<Param> params = context.getParams();
-      if(params.size() == 0){
+      if (params.size() == 0) {
         row.flush();
         row = procTable.newRow();
         continue;
       }
       Param param;
-      for(int j = 0; j < params.size(); j++){
-        param = (Param)params.get(j);
-        row.getCellAt(STAT_TBL.col("name").index()).append(param.getName());        
+      for (int j = 0; j < params.size(); j++) {
+        param = (Param) params.get(j);
+        row.getCellAt(STAT_TBL.col("name").index()).append(param.getName());
         row.getCellAt(STAT_TBL.col("value").index()).append(param.getValue());
         row.flush();
-        if(j < params.size() - 1){
+        if (j < params.size() - 1) {
           row = procTable.newRow();
         }
       }
-      if(i < contexts.size() - 1){
+      if (i < contexts.size() - 1) {
         row = procTable.newRow();
       }
     }
@@ -145,11 +135,11 @@ public class Status extends CorusCliCommand {
   }
 
   private void displayHeader(ServerAddress addr, CliContext ctx) {
-    Table procTable  = STAT_TBL.createTable(ctx.getConsole().out());
+    Table procTable = STAT_TBL.createTable(ctx.getConsole().out());
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
-    
+
     procTable.drawLine('=', 0, CONSOLE_WIDTH);
-    
+
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
@@ -165,4 +155,3 @@ public class Status extends CorusCliCommand {
     headers.flush();
   }
 }
-

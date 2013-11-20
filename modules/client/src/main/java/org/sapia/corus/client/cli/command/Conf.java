@@ -39,25 +39,22 @@ import org.sapia.ubik.util.Function;
  * 
  */
 public class Conf extends CorusCliCommand {
-  
-  private static final String PASSWORD_PATTERN     = "password";
+
+  private static final String PASSWORD_PATTERN = "password";
   private static final String PASSWORD_OBFUSCATION = "********";
 
-  private static final TableDef PROPS_TBL = TableDef.newInstance()
-      .createCol("name", 38).createCol("val", 38);
+  private static final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 38).createCol("val", 38);
 
-  private static final TableDef TAGS_TBL = TableDef.newInstance().createCol(
-      "val", 78);
+  private static final TableDef TAGS_TBL = TableDef.newInstance().createCol("val", 78);
 
-  private static final TableDef TITLE_TBL = TableDef.newInstance().createCol(
-      "val", 78);
+  private static final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
 
   // --------------------------------------------------------------------------
 
-  public static final String ARG_ADD    = "add";
+  public static final String ARG_ADD = "add";
   public static final String ARG_RENAME = "ren";
-  public static final String ARG_DEL    = "del";
-  public static final String ARG_LS     = "ls";
+  public static final String ARG_DEL = "del";
+  public static final String ARG_LS = "ls";
   public static final String ARG_EXPORT = "export";
 
   private static final String OPT_PROPERTY = "p";
@@ -77,8 +74,7 @@ public class Conf extends CorusCliCommand {
   // --------------------------------------------------------------------------
 
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     Op op = null;
     if (ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()) {
@@ -94,12 +90,10 @@ public class Conf extends CorusCliCommand {
       } else if (opArg.equalsIgnoreCase(ARG_RENAME)) {
         op = Op.RENAME;
       } else {
-        throw new InputException("Unknown argument " + opArg
-            + "; expecting one of: add | del | ls");
+        throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
       }
     } else {
-      throw new InputException(
-          "Missing argument; expecting one of: add | del | ls");
+      throw new InputException("Missing argument; expecting one of: add | del | ls");
     }
 
     if (op != null) {
@@ -115,16 +109,13 @@ public class Conf extends CorusCliCommand {
     }
   }
 
-  private void handleTag(Op op, CliContext ctx) throws InputException,
-      IOException {
+  private void handleTag(Op op, CliContext ctx) throws InputException, IOException {
     if (op == Op.ADD) {
-      String tagString = ctx.getCommandLine().assertOption(OPT_TAG, true)
-          .getValue();
+      String tagString = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
       Set<String> toAdd = new HashSet<String>();
       File tagFile = ctx.getFileSystem().getFile(tagString);
       if (tagFile.exists()) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-            new FileInputStream(tagFile)));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(tagFile)));
         String line = null;
         try {
           while ((line = reader.readLine()) != null) {
@@ -139,18 +130,14 @@ public class Conf extends CorusCliCommand {
       }
       ctx.getCorus().getConfigFacade().addTags(toAdd, getClusterInfo(ctx));
     } else if (op == Op.DELETE) {
-      String toRemove = ctx.getCommandLine().assertOption(OPT_TAG, true)
-          .getValue();
+      String toRemove = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
       ctx.getCorus().getConfigFacade().removeTag(toRemove, getClusterInfo(ctx));
     } else if (op == Op.LIST) {
-      displayTagResults(
-          ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
+      displayTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
     } else if (op == Op.EXPORT) {
-      exportTagResults(
-          ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
+      exportTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
     } else if (op == Op.RENAME) {
-      String tagString = ctx.getCommandLine().assertOption(OPT_TAG, true)
-          .getValue();
+      String tagString = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
       String[] tagNameValues = tagString.split(",");
       List<NameValuePair> nvPairs = new ArrayList<NameValuePair>();
       for (String nv : tagNameValues) {
@@ -166,20 +153,17 @@ public class Conf extends CorusCliCommand {
   private void handlePropertyOp(Op op, CliContext ctx) throws InputException {
     PropertyScope scope = PropertyScope.PROCESS;
     if (ctx.getCommandLine().containsOption(OPT_SCOPE, true)) {
-      String scopeOpt = ctx.getCommandLine().assertOption(OPT_SCOPE, true)
-          .getValue();
+      String scopeOpt = ctx.getCommandLine().assertOption(OPT_SCOPE, true).getValue();
       if (scopeOpt.startsWith(OPT_SCOPE_PROC)) {
         scope = PropertyScope.PROCESS;
       } else if (scopeOpt.startsWith(OPT_SCOPE_SVR)) {
         scope = PropertyScope.SERVER;
       } else {
-        throw new InputException(
-            "Scope (-s) not valid, expecting s[vr] or p[roc]");
+        throw new InputException("Scope (-s) not valid, expecting s[vr] or p[roc]");
       }
     }
     if (op == Op.ADD) {
-      String pair = ctx.getCommandLine().assertOption(OPT_PROPERTY, true)
-          .getValue();
+      String pair = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();
 
       if (!pair.contains("=") && pair.endsWith(".properties")) {
         File propFile = ctx.getFileSystem().getFile(pair);
@@ -195,50 +179,43 @@ public class Conf extends CorusCliCommand {
         try {
           input = new FileInputStream(propFile);
           props.load(input);
-          boolean clearExisting = ctx.getCommandLine().containsOption(
-              OPT_CLEAR, false);
-          ctx.getCorus().getConfigFacade()
-              .addProperties(scope, props, clearExisting, getClusterInfo(ctx));
+          boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
+          ctx.getCorus().getConfigFacade().addProperties(scope, props, clearExisting, getClusterInfo(ctx));
         } catch (IOException e) {
           CliError err = ctx.createAndAddErrorFor(this, e);
           ctx.getConsole().println(err.getSimpleMessage());
         } finally {
           try {
             input.close();
-          }catch(IOException e){}
+          } catch (IOException e) {
+          }
         }
       } else {
-      	int index = pair.indexOf('=');
-      	if (index > 0) {
-      		String name = pair.substring(0, index);
-      		String value = pair.substring(1 + index);
-              ctx.getCorus().getConfigFacade().addProperty(scope, name, value, getClusterInfo(ctx));
-      	} else {
-              throw new InputException("Invalid property format; expected: <name>=<value>");
-      	}
+        int index = pair.indexOf('=');
+        if (index > 0) {
+          String name = pair.substring(0, index);
+          String value = pair.substring(1 + index);
+          ctx.getCorus().getConfigFacade().addProperty(scope, name, value, getClusterInfo(ctx));
+        } else {
+          throw new InputException("Invalid property format; expected: <name>=<value>");
+        }
       }
     } else if (op == Op.DELETE) {
-      String name = ctx.getCommandLine().assertOption(OPT_PROPERTY, true)
-          .getValue();
-      ctx.getCorus().getConfigFacade()
-          .removeProperty(scope, name, getClusterInfo(ctx));
+      String name = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();
+      ctx.getCorus().getConfigFacade().removeProperty(scope, name, getClusterInfo(ctx));
     } else if (op == Op.LIST) {
-      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade()
-          .getProperties(scope, getClusterInfo(ctx));
+      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
       displayPropertyResults(results, ctx);
     } else if (op == Op.EXPORT) {
-      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade()
-          .getProperties(scope, getClusterInfo(ctx));
+      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
       exportPropertyResults(results, ctx);
     } else if (op == Op.RENAME) {
       throw new InputException("Rename option not supported for properties");
     }
   }
 
-  private void exportTagResults(Results<Set<String>> res, CliContext ctx)
-      throws InputException {
-    File exportFile = ctx.getFileSystem().getFile(
-        ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+  private void exportTagResults(Results<Set<String>> res, CliContext ctx) throws InputException {
+    File exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
     try {
       PrintWriter writer = new PrintWriter(new FileOutputStream(exportFile));
       try {
@@ -252,8 +229,7 @@ public class Conf extends CorusCliCommand {
         writer.flush();
         writer.close();
       }
-      ctx.getConsole().println(
-          "Tags exported to: " + exportFile.getAbsolutePath());
+      ctx.getConsole().println("Tags exported to: " + exportFile.getAbsolutePath());
     } catch (IOException e) {
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());
@@ -277,7 +253,7 @@ public class Conf extends CorusCliCommand {
         }
       });
     }
-    
+
     while (res.hasNext()) {
       Result<Set<String>> result = res.next();
       displayTagsHeader(result.getOrigin(), ctx);
@@ -294,8 +270,7 @@ public class Conf extends CorusCliCommand {
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ")
-        .append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -318,10 +293,8 @@ public class Conf extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private void exportPropertyResults(Results<List<NameValuePair>> res,
-      CliContext ctx) throws InputException {
-    File exportFile = ctx.getFileSystem().getFile(
-        ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+  private void exportPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) throws InputException {
+    File exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
     try {
       PrintWriter writer = new PrintWriter(new FileOutputStream(exportFile));
       try {
@@ -335,8 +308,7 @@ public class Conf extends CorusCliCommand {
         writer.flush();
         writer.close();
       }
-      ctx.getConsole().println(
-          "Properties exported to: " + exportFile.getAbsolutePath());
+      ctx.getConsole().println("Properties exported to: " + exportFile.getAbsolutePath());
     } catch (IOException e) {
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());
@@ -344,14 +316,13 @@ public class Conf extends CorusCliCommand {
 
   }
 
-  private void displayPropertyResults(Results<List<NameValuePair>> res,
-      CliContext ctx) throws InputException {
+  private void displayPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_PROPERTY);
     if (nameFilter == null) {
       if (ctx.getCommandLine().size() > 0) {
         CmdElement element = ctx.getCommandLine().get(ctx.getCommandLine().size() - 1);
         if (element instanceof Option) {
-          int    index = ctx.getCommandLine().size() - 2;
+          int index = ctx.getCommandLine().size() - 2;
           if (index > 0) {
             element = ctx.getCommandLine().get(index);
           }
@@ -378,7 +349,7 @@ public class Conf extends CorusCliCommand {
         }
       });
     }
-    
+
     while (res.hasNext()) {
       Result<List<NameValuePair>> result = res.next();
       displayPropertiesHeader(result.getOrigin(), ctx);
@@ -395,8 +366,7 @@ public class Conf extends CorusCliCommand {
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ")
-        .append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);

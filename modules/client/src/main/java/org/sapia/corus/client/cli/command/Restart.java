@@ -16,30 +16,29 @@ import org.sapia.corus.client.cli.command.exec.RestartByVmIdCommand;
  * @author Yanick Duchesne
  */
 public class Restart extends AbstractExecCommand {
-  
-  public static final int  DEFAULT_RESTART_WAIT_TIME_SECONDS = 180;  
-  
+
+  public static final int DEFAULT_RESTART_WAIT_TIME_SECONDS = 180;
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
-    
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
+
     CmdLine cmd = ctx.getCommandLine();
- 
+
     // restart ALL
-    if(cmd.hasNext() && cmd.isNextArg()) {
-      cmd.assertNextArg(new String[]{ARG_ALL});
+    if (cmd.hasNext() && cmd.isNextArg()) {
+      cmd.assertNextArg(new String[] { ARG_ALL });
       new RestartAllCommand().execute((Context) ctx);
-    }     
-    
+    }
+
     // restart by PROCESS IDENTIFIER
     else if (cmd.containsOption(VM_ID_OPT, true)) {
       new RestartByVmIdCommand().execute((Context) ctx);
 
-    // restart by OS PROCESS ID
+      // restart by OS PROCESS ID
     } else if (cmd.containsOption(OS_PID_OPT, true)) {
       new RestartByOsPidCommand().execute((Context) ctx);
-      
-    // restart by PROCESS DESCRIPTORS      
+
+      // restart by PROCESS DESCRIPTORS
     } else {
       new RestartByProcessDescriptorsCommand().execute((Context) ctx);
     }

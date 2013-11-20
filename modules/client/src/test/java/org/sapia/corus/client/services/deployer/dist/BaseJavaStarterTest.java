@@ -13,9 +13,9 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 public class BaseJavaStarterTest {
-  
+
   private BaseJavaStarter starter;
-  
+
   @Before
   public void setUp() {
     starter = new TestJavaStarter();
@@ -27,9 +27,9 @@ public class BaseJavaStarterTest {
     arg.setValue("-javaaagent:${testAgent}");
     starter.addArg(arg);
     Env env = mock(Env.class);
-    when(env.getProperties()).thenReturn(new Property[]{ new Property("testAgent", "test")});
+    when(env.getProperties()).thenReturn(new Property[] { new Property("testAgent", "test") });
     CmdLine cmd = starter.toCmdLine(env);
-    Arg a = (Arg)cmd.get(1);
+    Arg a = (Arg) cmd.get(1);
     assertEquals("-javaaagent:test", a.getName());
   }
 
@@ -40,11 +40,11 @@ public class BaseJavaStarterTest {
     prop.setValue("${someValue}");
     starter.addProperty(prop);
     Env env = mock(Env.class);
-    when(env.getProperties()).thenReturn(new Property[]{ new Property("someValue", "test")});
+    when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
     CmdLine cmd = starter.toCmdLine(env);
-    org.sapia.console.Option o = (org.sapia.console.Option)cmd.get(1);
-    assertEquals("DsomeProp=test", o.getName());    
-    
+    org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
+    assertEquals("DsomeProp=test", o.getName());
+
   }
 
   @Test
@@ -54,9 +54,9 @@ public class BaseJavaStarterTest {
     opt.setValue("${someValue}");
     starter.addOption(opt);
     Env env = mock(Env.class);
-    when(env.getProperties()).thenReturn(new Property[]{ new Property("someValue", "test")});
+    when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
     CmdLine cmd = starter.toCmdLine(env);
-    org.sapia.console.Option o = (org.sapia.console.Option)cmd.get(1);
+    org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
     assertEquals("someOption", o.getName());
     assertEquals("test", o.getValue());
   }
@@ -68,15 +68,14 @@ public class BaseJavaStarterTest {
     opt.setValue("${someValue}");
     starter.addOption(opt);
     Env env = mock(Env.class);
-    when(env.getProperties()).thenReturn(new Property[]{ new Property("someValue", "test")});
+    when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
     CmdLine cmd = starter.toCmdLine(env);
-    org.sapia.console.Option o = (org.sapia.console.Option)cmd.get(1);
+    org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
     assertEquals("XsomeOptiontest", o.getName());
   }
 
-
   static class TestJavaStarter extends BaseJavaStarter {
-    
+
     @Override
     public CmdLine toCmdLine(Env env) throws MissingDataException {
       return super.buildCommandLine(env).command;

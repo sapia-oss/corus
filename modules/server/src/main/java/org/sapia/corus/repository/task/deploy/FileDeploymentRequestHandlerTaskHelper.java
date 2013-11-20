@@ -22,42 +22,39 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
  * Creates the subtasks pertaining to file deployment.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class FileDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHandlerTaskHelper {
-  
+
   private List<FileDeploymentRequest> requests;
-  
+
   public FileDeploymentRequestHandlerTaskHelper(RepositoryConfiguration config, TaskExecutionContext context, List<FileDeploymentRequest> requests) {
     super(config, context);
     this.requests = requests;
   }
-  
+
   @Override
   public void addTo(CompositeTask toAddTo) {
-    InternalFileManager manager = context().getServerContext().lookup(InternalFileManager.class);    
+    InternalFileManager manager = context().getServerContext().lookup(InternalFileManager.class);
 
     Map<FileInfo, Set<Endpoint>> fileTargets = getFileTargets(context(), requests);
-    
+
     context().info(String.format("Got %s targets to deploy to", fileTargets));
-    
+
     for (final Map.Entry<FileInfo, Set<Endpoint>> entry : fileTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
-        RunnableTask task = new FileRequestHandlerTask(
-            manager.getFile(entry.getKey()), 
-            new ArrayList<Endpoint>(entry.getValue())
-        );
+        RunnableTask task = new FileRequestHandlerTask(manager.getFile(entry.getKey()), new ArrayList<Endpoint>(entry.getValue()));
         toAddTo.add(task);
       } catch (FileNotFoundException e) {
         context().error("File not found, bypassing deployment for: " + entry.getKey().getName(), e);
-      }    
-    }    
+      }
+    }
   }
-  
+
   // --------------------------------------------------------------------------
   // Package visibility for unit testing
-  
+
   Map<FileInfo, Set<Endpoint>> getFileTargets(TaskExecutionContext context, List<FileDeploymentRequest> requests) {
     Map<FileInfo, Set<Endpoint>> fileTargets = new HashMap<FileInfo, Set<Endpoint>>();
     for (FileDeploymentRequest req : requests) {
@@ -73,6 +70,6 @@ public class FileDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHa
       }
     }
     return fileTargets;
-  }    
+  }
 
 }

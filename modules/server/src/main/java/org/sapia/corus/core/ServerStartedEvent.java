@@ -8,21 +8,21 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * 
  * @author Yanick Duchesne
  */
-public class ServerStartedEvent implements java.io.Serializable, Event{
-	
-  static final long serialVersionUID = 1L;
-  
-	private ServerAddress _address;
+public class ServerStartedEvent implements java.io.Serializable, Event {
 
-	public ServerStartedEvent(ServerAddress address){
-		_address  = address; 
-	}
-	
-	/**
-	 * @return the <code>ServerAddress</code> that corresponds to the address of the 
-	 * corus server.
-	 */
-	public ServerAddress getAddress(){
-		return _address;
-	}
+  static final long serialVersionUID = 1L;
+
+  private ServerAddress _address;
+
+  public ServerStartedEvent(ServerAddress address) {
+    _address = address;
+  }
+
+  /**
+   * @return the <code>ServerAddress</code> that corresponds to the address of
+   *         the corus server.
+   */
+  public ServerAddress getAddress() {
+    return _address;
+  }
 }

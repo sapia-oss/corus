@@ -12,23 +12,23 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  * end-user.
  * 
  * @author yduchesne
- *
+ * 
  */
-public class EndUserExecConfigStartTask extends AbstractExecConfigStartTask{
+public class EndUserExecConfigStartTask extends AbstractExecConfigStartTask {
 
   private String execConfigName;
-  
+
   public EndUserExecConfigStartTask(String execConfigName) {
     super(false);
     this.execConfigName = execConfigName;
   }
-  
+
   @Override
-  protected List<ExecConfig> getExecConfigsToStart(TaskExecutionContext ctx) throws Exception{
+  protected List<ExecConfig> getExecConfigsToStart(TaskExecutionContext ctx) throws Exception {
     ExecConfigDatabase execConfigs = ctx.getServerContext().getServices().getExecConfigs();
     ExecConfig config = execConfigs.getConfigFor(execConfigName);
     List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    if (config != null)  {
+    if (config != null) {
       toReturn.add(config);
     }
     return toReturn;

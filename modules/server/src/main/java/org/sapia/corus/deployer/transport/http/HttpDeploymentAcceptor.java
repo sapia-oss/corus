@@ -16,59 +16,60 @@ import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 
 /**
- * Implements the {@link DeploymentAcceptor} interface over a {@link HttpTransportProvider}.
+ * Implements the {@link DeploymentAcceptor} interface over a
+ * {@link HttpTransportProvider}.
  * 
  * @author Yanick Duchesne
  */
-public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor{
-	
-  private Logger                log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-  private ServerContext         context;
-	private HttpTransportProvider provider;
-	private DeploymentConnector   connector;
-	
-	public HttpDeploymentAcceptor(ServerContext context, HttpTransportProvider provider){
-	  this.context   = context;
-		this.provider  = provider;
-	}
-	
-	/**
+public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor {
+
+  private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+  private ServerContext context;
+  private HttpTransportProvider provider;
+  private DeploymentConnector connector;
+
+  public HttpDeploymentAcceptor(ServerContext context, HttpTransportProvider provider) {
+    this.context = context;
+    this.provider = provider;
+  }
+
+  /**
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#init()
    */
   public void init() throws Exception {
   }
-  
+
   /**
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#start()
    */
   public void start() throws Exception {
-		provider.getRouter().addHandler(HttpDeploymentClient.DEPLOYER_CONTEXT, this);  	
+    provider.getRouter().addHandler(HttpDeploymentClient.DEPLOYER_CONTEXT, this);
   }
-  
+
   /**
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#stop()
    */
   public void stop() throws Exception {
   }
-  
+
   /**
    * @see org.sapia.corus.deployer.transport.DeploymentAcceptor#registerConnector(DeploymentConnector)
    */
   public void registerConnector(DeploymentConnector connector) {
-    this.connector = connector;	
+    this.connector = connector;
   }
-  
+
   @Override
   public void handle(Request req, Response res) {
     try {
       connector.connect(new Deployment(context, new HttpConnection(req, res)));
     } finally {
       try {
-        req.getInputStream().close();      
+        req.getInputStream().close();
       } catch (IOException e) {
         log.warn("Error closing incoming deployment request stream", e);
-      } 
-      
+      }
+
       try {
         res.getOutputStream().flush();
         res.getOutputStream().close();
@@ -78,7 +79,7 @@ public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor{
       }
     }
   }
-  
+
   @Override
   public void shutdown() {
   }

@@ -10,26 +10,29 @@ import org.sapia.corus.client.common.ProgressQueue;
  * Provides API for managing files.
  * 
  * @author yduchesne
- *
+ * 
  */
 public interface FileManager extends Remote, Module {
-  
+
   String ROLE = FileManager.class.getName();
-  
+
   /**
-   * @return the {@link FileInfo}s corresonding to the files that are kept on Corus node.
+   * @return the {@link FileInfo}s corresonding to the files that are kept on
+   *         Corus node.
    */
   public List<FileInfo> getFiles();
 
   /**
-   * @param criteria the {@link FileCriteria} instance to use for selection.
-   * @return the {@link FileInfo} instances corresponding to the files whose name matched
-   * the criteria.
+   * @param criteria
+   *          the {@link FileCriteria} instance to use for selection.
+   * @return the {@link FileInfo} instances corresponding to the files whose
+   *         name matched the criteria.
    */
   public List<FileInfo> getFiles(FileCriteria criteria);
 
   /**
-   * @param criteria the {@link FileCriteria} instance to use for selection.
+   * @param criteria
+   *          the {@link FileCriteria} instance to use for selection.
    * @return a {@link ProgressQueue}.
    */
   public ProgressQueue deleteFiles(FileCriteria criteria);

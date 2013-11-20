@@ -18,26 +18,25 @@ import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
 import org.sapia.corus.util.FilePath;
 
-
 /**
- * This task handles the extraction of deployment jars from the temporary
- * file (where they have been uploaded) to the deployment directory.  This
- * task ensures that a distribution will not overwrite an existing one,
- * and cleans up the temporary jar. Distributions are stored under the
- * deployment directory, according to the following pattern:
+ * This task handles the extraction of deployment jars from the temporary file
+ * (where they have been uploaded) to the deployment directory. This task
+ * ensures that a distribution will not overwrite an existing one, and cleans up
+ * the temporary jar. Distributions are stored under the deployment directory,
+ * according to the following pattern:
  * <p>
  * <code>distribution_name/version</code>
  * <p>
  * Each distribution directory has two additional directories:
- * <code>common</code> (where the jar is actually extracted) and,
- * eventually, <code>processes</code>, where each process instance has a specific
- * directory that it owns exclusively.
- *
- *
+ * <code>common</code> (where the jar is actually extracted) and, eventually,
+ * <code>processes</code>, where each process instance has a specific directory
+ * that it owns exclusively.
+ * 
+ * 
  * @author Yanick Duchesne
  */
-public class DeployTask extends Task<Void, String> implements Throttleable{
-  
+public class DeployTask extends Task<Void, String> implements Throttleable {
+
   @Override
   public ThrottleKey getThrottleKey() {
     return DeployerThrottleKeys.DEPLOY_DISTRIBUTION;
@@ -45,62 +44,50 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
 
   @Override
   public Void execute(TaskExecutionContext ctx, String fileName) throws Throwable {
-    
-    DistributionDatabase dists    = ctx.getServerContext().lookup(DistributionDatabase.class);
-    Deployer             deployer = ctx.getServerContext().getServices().getDeployer();
-    FileSystemModule     fs       = ctx.getServerContext().getServices().getFileSystem();
-    File                 src      = FilePath.newInstance()
-                                      .addDir(deployer.getConfiguration()
-                                      .getTempDir())
-                                      .setRelativeFile(fileName).createFile();               
-    
+
+    DistributionDatabase dists = ctx.getServerContext().lookup(DistributionDatabase.class);
+    Deployer deployer = ctx.getServerContext().getServices().getDeployer();
+    FileSystemModule fs = ctx.getServerContext().getServices().getFileSystem();
+    File src = FilePath.newInstance().addDir(deployer.getConfiguration().getTempDir()).setRelativeFile(fileName).createFile();
+
     try {
-    	
+
       ctx.info(String.format("Deploying: %s", fileName));
 
       // extracting corus.xml from archive and checking if already exists...
-      Distribution dist    = Distribution.newInstance(src, fs);
-      String       baseDir = FilePath.newInstance()
-                               .addDir(deployer.getConfiguration().getDeployDir())
-                               .addDir(dist.getName())
-                               .addDir(dist.getVersion()).createFilePath();
+      Distribution dist = Distribution.newInstance(src, fs);
+      String baseDir = FilePath.newInstance().addDir(deployer.getConfiguration().getDeployDir()).addDir(dist.getName()).addDir(dist.getVersion())
+          .createFilePath();
       dist.setBaseDir(baseDir);
 
       synchronized (dists) {
-        File commonDir  = FilePath.newInstance().addDir(baseDir).addDir("common").createFile();
+        File commonDir = FilePath.newInstance().addDir(baseDir).addDir("common").createFile();
         File processDir = FilePath.newInstance().addDir(baseDir).addDir("processes").createFile();
 
-        DistributionCriteria criteria = DistributionCriteria.builder()
-          .name(dist.getName())
-          .version(dist.getVersion())
-          .build();
+        DistributionCriteria criteria = DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build();
         if (dists.containsDistribution(criteria)) {
-          ctx.error(new DuplicateDistributionException("Distribution already exists for: " +
-                                         dist.getName() + " version: " +
-                                         dist.getVersion()));
+          ctx.error(new DuplicateDistributionException("Distribution already exists for: " + dist.getName() + " version: " + dist.getVersion()));
 
           return null;
         }
 
         if (fs.exists(commonDir)) {
-          ctx.error(new DuplicateDistributionException("Distribution already exists for: " +
-                                         dist.getName() + " version: " +
-                                         dist.getVersion()));
+          ctx.error(new DuplicateDistributionException("Distribution already exists for: " + dist.getName() + " version: " + dist.getVersion()));
 
           return null;
         }
 
         // making distribution directories...
-        try{
+        try {
           fs.createDirectory(commonDir);
-        }catch(IOException e){
+        } catch (IOException e) {
           ctx.error(String.format("Could not make directory: %s", commonDir.getAbsolutePath()));
         }
-        try{
+        try {
           fs.createDirectory(processDir);
-        }catch(IOException e){
+        } catch (IOException e) {
           ctx.error(String.format("Could not make directory: %s", processDir.getAbsolutePath()));
-        }        
+        }
 
         try {
           fs.unzip(src, commonDir);
@@ -109,7 +96,7 @@ public class DeployTask extends Task<Void, String> implements Throttleable{
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentEvent(dist));
         } catch (DuplicateDistributionException e) {
           ctx.error("Distribution already exists", e);
-        } catch(IOException e){
+        } catch (IOException e) {
           ctx.error("Could not unzip distribution", e);
         }
       }

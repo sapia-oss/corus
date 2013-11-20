@@ -1,6 +1,5 @@
 package org.sapia.corus.client.cli;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -33,14 +32,14 @@ import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 public class InterpreterTest {
-  
-  private CorusConnectorImpl     connector;
+
+  private CorusConnectorImpl connector;
   private Interpreter console;
-  
+
   @Before
   public void setUp() {
     this.connector = mock(CorusConnectorImpl.class);
-    this.console   = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+    this.console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
   }
 
   @Test
@@ -53,10 +52,10 @@ public class InterpreterTest {
     expectedCriteria.setVersion(ArgFactory.exact("1.0"));
     expectedCriteria.setName(ArgFactory.exact("proc"));
     expectedCriteria.setProfile("dev");
-    
-    final AtomicReference<ClusterInfo>     inputClusterInfo = new AtomicReference<ClusterInfo>();
-    final AtomicReference<ProcessCriteria> inputCriteria    = new AtomicReference<ProcessCriteria>();
-    
+
+    final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();
+    final AtomicReference<ProcessCriteria> inputCriteria = new AtomicReference<ProcessCriteria>();
+
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -65,13 +64,13 @@ public class InterpreterTest {
         return null;
       }
     }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
-    
-    console.eval("kill -d test -v 1.0 -n proc -p dev -cluster", StrLookup.systemPropertiesLookup());    
-    
+
+    console.eval("kill -d test -v 1.0 -n proc -p dev -cluster", StrLookup.systemPropertiesLookup());
+
     assertEquals(expectedCriteria.getDistribution(), inputCriteria.get().getDistribution());
     assertEquals(expectedCriteria.getVersion(), inputCriteria.get().getVersion());
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
-    assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());    
+    assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());
     assertTrue("Expected clustered", inputClusterInfo.get().isClustered());
   }
 
@@ -80,16 +79,16 @@ public class InterpreterTest {
     ConfiguratorFacade config = mock(ConfiguratorFacade.class);
     when(connector.getConfigFacade()).thenReturn(config);
 
-    console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());    
-    
+    console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());
+
     verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
   }
-  
-  @Test (expected = AbortException.class)
+
+  @Test(expected = AbortException.class)
   public void testAbort() throws Throwable {
-    console.eval("quit", StrLookup.systemPropertiesLookup());    
+    console.eval("quit", StrLookup.systemPropertiesLookup());
   }
-  
+
   @Test
   public void testInterpretCommandReader() throws Throwable {
     ProcessorFacade processor = mock(ProcessorFacade.class);
@@ -100,10 +99,10 @@ public class InterpreterTest {
     expectedCriteria.setVersion(ArgFactory.exact("1.0"));
     expectedCriteria.setName(ArgFactory.exact("proc"));
     expectedCriteria.setProfile("dev");
-    
-    final AtomicReference<ClusterInfo>     inputClusterInfo = new AtomicReference<ClusterInfo>();
-    final AtomicReference<ProcessCriteria> inputCriteria    = new AtomicReference<ProcessCriteria>();
-    
+
+    final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();
+    final AtomicReference<ProcessCriteria> inputCriteria = new AtomicReference<ProcessCriteria>();
+
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -112,24 +111,23 @@ public class InterpreterTest {
         return null;
       }
     }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
-    
-    
+
     StringWriter writer = new StringWriter();
     PrintWriter pw = new PrintWriter(writer);
     pw.println("kill -d test -v 1.0 -n ${proc.name} -p dev -cluster");
     pw.println("# this is a comment");
     pw.println("echo \"process killed\"");
-    
+
     StringReader reader = new StringReader(writer.toString());
     Map<String, String> vars = new HashMap<String, String>();
     vars.put("proc.name", "proc");
     console.interpret(reader, StrLookup.mapLookup(vars));
-    
+
     assertEquals(expectedCriteria.getDistribution(), inputCriteria.get().getDistribution());
     assertEquals(expectedCriteria.getVersion(), inputCriteria.get().getVersion());
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
-    assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());    
-    assertTrue("Expected clustered", inputClusterInfo.get().isClustered());    
+    assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());
+    assertTrue("Expected clustered", inputClusterInfo.get().isClustered());
   }
 
 }

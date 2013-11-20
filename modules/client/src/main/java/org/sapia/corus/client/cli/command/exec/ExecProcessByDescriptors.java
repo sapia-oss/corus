@@ -13,23 +13,23 @@ import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceExcepti
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
- * Implements the logic for executing processes by descriptors (<code>exec -d * -v * -n * -p myProfile</code>).
+ * Implements the logic for executing processes by descriptors (
+ * <code>exec -d * -v * -n * -p myProfile</code>).
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ExecProcessByDescriptors extends AbstractExecCommand {
-  
+
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException,
-      InputException {
-    
-    String  dist      = null;
-    String  version   = null;
-    String  profile   = null;
-    String  vmName    = null;
-    int     instances = 1;
-    CmdLine cmd       = ctx.getCommandLine();
+  protected void doExecute(CliContext ctx) throws AbortException, InputException {
+
+    String dist = null;
+    String version = null;
+    String profile = null;
+    String vmName = null;
+    int instances = 1;
+    CmdLine cmd = ctx.getCommandLine();
 
     dist = cmd.assertOption(DIST_OPT, true).getValue();
 
@@ -46,35 +46,22 @@ public class ExecProcessByDescriptors extends AbstractExecCommand {
     }
 
     ClusterInfo cluster = getClusterInfo(ctx);
-    ProcessCriteria criteria = ProcessCriteria.builder()
-      .name(vmName)
-      .distribution(dist)
-      .version(version)
-      .profile(profile)
-      .build();
-    
+    ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
+
     try {
-      displayProgress(
-              ctx.getCorus().getProcessorFacade().exec(criteria, instances, cluster),
-              ctx
-      );
-      
+      displayProgress(ctx.getCorus().getProcessorFacade().exec(criteria, instances, cluster), ctx);
+
       Option waitOpt = getOpt(ctx, OPT_WAIT);
       if (waitOpt != null) {
-        waitForProcessStartup(
-            ctx, 
-            criteria, 
-            instances, 
-            waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(), 
-            cluster);
+        waitForProcessStartup(ctx, criteria, instances, waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(), cluster);
         ctx.getConsole().println("Process startup completed on all nodes");
       }
-      
-    } catch(TooManyProcessInstanceException e){
+
+    } catch (TooManyProcessInstanceException e) {
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());
-    }    
-    
+    }
+
   }
 
 }

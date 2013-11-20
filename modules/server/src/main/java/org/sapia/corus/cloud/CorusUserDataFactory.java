@@ -6,31 +6,32 @@ import java.net.URL;
 import java.util.List;
 
 import org.sapia.ubik.util.Collections2;
- 
+
 /**
- * Provides methods for retrieving {@link CorusUserData} from predefined {@link CorusUserDataProvider}s.
+ * Provides methods for retrieving {@link CorusUserData} from predefined
+ * {@link CorusUserDataProvider}s.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class CorusUserDataFactory {
 
-  private static final List<? extends CorusUserDataProvider> PROVIDERS = Collections2.arrayToList(
-      new AwsCorusUserDataProvider()
-  );
-  
+  private static final List<? extends CorusUserDataProvider> PROVIDERS = Collections2.arrayToList(new AwsCorusUserDataProvider());
+
   private CorusUserDataFactory() {
   }
-  
+
   /**
-   * This method internally loops through every built-in {@link CorusUserDataProvider} in order to 
-   * fetch the {@link CorusUserData} from the appropriate provider.
+   * This method internally loops through every built-in
+   * {@link CorusUserDataProvider} in order to fetch the {@link CorusUserData}
+   * from the appropriate provider.
    * 
    * @return the fetched {@link CorusUserData}.
-   * @throws IOException if the user data could not be fetched.
+   * @throws IOException
+   *           if the user data could not be fetched.
    */
   public static CorusUserData fetchUserData() throws IOException {
-    
+
     for (CorusUserDataProvider p : PROVIDERS) {
       try {
         return p.fetchUserData();
@@ -40,25 +41,27 @@ public class CorusUserDataFactory {
     }
     throw new IOException("Could not fetch user data");
   }
-  
+
   /**
-   * @param url the {@link URL} from which to fetch user data.
+   * @param url
+   *          the {@link URL} from which to fetch user data.
    * @return the fetched {@link CorusUserData}.
-   * @throws IOException if the user data could not be fetched.
+   * @throws IOException
+   *           if the user data could not be fetched.
    */
   public static CorusUserData fetchUserData(URI url) throws IOException {
     for (CorusUserDataProvider p : PROVIDERS) {
       if (p.accepts(url)) {
         return p.fetchUserData();
       }
-    } 
+    }
     return new AnonymousCorusUserDataProvider(url).fetchUserData();
   }
-  
+
   // ==========================================================================
 
   static final class AnonymousCorusUserDataProvider extends CorusUserDataProviderSupport {
-    
+
     public AnonymousCorusUserDataProvider(URI url) {
       super(url);
     }

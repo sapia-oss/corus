@@ -11,54 +11,55 @@ import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 
 /**
- * Provides {@link PortRange} persistience/retrieval logic around a {@link DbMap}.
- *
+ * Provides {@link PortRange} persistience/retrieval logic around a
+ * {@link DbMap}.
+ * 
  * @author yduchesne
  */
 public class PortRangeStore {
-  
+
   private DbMap<String, PortRange> ranges;
-  
+
   public PortRangeStore(DbMap<String, PortRange> ranges) {
     this.ranges = ranges;
   }
-  
-  public Iterator<PortRange> getPortRanges(){
+
+  public Iterator<PortRange> getPortRanges() {
     return ranges.values();
   }
-  
-  public void writeRange(PortRange range){
+
+  public void writeRange(PortRange range) {
     ranges.put(range.getName(), range);
   }
-  
-  public boolean containsRange(String name){
+
+  public boolean containsRange(String name) {
     return ranges.get(name) != null;
   }
-  
-  public PortRange readRange(String name){
+
+  public PortRange readRange(String name) {
     return ranges.get(name);
   }
-  
-  public Collection<PortRange> readRange(final Arg name){
+
+  public Collection<PortRange> readRange(final Arg name) {
     return new IteratorFilter<PortRange>(new Matcher<PortRange>() {
       @Override
       public boolean matches(PortRange range) {
         return name.matches(range.getName());
       }
     }).filter(ranges.values()).sort(new Comparator<PortRange>() {
-      
+
       @Override
       public int compare(PortRange o1, PortRange o2) {
         return o1.getName().compareTo(o2.getName());
       }
     }).get();
-  }  
-  
-  public void deleteRange(String name){
+  }
+
+  public void deleteRange(String name) {
     ranges.remove(name);
   }
-  
-  public void clear(){
+
+  public void clear() {
     ranges.clear();
   }
 }

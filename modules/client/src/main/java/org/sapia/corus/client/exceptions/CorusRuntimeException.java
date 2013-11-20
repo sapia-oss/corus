@@ -1,11 +1,11 @@
 package org.sapia.corus.client.exceptions;
 
-public class CorusRuntimeException extends RuntimeException{
-  
+public class CorusRuntimeException extends RuntimeException {
+
   static final long serialVersionUID = 1L;
-  
+
   private String code;
-  
+
   public CorusRuntimeException(String msg, String code) {
     super(msg);
     this.code = code;
@@ -15,10 +15,9 @@ public class CorusRuntimeException extends RuntimeException{
     super(msg, cause);
     this.code = code;
   }
-  
-  public String getCode(){
+
+  public String getCode() {
     return code;
   }
-  
 
 }

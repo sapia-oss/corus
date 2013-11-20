@@ -10,25 +10,26 @@ import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
 /**
- * This class corresponds to the <code>magnet</code> element in the
- * corus.xml file.
- *
+ * This class corresponds to the <code>magnet</code> element in the corus.xml
+ * file.
+ * 
  * @author Yanick Duchesne
  */
 public class Magnet extends BaseJavaStarter implements java.io.Serializable {
-  
+
   static final long serialVersionUID = 1L;
-  
+
   private static final String APP_STARTER_CLASS_NAME = "org.sapia.util.ApplicationStarter";
-  
+
   private String magnetFile;
   private String magnetOptions;
   private String libDirs;
 
   /**
    * Sets the name of the magnet file that will be used to start the VM.
-   *
-   * @param file the name of the magnet file that will be used to start the VM.
+   * 
+   * @param file
+   *          the name of the magnet file that will be used to start the VM.
    */
   public void setMagnetFile(String file) {
     magnetFile = file;
@@ -36,23 +37,24 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
 
   /**
    * Sets the Magnet-specific options (-debug, etc.)
+   * 
    * @param options
    */
   public void setMagnetOptions(String options) {
     magnetOptions = options;
   }
-  
+
   /**
-   * Sets the directories where libraries that should be part of
-   * the System classloader are stored.
+   * Sets the directories where libraries that should be part of the System
+   * classloader are stored.
    */
   public void setLibDirs(String dirs) {
     libDirs = dirs;
-  }  
-  
+  }
+
   /**
    * Returns a "command-line" representation of this instance.
-   *
+   * 
    * @return a <code>CmdLine</code> instance.
    */
   public CmdLine toCmdLine(Env env) throws MissingDataException {
@@ -63,13 +65,13 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
     }
 
     CmdLineBuildResult result = super.buildCommandLine(env);
-   
-    String mainCp = getMainCp(env);    
+
+    String mainCp = getMainCp(env);
     String optionalCp = libDirs == null ? null : getOptionalCp(libDirs, result.variables, env);
-    if(optionalCp != null){
-      mainCp = mainCp+FileUtils.PATH_SEPARATOR+optionalCp;
+    if (optionalCp != null) {
+      mainCp = mainCp + FileUtils.PATH_SEPARATOR + optionalCp;
     }
-    
+
     result.command.addOpt("cp", mainCp);
     result.command.addArg(APP_STARTER_CLASS_NAME);
     result.command.addOpt("ascp", getAsCp(env));
@@ -84,17 +86,16 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   }
 
   public String toString() {
-    return "[ profile=" + profile + ", JDK home=" + javaHome +
-           ", magnet file=" + magnetFile + ", VM props=" + vmProps +
-           ", options=" + options + ", x options=" + xoptions + " ]";
+    return "[ profile=" + profile + ", JDK home=" + javaHome + ", magnet file=" + magnetFile + ", VM props=" + vmProps + ", options=" + options
+        + ", x options=" + xoptions + " ]";
   }
 
   private String getAsCp(Env env) {
-    String           basedir = env.getMagnetLibDir();
+    String basedir = env.getMagnetLibDir();
     PathFilter filter = env.createPathFilter(basedir);
     filter.setIncludes(new String[] { "**/*.jar", "**/*.zip" });
-    
-    String[]     jars = filter.filter();
+
+    String[] jars = filter.filter();
     StringBuffer buf = new StringBuffer();
 
     for (int i = 0; i < jars.length; i++) {
@@ -109,11 +110,11 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   }
 
   private String getMainCp(Env env) {
-    String           basedir = env.getVmBootLibDir();
+    String basedir = env.getVmBootLibDir();
     PathFilter filter = env.createPathFilter(basedir);
     filter.setIncludes(new String[] { "**/*.jar" });
-    
-    String[]     jars = filter.filter();
+
+    String[] jars = filter.filter();
     StringBuffer buf = new StringBuffer();
 
     for (int i = 0; i < jars.length; i++) {

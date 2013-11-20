@@ -16,22 +16,24 @@ import java.nio.channels.FileLock;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 
-
 /**
  * I/O utility methods.
- *
+ * 
  * @author <a href="mailto:jc@sapia-oss.org">Jean-Cedric Desrochers</a>
  */
 public class IOUtil {
-  
+
   /**
-   * Extracts all the available data of the passed in input stream and add it
-   * to the output stream. When no data is available, it closes the input stream and
-   * flush the data of the output stream.
+   * Extracts all the available data of the passed in input stream and add it to
+   * the output stream. When no data is available, it closes the input stream
+   * and flush the data of the output stream.
    * 
-   * @param anInput The input stream from which to read the data.
-   * @param anOutput The output stream to which to write the data.
-   * @throws IOException If an error occurs extracting the data.
+   * @param anInput
+   *          The input stream from which to read the data.
+   * @param anOutput
+   *          The output stream to which to write the data.
+   * @throws IOException
+   *           If an error occurs extracting the data.
    */
   public static void extractAvailable(InputStream anInput, OutputStream anOutput) throws IOException {
     InputStream is = new BufferedInputStream(anInput);
@@ -47,70 +49,80 @@ public class IOUtil {
         }
         anOutput.write(someData, 0, length);
         size = is.available();
-      } 
+      }
     } finally {
       try {
-        if (anOutput != null) anOutput.flush();
-        if (is != null) is.close();
+        if (anOutput != null)
+          anOutput.flush();
+        if (is != null)
+          is.close();
       } catch (IOException ioe) {
       }
     }
   }
-  
+
   /**
-   * Performs variable substitution (with variables having form <code>${variable}</code>) in the
-   * content of the given stream.
+   * Performs variable substitution (with variables having form
+   * <code>${variable}</code>) in the content of the given stream.
    * 
-   * @param lookup a {@link StrLookup} instance used to look up variable values.
-   * @param textStream the {@link InputStream} containing the text in which to perform
-   * variable substitution.
-   * @return the {@link InputStream} holding the text with the substituted content.
-   * @throws IOException if an IO problem occurs while performing substitution.
+   * @param lookup
+   *          a {@link StrLookup} instance used to look up variable values.
+   * @param textStream
+   *          the {@link InputStream} containing the text in which to perform
+   *          variable substitution.
+   * @return the {@link InputStream} holding the text with the substituted
+   *         content.
+   * @throws IOException
+   *           if an IO problem occurs while performing substitution.
    */
-  public static InputStream replaceVars(StrLookup lookup, InputStream textStream) throws IOException{
+  public static InputStream replaceVars(StrLookup lookup, InputStream textStream) throws IOException {
     String text = textStreamToString(textStream);
     StrSubstitutor stb = new StrSubstitutor(lookup);
     text = stb.replace(text);
     return new ByteArrayInputStream(text.getBytes());
   }
-  
+
   /**
    * Returns the content in the given stream in the form of a string.
    * <p>
    * Note: the stream is closed by this method.
    * 
-   * @param is an {@link InputStream}
-   * @return a {@link String} containing the data in the given steam. 
-   * @throws IOException if an IO problem occurs.
+   * @param is
+   *          an {@link InputStream}
+   * @return a {@link String} containing the data in the given steam.
+   * @throws IOException
+   *           if an IO problem occurs.
    */
-  public static String textStreamToString(InputStream is) throws IOException{
-    try{
+  public static String textStreamToString(InputStream is) throws IOException {
+    try {
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
       String line;
       String lineSep = System.getProperty("line.separator");
 
       StringBuilder content = new StringBuilder();
-      while((line = reader.readLine()) != null){
+      while ((line = reader.readLine()) != null) {
         content.append(line).append(lineSep);
       }
-      
+
       return content.toString();
-      
-    }finally{
+
+    } finally {
       try {
         is.close();
       } catch (IOException e) {
       }
     }
   }
- 
 
   /**
-   * @param file the {@link File} for which a lock file should be created.
-   * @throws IOException if a corresponding lock file already exists or could not be created.
+   * @param file
+   *          the {@link File} for which a lock file should be created.
+   * @throws IOException
+   *           if a corresponding lock file already exists or could not be
+   *           created.
    */
-  public static void createLockFile(File file) throws IOException{
-   
+  public static void createLockFile(File file) throws IOException {
+
     RandomAccessFile randomFile = new RandomAccessFile(file, "rw");
     FileChannel channel = randomFile.getChannel();
 
@@ -134,10 +146,9 @@ public class IOUtil {
 
       channel.write(bytes); // Write the buffer contents to the channel
       channel.force(false);
-    }
-    else {
-      throw new IOException(String.format("Lock file already exists, process probably running %s", file.getAbsolutePath()));      
+    } else {
+      throw new IOException(String.format("Lock file already exists, process probably running %s", file.getAbsolutePath()));
     }
   }
-  
+
 }

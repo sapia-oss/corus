@@ -9,9 +9,9 @@ import org.sapia.corus.client.exceptions.ExceptionCode;
  * @author Yanick Duchesne
  */
 public class ProcessLockException extends CorusException {
-  
+
   static final long serialVersionUID = 1L;
-  
+
   public ProcessLockException(String msg) {
     super(msg, ExceptionCode.PROCESS_LOCK_UNAVAILABLE.getFullCode());
   }

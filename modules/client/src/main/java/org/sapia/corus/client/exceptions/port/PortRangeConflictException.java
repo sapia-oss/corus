@@ -11,13 +11,13 @@ import org.sapia.corus.client.services.port.PortManager;
  * 
  * @author yduchesne
  */
-public class PortRangeConflictException extends CorusException{
-  
+public class PortRangeConflictException extends CorusException {
+
   static final long serialVersionUID = 1L;
 
   /** Creates a new instance of PortRangeConflictException */
   public PortRangeConflictException(String msg) {
     super(msg, ExceptionCode.PORT_RANGE_CONFLICT.getFullCode());
   }
-  
+
 }

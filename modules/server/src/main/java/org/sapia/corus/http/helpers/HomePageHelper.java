@@ -18,20 +18,20 @@ import org.simpleframework.http.Response;
  * Generates HTML content for the home page.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class HomePageHelper {
 
   private List<HttpExtensionInfo> extensionInfos = new ArrayList<HttpExtensionInfo>();
-  private ServerContext 					context;
-  
-  public HomePageHelper(ServerContext context, Collection<HttpExtensionInfo> extInfos){
+  private ServerContext context;
+
+  public HomePageHelper(ServerContext context, Collection<HttpExtensionInfo> extInfos) {
     extensionInfos.addAll(extInfos);
     this.context = context;
   }
-  
-  public void print(Request req, Response res) throws Exception{
-    try{
+
+  public void print(Request req, Response res) throws Exception {
+    try {
       res.setValue("Content-Type", "text/html");
       res.setCode(HttpResponseFacade.STATUS_OK);
       PrintStream ps = res.getPrintStream();
@@ -40,26 +40,26 @@ public class HomePageHelper {
       ps.println("<table border=\"0\">");
       ps.println("<th>Context Path</th><th>Name</th><th>Description</th>");
       Collections.sort(extensionInfos);
-      for(int i = 0; i < extensionInfos.size(); i++){
+      for (int i = 0; i < extensionInfos.size(); i++) {
         ps.print("<tr>");
-        HttpExtensionInfo info = (HttpExtensionInfo)extensionInfos.get(i);
-        
+        HttpExtensionInfo info = (HttpExtensionInfo) extensionInfos.get(i);
+
         ps.print("<td>");
         ps.print(info.getContextPath());
         ps.print("</td>");
 
         ps.print("<td><b>");
         ps.print(info.getName());
-        ps.print("</b></td>");        
-        
+        ps.print("</b></td>");
+
         ps.print("<td>");
-        if(info.getDescription() != null){
+        if (info.getDescription() != null) {
           ps.print(info.getDescription());
           ps.print(".");
         }
-        ps.print("</td>");        
-        
-        ps.println("</tr>");        
+        ps.print("</td>");
+
+        ps.println("</tr>");
       }
       ps.println("</table>");
       ps.println(HttpExtensionManager.FOOTER);
@@ -67,12 +67,13 @@ public class HomePageHelper {
       ps.flush();
       ps.close();
       res.commit();
-    }catch(IOException e){
-      try{
+    } catch (IOException e) {
+      try {
         res.getOutputStream().close();
         res.commit();
-      }catch(IOException e2){}
-    }    
-  }  
+      } catch (IOException e2) {
+      }
+    }
+  }
 
 }

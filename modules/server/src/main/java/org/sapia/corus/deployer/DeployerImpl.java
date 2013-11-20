@@ -50,47 +50,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This component implements the {@link Deployer} interface.
- *
+ * 
  * @author Yanick Duchesne
  */
-@Bind(moduleInterface={Deployer.class, InternalDeployer.class})
-@Remote(interfaces={Deployer.class})
-public class DeployerImpl extends ModuleHelper implements InternalDeployer,
-  DeploymentConnector, Interceptor {
+@Bind(moduleInterface = { Deployer.class, InternalDeployer.class })
+@Remote(interfaces = { Deployer.class })
+public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
   /**
    * The file lock timeout property name (<code>file-lock-timeout</code>).
    */
   public static final String LOCK_TIMEOUT = "file-lock-timeout";
 
   @Autowired
-  private EventDispatcher       events;
-  
+  private EventDispatcher events;
+
   @Autowired
-  private HttpModule            http;
-  
+  private HttpModule http;
+
   @Autowired
-  private TaskManager           taskman;
-    
+  private TaskManager taskman;
+
   @Autowired
-  private ClusterManager        cluster;
-  
+  private ClusterManager cluster;
+
   @Autowired
   private DeployerConfiguration configuration;
-  
+
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
-  
-  private DeploymentProcessor   processor;
-  private DistributionDatabase  store;
-  
+
+  private DeploymentProcessor processor;
+  private DistributionDatabase store;
+
   /**
    * Returns this instance's {@link DeployerConfiguration}
    */
   public DeployerConfiguration getConfiguration() {
     return configuration;
   }
-  
+
   /**
-   * @param deploymentHandlers a {@link List} of {@link DeploymentHandler}s to assign.
+   * @param deploymentHandlers
+   *          a {@link List} of {@link DeploymentHandler}s to assign.
    */
   public void setDeploymentHandlers(List<DeploymentHandler> deploymentHandlers) {
     this.deploymentHandlers = deploymentHandlers;
@@ -101,53 +101,29 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
    */
   @Override
   public void init() throws Exception {
-    
-    store = new DistributionDatabaseImpl();
-    
-    services().bind(DistributionDatabase.class, store);
-    
-    services().getTaskManager().registerThrottle(
-        DeployerThrottleKeys.DEPLOY_DISTRIBUTION, 
-        ThrottleFactory.createMaxConcurrentThrottle(1)
-    );
-    services().getTaskManager().registerThrottle(
-        DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, 
-        ThrottleFactory.createMaxConcurrentThrottle(1)
-    );
 
-    String defaultDeployDir = FilePath.newInstance()
-        .addDir(serverContext().getHomeDir())
-        .addDir("deploy")
-        .createFilePath();
-    
-    String defaultRepoDir   = FilePath.newInstance()
-        .addDir(serverContext().getHomeDir())
-        .addDir("files")        
-        .addDir("repo")
-        .createFilePath();
-    
-    String defaultTmpDir    = FilePath.newInstance()
-        .addDir(serverContext().getHomeDir())
-        .addDir("tmp")
-        .createFilePath();
-    
-    String defaultScriptDir = FilePath.newInstance()
-        .addDir(serverContext().getHomeDir())
-        .addDir("files")
-        .addDir("scripts")
-        .createFilePath();
-    
-    String defaultUploadDir = FilePath.newInstance()
-        .addDir(serverContext().getHomeDir())
-        .addDir("files")
-        .addDir("uploads")
-        .createFilePath();    
-    
+    store = new DistributionDatabaseImpl();
+
+    services().bind(DistributionDatabase.class, store);
+
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, ThrottleFactory.createMaxConcurrentThrottle(1));
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, ThrottleFactory.createMaxConcurrentThrottle(1));
+
+    String defaultDeployDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("deploy").createFilePath();
+
+    String defaultRepoDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("repo").createFilePath();
+
+    String defaultTmpDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("tmp").createFilePath();
+
+    String defaultScriptDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("scripts").createFilePath();
+
+    String defaultUploadDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("uploads").createFilePath();
+
     String pattern = serverContext().getDomain() + '_' + serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort();
-    
+
     DeployerConfigurationImpl config = new DeployerConfigurationImpl();
     config.setFileLockTimeout(configuration.getFileLockTimeout());
-    
+
     if (configuration.getDeployDir() != null) {
       config.setDeployDir(FilePath.newInstance().addDir(configuration.getDeployDir()).addDir(pattern).createFilePath());
     } else {
@@ -159,32 +135,32 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     } else {
       config.setTempDir(FilePath.newInstance().addDir(defaultTmpDir).addDir(pattern).createFilePath());
     }
-    
+
     if (configuration.getRepoDir() != null) {
       config.setRepoDir(FilePath.newInstance().addDir(configuration.getRepoDir()).addDir(pattern).createFilePath());
     } else {
       config.setRepoDir(FilePath.newInstance().addDir(defaultRepoDir).addDir(pattern).createFilePath());
     }
-    
+
     if (configuration.getScriptDir() != null) {
       config.setScriptDir(FilePath.newInstance().addDir(configuration.getScriptDir()).addDir(pattern).createFilePath());
     } else {
       config.setScriptDir(FilePath.newInstance().addDir(defaultScriptDir).addDir(pattern).createFilePath());
     }
-    
+
     if (configuration.getUploadDir() != null) {
       config.setUploadDir(FilePath.newInstance().addDir(configuration.getUploadDir()).addDir(pattern).createFilePath());
     } else {
       config.setUploadDir(FilePath.newInstance().addDir(defaultUploadDir).addDir(pattern).createFilePath());
-    }    
-    
+    }
+
     configuration.copyFrom(config);
-    
+
     File f = new File(configuration.getDeployDir());
     f.mkdirs();
     assertFile(f);
     log.debug(String.format("Deploy dir: %s", f.getAbsolutePath()));
-    
+
     f = new File(configuration.getTempDir());
     f.mkdirs();
     assertFile(f);
@@ -196,7 +172,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
         tmp.delete();
       }
     }
-    
+
     f = new File(configuration.getRepoDir());
     f.mkdirs();
     assertFile(f);
@@ -206,12 +182,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     f.mkdirs();
     assertFile(f);
     log.debug(String.format("Script dir: %s", f.getAbsolutePath()));
-    
+
     f = new File(configuration.getUploadDir());
     f.mkdirs();
     assertFile(f);
-    log.debug(String.format("Upload dir: %s", f.getAbsolutePath()));  
-    
+    log.debug(String.format("Upload dir: %s", f.getAbsolutePath()));
+
     log.info("Initializing: rebuilding distribution objects");
 
     taskman.executeAndWait(new BuildDistTask(configuration.getDeployDir(), getDistributionStore()), null);
@@ -232,10 +208,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     } catch (Exception e) {
       log.error("Could not start deployment processor", e);
     }
-    try{
+    try {
       DeployerExtension ext = new DeployerExtension(this, serverContext);
       http.addHttpExtension(ext);
-    }catch (Exception e){
+    } catch (Exception e) {
       log.error("Could not add deployer HTTP extension", e);
     }
   }
@@ -249,9 +225,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     }
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                    Module INTERFACE IMPLEMENTATION
-  ////////////////////////////////////////////////////////////////////*/
+  /*
+   * //////////////////////////////////////////////////////////////////// Module
+   * INTERFACE IMPLEMENTATION
+   * ////////////////////////////////////////////////////////////////////
+   */
 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -260,15 +238,16 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     return Deployer.ROLE;
   }
 
-  /*////////////////////////////////////////////////////////////////////
-                  InternalDeployer INTERFACE IMPLEMENTATION
-  ////////////////////////////////////////////////////////////////////*/
+  /*
+   * ////////////////////////////////////////////////////////////////////
+   * InternalDeployer INTERFACE IMPLEMENTATION
+   * ////////////////////////////////////////////////////////////////////
+   */
 
-  public Distribution getDistribution(DistributionCriteria criteria) 
-    throws DistributionNotFoundException {
+  public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException {
     return getDistributionStore().getDistribution(criteria);
   }
-  
+
   public List<Distribution> getDistributions(DistributionCriteria criteria) {
     List<Distribution> dists = getDistributionStore().getDistributions(criteria);
     Collections.sort(dists);
@@ -278,43 +257,27 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
   public ProgressQueue undeploy(DistributionCriteria criteria) {
     ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
-      ProcessCriteria processCriteria = ProcessCriteria.builder()
-        .distribution(criteria.getName())
-        .version(criteria.getVersion())
-        .build();
-      if(lookup(Processor.class).getProcesses(processCriteria).size() > 0){
+      ProcessCriteria processCriteria = ProcessCriteria.builder().distribution(criteria.getName()).version(criteria.getVersion()).build();
+      if (lookup(Processor.class).getProcesses(processCriteria).size() > 0) {
         throw new RunningProcessesException("Processes for selected configuration are currently running; kill them prior to undeploying");
       }
 
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      taskman.executeAndWait(
-          new UndeployTask(), 
-          TaskParams.createFor(criteria.getName(), criteria.getVersion()), 
-          cfg
-      ).get();
+      taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria.getName(), criteria.getVersion()), cfg).get();
     } catch (Throwable e) {
       progress.error(e);
     }
     return progress;
   }
-  
+
   @Override
-  public synchronized File getDistributionFile(String name, String version)
-      throws DistributionNotFoundException {
+  public synchronized File getDistributionFile(String name, String version) throws DistributionNotFoundException {
     String distFileName = name + "-" + version + ".zip";
-    File distFile = FilePath.newInstance()
-        .addDir(configuration.getRepoDir())
-        .setRelativeFile(distFileName)
-        .createFile();
+    File distFile = FilePath.newInstance().addDir(configuration.getRepoDir()).setRelativeFile(distFileName).createFile();
     if (distFile.exists()) {
       return distFile;
     } else {
-      File distDir = FilePath.newInstance()
-          .addDir(getConfiguration().getDeployDir())
-          .addDir(name)
-          .addDir(version)
-          .addDir("common")
-          .createFile();
+      File distDir = FilePath.newInstance().addDir(getConfiguration().getDeployDir()).addDir(name).addDir(version).addDir("common").createFile();
       if (distDir.exists()) {
         try {
           serverContext().getServices().getFileSystem().zip(distDir, distFile);
@@ -323,8 +286,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
           throw new IORuntimeException(String.format("Could generate zip file for distribution %s, %s"), e);
         }
       } else {
-        throw new DistributionNotFoundException(
-            String.format("No distribution directory found for: %s, %s", name, version));
+        throw new DistributionNotFoundException(String.format("No distribution directory found for: %s, %s", name, version));
       }
     }
   }
@@ -343,20 +305,20 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     DeploymentMetadata meta;
 
     try {
-      meta       = deployment.getMetadata();
+      meta = deployment.getMetadata();
     } catch (IOException e) {
       deployment.close();
       log.error("Could not acquire deployment metadata", e);
 
       return;
     }
-    
+
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
-    
+
     log.info("Processing incoming deployment: " + meta.getFileName() + " with " + handler);
     log.info("Transferring deployment stream to: " + destFile.getAbsolutePath());
-    
+
     DeployOutputStream out;
 
     // if deployment is clustered...
@@ -370,22 +332,22 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
         log.error("Could not lookup ClusterManager while performing deployment", e);
         return;
       }
-      
-      Set<ServerAddress>  visited = meta.getVisited();
-      ServerAddress       addr;
-      ServerAddress       current = serverContext().getCorusHost().getEndpoint().getServerAddress();
-      
+
+      Set<ServerAddress> visited = meta.getVisited();
+      ServerAddress addr;
+      ServerAddress current = serverContext().getCorusHost().getEndpoint().getServerAddress();
+
       log.debug("Targeted hosts: " + meta.getClusterInfo().getTargets());
       log.debug("Visited hosts: " + meta.getVisited());
       log.debug("Current host: " + current);
-			
+
       // adding this host to visited set
       visited.add(current);
 
       try {
-        
-				// no next host to deploy to; we have reached end of chain  
-				// - deployment stops here        	
+
+        // no next host to deploy to; we have reached end of chain
+        // - deployment stops here
         if ((addr = ClusteringHelper.selectNextTarget(visited, siblings)) == null) {
           if (!meta.isTargeted(current)) {
             log.info("This host is not targeted and there are not more hosts to visit. Deployment is deemed finished");
@@ -394,7 +356,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
             out = new DeployOutputStreamImpl(destFile, meta, handler);
           }
         } else {
-					// chaining deployment to next host.
+          // chaining deployment to next host.
           if (!meta.isTargeted(current)) {
             log.info("This host is not targeted. Deployment is cascaded to the next host");
             out = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
@@ -410,7 +372,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
         return;
       }
     }
-    // deployment is not clustered		
+    // deployment is not clustered
     else {
       try {
         out = new DeployOutputStreamImpl(destFile, meta, handler);
@@ -441,17 +403,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
     log.info("Deployment upload completed for: " + meta.getFileName());
   }
 
-
   synchronized ProgressQueue completeDeployment(String fileName) {
     log.info("Finished uploading " + fileName);
     ProgressQueue progress = new ProgressQueueImpl();
     try {
-      taskman.executeAndWait(
-        new DeployTask(),
-        fileName,
-        TaskConfig.create(new TaskLogProgressQueue(progress))
-      ).get();
-      
+      taskman.executeAndWait(new DeployTask(), fileName, TaskConfig.create(new TaskLogProgressQueue(progress))).get();
+
     } catch (Throwable e) {
       log.error("Could not deploy", e);
       progress.error(e);
@@ -470,7 +427,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer,
       throw new IllegalArgumentException(f.getAbsolutePath() + " does not exist");
     }
   }
- 
+
   private DeploymentHandler selectDeploymentHandler(DeploymentMetadata meta) {
     for (DeploymentHandler handler : deploymentHandlers) {
       if (handler.accepts(meta)) {

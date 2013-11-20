@@ -23,13 +23,13 @@ import org.springframework.util.Assert;
  * Implementation of the {@link FileSystemModule} interface.
  * 
  * @author yduchesne
- *
+ * 
  */
-@Bind(moduleInterface=FileSystemModule.class)
+@Bind(moduleInterface = FileSystemModule.class)
 public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModule {
 
-  private static final int  ZIP_READ_CAPACITY = 2048;
-  
+  private static final int ZIP_READ_CAPACITY = 2048;
+
   @Override
   public String getRoleName() {
     return FileSystemModule.ROLE;
@@ -42,46 +42,40 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
   @Override
   public void dispose() throws Exception {
   }
-  
-  /////////////// FileSystemModule interface methods ////////////////
-  
+
+  // ///////////// FileSystemModule interface methods ////////////////
+
   @Override
-  public void createDirectory(File dir){
+  public void createDirectory(File dir) {
     dir.mkdirs();
   }
-  
+
   @Override
   public void deleteDirectory(File dir) throws IOException {
-    if(!dir.isDirectory()){
+    if (!dir.isDirectory()) {
       throw new IllegalArgumentException(String.format("Not a directory: %s", dir.getAbsolutePath()));
-    }    
+    }
     FileUtils.deleteDirectory(dir);
   }
-  
+
   @Override
   public void deleteFile(File file) throws IOException {
-    if(file.isDirectory()){
+    if (file.isDirectory()) {
       throw new IllegalArgumentException(String.format("File is a directory directory: %s", file.getAbsolutePath()));
     }
     file.delete();
   }
-  
+
   @Override
   public boolean exists(File toCheck) {
     return toCheck.exists();
   }
-  
+
   @Override
-  public InputStream openZipEntryStream(File zipFile, String entryName)
-      throws IOException {
-    return ZipUtils.readEntryStream(
-      zipFile.getAbsolutePath(), 
-      entryName, 
-      ZIP_READ_CAPACITY, 
-      ZIP_READ_CAPACITY
-    );
+  public InputStream openZipEntryStream(File zipFile, String entryName) throws IOException {
+    return ZipUtils.readEntryStream(zipFile.getAbsolutePath(), entryName, ZIP_READ_CAPACITY, ZIP_READ_CAPACITY);
   }
-  
+
   @Override
   public void unzip(File toUnzip, File destDir) throws IOException {
     Assert.isTrue(!toUnzip.isDirectory(), "File to unzip is in fact a directory: " + toUnzip.getAbsolutePath());
@@ -91,28 +85,28 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
     unzip.setSrc(toUnzip);
     unzip.setDest(destDir);
     unzip.setProject(new Project());
-    try{
+    try {
       unzip.execute();
-    }catch(BuildException e){
+    } catch (BuildException e) {
       throw new IOException(e.getMessage(), e);
     }
   }
-  
+
   @Override
   public void zip(File srcDir, File destFile) throws IOException {
     Assert.isTrue(srcDir.isDirectory(), "Directory to zip is not a directory: " + srcDir.getAbsolutePath());
-    
+
     Zip zip = new Zip();
     zip.setBasedir(srcDir);
     zip.setDestFile(destFile);
-    zip.setProject(new Project());    
-    try{
+    zip.setProject(new Project());
+    try {
       zip.execute();
-    }catch(BuildException e){
+    } catch (BuildException e) {
       throw new IOException(e.getMessage(), e);
     }
   }
-  
+
   @Override
   public List<File> listFiles(File baseDir) {
     File[] files = baseDir.listFiles(new FileFilter() {
@@ -121,11 +115,11 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
         return !f.isDirectory() && !f.isHidden();
       }
     });
-    
+
     if (files == null) {
       return new ArrayList<File>(0);
     }
-    
+
     return Arrays.asList(files);
   }
 }

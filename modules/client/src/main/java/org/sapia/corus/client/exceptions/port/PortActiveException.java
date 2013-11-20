@@ -11,13 +11,13 @@ import org.sapia.corus.client.services.port.PortManager;
  * 
  * @author yduchesne
  */
-public class PortActiveException extends CorusException{
-  
+public class PortActiveException extends CorusException {
+
   static final long serialVersionUID = 1L;
-  
+
   /** Creates a new instance of PortActiveException */
   public PortActiveException(String msg) {
     super(msg, ExceptionCode.PORT_ACTIVE.getFullCode());
   }
-  
+
 }

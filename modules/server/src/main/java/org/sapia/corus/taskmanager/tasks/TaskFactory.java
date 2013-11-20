@@ -15,15 +15,17 @@ import org.sapia.corus.taskmanager.core.Task;
  */
 public class TaskFactory {
 
-	/**
-	 * Creates a {@link Task} that unzips the content of an archive to a given
-	 * directory.
-	 * 
-	 * @param srcJar corresponds to the archive to unzip.
-	 * @param destDir the {@link File} corresponding to the directory where to unzip.
-	 * @return a new {@link Task}.
-	 */
-  public static Task<Void,Void> newUnjarTask(File srcJar, File destDir) {
+  /**
+   * Creates a {@link Task} that unzips the content of an archive to a given
+   * directory.
+   * 
+   * @param srcJar
+   *          corresponds to the archive to unzip.
+   * @param destDir
+   *          the {@link File} corresponding to the directory where to unzip.
+   * @return a new {@link Task}.
+   */
+  public static Task<Void, Void> newUnjarTask(File srcJar, File destDir) {
     Expand unzip = new Expand();
     unzip.setSrc(srcJar);
     unzip.setDest(destDir);
@@ -34,10 +36,11 @@ public class TaskFactory {
   /**
    * Creates a {@link Task} that deletes a given file.
    * 
-   * @param toDelete the {@link File} to delete.
+   * @param toDelete
+   *          the {@link File} to delete.
    * @return a new {@link Task}.
    */
-  public static Task<Void,Void> newDeleteFileTask(File toDelete) {
+  public static Task<Void, Void> newDeleteFileTask(File toDelete) {
     Delete del = new Delete();
     del.setFile(toDelete);
 
@@ -47,10 +50,11 @@ public class TaskFactory {
   /**
    * Creates a {@link Task} that deletes a given directory tree.
    * 
-   * @param toDelete the {@link File} corresponding to the directory to delete.
+   * @param toDelete
+   *          the {@link File} corresponding to the directory to delete.
    * @return a new {@link Task}.
    */
-  public static Task<Void,Void> newDeleteDirTask(File toDelete) {
+  public static Task<Void, Void> newDeleteDirTask(File toDelete) {
     Delete del = new Delete();
     del.setDir(toDelete);
     del.setIncludeEmptyDirs(true);

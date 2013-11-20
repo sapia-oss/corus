@@ -11,14 +11,14 @@ import org.junit.Test;
 public class DelayTest {
 
   Delay delay;
-  
+
   @Before
   public void setUp() throws Exception {
     delay = new Delay(2, TimeUnit.SECONDS);
   }
-  
+
   @Test
-  public void testIsOver() throws Exception{
+  public void testIsOver() throws Exception {
     assertFalse("Delay should not be over", delay.start().isOver());
     assertTrue("Should have time remaining", delay.remainingMillis() > 0);
     Thread.sleep(2000);

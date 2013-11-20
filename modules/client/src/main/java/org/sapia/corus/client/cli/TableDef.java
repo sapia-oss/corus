@@ -50,8 +50,7 @@ public class TableDef {
   public ColumnDef col(String name) {
     ColumnDef def = columnsByName.get(name);
     if (def == null) {
-      throw new IllegalArgumentException("No column definition found for "
-          + name);
+      throw new IllegalArgumentException("No column definition found for " + name);
     }
     return def;
   }

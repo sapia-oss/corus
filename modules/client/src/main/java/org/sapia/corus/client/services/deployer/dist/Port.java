@@ -14,35 +14,35 @@ import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
- *
+ * 
  * @author yduchesne
  */
-public class Port implements java.io.Serializable, ObjectCreationCallback{
-  
+public class Port implements java.io.Serializable, ObjectCreationCallback {
+
   static final long serialVersionUID = 1L;
 
   private String _name;
-  
+
   /** Creates a new instance of Port */
   public Port() {
   }
-  
-  public void setName(String name){
+
+  public void setName(String name) {
     _name = name;
   }
-  
-  public String getName(){
+
+  public String getName() {
     return _name;
   }
-  
-  public String toString(){
+
+  public String toString() {
     return new StringBuffer("[").append(_name).append("]").toString();
   }
-  
-  public Object onCreate() throws ConfigurationException{
-    if(_name == null){
+
+  public Object onCreate() throws ConfigurationException {
+    if (_name == null) {
       throw new ConfigurationException("Port name not set");
     }
     return this;
-  }  
+  }
 }

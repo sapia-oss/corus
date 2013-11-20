@@ -8,32 +8,32 @@ import java.util.Date;
  * @author Yanick Duchesne
  */
 public class CronJobInfo implements java.io.Serializable {
-  
+
   static final long serialVersionUID = 1L;
-  
-  public static final int UNDEFINED   = -1;
+
+  public static final int UNDEFINED = -1;
   private String distName;
   private String profile;
   private String version;
   private String processName;
   private String id;
-  private int    minute     = UNDEFINED;
-  private int    hour       = UNDEFINED;
-  private int    dayOfMonth = UNDEFINED;
-  private int    month      = UNDEFINED;
-  private int    dayOfWeek  = UNDEFINED;
-  private int    year       = UNDEFINED;
-  private Date   creation;
-  private Date   lastRun;
+  private int minute = UNDEFINED;
+  private int hour = UNDEFINED;
+  private int dayOfMonth = UNDEFINED;
+  private int month = UNDEFINED;
+  private int dayOfWeek = UNDEFINED;
+  private int year = UNDEFINED;
+  private Date creation;
+  private Date lastRun;
 
   /**
    * Constructor for CronJobInfo.
    */
   public CronJobInfo(String dist, String profile, String version, String vmName) {
     distName = dist;
-    this.profile  = profile;
-    this.version  = version;
-    processName   = vmName;
+    this.profile = profile;
+    this.version = version;
+    processName = vmName;
   }
 
   public String getId() {
@@ -113,11 +113,11 @@ public class CronJobInfo implements java.io.Serializable {
   }
 
   public void assignId(String id) {
-    this.id  = id;
+    this.id = id;
     creation = new Date();
   }
-  
-  public Date getCreation(){
+
+  public Date getCreation() {
     return creation;
   }
 }

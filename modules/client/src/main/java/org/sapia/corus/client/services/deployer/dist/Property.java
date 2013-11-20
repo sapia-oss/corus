@@ -3,12 +3,11 @@ package org.sapia.corus.client.services.deployer.dist;
 import org.sapia.console.CmdElement;
 import org.sapia.console.Option;
 
-
 /**
- * This class corresponds to the <code>property</code> element in the
- * corus.xml file. THe "property" element corresponds to a VM property,
- * usually specified through "-D" options at the command-line.
- *
+ * This class corresponds to the <code>property</code> element in the corus.xml
+ * file. THe "property" element corresponds to a VM property, usually specified
+ * through "-D" options at the command-line.
+ * 
  * @author Yanick Duchesne
  */
 public class Property implements Param, java.io.Serializable {
@@ -22,7 +21,7 @@ public class Property implements Param, java.io.Serializable {
   }
 
   public Property(String name, String value) {
-    this.name  = name;
+    this.name = name;
     this.value = value;
   }
 

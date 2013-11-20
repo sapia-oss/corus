@@ -22,43 +22,41 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
  * Creates the subtasks necessary for shell script deployment.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ShellScriptDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHandlerTaskHelper {
-  
+
   private List<ShellScriptDeploymentRequest> requests;
-  
-  public ShellScriptDeploymentRequestHandlerTaskHelper(RepositoryConfiguration config, TaskExecutionContext context, List<ShellScriptDeploymentRequest> requests) {
+
+  public ShellScriptDeploymentRequestHandlerTaskHelper(RepositoryConfiguration config, TaskExecutionContext context,
+      List<ShellScriptDeploymentRequest> requests) {
     super(config, context);
     this.requests = requests;
   }
-  
+
   @Override
   public void addTo(CompositeTask toAddTo) {
-    InternalShellScriptManager manager = context().getServerContext().lookup(InternalShellScriptManager.class);    
+    InternalShellScriptManager manager = context().getServerContext().lookup(InternalShellScriptManager.class);
 
     Map<ShellScript, Set<Endpoint>> scriptTargets = getScriptTargets(context(), requests);
-    
+
     context().info(String.format("Got %s targets to deploy to", scriptTargets));
-    
+
     for (final Map.Entry<ShellScript, Set<Endpoint>> entry : scriptTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
-        RunnableTask task = new ShellScriptRequestHandlerTask(
-            manager.getScriptFile(entry.getKey()), 
-            entry.getKey(),
-            new ArrayList<Endpoint>(entry.getValue())
-        );
+        RunnableTask task = new ShellScriptRequestHandlerTask(manager.getScriptFile(entry.getKey()), entry.getKey(), new ArrayList<Endpoint>(
+            entry.getValue()));
         toAddTo.add(task);
       } catch (FileNotFoundException e) {
         context().error("Shell script file not found, bypassing deployment for: " + entry.getKey(), e);
-      }    
+      }
     }
   }
 
   // --------------------------------------------------------------------------
   // Package visibility for unit testing
-  
+
   Map<ShellScript, Set<Endpoint>> getScriptTargets(TaskExecutionContext context, List<ShellScriptDeploymentRequest> requests) {
     Map<ShellScript, Set<Endpoint>> scriptTargets = new HashMap<ShellScript, Set<Endpoint>>();
     for (ShellScriptDeploymentRequest req : requests) {
@@ -71,7 +69,7 @@ public class ShellScriptDeploymentRequestHandlerTaskHelper extends ArtifactDeplo
           scriptTargets.put(script, targets);
         }
         targets.add(req.getEndpoint());
-      } 
+      }
     }
     return scriptTargets;
   }

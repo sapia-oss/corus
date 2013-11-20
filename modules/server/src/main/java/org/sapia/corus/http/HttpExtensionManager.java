@@ -29,18 +29,14 @@ import org.simpleframework.http.Response;
  */
 public class HttpExtensionManager implements Handler {
 
-  public static final String STYLE_HEADER = "<style media=\"screen\" type=\"text/css\">"
-      + "table { border-color: lightsteelblue; } "
-      + "tr:hover { background-color: lightyellow; } "
-      + "tr:first-child:hover { background-color: white; } "
-      + "</style>";
-  
+  public static final String STYLE_HEADER = "<style media=\"screen\" type=\"text/css\">" + "table { border-color: lightsteelblue; } "
+      + "tr:hover { background-color: lightyellow; } " + "tr:first-child:hover { background-color: white; } " + "</style>";
+
   public static final String FOOTER = "<hr><i>Corus HTTP Service - <a href=\"http://www.sapia-oss.org/projects/corus\">www.sapia-oss.org</a></i>";
 
   private Logger logger;
   private ServerContext context;
-  private Map<HttpExtensionInfo, HttpExtension> extensions = Collections
-      .synchronizedMap(new HashMap<HttpExtensionInfo, HttpExtension>());
+  private Map<HttpExtensionInfo, HttpExtension> extensions = Collections.synchronizedMap(new HashMap<HttpExtensionInfo, HttpExtension>());
 
   public HttpExtensionManager(Logger logger, ServerContext context) {
     this.logger = logger;
@@ -68,20 +64,17 @@ public class HttpExtensionManager implements Handler {
     String contextPath = info.getContextPath();
     String name = info.getName();
     if (contextPath == null) {
-      throw new IllegalStateException(
-          "Context path not specified on extension info for: " + ext);
+      throw new IllegalStateException("Context path not specified on extension info for: " + ext);
     }
     if (name == null) {
-      throw new IllegalStateException(
-          "Name not specified on extension info for: " + ext);
+      throw new IllegalStateException("Name not specified on extension info for: " + ext);
     }
     if (!contextPath.startsWith("/")) {
       contextPath = "/" + contextPath;
     }
     info.setContextPath(contextPath);
     if (extensions.containsKey(info)) {
-      throw new IllegalStateException(
-          "Extension already bound under context path: " + contextPath);
+      throw new IllegalStateException("Extension already bound under context path: " + contextPath);
     }
     logger.debug("Adding HTTP extension under " + contextPath + ": " + ext);
     extensions.put(info, ext);
@@ -115,8 +108,7 @@ public class HttpExtensionManager implements Handler {
         Iterator<HttpExtensionInfo> infos = extensions.keySet().iterator();
         Path path = req.getPath();
         if (logger.isDebugEnabled()) {
-          logger.debug(String.format("Trying to find HTTP extension for %s",
-              path.getPath()));
+          logger.debug(String.format("Trying to find HTTP extension for %s", path.getPath()));
         }
         while (infos.hasNext()) {
           HttpExtensionInfo info = infos.next();
@@ -129,12 +121,10 @@ public class HttpExtensionManager implements Handler {
             if (path.getPath().equals(info.getContextPath())) {
               ctx.setPathInfo("");
             } else {
-              ctx.setPathInfo(req.getPath().getPath()
-                  .substring(info.getContextPath().length()));
+              ctx.setPathInfo(req.getPath().getPath().substring(info.getContextPath().length()));
             }
             if (logger.isDebugEnabled()) {
-              logger.debug("Found extension for URI: " + path
-                  + "; path info = " + ctx.getPathInfo());
+              logger.debug("Found extension for URI: " + path + "; path info = " + ctx.getPathInfo());
             }
             try {
               ext.process(ctx);
@@ -149,7 +139,7 @@ public class HttpExtensionManager implements Handler {
               res.setCode(HttpResponseFacade.STATUS_SERVER_ERROR);
               Streams.closeSilently(res.getOutputStream());
               return;
-            } 
+            }
           }
         }
       }

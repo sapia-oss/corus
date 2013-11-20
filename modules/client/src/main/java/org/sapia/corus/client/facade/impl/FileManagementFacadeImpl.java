@@ -15,26 +15,26 @@ import org.sapia.corus.client.services.deployer.FileManager;
  * Implements the {@link FileManagementFacade} interface.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class FileManagementFacadeImpl extends FacadeHelper<FileManager> implements FileManagementFacade {
-  
+
   public FileManagementFacadeImpl(CorusConnectionContext context) {
     super(context, FileManager.class);
   }
-  
+
   @Override
   public synchronized ProgressQueue deleteFiles(FileCriteria criteria, ClusterInfo cluster) {
     proxy.deleteFiles(criteria);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
-  
+
   @Override
   public synchronized Results<List<FileInfo>> getFiles(FileCriteria criteria, ClusterInfo cluster) {
-    Results<List<FileInfo>>  results = new Results<List<FileInfo>>();
+    Results<List<FileInfo>> results = new Results<List<FileInfo>>();
     proxy.getFiles(criteria);
     invoker.invokeLenient(results, cluster);
-    return results;    
+    return results;
   }
 
 }

@@ -22,15 +22,15 @@ public class TimeServiceClient {
       Log.setInfo();
       TimeService ts = lookup();
 
-      while(true){
-        try{
+      while (true) {
+        try {
           System.out.println("Got time: " + ts.getTime());
           Thread.sleep(8000);
-        }catch(RemoteRuntimeException e){
+        } catch (RemoteRuntimeException e) {
           Thread.sleep(8000);
           // retry
-        }catch(UndeclaredThrowableException e){
-          if(e.getUndeclaredThrowable() instanceof RemoteException){
+        } catch (UndeclaredThrowableException e) {
+          if (e.getUndeclaredThrowable() instanceof RemoteException) {
             Thread.sleep(8000);
             System.out.println("Server down; will retry");
           }
@@ -40,13 +40,13 @@ public class TimeServiceClient {
       t.printStackTrace();
     }
   }
-  
-  private static TimeService lookup() throws Exception{
+
+  private static TimeService lookup() throws Exception {
     Properties props = new Properties();
     props.setProperty(Context.INITIAL_CONTEXT_FACTORY, RemoteInitialContextFactory.class.getName());
     props.setProperty(RemoteInitialContextFactory.UBIK_DOMAIN_NAME, "yduchesne");
     props.setProperty(Context.PROVIDER_URL, "ubik://localhost:33000");
     InitialContext ctx = new InitialContext(props);
-    return (TimeService)ctx.lookup("timeService");
+    return (TimeService) ctx.lookup("timeService");
   }
 }

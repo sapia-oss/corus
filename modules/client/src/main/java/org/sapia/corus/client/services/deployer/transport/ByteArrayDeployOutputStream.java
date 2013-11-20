@@ -6,12 +6,13 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 
 /**
- * {@link DeployOutputStream} implementation based on the {@link ByteArrayOutputStream} class.
+ * {@link DeployOutputStream} implementation based on the
+ * {@link ByteArrayOutputStream} class.
  * <p>
  * Use for testing purposes.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class ByteArrayDeployOutputStream extends ByteArrayOutputStream implements DeployOutputStream {
 

@@ -19,6 +19,6 @@ public class IORuntimeException extends CorusRuntimeException {
   }
 
   public IORuntimeException(String msg, Throwable err) {
-    super(msg, ExceptionCode.IO_ERROR.getFullCode(),err);
+    super(msg, ExceptionCode.IO_ERROR.getFullCode(), err);
   }
 }

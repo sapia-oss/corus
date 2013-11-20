@@ -10,10 +10,10 @@ import org.sapia.ubik.rmi.server.oid.OIDCreationStrategy;
  * A {@link OIDCreationStrategy} used to create {@link Module} {@link OID}s.
  * 
  * @author yduchesne
- *
+ * 
  */
 public class CorusModuleOIDCreationStrategy extends DefaultOIDCreationStrategy {
-  
+
   @Override
   public boolean apply(Object toExport) {
     return toExport instanceof Module;

@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class ProgressQueueImpl implements ProgressQueue {
   private List<ProgressMsg> _msgs = new ArrayList<ProgressMsg>();
-  private boolean           _over;
+  private boolean _over;
 
   public synchronized boolean hasNext() {
     while ((_msgs.size() == 0) && !_over) {
@@ -23,19 +23,19 @@ public class ProgressQueueImpl implements ProgressQueue {
 
     return _msgs.size() > 0;
   }
-  
+
   public synchronized List<ProgressMsg> next() {
     List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>(_msgs);
     _msgs.clear();
 
     return toReturn;
   }
-  
+
   public List<ProgressMsg> fetchNext() {
-		if(hasNext()){
-			return next();			
-		}
-		return new ArrayList<ProgressMsg>(0);
+    if (hasNext()) {
+      return next();
+    }
+    return new ArrayList<ProgressMsg>(0);
   }
 
   public synchronized void addMsg(ProgressMsg msg) {
@@ -45,14 +45,14 @@ public class ProgressQueueImpl implements ProgressQueue {
       notify();
     }
   }
-  
+
   public synchronized void close() {
     _over = true;
     notify();
   }
-  
-  public boolean isClosed(){
-  	return _over;
+
+  public boolean isClosed() {
+    return _over;
   }
 
   public synchronized void debug(Object msg) {
@@ -74,11 +74,11 @@ public class ProgressQueueImpl implements ProgressQueue {
   public synchronized void warning(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.WARNING));
   }
-  
+
   @Override
   public List<ProgressMsg> waitFor() {
     List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>();
-    while(this.hasNext()) {
+    while (this.hasNext()) {
       List<ProgressMsg> batch = fetchNext();
       for (ProgressMsg m : batch) {
         if (m.isError()) {
@@ -87,8 +87,8 @@ public class ProgressQueueImpl implements ProgressQueue {
             throw new ProgressException("Error performing operation", err);
           } else {
             throw new ProgressException("Error performing operation: " + m.getMessage().toString());
-          } 
-        } 
+          }
+        }
         toReturn.add(m);
       }
     }
@@ -96,10 +96,12 @@ public class ProgressQueueImpl implements ProgressQueue {
   }
 
   /**
-   * This template method is internally called from within the {@link #addMsg(ProgressMsg)} method, 
-   * upon a message being added to an instance of this class.
+   * This template method is internally called from within the
+   * {@link #addMsg(ProgressMsg)} method, upon a message being added to an
+   * instance of this class.
    * 
-   * @param msg a newly added {@link ProgressMsg}
+   * @param msg
+   *          a newly added {@link ProgressMsg}
    */
   protected void handleMsg(ProgressMsg msg) {
   }
