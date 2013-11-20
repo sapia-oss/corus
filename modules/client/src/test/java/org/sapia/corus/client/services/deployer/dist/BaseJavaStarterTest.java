@@ -66,7 +66,7 @@ public class BaseJavaStarterTest {
     XOption opt = new XOption();
     opt.setName("someOption");
     opt.setValue("${someValue}");
-    starter.addOption(opt);
+    starter.addXoption(opt);
     Env env = mock(Env.class);
     when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
     CmdLine cmd = starter.toCmdLine(env);
