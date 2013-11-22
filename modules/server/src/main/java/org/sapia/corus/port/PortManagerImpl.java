@@ -15,6 +15,7 @@ import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.core.ModuleHelper;
@@ -41,6 +42,9 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   @Autowired
   private TaskManager taskMan;
 
+  @Autowired
+  private HttpModule httpModule;
+
   private PortRangeStore store;
 
   /** Creates a new instance of PortManagerImpl */
@@ -63,6 +67,13 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   public void start() {
     taskMan.executeBackground(new PortCleanupTask(), null,
         BackgroundTaskConfig.create().setExecDelay(EXEC_INTERVAL_MILLIS).setExecInterval(EXEC_INTERVAL_MILLIS));
+
+    try {
+      PortManagerHttpExtension extension = new PortManagerHttpExtension(this);
+      httpModule.addHttpExtension(extension);
+    } catch (Exception e) {
+      log.error("Could not add port management HTTP extension", e);
+    }
   }
 
   public void dispose() {

@@ -16,6 +16,7 @@ import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
+import org.sapia.corus.util.PropertiesUtil;
 
 /**
  * implements an http extension to provide read access to the internal
@@ -113,7 +114,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     output.println("<th width=\"50%\">Name</th><th width=\"50%\">Value</th>");
     for (String name: keys) {
       String value = someProps.getProperty(name);
-      output.println("<tr><td>" + name + "</td><td>" + value + "</td></tr>");
+      output.println("<tr valign=\"top\"><td>" + name + "</td><td>" + PropertiesUtil.hideIfPassword(name, value) + "</td></tr>");
     }
     
     output.println("</table>");

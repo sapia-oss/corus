@@ -189,4 +189,19 @@ public class PropertiesUtil {
     return toReturn;
   }
 
+  /**
+   * Performs obfuscation of property value when it's a password.
+   * 
+   * @param name The name of the property.
+   * @param value The value of the property.
+   * @return The clear or obfuscated value.
+   */
+  public static String hideIfPassword(String name, String value) {
+    if (name != null && name.toLowerCase().contains("password")) {
+      return "********";
+    } else {
+      return value;
+    }
+  }
+
 }

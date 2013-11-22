@@ -27,6 +27,7 @@ import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
+import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.rmi.naming.remote.RemoteInitialContextFactory;
 import org.sapia.ubik.util.Localhost;
 
@@ -178,7 +179,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
         if (value.indexOf(' ') > 0) {
           value = "\"" + value + "\"";
         }
-        ctx.info("Passing process property: " + name + "=" + hideIfPassword(name, value));
+        ctx.info("Passing process property: " + name + "=" + PropertiesUtil.hideIfPassword(name, value));
         props.add(new Property(name, value));
       }
     }
@@ -197,13 +198,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     }
 
     return (Property[]) props.toArray(new Property[props.size()]);
-  }
-
-  private String hideIfPassword(String name, String value) {
-    if (name.contains("password")) {
-      return "********";
-    } else
-      return value;
   }
 
   private OsModule.LogCallback callback(final TaskExecutionContext ctx) {

@@ -16,7 +16,7 @@
 	<url>http://www.sapia-oss.org</url>
 
 	<properties>
-		<grails.version>2.0.3</grails.version>
+		<grails.version>2.3.2</grails.version>
 	</properties>
 
 	<dependencies>
@@ -27,6 +27,13 @@
 			<version>${grails.version}</version>
 			<type>pom</type>
 		</dependency>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+		
 	</dependencies>
 
 	<build>
@@ -88,6 +95,10 @@
 							<goal>maven-war</goal>
 							<goal>maven-functional-test</goal>
 						</goals>
+						<configuration>
+							<showStacktrace>true</showStacktrace>
+							<skipTests>true</skipTests>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
