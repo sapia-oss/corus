@@ -63,7 +63,7 @@ public class PortManagerHttpExtension implements HttpExtension {
     responseStream.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"3\" width=\"75%\">");
     responseStream.println("<th width=\"40%\">Name</th><th width=\"20%\" align=\"center\">Range</th><th width=\"40%\" align=\"center\">Status</th>");
     for (PortRange range: portManager.getPortRanges()) {
-      List<PortRangeEntry> entries = new ArrayList<>();
+      List<PortRangeEntry> entries = new ArrayList<PortRangeEntry>();
       for (Integer number: range.getAvailable()) {
         entries.add(PortRangeEntry.createNewAvailable(number));
       }

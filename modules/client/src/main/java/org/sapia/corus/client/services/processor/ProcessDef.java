@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.processor;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * A {@link ProcessDef} is held within an {@link ExecConfig}.
@@ -78,7 +77,7 @@ public class ProcessDef implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(dist, version, process, profile);
+    return new StringBuilder().append(dist).append(version).append(process).append(profile).toString().hashCode();
   }
 
   @Override

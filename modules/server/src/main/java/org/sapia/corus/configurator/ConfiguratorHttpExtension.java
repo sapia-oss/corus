@@ -104,7 +104,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
    *          The stream in which to send the output
    */
   protected void generatePropertiesTable(Properties someProps, PrintStream output) {
-    List<String> keys = new ArrayList<>();
+    List<String> keys = new ArrayList<String>();
     for (Object key: someProps.keySet()) {
       keys.add((String) key);
     }
@@ -129,7 +129,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
    *          The stream in which to send the output
    */
   protected void generateValueTable(Collection<?> someValues, PrintStream output) {
-    List<String> sortedValues = new ArrayList<>();
+    List<String> sortedValues = new ArrayList<String>();
     for (Object value: someValues) {
       sortedValues.add(String.valueOf(value));
     }
