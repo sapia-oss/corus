@@ -2,7 +2,6 @@ package org.sapia.corus.client.cli;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.AbortException;

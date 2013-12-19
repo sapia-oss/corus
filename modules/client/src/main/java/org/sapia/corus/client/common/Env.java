@@ -1,5 +1,7 @@
 package org.sapia.corus.client.common;
 
+import java.util.Map;
+
 import org.sapia.corus.client.services.deployer.dist.Property;
 
 /**
@@ -79,4 +81,10 @@ public interface Env {
    * @return the path to the Java starter lib.
    */
   public String getJavaStarterLibPath();
+  
+  /**    
+   * @return the process' environment variables.
+   * @see System#getenv()
+   */
+  public Map<String, String> getEnvironmentVariables();
 }

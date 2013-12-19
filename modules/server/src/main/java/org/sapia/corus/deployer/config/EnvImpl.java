@@ -2,6 +2,7 @@ package org.sapia.corus.deployer.config;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Map;
 
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.PathFilter;
@@ -119,6 +120,11 @@ public class EnvImpl implements Env {
   @Override
   public PathFilter createPathFilter(String basedir) {
     return new PathFilterImpl(basedir);
+  }
+  
+  @Override
+  public Map<String, String> getEnvironmentVariables() {
+    return System.getenv();
   }
 
   protected String findLibPath(String basedirName, final String libName) {

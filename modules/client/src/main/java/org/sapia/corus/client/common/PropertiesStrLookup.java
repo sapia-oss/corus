@@ -31,7 +31,7 @@ public class PropertiesStrLookup extends StrLookup {
   public static PropertiesStrLookup getSystemInstance() {
     return new PropertiesStrLookup(System.getProperties());
   }
-
+  
   /**
    * @param props
    *          the {@link Properties} to use.
