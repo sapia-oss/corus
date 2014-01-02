@@ -16,21 +16,19 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_global</artifactId>
-    <version>1.15</version>
+    <version>1.21</version>
   </parent>
-
- <scm>
-    <connection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</connection>
-    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</developerConnection>
-    <url>scm:svn:https://sapia.googlecode.com/svn/trunk/corus</url>
-  </scm>
 
   <licenses>
     <license>
       <name>Apache 2</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
-</licenses>
+		<license>
+			<name>GNU General Public License (GPL), version 3</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+		</license>    
+  </licenses>
 
   <packaging>pom</packaging>
 
@@ -203,7 +201,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>3.6</version>
+        <version>3.7</version>
       </dependency>
       
     <!-- http client-->
