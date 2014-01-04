@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE service_bundle SYSTEM "/usr/share/lib/xml/dtd/service_bundle.dtd.1">
+
+<service_bundle type="manifest" name="Sapia Corus">
+  <service name="application/sapia/corus" type="service" version="1">
+
+    <!-- FORCE SINGLE CORUS INSTANCE -->
+    <create_default_instance enabled="false" />
+    <single_instance />
+
+    <!-- REQUIRES LOCAL FILE SYSTEM -->
+    <dependency name="fs-local" grouping="require_all" restart_on="none" type="service">
+      <service_fmri value="svc:/system/filesystem/local" />
+    </dependency>
+
+    <!-- REQUIRES NETWORK INTERFACES -->
+    <dependency name="network" grouping="require_all" restart_on="error" type="service">
+      <service_fmri value="svc:/milestone/network" />
+    </dependency>
+
+    <!-- DEFINE DEFAULT CONTEXT OF METHODS -->
+    <method_context>
+      <method_environment>
+        <envvar name="CORUS_HOME" value="/opt/sapia-corus/current" />
+      </method_environment>
+    </method_context>
+
+    <exec_method type="method" name="start"  timeout_seconds="60"
+                 exec="/opt/sapia-corus/current/bin/corus-smf.sh start 33000" />
+
+    <exec_method type="method" name="stop" timeout_seconds="60"
+                 exec="/opt/sapia-corus/current/bin/corus-smf.sh stop 33000" />
+
+    <exec_method type="method" name="refresh" timeout_seconds="60"
+                 exec="/opt/sapia-corus/current/bin/corus-smf.sh restart 33000" />
+
+    <property_group name="startd" type="framework">
+      <propval name="duration" type="astring" value="contract" />
+    </property_group>
+
+    <template>
+      <common_name>
+        <loctext xml:lang='C'>Sapia Corus Server</loctext>
+      </common_name>
+      <documentation>
+        <doc_link name="Corus Website" uri="http://www.sapia-oss.org/projects/corus/"/>
+      </documentation>
+    </template>
+
+  </service>
+</service_bundle>
+

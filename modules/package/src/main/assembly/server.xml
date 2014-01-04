@@ -1,0 +1,69 @@
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>zip</format>
+    <format>tar.gz</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <fileSets>
+    
+    <!-- bin -->
+    <fileSet>
+       <directory>bin</directory>
+       <includes>
+          <include>*.sh</include>
+       </includes>
+       <fileMode>0777</fileMode>
+    </fileSet>
+    <fileSet>
+       <directory>bin</directory>
+       <includes>
+          <include>wrapper</include>
+       </includes>
+       <fileMode>0777</fileMode>
+    </fileSet>
+    <fileSet>
+       <directory>bin</directory>
+       <excludes>
+          <exclude>*.sh</exclude>
+          <exclude>wrapper</exclude>
+       </excludes>
+       <includes>
+          <include>*</include>
+          <include>**/*</include>
+       </includes>
+    </fileSet>    
+    
+    <!-- config -->
+    <fileSet>
+       <directory>config</directory>
+       <includes>
+          <include>*.*</include>
+       </includes>
+    </fileSet>
+
+    <!-- doc -->
+    <fileSet>
+       <directory>doc/text</directory>
+       <includes>
+          <include>*.pdf</include>
+       </includes>
+    </fileSet>
+    
+    <!-- lib -->
+    <fileSet>
+       <directory>lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+    <fileSet>
+       <directory>extra-lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

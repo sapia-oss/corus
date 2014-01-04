@@ -1,0 +1,33 @@
+Simple instructions to insall corus on Solaris
+
+TESTED ON openSolaris 2009.06
+==> SunOS cygnus-opensolaris 5.11 snv_111b i86pc i386 i86pc Solaris
+
+
+1. create a new 'software' group
+    --> groupadd -g 801 software
+
+2. create a new 'corus' system user
+    --> useradd -u 801 -g software -m -d /export/home/corus -s /bin/bash corus
+
+3. extract corus archive under /opt/corus/${version}
+    - changed owner of directory to corus user (chown -R corus:software /opt/corus/${version})
+
+3. create/rename /opt/corus/current symbolic link to the /opt/corus/${version} directory
+    --> ln -s /opt/corus/${version} /opt/corus/current
+
+4. add CORUS_HOME and JAVA_HOME environment variables && add CORUS_HOME/bin in PATH in file /etc/profile
+    export CORUS_HOME=/opt/corus/current
+    export JAVA_HOME=/usr/jdk/latest
+    export PATH=$PATH:$CORUS_HOME/bin
+
+5. Import SMF manifest in Solaris
+    --> svccfg import /opt/corus/current/config/corus.smf.xml
+
+6. Enable corus service
+    --> svcadm enable svc:/application/sapia/corus
+
+7. Validate status
+    --> scvs -x corus
+    --> ps -fea | grep corus
+    --> coruscli

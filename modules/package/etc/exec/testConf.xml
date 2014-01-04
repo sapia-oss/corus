@@ -1,0 +1,6 @@
+<exec name="test" startOnBoot="true" xmlns="http://www.sapia-oss.org/xsd/corus/exec-2.0.xsd">
+
+	<process dist="demo" version="1.0" name="noopApp" profile="test" /> 
+	<process dist="demo" version="1.0" name="httpServer" profile="test" /> 
+
+</exec>

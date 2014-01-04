@@ -1,0 +1,225 @@
+#!/bin/bash
+
+# chkconfig: 2345 25 75
+# description: Sapia Corus is a server that manages Java Virtual Machines.
+#
+### BEGIN INIT INFO
+# Provides:                     corus
+# Required-Start:               $local_fs $network
+# Should-Start:                 
+# Required-Stop:                $local_fs $network
+# Should-Stop:                  
+# Default-Start:                2 3 4 5
+# Default-Stop:                 0 1 6
+# Short-Description:            Sapia Corus Server
+# Description:                  Start Sapia Corus Server
+### END INIT INFO
+
+############################################################
+# 
+# This script should be used if the Java Wrapper fails (that 
+# is: when the Wrapper cannot be used to start Corus on certain 
+# *NIX/*NUX platforms).
+#
+# INSTALLATION PROCEDURE (must be root, or have sudo access)
+# ----------------------------------------------------------
+#
+# 1) Copy this file in the directory /etc/init.d and rename it to 'corus', without the quotes.
+#    Make sure it is executable (chmod a+x /etc/init.d/corus).
+#
+# 2) Edit the script's variables (see further below). Because the services are started 
+#    from an empty environment, we must explicitly define the required variables 
+#    $CORUS_HOME and $JAVA_HOME
+#
+# 3) Create a user named 'corus' and make sure it own the $CORUS_HOME directory.
+#
+# 4) Test the setup by using the command 'service corus {start|status|stop}' at the command line
+#
+# 5) Register this startup script using the chkconfig command: 'chkconfig --add corus'
+#
+# 6) Validate the registration with the command 'chkconfig --list' and make sure corus is in the list
+#  
+#
+# Credits: the orginal for the script can be found at: 
+# http://shrubbery.mynetgear.net/c/display/W/Java+Daemon+Startup+Script
+# 
+#
+
+################################################################
+# Set the following variables according to your Corus installation.
+# These variables are used later on in the script.
+
+JAVA_HOME=<PATH_TO_JAVA_HOME>
+CORUS_HOME=<PATH_TO_CORUS_HOME>
+CORUS_PORT=33000
+CORUS_USER=corus
+CORUS_GROUP=<GROUP_OF_CORUS_USER>
+CORUS_LOG_DIR="$CORUS_HOME/logs"
+
+# Log level can be either DEBUG, INFO, WARNING, ERROR.
+CORUS_LOG_LEVEL=INFO
+
+CORUS_OPTS="-Xms32M -Xms32M -Djava.net.preferIPv4Stack=true -Duser.dir=$CORUS_HOME -Dcorus.home=$CORUS_HOME"
+
+################################################################
+
+CLASSPATH=""
+for JAR in $CORUS_HOME/lib/server/*.jar
+do
+    # if the directory is empty, then it will return the input string
+    # this is stupid, so case for it
+    if [ "${JAR}" != "${CORUS_HOME}/lib/server/*.jar" ] ; then
+        if [ -z "${CLASSPATH}" ] ; then
+            CLASSPATH=${JAR}
+        else
+            CLASSPATH="${JAR}":${CLASSPATH}
+        fi
+    fi
+done
+ 
+serviceNameLo="corus"                                            # service name with the first letter in lowercase
+serviceName="Corus"                                              # service name
+serviceUser="$CORUS_USER"                                        # OS user name for the service
+serviceGroup="$CORUS_GROUP"                                      # OS group name for the service
+applDir="$CORUS_HOME"                                            # home directory of the service application
+serviceUserHome="/home/$serviceUser"                             # home directory of the service user
+serviceLogDir="$CORUS_LOG_DIR"
+serviceLogFile="$serviceLogDir/$serviceNameLo-$CORUS_PORT-stdout.log"  # log file for StdOut/StdErr
+maxShutdownTime=15                                               # maximum number of seconds to wait for the daemon to terminate normally
+pidFile="$CORUS_HOME/bin/$serviceNameLo.pid"                     # name of PID file (PID = process ID number)
+javaCommand="java"                                               # name of the Java launcher without the path
+javaCommandLineKeyword="$serviceNameLo_$CORUS_PORT"              # a keyword that occurs on the commandline, used to detect an already running service process and to distinguish it from others
+javaExe="$JAVA_HOME/bin/$javaCommand"                            # file name of the Java application launcher executable
+
+javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir"
+
+javaCommandLine="$javaExe $javaArgs"                             # command line to start the Java service application
+ 
+
+# Makes the file $1 writable by the group $serviceGroup.
+function makeFileWritable {
+   local filename="$1"
+   touch $filename || return 1
+   chgrp $serviceGroup $filename || return 1
+   chmod g+w $filename || return 1
+   return 0; }
+ 
+# Returns 0 if the process with PID $1 is running.
+function checkProcessIsRunning {
+   local pid="$1"
+   if [ -z "$pid" -o "$pid" == " " ]; then return 1; fi
+   if [ ! -e /proc/$pid ]; then return 1; fi
+   return 0; }
+ 
+# Returns 0 if the process with PID $1 is our Java service process.
+function checkProcessIsOurService {
+   local pid="$1"
+   if [ "$(ps -p $pid --no-headers -o comm)" != "$javaCommand" ]; then return 1; fi
+   grep -q --binary -F "$javaCommandLineKeyword" /proc/$pid/cmdline
+   if [ $? -ne 0 ]; then return 1; fi
+   return 0; }
+ 
+# Returns 0 when the service is running and sets the variable $pid to the PID.
+function getServicePID {
+   if [ ! -f $pidFile ]; then return 1; fi
+   pid="$(<$pidFile)"
+   checkProcessIsRunning $pid || return 1
+   checkProcessIsOurService $pid || return 1
+   return 0; }
+ 
+function startServiceProcess {
+   cd $applDir || return 1
+   rm -f $pidFile 
+   mkdir -p $serviceLogDir
+   makeFileWritable $serviceLogDir || return 1   
+   makeFileWritable $pidFile || return 1
+   makeFileWritable $serviceLogFile || return 1
+   cmd="nohup $javaCommandLine >>$serviceLogFile 2>&1 & echo \$! >$pidFile"
+   su -m $serviceUser -s $SHELL -c "$cmd" || return 1
+   sleep 0.1
+   pid="$(<$pidFile)"
+   if checkProcessIsRunning $pid; then :; else
+      echo -ne "\n$serviceName start failed, see logfile."
+      return 1
+   fi
+   return 0; }
+ 
+function stopServiceProcess {
+   kill $pid || return 1
+   for ((i=0; i<maxShutdownTime*10; i++)); do
+      checkProcessIsRunning $pid
+      if [ $? -ne 0 ]; then
+         rm -f $pidFile
+         return 0
+         fi
+      sleep 0.1
+      done
+   echo -e "\n$serviceName did not terminate within $maxShutdownTime seconds, sending SIGKILL..."
+   kill -s KILL $pid || return 1
+   local killWaitTime=15
+   for ((i=0; i<killWaitTime*10; i++)); do
+      checkProcessIsRunning $pid
+      if [ $? -ne 0 ]; then
+         rm -f $pidFile
+         return 0
+         fi
+      sleep 0.1
+      done
+   echo "Error: $serviceName could not be stopped within $maxShutdownTime+$killWaitTime seconds!"
+   return 1; }
+ 
+function startService {
+   getServicePID
+   if [ $? -eq 0 ]; then echo -n "$serviceName is already running"; RETVAL=0; return 0; fi
+   echo -n "Starting $serviceName   "
+   startServiceProcess
+   if [ $? -ne 0 ]; then RETVAL=1; echo "failed"; return 1; fi
+   echo "started PID=$pid"
+   RETVAL=0
+   return 0; }
+ 
+function stopService {
+   getServicePID
+   if [ $? -ne 0 ]; then echo -n "$serviceName is not running"; RETVAL=0; echo ""; return 0; fi
+   echo -n "Stopping $serviceName   "
+   stopServiceProcess
+   if [ $? -ne 0 ]; then RETVAL=1; echo "failed"; return 1; fi
+   echo "stopped PID=$pid"
+   RETVAL=0
+   return 0; }
+ 
+function checkServiceStatus {
+   echo -n "Checking for $serviceName:   "
+   if getServicePID; then
+    echo "running PID=$pid"
+    RETVAL=0
+   else
+    echo "stopped"
+    RETVAL=3
+   fi
+   return 0; }
+ 
+function main {
+   RETVAL=0
+   case "$1" in
+      start)                                               # starts the Java program as a Linux service
+         startService
+         ;;
+      stop)                                                # stops the Java program service
+         stopService
+         ;;
+      restart)                                             # stops and restarts the service
+         stopService && startService
+         ;;
+      status)                                              # displays the service status
+         checkServiceStatus
+         ;;
+      *)
+         echo "Usage: $0 {start|stop|restart|status}"
+         exit 1
+         ;;
+      esac
+   exit $RETVAL
+}
+ 
+main $1
