@@ -1,9 +1,11 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Holds a pre-executable CLI script meant to be executed on the server-side.
+ * Holds a list of Corus command-line to be executed on the server-side.
  * 
  * @author yduchesne
  *
@@ -11,24 +13,21 @@ import java.io.Serializable;
 public class PreExec implements Serializable {
   
   private static final long serialVersionUID = 1L;
-  
-  private String script;
+
+  private List<Cmd> commands = new ArrayList<Cmd>();
   
   /**
-   * Sets a script to execute (method is called setText to be compliant with how
-   * the Config framework injects XML element content).
-   * 
-   * @param script a script's content.
+   * @param cmd a command-line to execute.
    */
-  public void setText(String script) {
-    this.script = script;
+  public void addCmd(Cmd cmd) {
+    commands.add(cmd);
   }
   
   /**
-   * @return the script that was set.
+   * @return the command-lines to execute.
    */
-  public String getScript() {
-    return script;
+  public List<Cmd> getCommands() {
+    return commands;
   }
 
 }

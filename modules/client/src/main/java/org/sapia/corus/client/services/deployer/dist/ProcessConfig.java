@@ -1,6 +1,5 @@
 package org.sapia.corus.client.services.deployer.dist;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -8,6 +7,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
@@ -28,6 +28,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
 
   public static final int DEFAULT_POLL_INTERVAL = 10;
   public static final int DEFAULT_STATUS_INTERVAL = 30;
+
   private boolean invoke = true;
   private List<Starter> starters = new ArrayList<Starter>();
   private List<Port> ports = new ArrayList<Port>();
@@ -39,15 +40,15 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
   private int pollInterval = DEFAULT_POLL_INTERVAL;
   private boolean deleteOnKill = false;
   private String[] tags;
-  private PreExec preExec;
-  
+  private PreExec preExec; 
+
   public ProcessConfig() {
   }
 
   public ProcessConfig(String name) {
     this.name = name;
   }
-  
+
   /**
    * Sets the {@link PreExec} instance.
    */
@@ -273,17 +274,25 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
    * @throws Throwable if an error occurs while executing the script.
    */
   public void preExec(Env env) throws Throwable {
-    if (preExec != null && preExec.getScript() != null) {
-      StringReader       reader = new StringReader(preExec.getScript());
-      CompositeStrLookup vars   = new CompositeStrLookup();
+    if (preExec != null && !preExec.getCommands().isEmpty()) {
+      CompositeStrLookup vars   = new CompositeStrLookup().lenient();
       Properties          props = new Properties();
       for (Property p : env.getProperties()) {
         props.setProperty(p.getName(), p.getValue());
       }
+      
       vars.add(new PropertiesStrLookup(props));
       vars.add(StrLookup.mapLookup(env.getEnvironmentVariables()));
       vars.add(StrLookup.systemPropertiesLookup());
-      env.getInterpreter().interpret(reader, vars);
+
+      StrSubstitutor subs = new StrSubstitutor(vars);
+      for (Cmd c : preExec.getCommands()) {
+        String value = c.getValue();
+        if (value != null) {
+          value = subs.replace(value);
+          env.getInterpreter().eval(value, vars);          
+        }
+      }
     }
   }
 

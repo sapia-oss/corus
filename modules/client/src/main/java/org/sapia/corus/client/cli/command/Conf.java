@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdElement;
@@ -28,7 +29,9 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collections2;
@@ -63,6 +66,7 @@ public class Conf extends CorusCliCommand {
   private static final String OPT_FILE = "f";
   private static final String OPT_BASE = "b";
   private static final String OPT_TAG = "t";
+  private static final String OPT_REPLACE = "r";
   private static final String OPT_SCOPE = "s";
   private static final String OPT_SCOPE_SVR = "s";
   private static final String OPT_SCOPE_PROC = "p";
@@ -95,7 +99,7 @@ public class Conf extends CorusCliCommand {
       } else if (opArg.equalsIgnoreCase(ARG_MERGE)) {
         op = Op.MERGE;
       } else {
-        throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | merge | ls");
+        throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
       }
     } else {
       throw new InputException("Missing argument; expecting one of: add | del | ls");
@@ -133,7 +137,6 @@ public class Conf extends CorusCliCommand {
         } finally {
           reader.close();
         }
-        ctx.getConsole().println("Added tags from file: " + tagFile.getAbsolutePath());
       } else {
         toAdd.addAll(Collections2.arrayToSet(tagString.split(",")));
       }
@@ -217,11 +220,16 @@ public class Conf extends CorusCliCommand {
           processProps.setProperty(nvp.getName(), nvp.getValue());
         }
       }
-      File baseFile   = new File(ctx.getCommandLine().assertOption(OPT_BASE, true).getValue());
-      File targetFile = new File(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+      
+      File baseFile   = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_BASE, true).getValue());
+      File targetFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+      
+      boolean replace = ctx.getCommandLine().containsOption(OPT_REPLACE, false);
+      
       if (!baseFile.exists()) {
         throw new InputException("File does not exist: " + baseFile.getAbsolutePath());
       }
+      
       Properties  mergedProperties = new Properties();
       Properties  baseProperties   = new Properties();
       InputStream is               = new FileInputStream(baseFile);
@@ -230,11 +238,27 @@ public class Conf extends CorusCliCommand {
       } finally {
         is.close();
       }
+
+      // adding base properties first
+      StrSubstitutor substitutor = new StrSubstitutor(
+          new CompositeStrLookup()
+            .add(PropertiesStrLookup.getInstance(processProps))
+            .add(ctx.getVars())
+            .add(PropertiesStrLookup.systemPropertiesLookup())
+            .lenient()
+       );
       
       for (String n : baseProperties.stringPropertyNames()) {
-        mergedProperties.setProperty(n, baseProperties.getProperty(n));
+        String value = baseProperties.getProperty(n);
+        if (replace) {
+          if (value != null) {
+            value = substitutor.replace(value);
+          }
+        }
+        mergedProperties.setProperty(n, value);
       }
-      
+
+      // overwriting base properties with process properties.
       for (String n : processProps.stringPropertyNames()) {
         mergedProperties.setProperty(n, processProps.getProperty(n));
       }

@@ -29,6 +29,7 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("xoption", XOption.class);
     register("process", ProcessConfig.class);
     register("preExec", PreExec.class);
+    register("cmd", Cmd.class);
   }
 
   void register(String localName, Class<?> clazz) {

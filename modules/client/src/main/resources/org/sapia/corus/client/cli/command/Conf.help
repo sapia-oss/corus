@@ -47,18 +47,22 @@
     <p>- f : in the context of an export, indicates to which the tags or properties should be exported. In the context of merge
     indicates the file to which merged properties should be written</p>
     <p/>
+    <p>- r : in the context of merge: indicates that variable substitution should be performed (process properties will be used as variable values for base file).</p>
+    <p/>    
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Notes">
-    <p>Export operations are not clustered (passing the -cluster switch in such cases will have no effect).</p>
+    <p>- Export operations are not clustered (passing the -cluster switch in such cases will have no effect).</p>
+    <p/>
     <p>The 'ren' argument (standing for 'rename') takes a comma-delimited list of tag renaming pairs: 
     the tags in a pair are separated by an equal ('=') sign. The tag on the left-hand side of the sign corresponds
     to the current tag, the one on the right-hand side to the tag that will replace it. Only tags that exist on
-    the respective Corus will be impacted (i.e.: will be renamed).</p>
-    
-    <p>The merge operation consists of merging the content of a given properties file (known as the base) with
+    the respective Corus instance will be impacted (i.e.: will be renamed).</p>
+    <p/>
+    <p>- The merge operation consists of merging the content of a given properties file (known as the base) with
     Corus process properties (with the latter overwriting any identically named properties in the base file).
-    The result of the merge is output to a given target file. This operation DOES NOT SUPPORT THE -cluster SWITCH.</p>
+    The result of the merge is output to a given target file (identified by the -f option). This operation DOES NOT 
+    SUPPORT THE -cluster OPTION.</p>
   </section>
   <section title="Examples">
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>

@@ -109,7 +109,7 @@ public class Interpreter extends Console {
       }
     }
   }
-  
+
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
@@ -132,7 +132,7 @@ public class Interpreter extends Console {
 
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
-    
+
     try {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
@@ -182,13 +182,14 @@ public class Interpreter extends Console {
       throw new IllegalStateException("Cannot read password from input in interpreter mode");
     }
   }
-  
+
   /**
    * Disables logging.
    */
   protected void disableLogging() {
     Logger.getRootLogger().setLevel(Level.OFF);
   }
+
   
   /**
    * @param level {@link Level} the level reassign.
@@ -196,7 +197,5 @@ public class Interpreter extends Console {
   protected void enableLogging(Level level) {
     Logger.getRootLogger().setLevel(level);
   }
-
-  // ---------------------------------------------------------------------------
 
 }
