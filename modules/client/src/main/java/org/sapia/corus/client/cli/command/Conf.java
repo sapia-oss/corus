@@ -21,6 +21,7 @@ import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
@@ -56,9 +57,11 @@ public class Conf extends CorusCliCommand {
   public static final String ARG_DEL = "del";
   public static final String ARG_LS = "ls";
   public static final String ARG_EXPORT = "export";
+  public static final String ARG_MERGE = "merge";
 
   private static final String OPT_PROPERTY = "p";
   private static final String OPT_FILE = "f";
+  private static final String OPT_BASE = "b";
   private static final String OPT_TAG = "t";
   private static final String OPT_SCOPE = "s";
   private static final String OPT_SCOPE_SVR = "s";
@@ -68,7 +71,7 @@ public class Conf extends CorusCliCommand {
   // --------------------------------------------------------------------------
 
   private enum Op {
-    ADD, DELETE, LIST, EXPORT, RENAME
+    ADD, DELETE, LIST, EXPORT, RENAME, MERGE
   }
 
   // --------------------------------------------------------------------------
@@ -89,8 +92,10 @@ public class Conf extends CorusCliCommand {
         op = Op.EXPORT;
       } else if (opArg.equalsIgnoreCase(ARG_RENAME)) {
         op = Op.RENAME;
+      } else if (opArg.equalsIgnoreCase(ARG_MERGE)) {
+        op = Op.MERGE;
       } else {
-        throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
+        throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | merge | ls");
       }
     } else {
       throw new InputException("Missing argument; expecting one of: add | del | ls");
@@ -101,10 +106,14 @@ public class Conf extends CorusCliCommand {
         try {
           handleTag(op, ctx);
         } catch (IOException e) {
-          throw new InputException(e.getMessage());
+          throw new AbortException("I/O Error performing command", e);
         }
       } else {
-        handlePropertyOp(op, ctx);
+        try {
+          handlePropertyOp(op, ctx);
+        } catch (IOException e) {
+          throw new AbortException("I/O Error performing command", e);
+        }
       }
     }
   }
@@ -147,10 +156,10 @@ public class Conf extends CorusCliCommand {
         }
       }
       ctx.getCorus().getConfigFacade().renameTags(nvPairs, getClusterInfo(ctx));
-    }
+    } 
   }
 
-  private void handlePropertyOp(Op op, CliContext ctx) throws InputException {
+  private void handlePropertyOp(Op op, CliContext ctx) throws InputException, IOException {
     PropertyScope scope = PropertyScope.PROCESS;
     if (ctx.getCommandLine().containsOption(OPT_SCOPE, true)) {
       String scopeOpt = ctx.getCommandLine().assertOption(OPT_SCOPE, true).getValue();
@@ -199,6 +208,43 @@ public class Conf extends CorusCliCommand {
         } else {
           throw new InputException("Invalid property format; expected: <name>=<value>");
         }
+      }
+    } else if (op == Op.MERGE) {
+      Properties processProps = new Properties();
+      Results<List<NameValuePair>> propResults = ctx.getCorus().getConfigFacade().getProperties(PropertyScope.PROCESS, new ClusterInfo(false));
+      for (Result<List<NameValuePair>> r : propResults) {
+        for (NameValuePair nvp : r.getData()) {
+          processProps.setProperty(nvp.getName(), nvp.getValue());
+        }
+      }
+      File baseFile   = new File(ctx.getCommandLine().assertOption(OPT_BASE, true).getValue());
+      File targetFile = new File(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
+      if (!baseFile.exists()) {
+        throw new InputException("File does not exist: " + baseFile.getAbsolutePath());
+      }
+      Properties  mergedProperties = new Properties();
+      Properties  baseProperties   = new Properties();
+      InputStream is               = new FileInputStream(baseFile);
+      try {
+        baseProperties.load(is);
+      } finally {
+        is.close();
+      }
+      
+      for (String n : baseProperties.stringPropertyNames()) {
+        mergedProperties.setProperty(n, baseProperties.getProperty(n));
+      }
+      
+      for (String n : processProps.stringPropertyNames()) {
+        mergedProperties.setProperty(n, processProps.getProperty(n));
+      }
+      
+      FileOutputStream os = new FileOutputStream(targetFile);
+      try {
+        mergedProperties.store(os, "");
+      } finally {
+        os.flush();
+        os.close();
       }
     } else if (op == Op.DELETE) {
       String name = ctx.getCommandLine().assertOption(OPT_PROPERTY, true).getValue();

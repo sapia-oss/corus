@@ -70,8 +70,13 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     EnvImpl env = null;
 
     try {
-      env = new EnvImpl(ctx.getServerContext().getHomeDir(), process.getDistributionInfo().getProfile(), dist.getBaseDir(), dist.getCommonDir(),
-          process.getProcessDir(), getProcessProps(conf, process, dist, ctx, processProperties));
+      env = new EnvImpl(
+          ctx.getServerContext().getCorus(), 
+          ctx.getServerContext().getHomeDir(), 
+          process.getDistributionInfo().getProfile(), 
+          dist.getBaseDir(), dist.getCommonDir(),
+          process.getProcessDir(),
+          getProcessProps(conf, process, dist, ctx, processProperties));
     } catch (PortUnavailableException e) {
       process.releasePorts(ports);
       ctx.error(e);

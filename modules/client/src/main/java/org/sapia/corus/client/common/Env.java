@@ -2,6 +2,7 @@ package org.sapia.corus.client.common;
 
 import java.util.Map;
 
+import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.services.deployer.dist.Property;
 
 /**
@@ -76,6 +77,11 @@ public interface Env {
    * @return the path to the Corus IOP lib.
    */
   public String getCorusIopLibPath();
+  
+  /**
+   * @return the embedded {@link Interpreter} to use.
+   */
+  public Interpreter getInterpreter();
 
   /**
    * @return the path to the Java starter lib.

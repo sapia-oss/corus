@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Map;
 
+import org.sapia.corus.cli.EmbeddedInterpreter;
+import org.sapia.corus.client.Corus;
+import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.services.deployer.dist.Property;
@@ -15,16 +18,19 @@ import org.sapia.corus.client.services.deployer.dist.Property;
  */
 public class EnvImpl implements Env {
 
-  private String corusHome;
-  private String distDir;
-  private String commonDir;
-  private String processDir;
-  private String profile;
-  private Property[] props;
+  private String      corusHome;
+  private String      distDir;
+  private String      commonDir;
+  private String      processDir;
+  private String      profile;
+  private Property[]  props;
+  private Interpreter interpreter;
 
   /**
    * Constructor for Env.
    * 
+   * @param corus
+   *          the {@link Corus} instance.
    * @param profile
    *          the name of the profile under which a process is to be started.
    * @param distDir
@@ -38,13 +44,21 @@ public class EnvImpl implements Env {
    *          an array of {@link Property} instances that corresponds to the
    *          properties that will be dynamically passed to the started process.
    */
-  public EnvImpl(String corusHome, String profile, String distDir, String commonDir, String processDir, Property[] props) {
-    this.corusHome = corusHome;
-    this.distDir = distDir;
-    this.processDir = processDir;
-    this.props = props;
-    this.profile = profile;
-    this.commonDir = commonDir;
+  public EnvImpl(Corus corus, String corusHome, String profile, String distDir, String commonDir, String processDir, Property[] props) {
+    this.corusHome   = corusHome;
+    this.distDir     = distDir;
+    this.processDir  = processDir;
+    this.props       = props;
+    this.profile     = profile;
+    this.commonDir   = commonDir;
+    this.interpreter = new EmbeddedInterpreter(corus, new File(commonDir));
+  }
+  
+  /**
+   * @return the {@link Interpreter} that this instance holds.
+   */
+  public Interpreter getInterpreter() {
+    return interpreter;
   }
 
   /**

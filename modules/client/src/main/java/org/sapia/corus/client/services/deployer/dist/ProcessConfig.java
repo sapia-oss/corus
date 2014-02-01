@@ -1,12 +1,17 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectHandlerIF;
@@ -34,12 +39,20 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
   private int pollInterval = DEFAULT_POLL_INTERVAL;
   private boolean deleteOnKill = false;
   private String[] tags;
-
+  private PreExec preExec;
+  
   public ProcessConfig() {
   }
 
   public ProcessConfig(String name) {
     this.name = name;
+  }
+  
+  /**
+   * Sets the {@link PreExec} instance.
+   */
+  public void setPreExec(PreExec preExec) {
+    this.preExec = preExec;
   }
 
   /**
@@ -253,6 +266,25 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
    */
   public int getMaxInstances() {
     return maxInstances;
+  }
+
+  /**
+   * @param env the {@link Env} instance.
+   * @throws Throwable if an error occurs while executing the script.
+   */
+  public void preExec(Env env) throws Throwable {
+    if (preExec != null && preExec.getScript() != null) {
+      StringReader       reader = new StringReader(preExec.getScript());
+      CompositeStrLookup vars   = new CompositeStrLookup();
+      Properties          props = new Properties();
+      for (Property p : env.getProperties()) {
+        props.setProperty(p.getName(), p.getValue());
+      }
+      vars.add(new PropertiesStrLookup(props));
+      vars.add(StrLookup.mapLookup(env.getEnvironmentVariables()));
+      vars.add(StrLookup.systemPropertiesLookup());
+      env.getInterpreter().interpret(reader, vars);
+    }
   }
 
   /**

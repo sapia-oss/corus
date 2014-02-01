@@ -3,7 +3,7 @@
    <p>Allows managing server or process propertie, as well as server tags.</p>
   </section>
   <section title="Syntax">
-    <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete, export):</p>
+    <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete, export, merge):</p>
     <p/> 
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
@@ -28,6 +28,9 @@
     <p>OR:</p>    
     <p>conf ren -t current_tag_name1=new_tag_name1,current_tag_name2=new_tag_name2...</p>
     <p/>
+    <p>OR:</p>    
+    <p>conf merge -b &lt;base_file&gt;.properties -f &lt;target_file&gt;.properties</p>
+    <p/>
     <p>Where:</p>
     <p/>
     <p>- t : indicates a tagging operation (if not specified, -p is assumed). Value can be a comma-delimited list of tags, or a path to a file containing 
@@ -39,7 +42,10 @@
     <p/>
     <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be s (for server) and p (for process) - defaults to p.</p>
     <p/>
-    <p>- f : in the context of an export, indicates to which the tags or properties should be exported.</p>
+    <p>- b : the base properties file whose content is to be merged with Corus process properties.</p>
+    <p/>
+    <p>- f : in the context of an export, indicates to which the tags or properties should be exported. In the context of merge
+    indicates the file to which merged properties should be written</p>
     <p/>
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
   </section>
@@ -49,6 +55,10 @@
     the tags in a pair are separated by an equal ('=') sign. The tag on the left-hand side of the sign corresponds
     to the current tag, the one on the right-hand side to the tag that will replace it. Only tags that exist on
     the respective Corus will be impacted (i.e.: will be renamed).</p>
+    
+    <p>The merge operation consists of merging the content of a given properties file (known as the base) with
+    Corus process properties (with the latter overwriting any identically named properties in the base file).
+    The result of the merge is output to a given target file. This operation DOES NOT SUPPORT THE -cluster SWITCH.</p>
   </section>
   <section title="Examples">
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
@@ -80,6 +90,8 @@
     <p>conf del -s s -p corus.process.*</p>
     <p/> 
     <p>conf del -t singletons</p>
+    <p/> 
+    <p>conf merge -b myBaseAppConfig.properties -f appConfig.properties</p>
     <p/> 
     <p>conf ls -t</p>
     <p/>

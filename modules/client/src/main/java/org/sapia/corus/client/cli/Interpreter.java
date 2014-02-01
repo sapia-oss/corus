@@ -3,8 +3,6 @@ package org.sapia.corus.client.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -91,8 +89,7 @@ public class Interpreter extends Console {
   public void interpret(Reader reader, StrLookup vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
 
     Level old = Logger.getRootLogger().getLevel();
-    Logger.getRootLogger().setLevel(Level.OFF);
-
+    disableLogging();
     try {
       BufferedReader bufReader = new BufferedReader(reader);
       StrSubstitutor subs = new StrSubstitutor(vars);
@@ -104,7 +101,7 @@ public class Interpreter extends Console {
         }
       }
     } finally {
-      Logger.getRootLogger().setLevel(old);
+      enableLogging(old);
       try {
         reader.close();
       } catch (IOException e) {
@@ -112,7 +109,7 @@ public class Interpreter extends Console {
       }
     }
   }
-
+  
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
@@ -134,8 +131,8 @@ public class Interpreter extends Console {
   public Object eval(String commandLine, StrLookup vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
 
     Level old = Logger.getRootLogger().getLevel();
-    Logger.getRootLogger().setLevel(Level.OFF);
-
+    disableLogging();
+    
     try {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
@@ -156,7 +153,7 @@ public class Interpreter extends Console {
         throw new IllegalArgumentException("Command expected (got empty command-line)");
       }
     } finally {
-      Logger.getRootLogger().setLevel(old);
+      enableLogging(old);
     }
     return FacadeInvocationContext.get();
   }
@@ -185,27 +182,21 @@ public class Interpreter extends Console {
       throw new IllegalStateException("Cannot read password from input in interpreter mode");
     }
   }
+  
+  /**
+   * Disables logging.
+   */
+  protected void disableLogging() {
+    Logger.getRootLogger().setLevel(Level.OFF);
+  }
+  
+  /**
+   * @param level {@link Level} the level reassign.
+   */
+  protected void enableLogging(Level level) {
+    Logger.getRootLogger().setLevel(level);
+  }
 
   // ---------------------------------------------------------------------------
 
-  static class CompositeLookup extends StrLookup {
-
-    private List<StrLookup> lookups = new ArrayList<StrLookup>();
-
-    public CompositeLookup add(StrLookup lookup) {
-      lookups.add(lookup);
-      return this;
-    }
-
-    @Override
-    public String lookup(String name) {
-      for (StrLookup lookup : lookups) {
-        String value = lookup.lookup(name);
-        if (value != null) {
-          return value;
-        }
-      }
-      return null;
-    }
-  }
 }

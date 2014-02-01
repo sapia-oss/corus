@@ -36,6 +36,7 @@
     <module>modules/client</module>
     <module>modules/thirdparty</module>    
     <module>modules/server</module>
+    <module>modules/package</module>
     <module>samples</module>
   </modules>
 
@@ -160,6 +161,20 @@
 
       <dependency>
         <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>server</classifier>
+        <version>${project.version}</version>
+      </dependency>
+  
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>starter</classifier>
+        <version>${project.version}</version>
+      </dependency>
+      
+      <dependency>
+        <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_iop</artifactId>
         <version>2.2</version>
       </dependency>
@@ -181,7 +196,6 @@
         <groupId>org.sapia</groupId>
         <artifactId>sapia_magnet</artifactId>
         <version>2.3</version>
-        <scope>compile</scope>
       </dependency> 
 
       <dependency>
@@ -204,28 +218,28 @@
         <version>3.7</version>
       </dependency>
       
-    <!-- http client-->
-
-    <dependency>
-	  <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.2.4</version>
-    </dependency>                
-
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>1.1.2</version>
-    </dependency>
-
-    <!-- simple web server integration -->
-
-    <dependency>
-      <groupId>org.simpleframework</groupId>
-      <artifactId>simple</artifactId>
-      <version>5.1.1</version>
-      <optional>true</optional>        
-    </dependency>
+      <!-- http client-->
+  
+      <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.2.4</version>
+      </dependency>                
+  
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1.2</version>
+      </dependency>
+  
+      <!-- simple web server integration -->
+  
+      <dependency>
+        <groupId>org.simpleframework</groupId>
+        <artifactId>simple</artifactId>
+        <version>5.1.1</version>
+        <optional>true</optional>        
+      </dependency>
 
       <!-- Spring -->
       <dependency>
@@ -271,9 +285,9 @@
       </dependency>
 
       <dependency>
-	    <groupId>net.sf.json-lib</groupId>
-	    <artifactId>json-lib</artifactId>
-	    <version>2.4</version>
+        <groupId>net.sf.json-lib</groupId>
+        <artifactId>json-lib</artifactId>
+        <version>2.4</version>
         <classifier>jdk15</classifier>
       </dependency>
   
