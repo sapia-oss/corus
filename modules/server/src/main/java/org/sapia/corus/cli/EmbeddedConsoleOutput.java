@@ -13,13 +13,26 @@ import org.sapia.console.ConsoleOutput;
 public class EmbeddedConsoleOutput implements ConsoleOutput {
   
   private StringBuilder buffer = new StringBuilder();
-  private Logger logger = Hierarchy.getDefaultHierarchy().getLoggerFor("EmbeddedCli");
+  private Logger logger;
+  
+  /**
+   * Default ctor.
+   */
+  public EmbeddedConsoleOutput() {
+    this(Hierarchy.getDefaultHierarchy().getLoggerFor("EmbeddedCli"));
+  }
+  
+  /**
+   * @param logger the {@link Logger} to log to.
+   */
+  protected EmbeddedConsoleOutput(Logger logger) {
+    this.logger = logger;
+  }
   
   @Override
   public synchronized void flush() {
     if (buffer.length() > 0) {
-      logger.info(buffer.toString());
-      buffer.delete(0,  buffer.length());
+      logger.info(buffer());
     }
   }
   
@@ -35,14 +48,18 @@ public class EmbeddedConsoleOutput implements ConsoleOutput {
   
   @Override
   public synchronized void println() {
-    flush();
-    logger.info("");
+    logger.info(buffer() + "");
   }
   
   @Override
   public synchronized void println(String s) {
-    flush();
-    logger.info(s);
+    logger.info(buffer() + s);
+  }
+  
+  private synchronized String buffer() {
+    String toReturn = buffer.toString();
+    buffer.delete(0, buffer.length());
+    return toReturn;
   }
   
 }

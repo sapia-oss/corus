@@ -97,9 +97,12 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       process.releasePorts(ports);
       return false;
     }
+    
+    ctx.info(String.format("Running pre-exec script"));
+    conf.preExec(env);
 
     ctx.info(String.format("Executing process under: %s ---> %s", processDir, cmd.toString()));
-
+    
     try {
       process.setOsPid(os.executeProcess(callback(ctx), processDir, cmd));
     } catch (IOException e) {
@@ -164,6 +167,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     }
     props.add(new Property("corus.distribution.name", dist.getName()));
     props.add(new Property("corus.distribution.version", dist.getVersion()));
+    props.add(new Property("corus.process.name", conf.getName()));
     props.add(new Property("corus.process.dir", proc.getProcessDir()));
     props.add(new Property("corus.process.id", proc.getProcessID()));
     if (proc.getOsPid() != null) {

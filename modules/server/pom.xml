@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<name>Sapia Corus Server</name>
 	<description>The Corus server module</description>
 	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
-	<groupId>org.sapia</groupId>
 	<artifactId>sapia_corus_server</artifactId>
 
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_parent</artifactId>
-        <version>4.1.2-SNAPSHOT</version>
+		<version>4.1.2-SNAPSHOT</version>
 		<relativePath>../..</relativePath>
 	</parent>
 
@@ -86,16 +86,14 @@
 			<artifactId>sapia_corus_client</artifactId>
 		</dependency>
 
-    <!-- simple web server integration -->
+		<!-- simple web server integration -->
 
-    <dependency>
-      <groupId>org.simpleframework</groupId>
-      <artifactId>simple</artifactId>
-      <version>5.1.1</version>
-      <optional>true</optional>        
-    </dependency>
+		<dependency>
+			<groupId>org.simpleframework</groupId>
+			<artifactId>simple</artifactId>
+		</dependency>
 
-    <!-- tomcat integration -->
+		<!-- tomcat integration -->
 
 		<dependency>
 			<groupId>org.sapia</groupId>
@@ -151,12 +149,12 @@
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
 		</dependency>
-		
-    <dependency>
-      <groupId>net.sf.json-lib</groupId>
-      <artifactId>json-lib</artifactId>
-      <classifier>jdk15</classifier>      
-     </dependency>
+
+		<dependency>
+			<groupId>net.sf.json-lib</groupId>
+			<artifactId>json-lib</artifactId>
+			<classifier>jdk15</classifier>
+		</dependency>
 
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -194,24 +192,7 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<executions>
 
-					<!-- building server jar that's put in server classpath -->
-					<execution>
-						<id>server-jar</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<classifier>server</classifier>
-							<excludes>
-								<exclude>**/examples/**/*</exclude>
-								<exclude>org/sapia/**/starter/Starter*</exclude>
-							</excludes>
-						</configuration>
-					</execution>
-
-
-					<!-- building starter jar that's put in server classpath -->
+						<!-- building starter jar that's put in server classpath -->
 					<execution>
 						<id>starter-jar</id>
 						<phase>package</phase>
@@ -220,7 +201,7 @@
 						</goals>
 						<configuration>
 							<classifier>starter</classifier>
-							<finalName>sapia_corus</finalName>
+							<finalName>sapia_corus_server</finalName>
 							<includes>
 								<include>org/sapia/**/starter/Starter*</include>
 							</includes>
@@ -228,6 +209,146 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+
+          <!-- building demo jar -->
+          <execution>
+            <id>demo-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>demo</classifier>
+              <includes>
+                <include>**/examples/**/*</include>
+              </includes>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-start-jar</id>
+						<!-- here the phase you need -->
+            <phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.basedir}/lib/server</outputDirectory>
+							<resources>
+								<resource>
+									<!-- Get main artifact -->
+									<directory>${project.build.directory}</directory>
+					        <includes>
+					          <include>sapia_corus_server-starter.jar</include>
+					        </includes>									
+									<!-- Don't filter binary files -->
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+
+					<!-- copying server dependencies -->
+					<execution>
+						<id>copy-server-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/server</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						  <includeArtifactIds>sapia_corus_iop,sapia_corus_iop_api</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying VM bootstrap dependencies -->
+					<execution>
+						<id>copy-vm-bootstrap</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/vm-boot</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_as,sapia_corus_iop_api</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying 3rd-party dependencies -->
+					<execution>
+						<id>copy-thirdparty</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/thirdparty</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_corus_tomcat</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying Java starter dependencies -->
+					<execution>
+						<id>copy-java-starter-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/java</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
+						</configuration>
+					</execution>
+
+					<!-- copying Magnet dependencies -->
+					<execution>
+						<id>copy-magnet-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/lib/magnet</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

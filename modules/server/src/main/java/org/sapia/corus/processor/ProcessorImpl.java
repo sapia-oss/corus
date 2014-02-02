@@ -420,7 +420,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public List<Process> getProcessesWithPorts() {
-    List<Process> toReturn  = new ArrayList<Process>();
+    List<Process> toReturn = new ArrayList<Process>();
     List<Process> processes = this.processes.getProcesses();
     for (int i = 0; i < processes.size(); i++) {
       Process p = processes.get(i);

@@ -50,8 +50,18 @@
 
 	<xs:element name="preExec">
 		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="cmd" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="cmd">
+		<xs:complexType>
 			<xs:simpleContent>
 				<xs:extension base="xs:string">
+					<xs:attribute name="value" type="xs:string" use="required"></xs:attribute>
 				</xs:extension>
 			</xs:simpleContent>
 		</xs:complexType>

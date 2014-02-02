@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
@@ -24,6 +25,7 @@ import org.sapia.ubik.mcast.EventChannelStateListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.Response;
 import org.sapia.ubik.mcast.TimeoutException;
+import org.sapia.ubik.net.ConnectionStateListener;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.server.Hub;
@@ -40,7 +42,9 @@ import org.sapia.ubik.util.Function;
 @Remote(interfaces = ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, AsyncEventListener, EventChannelStateListener {
 
-  private static final long START_UP_DELAY = 15000;
+  private static final int START_UP_DELAY            = 15000;
+  private static final int RECONNECTION_DELAY        = 10000;
+  private static final int RECONNECTION_DELAY_OFFSET = 2000;
 
   private EventChannel channel;
   private Set<CorusHost> hostsInfos = Collections.synchronizedSet(new HashSet<CorusHost>());
@@ -58,23 +62,50 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     channel.registerAsyncListener(CorusPubEvent.class.getName(), deferredListeners.add(CorusPubEvent.class.getName(), this));
     channel.registerAsyncListener(CorusDiscoEvent.class.getName(), deferredListeners.add(CorusDiscoEvent.class.getName(), this));
     channel.addEventChannelStateListener(deferredListeners.add(this));
-
-    channel.start();
-    if (log.isInfoEnabled()) {
-      log.info("Signaling presence to cluster:");
-      Properties mcastProperties = PropertiesUtil.filter(System.getProperties(),
-          PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast"));
-      for (String name : mcastProperties.stringPropertyNames()) {
-        log.info(name + "=" + mcastProperties.getProperty(name));
-      }
-    }
-
-    channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+    
+    channel.addConnectionStateListener(new ConnectionStateListener() {
+        @Override
+        public void onReconnected() {
+          
+          try {
+            log.warn("Reconnection to event channel detected");
+            Thread.sleep(new Random().nextInt(RECONNECTION_DELAY) + RECONNECTION_DELAY_OFFSET);
+            onConnected();            
+          } catch (InterruptedException e) {
+            log.debug("Thread interrupted: exiting");
+          }
+        }
+        
+        @Override
+        public void onDisconnected() {
+          log.warn("Connection from event channel dropped: will attempt reconnecting");
+        }
+        
+        @Override
+        public void onConnected() {
+          if (log.isInfoEnabled()) {
+            log.info("Signaling presence to cluster:");
+            Properties mcastProperties = PropertiesUtil.filter(System.getProperties(),
+                PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast"));
+            for (String name : mcastProperties.stringPropertyNames()) {
+              log.info(name + "=" + mcastProperties.getProperty(name));
+            }
+          }
+          try {
+            channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+          } catch (IOException e) {
+            log.error("Error caught trying to signal presence to cluster", e);
+          }
+        }
+      });
   }
 
   @Override
   public void start() throws Exception {
     super.start();
+    
+    logger().info("Starting event channel");
+    channel.start();    
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();

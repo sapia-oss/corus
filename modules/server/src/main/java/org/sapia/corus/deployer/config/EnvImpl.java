@@ -51,7 +51,7 @@ public class EnvImpl implements Env {
     this.props       = props;
     this.profile     = profile;
     this.commonDir   = commonDir;
-    this.interpreter = new EmbeddedInterpreter(corus, new File(commonDir));
+    this.interpreter = new EmbeddedInterpreter(corus, new File(processDir));
   }
   
   /**
@@ -128,7 +128,7 @@ public class EnvImpl implements Env {
 
   @Override
   public String getJavaStarterLibPath() {
-    return findLibPath(getServerLibDir(), "sapia_corus-starter");
+    return findLibPath(getServerLibDir(), "sapia_corus_server-starter");
   }
 
   @Override
