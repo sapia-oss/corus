@@ -5,9 +5,8 @@
   <name>Sapia Corus</name>
   <description>Corus is a generic application process manager</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
-  <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>4.1.2-SNAPSHOT</version>
+  <version>4.1.2</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,10 +23,10 @@
       <name>Apache 2</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
     </license>
-		<license>
-			<name>GNU General Public License (GPL), version 3</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-		</license>    
+	  <license>
+  		<name>GNU General Public License (GPL), version 3</name>
+     	<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+	  </license>    
   </licenses>
 
   <packaging>pom</packaging>
@@ -175,6 +174,13 @@
       
       <dependency>
         <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>demo</classifier>
+        <version>${project.version}</version>
+      </dependency>      
+      
+      <dependency>
+        <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_iop</artifactId>
         <version>2.2</version>
       </dependency>
@@ -215,7 +221,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>3.7</version>
+        <version>3.8</version>
       </dependency>
       
       <!-- http client-->
@@ -325,4 +331,10 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <connection>scm:svn:https://sapia.googlecode.com/sapia_corus_parent-4.1.2</connection>
+    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/tags/sapia_corus_parent-4.1.2</developerConnection>
+    <url>scm:svn:https://sapia.googlecode.com/svn/sapia_corus_parent-4.1.2</url>
+  </scm>
 </project>
