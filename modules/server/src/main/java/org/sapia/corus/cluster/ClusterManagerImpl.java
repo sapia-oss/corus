@@ -70,7 +70,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
           try {
             log.warn("Reconnection to event channel detected");
             Thread.sleep(new Random().nextInt(RECONNECTION_DELAY) + RECONNECTION_DELAY_OFFSET);
-            onConnected();            
+            publish();
           } catch (InterruptedException e) {
             log.debug("Thread interrupted: exiting");
           }
@@ -83,32 +83,35 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
         
         @Override
         public void onConnected() {
-          if (log.isInfoEnabled()) {
-            log.info("Signaling presence to cluster:");
-            Properties mcastProperties = PropertiesUtil.filter(System.getProperties(),
-                PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast"));
-            for (String name : mcastProperties.stringPropertyNames()) {
-              log.info(name + "=" + mcastProperties.getProperty(name));
-            }
-          }
-          try {
-            channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-          } catch (IOException e) {
-            log.error("Error caught trying to signal presence to cluster", e);
-          }
         }
       });
   }
-
+  
   @Override
   public void start() throws Exception {
     super.start();
-    
     logger().info("Starting event channel");
     channel.start();    
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
+    publish();
+  }
+  
+  private void publish() {
+    if (log.isInfoEnabled()) {
+      log.info("Signaling presence to cluster:");
+      Properties mcastProperties = PropertiesUtil.filter(System.getProperties(),
+          PropertiesFilter.NameContainsPropertiesFilter.createInstance("mcast"));
+      for (String name : mcastProperties.stringPropertyNames()) {
+        log.info(name + "=" + mcastProperties.getProperty(name));
+      }
+    }
+    try {
+      channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+    } catch (IOException e) {
+      log.error("Error caught trying to signal presence to cluster", e);
+    }    
   }
 
   /**
