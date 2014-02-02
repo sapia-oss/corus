@@ -5,7 +5,6 @@
   <name>Sapia Corus Third-Party Integration modules</name>
   <description>Integrates various third-party modules</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
-  <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_thirdparty</artifactId>
   
   <parent>

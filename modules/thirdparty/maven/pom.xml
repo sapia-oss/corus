@@ -27,7 +27,6 @@
     <dependency>
       <groupId>org.sapia</groupId>
       <artifactId>sapia_corus_client</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
