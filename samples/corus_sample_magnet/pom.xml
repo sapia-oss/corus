@@ -2,7 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>Sapia Corus Magnet Sample</name>
-  <groupId>org.sapia</groupId>
   <artifactId>corus_sample_magnet</artifactId>
   <packaging>jar</packaging>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
