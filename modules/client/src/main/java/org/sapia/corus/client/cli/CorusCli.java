@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log4j.Level;
 import org.sapia.console.CmdElement;
@@ -55,7 +56,7 @@ public class CorusCli extends CommandConsole {
   private StrLookup vars = StrLookup.systemPropertiesLookup();
 
   public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
-    super(input, ConsoleOutput.DefaultConsoleOutput.newInstance(), new CorusCommandFactory());
+    super(input, CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(ConsoleOutput.DefaultConsoleOutput.newInstance()), new CorusCommandFactory());
     this.corus = corus;
     super.setCommandListener(new CliConsoleListener());
     this.corus = corus;
@@ -66,7 +67,7 @@ public class CorusCli extends CommandConsole {
   }
 
   public CorusCli(CorusConnector corus) throws IOException {
-    this(selectConsoleInput(), ConsoleOutput.DefaultConsoleOutput.newInstance(), corus);
+    this(selectConsoleInput(), CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(ConsoleOutput.DefaultConsoleOutput.newInstance()), corus);
   }
 
   private static ConsoleInput selectConsoleInput() {
@@ -232,12 +233,21 @@ public class CorusCli extends CommandConsole {
   // ==========================================================================
   // Inner classes
 
-  public static class CliConsoleListener implements ConsoleListener {
+  public class CliConsoleListener implements ConsoleListener {
     /**
      * @see org.sapia.console.ConsoleListener#onAbort(Console)
      */
     public void onAbort(Console cons) {
-      cons.println("Good bye...");
+      if (!errors.isEmpty()) {
+        cons.out().println("Got " + errors.size() + " errors:");
+        for (CliError err : errors) {
+          cons.out().println("" + err.getId() + ") Error executing command: " + err.getCommandLine().toString());
+          String stack = ExceptionUtils.getFullStackTrace(err.getCause());
+          cons.out().println(stack);
+        }
+      } else {
+        cons.println("Good bye...");
+      }
       System.exit(0);
     }
 
@@ -273,8 +283,8 @@ public class CorusCli extends CommandConsole {
       cons.println("-> Type man <command_name> to see help about a specific command.");
       cons.println();
     }
-
-    static void line(Console cons) {
+    
+    void line(Console cons) {
       for (int i = 0; i < 80; i++) {
         cons.print("*");
       }
@@ -282,7 +292,7 @@ public class CorusCli extends CommandConsole {
       cons.println("");
     }
 
-    static void center(Console cons, String text) {
+    void center(Console cons, String text) {
       int margin = (80 - text.length()) / 2;
       cons.print("*");
 

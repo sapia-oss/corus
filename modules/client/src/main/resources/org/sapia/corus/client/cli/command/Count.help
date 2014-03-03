@@ -1,0 +1,29 @@
+<help>
+  <section title="Description">
+   <p>Provides a count of the number of items returned by a command.</p>
+  </section>
+  <section title="Syntax">
+    <p>count [-a expected_count] &lt;command&gt;</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- a: asserts the number of expected results (expected_count is expected to be an integer value).</p>
+    <p/>
+    <p>- &lt;command&gt; is a command-line expected to return a list of elements.</p>
+  </section>
+  <section title="Notes">
+    <p>This command will simply return 0 if the results of the command it is passed cannot be counted.</p>
+    <p/>
+    <p>If the -a option is provided, the CLI will abort if the assertion fails.</p>
+  </section>
+  <section title="Examples">
+    <p>count hosts</p>
+    <p/>
+    <p>count ps -cluster</p>
+    <p/>    
+    <p>count ls -d myApp -v 1.0 -cluster</p>
+    <p/> 
+    <p>count -a 3 ls -d myApp -v 1.0 -cluster</p>
+    <p/>    
+  </section>  
+</help>

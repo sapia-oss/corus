@@ -27,6 +27,7 @@ public class Man extends CorusCliCommand {
     COMMANDS.put("cmd", Cmd.class);
     COMMANDS.put("conf", Conf.class);
     COMMANDS.put("connect", Connect.class);
+    COMMANDS.put("count", Count.class);
     COMMANDS.put("cron", Cron.class);
     COMMANDS.put("deploy", Deploy.class);
     COMMANDS.put("dir", Dir.class);

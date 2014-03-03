@@ -41,7 +41,7 @@ public class Interpreter extends Console {
    *          the {@link CorusConnector} to use.
    */
   public Interpreter(CorusConnector corus) {
-    this(DefaultConsoleOutput.newInstance(), corus);
+    this(CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(DefaultConsoleOutput.newInstance()), corus);
   }
 
   /**
