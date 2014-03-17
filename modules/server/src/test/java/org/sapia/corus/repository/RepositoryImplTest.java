@@ -44,7 +44,7 @@ import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.util.Queue;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.rmi.server.transport.socket.TcpSocketAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 import org.springframework.context.ApplicationContext;
 
 public class RepositoryImplTest {
@@ -81,7 +81,7 @@ public class RepositoryImplTest {
     
     host       = createCorusHost(RepoRole.SERVER);
     
-    peers = Collections2.arrayToSet(
+    peers = Collects.arrayToSet(
         createCorusHost(RepoRole.CLIENT), 
         createCorusHost(RepoRole.CLIENT)
     );
@@ -251,7 +251,7 @@ public class RepositoryImplTest {
     ExecConfig conf = new ExecConfig();
     conf.setName("test");
     conf.setStartOnBoot(true);
-    ExecConfigNotification notif = new ExecConfigNotification(Collections2.arrayToList(conf));
+    ExecConfigNotification notif = new ExecConfigNotification(Collects.arrayToList(conf));
     notif.addTarget(host.getEndpoint());
     
     RemoteEvent event = new RemoteEvent(ExecConfigNotification.EVENT_TYPE, notif);
@@ -266,7 +266,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.CLIENT);
     ExecConfig conf = new ExecConfig();
     conf.setName("test");
-    ExecConfigNotification notif = new ExecConfigNotification(Collections2.arrayToList(conf));
+    ExecConfigNotification notif = new ExecConfigNotification(Collects.arrayToList(conf));
     notif.addTarget(createCorusHost(RepoRole.CLIENT).getEndpoint());
     
     RemoteEvent event = new RemoteEvent(ExecConfigNotification.EVENT_TYPE, notif);
@@ -288,7 +288,7 @@ public class RepositoryImplTest {
     Properties props = new Properties();
     props.setProperty("test", "val");
     notif.addProperties(props);
-    notif.addTags(Collections2.arrayToSet("tag1", "tag2"));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
@@ -309,7 +309,7 @@ public class RepositoryImplTest {
     Properties props = new Properties();
     props.setProperty("test", "val");
     notif.addProperties(props);
-    notif.addTags(Collections2.arrayToSet("tag1", "tag2"));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
@@ -330,7 +330,7 @@ public class RepositoryImplTest {
     Properties props = new Properties();
     props.setProperty("test", "val");
     notif.addProperties(props);
-    notif.addTags(Collections2.arrayToSet("tag1", "tag2"));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
@@ -350,7 +350,7 @@ public class RepositoryImplTest {
     Properties props = new Properties();
     props.setProperty("test", "val");
     notif.addProperties(props);
-    notif.addTags(Collections2.arrayToSet("tag1", "tag2"));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);

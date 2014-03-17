@@ -16,7 +16,7 @@ import org.junit.Test;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 
 public class DistributionRequestHandlerTaskTest extends AbstractRepoTaskTest {
@@ -28,7 +28,7 @@ public class DistributionRequestHandlerTaskTest extends AbstractRepoTaskTest {
   public void setUp() throws Exception {
     super.doSetUp();
     Endpoint ep = new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class));
-    targets     = Collections2.arrayToList(ep);
+    targets     = Collects.arrayToList(ep);
     task = new TestDeploymentRequestHandlerTask(new File("test"), targets);
   }
 

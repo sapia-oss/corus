@@ -27,7 +27,7 @@ import org.sapia.corus.deployer.InternalFileManager;
 import org.sapia.corus.deployer.InternalShellScriptManager;
 import org.sapia.corus.repository.task.AbstractRepoTaskTest;
 import org.sapia.corus.taskmanager.util.CompositeTask;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ShellScriptDeploymentRequestHandlerTaskHelperTest extends AbstractRepoTaskTest {
@@ -54,7 +54,7 @@ public class ShellScriptDeploymentRequestHandlerTaskHelperTest extends AbstractR
     ShellScript script1 = new ShellScript("alias1", "file1", "desc1");
     ShellScript script2 = new ShellScript("alias2", "file2", "desc2");
     
-    scripts = Collections2.arrayToList(script1, script2);
+    scripts = Collects.arrayToList(script1, script2);
     
     requests = new ArrayList<ShellScriptDeploymentRequest>();
     ShellScriptDeploymentRequest request1 = new ShellScriptDeploymentRequest(endpoint1, scripts);

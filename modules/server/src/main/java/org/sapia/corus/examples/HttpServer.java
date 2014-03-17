@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import org.sapia.ubik.util.Props;
+import org.sapia.ubik.util.Conf;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 import org.simpleframework.http.core.Container;
@@ -37,7 +37,7 @@ public class HttpServer implements Container {
     Container container = new HttpServer();
     Server server = new ContainerServer(container);
     Connection connection = new SocketConnection(server);
-    SocketAddress address = new InetSocketAddress(Props.getSystemProperties().getIntProperty(HTTP_SERVER_PORT_KEY));
+    SocketAddress address = new InetSocketAddress(Conf.getSystemProperties().getIntProperty(HTTP_SERVER_PORT_KEY));
     connection.connect(address);
   }
 

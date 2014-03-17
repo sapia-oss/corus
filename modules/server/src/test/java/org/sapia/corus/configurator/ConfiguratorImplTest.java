@@ -18,7 +18,7 @@ import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConfiguratorImplTest {
@@ -117,7 +117,7 @@ public class ConfiguratorImplTest {
 
   @Test
   public void testRemoveProcessProperty() {
-    when(processProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(processProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
     
@@ -132,7 +132,7 @@ public class ConfiguratorImplTest {
 
   @Test
   public void testRemoveServerProperty() {
-    when(serverProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(serverProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(serverProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(serverProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
     
@@ -146,7 +146,7 @@ public class ConfiguratorImplTest {
   
   @Test
   public void testGetProcessProperties() {
-    when(processProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(processProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
@@ -158,7 +158,7 @@ public class ConfiguratorImplTest {
 
   @Test
   public void testGetServerProperties() {
-    when(serverProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(serverProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(serverProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(serverProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
@@ -170,7 +170,7 @@ public class ConfiguratorImplTest {
   
   @Test
   public void testGetProcessPropertiesAsNameValuePairs() {
-    when(processProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(processProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
@@ -182,7 +182,7 @@ public class ConfiguratorImplTest {
   
   @Test
   public void testGetServerPropertiesAsNameValuePairs() {
-    when(serverProperties.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(serverProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     when(serverProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(serverProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
@@ -206,7 +206,7 @@ public class ConfiguratorImplTest {
 
   @Test
   public void testGetTags() {
-    when(tagsProperties.keys()).thenReturn(Collections2.arrayToList("test").iterator());
+    when(tagsProperties.keys()).thenReturn(Collects.arrayToList("test").iterator());
 
     Set<String> tags = configurator.getTags();
     
@@ -221,14 +221,14 @@ public class ConfiguratorImplTest {
 
   @Test
   public void testRemoveTagArg() {
-    when(tagsProperties.keys()).thenReturn(Collections2.arrayToList("test").iterator());
+    when(tagsProperties.keys()).thenReturn(Collects.arrayToList("test").iterator());
     configurator.removeTag(ArgFactory.any());
     verify(tagsProperties).remove("test");
   }
 
   @Test
   public void testAddTags() {
-    configurator.addTags(Collections2.arrayToSet("test1", "test2"));
+    configurator.addTags(Collects.arrayToSet("test1", "test2"));
     verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
     verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));
   }
@@ -236,8 +236,8 @@ public class ConfiguratorImplTest {
   @Test
   public void testReplaceTags() {
     when(tagsProperties.get("test1")).thenReturn(new ConfigProperty("test1", "test1"));
-    configurator.addTags(Collections2.arrayToSet("test1"));
-    configurator.renameTags(Collections2.arrayToList(new NameValuePair("test1", "test2")));
+    configurator.addTags(Collects.arrayToSet("test1"));
+    configurator.renameTags(Collects.arrayToList(new NameValuePair("test1", "test2")));
     verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
     verify(tagsProperties).remove("test1");
     verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));

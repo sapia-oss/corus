@@ -5,7 +5,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Provides methods for retrieving {@link CorusUserData} from predefined
@@ -16,7 +16,7 @@ import org.sapia.ubik.util.Collections2;
  */
 public class CorusUserDataFactory {
 
-  private static final List<? extends CorusUserDataProvider> PROVIDERS = Collections2.arrayToList(new AwsCorusUserDataProvider());
+  private static final List<? extends CorusUserDataProvider> PROVIDERS = Collects.arrayToList(new AwsCorusUserDataProvider());
 
   private CorusUserDataFactory() {
   }

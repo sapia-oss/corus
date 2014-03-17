@@ -19,7 +19,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.socket.TcpSocketAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
 
@@ -34,11 +34,11 @@ public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
     
     CorusHost client = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test");
     client.setRepoRole(RepoRole.CLIENT);
-    clientHosts    = Collections2.arrayToSet(client);
+    clientHosts    = Collects.arrayToSet(client);
     
     CorusHost server = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test");
     server.setRepoRole(RepoRole.SERVER);
-    serverHosts    = Collections2.arrayToSet(server);
+    serverHosts    = Collects.arrayToSet(server);
     
     task           = new GetArtifactListTask();
    }

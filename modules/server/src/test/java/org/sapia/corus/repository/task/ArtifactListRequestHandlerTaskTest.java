@@ -21,7 +21,7 @@ import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.util.Queue;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 public class ArtifactListRequestHandlerTaskTest extends AbstractRepoTaskTest {
  
@@ -46,7 +46,7 @@ public class ArtifactListRequestHandlerTaskTest extends AbstractRepoTaskTest {
     
     dist1         = new Distribution("dist1", "1.0");
     dist2         = new Distribution("dist2", "1.0");
-    distributions = Collections2.arrayToList(dist1, dist2);
+    distributions = Collects.arrayToList(dist1, dist2);
     
     requests = new Queue<ArtifactListRequest>();
     requests.add(new ArtifactListRequest(ep1));

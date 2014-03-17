@@ -16,7 +16,7 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactor
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Function;
 
 /**
@@ -69,7 +69,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
 
       Endpoint first = targetsCopy.get(0);
 
-      meta.getClusterInfo().getTargets().addAll(Collections2.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
+      meta.getClusterInfo().getTargets().addAll(Collects.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
         public ServerAddress call(Endpoint arg) {
           return arg.getServerAddress();
         }

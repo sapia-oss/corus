@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 public class ClusteringHelperTest {
 

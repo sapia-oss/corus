@@ -25,7 +25,7 @@ import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Function;
 
@@ -171,7 +171,7 @@ public class Port extends CorusCliCommand {
       res = res.filter(new Function<List<PortRange>, List<PortRange>>() {
         @Override
         public List<PortRange> call(List<PortRange> toFilter) {
-          return Collections2.filterAsList(toFilter, new Condition<PortRange>() {
+          return Collects.filterAsList(toFilter, new Condition<PortRange>() {
             @Override
             public boolean apply(PortRange item) {
               return pattern.matches(item.getName());

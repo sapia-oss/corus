@@ -41,7 +41,7 @@ import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Props;
+import org.sapia.ubik.util.Conf;
 
 /**
  * This class is the entry point called from the 'java' command line.
@@ -322,7 +322,7 @@ public class CorusServer {
       IOUtil.createLockFile(lockFile);
 
       // Initialize Corus, export it and start it
-      EventChannel channel = new EventChannel(domain, new Props().addSystemProperties());
+      EventChannel channel = new EventChannel(domain, new Conf().addSystemProperties());
       channel.start();
 
       CorusImpl corus = new CorusImpl(corusProps, domain, transport.getServerAddress(), channel, transport, corusHome);

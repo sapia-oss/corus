@@ -19,7 +19,7 @@ import org.sapia.corus.client.services.repository.ShellScriptListResponse;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Function;
 
 /**
@@ -72,7 +72,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     Deployer deployer = ctx.getServerContext().getServices().getDeployer();
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
-    List<RepoDistribution> dists = Collections2.convertAsList(deployer.getDistributions(DistributionCriteria.builder().all()),
+    List<RepoDistribution> dists = Collects.convertAsList(deployer.getDistributions(DistributionCriteria.builder().all()),
         new Function<RepoDistribution, Distribution>() {
           @Override
           public RepoDistribution call(Distribution dist) {

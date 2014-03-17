@@ -17,7 +17,7 @@ import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.file.FileSystemModule;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileManagerImplTest {
@@ -49,7 +49,7 @@ public class FileManagerImplTest {
     when(file2.getName()).thenReturn("file20");
     when(file2.length()).thenReturn(1000L);    
     
-    List<File> files = Collections2.arrayToList(file2, file1);
+    List<File> files = Collects.arrayToList(file2, file1);
     
     when(fileSystem.listFiles(any(File.class))).thenReturn(files);
     
@@ -68,7 +68,7 @@ public class FileManagerImplTest {
     when(file2.getName()).thenReturn("file2");
     when(file2.length()).thenReturn(1000L);    
     
-    List<File> files = Collections2.arrayToList(file2, file1);
+    List<File> files = Collects.arrayToList(file2, file1);
     
     when(fileSystem.listFiles(any(File.class))).thenReturn(files);
     
@@ -94,7 +94,7 @@ public class FileManagerImplTest {
     when(file2.getName()).thenReturn("file20");
     when(file2.length()).thenReturn(1000L);    
     
-    List<File> files = Collections2.arrayToList(file2, file1);
+    List<File> files = Collects.arrayToList(file2, file1);
     
     when(fileSystem.listFiles(any(File.class))).thenReturn(files);
     

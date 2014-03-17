@@ -18,7 +18,7 @@ import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.InternalServiceContext;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 public class HandleExecConfigTaskTest extends AbstractRepoTaskTest {
 
@@ -51,9 +51,9 @@ public class HandleExecConfigTaskTest extends AbstractRepoTaskTest {
     proc3.setDist("dist3");
     proc3.setVersion("v3");
     
-    configsTask           = new HandleExecConfigTask(repoConfig, Collections2.arrayToList(conf1, conf2));
+    configsTask           = new HandleExecConfigTask(repoConfig, Collects.arrayToList(conf1, conf2));
     emptyConfigsTask      = new HandleExecConfigTask(repoConfig, new ArrayList<ExecConfig>());
-    startOnBootConfigTask = new HandleExecConfigTask(repoConfig, Collections2.arrayToList(conf3));
+    startOnBootConfigTask = new HandleExecConfigTask(repoConfig, Collects.arrayToList(conf3));
     
     InternalServiceContext services = mock(InternalServiceContext.class);
     when(serverContext.getServices()).thenReturn(services);

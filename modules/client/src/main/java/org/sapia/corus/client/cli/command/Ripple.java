@@ -20,7 +20,7 @@ import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 /**
  * This command executes a script against the Corus instances in the cluster, a
@@ -83,7 +83,7 @@ public class Ripple extends CorusCliCommand {
       batchSize = DEFAULT_BATCH_SIZE;
     }
 
-    hostBatches = Collections2.splitAsLists(allHosts, batchSize);
+    hostBatches = Collects.splitAsLists(allHosts, batchSize);
     for (List<CorusHost> batch : hostBatches) {
       try {
         Map<String, String> vars = new HashMap<String, String>();

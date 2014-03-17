@@ -221,7 +221,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>3.8</version>
+        <version>3.10-SNAPSHOT</version>
       </dependency>
       
       <!-- http client-->

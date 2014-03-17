@@ -23,7 +23,7 @@ import org.sapia.corus.client.services.deployer.FileManager;
 import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.corus.client.services.repository.FileListResponse;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
@@ -42,7 +42,7 @@ public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
   public void setUp() {
     super.doSetUp();
     
-    files = Collections2.arrayToList(
+    files = Collects.arrayToList(
         new FileInfo("f1", 1, new Date()),
         new FileInfo("f2", 1, new Date())
     );
@@ -63,7 +63,7 @@ public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
     final FileInfo f3 = new FileInfo("f3", 1, new Date());
     final FileInfo f4 = new FileInfo("f4", 1, new Date());
     
-    when(fileMan.getFiles()).thenReturn(Collections2.arrayToList(f3, f4));
+    when(fileMan.getFiles()).thenReturn(Collects.arrayToList(f3, f4));
     
     task.execute(taskContext, null);
     
@@ -81,7 +81,7 @@ public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
     final FileInfo f2 = new FileInfo("f2", 1, new Date());
     final FileInfo f3 = new FileInfo("f3", 1, new Date());
     
-    when(fileMan.getFiles()).thenReturn(Collections2.arrayToList(f2, f3));
+    when(fileMan.getFiles()).thenReturn(Collects.arrayToList(f2, f3));
     
     task.execute(taskContext, null);
     
@@ -99,7 +99,7 @@ public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
     final FileInfo f1 = new FileInfo("f1", 1, new Date());
     final FileInfo f2 = new FileInfo("f2", 1, new Date());
     
-    when(fileMan.getFiles()).thenReturn(Collections2.arrayToList(f1, f2));
+    when(fileMan.getFiles()).thenReturn(Collects.arrayToList(f1, f2));
     
     task.execute(taskContext, null);
     

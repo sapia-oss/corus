@@ -22,7 +22,7 @@ import org.sapia.corus.client.services.deployer.ShellScriptManager;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptListResponse;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest {
@@ -41,7 +41,7 @@ public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest
   public void setUp() {
     super.doSetUp();
     
-    scripts = Collections2.arrayToList(
+    scripts = Collects.arrayToList(
         new ShellScript("f1", "f1", "f1"),
         new ShellScript("f2", "f2", "f2")
     );
@@ -62,7 +62,7 @@ public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest
     final ShellScript f3 = new ShellScript("f3", "f3", "f3");
     final ShellScript f4 = new ShellScript("f4", "f4", "f4");
     
-    when(scriptMan.getScripts()).thenReturn(Collections2.arrayToList(f3, f4));
+    when(scriptMan.getScripts()).thenReturn(Collects.arrayToList(f3, f4));
     
     task.execute(taskContext, null);
     
@@ -80,7 +80,7 @@ public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest
     final ShellScript f2 = new ShellScript("f2", "f2", "f2");
     final ShellScript f3 = new ShellScript("f3", "f3", "f3");
     
-    when(scriptMan.getScripts()).thenReturn(Collections2.arrayToList(f2, f3));
+    when(scriptMan.getScripts()).thenReturn(Collects.arrayToList(f2, f3));
     
     task.execute(taskContext, null);
     
@@ -99,7 +99,7 @@ public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest
     final ShellScript f2 = new ShellScript("f2", "f2", "f2");
 
     
-    when(scriptMan.getScripts()).thenReturn(Collections2.arrayToList(f1, f2));
+    when(scriptMan.getScripts()).thenReturn(Collects.arrayToList(f1, f2));
     
     task.execute(taskContext, null);
     

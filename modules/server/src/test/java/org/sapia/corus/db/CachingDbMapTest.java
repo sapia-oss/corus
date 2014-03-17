@@ -13,7 +13,7 @@ import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.RecordMatcher;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 public class CachingDbMapTest {
   
@@ -64,7 +64,7 @@ public class CachingDbMapTest {
 
   @Test
   public void testKeys() {
-    when(delegate.keys()).thenReturn(Collections2.arrayToList("test1", "test2").iterator());
+    when(delegate.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
     cache.keys();
     verify(delegate).keys();
   }

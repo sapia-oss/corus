@@ -34,7 +34,7 @@ import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Function;
 
@@ -132,13 +132,13 @@ public class Conf extends CorusCliCommand {
         String line = null;
         try {
           while ((line = reader.readLine()) != null) {
-            toAdd.addAll(Collections2.arrayToSet(line.split(",")));
+            toAdd.addAll(Collects.arrayToSet(line.split(",")));
           }
         } finally {
           reader.close();
         }
       } else {
-        toAdd.addAll(Collections2.arrayToSet(tagString.split(",")));
+        toAdd.addAll(Collects.arrayToSet(tagString.split(",")));
       }
       ctx.getCorus().getConfigFacade().addTags(toAdd, getClusterInfo(ctx));
     } else if (op == Op.DELETE) {
@@ -314,7 +314,7 @@ public class Conf extends CorusCliCommand {
       res = res.filter(new Function<Set<String>, Set<String>>() {
         @Override
         public Set<String> call(Set<String> toFilter) {
-          return Collections2.filterAsSet(toFilter, new Condition<String>() {
+          return Collects.filterAsSet(toFilter, new Condition<String>() {
             @Override
             public boolean apply(String item) {
               return pattern.matches(item);
@@ -410,7 +410,7 @@ public class Conf extends CorusCliCommand {
       res = res.filter(new Function<List<NameValuePair>, List<NameValuePair>>() {
         @Override
         public List<NameValuePair> call(List<NameValuePair> toFilter) {
-          return Collections2.filterAsList(toFilter, new Condition<NameValuePair>() {
+          return Collects.filterAsList(toFilter, new Condition<NameValuePair>() {
             @Override
             public boolean apply(NameValuePair item) {
               return pattern.matches(item.getName());

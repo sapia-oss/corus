@@ -23,7 +23,7 @@ import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.corus.deployer.InternalFileManager;
 import org.sapia.corus.repository.task.AbstractRepoTaskTest;
 import org.sapia.corus.taskmanager.util.CompositeTask;
-import org.sapia.ubik.util.Collections2;
+import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileDeploymentRequestHandlerTaskHelperTest extends AbstractRepoTaskTest {
@@ -50,7 +50,7 @@ public class FileDeploymentRequestHandlerTaskHelperTest extends AbstractRepoTask
     FileInfo file1 = new FileInfo("file1", 100, new Date());
     FileInfo file2 = new FileInfo("file2", 100, new Date());
     
-    files = Collections2.arrayToList(file1, file2);
+    files = Collects.arrayToList(file1, file2);
     
     requests = new ArrayList<FileDeploymentRequest>();
     FileDeploymentRequest request1 = new FileDeploymentRequest(endpoint1, files);
