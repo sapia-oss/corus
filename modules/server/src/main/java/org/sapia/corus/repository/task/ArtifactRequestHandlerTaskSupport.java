@@ -17,7 +17,7 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * This task provides the basic behavior for deploying artifacts to a provided
@@ -32,9 +32,9 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
 
   private List<Endpoint> targets;
   private File artifactFile;
-  private Function<DeploymentMetadata, Boolean> metadataFunc;
+  private Func<DeploymentMetadata, Boolean> metadataFunc;
 
-  protected ArtifactRequestHandlerTaskSupport(File artifactFile, List<Endpoint> targets, Function<DeploymentMetadata, Boolean> metadataFunc) {
+  protected ArtifactRequestHandlerTaskSupport(File artifactFile, List<Endpoint> targets, Func<DeploymentMetadata, Boolean> metadataFunc) {
     this.artifactFile = artifactFile;
     this.targets = targets;
     this.metadataFunc = metadataFunc;
@@ -69,7 +69,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
 
       Endpoint first = targetsCopy.get(0);
 
-      meta.getClusterInfo().getTargets().addAll(Collects.convertAsSet(targetsCopy, new Function<ServerAddress, Endpoint>() {
+      meta.getClusterInfo().getTargets().addAll(Collects.convertAsSet(targetsCopy, new Func<ServerAddress, Endpoint>() {
         public ServerAddress call(Endpoint arg) {
           return arg.getServerAddress();
         }

@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 public class ResultsTest {
 
@@ -83,7 +83,7 @@ public class ResultsTest {
       results.addResult(new Result<Integer>(null, v));
     }
 
-    Results<Integer> filtered = results.filter(new Function<Integer, Integer>() {
+    Results<Integer> filtered = results.filter(new Func<Integer, Integer>() {
       @Override
       public Integer call(Integer arg) {
         return new Integer(0);

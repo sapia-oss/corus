@@ -9,7 +9,7 @@ import org.sapia.corus.util.Queue;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.EventChannelStateListener;
 import org.sapia.ubik.mcast.RemoteEvent;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * An instance of this class is used to keep {@link RemoteEvent}s until the
@@ -37,14 +37,14 @@ class DeferredAsyncListener implements AsyncEventListener, EventChannelStateList
 
   private class EventChannelStateListenerWrapper {
     private EventChannelStateListener delegate;
-    private Queue<Function<Void, EventChannelStateListener>> pending = new Queue<Function<Void, EventChannelStateListener>>();
+    private Queue<Func<Void, EventChannelStateListener>> pending = new Queue<Func<Void, EventChannelStateListener>>();
 
     public EventChannelStateListenerWrapper(EventChannelStateListener delegate) {
       this.delegate = delegate;
     }
 
     private void flush() {
-      for (Function<Void, EventChannelStateListener> func : pending.removeAll()) {
+      for (Func<Void, EventChannelStateListener> func : pending.removeAll()) {
         func.call(delegate);
       }
     }
@@ -85,7 +85,7 @@ class DeferredAsyncListener implements AsyncEventListener, EventChannelStateList
       if (ready) {
         wrapper.delegate.onDown(event);
       } else {
-        wrapper.pending.add(new Function<Void, EventChannelStateListener>() {
+        wrapper.pending.add(new Func<Void, EventChannelStateListener>() {
           @Override
           public Void call(EventChannelStateListener arg) {
             arg.onDown(event);
@@ -102,7 +102,7 @@ class DeferredAsyncListener implements AsyncEventListener, EventChannelStateList
       if (ready) {
         wrapper.delegate.onUp(event);
       } else {
-        wrapper.pending.add(new Function<Void, EventChannelStateListener>() {
+        wrapper.pending.add(new Func<Void, EventChannelStateListener>() {
           @Override
           public Void call(EventChannelStateListener arg) {
             arg.onUp(event);

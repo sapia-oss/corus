@@ -8,7 +8,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * This task performs the deployment to a provided list of nodes, following a
@@ -27,7 +27,7 @@ public class DistributionRequestHandlerTask extends ArtifactRequestHandlerTaskSu
    *          nodes to deploy to.
    */
   public DistributionRequestHandlerTask(final File distFile, final List<Endpoint> targets) {
-    super(distFile, targets, new Function<DeploymentMetadata, Boolean>() {
+    super(distFile, targets, new Func<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
         return new DistributionDeploymentMetadata(distFile.getName(), distFile.length(), new ClusterInfo(clustered).addTargets(targets));

@@ -28,7 +28,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * This command provides various HTTP-related utilities:
@@ -101,7 +101,7 @@ public class Http extends CorusCliCommand {
 
       Map<ServerAddress, Set<String>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
 
-      List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT, new Function<Arg, String>() {
+      List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT, new Func<Arg, String>() {
         @Override
         public Arg call(String arg) {
           return ArgFactory.parse(arg);

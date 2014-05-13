@@ -31,7 +31,7 @@ import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * Implements the {@link ClusterManager} module.
@@ -136,7 +136,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public synchronized Set<ServerAddress> getHostAddresses() {
-    return Collects.convertAsSet(this.hostsInfos, new Function<ServerAddress, CorusHost>() {
+    return Collects.convertAsSet(this.hostsInfos, new Func<ServerAddress, CorusHost>() {
       @Override
       public ServerAddress call(CorusHost arg) {
         return arg.getEndpoint().getServerAddress();

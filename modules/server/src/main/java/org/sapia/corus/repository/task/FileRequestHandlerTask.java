@@ -8,7 +8,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
 import org.sapia.corus.client.services.repository.FileDeploymentRequest;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * This task performs the deployment to a provided list of nodes, following a
@@ -27,7 +27,7 @@ public class FileRequestHandlerTask extends ArtifactRequestHandlerTaskSupport {
    *          nodes to deploy to.
    */
   public FileRequestHandlerTask(final File file, final List<Endpoint> targets) {
-    super(file, targets, new Function<DeploymentMetadata, Boolean>() {
+    super(file, targets, new Func<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
         return new FileDeploymentMetadata(file.getName(), file.length(), null, new ClusterInfo(clustered).addTargets(targets));

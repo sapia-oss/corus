@@ -17,7 +17,7 @@ import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.cli.SystemExitException;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * @author Yanick Duchesne
@@ -154,14 +154,14 @@ public abstract class CorusCliCommand implements Command {
    * @param name
    *          the name of the option whose value should be used.
    * @param converter
-   *          the converter {@link Function}, used to convert the option value
+   *          the converter {@link Func}, used to convert the option value
    *          to a list of strongly-typed elements.
    * @return the {@link List} of values that to which the option's value was
    *         converted.
    * @throws InputException
    *           if no value was specified for the given option.
    */
-  protected static <T> List<T> getOptValues(CliContext ctx, String name, Function<T, String> converter) throws InputException {
+  protected static <T> List<T> getOptValues(CliContext ctx, String name, Func<T, String> converter) throws InputException {
     if (ctx.getCommandLine().containsOption(name, true)) {
       String[] valueList = ctx.getCommandLine().assertOption(name, true).getValue().split(",");
       List<T> toReturn = new ArrayList<T>(valueList.length);

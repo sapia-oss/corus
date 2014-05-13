@@ -21,7 +21,7 @@ import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -106,7 +106,7 @@ public class FileManagerImpl extends ModuleHelper implements InternalFileManager
 
   @Override
   public List<FileInfo> getFiles() {
-    List<FileInfo> files = Collects.convertAsList(fileSystem.listFiles(baseDir), new Function<FileInfo, File>() {
+    List<FileInfo> files = Collects.convertAsList(fileSystem.listFiles(baseDir), new Func<FileInfo, File>() {
       public FileInfo call(File file) {
         return new FileInfo(file.getName(), file.length(), new Date(file.lastModified()));
       }

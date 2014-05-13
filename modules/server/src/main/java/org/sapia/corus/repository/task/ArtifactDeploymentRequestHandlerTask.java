@@ -19,7 +19,7 @@ import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.util.RunnableThrottleableTask;
 import org.sapia.corus.util.Queue;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * A task that handles {@link ArtifactDeploymentRequest}s.
@@ -53,7 +53,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   public void run() {
 
     List<ArtifactDeploymentRequest> requests = deployRequestQueue.removeAll();
-    Set<Endpoint> allTargets = Collects.convertAsSet(requests, new Function<Endpoint, ArtifactDeploymentRequest>() {
+    Set<Endpoint> allTargets = Collects.convertAsSet(requests, new Func<Endpoint, ArtifactDeploymentRequest>() {
       public Endpoint call(ArtifactDeploymentRequest req) {
         return req.getEndpoint();
       }

@@ -9,7 +9,7 @@ import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * This task performs the deployment to a provided list of nodes, following a
@@ -30,7 +30,7 @@ public class ShellScriptRequestHandlerTask extends ArtifactRequestHandlerTaskSup
    *          nodes to deploy to.
    */
   public ShellScriptRequestHandlerTask(final File scriptFile, final ShellScript script, final List<Endpoint> targets) {
-    super(scriptFile, targets, new Function<DeploymentMetadata, Boolean>() {
+    super(scriptFile, targets, new Func<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
         return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(),

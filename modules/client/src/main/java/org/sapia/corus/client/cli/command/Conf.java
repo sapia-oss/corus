@@ -36,7 +36,7 @@ import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * @author yduchesne
@@ -311,7 +311,7 @@ public class Conf extends CorusCliCommand {
     String nameFilter = getOptValue(ctx, OPT_TAG);
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Function<Set<String>, Set<String>>() {
+      res = res.filter(new Func<Set<String>, Set<String>>() {
         @Override
         public Set<String> call(Set<String> toFilter) {
           return Collects.filterAsSet(toFilter, new Condition<String>() {
@@ -407,7 +407,7 @@ public class Conf extends CorusCliCommand {
     }
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Function<List<NameValuePair>, List<NameValuePair>>() {
+      res = res.filter(new Func<List<NameValuePair>, List<NameValuePair>>() {
         @Override
         public List<NameValuePair> call(List<NameValuePair> toFilter) {
           return Collects.filterAsList(toFilter, new Condition<NameValuePair>() {

@@ -27,7 +27,7 @@ import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * Allows port management.
@@ -168,7 +168,7 @@ public class Port extends CorusCliCommand {
     String nameFilter = getOptValue(ctx, OPT_NAME);
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Function<List<PortRange>, List<PortRange>>() {
+      res = res.filter(new Func<List<PortRange>, List<PortRange>>() {
         @Override
         public List<PortRange> call(List<PortRange> toFilter) {
           return Collects.filterAsList(toFilter, new Condition<PortRange>() {

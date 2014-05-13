@@ -20,7 +20,7 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Function;
+import org.sapia.ubik.util.Func;
 
 /**
  * Internally removes {@link ArtifactListRequest}s from the passed in queue,
@@ -73,7 +73,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
     List<RepoDistribution> dists = Collects.convertAsList(deployer.getDistributions(DistributionCriteria.builder().all()),
-        new Function<RepoDistribution, Distribution>() {
+        new Func<RepoDistribution, Distribution>() {
           @Override
           public RepoDistribution call(Distribution dist) {
             return new RepoDistribution(dist.getName(), dist.getVersion());
