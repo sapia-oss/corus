@@ -69,7 +69,7 @@ public class Cluster extends CorusCliCommand {
   private void status(CliContext ctx) throws InputException {
     displayStatusHeader(ctx);
     Results<ClusterStatus> results = ctx.getCorus().getCluster().getClusterStatus(getClusterInfo(ctx));
-    Sorting.sortSingle(results, ClusterStatus.class, ctx.getSortSwitches());
+    results = Sorting.sortSingle(results, ClusterStatus.class, ctx.getSortSwitches());
     Table table = STATUS_TBL.createTable(ctx.getConsole().out());
 
     table.drawLine('=', 0, CONSOLE_WIDTH);

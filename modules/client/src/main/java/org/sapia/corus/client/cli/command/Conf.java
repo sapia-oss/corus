@@ -34,6 +34,7 @@ import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Func;
@@ -145,7 +146,9 @@ public class Conf extends CorusCliCommand {
       String toRemove = ctx.getCommandLine().assertOption(OPT_TAG, true).getValue();
       ctx.getCorus().getConfigFacade().removeTag(toRemove, getClusterInfo(ctx));
     } else if (op == Op.LIST) {
-      displayTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
+      Results<Set<String>> tags = ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx));
+      Results<List<String>> sorted = Sorting.sortSet(tags, String.class, ctx.getSortSwitches());
+      displayTagResults(sorted, ctx);
     } else if (op == Op.EXPORT) {
       exportTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
     } else if (op == Op.RENAME) {
@@ -275,6 +278,7 @@ public class Conf extends CorusCliCommand {
       ctx.getCorus().getConfigFacade().removeProperty(scope, name, getClusterInfo(ctx));
     } else if (op == Op.LIST) {
       Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
+      results = Sorting.sortList(results, NameValuePair.class, ctx.getSortSwitches());
       displayPropertyResults(results, ctx);
     } else if (op == Op.EXPORT) {
       Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
@@ -307,14 +311,14 @@ public class Conf extends CorusCliCommand {
 
   }
 
-  private void displayTagResults(Results<Set<String>> res, CliContext ctx) throws InputException {
+  private void displayTagResults(Results<List<String>> res, CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_TAG);
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Func<Set<String>, Set<String>>() {
+      res = res.filter(new Func<List<String>, List<String>>() {
         @Override
-        public Set<String> call(Set<String> toFilter) {
-          return Collects.filterAsSet(toFilter, new Condition<String>() {
+        public List<String> call(List<String> toFilter) {
+          return Collects.filterAsList(toFilter, new Condition<String>() {
             @Override
             public boolean apply(String item) {
               return pattern.matches(item);
@@ -325,7 +329,7 @@ public class Conf extends CorusCliCommand {
     }
 
     while (res.hasNext()) {
-      Result<Set<String>> result = res.next();
+      Result<List<String>> result = res.next();
       displayTagsHeader(result.getOrigin(), ctx);
       for (String tag : result.getData()) {
         displayTag(tag, ctx);

@@ -17,6 +17,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Process;
@@ -442,7 +443,7 @@ public class SortingTest {
       results.addResult(r);
     }
     
-    Results<List<Process>> sorted = Sorting.sortMulti(results, Process.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.PROC_NAME).build());
+    Results<List<Process>> sorted = Sorting.sortList(results, Process.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.PROC_NAME).build());
     for (int i = 0; i < 5; i++) {
       Result<List<Process>> r = sorted.next();
       assertEquals("h" + i, r.getOrigin().getEndpoint().getServerTcpAddress().getHost());
@@ -465,7 +466,7 @@ public class SortingTest {
       results.addResult(r);
     }
     
-    Results<List<Distribution>> sorted = Sorting.sortMulti(results, Distribution.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.DIST_VERSION).build());
+    Results<List<Distribution>> sorted = Sorting.sortList(results, Distribution.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.DIST_VERSION).build());
     for (int i = 0; i < 5; i++) {
       Result<List<Distribution>> r = sorted.next();
       assertEquals("h" + i, r.getOrigin().getEndpoint().getServerTcpAddress().getHost());
@@ -488,7 +489,7 @@ public class SortingTest {
       results.addResult(r);
     }
     
-    Results<List<ExecConfig>> sorted = Sorting.sortMulti(results, ExecConfig.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.EXEC_CONFIG_PROFILE).build());
+    Results<List<ExecConfig>> sorted = Sorting.sortList(results, ExecConfig.class, SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).ascending(SortSwitch.EXEC_CONFIG_PROFILE).build());
     for (int i = 0; i < 5; i++) {
       Result<List<ExecConfig>> r = sorted.next();
       assertEquals("h" + i, r.getOrigin().getEndpoint().getServerTcpAddress().getHost());
@@ -497,6 +498,30 @@ public class SortingTest {
         assertEquals("p" + j, d.getProfile());
       }
     }
+  }
+  
+  @Test
+  public void testGetPortRangeComparatorFor_Name_Ascending() throws Exception {
+    PortRange r1 = range("r1");
+    PortRange r2 = range("r2");
+
+    Comparator<PortRange> c = Sorting.getPortRangeComparatorFor(SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.PORT_RANGE_NAME).build());
+
+    assertTrue(c.compare(r1, r2) < 0);
+    assertTrue(c.compare(r2, r1) > 0);
+    assertTrue(c.compare(r1, r1) == 0);
+  }
+  
+  @Test
+  public void testGetPortRangeComparatorFor_Name_Descending() throws Exception {
+    PortRange r1 = range("r1");
+    PortRange r2 = range("r2");
+
+    Comparator<PortRange> c = Sorting.getPortRangeComparatorFor(SortSwitchInfo.Builder.newInstance().descending(SortSwitch.PORT_RANGE_NAME).build());
+
+    assertTrue(c.compare(r2, r1) < 0);
+    assertTrue(c.compare(r1, r2) > 0);
+    assertTrue(c.compare(r1, r1) == 0);
   }
 
   private Process process(String dist, String version, String name, String profile, String id, String osPid) {
@@ -527,5 +552,10 @@ public class SortingTest {
     c.setName(name);
     c.setProfile(profile);
     return c;
+  }
+  
+  private PortRange range(String name) throws Exception{
+    PortRange r = new PortRange(name, 1, 2);
+    return r;
   }
 }

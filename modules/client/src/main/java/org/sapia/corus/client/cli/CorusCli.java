@@ -8,7 +8,6 @@ import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.SystemUtils;
@@ -62,7 +61,7 @@ public class CorusCli extends CommandConsole {
   private List<CliError>   errors;
   private boolean          abortOnError;
   private StrLookup        vars = StrLookup.systemPropertiesLookup();
-  private Set<SortSwitchInfo>  sortSwitches;
+  private AtomicReference<SortSwitchInfo[]> sortSwitches;
  
   public CorusCli(CorusConnector corus) throws IOException {
     this(corus, getConsoleIO(ConsoleOutput.DefaultConsoleOutput.newInstance()));
@@ -71,6 +70,8 @@ public class CorusCli extends CommandConsole {
   private CorusCli(CorusConnector corus, ConsoleIO io) throws IOException {
     super(io, new CorusCommandFactory());
     this.corus = corus;
+    this.sortSwitches = new AtomicReference<SortSwitchInfo[]>();
+    this.sortSwitches.set(new SortSwitchInfo[]{});
     super.setCommandListener(new CliConsoleListener());
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
 
@@ -201,8 +202,9 @@ public class CorusCli extends CommandConsole {
             List<NameValuePair> props = connector.getConfigFacade().getProperties(PropertyScope.SERVER, new ClusterInfo(false)).next().getData();
             for (NameValuePair p : props) {
               if (p.getName().equals(CliPropertyKeys.SORT_SWITCHES) && p.getValue() != null) {
-                cli.sortSwitches = Sort.getSwitches(p.getValue());
-              }
+                List<SortSwitchInfo> s = Sort.getSwitches(p.getValue());
+                cli.sortSwitches.set(s.toArray(new SortSwitchInfo[s.size()]));
+              } 
             }
             cli.start();
           } catch (NullPointerException e) {
@@ -230,10 +232,7 @@ public class CorusCli extends CommandConsole {
    * @see org.sapia.console.CommandConsole#newContext()
    */
   protected Context newContext() {
-    CliContextImpl context = new CliContextImpl(corus, errors, vars);
-    if (sortSwitches != null) {
-      context.setSortSwitches(sortSwitches.toArray(new SortSwitchInfo[sortSwitches.size()]));
-    }
+    CliContextImpl context = new CliContextImpl(corus, errors, vars, sortSwitches);
     context.setAbortOnError(abortOnError);
     return context;
   }

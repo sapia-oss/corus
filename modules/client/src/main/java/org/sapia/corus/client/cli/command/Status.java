@@ -79,7 +79,7 @@ public class Status extends CorusCliCommand {
     } else {
       ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
       res = ctx.getCorus().getProcessorFacade().getStatus(criteria, cluster);
-      Sorting.sortMulti(res, ProcStatus.class, ctx.getSortSwitches());
+      Sorting.sortList(res, ProcStatus.class, ctx.getSortSwitches());
       displayResults(res, ctx);
     }
   }

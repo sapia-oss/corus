@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
@@ -13,6 +14,7 @@ import org.sapia.corus.client.common.CompositeComparator;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Process;
 
@@ -41,6 +43,7 @@ public class Sorting {
     PROC_PROFILE("pp", "Process profile"),
     EXEC_CONFIG_NAME("en", "Execution configuration name"),
     EXEC_CONFIG_PROFILE("ep", "Execution configuration profile"),
+    PORT_RANGE_NAME("rn", "Port range name"),    
     HOST_IP("hi", "Host IP"),
     HOST_NAME("hn", "Host name"),
     HOST_ROLE("hr", "Host role");
@@ -176,6 +179,20 @@ public class Sorting {
     }
     return cmp;   
   }
+  
+  /**
+   * @param sortSwitches an array of sort switches.
+   * @return a {@link Comparator} of {@link PortRange} instances.
+   */
+  public static final Comparator<PortRange> getPortRangeComparatorFor(SortSwitchInfo[] sortSwitches) {
+    CompositeComparator<PortRange> cmp = new CompositeComparator<PortRange>();
+    for (SortSwitchInfo s : sortSwitches) {
+      if (s.getSwitch() == SortSwitch.PORT_RANGE_NAME) {
+        cmp.add(s.order(PortRangeComparators.forName()));
+      } 
+    }
+    return cmp;   
+  }
 
   /**
    * Sorts a {@link Results} instance where each {@link Result} is expected to hold a single value.
@@ -190,34 +207,49 @@ public class Sorting {
       return toSort;
     }
     
-    Comparator<Result<?>> resultHostComparator = null;
+    CompositeComparator<Result<?>> resultHostComparator = new CompositeComparator<Result<?>>();
     for (SortSwitchInfo s  : sortSwitches) {
       if (s.getSwitch() == SortSwitch.HOST_IP) {
-        resultHostComparator = s.order(ResultComparators.forHostIp());
+        resultHostComparator.add(s.order(ResultComparators.forHostIp()));
       } else if (s.getSwitch() == SortSwitch.HOST_NAME) {
-        resultHostComparator = s.order(ResultComparators.forHostName());
+        resultHostComparator.add(s.order(ResultComparators.forHostName()));
       } else if (s.getSwitch() == SortSwitch.HOST_ROLE) {
-        resultHostComparator = s.order(ResultComparators.forHostRole());
+        resultHostComparator.add(s.order(ResultComparators.forHostRole()));
       } 
     }
     
-    if (resultHostComparator != null) {
-      List<Result<T>> listOfResults = new ArrayList<Result<T>>();
-      while (toSort.hasNext()) {
-        Result<T> r = toSort.next();
-        listOfResults.add(r);
-      }
-      Collections.sort(listOfResults, resultHostComparator);
-      Results<T> newResults = new Results<T>();
-      newResults.setInvocationCount(listOfResults.size());
-      for (Result<T> r : listOfResults) {
-        newResults.addResult(r);
-      }    
-      return newResults;    
-    } else {
-      return toSort;
+    List<Result<T>> listOfResults = new ArrayList<Result<T>>();
+    while (toSort.hasNext()) {
+      Result<T> r = toSort.next();
+      listOfResults.add(r);
     }
-    
+    Collections.sort(listOfResults, resultHostComparator);
+    Results<T> newResults = new Results<T>();
+    newResults.setInvocationCount(listOfResults.size());
+    for (Result<T> r : listOfResults) {
+      newResults.addResult(r);
+    }    
+    return newResults;    
+  }
+
+  /**
+   * Sorts a {@link Results} instance where each {@link Result} is expected to hold a {@link Set} of values.
+   * 
+   * @param toSort a {@link Results} instance to sort.
+   * @param resultType the {@link Class} corresponding to the type of results held.
+   * @param sortSwitches the {@link SortSwitchInfo} instances defining the sorting preferences.
+   * @return the sorted {@link Result}s.
+   */
+  public static final <T> Results<List<T>> sortSet(Results<Set<T>> toSort, Class<T> resultType, SortSwitchInfo[] sortSwitches) {
+    Results<List<T>> converted = new Results<List<T>>();
+    int count = 0;
+    while (toSort.hasNext()) {
+      Result<Set<T>> r = toSort.next();
+      converted.addResult(new Result<List<T>>(r.getOrigin(), new ArrayList<T>(r.getData())));
+      count++;
+    }
+    converted.setInvocationCount(count);
+    return sortList(converted, resultType, sortSwitches);
   }
   
   /**
@@ -229,7 +261,7 @@ public class Sorting {
    * @return the sorted {@link Result}s.
    */
   @SuppressWarnings("unchecked")
-  public static final <T> Results<List<T>> sortMulti(Results<List<T>> toSort, Class<T> resultType, SortSwitchInfo[] sortSwitches) {
+  public static final <T> Results<List<T>> sortList(Results<List<T>> toSort, Class<T> resultType, SortSwitchInfo[] sortSwitches) {
     if (sortSwitches == null || sortSwitches.length == 0) {
       return toSort;
     }
@@ -240,14 +272,14 @@ public class Sorting {
       listOfResults.add(r);
     }
 
-    Comparator<Result<?>> resultHostComparator = null;
+    CompositeComparator<Result<?>> resultHostComparator = new CompositeComparator<Result<?>>();
     for (SortSwitchInfo s  : sortSwitches) {
       if (s.getSwitch() == SortSwitch.HOST_IP) {
-        resultHostComparator = s.order(ResultComparators.forHostIp());
+        resultHostComparator.add(s.order(ResultComparators.forHostIp()));
       } else if (s.getSwitch() == SortSwitch.HOST_NAME) {
-        resultHostComparator = s.order(ResultComparators.forHostName());
+        resultHostComparator.add(s.order(ResultComparators.forHostName()));
       } else if (s.getSwitch() == SortSwitch.HOST_ROLE) {
-        resultHostComparator = s.order(ResultComparators.forHostRole());
+        resultHostComparator.add(s.order(ResultComparators.forHostRole()));
       } 
     }
     
@@ -264,8 +296,9 @@ public class Sorting {
       itemComparator = (Comparator<T>) getExecConfigComparatorFor(sortSwitches);
     } else if (resultType.equals(ClusterStatus.class)) {
       itemComparator = (Comparator<T>) getClusterStatusComparatorFor(sortSwitches);
-    }
-    
+    } else if (resultType.equals(PortRange.class)) {
+      itemComparator = (Comparator<T>) getPortRangeComparatorFor(sortSwitches);
+    }    
     if (itemComparator != null) {
       List<Result<List<T>>> listOfSortedResults = new ArrayList<Result<List<T>>>(listOfResults.size());
       for (Result<List<T>> r : listOfResults) {
@@ -274,10 +307,8 @@ public class Sorting {
         listOfSortedResults.add(new Result<List<T>>(r.getOrigin(), sortedList));
       }
       return getResultsFor(listOfSortedResults);
-    } else if (resultHostComparator != null) {
-      return getResultsFor(listOfResults);
     } else {
-      return toSort;
+      return getResultsFor(listOfResults);
     }
   }
   

@@ -74,7 +74,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     try {
       Results<List<ExecConfig>> res = ctx.getCorus().getProcessorFacade().getExecConfigs(cluster);
-      res = Sorting.sortMulti(res, ExecConfig.class, ctx.getSortSwitches());
+      res = Sorting.sortList(res, ExecConfig.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<ExecConfig>> result = res.next();
         displayExecConfigHeader(result.getOrigin(), ctx);
@@ -98,7 +98,7 @@ public class Ls extends CorusCliCommand {
 
     try {
       Results<List<ShellScript>> res = ctx.getCorus().getScriptManagementFacade().getScripts(criteria, cluster);
-      res = Sorting.sortMulti(res, ShellScript.class, ctx.getSortSwitches());
+      res = Sorting.sortList(res, ShellScript.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<ShellScript>> result = res.next();
         displayScriptHeader(result.getOrigin(), ctx);
@@ -122,7 +122,7 @@ public class Ls extends CorusCliCommand {
 
     try {
       Results<List<FileInfo>> res = ctx.getCorus().getFileManagementFacade().getFiles(criteria, cluster);
-      res = Sorting.sortMulti(res, FileInfo.class, ctx.getSortSwitches());
+      res = Sorting.sortList(res, FileInfo.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<FileInfo>> result = res.next();
         displayFileHeader(result.getOrigin(), ctx);
@@ -152,7 +152,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     DistributionCriteria criteria = DistributionCriteria.builder().name(dist).version(version).build();
     Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(criteria, cluster);
-    res = Sorting.sortMulti(res, Distribution.class, ctx.getSortSwitches());
+    res = Sorting.sortList(res, Distribution.class, ctx.getSortSwitches());
     displayResults(res, ctx);
   }
 

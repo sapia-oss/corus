@@ -25,6 +25,7 @@ import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Func;
@@ -161,7 +162,9 @@ public class Port extends CorusCliCommand {
   }
 
   void doList(CliContext ctx, CmdLine cmd) throws InputException {
-    displayResults(ctx.getCorus().getPortManagementFacade().getPortRanges(getClusterInfo(ctx)), ctx);
+    Results<List<PortRange>> res = ctx.getCorus().getPortManagementFacade().getPortRanges(getClusterInfo(ctx));
+    res = Sorting.sortList(res, PortRange.class, ctx.getSortSwitches());
+    displayResults(res, ctx);
   }
 
   private void displayResults(Results<List<PortRange>> res, CliContext ctx) throws InputException {

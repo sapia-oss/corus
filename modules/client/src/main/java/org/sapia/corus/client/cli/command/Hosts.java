@@ -44,27 +44,14 @@ public class Hosts extends CorusCliCommand {
     Table hostTable = TBL.createTable(ctx.getConsole().out());
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
-
-    Row row = hostTable.newRow();
-    row.getCellAt(TBL.col("host").index()).append(ctx.getCorus().getContext().getServerHost().getHostName());
-    TCPAddress addr = ctx.getCorus().getContext().getServerHost().getEndpoint().getServerTcpAddress();
-    row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
-    row.getCellAt(TBL.col("os").index()).append(ctx.getCorus().getContext().getServerHost().getOsInfo());
-    row.getCellAt(TBL.col("java").index()).append(ctx.getCorus().getContext().getServerHost().getJavaVmInfo());
-    if (ctx.getCorus().getContext().getServerHost().getRepoRole() == RepoRole.NONE) {
-      row.getCellAt(TBL.col("repo").index()).append("n/a");
-    } else {
-      row.getCellAt(TBL.col("repo").index()).append(ctx.getCorus().getContext().getServerHost().getRepoRole().name().toLowerCase());
-    }
-
-    row.flush();
-
-    List<CorusHost> sortedHosts = new ArrayList<CorusHost>(others);
+    List<CorusHost> sortedHosts = new ArrayList<CorusHost>();
+    sortedHosts.add(ctx.getCorus().getContext().getServerHost());
+    sortedHosts.addAll(others);
     Collections.sort(sortedHosts, Sorting.getHostComparatorFor(ctx.getSortSwitches()));
     for (CorusHost other : sortedHosts) {
-      row = hostTable.newRow();
+      Row row = hostTable.newRow();
       row.getCellAt(TBL.col("host").index()).append(other.getHostName());
-      addr = other.getEndpoint().getServerTcpAddress();
+      TCPAddress addr = other.getEndpoint().getServerTcpAddress();
       row.getCellAt(TBL.col("addr").index()).append(addr.getHost() + ":" + addr.getPort());
       row.getCellAt(TBL.col("os").index()).append(other.getOsInfo());
       row.getCellAt(TBL.col("java").index()).append(other.getJavaVmInfo());

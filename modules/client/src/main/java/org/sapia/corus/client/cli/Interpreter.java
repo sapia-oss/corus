@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -19,6 +20,7 @@ import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
+import org.sapia.corus.client.sort.SortSwitchInfo;
 
 /**
  * This class implements a {@link Console} that may be embedded in applications
@@ -142,7 +144,9 @@ public class Interpreter extends Console {
       CmdLine cmdLine = CmdLine.parse(commandLine);
       if (cmdLine.isNextArg()) {
         Command cmd = commandFactory.getCommandFor(cmdLine.chopArg().getName());
-        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), vars);
+        AtomicReference<SortSwitchInfo[]> switches = new AtomicReference<SortSwitchInfo[]>();
+        switches.set(new SortSwitchInfo[]{});
+        CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), vars, switches);
         ctx.setUp(this, cmdLine);
         ctx.setAbortOnError(true);
         try {

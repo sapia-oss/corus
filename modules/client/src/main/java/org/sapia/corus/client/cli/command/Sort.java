@@ -1,9 +1,14 @@
 package org.sapia.corus.client.cli.command;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -14,9 +19,10 @@ import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
-import org.sapia.corus.client.sort.Sorting.SortSwitch;
 import org.sapia.corus.client.sort.SortSwitchInfo;
+import org.sapia.corus.client.sort.Sorting.SortSwitch;
 import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * Sets sort switches, allows pushing them to the server.
@@ -32,29 +38,28 @@ public class Sort extends CorusCliCommand{
   private static final String CLEAR = "clear";
   private static final String LS    = "ls";
   
-  private static final TableDef TBL = TableDef.newInstance()
-        .createCol("value", 4)
-        .createCol("sort",  5)
-        .createCol("description", 45);
+  private static final String SORT_DESCENDING = "d";
   
+  private static final TableDef TBL = TableDef.newInstance()
+        .createCol("value", 6)
+        .createCol("sort",  6)
+        .createCol("description", 45);
    
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,
       InputException {
     
-    Arg arg = ctx.getCommandLine().assertNextArg(new String[] {ON, PUSH, OFF});
+    Arg arg = ctx.getCommandLine().assertNextArg(new String[] {ON, PUSH, OFF, CLEAR, LS});
     
     if (arg.getName().equals(ON)) {
       Arg switchArg = ctx.getCommandLine().assertNextArg();
-      Set<SortSwitchInfo> currentSwitches = Collects.arrayToSet(ctx.getSortSwitches());
-      Set<SortSwitchInfo> switches = getSwitches(switchArg.getName());
-      switches.addAll(currentSwitches);
-      ctx.setSortSwitches(switches.toArray(new SortSwitchInfo[switches.size()]));
+      List<SortSwitchInfo> sortedSwitches = processSwitches(ctx, getSwitches(switchArg.getName()));
+      ctx.setSortSwitches(sortedSwitches.toArray(new SortSwitchInfo[sortedSwitches.size()]));
       
     } else if (arg.getName().equals(PUSH)) {
       Arg switchArg = ctx.getCommandLine().assertNextArg();
-      Set<SortSwitchInfo> switches = getSwitches(switchArg.getName());
-      ctx.setSortSwitches(switches.toArray(new SortSwitchInfo[switches.size()]));
+      List<SortSwitchInfo> sortedSwitches = processSwitches(ctx, getSwitches(switchArg.getName()));
+      ctx.setSortSwitches(sortedSwitches.toArray(new SortSwitchInfo[sortedSwitches.size()]));
       ctx.getCorus().getConfigFacade().addProperty(
           PropertyScope.SERVER, 
           CliPropertyKeys.SORT_SWITCHES, 
@@ -68,8 +73,8 @@ public class Sort extends CorusCliCommand{
       
     } else if (arg.getName().equals(OFF)) {
       Arg switchArg = ctx.getCommandLine().assertNextArg();
-      Set<SortSwitchInfo> toTurnOff = getSwitches(switchArg.getName());
-      List<SortSwitchInfo> currentlySet = Arrays.asList(ctx.getSortSwitches());
+      List<SortSwitchInfo> toTurnOff = getSwitches(switchArg.getName());
+      List<SortSwitchInfo> currentlySet = Collects.arrayToList(ctx.getSortSwitches());
       currentlySet.removeAll(toTurnOff);
       ctx.setSortSwitches(currentlySet.toArray(new SortSwitchInfo[currentlySet.size()]));
       
@@ -96,21 +101,56 @@ public class Sort extends CorusCliCommand{
     
   }
   
-  public static Set<SortSwitchInfo> getSwitches(String switchString) {
-    String[]         valuesArr = switchString.split(",");
-    Set<SortSwitchInfo> switches  = new HashSet<SortSwitchInfo>();
+  private List<SortSwitchInfo> processSwitches(CliContext ctx, List<SortSwitchInfo> newSwitches) {
+    Map<SortSwitchInfo, Integer> switchIndexes = new HashMap<SortSwitchInfo, Integer>();
+    int index = 0;
+    for (SortSwitchInfo s : ctx.getSortSwitches()) {
+      switchIndexes.put(s, index++);
+    }
+    for (SortSwitchInfo s : newSwitches) {
+      if (switchIndexes.containsKey(s)) {
+        int currentIndex = switchIndexes.get(s);
+        switchIndexes.remove(s);
+        switchIndexes.put(s, currentIndex);
+      } else {
+        switchIndexes.put(s, index++);
+      }
+    }
+    List<Map.Entry<SortSwitchInfo, Integer>> entries = new ArrayList<Map.Entry<SortSwitchInfo,Integer>>(switchIndexes.entrySet());
+    Collections.sort(entries, new Comparator<Map.Entry<SortSwitchInfo, Integer>>() {
+      @Override
+      public int compare(Entry<SortSwitchInfo, Integer> o1, Entry<SortSwitchInfo, Integer> o2) {
+        return o1.getValue() - o2.getValue();
+      }
+    });
+    
+    List<SortSwitchInfo> sortedSwitches = Collects.convertAsList(entries, new Func<SortSwitchInfo, Map.Entry<SortSwitchInfo, Integer>>() {
+      @Override
+      public SortSwitchInfo call(Entry<SortSwitchInfo, Integer> arg) {
+        return arg.getKey();
+      }
+    });
+    
+    return sortedSwitches;
+  }
+  
+  public static List<SortSwitchInfo> getSwitches(String switchString) {
+    String[] valuesArr = switchString.split(",");
+    List<SortSwitchInfo> switches = new ArrayList<SortSwitchInfo>();
     for (String v : valuesArr) {
       v = v.trim();
       int i = v.indexOf(":");
-      if (i > 0 && v.length() == 3) {
-        SortSwitch s = SortSwitch.forValue(new StringBuilder().append(v.charAt(0)).toString());
+      if (i > 0 && v.length() >= 3) {
+        SortSwitch s = SortSwitch.forValue(v.substring(0, i));
         if (s != null) {
-          boolean ascending = v.charAt(2) != 'd';
+          boolean ascending = !v.substring(i + 1).equals(SORT_DESCENDING);
           switches.add(new SortSwitchInfo(s, ascending));
         }
       } else {
         SortSwitch s = SortSwitch.forValue(v);
-        switches.add(new SortSwitchInfo(s, true));
+        if (s != null) {
+          switches.add(new SortSwitchInfo(s, true));
+        }
       }
     }
     return switches;

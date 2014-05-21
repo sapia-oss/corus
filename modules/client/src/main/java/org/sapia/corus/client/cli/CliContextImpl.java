@@ -2,6 +2,7 @@ package org.sapia.corus.client.cli;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.AbortException;
@@ -23,17 +24,13 @@ public class CliContextImpl extends Context implements CliContext {
   private List<CliError> errors;
   private boolean        abortOnError;
   private StrLookup      vars;
-  private SortSwitchInfo[]   sortSwitches = new SortSwitchInfo[]{};
+  private AtomicReference<SortSwitchInfo[]> sortSwitches = new AtomicReference<SortSwitchInfo[]>();
   
-  /**
-   * Creates a new {@link CliContextImpl} instance.
-   * 
-   * @param corus
-   */
-  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookup vars) {
+  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookup vars, AtomicReference<SortSwitchInfo[]> sortSwitches) {
     this.corus = corus;
     this.errors = anErrorList;
     this.vars = vars;
+    this.sortSwitches = sortSwitches;
   }
 
   @Override
@@ -120,16 +117,16 @@ public class CliContextImpl extends Context implements CliContext {
 
   @Override
   public SortSwitchInfo[] getSortSwitches() {
-    return sortSwitches;
+    return sortSwitches.get() == null ? new SortSwitchInfo[]{} : sortSwitches.get();
   }
   
   @Override
   public void setSortSwitches(SortSwitchInfo[] sortSwitches) {
-    this.sortSwitches = sortSwitches == null ? new SortSwitchInfo[]{} : sortSwitches;
+    this.sortSwitches.set(sortSwitches == null ? new SortSwitchInfo[]{} : sortSwitches);
   }
   
   @Override
   public void unsetSortSwitches() {
-    this.sortSwitches = new SortSwitchInfo[]{};
+    this.sortSwitches.set(new SortSwitchInfo[]{});
   }
 }

@@ -92,7 +92,7 @@ public class Ps extends CorusCliCommand {
     } else {
       ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
       res = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
-      res = Sorting.sortMulti(res, Process.class, ctx.getSortSwitches());
+      res = Sorting.sortList(res, Process.class, ctx.getSortSwitches());
       displayResults(res, ctx, displayPorts);
     }
   }
