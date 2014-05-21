@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
@@ -24,7 +25,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcessDef;
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.sort.Sorting;
 
 /**
  * Displays distribution info.
@@ -73,6 +74,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     try {
       Results<List<ExecConfig>> res = ctx.getCorus().getProcessorFacade().getExecConfigs(cluster);
+      res = Sorting.sortMulti(res, ExecConfig.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<ExecConfig>> result = res.next();
         displayExecConfigHeader(result.getOrigin(), ctx);
@@ -96,6 +98,7 @@ public class Ls extends CorusCliCommand {
 
     try {
       Results<List<ShellScript>> res = ctx.getCorus().getScriptManagementFacade().getScripts(criteria, cluster);
+      res = Sorting.sortMulti(res, ShellScript.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<ShellScript>> result = res.next();
         displayScriptHeader(result.getOrigin(), ctx);
@@ -119,6 +122,7 @@ public class Ls extends CorusCliCommand {
 
     try {
       Results<List<FileInfo>> res = ctx.getCorus().getFileManagementFacade().getFiles(criteria, cluster);
+      res = Sorting.sortMulti(res, FileInfo.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<FileInfo>> result = res.next();
         displayFileHeader(result.getOrigin(), ctx);
@@ -148,6 +152,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     DistributionCriteria criteria = DistributionCriteria.builder().name(dist).version(version).build();
     Results<List<Distribution>> res = ctx.getCorus().getDeployerFacade().getDistributions(criteria, cluster);
+    res = Sorting.sortMulti(res, Distribution.class, ctx.getSortSwitches());
     displayResults(res, ctx);
   }
 
@@ -249,14 +254,14 @@ public class Ls extends CorusCliCommand {
     row.flush();
   }
 
-  private void displayHeader(ServerAddress addr, CliContext ctx) {
+  private void displayHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = DIST_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -269,13 +274,13 @@ public class Ls extends CorusCliCommand {
     headers.flush();
   }
 
-  private void displayExecConfigHeader(ServerAddress addr, CliContext ctx) {
+  private void displayExecConfigHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = EXE_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -290,13 +295,13 @@ public class Ls extends CorusCliCommand {
     headers.flush();
   }
 
-  private void displayScriptHeader(ServerAddress addr, CliContext ctx) {
+  private void displayScriptHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = SCRIPT_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -308,13 +313,13 @@ public class Ls extends CorusCliCommand {
     headers.flush();
   }
 
-  private void displayFileHeader(ServerAddress addr, CliContext ctx) {
+  private void displayFileHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = FILE_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);

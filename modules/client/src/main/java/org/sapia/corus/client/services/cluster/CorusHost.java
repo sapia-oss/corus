@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.net.UnknownHostException;
+import java.util.Comparator;
 
 import org.sapia.ubik.util.Localhost;
 import org.sapia.ubik.util.Strings;
@@ -64,7 +65,7 @@ public class CorusHost implements Externalizable {
 
   static {
     try {
-      localHostName = Localhost.getAnyLocalAddress().getHostName();
+      localHostName = Localhost.getPreferredLocalAddress().getHostName();
     } catch (UnknownHostException e) {
       localHostName = UNDEFINED_HOSTNAME;
     }
@@ -178,6 +179,18 @@ public class CorusHost implements Externalizable {
   public String getFormattedAddress() {
     return hostName.equals(CorusHost.UNDEFINED_HOSTNAME) ? endpoint.getServerTcpAddress().toString() : hostName + ":"
         + endpoint.getServerTcpAddress().getPort();
+  }
+  
+  /**
+   * @return the a {@link Comparator} that compares {@link CorusHost} instances based on their host name.
+   */
+  public static Comparator<CorusHost> getHostNameComparator() {
+    return new Comparator<CorusHost>() {
+      @Override
+      public int compare(CorusHost o1, CorusHost o2) {
+        return o1.hostName.compareTo(o2.hostName);
+      }
+    };
   }
 
   // --------------------------------------------------------------------------

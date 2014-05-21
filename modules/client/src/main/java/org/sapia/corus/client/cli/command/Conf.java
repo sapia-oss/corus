@@ -32,8 +32,8 @@ import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
-import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Func;
@@ -333,14 +333,14 @@ public class Conf extends CorusCliCommand {
     }
   }
 
-  private void displayTagsHeader(ServerAddress addr, CliContext ctx) {
+  private void displayTagsHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = TAGS_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
@@ -429,14 +429,14 @@ public class Conf extends CorusCliCommand {
     }
   }
 
-  private void displayPropertiesHeader(ServerAddress addr, CliContext ctx) {
+  private void displayPropertiesHeader(CorusHost addr, CliContext ctx) {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = PROPS_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     titleTable.drawLine(' ', 0, CONSOLE_WIDTH);

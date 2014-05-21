@@ -10,6 +10,7 @@ import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.sort.SortSwitchInfo;
 
 /**
  * @author Yanick Duchesne
@@ -20,9 +21,10 @@ public class CliContextImpl extends Context implements CliContext {
 
   private CorusConnector corus;
   private List<CliError> errors;
-  private boolean abortOnError;
-  private StrLookup vars;
-
+  private boolean        abortOnError;
+  private StrLookup      vars;
+  private SortSwitchInfo[]   sortSwitches = new SortSwitchInfo[]{};
+  
   /**
    * Creates a new {@link CliContextImpl} instance.
    * 
@@ -116,4 +118,18 @@ public class CliContextImpl extends Context implements CliContext {
     super.setUp(cons, cmdLine);
   }
 
+  @Override
+  public SortSwitchInfo[] getSortSwitches() {
+    return sortSwitches;
+  }
+  
+  @Override
+  public void setSortSwitches(SortSwitchInfo[] sortSwitches) {
+    this.sortSwitches = sortSwitches == null ? new SortSwitchInfo[]{} : sortSwitches;
+  }
+  
+  @Override
+  public void unsetSortSwitches() {
+    this.sortSwitches = new SortSwitchInfo[]{};
+  }
 }

@@ -207,7 +207,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>1.9</version>
+        <version>1.11-SNAPSHOT</version>
       </dependency>
 
       <dependency>
@@ -221,7 +221,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>4.0-RC4-SNAPSHOT</version>
+        <version>4.0-RC7</version>
       </dependency>
       
       <!-- http client-->

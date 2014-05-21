@@ -99,7 +99,7 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
     try {
       T returnValue = (T) method.invoke(lookup(moduleInterface), params);
       results.incrementInvocationCount();
-      results.addResult(new Result<T>(corus.getHostInfo().getEndpoint().getServerAddress(), returnValue));
+      results.addResult(new Result<T>(corus.getHostInfo(), returnValue));
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
     }

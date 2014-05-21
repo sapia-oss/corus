@@ -2,6 +2,7 @@ package org.sapia.corus.client.facade;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +15,7 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.http.conn.util.InetAddressUtils;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Result;
@@ -139,7 +141,18 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
 
   @Override
   public synchronized void reconnect(String host, int port) {
-    connectAddress = HttpAddress.newDefaultInstance(host, port);
+    if (InetAddressUtils.isIPv4Address(host)) {
+      connectAddress = HttpAddress.newDefaultInstance(host, port);
+    } else if (InetAddressUtils.isIPv6Address(host)) {
+      connectAddress = HttpAddress.newDefaultInstance(host, port);
+    } else {
+      try {
+        InetAddress addr = InetAddress.getByName(host);
+        connectAddress = HttpAddress.newDefaultInstance(addr.getHostAddress(), port);
+      } catch (java.net.UnknownHostException e) {
+        throw new IllegalArgumentException("Unkown host: " + host, e);
+      }
+    }
     reconnect();
   }
 
@@ -193,7 +206,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       } else {
         T returnValue = (T) method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result<T>(connectAddress, returnValue));
+        results.addResult(new Result<T>(serverHost, returnValue));
       }
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
@@ -223,20 +236,33 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   @SuppressWarnings(value = "unchecked")
   void applyToCluster(final Results<?> results, final Class<?> moduleInterface, final Method method, final Object[] params, final ClusterInfo cluster) {
 
-    List<ServerAddress> hostList = new ArrayList<ServerAddress>();
+    List<CorusHost> hostList = new ArrayList<CorusHost>();
     if (cluster.isTargetingAllHosts()) {
-      hostList.add(connectAddress);
+      hostList.add(serverHost);
       for (CorusHost otherHost : otherHosts.values()) {
-        hostList.add(otherHost.getEndpoint().getServerAddress());
+        hostList.add(otherHost);
       }
     } else {
-      hostList.addAll(cluster.getTargets());
+      for (ServerAddress t : cluster.getTargets()) {
+        if (serverHost.getEndpoint().getServerAddress().equals(t)) {
+          hostList.add(serverHost);
+          break;
+        } else {
+          for (CorusHost o : otherHosts.values()) {
+            if (o.getEndpoint().getServerAddress().equals(t)) {
+              hostList.add(o);
+              break;
+            }
+          }
+        }
+        
+      }
     }
 
-    Iterator<ServerAddress> itr = hostList.iterator();
+    Iterator<CorusHost> itr = hostList.iterator();
     List<Runnable> invokers = new ArrayList<Runnable>(hostList.size());
     while (itr.hasNext()) {
-      final ServerAddress addr = itr.next();
+      final CorusHost addr = itr.next();
 
       Runnable invoker = new Runnable() {
         Object module;
@@ -245,12 +271,12 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
         @SuppressWarnings("rawtypes")
         @Override
         public void run() {
-          Corus corus = (Corus) cachedStubs.get(addr);
+          Corus corus = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
 
           if (corus == null) {
             try {
-              corus = (Corus) Hub.connect(addr);
-              cachedStubs.put(addr, corus);
+              corus = (Corus) Hub.connect(addr.getEndpoint().getServerAddress());
+              cachedStubs.put(addr.getEndpoint().getServerAddress(), corus);
             } catch (java.rmi.RemoteException e) {
               results.decrementInvocationCount();
               return;

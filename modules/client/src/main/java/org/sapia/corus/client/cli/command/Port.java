@@ -23,8 +23,8 @@ import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.port.PortRange;
-import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Func;
@@ -203,14 +203,14 @@ public class Port extends CorusCliCommand {
     row.flush();
   }
 
-  private void displayHeader(ServerAddress addr, CliContext ctx) {
+  private void displayHeader(CorusHost addr, CliContext ctx) {
     Table ranges = RANGE_TBL.createTable(ctx.getConsole().out());
     Table title = TITLE_TBL.createTable(ctx.getConsole().out());
 
     title.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = title.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     title.drawLine(' ', 0, CONSOLE_WIDTH);

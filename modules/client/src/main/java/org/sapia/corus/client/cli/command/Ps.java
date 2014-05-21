@@ -12,9 +12,10 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.sort.Sorting;
 
 /**
  * Displays process info.
@@ -83,21 +84,20 @@ public class Ps extends CorusCliCommand {
     if (pid != null) {
       try {
         Process proc = ctx.getCorus().getProcessorFacade().getProcess(pid);
-        displayHeader(ctx.getCorus().getContext().getAddress(), ctx, displayPorts);
+        displayHeader(ctx.getCorus().getContext().getServerHost(), ctx, displayPorts);
         displayProcess(proc, ctx, displayPorts);
       } catch (Exception e) {
         ctx.getConsole().println(e.getMessage());
       }
     } else {
       ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
-
       res = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
+      res = Sorting.sortMulti(res, Process.class, ctx.getSortSwitches());
       displayResults(res, ctx, displayPorts);
     }
   }
 
   private void displayResults(Results<List<Process>> res, CliContext ctx, boolean displayPorts) {
-
     while (res.hasNext()) {
       Result<List<Process>> result = res.next();
       displayHeader(result.getOrigin(), ctx, displayPorts);
@@ -148,14 +148,14 @@ public class Ps extends CorusCliCommand {
     row.flush();
   }
 
-  private void displayHeader(ServerAddress addr, CliContext ctx, boolean displayPorts) {
+  private void displayHeader(CorusHost addr, CliContext ctx, boolean displayPorts) {
     Table procTable = displayPorts ? PROC_PORTS_TBL.createTable(ctx.getConsole().out()) : PROC_TBL.createTable(ctx.getConsole().out());
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
 
     titleTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     procTable.drawLine(' ', 0, CONSOLE_WIDTH);

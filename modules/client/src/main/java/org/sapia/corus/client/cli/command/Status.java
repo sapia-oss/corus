@@ -13,11 +13,12 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.sort.Sorting;
 import org.sapia.corus.interop.Context;
 import org.sapia.corus.interop.Param;
-import org.sapia.ubik.net.ServerAddress;
 
 /**
  * Displays process status.
@@ -70,15 +71,15 @@ public class Status extends CorusCliCommand {
     if (pid != null) {
       try {
         ProcStatus stat = ctx.getCorus().getProcessorFacade().getStatusFor(pid);
-        displayHeader(ctx.getCorus().getContext().getAddress(), ctx);
+        displayHeader(ctx.getCorus().getContext().getServerHost(), ctx);
         displayStatus(stat, ctx);
       } catch (ProcessNotFoundException e) {
         throw new InputException(e.getMessage());
       }
     } else {
       ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
-
       res = ctx.getCorus().getProcessorFacade().getStatus(criteria, cluster);
+      Sorting.sortMulti(res, ProcStatus.class, ctx.getSortSwitches());
       displayResults(res, ctx);
     }
   }
@@ -134,14 +135,14 @@ public class Status extends CorusCliCommand {
 
   }
 
-  private void displayHeader(ServerAddress addr, CliContext ctx) {
+  private void displayHeader(CorusHost addr, CliContext ctx) {
     Table procTable = STAT_TBL.createTable(ctx.getConsole().out());
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
 
     procTable.drawLine('=', 0, CONSOLE_WIDTH);
 
     Row row = titleTable.newRow();
-    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     procTable.drawLine(' ', 0, CONSOLE_WIDTH);

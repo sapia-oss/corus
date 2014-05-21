@@ -10,6 +10,9 @@ import org.sapia.console.ConsoleOutput;
  */
 public interface CorusConsoleOutput extends ConsoleOutput {
 
+  // ==========================================================================
+  // Interface methods
+
   /**
    * Disables output.
    */
@@ -87,7 +90,7 @@ public interface CorusConsoleOutput extends ConsoleOutput {
     }
     
     // ------------------------------------------------------------------------
-    // CorusConsoleOutput implementation
+    // Static methods
 
     /**
      * @param delegate a {@link ConsoleOutput} to wrap.
@@ -99,5 +102,6 @@ public interface CorusConsoleOutput extends ConsoleOutput {
       }
       return new DefaultCorusConsoleOutput(delegate);
     }
+
   }
 }

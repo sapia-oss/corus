@@ -1,6 +1,6 @@
 package org.sapia.corus.client;
 
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -13,10 +13,10 @@ import org.sapia.ubik.util.Strings;
  */
 public class Result<T> {
 
-  private ServerAddress origin;
+  private CorusHost origin;
   private T data;
 
-  public Result(ServerAddress origin, T data) {
+  public Result(CorusHost origin, T data) {
     this.origin = origin;
     this.data = data;
   }
@@ -30,10 +30,10 @@ public class Result<T> {
   }
 
   /**
-   * @return the {@link ServerAddress} corresponding to the address of the Corus
+   * @return the {@link CorusHost} corresponding to the address of the Corus
    *         server on which the invocation was performed.
    */
-  public ServerAddress getOrigin() {
+  public CorusHost getOrigin() {
     return origin;
   }
 

@@ -153,7 +153,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     List<Property> props = new ArrayList<Property>(10);
     String host = null;
     try {
-      host = Localhost.getAnyLocalAddress().getHostAddress();
+      host = Localhost.getPreferredLocalAddress().getHostAddress();
     } catch (Exception e) {
       host = ctx.getServerContext().getCorusHost().getEndpoint().getServerTcpAddress().getHost();
     }

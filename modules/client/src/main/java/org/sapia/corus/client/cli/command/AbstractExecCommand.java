@@ -95,7 +95,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       if (!distResult.getData().isEmpty()) {
         dists.addAll(distResult.getData());
       }
-      hostsWithDist.put(distResult.getOrigin(), new HashSet<String>());
+      hostsWithDist.put(distResult.getOrigin().getEndpoint().getServerAddress(), new HashSet<String>());
     }
 
     // distribution set should not be empty, but considering anyway

@@ -13,8 +13,8 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.cli.command.cron.CronWizard;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cron.CronJobInfo;
-import org.sapia.ubik.net.ServerAddress;
 
 /**
  * @author Yanick Duchesne
@@ -113,13 +113,13 @@ public class Cron extends CorusCliCommand {
     }
   }
 
-  private void displayHeader(ServerAddress addr, CliContext ctx) {
+  private void displayHeader(CorusHost addr, CliContext ctx) {
     Table hostTable = HOST_TBL.createTable(ctx.getConsole().out());
     Table infoTable = CRON_TBL.createTable(ctx.getConsole().out());
 
     hostTable.drawLine('=', 0, CONSOLE_WIDTH);
     Row row = hostTable.newRow();
-    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(ctx.getCorus().getContext().resolve(addr).getFormattedAddress());
+    row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
     hostTable.drawLine(' ', 0, CONSOLE_WIDTH);

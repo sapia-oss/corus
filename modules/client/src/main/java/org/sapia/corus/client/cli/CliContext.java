@@ -7,6 +7,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.sort.SortSwitchInfo;
 
 /**
  * This interface specifies the behavior common to command line contexts.
@@ -90,5 +91,19 @@ public interface CliContext {
    * @return the {@link StrLookup} of variables that this instance holds.
    */
   public StrLookup getVars();
+  
+  /**
+   * @return the sort switches that were passed.
+   */
+  public SortSwitchInfo[] getSortSwitches();
 
+  /**
+   * @param sortSwitches an array of sort switches.
+   */
+  public void setSortSwitches(SortSwitchInfo[] sortSwitches);
+  
+  /**
+   * @param unternally unsets the sort switches.
+   */
+  public void unsetSortSwitches();
 }

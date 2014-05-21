@@ -8,6 +8,7 @@ import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.sort.SortSwitchInfo;
 
 /**
  * Implements a context that is used when a command line is spawned from another
@@ -19,9 +20,9 @@ import org.sapia.corus.client.facade.CorusConnector;
 public class ChildCliContext extends Context implements CliContext {
 
   private CliContext parent;
-  private CmdLine childCmd;
-  private boolean abortOnError;
-  private StrLookup vars;
+  private CmdLine    childCmd;
+  private boolean    abortOnError;
+  private StrLookup  vars;
 
   public ChildCliContext(CliContext parent, CmdLine childCmd, StrLookup vars) {
     this.parent = parent;
@@ -82,5 +83,20 @@ public class ChildCliContext extends Context implements CliContext {
   @Override
   public void setAbortOnError(boolean abortOnError) {
     this.abortOnError = abortOnError;
+  }
+  
+  @Override
+  public SortSwitchInfo[] getSortSwitches() {
+    return parent.getSortSwitches();
+  }
+  
+  @Override
+  public void setSortSwitches(SortSwitchInfo[] sortSwitches) {
+    parent.setSortSwitches(sortSwitches);
+  }
+  
+  @Override
+  public void unsetSortSwitches() {
+    parent.unsetSortSwitches();
   }
 }

@@ -33,7 +33,7 @@ public class HttpCorusTransport extends AbstractTransport {
     if (port <= 0) {
       throw new IllegalStateException("The port number is invalid: " + port);
     }
-    address = HttpAddress.newDefaultInstance(Localhost.getAnyLocalAddress().getHostAddress(), port);
+    address = HttpAddress.newDefaultInstance(Localhost.getPreferredLocalAddress().getHostAddress(), port);
   }
 
   /**

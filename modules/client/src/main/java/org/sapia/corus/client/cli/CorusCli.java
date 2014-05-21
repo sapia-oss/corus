@@ -8,6 +8,8 @@ import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -25,13 +27,19 @@ import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
+import org.sapia.corus.client.CliPropertyKeys;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.CorusVersion;
+import org.sapia.corus.client.cli.command.Sort;
 import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.sort.SortSwitchInfo;
 import org.sapia.ubik.util.Localhost;
 
 /**
@@ -41,48 +49,65 @@ import org.sapia.ubik.util.Localhost;
  */
 public class CorusCli extends CommandConsole {
 
-  public static final int DEFAULT_PORT = 33000;
-  public static final String HOST_OPT = "h";
-  public static final String PORT_OPT = "p";
-  public static final String SCRIPT_OPT = "s";
-  public static final String COMMAND_OPT = "c";
-  public static final int MAX_ERROR_HISTORY = 20;
+  public static final int    DEFAULT_PORT      = 33000;
+  public static final String HOST_OPT          = "h";
+  public static final String PORT_OPT          = "p";
+  public static final String SCRIPT_OPT        = "s";
+  public static final String COMMAND_OPT       = "c";
+  public static final int    MAX_ERROR_HISTORY = 20;
 
   private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();
 
   protected CorusConnector corus;
-  private List<CliError> errors;
-  private boolean abortOnError;
-  private StrLookup vars = StrLookup.systemPropertiesLookup();
-
-  public CorusCli(ConsoleInput input, ConsoleOutput output, CorusConnector corus) throws IOException {
-    super(input, CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(ConsoleOutput.DefaultConsoleOutput.newInstance()), new CorusCommandFactory());
+  private List<CliError>   errors;
+  private boolean          abortOnError;
+  private StrLookup        vars = StrLookup.systemPropertiesLookup();
+  private Set<SortSwitchInfo>  sortSwitches;
+ 
+  public CorusCli(CorusConnector corus) throws IOException {
+    this(corus, getConsoleIO(ConsoleOutput.DefaultConsoleOutput.newInstance()));
+  }
+  
+  private CorusCli(CorusConnector corus, ConsoleIO io) throws IOException {
+    super(io, new CorusCommandFactory());
     this.corus = corus;
     super.setCommandListener(new CliConsoleListener());
-    this.corus = corus;
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
 
     // Change the prompt
     setPrompt(CliUtils.getPromptFor(corus.getContext()));
   }
-
-  public CorusCli(CorusConnector corus) throws IOException {
-    this(selectConsoleInput(), CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(ConsoleOutput.DefaultConsoleOutput.newInstance()), corus);
-  }
-
-  private static ConsoleInput selectConsoleInput() {
+ 
+  private static ConsoleIO getConsoleIO(ConsoleOutput toWrap) {
     String osName = System.getProperty("os.name").toLowerCase();
 
+    final AtomicReference<ConsoleInput> input = new AtomicReference<ConsoleInput>();
     // note: a case of the os.name being set to Vista has been reported.
     if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
-      return ConsoleInputFactory.createJdk6ConsoleInput();
+      input.set(ConsoleInputFactory.createJdk6ConsoleInput());
     } else {
       try {
-        return ConsoleInputFactory.createJLineConsoleInput();
+        input.set(ConsoleInputFactory.createJLineConsoleInput());
       } catch (IOException e) {
-        return ConsoleInputFactory.createJdk6ConsoleInput();
+        input.set(ConsoleInputFactory.createJdk6ConsoleInput());
       }
     }
+    
+    final ConsoleOutput output = CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(toWrap);
+    
+    return new ConsoleIO() {
+     
+      @Override
+      public ConsoleInput getInput() {
+        return input.get();
+      }
+      
+      @Override
+      public ConsoleOutput getOutput() {
+        return output;
+      }
+      
+    };
   }
 
   public static void main(String[] args) {
@@ -105,10 +130,10 @@ public class CorusCli extends CommandConsole {
         if (cmd.containsOption(HOST_OPT, true)) {
           host = cmd.assertOption(HOST_OPT, true).getValue();
           if (host.equalsIgnoreCase("localhost")) {
-            host = Localhost.getAnyLocalAddress().getHostAddress();
+            host = Localhost.getPreferredLocalAddress().getHostAddress();
           }
         } else {
-          host = Localhost.getAnyLocalAddress().getHostAddress();
+          host = Localhost.getPreferredLocalAddress().getHostAddress();
         }
 
         if (cmd.containsOption(PORT_OPT, true)) {
@@ -173,6 +198,12 @@ public class CorusCli extends CommandConsole {
         } else {
           try {
             CorusCli cli = new CorusCli(connector);
+            List<NameValuePair> props = connector.getConfigFacade().getProperties(PropertyScope.SERVER, new ClusterInfo(false)).next().getData();
+            for (NameValuePair p : props) {
+              if (p.getName().equals(CliPropertyKeys.SORT_SWITCHES) && p.getValue() != null) {
+                cli.sortSwitches = Sort.getSwitches(p.getValue());
+              }
+            }
             cli.start();
           } catch (NullPointerException e) {
             e.printStackTrace();
@@ -200,6 +231,9 @@ public class CorusCli extends CommandConsole {
    */
   protected Context newContext() {
     CliContextImpl context = new CliContextImpl(corus, errors, vars);
+    if (sortSwitches != null) {
+      context.setSortSwitches(sortSwitches.toArray(new SortSwitchInfo[sortSwitches.size()]));
+    }
     context.setAbortOnError(abortOnError);
     return context;
   }

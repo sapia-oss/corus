@@ -54,7 +54,7 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
       Map<DistributionInfo, AtomicInteger> processes = processesByHosts.get(processList.getOrigin());
       if (processes == null) {
         processes = new HashMap<DistributionInfo, AtomicInteger>();
-        processesByHosts.put(processList.getOrigin(), processes);
+        processesByHosts.put(processList.getOrigin().getEndpoint().getServerAddress(), processes);
       }
       for (Process p : processList.getData()) {
         AtomicInteger processCount = processes.get(p.getDistributionInfo());

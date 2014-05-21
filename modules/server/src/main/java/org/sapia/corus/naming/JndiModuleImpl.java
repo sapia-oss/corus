@@ -13,7 +13,6 @@ import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
-import org.sapia.ubik.rmi.naming.remote.ClientListener;
 import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.archie.UbikRemoteContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,6 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
   ClusterManager cluster;
   private Context context;
 
-  // keeping reference to avoid garbage-collection
-  private ClientListener listener;
 
   /**
    * @see Service#init()
@@ -42,7 +39,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
   public void init() throws Exception {
     EventChannel ec = cluster.getEventChannel();
     events.addInterceptor(ServerStartedEvent.class, this);
-    context = UbikRemoteContext.newInstance(ec);
+    context = UbikRemoteContext.newInstance(ec.getReference());
   }
 
   /**
@@ -91,10 +88,7 @@ public class JndiModuleImpl extends ModuleHelper implements JndiModule, Intercep
    */
   public void onServerStartedEvent(ServerStartedEvent evt) {
     try {
-      EventChannel ec = cluster.getEventChannel();
       serverContext().getTransport().exportObject(context);
-      listener = new ClientListener(ec, serverContext().getTransport().getServerAddress());
-      listener.registerWithChannel();
     } catch (Exception e) {
       logger().error("Could not initialize client listener properly in JNDI module", e);
     }

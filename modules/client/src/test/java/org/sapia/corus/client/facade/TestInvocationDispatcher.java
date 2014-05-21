@@ -8,15 +8,15 @@ import java.util.Map;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.ubik.net.ServerAddress;
+import org.sapia.corus.client.services.cluster.CorusHost;
 
 public class TestInvocationDispatcher implements InvocationDispatcher {
 
   private Map<Class<?>, Object> modules = new HashMap<Class<?>, Object>();
-  private ServerAddress addr;
+  private CorusHost host;
 
-  public TestInvocationDispatcher(ServerAddress addr) {
-    this.addr = addr;
+  public TestInvocationDispatcher(CorusHost host) {
+    this.host = host;
   }
 
   public TestInvocationDispatcher add(Class<?> moduleInterface, Object instance) {
@@ -47,7 +47,7 @@ public class TestInvocationDispatcher implements InvocationDispatcher {
     try {
       T result = (T) method.invoke(module, params);
       results.incrementInvocationCount();
-      results.addResult(new Result<T>(addr, result));
+      results.addResult(new Result<T>(host, result));
     } catch (Throwable e) {
     }
   }

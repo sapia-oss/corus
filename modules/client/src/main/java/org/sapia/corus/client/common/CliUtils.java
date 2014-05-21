@@ -31,7 +31,7 @@ public final class CliUtils {
 
   private static final int HOST_INDEX = 0;
   private static final int PORT_INDEX = 1;
-
+  
   private CliUtils() {
   }
 
@@ -206,7 +206,7 @@ public final class CliUtils {
     Map<ServerAddress, T> resultsPerHost = new HashMap<ServerAddress, T>();
     while (results.hasNext()) {
       Result<T> result = results.next();
-      resultsPerHost.put(result.getOrigin(), result.getData());
+      resultsPerHost.put(result.getOrigin().getEndpoint().getServerAddress(), result.getData());
     }
     return resultsPerHost;
   }
@@ -220,4 +220,5 @@ public final class CliUtils {
   public static boolean isHelp(CmdLine cmdLine) {
     return cmdLine.containsOption("help", false) || cmdLine.containsOption("-help", false);
   }
+  
 }

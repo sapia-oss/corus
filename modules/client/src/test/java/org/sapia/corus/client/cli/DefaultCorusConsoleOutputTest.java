@@ -1,6 +1,9 @@
 package org.sapia.corus.client.cli;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyChar;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +21,7 @@ public class DefaultCorusConsoleOutputTest {
   
   @Mock
   private CorusConsoleOutput output; 
-
+  
   @Before
   public void setUp() {
     output = DefaultCorusConsoleOutput.wrap(delegate);

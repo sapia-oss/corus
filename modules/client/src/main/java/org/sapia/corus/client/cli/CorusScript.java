@@ -135,10 +135,10 @@ public class CorusScript {
         if (cmd.containsOption(HOST_OPT, true)) {
           host = cmd.assertOption(HOST_OPT, true).getValue();
           if (host.equalsIgnoreCase("localhost")) {
-            host = Localhost.getAnyLocalAddress().getHostAddress();
+            host = Localhost.getPreferredLocalAddress().getHostAddress();
           }
         } else {
-          host = Localhost.getAnyLocalAddress().getHostAddress();
+          host = Localhost.getPreferredLocalAddress().getHostAddress();
         }
 
         if (cmd.containsOption(PORT_OPT, true)) {
