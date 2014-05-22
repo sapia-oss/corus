@@ -1,0 +1,63 @@
+<help>
+  <section title="Description">
+   <p>Allows setting sort flags, used when presenting results in the command-line interface. The sort flags can be pushed
+   to the server, so that they're automatically set the next time the CLI starts.</p>
+  </section>
+  <section title="Syntax">
+    <p>sort on | push | off | clear | ls [&lt;flags&gt;] [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- on: turns on the specified sort flags.</p>
+    <p/>
+    <p>- push: turns on the specified sort flags, pushes them to the server so that they can be reused when the next time the CLI is started.</p>
+    <p/>
+    <p>- off: turns off the specified sort flags (only acts locally, has no effect on the sort flag configuration kept on the server-side, if any).</p>
+    <p/>
+    <p>- clear: clears all sort flags (both from the current CLI and the server).</p>
+    <p/>
+    <p>- ls: lists the currently set sort flags.</p>
+    <p/>
+    <p>- &lt;flags&gt;: a comma-delimited list of sort flags.</p>
+    <p/>    
+    <p>- cluster: specifies if the command should be executed cluster-wide (ONLY USED WITH THE push AND clear ARGUMENTS).</p>    
+  </section>
+  <section title="Sort Flags">
+    <p>dn: distribution name.</p>
+    <p>dv: distribution version.</p>
+    <p/>
+    <p>pn: process name.</p>
+    <p>pi: process ID.</p>
+    <p>po: process operating system-assigned ID.</p>
+    <p>pp: process profile.</p>
+    <p/>
+    <p>en: execution configuration name.</p>
+    <p>ep: execution configuration profile.</p>
+    <p/>
+    <p>hn: host name.</p>
+    <p>hi: host IP.</p>
+    <p>hp: host profile.</p>
+  </section>
+  <section title="Examples">
+    <p>Sorts results by host name and host address/port (in ascending order by default):</p>
+    <p>sort on hn,hi</p>
+    <p/>
+    <p>Sorts results by host name, in descending order (note the use of the d specifier separated from the flag by a colon):</p>
+    <p>sort on hn:d</p>
+    <p/>    
+    <p>Sorts results by host name and host address/port (pushes the flags to all the nodes in the cluster, so the CLI automatically uses the flags when connecting to any node):</p>
+    <p>sort push hn,hi -cluster</p>
+    <p/>    
+    <p>Sorts results by host name and host address/port. Then sorts processes by name (descending order) and profile:</p>
+    <p>sort on hn,hi,pn:d,pp</p>
+    <p/>    
+    <p>Turns off the given sort flags (only acts locally):</p>
+    <p>sort off hn,hi,pn,pp</p>
+    <p/>
+    <p>Clears all sort flags, both locally and from the server-side:</p>
+    <p>sort clear -cluster</p>
+    <p/>
+    <p>Lists the current sort flags (locally, not from the server):</p>
+    <p>sort ls</p>
+  </section>    
+</help>
