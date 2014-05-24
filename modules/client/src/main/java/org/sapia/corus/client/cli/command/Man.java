@@ -50,6 +50,7 @@ public class Man extends CorusCliCommand {
     COMMANDS.put("resume", Resume.class);
     COMMANDS.put("ripple", Ripple.class);
     COMMANDS.put("script", Script.class);
+    COMMANDS.put("sort", Sort.class);
     COMMANDS.put("status", Status.class);
     COMMANDS.put("suspend", Suspend.class);
     COMMANDS.put("undeploy", Undeploy.class);

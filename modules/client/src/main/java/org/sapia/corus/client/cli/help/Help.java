@@ -17,19 +17,19 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  */
 public class Help {
 
-  private List<Section> _sections = new ArrayList<Section>();
+  private List<Section> sections = new ArrayList<Section>();
 
   public Section createSection() {
     Section s = new Section();
-    _sections.add(s);
+    sections.add(s);
     return s;
   }
 
   public void display(ConsoleOutput out) {
     Table t = new Table(out, 1, 78);
     Section sect;
-    for (int i = 0; i < _sections.size(); i++) {
-      sect = (Section) _sections.get(i);
+    for (int i = 0; i < sections.size(); i++) {
+      sect = (Section) sections.get(i);
       sect.display(t);
     }
   }

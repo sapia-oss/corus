@@ -10,33 +10,33 @@ import org.sapia.console.table.Table;
  * @author Yanick Duchesne
  */
 public class Section {
-  private String _title;
-  private List<Para> _paras = new ArrayList<Para>();
+  private String title;
+  private List<Para> paras = new ArrayList<Para>();
 
   public void setTitle(String title) {
-    _title = title;
+    this.title = title;
   }
 
   public String getTitle() {
-    return _title;
+    return title;
   }
 
   public Para createP() {
     Para p = new Para();
-    _paras.add(p);
+    paras.add(p);
     return p;
   }
 
   public void display(Table t) {
     t.newRow().flush();
     Row r = t.newRow();
-    r.getCellAt(0).append(_title);
+    r.getCellAt(0).append(title);
     r.flush();
-    t.drawLine('=', 1, _title.length());
+    t.drawLine('=', 1, title.length());
     t.newRow().flush();
     Para p;
-    for (int i = 0; i < _paras.size(); i++) {
-      p = (Para) _paras.get(i);
+    for (int i = 0; i < paras.size(); i++) {
+      p = (Para) paras.get(i);
       p.display(t);
     }
   }

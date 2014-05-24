@@ -99,6 +99,10 @@ public class SortSwitchInfo {
     return ascendingComparator;
   }
   
+  public String toLiteral() {
+    return swt.value() + (ascending ? "" : ":d");
+  }
+  
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof SortSwitchInfo) {

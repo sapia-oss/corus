@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -60,16 +60,30 @@ public class Sort extends CorusCliCommand{
       Arg switchArg = ctx.getCommandLine().assertNextArg();
       List<SortSwitchInfo> sortedSwitches = processSwitches(ctx, getSwitches(switchArg.getName()));
       ctx.setSortSwitches(sortedSwitches.toArray(new SortSwitchInfo[sortedSwitches.size()]));
+      
+      StringBuilder toSave = new StringBuilder();
+      for (int i = 0; i < sortedSwitches.size(); i++) {
+        if (i > 0) {
+          toSave.append(",");
+        }
+        toSave.append(sortedSwitches.get(i).toLiteral());
+      }
+      
       ctx.getCorus().getConfigFacade().addProperty(
           PropertyScope.SERVER, 
           CliPropertyKeys.SORT_SWITCHES, 
-          switchArg.getName(), 
+          toSave.toString(), 
           getClusterInfo(ctx)
       );
       
     } else if (arg.getName().equals(CLEAR)) {
       Set<SortSwitchInfo> switches = new HashSet<SortSwitchInfo>();
       ctx.setSortSwitches(switches.toArray(new SortSwitchInfo[switches.size()]));
+      ctx.getCorus().getConfigFacade().removeProperty(
+          PropertyScope.SERVER, 
+          CliPropertyKeys.SORT_SWITCHES, 
+          getClusterInfo(ctx)
+      );
       
     } else if (arg.getName().equals(OFF)) {
       Arg switchArg = ctx.getCommandLine().assertNextArg();

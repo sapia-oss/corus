@@ -10,7 +10,7 @@
     <p/>
     <p>- on: turns on the specified sort flags.</p>
     <p/>
-    <p>- push: turns on the specified sort flags, pushes them to the server so that they can be reused when the next time the CLI is started.</p>
+    <p>- push: turns on the specified sort flags, pushes them to the server so that they can be read and assigned by the CLI the next time it is started.</p>
     <p/>
     <p>- off: turns off the specified sort flags (only acts locally, has no effect on the sort flag configuration kept on the server-side, if any).</p>
     <p/>
@@ -18,11 +18,20 @@
     <p/>
     <p>- ls: lists the currently set sort flags.</p>
     <p/>
-    <p>- &lt;flags&gt;: a comma-delimited list of sort flags.</p>
+    <p>- &lt;flags&gt;: a comma-delimited list of sort flags, where each flag has the form: &lt;flag&gt;[:&lt;sort_order&gt;].</p>
+    <p indent="2">Where:</p>
+    <p indent="4">- &lt;flag&gt; must be a sort flag (see next section for the available ones).</p>
+    <p indent="4">- &lt;sort_order&gt; can be either:</p>
+    <p indent="6">- 'a' for ascending (the default if not specified).</p> 
+    <p indent="6">- 'd' for descending.</p>    
     <p/>    
     <p>- cluster: specifies if the command should be executed cluster-wide (ONLY USED WITH THE push AND clear ARGUMENTS).</p>    
   </section>
-  <section title="Sort Flags">
+  <section title="Available Sort Flags">
+    <p>hn: host name.</p>
+    <p>hi: host IP.</p>
+    <p>hp: host profile.</p>
+    <p/>
     <p>dn: distribution name.</p>
     <p>dv: distribution version.</p>
     <p/>
@@ -34,15 +43,13 @@
     <p>en: execution configuration name.</p>
     <p>ep: execution configuration profile.</p>
     <p/>
-    <p>hn: host name.</p>
-    <p>hi: host IP.</p>
-    <p>hp: host profile.</p>
+    <p>rn: port range name.</p>
   </section>
   <section title="Examples">
     <p>Sorts results by host name and host address/port (in ascending order by default):</p>
     <p>sort on hn,hi</p>
     <p/>
-    <p>Sorts results by host name, in descending order (note the use of the d specifier separated from the flag by a colon):</p>
+    <p>Sorts results by host name, in descending order (note the use of the 'd' specifier separated from the flag by a colon):</p>
     <p>sort on hn:d</p>
     <p/>    
     <p>Sorts results by host name and host address/port (pushes the flags to all the nodes in the cluster, so the CLI automatically uses the flags when connecting to any node):</p>
