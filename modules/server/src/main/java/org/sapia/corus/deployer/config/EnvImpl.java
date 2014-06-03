@@ -10,6 +10,7 @@ import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.services.deployer.dist.Property;
+import org.sapia.ubik.util.Condition;
 
 /**
  * A helper class that encapsulates various process startup parameters.
@@ -128,7 +129,12 @@ public class EnvImpl implements Env {
 
   @Override
   public String getJavaStarterLibPath() {
-    return findLibPath(getServerLibDir(), "sapia_corus_server-starter");
+    return findLibPath(getServerLibDir(), "sapia_corus_server-starter", new Condition<String>() {
+      @Override
+      public boolean apply(String item) {
+        return item.startsWith("sapia_corus_server") && item.contains("starter");
+      }
+    });
   }
 
   @Override
@@ -140,20 +146,29 @@ public class EnvImpl implements Env {
   public Map<String, String> getEnvironmentVariables() {
     return System.getenv();
   }
+  
+  protected String findLibPath(String basedirName, final String fileName) {
+    return findLibPath(basedirName, fileName, new Condition<String>() {
+      @Override
+      public boolean apply(String item) {
+        return item.startsWith(fileName);
+      }
+    });
+  }
 
-  protected String findLibPath(String basedirName, final String libName) {
+  protected String findLibPath(String basedirName, String hint, final Condition<String> fileMatcher) {
     File basedir = new File(basedirName);
     File[] matching = basedir.listFiles(new FilenameFilter() {
       @Override
       public boolean accept(File dir, String name) {
-        return name.startsWith(libName);
+        return fileMatcher.apply(name);
       }
     });
     if (matching == null || matching.length == 0) {
-      throw new IllegalStateException(String.format("Could not find lib %s under %s", libName, basedirName));
+      throw new IllegalStateException(String.format("Could not find lib %s under %s", hint, basedirName));
     }
     if (matching.length > 1) {
-      throw new IllegalStateException(String.format("More than one match for lib %s under %s", libName, basedirName));
+      throw new IllegalStateException(String.format("More than one match for lib %s under %s", hint, basedirName));
     }
     return matching[0].getAbsolutePath();
   }

@@ -10,7 +10,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-        <version>4.1.3-SNAPSHOT</version>
+    <version>4.1.3-SNAPSHOT</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -319,10 +319,36 @@
 			<id>package-upload</id>
 			<build>
 				<plugins>
+		      <plugin>
+		        <groupId>net.ju-n.maven.plugins</groupId>
+		        <artifactId>checksum-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <id>generate-checksums</id>
+		            <phase>package</phase>
+		            <goals>
+		              <goal>files</goal>
+		            </goals>
+		            <configuration>
+									<fileSets>
+									  <fileSet>
+									    <directory>${project.build.directory}</directory>
+									    <includes>
+									      <include>*.gz</include>
+									      <include>*.zip</include>
+									    </includes>
+									  </fileSet>
+									</fileSets>
+									<algorithms>
+									  <algorithm>MD5</algorithm>
+									</algorithms>
+		            </configuration>
+		          </execution>
+		        </executions>
+		      </plugin>
 					<plugin>
 						<groupId>org.sapia</groupId>
 						<artifactId>sapia_mediafire_plugin</artifactId>
-						<version>1.0</version>
 						<executions>
 							<execution>
 								<id>upload-linux-packages</id>
@@ -335,6 +361,8 @@
 									<files>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-linux32.tar.gz</file>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-linux64.tar.gz</file>
+										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-linux32.tar.gz.md5</file>
+										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-linux64.tar.gz.md5</file>
 									</files>
 								</configuration>
 							</execution>
@@ -349,6 +377,8 @@
 									<files>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-osx32.tar.gz</file>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-osx64.tar.gz</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-osx32.tar.gz.md5</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-osx64.tar.gz.md5</file>
 									</files>
 								</configuration>
 							</execution>
@@ -363,6 +393,8 @@
 									<files>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-solaris32-x86.tar.gz</file>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-solaris32-sparc.tar.gz</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-solaris32-x86.tar.gz.md5</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-solaris32-sparc.tar.gz.md5</file>
 									</files>
 								</configuration>
 							</execution>
@@ -377,6 +409,8 @@
 									<files>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-bin.zip</file>
 										<!-- file>${project.build.directory}/sapia_corus_server_package-${project.version}-win32.zip</file-->
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-bin.zip.md5</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-demo.zip.md5</file>										
 									</files>
 								</configuration>
 							</execution>
