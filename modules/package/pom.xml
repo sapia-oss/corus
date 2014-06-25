@@ -399,6 +399,20 @@
 								</configuration>
 							</execution>
 							<execution>
+								<id>upload-win-packages</id>
+								<phase>package</phase>
+								<goals>
+									<goal>upload</goal>
+								</goals>
+								<configuration>
+								    <folder>sapiaoss/packages/corus</folder>
+									<files>
+										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-win32.zip</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-win32.zip.md5</file>
+									</files>
+								</configuration>
+							</execution>
+							<execution>
 								<id>upload-zip-packages</id>
 								<phase>package</phase>
 								<goals>
