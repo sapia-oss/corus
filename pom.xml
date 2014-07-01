@@ -6,7 +6,7 @@
   <description>Corus is a generic application process manager</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>4.2-RC2-SNAPSHOT</version>
+  <version>4.2-RC2</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -331,4 +331,10 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <connection>scm:svn:https://sapia.googlecode.com/sapia_corus_parent-4.2-RC2</connection>
+    <developerConnection>scm:svn:https://sapia.googlecode.com/svn/tags/sapia_corus_parent-4.2-RC2</developerConnection>
+    <url>scm:svn:https://sapia.googlecode.com/svn/sapia_corus_parent-4.2-RC2</url>
+  </scm>
 </project>
