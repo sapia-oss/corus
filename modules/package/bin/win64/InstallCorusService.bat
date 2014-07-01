@@ -7,7 +7,7 @@ goto :end
 
 :init
 set _APP_HOME=%CORUS_HOME%\bin\win64
-set _WRAPPER_CONF=%CORUS_HOME%\config\corus_service_33000.wrapper64.properties
+set _WRAPPER_CONF=%CORUS_HOME%\config\corus_service_33000.wrapper-win64.properties
 
 :exec
 rem Install Corus as an NT service with configuration %_WRAPPER_CONF%
