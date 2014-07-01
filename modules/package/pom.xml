@@ -85,6 +85,7 @@
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
               <excludeArtifactIds>sapia_magnet</excludeArtifactIds>
+              <excludeArtifactIds>wrapper</excludeArtifactIds>
             </configuration>
           </execution>
 
