@@ -1,5 +1,5 @@
 <assembly>
-  <id>win32</id>
+  <id>win64</id>
   <formats>
     <format>zip</format>
   </formats>
@@ -16,8 +16,8 @@
        <lineEnding>dos</lineEnding>
     </fileSet>
     <fileSet>
-       <directory>bin/win32</directory>
-       <outputDirectory>bin/win32</outputDirectory>
+       <directory>bin/win64</directory>
+       <outputDirectory>bin/win64</outputDirectory>
        <includes>
           <include>*.bat</include>
        </includes>
@@ -25,8 +25,8 @@
        <lineEnding>dos</lineEnding>
     </fileSet>
     <fileSet>
-       <directory>bin/win32</directory>
-       <outputDirectory>bin/win32</outputDirectory>
+       <directory>bin/win64</directory>
+       <outputDirectory>bin/win64</outputDirectory>
        <includes>
           <include>*.*</include>
        </includes>
@@ -51,7 +51,7 @@
           <include>*.*</include>
        </includes>
        <excludes>
-          <exclude>*win64.properties</exclude>
+          <exclude>*win32.properties</exclude>
           <exclude>*wrapper.properties</exclude>
        </excludes>
        <lineEnding>dos</lineEnding>
@@ -83,6 +83,17 @@
        </includes>
        <fileMode>0777</fileMode>
     </fileSet>
+
+    
+    <fileSet>
+       <directory>extra-lib/sigar/hyperic-sigar-1.6.3/sigar-bin/lib</directory>
+       <outputDirectory>extra-lib/sigar/amd64</outputDirectory>
+       <includes>
+          <include>sigar-amd64*</include>
+       </includes>
+       <fileMode>0777</fileMode>
+    </fileSet>
+
 
   </fileSets>
   

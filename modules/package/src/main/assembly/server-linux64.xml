@@ -37,6 +37,11 @@
        <includes>
           <include>*.*</include>
        </includes>
+       <excludes>
+          <exclude>*win32.properties</exclude>
+          <exclude>*win64.properties</exclude>
+          <exclude>*base.wrapper.properties</exclude>
+       </excludes>
        <lineEnding>unix</lineEnding>
     </fileSet>
 
@@ -54,20 +59,16 @@
        <includes>
           <include>**/*</include>
        </includes>
-       <excludes>
-          <exclude>**/wrapper*.jar</exclude>
-       </excludes>
     </fileSet>
     <fileSet>
-       <directory>lib/server</directory>
-       <outputDirectory>lib/wrapper</outputDirectory>
+       <directory>extra-lib/wrapper</directory>
        <includes>
           <include>wrapper*.jar</include>
        </includes>
     </fileSet>
     <fileSet>
        <directory>bin/linux64</directory>
-       <outputDirectory>lib/wrapper</outputDirectory>
+       <outputDirectory>extra-lib/wrapper</outputDirectory>
        <includes>
           <include>libwrapper.so</include>
        </includes>
