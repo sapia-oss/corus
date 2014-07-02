@@ -1,6 +1,10 @@
 package org.sapia.corus.sigar;
 
+import java.io.File;
+import java.util.StringTokenizer;
+
 import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarProxy;
 import org.sapia.corus.core.ModuleHelper;
 
 /**
@@ -27,8 +31,27 @@ public class SigarModuleImpl extends ModuleHelper implements SigarModule {
   @Override
   public void init() throws Exception {
     if (JAVA_LIB_PATH != null && JAVA_LIB_PATH.contains(SIGAR_SUBDIR)) {
-      sigar = new Sigar();
-      SigarSupplier.set(sigar);
+      StringTokenizer tk = new StringTokenizer(JAVA_LIB_PATH, ":;");
+      while (tk.hasMoreElements()) {
+        String t = tk.nextToken();
+        if (t.contains(SIGAR_SUBDIR)) {
+          File f = new File(t);
+          if (f.exists()) {
+            File[] content = f.listFiles();
+            if (content != null && content.length > 0) {
+              logger().info("Initializing SIGAR");
+              SigarSupplier.set(newSigarInstance());
+              break;
+            } else {
+              logger().info("Director for SIGAR native libs is empty: " + t);
+            }
+          } else {
+            logger().info("Directory containing SIGAR native libs does not exist: " + t);
+          }
+        }
+      }
+    } else {
+      logger().info("java.library.path not set or does not contain path to SIGAR native libs");
     }
   }
 
@@ -37,5 +60,9 @@ public class SigarModuleImpl extends ModuleHelper implements SigarModule {
     if (sigar != null) {
       sigar.close();
     }
+  }
+
+  protected SigarProxy newSigarInstance() {
+    return new Sigar();
   }
 }
