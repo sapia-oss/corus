@@ -5,21 +5,26 @@ import java.io.File;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import org.hyperic.sigar.ProcExe;
+import org.hyperic.sigar.SigarException;
+import org.hyperic.sigar.SigarPermissionDeniedException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.sigar.SigarSupplier;
 import org.sapia.corus.util.IOUtil;
 
 /**
  * Windows implementation of the {@link NativeProcess} interface.
- * 
+ *
  * @author Yanick Duchesne
- * 
+ *
  */
 public class WindowsProcess implements NativeProcess {
 
+  private static final long PAUSE_AFTER_START = 1000;
   private static int BUFSZ = 1024;
   private static int COMMAND_TIME_OUT = 5000;
 
@@ -28,7 +33,7 @@ public class WindowsProcess implements NativeProcess {
   /**
    * Utility method that returns a new CmdLine object with the path to the
    * process viewer tool.
-   * 
+   *
    * @return A CmdLine containing the path to the process viewer tool.
    * @throws IOException
    *           If the process viewer tool is not found
@@ -37,7 +42,7 @@ public class WindowsProcess implements NativeProcess {
     if (pvPath == null) {
       // Generate the command line to the process viewer tool
       StringBuffer aCommand = new StringBuffer();
-      aCommand.append(System.getProperty("corus.home")).append(File.separator).append("bin").append(File.separator).append("win32")
+      aCommand.append(System.getProperty("corus.home")).append(File.separator).append("bin").append(File.separator).append("win")
           .append(File.separator).append("pv.exe");
 
       // Validate the presence and accessibility of the process viewer tool
@@ -54,13 +59,13 @@ public class WindowsProcess implements NativeProcess {
   /**
    * Utility method that extract the pattern matching expression to retrieve the
    * process that contains the variable corus.process.id and corus.server.port.
-   * 
+   *
    * @param cmd
    *          The command line object from which to extract the pattern
    *          expression.
    * @return The pattern matching expression.
    */
-  public static String extractPattern(CmdLine cmd) {
+  private static String extractPattern(CmdLine cmd) {
     cmd.reset();
     StringBuffer aBuffer = new StringBuffer("\"*");
 
@@ -86,8 +91,9 @@ public class WindowsProcess implements NativeProcess {
 
   /**
    * Returns <code>null</code>
-   * 
+   *
    */
+  @Override
   public String exec(OsModule.LogCallback log, File baseDir, CmdLine cmd) throws IOException {
     // Generate the call to the javastart.bat script
     CmdLine javaCmd = new CmdLine();
@@ -128,6 +134,44 @@ public class WindowsProcess implements NativeProcess {
       log.error("Error starting the process: " + anOutput.toString("UTF-8"));
     }
 
+    try {
+      Thread.sleep(PAUSE_AFTER_START);
+    } catch (InterruptedException e) {
+      throw new IOException("Thread was interrupted while pausing after process exec", e);
+    }
+
+    if (SigarSupplier.isSet()) {
+      return extractPidUsingSigar(log, baseDir);
+    // using PV as fallback
+    } else {
+      return extractPidUsingPV(log, javaCmd, anOutput, baseDir);
+    }
+  }
+
+  private String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
+    throws IOException {
+    try {
+      for (long pid : SigarSupplier.get().getProcList()) {
+        try {
+          ProcExe exe = SigarSupplier.get().getProcExe(pid);
+          if (exe.getCwd().toLowerCase().replace("\\", "/")
+              .equals(baseDir.getAbsolutePath().toLowerCase().replace("\\", "/"))) {
+            log.debug("Got process OS PID: " + pid);
+            return Long.toString(pid);
+          }
+        } catch (SigarPermissionDeniedException e) {
+          // noop;
+        }
+
+      }
+      return null;
+    } catch (SigarException e) {
+      throw new IOException("Could not obtain process information from Sigar", e);
+    }
+  }
+
+  private String extractPidUsingPV(OsModule.LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
+    throws IOException {
     // Retrieve the OS pid using the process viewer tool
     CmdLine aListCommand = createPVCmdLine();
     aListCommand.addArg("--tree").addArg("-l" + extractPattern(cmd));

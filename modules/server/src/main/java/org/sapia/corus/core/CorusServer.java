@@ -36,6 +36,7 @@ import org.sapia.corus.log.CompositeTarget;
 import org.sapia.corus.log.FormatterFactory;
 import org.sapia.corus.log.StdoutTarget;
 import org.sapia.corus.log.SyslogTarget;
+import org.sapia.corus.util.CorusTimestampOutputStream;
 import org.sapia.corus.util.IOUtil;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
@@ -65,6 +66,10 @@ public class CorusServer {
 
   @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
+    
+    System.setOut(new CorusTimestampOutputStream(System.out));
+    System.setErr(new CorusTimestampOutputStream(System.err));
+    
     try {
 
       org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);

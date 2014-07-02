@@ -127,6 +127,7 @@ public class ServerContextImpl implements ServerContext {
   public Properties getProcessProperties() throws IOException {
     Properties processProps = new Properties();
 
+    /*
     // ------------------------------------------------------------------------
     // copying Ubik properties to process properties
     Properties ubikProperties = PropertiesUtil.filter(System.getProperties(), PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik"));
@@ -142,7 +143,8 @@ public class ServerContextImpl implements ServerContext {
     File home = new File(getHomeDir() + File.separator + "config");
     PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + ".properties"));
     PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + "_" + getDomain() + ".properties"));
-
+    */
+    
     // ------------------------------------------------------------------------
     // copying configurator props to process props
     Properties configuratorProps = services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS);
