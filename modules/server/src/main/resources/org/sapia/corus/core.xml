@@ -30,14 +30,21 @@
         autowire="autodetect">
   </bean>
   
+  <!-- ============ SIGAR ============ -->
+
+  <bean name="org.sapia.corus.sigar.SigarModule" 
+        class="org.sapia.corus.sigar.SigarModuleImpl" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
   <!-- ============ FileSystem ============ -->
 
   <bean name="org.sapia.corus.client.services.file.FileSystemModule" 
         class="org.sapia.corus.file.FileSystemModuleImpl" 
         scope="singleton"
         autowire="autodetect">
-  </bean>  
-    
+  </bean>   
 
   <!-- ============ CONFIGURATOR ============ -->
 

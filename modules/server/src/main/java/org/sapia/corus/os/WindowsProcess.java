@@ -38,7 +38,7 @@ public class WindowsProcess implements NativeProcess {
    * @throws IOException
    *           If the process viewer tool is not found
    */
-  private static synchronized CmdLine createPVCmdLine() throws IOException {
+  private synchronized CmdLine createPVCmdLine() throws IOException {
     if (pvPath == null) {
       // Generate the command line to the process viewer tool
       StringBuffer aCommand = new StringBuffer();
@@ -148,7 +148,7 @@ public class WindowsProcess implements NativeProcess {
     }
   }
 
-  private String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
+  protected String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
     throws IOException {
     try {
       for (long pid : SigarSupplier.get().getProcList()) {
