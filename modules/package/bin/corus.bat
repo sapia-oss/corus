@@ -26,7 +26,6 @@ SET LOCALCLASSPATH=
 if "%LOCALCLASSPATH_DEFINED%"=="true" goto okLcp
 
 for %%i in (%CORUS_HOME%\lib\server\*.jar) do call %CORUS_HOME%\bin\lcp.bat %%i
-for %%i in (%CORUS_HOME%\extra-lib\*.jar) do call %CORUS_HOME%\bin\lcp.bat %%i
 
 set LOCALCLASSPATH_DEFINED=true
 

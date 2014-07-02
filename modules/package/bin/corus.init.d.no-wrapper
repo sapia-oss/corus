@@ -76,6 +76,19 @@ do
         fi
     fi
 done
+
+for JAR in $CORUS_HOME/extra-lib/wrapper/*.jar
+do
+    # if the directory is empty, then it will return the input string
+    # this is stupid, so case for it
+    if [ "${JAR}" != "${CORUS_HOME}/extra-lib/wrapper/*.jar" ] ; then
+        if [ -z "${CLASSPATH}" ] ; then
+            CLASSPATH=${JAR}
+        else
+            CLASSPATH="${JAR}":${CLASSPATH}
+        fi
+    fi
+done
  
 serviceNameLo="corus"                                            # service name with the first letter in lowercase
 serviceName="Corus"                                              # service name
