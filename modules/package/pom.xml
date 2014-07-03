@@ -84,10 +84,26 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <excludeArtifactIds>sapia_magnet</excludeArtifactIds>
-              <excludeArtifactIds>wrapper</excludeArtifactIds>
+              <excludeArtifactIds>sapia_magnet,wrapper</excludeArtifactIds>
             </configuration>
           </execution>
+
+          <!-- copying wrapper.jar (will be zipped only as part of non-windows dists, since
+          win dists use the 32 bit or 64 bit version, depending) -->
+          <execution>
+            <id>copy-wrapper-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/extra-lib/wrapper</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeArtifactIds>wrapper</includeArtifactIds>
+            </configuration>
+          </execution>          
 
           <!-- copying VM bootstrap dependencies -->
           <execution>
@@ -150,6 +166,29 @@
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
               <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
+            </configuration>
+          </execution>
+ 
+          <!-- unpacking sigar distribution -->
+          <execution>
+            <id>unpack</id>
+            <phase>package</phase>
+            <goals>
+                <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${basedir}/extra-lib/sigar</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includes>*/sigar-bin/lib/*.so,*/sigar-bin/lib/*.sl,*/sigar-bin/lib/*.dylib,*/sigar-bin/lib/*.dll,*/sigar-bin/lib/*.lib</includes>
+              <artifactItems>
+                  <artifactItem>
+							        <groupId>org.hyperic</groupId>
+							        <artifactId>sigar-dist</artifactId>
+                      <type>zip</type>
+                  </artifactItem>
+              </artifactItems>
             </configuration>
           </execution>
 
@@ -288,6 +327,18 @@
             </configuration>
           </execution>
           <execution>
+            <id>make-server-windows64-dist</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/server-windows64.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
             <id>make-demo-dist</id>
             <phase>package</phase>
             <goals>
@@ -313,6 +364,40 @@
         </configuration>
       </plugin>
     </plugins>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									org.apache.maven.plugins
+    								</groupId>
+    								<artifactId>
+    									maven-dependency-plugin
+    								</artifactId>
+    								<versionRange>[2.1,)</versionRange>
+    								<goals>
+    									<goal>copy-dependencies</goal>
+    									<goal>unpack</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
   </build>
   
   <profiles>
@@ -400,7 +485,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>upload-win-packages</id>
+								<id>upload-win32-packages</id>
 								<phase>package</phase>
 								<goals>
 									<goal>upload</goal>
@@ -413,6 +498,20 @@
 									</files>
 								</configuration>
 							</execution>
+              <execution>
+                <id>upload-win64-packages</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>upload</goal>
+                </goals>
+                <configuration>
+                    <folder>sapiaoss/packages/corus</folder>
+                  <files>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-win64.zip</file>
+                    <file>${project.build.directory}/sapia_corus_server_package-${project.version}-win64.zip.md5</file>
+                  </files>
+                </configuration>
+              </execution>
 							<execution>
 								<id>upload-zip-packages</id>
 								<phase>package</phase>
@@ -423,7 +522,6 @@
 								    <folder>sapiaoss/packages/corus</folder>
 									<files>
 										<file>${project.build.directory}/sapia_corus_server_package-${project.version}-bin.zip</file>
-										<!-- file>${project.build.directory}/sapia_corus_server_package-${project.version}-win32.zip</file-->
                     <file>${project.build.directory}/sapia_corus_server_package-${project.version}-bin.zip.md5</file>
                     <file>${project.build.directory}/sapia_corus_server_package-${project.version}-demo.zip.md5</file>										
 									</files>
