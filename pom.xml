@@ -45,6 +45,11 @@
       <name>JLine Project Repository</name>
       <url>http://jline.sourceforge.net/m2repo</url>
     </repository>
+    <repository>
+      <id>jboss-third-party</id>
+      <name>JBosse 3rd-party dependencies</name>
+      <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+    </repository>
   </repositories>
 
   <dependencies>
@@ -296,7 +301,22 @@
         <version>2.4</version>
         <classifier>jdk15</classifier>
       </dependency>
-  
+      
+      <!-- Monitoring -->
+      
+      <dependency>
+        <groupId>org.hyperic</groupId>
+        <artifactId>sigar</artifactId>
+        <version>1.6.3.82</version>
+      </dependency>  
+      
+      <dependency>
+        <groupId>org.hyperic</groupId>
+        <artifactId>sigar-dist</artifactId>
+        <version>1.6.3.82</version>
+        <type>zip</type>
+      </dependency>  
+      
     </dependencies>
   </dependencyManagement>
 
