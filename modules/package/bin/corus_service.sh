@@ -2,7 +2,7 @@
 
 #
 # Skeleton sh script suitable for starting and stopping 
-# wrapped Java apps on the Solaris platform. 
+# wrapped Java apps on Linux/Unix platforms. 
 #
 # Make sure that PIDFILE points to the correct location,
 # if you have changed the default location set in the 

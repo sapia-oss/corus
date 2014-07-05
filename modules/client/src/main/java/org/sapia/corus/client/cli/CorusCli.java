@@ -208,7 +208,6 @@ public class CorusCli extends CommandConsole {
             }
             cli.start();
           } catch (NullPointerException e) {
-            e.printStackTrace();
           }
         }
       }

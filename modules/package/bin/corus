@@ -85,7 +85,7 @@ do
         fi
     fi
 done
-for JAR in ${CORUS_HOME}/extra-lib/*.jar
+for JAR in ${CORUS_HOME}/extra-lib/wrapper/*.jar
 do
     # if the directory is empty, then it will return the input string
     # this is stupid, so case for it
