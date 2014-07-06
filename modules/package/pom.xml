@@ -58,6 +58,12 @@
               </includes>
             </fileset>
             <fileset>
+              <directory>${basedir}/extra-lib</directory>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </fileset>
+            <fileset>
               <directory>${basedir}/etc/demoApp/lib</directory>
               <includes>
                 <include>**/*</include>
