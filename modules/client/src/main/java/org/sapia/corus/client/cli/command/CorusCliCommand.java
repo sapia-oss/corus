@@ -51,10 +51,13 @@ public abstract class CorusCliCommand implements Command {
       CliError err = cliCtx.createAndAddErrorFor(this, ie);
       ctx.getConsole().println(err.getSimpleMessage());
     } catch (AbortException ae) {
-      if (!(ae instanceof SystemExitException)) {
+      if (ae instanceof SystemExitException) {
+        cliCtx.removeAllErrors();
+      } else {
         CliError err = cliCtx.createAndAddErrorFor(this, ae);
         ctx.getConsole().println(err.getSimpleMessage());
       }
+      
       throw ae;
 
     } catch (RuntimeException re) {
