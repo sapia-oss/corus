@@ -56,7 +56,7 @@ public interface ProcessorFacade {
    * Return the process whose identifier is given..
    * 
    * @param pid
-   *          a process identifier.
+   *          a Corus process identifier.
    * @return the {@link Process} instance whose ID is given.
    */
   public Process getProcess(String pid) throws ProcessNotFoundException;
@@ -97,10 +97,12 @@ public interface ProcessorFacade {
   public ProgressQueue exec(ProcessCriteria criteria, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException;
 
   /**
-   * Restarts the process with the given process UD.
+   * Restarts the process with the given Corus process ID.
+   * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>false</code>.
    * 
    * @param pid
-   *          a Corus process ID.
+   *          a Corus process identifier.
    * @param prefs
    *          a {@link KillPreferences} instance.
    */
@@ -108,6 +110,8 @@ public interface ProcessorFacade {
 
   /**
    * Restarts the process(es) corresponding to the passed in parameters.
+   * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>false</code>.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
@@ -130,10 +134,12 @@ public interface ProcessorFacade {
   public ProgressQueue resume(ProcessCriteria criteria, ClusterInfo cluster);
 
   /**
-   * Kills the process with the given identifier.
+   * Kills the process with the given Corus process ID.
+   * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>false</code>.
    * 
    * @param pid
-   *          a process identifier.
+   *          a Corus process identifier.
    * @param prefs
    *          a {@link KillPreferences} instance.
    */
@@ -141,6 +147,8 @@ public interface ProcessorFacade {
 
   /**
    * Kills the process(es) corresponding to the passed in parameters.
+   * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>false</code>.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
@@ -153,6 +161,8 @@ public interface ProcessorFacade {
 
   /**
    * Suspends the process(es) corresponding to the passed in parameters.
+    * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>true</code>.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
@@ -164,10 +174,12 @@ public interface ProcessorFacade {
   public void suspend(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster);
 
   /**
-   * Suspends the process with the given identifier.
+   * Suspends the process with the given Corus process ID.
+   * <p>
+   * Note: the <code>suspend</code> flag of the given kill preferences is forced to <code>true</code>.
    * 
    * @param pid
-   *          a process identifier.
+   *          a Corus process identifier.
    * @param prefs
    *          a {@link KillPreferences} instance.
    */
