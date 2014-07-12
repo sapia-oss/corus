@@ -6,6 +6,7 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.Restart;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 /**
@@ -22,14 +23,15 @@ public class RestartAllCommand extends RestartAndWaitCommandSupport {
     ClusterInfo cluster = getClusterInfo(ctx);
     ProcessCriteria criteria = ProcessCriteria.builder().all();
     Option wait = getWaitOption(ctx);
+    KillPreferences prefs = KillPreferences.newInstance().setHard(isHardKillOption(ctx));
 
     if (wait != null) {
       ctx.getConsole().println("Waiting for process restart, please stand by...");
-      doRestartAndWait(ctx, cluster, criteria, wait.getValue() == null ? Restart.DEFAULT_RESTART_WAIT_TIME_SECONDS : wait.asInt());
+      doRestartAndWait(ctx, cluster, criteria, prefs, wait.getValue() == null ? Restart.DEFAULT_RESTART_WAIT_TIME_SECONDS : wait.asInt());
 
     } else {
       ctx.getConsole().println("Triggering to process restart...");
-      ctx.getCorus().getProcessorFacade().restart(criteria, cluster);
+      ctx.getCorus().getProcessorFacade().restart(criteria, prefs, cluster);
     }
   }
 

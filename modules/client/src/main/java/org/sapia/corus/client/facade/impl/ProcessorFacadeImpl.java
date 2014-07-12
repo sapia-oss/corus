@@ -14,6 +14,7 @@ import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceExcepti
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -81,24 +82,24 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void kill(ProcessCriteria criteria, ClusterInfo cluster) {
-    proxy.kill(criteria, false);
+  public synchronized void kill(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+    proxy.kill(criteria, prefs.setSuspend(false));
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized void kill(String pid) throws ProcessNotFoundException {
-    context.lookup(Processor.class).kill(pid, false);
+  public synchronized void kill(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+    context.lookup(Processor.class).kill(pid, prefs.setSuspend(false));
   }
 
   @Override
-  public synchronized void restart(String pid) throws ProcessNotFoundException {
-    context.lookup(Processor.class).restart(pid);
+  public synchronized void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+    context.lookup(Processor.class).restart(pid, prefs.setSuspend(false));
   }
 
   @Override
-  public synchronized ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster) {
-    proxy.restart(criteria);
+  public synchronized ProgressQueue restart(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+    proxy.restart(criteria, prefs.setSuspend(false));
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
 
@@ -109,14 +110,14 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void suspend(ProcessCriteria criteria, ClusterInfo cluster) {
-    proxy.kill(criteria, true);
+  public synchronized void suspend(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+    proxy.kill(criteria, prefs.setSuspend(true));
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized void suspend(String pid) throws ProcessNotFoundException {
-    context.lookup(Processor.class).kill(pid, true);
+  public synchronized void suspend(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+    context.lookup(Processor.class).kill(pid, prefs.setSuspend(true));
   }
 
   @Override

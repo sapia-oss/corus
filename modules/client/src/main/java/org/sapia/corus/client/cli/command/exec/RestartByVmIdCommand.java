@@ -11,6 +11,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.AbstractExecCommand;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -63,7 +64,8 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
 
   private void restartProcess(CliContext ctx, Process aProcess) throws InputException {
     try {
-      ctx.getCorus().getProcessorFacade().restart(aProcess.getProcessID());
+      KillPreferences prefs = KillPreferences.newInstance().setHard(isHardKillOption(ctx));
+      ctx.getCorus().getProcessorFacade().restart(aProcess.getProcessID(), prefs);
     } catch (Exception e) {
       throw new InputException(e.getMessage());
     }

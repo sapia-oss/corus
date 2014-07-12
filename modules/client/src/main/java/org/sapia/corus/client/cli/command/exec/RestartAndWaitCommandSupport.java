@@ -13,6 +13,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
@@ -41,7 +42,7 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
    * @throws AbortException
    * @throws InputException
    */
-  protected final void doRestartAndWait(CliContext ctx, ClusterInfo cluster, ProcessCriteria criteria, int waitSeconds) throws AbortException,
+  protected final void doRestartAndWait(CliContext ctx, ClusterInfo cluster, ProcessCriteria criteria, KillPreferences prefs, int waitSeconds) throws AbortException,
       InputException {
 
     Results<List<Process>> instances = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
@@ -66,7 +67,7 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
       }
     }
 
-    ctx.getCorus().getProcessorFacade().restart(criteria, cluster);
+    ctx.getCorus().getProcessorFacade().restart(criteria, prefs, cluster);
 
     waitForProcessShutdown(ctx, criteria, waitSeconds, cluster);
 

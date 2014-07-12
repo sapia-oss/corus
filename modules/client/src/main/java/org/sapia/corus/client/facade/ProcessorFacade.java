@@ -10,6 +10,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -100,18 +101,22 @@ public interface ProcessorFacade {
    * 
    * @param pid
    *          a Corus process ID.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void restart(String pid) throws ProcessNotFoundException;
+  public void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * Restarts the process(es) corresponding to the passed in parameters.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    */
-  public ProgressQueue restart(ProcessCriteria criteria, ClusterInfo cluster);
+  public ProgressQueue restart(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster);
 
   /**
    * Resumes the suspended process(es) corresponding to the passed in
@@ -129,36 +134,44 @@ public interface ProcessorFacade {
    * 
    * @param pid
    *          a process identifier.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void kill(String pid) throws ProcessNotFoundException;
+  public void kill(String pid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * Kills the process(es) corresponding to the passed in parameters.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    */
-  public void kill(ProcessCriteria criteria, ClusterInfo cluster);
+  public void kill(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster);
 
   /**
    * Suspends the process(es) corresponding to the passed in parameters.
    * 
    * @param criteria
    *          a {@link ProcessCriteria}.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    */
-  public void suspend(ProcessCriteria criteria, ClusterInfo cluster);
+  public void suspend(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster);
 
   /**
    * Suspends the process with the given identifier.
    * 
    * @param pid
    *          a process identifier.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void suspend(String pid) throws ProcessNotFoundException;
+  public void suspend(String pid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * Return the status of the process whose identifier is given..

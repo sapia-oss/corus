@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli.command;
 
+import java.io.OptionalDataException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
 
   protected static final long WAIT_INTERVAL_MILLIS = 5000;
   protected static final String OPT_WAIT = "w";
+  protected static final String OPT_HARD_KILL = "hard";
 
   protected AbstractExecCommand() {
   }
@@ -167,6 +169,16 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
    */
   protected static Option getWaitOption(CliContext ctx) throws InputException {
     return getOpt(ctx, OPT_WAIT);
+  }
+  
+  /**
+   * @param ctx
+   *          the {@link CliContext}.
+   * @return the {@link OptionalDataException} corresponding to the  <code>-hard</code>
+   *         command-line option.
+   */
+  protected static boolean isHardKillOption(CliContext ctx) throws InputException {
+    return getOpt(ctx, OPT_HARD_KILL) != null;
   }
 
   /**

@@ -58,10 +58,25 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
   protected LockOwner lockOwner = LockOwner.createInstance();
 
   /**
+   * The flag indicating if a hard kill should be performed.
+   */
+  protected boolean hardKill;
+  
+  /**
    * Constructs an instance of this class with the given params.
    */
   public KillTask(int maxRetry) {
     super.setMaxExecution(maxRetry);
+  }
+  
+  /**
+   * @param hardKill if <code>true</code>, indicates that the process should be terminated using
+   * an OS kill.
+   * @return this instance.
+   */
+  public KillTask setHardKill(boolean hardKill) {
+    this.hardKill = hardKill;
+    return this;
   }
 
   @Override
@@ -93,7 +108,13 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     if (proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED) {
       doKillConfirmed(true, ctx);
     } else {
-      ctx.getTaskManager().executeAndWait(new AttemptKillTask(), TaskParams.createFor(proc, requestor, super.getExecutionCount())).get();
+      if (hardKill) {
+        ctx.debug(String.format("Proceeding to hard kill on process %s", proc));
+        ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get();
+        doKillConfirmed(false, ctx);
+      } else {
+        ctx.getTaskManager().executeAndWait(new AttemptKillTask(), TaskParams.createFor(proc, requestor, super.getExecutionCount())).get();
+      }
     }
 
     return null;
@@ -144,7 +165,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
           os.killProcess(osKillCallback(), proc.getOsPid());
         }
       } catch (IOException e) {
-        ctx.warn("Error caught trying to kill process", e);
+        ctx.warn("Error caught trying to hard kill process as part of cleanup (process probably absent, so it properly shut down)", e);
       }
 
       ctx.getTaskManager().executeAndWait(new CleanupProcessTask(), proc).get();

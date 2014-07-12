@@ -23,6 +23,7 @@ import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
@@ -264,21 +265,17 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public void kill(ProcessCriteria criteria, boolean suspend) {
+  public void kill(ProcessCriteria criteria, KillPreferences pref) {
     List<Process> procs = processes.getActiveProcesses().getProcesses(criteria);
-    KillTask kill;
-    Process proc;
-
-    for (int i = 0; i < procs.size(); i++) {
-      proc = (Process) procs.get(i);
-
-      if (suspend) {
+ 
+    for (Process proc : procs) {
+      if (pref.isSuspend()) {
         SuspendTask susp = new SuspendTask(proc.getMaxKillRetry());
-
+        susp.setHardKill(pref.isHard());
         taskman.executeBackground(susp, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
             .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
       } else {
-        kill = new KillTask(proc.getMaxKillRetry());
+        KillTask kill = new KillTask(proc.getMaxKillRetry());
         taskman.executeBackground(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
             .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
       }
@@ -286,17 +283,18 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException {
+  public void kill(String corusPid, KillPreferences pref) throws ProcessNotFoundException {
 
-    KillTask kill;
     Process proc = processes.getActiveProcesses().getProcess(corusPid);
 
-    if (suspend) {
+    if (pref.isSuspend()) {
       SuspendTask susp = new SuspendTask(proc.getMaxKillRetry());
+      susp.setHardKill(pref.isHard());
       taskman.executeBackground(susp, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
           .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
     } else {
-      kill = new KillTask(proc.getMaxKillRetry());
+      KillTask kill = new KillTask(proc.getMaxKillRetry());
+      kill.setHardKill(pref.isHard());
       taskman.executeBackground(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
           .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
     }
@@ -320,30 +318,32 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public void restartByAdmin(String pid) throws ProcessNotFoundException {
-    doRestart(pid, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN);
+  public void restartByAdmin(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+    doRestart(pid, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN, prefs);
   }
 
   @Override
-  public void restart(String pid) throws ProcessNotFoundException {
-    doRestart(pid, ProcessTerminationRequestor.KILL_REQUESTOR_PROCESS);
+  public void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+    doRestart(pid, ProcessTerminationRequestor.KILL_REQUESTOR_PROCESS, prefs);
   }
 
   @Override
-  public void restart(ProcessCriteria criteria) {
+  public void restart(ProcessCriteria criteria, KillPreferences prefs) {
     List<Process> procs = processes.getActiveProcesses().getProcesses(criteria);
 
     for (int i = 0; i < procs.size(); i++) {
       Process proc = (Process) procs.get(i);
       RestartTask restart = new RestartTask(proc.getMaxKillRetry());
+      restart.setHardKill(prefs.isHard());
       taskman.executeBackground(restart, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
           .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
     }
   }
 
-  private void doRestart(String pid, ProcessTerminationRequestor origin) throws ProcessNotFoundException {
+  private void doRestart(String pid, ProcessTerminationRequestor origin, KillPreferences prefs) throws ProcessNotFoundException {
     Process proc = processes.getActiveProcesses().getProcess(pid);
     RestartTask restart = new RestartTask(proc.getMaxKillRetry());
+    restart.setHardKill(prefs.isHard());
 
     taskman.executeBackground(restart, TaskParams.createFor(proc, origin),
         BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));

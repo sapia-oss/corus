@@ -51,15 +51,19 @@ public interface Processor extends java.rmi.Remote, Module {
    * 
    * @param pid
    *          a Corus pid.
+   * @param prefs
+   *          a {@link KillPreferences} instance. 
    */
-  public void restartByAdmin(String pid) throws ProcessNotFoundException;
+  public void restartByAdmin(String pid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * Restarts the process with the given ID.
    * 
    * @see Processor#restart(String)
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void restart(String pid) throws ProcessNotFoundException;
+  public void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * Restarts the process(es) corresponding to the passed in parameters.
@@ -67,8 +71,10 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param criteria
    *          the {@link ProcessCriteria} indicating which process should be
    *          restarted.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void restart(ProcessCriteria criteria);
+  public void restart(ProcessCriteria criteria, KillPreferences prefs);
 
   /**
    * Kill the process(es) corresponding to the passed in parameters.
@@ -76,22 +82,20 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param criteria
    *          the {@link ProcessCriteria} indicating which process should be
    *          restarted.
-   * @param suspend
-   *          if <code>true</code>, indicates that the process should be
-   *          suspended.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void kill(ProcessCriteria criteria, boolean suspend);
+  public void kill(ProcessCriteria criteria, KillPreferences prefs);
 
   /**
    * Kills the process with the given identifier.
    * 
    * @param corusPid
    *          a process identifier.
-   * @param suspend
-   *          if <code>true</code>, indicates that the process should be
-   *          suspended.
+   * @param prefs
+   *          a {@link KillPreferences} instance.
    */
-  public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException;
+  public void kill(String corusPid, KillPreferences prefs) throws ProcessNotFoundException;
 
   /**
    * @param criteria

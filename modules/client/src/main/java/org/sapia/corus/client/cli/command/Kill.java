@@ -13,6 +13,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -26,6 +27,7 @@ public class Kill extends CorusCliCommand {
   protected boolean suspend;
 
   public static final String WAIT_COMPLETION_OPT = "w";
+  public static final String HARD_KILL_OPT       = "hard";
 
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 60000;
 
@@ -46,6 +48,9 @@ public class Kill extends CorusCliCommand {
     String osPid = null;
 
     CmdLine cmd = ctx.getCommandLine();
+    
+    KillPreferences prefs = KillPreferences.newInstance();
+    prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
 
     // Kill ALL
     if (cmd.isNextArg()) {
@@ -54,9 +59,9 @@ public class Kill extends CorusCliCommand {
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
       ClusterInfo cluster = getClusterInfo(ctx);
       if (suspend) {
-        ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
+        ctx.getCorus().getProcessorFacade().suspend(criteria, prefs, cluster);
       } else {
-        ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
+        ctx.getCorus().getProcessorFacade().kill(criteria, prefs, cluster);
       }
       waitForKillCompletion(ctx, completion);
     }
@@ -123,9 +128,9 @@ public class Kill extends CorusCliCommand {
       ctx.getConsole().println("Proceeding to kill...");
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
       if (suspend) {
-        ctx.getCorus().getProcessorFacade().suspend(criteria, cluster);
+        ctx.getCorus().getProcessorFacade().suspend(criteria, prefs, cluster);
       } else {
-        ctx.getCorus().getProcessorFacade().kill(criteria, cluster);
+        ctx.getCorus().getProcessorFacade().kill(criteria, prefs, cluster);
       }
 
       waitForKillCompletion(ctx, completion);
@@ -178,14 +183,18 @@ public class Kill extends CorusCliCommand {
   protected void killProcess(CliContext ctx, Process aProcess) throws InputException {
     if (suspend) {
       try {
-        ctx.getCorus().getProcessorFacade().suspend(aProcess.getProcessID());
+        KillPreferences prefs = KillPreferences.newInstance();
+        prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
+        ctx.getCorus().getProcessorFacade().suspend(aProcess.getProcessID(), prefs);
         ctx.getConsole().println("Suspending process " + aProcess.getProcessID() + "...");
       } catch (ProcessNotFoundException e) {
         throw new InputException(e.getMessage());
       }
     } else {
       try {
-        ctx.getCorus().getProcessorFacade().kill(aProcess.getProcessID());
+        KillPreferences prefs = KillPreferences.newInstance();
+        prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
+        ctx.getCorus().getProcessorFacade().kill(aProcess.getProcessID(), prefs);
       } catch (ProcessNotFoundException e) {
         throw new InputException(e.getMessage());
       }
