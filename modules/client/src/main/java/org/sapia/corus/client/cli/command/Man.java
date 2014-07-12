@@ -22,6 +22,7 @@ public class Man extends CorusCliCommand {
   private static final Map<String, Class<?>> COMMANDS = new HashMap<String, Class<?>>();
 
   static {
+    COMMANDS.put("ant", Cd.class);
     COMMANDS.put("cd", Cd.class);
     COMMANDS.put("cluster", Cluster.class);
     COMMANDS.put("cmd", Cmd.class);

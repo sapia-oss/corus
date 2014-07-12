@@ -1,0 +1,28 @@
+<help>
+  <section title="Description">
+   <p>Executes an Ant script locally.</p>
+  </section>
+  <section title="Syntax">
+    <p>ant -f &lt;file&gt; [-d or -debug or -v or -verbose or -l %lt;log_level&gt;]</p>
+    <p/>    
+    <p>Where:</p>
+    <p/>
+    <p>- file: an existing Ant file.</p>
+    <p/>
+    <p>- d or -debug: sets the Ant log level to debug.</p>
+    <p/>
+    <p>- v or verbose: sets the Ant log level to verbose.</p>
+    <p/>
+    <p>- l: sets the log level to one supported by Ant (verbose, debug, info, warn, error).</p>
+    <p/>
+    <p>- d: in the context of the -f option, interpreted as the directory on the remote Corus note to which to upload the file.</p>
+  </section>
+  <section title="Examples">
+    <p>ant -f scripts/copy_files.xml</p>
+    <p/>
+    <p>ant -f scripts/copy_files.xml -d</p>
+    <p/>    
+    <p>ant -f scripts/copy_files.xml -l debug</p>
+    <p/>    
+  </section>
+</help>
