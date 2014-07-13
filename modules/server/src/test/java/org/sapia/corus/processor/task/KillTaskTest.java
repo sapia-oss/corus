@@ -159,6 +159,22 @@ public class KillTaskTest extends TestBaseTask{
     );
   }
   
+  @Test
+  public void testHardKill() throws Exception {
+    OsModule os = mock(OsModule.class);
+    ctx.getServices().rebind(OsModule.class, os);
+    
+    KillTask kill = new KillTask(3);  
+    kill.setHardKill(true);
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)).get();
+
+    assertFalse(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+    
+    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());
+  }
   
   @Test(expected=ProcessLockException.class)
   public void testConcurrentAccess() throws Exception{

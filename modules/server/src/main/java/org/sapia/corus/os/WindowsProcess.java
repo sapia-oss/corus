@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 
 import org.hyperic.sigar.ProcExe;
+import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.SigarPermissionDeniedException;
 import org.sapia.console.CmdLine;
@@ -25,8 +26,9 @@ import org.sapia.corus.util.IOUtil;
 public class WindowsProcess implements NativeProcess {
 
   private static final long PAUSE_AFTER_START = 1000;
-  private static int BUFSZ = 1024;
-  private static int COMMAND_TIME_OUT = 5000;
+  private static final int BUFSZ = 1024;
+  private static final int COMMAND_TIME_OUT = 5000;
+  private static final int KILL_SIG = 9;
 
   private static String pvPath;
 
@@ -148,8 +150,24 @@ public class WindowsProcess implements NativeProcess {
     }
   }
 
-  protected String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
-    throws IOException {
+
+  @Override
+  public void kill(OsModule.LogCallback log, String pid) throws IOException {
+    if (SigarSupplier.isSet() && SigarSupplier.get() instanceof Sigar) {
+      try {
+        log.debug(String.format("Killing process %s with SIGAR", pid));
+        ((Sigar) SigarSupplier.get()).kill(Long.parseLong(pid), KILL_SIG);
+      } catch (Exception e) {
+        log.debug(String.format("Error caught trying to kill process with SIGAR - falling back to default mechanism: %s", e.getMessage()));
+        killWithPv(log, pid);
+      }
+    } else {
+      killWithPv(log, pid);
+    }
+  }
+  
+  private String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
+      throws IOException {
     try {
       for (long pid : SigarSupplier.get().getProcList()) {
         try {
@@ -169,49 +187,8 @@ public class WindowsProcess implements NativeProcess {
       throw new IOException("Could not obtain process information from Sigar", e);
     }
   }
-
-  private String extractPidUsingPV(OsModule.LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
-    throws IOException {
-    // Retrieve the OS pid using the process viewer tool
-    CmdLine aListCommand = createPVCmdLine();
-    aListCommand.addArg("--tree").addArg("-l" + extractPattern(cmd));
-    log.debug("--> Executing: " + aListCommand.toString());
-    ExecHandle pvHandle = aListCommand.exec(baseDir, null);
-
-    // Extract the output stream of the process
-    anOutput.reset();
-    CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
-    log.debug(anOutput.toString("UTF-8"));
-
-    // Generates a string of the format "\njavaw.exe       (284)\n"
-    String anOsPid = null;
-    String aBuffer = anOutput.toString();
-    int start = aBuffer.lastIndexOf("(");
-    if (start >= 0) {
-      int end = aBuffer.indexOf(")", start);
-      anOsPid = aBuffer.substring(start + 1, end);
-    }
-
-    if (anOsPid != null) {
-      StringTokenizer st = new StringTokenizer(anOsPid);
-      if (st.hasMoreElements()) {
-        anOsPid = (String) st.nextElement();
-        log.debug("Got PID from process output: " + anOsPid);
-      }
-    }
-
-    // Extract the error stream of the process
-    anOutput.reset();
-    IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
-    if (anOutput.size() > 0) {
-      log.error("Error getting the process id: " + anOutput.toString("UTF-8"));
-    }
-
-    return anOsPid;
-  }
-
-  @Override
-  public void kill(OsModule.LogCallback log, String pid) throws IOException {
+  
+  private void killWithPv(OsModule.LogCallback log, String pid) throws IOException {
     // Generate the kill command
     CmdLine aKillCommand = createPVCmdLine();
     aKillCommand.addOpt("-kill", null).addOpt("-id", pid).addOpt("-force", null);
@@ -230,6 +207,46 @@ public class WindowsProcess implements NativeProcess {
     IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error killing the process: " + anOutput.toString("UTF-8"));
-    }
+    }    
   }
+  
+  private String extractPidUsingPV(OsModule.LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
+      throws IOException {
+      // Retrieve the OS pid using the process viewer tool
+      CmdLine aListCommand = createPVCmdLine();
+      aListCommand.addArg("--tree").addArg("-l" + extractPattern(cmd));
+      log.debug("--> Executing: " + aListCommand.toString());
+      ExecHandle pvHandle = aListCommand.exec(baseDir, null);
+
+      // Extract the output stream of the process
+      anOutput.reset();
+      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      log.debug(anOutput.toString("UTF-8"));
+
+      // Generates a string of the format "\njavaw.exe       (284)\n"
+      String anOsPid = null;
+      String aBuffer = anOutput.toString();
+      int start = aBuffer.lastIndexOf("(");
+      if (start >= 0) {
+        int end = aBuffer.indexOf(")", start);
+        anOsPid = aBuffer.substring(start + 1, end);
+      }
+
+      if (anOsPid != null) {
+        StringTokenizer st = new StringTokenizer(anOsPid);
+        if (st.hasMoreElements()) {
+          anOsPid = (String) st.nextElement();
+          log.debug("Got PID from process output: " + anOsPid);
+        }
+      }
+
+      // Extract the error stream of the process
+      anOutput.reset();
+      IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
+      if (anOutput.size() > 0) {
+        log.error("Error getting the process id: " + anOutput.toString("UTF-8"));
+      }
+
+      return anOsPid;
+    }
 }

@@ -14,6 +14,7 @@ import org.apache.tools.ant.PropertyHelper;
 import org.sapia.console.AbortException;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.cli.CliContext;
 
 /**
@@ -24,8 +25,9 @@ import org.sapia.corus.client.cli.CliContext;
  */
 public class Ant extends CorusCliCommand {
   
-  private static final String OPT_FILE  = "f";
-  private static final String OPT_LEVEL = "l";
+  private static final String OPT_FILE   = "f";
+  private static final String OPT_LEVEL  = "l";
+  private static final String OPT_TARGET = "t";
   
   private static final Map<String, Integer> LOG_LEVELS_BY_NAME = new HashMap<String, Integer>();
   static {
@@ -61,7 +63,10 @@ public class Ant extends CorusCliCommand {
       BuildLogger logger = new ConsoleBuildLogger(ctx.getConsole().out());
       logger.setMessageOutputLevel(logLevel);
       
+      Option targetOpt = ctx.getCommandLine().getOpt(OPT_TARGET);
+      
       Project p = new Project();
+      p.setBaseDir(ctx.getFileSystem().getBaseDir());
       p.setUserProperty("ant.file", f.getAbsolutePath());
       p.init();
 
@@ -77,7 +82,7 @@ public class Ant extends CorusCliCommand {
       p.addReference("ant.projectHelper", helper);
             
       helper.parse(p, f);
-      p.executeTarget(p.getDefaultTarget());
+      p.executeTarget(targetOpt != null ? targetOpt.getValueNotNull() : p.getDefaultTarget());
       ctx.getConsole().println("Completed Ant script execution");
       
     } catch (BuildException e) {
@@ -121,7 +126,8 @@ public class Ant extends CorusCliCommand {
    
     @Override
     public void messageLogged(BuildEvent paramBuildEvent) {
-      if (paramBuildEvent.getPriority() >= messageOutputLevel) {
+      if (paramBuildEvent.getPriority() <= messageOutputLevel
+          && paramBuildEvent.getTask() != null && paramBuildEvent.getMessage() != null) {
         out.println(String.format("[%s] %s", paramBuildEvent.getTask().getTaskName(), paramBuildEvent.getMessage()));
       }
     }
@@ -135,8 +141,8 @@ public class Ant extends CorusCliCommand {
     }
     
     @Override
-    public void setMessageOutputLevel(int paramInt) {
-      this.setMessageOutputLevel(paramInt);
+    public void setMessageOutputLevel(int level) {
+      messageOutputLevel = level;
     }
     
     @Override

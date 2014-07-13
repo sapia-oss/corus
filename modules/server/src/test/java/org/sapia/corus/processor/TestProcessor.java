@@ -8,6 +8,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -71,11 +72,11 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public void kill(ProcessCriteria criteria, boolean suspend) {
+  public void kill(ProcessCriteria criteria, KillPreferences prefs) {
   }
 
   @Override
-  public void kill(String corusPid, boolean suspend) throws ProcessNotFoundException{
+  public void kill(String corusPid, KillPreferences prefs) throws ProcessNotFoundException{
   }
   
   @Override
@@ -83,15 +84,15 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public void restart(String pid) throws ProcessNotFoundException{
+  public void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException{
   }
   
   @Override
-  public void restartByAdmin(String pid) throws ProcessNotFoundException{
+  public void restartByAdmin(String pid, KillPreferences prefs) throws ProcessNotFoundException{
   }
   
   @Override
-  public void restart(ProcessCriteria criteria) {
+  public void restart(ProcessCriteria criteria, KillPreferences prefs) {
   }
   
   @Override

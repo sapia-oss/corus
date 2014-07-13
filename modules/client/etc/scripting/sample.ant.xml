@@ -1,0 +1,9 @@
+<project name="MyProject" default="run">
+
+  <target name="run">
+    <echo message="basedir = ${basedir}"/>
+    <echo message="user.dir = ${user.dir}"/>
+    <echo message="corus.home = ${corus.home}"/>
+  </target>
+  
+</project>

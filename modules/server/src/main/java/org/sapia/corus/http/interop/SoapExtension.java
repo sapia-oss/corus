@@ -8,6 +8,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.interop.AbstractCommand;
@@ -98,7 +99,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
       logger.debug("Process requested a restart: " + proc);
     }
 
-    serverContext.lookup(Processor.class).restart(proc.getCorusPid());
+    serverContext.lookup(Processor.class).restart(proc.getCorusPid(), KillPreferences.newInstance());
   }
 
   public synchronized List<AbstractCommand> onStatus(Process proc, Status stat) throws Exception {

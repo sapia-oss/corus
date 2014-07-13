@@ -29,6 +29,7 @@ import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
 public class InterpreterTest {
@@ -60,10 +61,10 @@ public class InterpreterTest {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
         inputCriteria.set((ProcessCriteria) invocation.getArguments()[0]);
-        inputClusterInfo.set((ClusterInfo) invocation.getArguments()[1]);
+        inputClusterInfo.set((ClusterInfo) invocation.getArguments()[2]);
         return null;
       }
-    }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
+    }).when(processor).kill(any(ProcessCriteria.class), any(KillPreferences.class), any(ClusterInfo.class));
 
     console.eval("kill -d test -v 1.0 -n proc -p dev -cluster", StrLookup.systemPropertiesLookup());
 
@@ -107,10 +108,10 @@ public class InterpreterTest {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
         inputCriteria.set((ProcessCriteria) invocation.getArguments()[0]);
-        inputClusterInfo.set((ClusterInfo) invocation.getArguments()[1]);
+        inputClusterInfo.set((ClusterInfo) invocation.getArguments()[2]);
         return null;
       }
-    }).when(processor).kill(any(ProcessCriteria.class), any(ClusterInfo.class));
+    }).when(processor).kill(any(ProcessCriteria.class), any(KillPreferences.class), any(ClusterInfo.class));
 
     StringWriter writer = new StringWriter();
     PrintWriter pw = new PrintWriter(writer);
