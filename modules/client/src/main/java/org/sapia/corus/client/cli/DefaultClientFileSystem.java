@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
  */
 public class DefaultClientFileSystem implements ClientFileSystem {
 
-  private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-z]:");
+  private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-zA-Z]:");
 
   private File baseDir;
 

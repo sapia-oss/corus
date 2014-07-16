@@ -1,5 +1,6 @@
 package org.sapia.corus.port.task;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +35,8 @@ public class PortCleanupTask extends RunnableTask {
         processPorts.add(new PortKey(ap.getName(), ap.getPort()));
       }
     }
-    for (PortRange pr : ranges) {
+    List<PortRange> toCleanup = new ArrayList<PortRange>(ranges);
+    for (PortRange pr : toCleanup) {
       for (Integer ap : pr.getActive()) {
         if (!processPorts.contains(new PortKey(pr.getName(), ap))) {
           pm.releasePort(pr.getName(), ap);

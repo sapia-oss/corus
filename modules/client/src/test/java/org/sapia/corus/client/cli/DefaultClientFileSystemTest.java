@@ -10,6 +10,21 @@ public class DefaultClientFileSystemTest {
   public void testIsAbsoluteWindowsPath() {
     assertTrue(DefaultClientFileSystem.isAbsolute("c:/foo/bar"));
   }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_backslash() {
+    assertTrue(DefaultClientFileSystem.isAbsolute("c:\\foo\\bar"));
+  }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_capital_letter_drive() {
+    assertTrue(DefaultClientFileSystem.isAbsolute("C:/foo/bar"));
+  }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_capital_letter_drive_back_slash() {
+    assertTrue(DefaultClientFileSystem.isAbsolute("C:\foo\bar"));
+  }
 
   @Test
   public void testIsAbsoluteUnixPath() {

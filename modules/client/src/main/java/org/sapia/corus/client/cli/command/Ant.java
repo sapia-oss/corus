@@ -65,19 +65,31 @@ public class Ant extends CorusCliCommand {
       
       Option targetOpt = ctx.getCommandLine().getOpt(OPT_TARGET);
       
-      Project p = new Project();
+      Project p = new Project() {
+        
+        // overriding this due to weird bug.
+        @Override
+        public void setBasedir(String baseD) throws BuildException {
+        }
+      };
+      
       p.setBaseDir(ctx.getFileSystem().getBaseDir());
+      
       p.setUserProperty("ant.file", f.getAbsolutePath());
-      p.init();
-
       PropertyHelper.getPropertyHelper(p).add(new PropertyHelper.PropertyEvaluator() {
         @Override
         public Object evaluate(String name, PropertyHelper helper) {
+          if (name.equals("basedir")) {
+            return ctx.getFileSystem().getBaseDir().getAbsolutePath();
+          }
           return ctx.getVars().lookup(name);
         }
       });
 
       p.addBuildListener(logger);
+      p.fireBuildStarted();
+      p.init();
+
       ProjectHelper helper = ProjectHelper.getProjectHelper();
       p.addReference("ant.projectHelper", helper);
             
