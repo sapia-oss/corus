@@ -120,16 +120,20 @@ public class CorusCli extends CommandConsole {
     int port = DEFAULT_PORT;
 
     try {
-      CmdLine cmd = CmdLine.parse(args);
+      CmdLine main = CmdLine.parse(args);
+      CmdLine sub = CliUtils.fromOption(COMMAND_OPT, main);
+      if (sub.size() > 0) {
+        main = CliUtils.toOption(COMMAND_OPT, main);
+      }
 
-      if (cmd.containsOption("ver", false)) {
+      if (main.containsOption("ver", false)) {
         System.out.println("Corus client version: " + CorusVersion.create());
         System.out.println("Java version: " + System.getProperty("java.version"));
-      } else if (CliUtils.isHelp(cmd)) {
+      } else if (CliUtils.isHelp(main)) {
         help();
       } else {
-        if (cmd.containsOption(HOST_OPT, true)) {
-          host = cmd.assertOption(HOST_OPT, true).getValue();
+        if (main.containsOption(HOST_OPT, true)) {
+          host = main.assertOption(HOST_OPT, true).getValue();
           if (host.equalsIgnoreCase("localhost")) {
             host = Localhost.getPreferredLocalAddress().getHostAddress();
           }
@@ -137,17 +141,34 @@ public class CorusCli extends CommandConsole {
           host = Localhost.getPreferredLocalAddress().getHostAddress();
         }
 
-        if (cmd.containsOption(PORT_OPT, true)) {
-          port = cmd.assertOption(PORT_OPT, true).asInt();
+        if (main.containsOption(PORT_OPT, true)) {
+          port = main.assertOption(PORT_OPT, true).asInt();
         }
         CorusConnectionContext connection = new CorusConnectionContextImpl(host, port, FILE_SYSTEM);
         CorusConnector connector = new CorusConnectorImpl(connection);
 
         // --------------------------------------------------------------------
+        // -c option
+          
+        if (sub.size() > 0) {
+ 
+          String command = sub.toString().trim();
+          command        = command.substring(("-" + COMMAND_OPT).length());
+          CmdLine toRun  = CmdLine.parse(command);
+          try {
+            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+            console.eval(toRun.toString(), StrLookup.systemPropertiesLookup());
+            System.exit(0);
+          } catch (Throwable err) {
+            err.printStackTrace();
+            System.exit(1);
+          }
+          
+        // --------------------------------------------------------------------
         // -s option
-
-        if (cmd.containsOption(SCRIPT_OPT, false)) {
-          String path = cmd.assertOption(SCRIPT_OPT, true).getValue();
+          
+        } else if (main.containsOption(SCRIPT_OPT, false)) {
+          String path = main.assertOption(SCRIPT_OPT, true).getValue();
 
           Reader input = null;
           try {
@@ -156,7 +177,7 @@ public class CorusCli extends CommandConsole {
             e.printStackTrace();
             System.exit(1);
           }
-          Map<String, String> vars = CliUtils.getOptionsMap(cmd);
+          Map<String, String> vars = CliUtils.getOptionsMap(main);
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             console.interpret(input, StrLookup.mapLookup(vars));
@@ -166,35 +187,8 @@ public class CorusCli extends CommandConsole {
             System.exit(1);
           }
 
-          // --------------------------------------------------------------------
-          // -c option
-
-        } else if (cmd.containsOption(COMMAND_OPT, false)) {
-          Option opt = cmd.assertOption(COMMAND_OPT, true);
-          StringBuilder commandLine = new StringBuilder(opt.getValue());
-
-          for (int i = 0; i < cmd.size(); i++) {
-            CmdElement ce = cmd.get(i);
-            if (ce.equals(opt)) {
-              for (int j = i + 1; j < cmd.size(); j++) {
-                ce = cmd.get(j);
-                commandLine.append(" ").append(ce.toString());
-              }
-              break;
-            }
-          }
-
-          try {
-            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
-            console.eval(commandLine.toString(), StrLookup.systemPropertiesLookup());
-            System.exit(0);
-          } catch (Throwable err) {
-            err.printStackTrace();
-            System.exit(1);
-          }
-
-          // --------------------------------------------------------------------
-          // default behavior
+        // -------------------------------------------------------------------- 
+        // default behavior
 
         } else {
           try {

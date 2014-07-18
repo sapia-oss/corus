@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.console.CmdLine;
+import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -57,4 +58,39 @@ public class CliUtilsTest {
     assertTrue(CliUtils.isHelp(CmdLine.parse("-help")));
     assertTrue(CliUtils.isHelp(CmdLine.parse("--help")));
   }
+  
+  @Test
+  public void testFromOption() {
+    CmdLine cmd = CmdLine.parse("arg1 -opt1 val1 -opt2 val2 arg2");
+    CmdLine from = CliUtils.fromOption("opt2", cmd);
+    assertTrue(from.get(0) instanceof Option);
+    assertEquals("opt2", from.get(0).getName());
+    assertEquals("val2", ((Option)from.get(0)).getValue());
+    assertEquals("arg2", from.last().getName());
+  }
+
+  @Test
+  public void testFromOption_no_option_found() {
+    CmdLine cmd = CmdLine.parse("arg1 -opt1 val1 -opt2 val2 arg2");
+    CmdLine from = CliUtils.fromOption("opt3", cmd);
+    assertEquals(0, from.size());
+  }
+  
+  @Test
+  public void testToOption() {
+    CmdLine cmd = CmdLine.parse("arg1 -opt1 val1 -opt2 val2 arg2");
+    CmdLine to = CliUtils.toOption("opt2", cmd);
+    assertTrue(to.get(0) instanceof org.sapia.console.Arg);
+    assertEquals("arg1", to.get(0).getName());
+    assertEquals("opt1", to.get(1).getName());
+    assertEquals("val1", ((Option)to.get(1)).getValue());
+  }
+
+  @Test
+  public void testToOption_no_option_found() {
+    CmdLine cmd = CmdLine.parse("arg1 -opt1 val1 -opt2 val2 arg2");
+    CmdLine from = CliUtils.toOption("opt3", cmd);
+    assertEquals(cmd.size(), from.size());
+  }
+  
 }

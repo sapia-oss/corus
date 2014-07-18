@@ -31,7 +31,7 @@ public class SigarModuleImpl extends ModuleHelper implements SigarModule {
   @Override
   public void init() throws Exception {
     if (JAVA_LIB_PATH != null && JAVA_LIB_PATH.contains(SIGAR_SUBDIR)) {
-      StringTokenizer tk = new StringTokenizer(JAVA_LIB_PATH, ":;");
+      StringTokenizer tk = tokenizeLibPath(JAVA_LIB_PATH, File.pathSeparator);
       while (tk.hasMoreElements()) {
         String t = tk.nextToken();
         if (t.contains(SIGAR_SUBDIR)) {
@@ -64,5 +64,9 @@ public class SigarModuleImpl extends ModuleHelper implements SigarModule {
 
   protected SigarProxy newSigarInstance() {
     return new Sigar();
+  }
+  
+  static StringTokenizer tokenizeLibPath(String libPath, String patSeparator) {
+    return new StringTokenizer(libPath, patSeparator);
   }
 }

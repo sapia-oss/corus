@@ -220,5 +220,52 @@ public final class CliUtils {
   public static boolean isHelp(CmdLine cmdLine) {
     return cmdLine.containsOption("help", false) || cmdLine.containsOption("-help", false);
   }
+ 
+  /**
+   * @param optionName the name of the option from which to split.
+   * @param toSplit the {@link CmdLine} instance to split.
+   * @return the {@link CmdLine} consisting of the elements starting from the option with the 
+   * given name - the {@link CmdLine#size()} method of the returned {@link CmdLine} will return 0
+   * if no option corresponding to the given name was found.
+   */
+  public static CmdLine fromOption(String optionName, CmdLine toSplit) {
+    CmdLine cmd = new CmdLine();
+    boolean gather = false;
+    int i = 0;
+    for (; i  < toSplit.size(); i++) {
+      CmdElement elem = toSplit.get(i);
+      if (elem instanceof Option) {
+        if (elem.getName().equals(optionName)) {
+          cmd.addOpt((Option) elem);
+          gather = true;
+          break;
+        }
+      }
+    }
+    i++;
+    for (; i < toSplit.size() && gather; i++) {
+      cmd.addElement(toSplit.get(i)); 
+    }
+    return cmd;
+  } 
   
+  /**
+   * @param optionName the name of the option until which to split.
+   * @param toSplit the {@link CmdLine} instance to split.
+   * @return the {@link CmdLine} consisting of the elements up to the option  with the given 
+   * name - and excluding that option. 
+   */
+  public static CmdLine toOption(String optionName, CmdLine toSplit) {
+    CmdLine cmd = new CmdLine();
+    for (int i = 0; i < toSplit.size(); i++) {
+      CmdElement elem  = toSplit.get(i);
+      if (elem instanceof Option) {
+        if (elem.getName().equals(optionName)) {
+          break;
+        }
+      } 
+      cmd.addElement(elem);
+    }
+    return cmd;
+  }
 }
