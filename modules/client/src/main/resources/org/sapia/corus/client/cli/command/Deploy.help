@@ -3,7 +3,7 @@
    <p>Deploys a distribution, an execution configuration, a shell script, or a file to a given Corus server.</p>
   </section>
   <section title="Syntax">
-    <p>deploy file [file2 [file3 [...]]] [-cluster]</p>
+    <p>deploy file [file2 [file3 [...]]] [-seq] [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>deploy -e exec_config_file [-cluster]</p>
@@ -36,14 +36,20 @@
     <p/>
     <p>- a: the alias of the shell script being deployed, which will be used in conjonction with the exec and undeploy commands to refer to the shell script.</p>
     <p/>    
+    <p>- seq: if the deployment is clustered, indicates that it should be done one host after the other from the client, sequentially (rather than through cascading deployment).</p>
+    <p/>    
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Examples">
     <p>deploy myDistribution.zip</p>
     <p/>
+    <p>deploy myDistribution.zip -cluster</p>
+    <p/>    
+    <p>deploy myDistribution.zip -seq -cluster</p>
+    <p/>
     <p>deploy -e myExecConfig.xml</p>
     <p/>    
-    <p>deploy -f someArchice.tar</p>
+    <p>deploy -f someArchive.tar</p>
     <p/>    
     <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
     <p/>    
