@@ -25,7 +25,7 @@ import org.sapia.ubik.util.Streams;
  */
 public class Deployment {
 
-  static final int BUFSZ = 2048;
+  static final int BUFSZ = 8192;
 
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   private ServerContext context;
@@ -85,14 +85,19 @@ public class Deployment {
         total = total + read;
         remaining -= read;
         deployOutput.write(buf, 0, read);
+        deployOutput.flush();
       }
 
       if (length != total) {
         throw new IllegalStateException(String.format("Expected %s bytes, processed %s", length, total));
       }
       deployOutput.flush();
-      deployOutput.close();
     } finally {
+      try {
+        deployOutput.close();
+      } catch (IOException e) {
+        log.warn("Error closing deployment output stream", e);
+      }
       Streams.closeSilently(is);
     }
     handleResult(deployOutput.getProgressQueue());

@@ -39,8 +39,9 @@ public class ClientDeployOutputStream implements DeployOutputStream {
       queue = (ProgressQueue) ois.readObject();
     } catch (ClassNotFoundException e) {
       throw new IOException("Could not deserialize response: " + e.getMessage());
+    } finally {
+      client.close();
     }
-    client.close();
     closed = true;
   }
 

@@ -14,7 +14,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log4j.Level;
-import org.sapia.console.CmdElement;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -25,7 +24,6 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
-import org.sapia.console.Option;
 import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.CorusVersion;
@@ -85,12 +83,22 @@ public class CorusCli extends CommandConsole {
     final AtomicReference<ConsoleInput> input = new AtomicReference<ConsoleInput>();
     // note: a case of the os.name being set to Vista has been reported.
     if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
-      input.set(ConsoleInputFactory.createJdk6ConsoleInput());
+      // condition occurs in Eclipse
+      if (System.console() == null) {
+        input.set(ConsoleInputFactory.createDefaultConsoleInput());
+      } else {
+        input.set(ConsoleInputFactory.createJdk6ConsoleInput());
+      }
     } else {
       try {
         input.set(ConsoleInputFactory.createJLineConsoleInput());
       } catch (IOException e) {
-        input.set(ConsoleInputFactory.createJdk6ConsoleInput());
+        // condition occurs in Eclipse
+        if (System.console() == null) {
+          input.set(ConsoleInputFactory.createDefaultConsoleInput());
+        } else {
+          input.set(ConsoleInputFactory.createJdk6ConsoleInput());
+        }
       }
     }
     
@@ -202,6 +210,7 @@ public class CorusCli extends CommandConsole {
             }
             cli.start();
           } catch (NullPointerException e) {
+            e.printStackTrace();
           }
         }
       }

@@ -1,15 +1,23 @@
 package org.sapia.corus.client.cli.command;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdElement;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Func;
 
 /**
  * @author Yanick Duchesne
@@ -23,6 +31,7 @@ public class Deploy extends CorusCliCommand {
   public static final String OPT_SCRIPT = "s";
   public static final String OPT_DESC_OR_DIR = "d";
   public static final String OPT_ALIAS = "a";
+  public static final String OPT_SEQ = "seq";
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
@@ -47,13 +56,25 @@ public class Deploy extends CorusCliCommand {
     }
   }
 
-  private void deployDistribution(CliContext ctx, String fileName) throws AbortException, InputException {
+  private void deployDistribution(final CliContext ctx, final String fileName) throws AbortException, InputException {
     if (fileName.endsWith("xml")) {
       deployExec(ctx, fileName);
+    } else if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+      doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
+        @Override
+        public Void call(CorusHost target) {
+          ClusterInfo info = new ClusterInfo(false);
+          try {
+            displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, info), ctx);
+          } catch (Exception e) {
+            throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
+          }
+          return null;
+        }
+      });
     } else {
       try {
         displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, getClusterInfo(ctx)), ctx);
-
       } catch (ConcurrentDeploymentException e) {
         CliError err = ctx.createAndAddErrorFor(this, "Distribution file already being deployed", e);
         ctx.getConsole().println(err.getSimpleMessage());
@@ -64,38 +85,66 @@ public class Deploy extends CorusCliCommand {
     }
   }
 
-  private void deployScript(CliContext ctx, String fileName, String alias) throws AbortException, InputException {
-    String desc = null;
+  private void deployScript(final CliContext ctx, final String fileName, final String alias) throws AbortException, InputException {
+    final String desc;
     if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true)) {
       desc = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue();
     } else {
       desc = SCRIPT_DESC_UNDEFINED;
     }
-    try {
-      displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, getClusterInfo(ctx)), ctx);
-
-    } catch (Exception e) {
-      CliError err = ctx.createAndAddErrorFor(this, "Problem deploying script", e);
-      ctx.getConsole().println(err.getSimpleMessage());
+    
+    if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+      doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
+        @Override
+        public Void call(CorusHost target) {
+          ClusterInfo info = new ClusterInfo(false);
+          try {
+            displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, info), ctx);
+          } catch (Exception e) {
+            throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
+          }
+          return null;
+        }
+      });
+    } else {
+      try {
+        displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, getClusterInfo(ctx)), ctx);
+      } catch (Exception e) {
+        CliError err = ctx.createAndAddErrorFor(this, "Problem deploying script", e);
+        ctx.getConsole().println(err.getSimpleMessage());
+      }
     }
   }
 
-  private void deployFile(CliContext ctx, String fileName) throws AbortException, InputException {
-    String destDir = null;
-    if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true)) {
-      destDir = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue();
-    }
-    try {
-      displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, getClusterInfo(ctx)), ctx);
-
-    } catch (Exception e) {
-      CliError err = ctx.createAndAddErrorFor(this, "Problem deploying file", e);
-      ctx.getConsole().println(err.getSimpleMessage());
+  private void deployFile(final CliContext ctx, final String fileName) throws AbortException, InputException {
+    final String destDir = ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true) ?
+        ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue() : null;
+    
+    if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+      doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
+        @Override
+        public Void call(CorusHost target) {
+          ClusterInfo info = new ClusterInfo(false);
+          try {
+            displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, info), ctx);
+          } catch (Exception e) {
+            throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
+          }
+          return null;
+        }
+      });
+    } else {    
+      try {
+        displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, getClusterInfo(ctx)), ctx);
+      } catch (Exception e) {
+        CliError err = ctx.createAndAddErrorFor(this, "Problem deploying file", e);
+        ctx.getConsole().println(err.getSimpleMessage());
+      }
     }
   }
 
-  private void deployExec(CliContext ctx, String fileName) throws AbortException, InputException {
-    File file = ctx.getFileSystem().getFile(fileName);
+  private void deployExec(final CliContext ctx, String fileName) throws AbortException, InputException {
+    final File file = ctx.getFileSystem().getFile(fileName);
     if (!file.exists()) {
       CliError err = ctx.createAndAddErrorFor(this, new DeploymentException("File not found: " + fileName));
       ctx.getConsole().println(err.getSimpleMessage());
@@ -105,13 +154,74 @@ public class Deploy extends CorusCliCommand {
       ctx.getConsole().println(err.getSimpleMessage());
 
     } else {
-      try {
-        ctx.getCorus().getProcessorFacade().deployExecConfig(file, getClusterInfo(ctx));
-      } catch (Exception e) {
-        CliError err = ctx.createAndAddErrorFor(this, "Could not deploy execution configuration", e);
-        ctx.getConsole().println(err.getSimpleMessage());
+      if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+        doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
+          @Override
+          public Void call(CorusHost target) {
+            ClusterInfo info = new ClusterInfo(false);
+            try {
+              ctx.getCorus().getProcessorFacade().deployExecConfig(file, info);              
+            } catch (Exception e) {
+              throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
+            }
+            return null;
+          }
+        });
+      } else {
+        try {
+          ctx.getCorus().getProcessorFacade().deployExecConfig(file, getClusterInfo(ctx));
+        } catch (Exception e) {
+          CliError err = ctx.createAndAddErrorFor(this, "Could not deploy execution configuration", e);
+          ctx.getConsole().println(err.getSimpleMessage());
+        }
       }
     }
+  }
+  
+  private void doSequentionDeployment(String fileName, CliContext ctx, Func<Void, CorusHost> deployFunc) {
+    ClusterInfo info = getClusterInfo(ctx);
+    List<CorusHost> targets = new ArrayList<CorusHost>();
+    if (info.isClustered()) {
+      // targeting all hosts including this one.
+      if (info.isTargetingAllHosts()) {
+        targets.addAll(ctx.getCorus().getContext().getOtherHosts());
+        targets.add(ctx.getCorus().getContext().getServerHost());
+      } else {
+        Map<ServerAddress, CorusHost> hostsByAddress = new HashMap<ServerAddress, CorusHost>();
+        for (CorusHost h : ctx.getCorus().getContext().getOtherHosts()) {
+          hostsByAddress.put(h.getEndpoint().getServerAddress(), h);
+        }
+        hostsByAddress.put(ctx.getCorus().getContext().getAddress(), ctx.getCorus().getContext().getServerHost());
+        for (ServerAddress t : info.getTargets()) {
+          CorusHost h = hostsByAddress.get(t);
+          if (h == null) {
+            throw new InputException("Targeted host unknown: " + t);
+          }
+          targets.add(h);
+        }
+      }
+    } else {
+      targets.add(ctx.getCorus().getContext().getServerHost());
+    }
+    
+    CorusHost current = ctx.getCorus().getContext().getServerHost();
+    
+    try {
+      for (CorusHost t : targets) {
+        ctx.getConsole().println(String.format("Deploying %s to %s", fileName, t.getFormattedAddress()));
+        ctx.getCorus().getContext().reconnect(
+            t.getEndpoint().getServerTcpAddress().getHost(), 
+            t.getEndpoint().getServerTcpAddress().getPort()
+        );
+        deployFunc.call(t);
+      }
+    } finally {
+      ctx.getCorus().getContext().reconnect(
+          current.getEndpoint().getServerTcpAddress().getHost(), 
+          current.getEndpoint().getServerTcpAddress().getPort()
+      );
+    }
+  
   }
 
 }

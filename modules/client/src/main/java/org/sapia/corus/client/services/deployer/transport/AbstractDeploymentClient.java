@@ -15,7 +15,7 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public abstract class AbstractDeploymentClient implements DeploymentClient {
 
-  final static int BUFSZ = 2048;
+  final static int BUFSZ = 8192;
 
   private DeployOutputStream client;
 

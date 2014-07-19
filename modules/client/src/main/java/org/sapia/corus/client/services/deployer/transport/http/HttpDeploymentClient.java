@@ -11,6 +11,7 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentClient;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.Uri;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.util.Streams;
 
 /**
  * Implements the {@link DeploymentClient} interface over HTTP.
@@ -31,17 +32,9 @@ public class HttpDeploymentClient extends AbstractDeploymentClient {
    */
   public void close() {
     if (conn != null) {
-      try {
-        getOutputStream().close();
-      } catch (IOException e) {
-        // noop
-      }
-
-      try {
-        getInputStream().close();
-      } catch (IOException e) {
-        // noop
-      }
+      Streams.closeSilently(output);
+      Streams.closeSilently(input);
+      conn.disconnect();
     }
   }
 
