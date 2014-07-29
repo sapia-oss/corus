@@ -123,17 +123,38 @@ public class WindowsProcess implements NativeProcess {
     }
     // Execute the command to start the process
     ExecHandle vmHandle = cmd.exec(baseDir, null);
-
-    // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
-    log.debug(anOutput.toString("UTF-8"));
 
-    // Extract the error stream of the process
-    anOutput.reset();
-    IOUtil.extractAvailable(vmHandle.getErrStream(), anOutput);
-    if (anOutput.size() > 0) {
-      log.error("Error starting the process: " + anOutput.toString("UTF-8"));
+    try {
+      // Extract the output stream of the process
+      CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      log.debug(anOutput.toString("UTF-8"));
+  
+      // Extract the error stream of the process
+      anOutput.reset();
+      IOUtil.extractAvailable(vmHandle.getErrStream(), anOutput);
+      if (anOutput.size() > 0) {
+        log.error("Error starting the process: " + anOutput.toString("UTF-8"));
+      }
+    } catch (IOException e) {
+      if (SigarSupplier.isSet()) {
+        log.debug("Error occurred starting process, checking if PID exists. Error was: " + e.getMessage());
+        try {
+          Thread.sleep(PAUSE_AFTER_START);
+        } catch (InterruptedException e2) {
+          throw new IOException("Thread was interrupted while pausing after process exec", e);
+        }
+        
+        String startedPid = extractPidUsingSigar(log, baseDir);
+        if (startedPid != null) {
+          log.debug("Got PID despite process output having closed prematurely. PID is: " + startedPid);
+          return startedPid;
+        } else {
+          throw e;
+        }
+      } else {
+        throw e;
+      }
     }
 
     try {
