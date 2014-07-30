@@ -81,6 +81,8 @@ public class Ant extends CorusCliCommand {
         public Object evaluate(String name, PropertyHelper helper) {
           if (name.equals("basedir")) {
             return ctx.getFileSystem().getBaseDir().getAbsolutePath();
+          } else if (ctx.getCommandLine().containsOption(name, true)) {
+            return ctx.getCommandLine().getOpt(name).getValue();
           }
           return ctx.getVars().lookup(name);
         }
