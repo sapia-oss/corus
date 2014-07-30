@@ -195,13 +195,13 @@
 			<dependency>
 				<groupId>org.sapia</groupId>
 				<artifactId>sapia_corus_iop</artifactId>
-				<version>2.3</version>
+				<version>2.4</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.sapia</groupId>
 				<artifactId>sapia_corus_iop_api</artifactId>
-				<version>2.2</version>
+				<version>2.4</version>
 			</dependency>
 
 			<!-- Sapia -->
@@ -221,6 +221,12 @@
 				<groupId>org.sapia</groupId>
 				<artifactId>sapia_console</artifactId>
 				<version>1.11</version>
+				<exclusions>
+					<exclusion>
+		<groupId>org.sapia</groupId>
+		<artifactId>sapia_global</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<dependency>

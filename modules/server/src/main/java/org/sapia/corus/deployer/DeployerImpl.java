@@ -312,6 +312,13 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
       return;
     }
+    
+    // if the deployment metadata has an empty target set, it means we're the first node to receive
+    // that metadata, and all hosts are targeted. We're populating the metadata accordingly.
+    if (meta.getClusterInfo().isTargetingAllHosts()) {
+      meta.getClusterInfo().addTarget(serverContext().getCorusHost().getEndpoint().getServerAddress());
+      meta.getClusterInfo().addTargets(serverContext().getServices().getClusterManager().getHostAddresses());
+    }
 
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
@@ -361,6 +368,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
             log.info("This host is not targeted. Deployment is cascaded to the next host");
             out = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
           } else {
+            log.info(String.format("Deploying to this host, and cascading deployment to the next host: %s", addr));
             DeployOutputStream next = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
             out = new ClusteredDeployOutputStreamImpl(destFile, meta, handler, next);
           }

@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.sapia.console.InputException;
+import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
@@ -31,6 +34,7 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Streams;
 
 public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements DeployerFacade {
@@ -59,6 +63,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   // --------------------------------------------------------------------------
 
   private static final int BUFSZ = 2048;
+  private ClientDebug log = ClientDebug.get(getClass());
 
   public DeployerFacadeImpl(CorusConnectionContext context) {
     super(context, Deployer.class);
@@ -165,6 +170,12 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       }
 
       meta.getClusterInfo().getTargets().addAll(cluster.getTargets());
+      if (log.enabled()) {
+        for (ServerAddress addr : cluster.getTargets()) {
+          log.trace("Deployment target: %s",  addr);
+        }
+      }
+      
       DeployOutputStream dos = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
 
       os = new DeployOsAdapter(dos);
@@ -204,28 +215,22 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     return results;
   }
 
-  static Object[] split(ClientFileSystem fileSys, String fileName) {
-    if (fileName.startsWith(ArgFactory.PATTERN)) {
+  static Object[] split(ClientFileSystem fileSys, String fileName) throws InputException {
+    if (fileName.startsWith(ArgFactory.PATTERN) || !CliUtils.isAbsolute(fileName)) {
       return new Object[] { fileSys.getBaseDir(), fileName };
     } else {
-      String baseDirName = fileName.substring(0, fileName.indexOf(ArgFactory.PATTERN));
-      int idx;
-      if ((idx = baseDirName.lastIndexOf("/")) > 0 || (idx = baseDirName.lastIndexOf("\\")) > 0) {
-        baseDirName = fileName.substring(0, idx);
-        idx = idx + 1;
-      } else {
-        idx = fileName.indexOf(ArgFactory.PATTERN);
+      int idx = fileName.lastIndexOf("/");
+      if (idx <= 0) {
+        idx = fileName.lastIndexOf("\\");
       }
-      File baseDir = fileSys.getFile(baseDirName);
-
-      if (baseDir.exists()) {
-        String pattern = fileName.substring(idx);
-        return new Object[] { baseDir, pattern };
-      } else {
-        String pattern = fileName.substring(idx);
-        return new Object[] { fileSys.getBaseDir(), pattern };
+      if (idx <= 0) {
+        throw new InputException("Invalid file name: " + fileName);
       }
-
+      
+      String baseDirName = fileName.substring(0, idx);
+      String theFileName = fileName.substring(idx + 1);
+      
+      return new Object[] { new File(baseDirName), theFileName };
     }
   }
 

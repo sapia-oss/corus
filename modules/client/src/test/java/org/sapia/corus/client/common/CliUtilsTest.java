@@ -13,6 +13,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -43,7 +44,7 @@ public class CliUtilsTest {
       CorusHost host = CorusHost.newInstance(ep, "os_" + i, "vm_" + i);
       host.setRepoRole(RepoRole.NONE);
       
-      Result<String> r = new Result<String>(host, "data_i");
+      Result<String> r = new Result<String>(host, "data_i", Result.Type.ELEMENT);
       results.addResult(r);
     }
 
@@ -93,4 +94,33 @@ public class CliUtilsTest {
     assertEquals(cmd.size(), from.size());
   }
   
+  @Test
+  public void testIsAbsoluteWindowsPath() {
+    assertTrue(CliUtils.isAbsolute("c:/foo/bar"));
+  }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_backslash() {
+    assertTrue(CliUtils.isAbsolute("c:\\foo\\bar"));
+  }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_capital_letter_drive() {
+    assertTrue(CliUtils.isAbsolute("C:/foo/bar"));
+  }
+  
+  @Test
+  public void testIsAbsoluteWindowsPath_capital_letter_drive_back_slash() {
+    assertTrue(CliUtils.isAbsolute("C:\foo\bar"));
+  }
+
+  @Test
+  public void testIsAbsoluteUnixPath() {
+    assertTrue(CliUtils.isAbsolute("/foo/bar"));
+  }
+
+  @Test
+  public void testRelativePath() {
+    assertFalse(CliUtils.isAbsolute("foo/bar"));
+  }
 }

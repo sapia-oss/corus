@@ -127,16 +127,33 @@ public class CorusServer {
       if (cmd.containsOption(CONFIG_FILE_OPT, true)) {
         configFileName = cmd.assertOption(CONFIG_FILE_OPT, true).getValue();
       }
-
-      String aFilename = new StringBuffer(corusHome).append(File.separator).append("config").append(File.separator).append(configFileName).toString();
+      
+      String aFilename = new StringBuffer(corusHome)
+          .append(File.separator)
+          .append("config").append(File.separator)
+          .append(configFileName).toString();
 
       File propFile = new File(aFilename);
 
-      String specificFileName = new StringBuffer(corusHome).append(File.separator).append("config").append(File.separator).append("corus_")
-          .append(port).append(".properties").toString();
+      String specificFileName = new StringBuffer(corusHome)
+          .append(File.separator)
+          .append("config").append(File.separator)
+          .append("corus_").append(port).append(".properties").toString();
 
-      File specificPropFile = new File(specificFileName);
-
+      String userConfigName = new StringBuffer(System.getProperty("user.home"))
+          .append(File.separator)
+          .append(".corus").append(File.separator)
+          .append(configFileName).toString();
+      
+      String userSpecificFileName = new StringBuffer(System.getProperty("user.home"))
+          .append(File.separator)
+          .append(".corus").append(File.separator)
+          .append("corus_").append(port).append(".properties").toString();
+      
+      File specificPropFile     = new File(specificFileName);
+      File userPropFile         = new File(userConfigName);
+      File userSpecificPropFile = new File(userSpecificFileName);
+      
       // ----------------------------------------------------------------------
       // First off, we're loading the server properties to extract the includes
 
@@ -174,6 +191,12 @@ public class CorusServer {
       configFiles.add(propFile);
       if (specificPropFile.exists()) {
         configFiles.add(specificPropFile);
+      }
+      if (userPropFile.exists()) {
+        configFiles.add(userPropFile);
+      }
+      if (userSpecificPropFile.exists()) {
+        configFiles.add(userSpecificPropFile);
       }
 
       Properties corusProps = new Properties(System.getProperties());
@@ -286,8 +309,12 @@ public class CorusServer {
       }
       if (specificPropFile.exists()) {
         serverLog.info("Server properties overridden with specific properties: " + specificPropFile.getAbsolutePath());
-      } else {
-        serverLog.info("Server override properties not found, will not be used: " + specificPropFile.getAbsolutePath());
+      }
+      if (userPropFile.exists()) {
+        serverLog.info("User-specific properties found, will supercede properties loaded thus far: " + userPropFile.getAbsolutePath());
+      }
+      if (userSpecificPropFile.exists()) {
+        serverLog.info("User-specific override properties file found, will supercede all properties: " + userSpecificPropFile.getAbsolutePath());
       }
 
       if (serverLog.isDebugEnabled()) {

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.sapia.console.CmdElement;
 import org.sapia.console.CmdLine;
@@ -26,6 +27,8 @@ import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
  * 
  */
 public final class CliUtils {
+
+  private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-zA-Z]:");
 
   private static final int BUFSZ = 1024;
 
@@ -267,5 +270,16 @@ public final class CliUtils {
       cmd.addElement(elem);
     }
     return cmd;
+  }
+  
+  /**
+   * @param fileName
+   *          a file name.
+   * @return <code>true</code> if the given name corresponding to an absolute
+   *         file.
+   */
+  public static boolean isAbsolute(String fileName) {
+    String theFileName = fileName.trim();
+    return theFileName.length() > 0 && (WINDOWS_DRIVE_PATTERN.matcher(theFileName).find() || theFileName.startsWith("/"));
   }
 }

@@ -206,7 +206,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       } else {
         T returnValue = (T) method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result<T>(serverHost, returnValue));
+        results.addResult(new Result<T>(serverHost, returnValue, Result.Type.forClass(method.getReturnType())));
       }
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
@@ -286,7 +286,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
           try {
             module = corus.lookup(moduleInterface.getName());
             returnValue = method.invoke(module, params);
-            results.addResult(new Result(addr, returnValue));
+            results.addResult(new Result(addr, returnValue, Result.Type.forClass(method.getReturnType())));
           } catch (Exception err) {
             results.decrementInvocationCount();
           }

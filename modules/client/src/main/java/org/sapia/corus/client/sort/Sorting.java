@@ -245,7 +245,7 @@ public class Sorting {
     int count = 0;
     while (toSort.hasNext()) {
       Result<Set<T>> r = toSort.next();
-      converted.addResult(new Result<List<T>>(r.getOrigin(), new ArrayList<T>(r.getData())));
+      converted.addResult(new Result<List<T>>(r.getOrigin(), new ArrayList<T>(r.getData()), r.getType()));
       count++;
     }
     converted.setInvocationCount(count);
@@ -304,7 +304,7 @@ public class Sorting {
       for (Result<List<T>> r : listOfResults) {
         List<T> sortedList = new ArrayList<T>(r.getData());
         Collections.sort(sortedList, itemComparator);
-        listOfSortedResults.add(new Result<List<T>>(r.getOrigin(), sortedList));
+        listOfSortedResults.add(new Result<List<T>>(r.getOrigin(), sortedList, r.getType()));
       }
       return getResultsFor(listOfSortedResults);
     } else {

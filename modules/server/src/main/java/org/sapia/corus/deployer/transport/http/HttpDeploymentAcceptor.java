@@ -5,13 +5,13 @@ import java.io.IOException;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.services.deployer.transport.http.HttpDeploymentClient;
-
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentAcceptor;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.ubik.rmi.server.transport.http.Handler;
 import org.sapia.ubik.rmi.server.transport.http.HttpTransportProvider;
+import org.sapia.ubik.util.Streams;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 
@@ -71,9 +71,8 @@ public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor {
       }
 
       try {
-        res.getOutputStream().flush();
-        res.getOutputStream().close();
         res.commit();
+        Streams.flushAndCloseSilently(res.getOutputStream());
       } catch (IOException e) {
         log.warn("Error closing incoming deployment response stream", e);
       }

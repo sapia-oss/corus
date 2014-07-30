@@ -28,8 +28,8 @@ public class Deployment {
   static final int BUFSZ = 8192;
 
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-  private ServerContext context;
-  private Connection conn;
+  private ServerContext      context;
+  private Connection         conn;
   private DeploymentMetadata meta;
 
   /**
@@ -91,13 +91,10 @@ public class Deployment {
       if (length != total) {
         throw new IllegalStateException(String.format("Expected %s bytes, processed %s", length, total));
       }
-      deployOutput.flush();
+      log.debug(String.format("Deployment completed for: ", meta.getFileName()));
     } finally {
-      try {
-        deployOutput.close();
-      } catch (IOException e) {
-        log.warn("Error closing deployment output stream", e);
-      }
+      deployOutput.flush();
+      deployOutput.close();
       Streams.closeSilently(is);
     }
     handleResult(deployOutput.getProgressQueue());
@@ -106,7 +103,8 @@ public class Deployment {
   private void handleResult(ProgressQueue result) throws IOException {
     ObjectOutputStream os = createObjectOutputStream(conn.getOutputStream());
     os.writeObject(result);
-    Streams.flushAndCloseSilently(os);
+    os.flush();
+    Streams.closeSilently(os);
   }
 
   // --------------------------------------------------------------------------

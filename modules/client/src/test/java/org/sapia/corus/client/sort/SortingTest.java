@@ -421,7 +421,7 @@ public class SortingTest {
   public void testSortSingle_ClusterStatus() {
     Results<ClusterStatus> results = new Results<ClusterStatus>();
     for (int i = 4; i >= 0; i--) {
-      Result<ClusterStatus> r = new Result<ClusterStatus>(host(RepoRole.CLIENT, "h" + i, i), status(Role.SLAVE, "h" + i, i));
+      Result<ClusterStatus> r = new Result<ClusterStatus>(host(RepoRole.CLIENT, "h" + i, i), status(Role.SLAVE, "h" + i, i), Result.Type.ELEMENT);
       results.addResult(r);
     }
     
@@ -439,7 +439,7 @@ public class SortingTest {
       for (int j = 4; j >= 0; j--) {
         ps.add(process("d1", "v1", "p" + j, "prof", "1", "1"));
       }
-      Result<List<Process>> r = new Result<List<Process>>(host(RepoRole.CLIENT, "h" + i, i), ps);
+      Result<List<Process>> r = new Result<List<Process>>(host(RepoRole.CLIENT, "h" + i, i), ps, Result.Type.COLLECTION);
       results.addResult(r);
     }
     
@@ -462,7 +462,7 @@ public class SortingTest {
       for (int j = 4; j >= 0; j--) {
         ds.add(distribution("d1", "v" + j));
       }
-      Result<List<Distribution>> r = new Result<List<Distribution>>(host(RepoRole.CLIENT, "h" + i, i), ds);
+      Result<List<Distribution>> r = new Result<List<Distribution>>(host(RepoRole.CLIENT, "h" + i, i), ds, Result.Type.COLLECTION);
       results.addResult(r);
     }
     
@@ -485,7 +485,7 @@ public class SortingTest {
       for (int j = 4; j >= 0; j--) {
         ds.add(config("n1", "p" + j));
       }
-      Result<List<ExecConfig>> r = new Result<List<ExecConfig>>(host(RepoRole.CLIENT, "h" + i, i), ds);
+      Result<List<ExecConfig>> r = new Result<List<ExecConfig>>(host(RepoRole.CLIENT, "h" + i, i), ds, Result.Type.COLLECTION);
       results.addResult(r);
     }
     

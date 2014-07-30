@@ -29,7 +29,7 @@ public class ResultsTest {
     }
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v));
+      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
     }
 
     assertTrue(results.isFinished());
@@ -56,7 +56,7 @@ public class ResultsTest {
     results.incrementInvocationCount();
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v));
+      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
     }
 
     assertTrue(!results.isFinished());
@@ -80,7 +80,7 @@ public class ResultsTest {
     }
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v));
+      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
     }
 
     Results<Integer> filtered = results.filter(new Func<Integer, Integer>() {

@@ -147,7 +147,7 @@ public class Results<T> implements Iterable<Result<T>> {
     Results<T> filtered = new Results<T>();
     while (hasNext()) {
       Result<T> result = next();
-      filtered.addResult(new Result<T>(result.getOrigin(), filter.call(result.getData())));
+      filtered.addResult(new Result<T>(result.getOrigin(), filter.call(result.getData()), result.getType()));
     }
     filtered.invocationFinished = true;
     return filtered;

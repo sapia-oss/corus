@@ -1,11 +1,13 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.Iterator;
+import java.util.Map;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
-import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CorusConsoleOutput;
 import org.sapia.corus.client.cli.Interpreter;
@@ -52,22 +54,40 @@ public class Count extends CorusCliCommand {
     Object returnValue  = FacadeInvocationContext.get();
     int count = 0;
     if(returnValue != null) {
-      if (returnValue instanceof Results<?>) {
-        Results<?> results = (Results<?>) returnValue;
-        while (results.hasNext()) {
-          Result<?> r = results.next();
-          if (r.getData() instanceof Iterable) {
-            Iterable<?> itr = (Iterable<?>) r.getData();
-            for (Object i : itr) {
+      if (returnValue instanceof Iterable<?>) {
+        Iterable<?> results = (Iterable<?>) returnValue;
+        Iterator<?> itr = results.iterator();
+        while (itr.hasNext()) {
+          Object next = itr.next();
+          if (next instanceof Result) {
+            Result<?> r = (Result<?>) next;
+            if (r.getType() == Result.Type.ELEMENT) {
               count++;
+            } else {
+              if (r.getData() instanceof Iterable) {
+                Iterable<?> elements = (Iterable<?>) r.getData();
+                for (Object e : elements) {
+                  count++;
+                }
+              } else if (r.getData() instanceof Map) {
+                for (Object k : ((Map<?, ?>) r.getData()).keySet()) {
+                  count++;
+                }
+              } else if (r.getData() instanceof Object[]) {
+                for (Object o : (Object[]) r.getData()) {
+                  count++;
+                }
+              }
             }
+          } else {
+            count++;
           }
         }
-      } else if (returnValue instanceof Iterable) {
-        Iterable<?> itr = (Iterable<?>) returnValue;
-        for (Object i : itr) {
-          count++;
-        }
+      }
+    } else if (returnValue instanceof Iterable) {
+      Iterable<?> itr = (Iterable<?>) returnValue;
+      for (Object i : itr) {
+        count++;
       }
     }
 

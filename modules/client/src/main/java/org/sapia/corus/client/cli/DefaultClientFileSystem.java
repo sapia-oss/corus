@@ -3,7 +3,8 @@ package org.sapia.corus.client.cli;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.regex.Pattern;
+
+import org.sapia.corus.client.common.CliUtils;
 
 /**
  * Default {@link ClientFileSystem} implementation.
@@ -12,8 +13,6 @@ import java.util.regex.Pattern;
  * 
  */
 public class DefaultClientFileSystem implements ClientFileSystem {
-
-  private static final Pattern WINDOWS_DRIVE_PATTERN = Pattern.compile("^[a-zA-Z]:");
 
   private File baseDir;
 
@@ -40,7 +39,7 @@ public class DefaultClientFileSystem implements ClientFileSystem {
 
   @Override
   public File getFile(String name) {
-    if (isAbsolute(name)) {
+    if (CliUtils.isAbsolute(name)) {
       return new File(name);
     } else {
       return new File(baseDir, name);
@@ -51,7 +50,7 @@ public class DefaultClientFileSystem implements ClientFileSystem {
   public void changeBaseDir(String dirName) throws IOException, FileNotFoundException {
     File dir;
 
-    if (isAbsolute(dirName)) {
+    if (CliUtils.isAbsolute(dirName)) {
       dir = new File(dirName);
     } else if (dirName.equals(".")) {
       return;
@@ -73,16 +72,5 @@ public class DefaultClientFileSystem implements ClientFileSystem {
       throw new IOException("You do not have access to this directory");
     }
     baseDir = dir;
-  }
-
-  /**
-   * @param fileName
-   *          a file name.
-   * @return <code>true</code> if the given name corresponding to an absolute
-   *         file.
-   */
-  static boolean isAbsolute(String fileName) {
-    String theFileName = fileName.trim();
-    return theFileName.length() > 0 && (WINDOWS_DRIVE_PATTERN.matcher(theFileName).find() || theFileName.startsWith("/"));
   }
 }
