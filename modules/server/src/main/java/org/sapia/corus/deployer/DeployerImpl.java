@@ -336,9 +336,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       ServerAddress addr;
       ServerAddress current = serverContext().getCorusHost().getEndpoint().getServerAddress();
 
-      log.debug("Targeted hosts: " + meta.getClusterInfo().getTargets());
-      log.debug("Visited hosts: " + meta.getVisited());
-      log.debug("Current host: " + current);
+      log.debug(String.format("Targeted hosts: %s", meta.getClusterInfo().getTargets()));
+      log.debug(String.format("Visited hosts: %s", meta.getVisited()));
+      log.debug(String.format("Current host: %s", current));
 
       // adding this host to visited set
       visited.add(current);
@@ -402,7 +402,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       deployment.close();
     }
 
-    log.info("Deployment upload completed for: " + meta.getFileName());
+    log.info(String.format("Deployment upload completed for: %s", meta.getFileName()));
   }
 
   private void assertFile(File f) {
