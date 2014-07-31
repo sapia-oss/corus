@@ -385,9 +385,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     }
 
     try {
-      log.debug("Starting deployment of " + meta.getFileName());
+      log.debug(String.format("Starting deployment of %s", meta.getFileName()));
       deployment.deploy(out);
-      log.debug("Finished deployment of" + meta.getFileName());
+      log.debug(String.format("Finished deployment of %s",  meta.getFileName()));
     } catch (Exception e) {
       try {
         out.close();
