@@ -20,6 +20,12 @@ public interface DeployOutputStream extends java.rmi.Remote {
   void write(byte[] b, int off, int len) throws IOException;
 
   void write(int b) throws IOException;
-
-  ProgressQueue getProgressQueue();
+  
+  /**
+   * Actually deploys the uploaded artifact to Corus. This method calls {@link #flush()} and
+   * {@link #close()} internally before performing the deployment.
+   * 
+   * @throws IOException if an I/O error occurs while committing.
+   */
+  ProgressQueue commit() throws IOException;
 }

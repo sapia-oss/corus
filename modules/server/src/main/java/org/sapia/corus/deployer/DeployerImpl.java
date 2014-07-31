@@ -32,7 +32,6 @@ import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.task.BuildDistTask;
-import org.sapia.corus.deployer.task.DeployTask;
 import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
@@ -313,13 +312,6 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       return;
     }
     
-    // if the deployment metadata has an empty target set, it means we're the first node to receive
-    // that metadata, and all hosts are targeted. We're populating the metadata accordingly.
-    if (meta.getClusterInfo().isTargetingAllHosts()) {
-      meta.getClusterInfo().addTarget(serverContext().getCorusHost().getEndpoint().getServerAddress());
-      meta.getClusterInfo().addTargets(serverContext().getServices().getClusterManager().getHostAddresses());
-    }
-
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
 
@@ -393,8 +385,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     }
 
     try {
+      log.debug("Starting deployment of " + meta.getFileName());
       deployment.deploy(out);
-    } catch (IOException e) {
+      log.debug("Finished deployment of" + meta.getFileName());
+    } catch (Exception e) {
       try {
         out.close();
       } catch (IOException e2) {
@@ -409,19 +403,6 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     }
 
     log.info("Deployment upload completed for: " + meta.getFileName());
-  }
-
-  synchronized ProgressQueue completeDeployment(String fileName) {
-    log.info("Finished uploading " + fileName);
-    ProgressQueue progress = new ProgressQueueImpl();
-    try {
-      taskman.executeAndWait(new DeployTask(), fileName, TaskConfig.create(new TaskLogProgressQueue(progress))).get();
-
-    } catch (Throwable e) {
-      log.error("Could not deploy", e);
-      progress.error(e);
-    }
-    return progress;
   }
 
   private void assertFile(File f) {

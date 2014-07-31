@@ -55,7 +55,7 @@ public class ShellScriptDeploymentHandlerTest {
   public void testGetDestFile() {
     DeploymentMetadata meta = new ShellScriptDeploymentMetadata("test", 100, "alias", "desc", new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
-    assertTrue(destFile.getAbsolutePath().contains("scriptDir/test"));
+    assertTrue(destFile.getAbsolutePath().contains("scriptDir" + File.separator + "test"));
   }
 
   @Test

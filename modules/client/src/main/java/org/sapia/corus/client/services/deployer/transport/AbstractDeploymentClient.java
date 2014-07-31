@@ -42,9 +42,7 @@ public abstract class AbstractDeploymentClient implements DeploymentClient {
     return new ClientDeployOutputStream(meta, this);
   }
 
-  /**
-   * @see DeploymentClient#deploy(DeploymentMetadata, InputStream)
-   */
+  @Override
   public ProgressQueue deploy(DeploymentMetadata meta, InputStream is) throws IOException {
 
     client = getDeployOutputStream(meta);
@@ -57,7 +55,7 @@ public abstract class AbstractDeploymentClient implements DeploymentClient {
       client.write(buf, 0, read);
       client.flush();
     }
-    return client.getProgressQueue();
+    return client.commit();
   }
 
 }

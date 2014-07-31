@@ -43,14 +43,14 @@ public class FileDeploymentHandlerTest {
   public void testGetDestFileWithDestDir() {
     DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
-    assertTrue(destFile.getAbsolutePath().contains("destDir/test"));
+    assertTrue(destFile.getAbsolutePath().contains("destDir" + File.separator + "test"));
   }
   
   @Test
   public void testGetDestFileWithoutDestDir() {
     DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, null, new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
-    assertTrue(destFile.getAbsolutePath().contains("uploadDir/test"));
+    assertTrue(destFile.getAbsolutePath().contains("uploadDir" + File.separator + "test"));
   }  
 
   @Test

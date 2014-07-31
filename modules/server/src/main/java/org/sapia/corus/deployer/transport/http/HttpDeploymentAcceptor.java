@@ -62,6 +62,7 @@ public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor {
   @Override
   public void handle(Request req, Response res) {
     try {
+      log.debug("Received deployment request with content length: " + req.getContentLength());
       connector.connect(new Deployment(context, new HttpConnection(req, res)));
     } finally {
       try {

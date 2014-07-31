@@ -5,9 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * An output stream that is used for deployment.
@@ -15,12 +18,16 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
  * @author Yanick Duchesne
  */
 public class DeployOutputStreamImpl extends FileOutputStream implements DeployOutputStream {
+  
+  private static final int BYTES_FOR_INT = 4;
 
+  private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   private DeploymentHandler handler;
   private boolean closed;
   private File destFile;
   private DeploymentMetadata meta;
   private ProgressQueue queue;
+  private int written;
 
   /**
    * @param destFile
@@ -38,25 +45,45 @@ public class DeployOutputStreamImpl extends FileOutputStream implements DeployOu
     this.meta = meta;
     this.handler = handler;
   }
-
+  
+  @Override
+  public void write(byte[] b) throws IOException {
+    super.write(b);
+    written += b.length;
+  }
+  
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    super.write(b, off, len);
+    written += len;
+  }
+  
+  @Override
+  public void write(int b) throws IOException {
+    super.write(b);
+    written += BYTES_FOR_INT;
+  }
+  
   @Override
   public void close() throws IOException {
     if (closed) {
       return;
     }
-    super.flush();
-    super.close();
-    if (handler != null) {
-      queue = handler.completeDeployment(meta, destFile);
-    }
     closed = true;
+    log.debug(String.format("%s bytes written", written));
+    try {
+      super.flush();
+    } catch (IOException e) {
+    }
+    super.close();
+  }
+  
+  @Override
+  public ProgressQueue commit() throws IOException {
+    close();
+    log.debug("Committing deployment");
+    Assertions.illegalState(queue != null, "Deployment already committed");
+    return handler.completeDeployment(meta, destFile);
   }
 
-  @Override
-  public ProgressQueue getProgressQueue() {
-    if (queue == null) {
-      throw new IllegalStateException("progress queue not available");
-    }
-    return queue;
-  }
 }

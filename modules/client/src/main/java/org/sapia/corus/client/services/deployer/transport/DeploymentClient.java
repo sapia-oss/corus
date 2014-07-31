@@ -13,7 +13,7 @@ import org.sapia.ubik.net.ServerAddress;
  * @author Yanick Duchesne
  */
 public interface DeploymentClient {
-
+  
   /**
    * Connects to the Corus server corresponding to the given address.
    * 
@@ -36,7 +36,7 @@ public interface DeploymentClient {
    *           if a problem occurs during deployment.
    */
   public ProgressQueue deploy(DeploymentMetadata meta, InputStream is) throws IOException;
-
+  
   /**
    * This method returns a stream that will be used to upload deployment data.
    * 

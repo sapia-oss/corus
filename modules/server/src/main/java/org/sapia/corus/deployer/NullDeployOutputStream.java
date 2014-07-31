@@ -33,10 +33,10 @@ class NullDeployOutputStream implements DeployOutputStream {
   @Override
   public void flush() throws IOException {
   }
-
+  
   @Override
-  public ProgressQueue getProgressQueue() {
-    return new ProgressQueueImpl();
+  public ProgressQueue commit() throws IOException {
+     return new ProgressQueueImpl();
   }
 
 }

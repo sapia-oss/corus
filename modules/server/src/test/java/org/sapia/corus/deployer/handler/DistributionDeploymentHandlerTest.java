@@ -56,7 +56,7 @@ public class DistributionDeploymentHandlerTest {
   public void testGetDestFile() {
     DeploymentMetadata meta = new DistributionDeploymentMetadata("test", 100, new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
-    assertTrue(destFile.getAbsolutePath().contains("tempDir/test"));
+    assertTrue(destFile.getAbsolutePath().contains("tempDir" + File.separator + "test"));
   }
 
   @Test

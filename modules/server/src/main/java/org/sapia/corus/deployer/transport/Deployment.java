@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.services.deployer.transport.Connection;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
@@ -77,27 +78,31 @@ public class Deployment {
     long total = 0;
     byte[] buf = new byte[BUFSZ];
     int read = 0;
-    long remaining = length;
 
-    log.debug(String.format("Processing deployment stream of %s bytes : %s", length, meta.getFileName()));
+    log.debug(String.format("Processing deployment stream of %s bytes: %s", length, meta.getFileName()));
     try {
-      while (remaining > 0 && (read = is.read(buf, 0, BUFSZ > remaining ? (int) remaining : BUFSZ)) > 0) {
+      while ((read = is.read(buf, 0, BUFSZ)) > -1) {
         total = total + read;
-        remaining -= read;
         deployOutput.write(buf, 0, read);
         deployOutput.flush();
       }
-
+      log.debug(String.format("Finished reading stream: %s", meta.getFileName()));
+      
       if (length != total) {
-        throw new IllegalStateException(String.format("Expected %s bytes, processed %s", length, total));
+        String msg = String.format("Expected %s bytes, processed %s", length, total);
+        log.debug(msg);
+        ProgressQueue queue = new ProgressQueueImpl();
+        queue.error(msg);
+        handleResult(queue);
+        throw new IOException(msg);
+      } else {
+        log.debug(String.format("Artifact upload completed for: %s. Got %s bytes out of %s", meta.getFileName(), total, length));
+        handleResult(deployOutput.commit());
       }
-      log.debug(String.format("Deployment completed for: ", meta.getFileName()));
     } finally {
-      deployOutput.flush();
-      deployOutput.close();
       Streams.closeSilently(is);
+      deployOutput.close();
     }
-    handleResult(deployOutput.getProgressQueue());
   }
 
   private void handleResult(ProgressQueue result) throws IOException {

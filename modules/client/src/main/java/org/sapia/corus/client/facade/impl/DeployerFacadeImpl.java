@@ -160,6 +160,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
 
     OutputStream os = null;
     BufferedInputStream bis = null;
+    DeployOutputStream dos = null;
     try {
       if (!toDeploy.exists()) {
         throw new IOException(toDeploy.getAbsolutePath() + " does not exist");
@@ -176,21 +177,28 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
         }
       }
       
-      DeployOutputStream dos = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
+      dos = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
 
       os = new DeployOsAdapter(dos);
       bis = new BufferedInputStream(new FileInputStream(toDeploy));
 
       byte[] b = new byte[BUFSZ];
       int read;
+      int total = 0;
       while ((read = bis.read(b)) > -1) {
         os.write(b, 0, read);
+        os.flush();
+        total += read;
       }
-      return dos.getProgressQueue();
+      log.trace("Streamed %s bytes of content", total);
     } finally {
       Streams.flushAndCloseSilently(os);
       Streams.closeSilently(bis);
+      if (dos != null) {
+        dos.close();
+      }
     }
+    return dos.commit();
   }
 
   @Override
@@ -230,7 +238,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       String baseDirName = fileName.substring(0, idx);
       String theFileName = fileName.substring(idx + 1);
       
-      return new Object[] { new File(baseDirName), theFileName };
+      return new Object[] { fileSys.getFile(baseDirName), theFileName };
     }
   }
 
