@@ -64,10 +64,10 @@ public abstract class CorusCliCommand implements Command {
   public static final OptionDef OPT_PROCESS_ID = new OptionDef("i", true);
   public static final OptionDef OPT_PROCESS_INSTANCES = new OptionDef("i", true);
   public static final OptionDef OPT_OS_PID = new OptionDef("op", true);
-
   public static final String ARG_ALL = "all";
   public static final String WILD_CARD = "*";
 
+  private static final String NO_VALIDATE = "no-validate";
 
   /**
    * @see org.sapia.console.Command#execute(Context)
@@ -225,21 +225,23 @@ public abstract class CorusCliCommand implements Command {
   }
   
   protected void validate(CmdLine cmdLine) throws InputException {
-    List<OptionDef> availableOptions = getAvailableOptions();
-    Map<String, OptionDef> byName = new HashMap<String, CorusCliCommand.OptionDef>();
-    for (OptionDef a : availableOptions) {
-      byName.put(a.name, a);
-    }
-    for (int i = 0; i < cmdLine.size(); i++) {
-      CmdElement e = cmdLine.get(i);
-      if (e instanceof Option) {
-        Option o = (Option) e;
-        OptionDef d = byName.get(o.getName());
-        if (d == null) {
-          throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), availableOptions));
-        }
-        if (d.mustHaveValue && o.getValue() == null || o.getValue().trim().length() == 0) {
-          throw new InputException(String.format("Option %s must have a value", o.getName()));
+    if (!cmdLine.containsOption(NO_VALIDATE, false)) {
+      List<OptionDef> availableOptions = getAvailableOptions();
+      Map<String, OptionDef> byName = new HashMap<String, CorusCliCommand.OptionDef>();
+      for (OptionDef a : availableOptions) {
+        byName.put(a.name, a);
+      }
+      for (int i = 0; i < cmdLine.size(); i++) {
+        CmdElement e = cmdLine.get(i);
+        if (e instanceof Option) {
+          Option o = (Option) e;
+          OptionDef d = byName.get(o.getName());
+          if (d == null) {
+            throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), availableOptions));
+          }
+          if (d.mustHaveValue && o.getValue() == null || o.getValue().trim().length() == 0) {
+            throw new InputException(String.format("Option %s must have a value", o.getName()));
+          }
         }
       }
     }
