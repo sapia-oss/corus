@@ -56,15 +56,16 @@ public abstract class CorusCliCommand implements Command {
 
   public static final int CONSOLE_WIDTH = 80;
 
-  public static final OptionDef OPT_CLUSTER = new OptionDef("cluster", false);
-  public static final OptionDef OPT_DIST = new OptionDef("d", true);
-  public static final OptionDef OPT_VERSION = new OptionDef("v", true);
-  public static final OptionDef OPT_PROFILE = new OptionDef("p", true);
-  public static final OptionDef OPT_PROCESS_NAME = new OptionDef("n", true);
-  public static final OptionDef OPT_PROCESS_ID = new OptionDef("i", true);
+  public static final OptionDef OPT_CLUSTER           = new OptionDef("cluster", false);
+  public static final OptionDef OPT_DIST              = new OptionDef("d", true);
+  public static final OptionDef OPT_VERSION           = new OptionDef("v", true);
+  public static final OptionDef OPT_PROFILE           = new OptionDef("p", true);
+  public static final OptionDef OPT_PROCESS_NAME      = new OptionDef("n", true);
+  public static final OptionDef OPT_PROCESS_ID        = new OptionDef("i", true);
   public static final OptionDef OPT_PROCESS_INSTANCES = new OptionDef("i", true);
-  public static final OptionDef OPT_OS_PID = new OptionDef("op", true);
-  public static final String ARG_ALL = "all";
+  public static final OptionDef OPT_OS_PID            = new OptionDef("op", true);
+  
+  public static final String ARG_ALL   = "all";
   public static final String WILD_CARD = "*";
 
   private static final String NO_VALIDATE = "no-validate";
