@@ -27,20 +27,37 @@ import org.sapia.ubik.util.Func;
  */
 public abstract class CorusCliCommand implements Command {
   
+  /**
+   * Describes a command-line option.
+   * 
+   * @author yduchesne
+   *
+   */
   public static final class OptionDef {
     
     private String name;
     private boolean mustHaveValue;
     
+    /**
+     * @param name the option name.
+     * @param mustHaveValue if <code>true</code>, indicates that a value must be provided.
+     */
     public OptionDef(String name, boolean mustHaveValue) {
       this.name = name;
       this.mustHaveValue = mustHaveValue;
     }
     
+    /**
+     * @return the name of this instance's corresponding option.
+     */
     public String getName() {
       return name;
     }
     
+    /**
+     * @return <code>true</code> if options corresponding to this instance 
+     * must have a value.
+     */
     public boolean mustHaveValue() {
       return mustHaveValue;
     }
