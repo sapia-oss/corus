@@ -19,7 +19,7 @@ import org.sapia.ubik.util.Assertions;
  */
 public class DeployOutputStreamImpl extends FileOutputStream implements DeployOutputStream {
   
-  private static final int BYTES_FOR_INT = 4;
+  private static final int BYTES_FOR_INT = 1;
 
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   private DeploymentHandler handler;
@@ -84,6 +84,13 @@ public class DeployOutputStreamImpl extends FileOutputStream implements DeployOu
     log.debug("Committing deployment");
     Assertions.illegalState(queue != null, "Deployment already committed");
     return handler.completeDeployment(meta, destFile);
+  }
+  
+  /**
+   * @return the number of bytes written.
+   */
+  public int getBytesWritten() {
+    return written;
   }
 
 }

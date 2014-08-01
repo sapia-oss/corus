@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli.command.exec;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,11 @@ import org.sapia.ubik.net.ServerAddress;
 abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
 
   protected RestartAndWaitCommandSupport() {
+  }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return new ArrayList<OptionDef>();
   }
 
   /**

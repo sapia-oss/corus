@@ -12,7 +12,7 @@ import org.sapia.corus.client.cli.CliContext;
  * @author yduchesne
  * 
  */
-public class Pause extends CorusCliCommand {
+public class Pause extends NoOptionCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

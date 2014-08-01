@@ -23,7 +23,7 @@ import org.sapia.corus.client.cli.CliContext;
  * @author yduchesne
  *
  */
-public class Ant extends CorusCliCommand {
+public class Ant extends NoOptionCommand {
   
   private static final String OPT_FILE   = "f";
   private static final String OPT_LEVEL  = "l";

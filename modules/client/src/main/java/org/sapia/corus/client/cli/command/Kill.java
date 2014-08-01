@@ -16,6 +16,7 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Kills running processes.
@@ -26,9 +27,14 @@ public class Kill extends CorusCliCommand {
 
   protected boolean suspend;
 
-  public static final String WAIT_COMPLETION_OPT = "w";
-  public static final String HARD_KILL_OPT       = "hard";
+  public static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
+  public static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
 
+  protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
+  );
+  
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 60000;
 
   protected Kill(boolean suspend) {
@@ -36,6 +42,11 @@ public class Kill extends CorusCliCommand {
   }
 
   public Kill() {
+  }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
   }
 
   @Override
@@ -50,7 +61,7 @@ public class Kill extends CorusCliCommand {
     CmdLine cmd = ctx.getCommandLine();
     
     KillPreferences prefs = KillPreferences.newInstance();
-    prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
+    prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
 
     // Kill ALL
     if (cmd.isNextArg()) {
@@ -66,9 +77,9 @@ public class Kill extends CorusCliCommand {
       waitForKillCompletion(ctx, completion);
     }
     // Kill by VM IDENTIDER
-    else if (cmd.containsOption(VM_ID_OPT, true)) {
+    else if (cmd.containsOption(OPT_PROCESS_ID.getName(), true)) {
       PidCompletionHook completion = new PidCompletionHook();
-      pid = cmd.assertOption(VM_ID_OPT, true).getValue();
+      pid = cmd.assertOption(OPT_PROCESS_ID.getName(), true).getValue();
       completion.addPid(pid);
       killProcessByVmId(ctx, pid);
 
@@ -87,8 +98,8 @@ public class Kill extends CorusCliCommand {
       waitForKillCompletion(ctx, completion);
 
       // Kill by OS PROCESS ID
-    } else if (cmd.containsOption(OS_PID_OPT, true)) {
-      osPid = cmd.assertOption(OS_PID_OPT, true).getValue();
+    } else if (cmd.containsOption(OPT_OS_PID.getName(), true)) {
+      osPid = cmd.assertOption(OPT_OS_PID.getName(), true).getValue();
       PidCompletionHook completion = new PidCompletionHook();
       pid = killProcessByOsPid(ctx, osPid);
       completion.addPid(pid);
@@ -109,16 +120,16 @@ public class Kill extends CorusCliCommand {
       // KILL BY DISTRIBUTION ATTIRBUTES
     } else {
 
-      dist = cmd.assertOption(DIST_OPT, true).getValue();
+      dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
 
-      version = cmd.assertOption(VERSION_OPT, true).getValue();
+      version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
 
-      if (cmd.containsOption(PROFILE_OPT, true)) {
-        profile = cmd.assertOption(PROFILE_OPT, true).getValue();
+      if (cmd.containsOption(OPT_PROFILE.getName(), true)) {
+        profile = cmd.assertOption(OPT_PROFILE.getName(), true).getValue();
       }
 
-      if (cmd.containsOption(VM_NAME_OPT, true)) {
-        vmName = cmd.assertOption(VM_NAME_OPT, true).getValue();
+      if (cmd.containsOption(OPT_PROCESS_NAME.getName(), true)) {
+        vmName = cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue();
       }
 
       ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).profile(profile).distribution(dist).version(version).build();
@@ -184,7 +195,7 @@ public class Kill extends CorusCliCommand {
     if (suspend) {
       try {
         KillPreferences prefs = KillPreferences.newInstance();
-        prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
+        prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
         ctx.getCorus().getProcessorFacade().suspend(aProcess.getProcessID(), prefs);
         ctx.getConsole().println("Suspending process " + aProcess.getProcessID() + "...");
       } catch (ProcessNotFoundException e) {
@@ -193,7 +204,7 @@ public class Kill extends CorusCliCommand {
     } else {
       try {
         KillPreferences prefs = KillPreferences.newInstance();
-        prefs.setHard(getOpt(ctx, HARD_KILL_OPT) != null);
+        prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
         ctx.getCorus().getProcessorFacade().kill(aProcess.getProcessID(), prefs);
       } catch (ProcessNotFoundException e) {
         throw new InputException(e.getMessage());
@@ -203,10 +214,10 @@ public class Kill extends CorusCliCommand {
   }
 
   private void waitForKillCompletion(CliContext ctx, KillCompletionHook hook) throws InputException {
-    boolean waitForCompletion = ctx.getCommandLine().containsOption(WAIT_COMPLETION_OPT, false);
+    boolean waitForCompletion = ctx.getCommandLine().containsOption(WAIT_COMPLETION_OPT.getName(), false);
     long timeout = DEFAULT_WAIT_COMPLETION_TIMEOUT;
     if (waitForCompletion) {
-      Option opt = ctx.getCommandLine().assertOption(WAIT_COMPLETION_OPT, false);
+      Option opt = ctx.getCommandLine().assertOption(WAIT_COMPLETION_OPT.getName(), false);
       ctx.getConsole().println("Waiting for process termination, please stand by...");
       if (opt.getValue() != null) {
         try {

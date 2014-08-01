@@ -13,6 +13,7 @@ import org.sapia.console.table.Table;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.ubik.util.Collects;
 
 /**
  * This class contains the implementation of the 'err' command used to display
@@ -27,9 +28,13 @@ public class Err extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private static final String OPTION_ERROR_LIST = "l";
-  private static final String OPTION_ERROR_ID = "i";
-  private static final String OPTION_ERROR_CLEAR = "c";
+  private static final OptionDef OPTION_ERROR_LIST = new OptionDef("l", false);
+  private static final OptionDef OPTION_ERROR_ID = new OptionDef("i", false);
+  private static final OptionDef OPTION_ERROR_CLEAR = new OptionDef("c", false);
+  
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPTION_ERROR_LIST, OPTION_ERROR_ID, OPTION_ERROR_CLEAR
+  );
 
   // --------------------------------------------------------------------------
 
@@ -72,6 +77,11 @@ public class Err extends CorusCliCommand {
       Arg a = (Arg) aContext.getCommandLine().next();
       throw new InputException("Argument " + a + " is not supported");
     }
+  }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
   }
 
   /**

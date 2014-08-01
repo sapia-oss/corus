@@ -9,7 +9,7 @@ import org.sapia.corus.client.cli.CliContext;
  * 
  * @author Yanick Duchesne
  */
-public class Host extends CorusCliCommand {
+public class Host extends NoOptionCommand {
 
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     StringBuilder hostInfo = new StringBuilder();

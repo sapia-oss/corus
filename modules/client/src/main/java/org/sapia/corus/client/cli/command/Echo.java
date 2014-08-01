@@ -4,7 +4,13 @@ import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 
-public class Echo extends CorusCliCommand {
+/**
+ * Echos to the console the value of its argument.
+ * 
+ * @author yduchesne
+ *
+ */
+public class Echo extends NoOptionCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

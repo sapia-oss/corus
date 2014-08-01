@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli.command.exec;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
@@ -24,12 +25,17 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 public class RestartByVmIdCommand extends AbstractExecCommand {
 
   private static final long PAUSE = 1000;
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return new ArrayList<OptionDef>();
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     CmdLine cmd = ctx.getCommandLine();
-    String pid = cmd.assertOption(VM_ID_OPT, true).getValue();
+    String pid = cmd.assertOption(OPT_PROCESS_ID.getName(), true).getValue();
     restartProcessByVmId(ctx, pid);
 
     while (cmd.hasNext()) {

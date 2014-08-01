@@ -28,6 +28,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 
 /**
@@ -47,13 +48,17 @@ public class Http extends CorusCliCommand {
 
   private static final String CHECK_ARG = "check";
   private static final String POST_ARG = "post";
-  private static final String URL_OPT = "u";
-  private static final String MAX_ATTEMPTS_OPT = "m";
-  private static final String INTERVAL_OPT = "t";
-  private static final String STATUS_OPT = "s";
-  private static final String PORT_RANGE_OPT = "p";
-  private static final String CONTEXT_PATH_OPT = "c";
-  private static final String PREFIX_OPT = "x";
+  private static final OptionDef URL_OPT = new OptionDef("u", true);
+  private static final OptionDef MAX_ATTEMPTS_OPT = new OptionDef("m", true);
+  private static final OptionDef INTERVAL_OPT = new OptionDef("t", true);
+  private static final OptionDef STATUS_OPT = new OptionDef("s", true);
+  private static final OptionDef PORT_RANGE_OPT = new OptionDef("p", true);
+  private static final OptionDef CONTEXT_PATH_OPT = new OptionDef("c", true);
+  private static final OptionDef PREFIX_OPT = new OptionDef("x", true);
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      URL_OPT, MAX_ATTEMPTS_OPT, INTERVAL_OPT, STATUS_OPT, 
+      PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT
+  );
 
   private static final int DEFAULT_STATUS = 200;
   private static final int DEFAULT_MAX_ATTEMPTS = 3;
@@ -76,20 +81,25 @@ public class Http extends CorusCliCommand {
       throw new InputException("Missing argument");
     }
   }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   // --------------------------------------------------------------------------
   // subcommand methods
 
   private void doCheck(CliContext ctx) throws InputException {
-    int maxAttempts = getOpt(ctx, MAX_ATTEMPTS_OPT, "" + DEFAULT_MAX_ATTEMPTS).asInt();
-    int interval = getOpt(ctx, INTERVAL_OPT, "" + DEFAULT_INTERVAL).asInt();
-    int expected = getOpt(ctx, STATUS_OPT, "" + DEFAULT_STATUS).asInt();
+    int maxAttempts = getOpt(ctx, MAX_ATTEMPTS_OPT.getName(), "" + DEFAULT_MAX_ATTEMPTS).asInt();
+    int interval = getOpt(ctx, INTERVAL_OPT.getName(), "" + DEFAULT_INTERVAL).asInt();
+    int expected = getOpt(ctx, STATUS_OPT.getName(), "" + DEFAULT_STATUS).asInt();
 
-    if (ctx.getCommandLine().containsOption(URL_OPT, true)) {
-      String url = ctx.getCommandLine().assertOption(URL_OPT, true).getValue();
+    if (ctx.getCommandLine().containsOption(URL_OPT.getName(), true)) {
+      String url = ctx.getCommandLine().assertOption(URL_OPT.getName(), true).getValue();
       doCheck(ctx, url, maxAttempts, expected, interval);
-    } else if (ctx.getCommandLine().containsOption(PORT_RANGE_OPT, false)) {
-      String contextPath = getOptValue(ctx, CONTEXT_PATH_OPT);
+    } else if (ctx.getCommandLine().containsOption(PORT_RANGE_OPT.getName(), false)) {
+      String contextPath = getOptValue(ctx, CONTEXT_PATH_OPT.getName());
 
       ClusterInfo cluster = getClusterInfo(ctx);
 
@@ -101,7 +111,7 @@ public class Http extends CorusCliCommand {
 
       Map<ServerAddress, Set<String>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
 
-      List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT, new Func<Arg, String>() {
+      List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT.getName(), new Func<Arg, String>() {
         @Override
         public Arg call(String arg) {
           return ArgFactory.parse(arg);
@@ -111,7 +121,7 @@ public class Http extends CorusCliCommand {
       if (portRangesByNode.isEmpty()) {
         ctx.getConsole().println("Found not port ranges that apply: bypassing HTTP check");
       } else {
-        String portPrefix = getOptValue(ctx, PREFIX_OPT);
+        String portPrefix = getOptValue(ctx, PREFIX_OPT.getName());
         for (ServerAddress node : portRangesByNode.keySet()) {
           List<PortRange> ranges = portRangesByNode.get(node);
           for (PortRange r : ranges) {
@@ -134,10 +144,10 @@ public class Http extends CorusCliCommand {
   }
 
   static void doPost(CliContext ctx) throws InputException {
-    String url = ctx.getCommandLine().assertOption(URL_OPT, true).getValue();
+    String url = ctx.getCommandLine().assertOption(URL_OPT.getName(), true).getValue();
     int expected = -1;
-    if (ctx.getCommandLine().containsOption(STATUS_OPT, true)) {
-      expected = ctx.getCommandLine().assertOption(STATUS_OPT, true).asInt();
+    if (ctx.getCommandLine().containsOption(STATUS_OPT.getName(), true)) {
+      expected = ctx.getCommandLine().assertOption(STATUS_OPT.getName(), true).asInt();
     }
 
     HttpClient client = new DefaultHttpClient();

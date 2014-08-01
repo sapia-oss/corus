@@ -22,7 +22,7 @@ import org.sapia.ubik.net.TCPAddress;
  * 
  * @author Yanick Duchesne
  */
-public class Hosts extends CorusCliCommand {
+public class Hosts extends NoOptionCommand {
 
   private static final TableDef TBL = TableDef.newInstance().createCol("host", 10).createCol("addr", 15).createCol("os", 15).createCol("java", 20)
       .createCol("repo", 10);

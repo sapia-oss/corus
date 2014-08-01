@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli.command.exec;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
@@ -25,12 +26,17 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 public class RestartByOsPidCommand extends AbstractExecCommand {
 
   private static final long PAUSE = 1000;
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return new ArrayList<OptionDef>();
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     CmdLine cmd = ctx.getCommandLine();
-    String osPid = cmd.assertOption(OS_PID_OPT, true).getValue();
+    String osPid = cmd.assertOption(OPT_OS_PID.getName(), true).getValue();
     restartProcessByOsPid(ctx, osPid);
 
     while (cmd.hasNext()) {

@@ -35,7 +35,7 @@ public class Cluster extends CorusCliCommand {
   private static final String CHECK  = "check";
   private static final String RESYNC = "resync";
   
-  private static final String OPT_ASSERT = "assert";
+  private static final OptionDef OPT_ASSERT = new OptionDef("assert", true);
 
   private static final TableDef STATUS_TBL = TableDef.newInstance()
       .createCol("host", 30)
@@ -64,6 +64,11 @@ public class Cluster extends CorusCliCommand {
     } else {
       status(ctx);
     }
+  }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return Collects.arrayToList(OPT_ASSERT);
   }
 
   private void status(CliContext ctx) throws InputException {
@@ -113,8 +118,8 @@ public class Cluster extends CorusCliCommand {
       throw new ThreadInterruptedException();
     }
     
-    if (ctx.getCommandLine().containsOption(OPT_ASSERT, true)) {
-      int expectedUp = ctx.getCommandLine().assertOption(OPT_ASSERT, true).asInt();
+    if (ctx.getCommandLine().containsOption(OPT_ASSERT.getName(), true)) {
+      int expectedUp = ctx.getCommandLine().assertOption(OPT_ASSERT.getName(), true).asInt();
       if (upHosts.size() != expectedUp) {
         throw new AbortException(String.format("Expected %s Corus nodes, got %s", expectedUp, upHosts.size()));
       }

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -14,6 +15,7 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.CorusScript;
 import org.sapia.corus.client.cli.Interpreter;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Interprets a Corus script specified at the command-line.
@@ -23,16 +25,22 @@ import org.sapia.corus.client.cli.Interpreter;
  */
 public class Script extends CorusCliCommand {
 
-  private static final String ENGINE_OPT = "e";
-  private static final String INCLUDES_OPT = "i";
+  private static final OptionDef ENGINE_OPT = new OptionDef("e", true);
+  private static final OptionDef INCLUDES_OPT = new OptionDef("i", true);
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(ENGINE_OPT, INCLUDES_OPT);
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     Arg fileName;
     String scriptEngineName = null;
-    if (ctx.getCommandLine().containsOption(ENGINE_OPT, true)) {
-      scriptEngineName = ctx.getCommandLine().assertOption(ENGINE_OPT, true).getValue();
+    if (ctx.getCommandLine().containsOption(ENGINE_OPT.getName(), true)) {
+      scriptEngineName = ctx.getCommandLine().assertOption(ENGINE_OPT.getName(), true).getValue();
     }
     fileName = getFirstArg(ctx);
     if (fileName == null) {
@@ -56,7 +64,7 @@ public class Script extends CorusCliCommand {
       if (scriptEngineName == null) {
         interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
       } else {
-        String[] includes = getOpt(ctx, INCLUDES_OPT, "").getValue().split(";");
+        String[] includes = getOpt(ctx, INCLUDES_OPT.getName(), "").getValue().split(";");
         CorusScript scriptRunner = new CorusScript(interpreter, includes, scriptEngineName);
         scriptRunner.runScript(scriptFile.getAbsolutePath(), new HashMap<String, Object>());
       }

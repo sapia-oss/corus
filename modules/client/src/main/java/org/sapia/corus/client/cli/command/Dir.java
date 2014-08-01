@@ -20,7 +20,7 @@ import org.sapia.corus.client.cli.TableDef;
  * @author yduchesne
  * 
  */
-public class Dir extends CorusCliCommand {
+public class Dir extends NoOptionCommand {
 
   private static TableDef FILE_TBL = TableDef.newInstance().createCol("file", 25).createCol("type", 20).createCol("date", 31);
 

@@ -1,5 +1,7 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.List;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
@@ -11,6 +13,7 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Performs undeployment.
@@ -19,19 +22,28 @@ import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
  */
 public class Undeploy extends CorusCliCommand {
 
-  public static final String OPT_EXEC_CONFIG = "e";
-  public static final String OPT_SCRIPT = "s";
-  public static final String OPT_FILE = "f";
+  private static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", true);
+  private static final OptionDef OPT_SCRIPT = new OptionDef("s", true);
+  private static final OptionDef OPT_FILE = new OptionDef("f", true);
+  
+  private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_CLUSTER
+  );
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   /**
    * @see CorusCliCommand#doExecute(CliContext)
    */
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG, false)) {
+    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG.getName(), false)) {
       doUndeployExecConfig(ctx);
-    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT, false)) {
+    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), false)) {
       doUndeployScript(ctx);
-    } else if (ctx.getCommandLine().containsOption(OPT_FILE, false)) {
+    } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), false)) {
       doUndeployFile(ctx);
     } else {
       doUndeployDist(ctx);
@@ -39,7 +51,7 @@ public class Undeploy extends CorusCliCommand {
   }
 
   private void doUndeployExecConfig(CliContext ctx) throws AbortException, InputException {
-    String name = ctx.getCommandLine().assertOption(OPT_EXEC_CONFIG, true).getValue();
+    String name = ctx.getCommandLine().assertOption(OPT_EXEC_CONFIG.getName(), true).getValue();
     ctx.getCorus().getProcessorFacade().undeployExecConfig(name, getClusterInfo(ctx));
   }
 
@@ -54,8 +66,8 @@ public class Undeploy extends CorusCliCommand {
         dist = WILD_CARD;
         version = WILD_CARD;
       } else {
-        dist = cmd.assertOption(DIST_OPT, true).getValue();
-        version = cmd.assertOption(VERSION_OPT, true).getValue();
+        dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
+        version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
       }
 
       super.displayProgress(
@@ -69,14 +81,14 @@ public class Undeploy extends CorusCliCommand {
   }
 
   private void doUndeployScript(CliContext ctx) throws InputException {
-    String alias = ctx.getCommandLine().assertOption(OPT_SCRIPT, true).getValue();
+    String alias = ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue();
     ProgressQueue progress = ctx.getCorus().getScriptManagementFacade()
         .removeScripts(ShellScriptCriteria.newInstance().setAlias(ArgFactory.parse(alias)), getClusterInfo(ctx));
     displayProgress(progress, ctx);
   }
 
   private void doUndeployFile(CliContext ctx) throws InputException {
-    String name = ctx.getCommandLine().assertOption(OPT_FILE, true).getValue();
+    String name = ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue();
     ProgressQueue progress = ctx.getCorus().getFileManagementFacade()
         .deleteFiles(FileCriteria.newInstance().setName(ArgFactory.parse(name)), getClusterInfo(ctx));
     displayProgress(progress, ctx);

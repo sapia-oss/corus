@@ -34,20 +34,7 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
     super(destFile, meta, handler);
     this.next = next;
   }
-
-  @Override
-  public void close() throws IOException {
-    super.flush();
-    super.close();
-    next.close();
-  }
-
-  @Override
-  public void flush() throws IOException {
-    super.flush();
-    next.flush();
-  }
-
+  
   @Override
   public void write(byte[] bytes) throws IOException {
     super.write(bytes);
@@ -65,4 +52,18 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
     super.write(data);
     next.write(data);
   }
+  
+  @Override
+  public void flush() throws IOException {
+    super.flush();
+    next.flush();
+  }
+  
+  @Override
+  public void close() throws IOException {
+    super.flush();
+    super.close();
+    next.close();
+  }
+
 }

@@ -19,7 +19,7 @@ import org.sapia.corus.client.facade.FacadeInvocationContext;
  * @author yduchesne
  *
  */
-public class Count extends CorusCliCommand {
+public class Count extends NoOptionCommand {
   
   private static final String OPT_ASSERT = "a";
   

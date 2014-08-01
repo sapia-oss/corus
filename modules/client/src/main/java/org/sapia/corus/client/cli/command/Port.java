@@ -48,14 +48,23 @@ public class Port extends CorusCliCommand {
   private static final String DELETE = "del";
   private static final String RELEASE = "release";
   private static final String LIST = "ls";
-  private static final String OPT_NAME = "n";
-  private static final String OPT_PROPS = "p";
-  private static final String OPT_FORCE = "f";
-  private static final String OPT_CLEAR = "clear";
-  private static final String OPT_MIN = "min";
-  private static final String OPT_MAX = "max";
+  private static final OptionDef OPT_NAME  = new OptionDef("n", true);
+  private static final OptionDef OPT_PROPS = new OptionDef("p", true);
+  private static final OptionDef OPT_FORCE = new OptionDef("f", false);
+  private static final OptionDef OPT_CLEAR = new OptionDef("clear", false);
+  private static final OptionDef OPT_MIN   = new OptionDef("min", true);
+  private static final OptionDef OPT_MAX   = new OptionDef("max", true);
+  
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_NAME, OPT_PROPS, OPT_FORCE, OPT_CLEAR, OPT_MIN, OPT_MAX, OPT_CLUSTER
+  );
 
   // --------------------------------------------------------------------------
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   @Override
   public void doExecute(CliContext ctx) throws InputException {
@@ -76,9 +85,9 @@ public class Port extends CorusCliCommand {
   void doAdd(CliContext ctx, CmdLine cmd) throws InputException {
 
     try {
-      if (cmd.containsOption(OPT_PROPS, true)) {
+      if (cmd.containsOption(OPT_PROPS.getName(), true)) {
 
-        String fileName = cmd.assertOption(OPT_PROPS, true).getValue();
+        String fileName = cmd.assertOption(OPT_PROPS.getName(), true).getValue();
         File propFile = new File(fileName);
         if (!propFile.exists()) {
           throw new InputException("File does not exist: " + fileName);
@@ -92,7 +101,7 @@ public class Port extends CorusCliCommand {
         try {
           input = new FileInputStream(propFile);
           props.load(input);
-          boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR, false);
+          boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR.getName(), false);
 
           List<PortRange> ranges = new ArrayList<PortRange>();
           Enumeration<String> names = (Enumeration<String>) props.propertyNames();
@@ -121,9 +130,9 @@ public class Port extends CorusCliCommand {
           }
         }
       } else {
-        String name = cmd.assertOption(OPT_NAME, true).getValue();
-        int min = cmd.assertOption(OPT_MIN, true).asInt();
-        int max = cmd.assertOption(OPT_MAX, true).asInt();
+        String name = cmd.assertOption(OPT_NAME.getName(), true).getValue();
+        int min = cmd.assertOption(OPT_MIN.getName(), true).asInt();
+        int max = cmd.assertOption(OPT_MAX.getName(), true).asInt();
         ctx.getCorus().getPortManagementFacade().addPortRange(name, min, max, getClusterInfo(ctx));
       }
 
@@ -141,9 +150,9 @@ public class Port extends CorusCliCommand {
   }
 
   void doDelete(CliContext ctx, CmdLine cmd) throws InputException {
-    String name = cmd.assertOption(OPT_NAME, true).getValue();
+    String name = cmd.assertOption(OPT_NAME.getName(), true).getValue();
     boolean force = false;
-    if (cmd.containsOption(OPT_FORCE, false)) {
+    if (cmd.containsOption(OPT_FORCE.getName(), false)) {
       force = true;
     }
 
@@ -157,7 +166,7 @@ public class Port extends CorusCliCommand {
   }
 
   void doRelease(CliContext ctx, CmdLine cmd) throws InputException {
-    String name = cmd.assertOption(OPT_NAME, true).getValue();
+    String name = cmd.assertOption(OPT_NAME.getName(), true).getValue();
     ctx.getCorus().getPortManagementFacade().releasePortRange(name, getClusterInfo(ctx));
   }
 
@@ -168,7 +177,7 @@ public class Port extends CorusCliCommand {
   }
 
   private void displayResults(Results<List<PortRange>> res, CliContext ctx) throws InputException {
-    String nameFilter = getOptValue(ctx, OPT_NAME);
+    String nameFilter = getOptValue(ctx, OPT_NAME.getName());
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
       res = res.filter(new Func<List<PortRange>, List<PortRange>>() {

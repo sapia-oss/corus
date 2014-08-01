@@ -15,7 +15,7 @@ import org.sapia.corus.client.common.CliUtils;
  * @author yduchesne
  * 
  */
-public class Cmd extends CorusCliCommand {
+public class Cmd extends NoOptionCommand {
 
   private static int BUFSZ = 1024;
   private static int COMMAND_TIME_OUT = 5000;

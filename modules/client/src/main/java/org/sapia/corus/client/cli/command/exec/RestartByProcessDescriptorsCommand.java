@@ -1,5 +1,7 @@
 package org.sapia.corus.client.cli.command.exec;
 
+import java.util.List;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
@@ -20,13 +22,18 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 public class RestartByProcessDescriptorsCommand extends RestartAndWaitCommandSupport {
 
   @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     CmdLine cmd = ctx.getCommandLine();
-    String distName = cmd.assertOption(DIST_OPT, true).getValue();
-    String version = cmd.assertOption(VERSION_OPT, true).getValue();
-    String processName = cmd.containsOption(VM_NAME_OPT, false) ? cmd.assertOption(VM_NAME_OPT, true).getValue() : null;
-    String profile = cmd.containsOption(PROFILE_OPT, false) ? cmd.assertOption(PROFILE_OPT, true).getValue() : null;
+    String distName = cmd.assertOption(OPT_DIST.getName(), true).getValue();
+    String version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
+    String processName = cmd.containsOption(OPT_PROCESS_NAME.getName(), false) ? cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue() : null;
+    String profile = cmd.containsOption(OPT_PROFILE.getName(), false) ? cmd.assertOption(OPT_PROFILE.getName(), true).getValue() : null;
 
     ClusterInfo cluster = getClusterInfo(ctx);
 

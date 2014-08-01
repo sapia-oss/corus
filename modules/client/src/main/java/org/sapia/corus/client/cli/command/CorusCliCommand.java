@@ -1,11 +1,14 @@
 package org.sapia.corus.client.cli.command;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdElement;
+import org.sapia.console.CmdLine;
 import org.sapia.console.Command;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
@@ -23,20 +26,48 @@ import org.sapia.ubik.util.Func;
  * @author Yanick Duchesne
  */
 public abstract class CorusCliCommand implements Command {
+  
+  public static final class OptionDef {
+    
+    private String name;
+    private boolean mustHaveValue;
+    
+    public OptionDef(String name, boolean mustHaveValue) {
+      this.name = name;
+      this.mustHaveValue = mustHaveValue;
+    }
+    
+    public String getName() {
+      return name;
+    }
+    
+    public boolean mustHaveValue() {
+      return mustHaveValue;
+    }
+    
+    @Override
+    public String toString() {
+      return name;
+    }
+    
+  }
+  
+  // --------------------------------------------------------------------------
 
   public static final int CONSOLE_WIDTH = 80;
 
-  public static final String CLUSTER_OPT = "cluster";
-  public static final String DIST_OPT = "d";
-  public static final String VERSION_OPT = "v";
-  public static final String PROFILE_OPT = "p";
-  public static final String VM_NAME_OPT = "n";
-  public static final String VM_ID_OPT = "i";
-  public static final String VM_INSTANCES = "i";
+  public static final OptionDef OPT_CLUSTER = new OptionDef("cluster", false);
+  public static final OptionDef OPT_DIST = new OptionDef("d", true);
+  public static final OptionDef OPT_VERSION = new OptionDef("v", true);
+  public static final OptionDef OPT_PROFILE = new OptionDef("p", true);
+  public static final OptionDef OPT_PROCESS_NAME = new OptionDef("n", true);
+  public static final OptionDef OPT_PROCESS_ID = new OptionDef("i", true);
+  public static final OptionDef OPT_PROCESS_INSTANCES = new OptionDef("i", true);
+  public static final OptionDef OPT_OS_PID = new OptionDef("op", true);
+
   public static final String ARG_ALL = "all";
   public static final String WILD_CARD = "*";
 
-  public static final String OS_PID_OPT = "op";
 
   /**
    * @see org.sapia.console.Command#execute(Context)
@@ -94,8 +125,8 @@ public abstract class CorusCliCommand implements Command {
   }
 
   protected ClusterInfo getClusterInfo(CliContext ctx) throws InputException {
-    if (ctx.getCommandLine().containsOption(CLUSTER_OPT, false)) {
-      Option opt = ctx.getCommandLine().assertOption(CLUSTER_OPT, false);
+    if (ctx.getCommandLine().containsOption(OPT_CLUSTER.getName(), false)) {
+      Option opt = ctx.getCommandLine().assertOption(OPT_CLUSTER.getName(), false);
       if (opt.getValue() != null) {
         ClusterInfo info = new ClusterInfo(true);
         info.addTargets(CliUtils.parseServerAddresses(opt.getValue()));
@@ -192,4 +223,27 @@ public abstract class CorusCliCommand implements Command {
     }
     return null;
   }
+  
+  protected void validate(CmdLine cmdLine) throws InputException {
+    List<OptionDef> availableOptions = getAvailableOptions();
+    Map<String, OptionDef> byName = new HashMap<String, CorusCliCommand.OptionDef>();
+    for (OptionDef a : availableOptions) {
+      byName.put(a.name, a);
+    }
+    for (int i = 0; i < cmdLine.size(); i++) {
+      CmdElement e = cmdLine.get(i);
+      if (e instanceof Option) {
+        Option o = (Option) e;
+        OptionDef d = byName.get(o.getName());
+        if (d == null) {
+          throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), availableOptions));
+        }
+        if (d.mustHaveValue && o.getValue() == null || o.getValue().trim().length() == 0) {
+          throw new InputException(String.format("Option %s must have a value", o.getName()));
+        }
+      }
+    }
+  }
+  
+  protected abstract List<OptionDef> getAvailableOptions();
 }

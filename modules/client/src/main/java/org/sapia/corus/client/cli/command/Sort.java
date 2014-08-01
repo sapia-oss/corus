@@ -30,7 +30,7 @@ import org.sapia.ubik.util.Func;
  * @author yduchesne
  *
  */
-public class Sort extends CorusCliCommand{ 
+public class Sort extends NoOptionCommand{ 
   
   private static final String ON    = "on";
   private static final String PUSH  = "push";

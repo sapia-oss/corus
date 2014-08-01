@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.cli.command.cron.CronWizard;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cron.CronJobInfo;
+import org.sapia.ubik.util.Collects;
 
 /**
  * @author Yanick Duchesne
@@ -33,14 +34,21 @@ public class Cron extends CorusCliCommand {
   private static final String LIST = "list";
   private static final String LS = "ls";
   private static final String REMOVE = "delete";
-  private static final String JOB_ID = "i";
+  private static final OptionDef JOB_ID = new OptionDef("i", true);
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      JOB_ID, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_PROCESS_NAME, OPT_CLUSTER
+  );
 
   // --------------------------------------------------------------------------
 
   private static final String[] DAYS = new String[] { "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" };
 
   // --------------------------------------------------------------------------
-
+  
+  public static List<OptionDef> getAvailOptions() {
+    return AVAIL_OPTIONS;
+  }
+  
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     CmdLine cmd = ctx.getCommandLine();
@@ -52,7 +60,7 @@ public class Cron extends CorusCliCommand {
       if (arg.getName().equals(LIST) || arg.getName().equals(LS)) {
         displayResults(ctx.getCorus().getCronFacade().getCronJobs(getClusterInfo(ctx)), ctx);
       } else if (arg.getName().equals(REMOVE)) {
-        ctx.getCorus().getCronFacade().removeCronJob(cmd.assertOption(JOB_ID, true).getValue());
+        ctx.getCorus().getCronFacade().removeCronJob(cmd.assertOption(JOB_ID.getName(), true).getValue());
       } else if (arg.getName().equals(ADD)) {
         wiz.execute(cmd, ctx);
       } else {
@@ -61,6 +69,11 @@ public class Cron extends CorusCliCommand {
     } else {
       throw new InputException("Missing argument; should be: add | list | delete ");
     }
+  }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return Collects.arrayToList(JOB_ID, OPT_CLUSTER);
   }
 
   private void displayResults(Results<List<CronJobInfo>> res, CliContext ctx) {

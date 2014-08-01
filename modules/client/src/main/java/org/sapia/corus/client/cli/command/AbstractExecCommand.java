@@ -22,6 +22,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Base class implementing logic for blocking until process startup completion.
@@ -31,9 +32,15 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public abstract class AbstractExecCommand extends CorusCliCommand {
 
+  public static final int DEFAULT_EXEC_WAIT_TIME_SECONDS = 120;
+
   protected static final long WAIT_INTERVAL_MILLIS = 5000;
-  protected static final String OPT_WAIT = "w";
-  protected static final String OPT_HARD_KILL = "hard";
+  protected static final OptionDef OPT_WAIT = new OptionDef("w", false);
+  protected static final OptionDef OPT_HARD_KILL = new OptionDef("hard", false);
+  protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      OPT_WAIT, OPT_HARD_KILL, OPT_CLUSTER
+  );
 
   protected AbstractExecCommand() {
   }
@@ -168,7 +175,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
    *         command-line option.
    */
   protected static Option getWaitOption(CliContext ctx) throws InputException {
-    return getOpt(ctx, OPT_WAIT);
+    return getOpt(ctx, OPT_WAIT.getName());
   }
   
   /**
@@ -178,7 +185,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
    *         command-line option.
    */
   protected static boolean isHardKillOption(CliContext ctx) throws InputException {
-    return getOpt(ctx, OPT_HARD_KILL) != null;
+    return getOpt(ctx, OPT_HARD_KILL.getName()) != null;
   }
 
   /**

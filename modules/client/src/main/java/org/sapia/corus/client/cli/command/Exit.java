@@ -13,7 +13,7 @@ import org.sapia.ubik.net.TCPAddress;
  * 
  * @author Yanick Duchesne
  */
-public class Exit extends CorusCliCommand {
+public class Exit extends NoOptionCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

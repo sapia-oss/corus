@@ -1,5 +1,7 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.List;
+
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Context;
@@ -20,6 +22,11 @@ public class Restart extends AbstractExecCommand {
   public static final int DEFAULT_RESTART_WAIT_TIME_SECONDS = 180;
 
   @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     CmdLine cmd = ctx.getCommandLine();
@@ -31,11 +38,11 @@ public class Restart extends AbstractExecCommand {
     }
 
     // restart by PROCESS IDENTIFIER
-    else if (cmd.containsOption(VM_ID_OPT, true)) {
+    else if (cmd.containsOption(OPT_PROCESS_ID.getName(), true)) {
       new RestartByVmIdCommand().execute((Context) ctx);
 
       // restart by OS PROCESS ID
-    } else if (cmd.containsOption(OS_PID_OPT, true)) {
+    } else if (cmd.containsOption(OPT_OS_PID.getName(), true)) {
       new RestartByOsPidCommand().execute((Context) ctx);
 
       // restart by PROCESS DESCRIPTORS

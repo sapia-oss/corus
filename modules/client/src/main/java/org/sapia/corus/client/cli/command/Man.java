@@ -17,7 +17,7 @@ import org.sapia.corus.client.cli.help.NoHelpException;
  * 
  * @author Yanick Duchesne
  */
-public class Man extends CorusCliCommand {
+public class Man extends NoOptionCommand {
 
   private static final Map<String, Class<?>> COMMANDS = new HashMap<String, Class<?>>();
 

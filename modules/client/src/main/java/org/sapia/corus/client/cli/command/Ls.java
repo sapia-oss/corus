@@ -26,6 +26,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.sort.Sorting;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Displays distribution info.
@@ -50,20 +51,28 @@ public class Ls extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private static final String OPT_EXEC_CONFIG = "e";
-  private static final String OPT_SCRIPT = "s";
-  private static final String OPT_FILE = "f";
+  private static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", false);
+  private static final OptionDef OPT_SCRIPT = new OptionDef("s", false);
+  private static final OptionDef OPT_FILE = new OptionDef("f", false);
 
+  protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_DIST, OPT_VERSION, OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_CLUSTER
+  );
+  
   // --------------------------------------------------------------------------
+  
+  protected java.util.List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG, false)) {
+    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG.getName(), false)) {
       doListExecConfigs(ctx);
-    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT, false)) {
+    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), false)) {
       doListScripts(ctx);
-    } else if (ctx.getCommandLine().containsOption(OPT_FILE, false)) {
+    } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), false)) {
       doListFiles(ctx);
     } else {
       doListDistributions(ctx);
@@ -92,8 +101,8 @@ public class Ls extends CorusCliCommand {
   private void doListScripts(CliContext ctx) throws InputException {
     ClusterInfo cluster = getClusterInfo(ctx);
     ShellScriptCriteria criteria = ShellScriptCriteria.newInstance();
-    if (ctx.getCommandLine().containsOption(OPT_SCRIPT, true)) {
-      criteria.setAlias(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_SCRIPT, true).getValue()));
+    if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), true)) {
+      criteria.setAlias(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue()));
     }
 
     try {
@@ -116,8 +125,8 @@ public class Ls extends CorusCliCommand {
   private void doListFiles(CliContext ctx) throws InputException {
     ClusterInfo cluster = getClusterInfo(ctx);
     FileCriteria criteria = FileCriteria.newInstance();
-    if (ctx.getCommandLine().containsOption(OPT_FILE, true)) {
-      criteria.setName(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_FILE, true).getValue()));
+    if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
+      criteria.setName(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue()));
     }
 
     try {
@@ -141,12 +150,12 @@ public class Ls extends CorusCliCommand {
     String dist = null;
     String version = null;
     CmdLine cmd = ctx.getCommandLine();
-    if (cmd.containsOption(DIST_OPT, true)) {
-      dist = cmd.assertOption(DIST_OPT, true).getValue();
+    if (cmd.containsOption(OPT_DIST.getName(), true)) {
+      dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
     }
 
-    if (cmd.containsOption(VERSION_OPT, true)) {
-      version = cmd.assertOption(VERSION_OPT, true).getValue();
+    if (cmd.containsOption(OPT_VERSION.getName(), true)) {
+      version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
     }
 
     ClusterInfo cluster = getClusterInfo(ctx);

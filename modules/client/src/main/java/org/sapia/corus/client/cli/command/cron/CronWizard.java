@@ -20,10 +20,10 @@ public class CronWizard {
   private static final String STAR = "*";
 
   public void execute(CmdLine cmd, CliContext ctx) throws AbortException, InputException {
-    String dist = cmd.assertOption(Cron.DIST_OPT, true).getValue();
-    String version = cmd.assertOption(Cron.VERSION_OPT, true).getValue();
-    String profile = cmd.assertOption(Cron.PROFILE_OPT, true).getValue();
-    String vmName = cmd.assertOption(Cron.VM_NAME_OPT, true).getValue();
+    String dist = cmd.assertOption(Cron.OPT_DIST.getName(), true).getValue();
+    String version = cmd.assertOption(Cron.OPT_VERSION.getName(), true).getValue();
+    String profile = cmd.assertOption(Cron.OPT_PROFILE.getName(), true).getValue();
+    String vmName = cmd.assertOption(Cron.OPT_PROCESS_NAME.getName(), true).getValue();
 
     CronJobInfo info = new CronJobInfo(dist, profile, version, vmName);
 

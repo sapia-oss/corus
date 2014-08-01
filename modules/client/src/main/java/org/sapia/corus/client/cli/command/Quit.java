@@ -10,7 +10,7 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
  * 
  * @author Yanick Duchesne
  */
-public class Quit extends CorusCliCommand {
+public class Quit extends NoOptionCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

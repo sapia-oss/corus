@@ -16,6 +16,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.sort.Sorting;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Displays process info.
@@ -40,9 +41,18 @@ public class Ps extends CorusCliCommand {
   private static final String SUSPENDED = "susp.";
   private static final String STALLED = "stal.";
 
-  private static final String OPT_PORTS = "ports";
-
+  private static final OptionDef OPT_PORTS = new OptionDef("ports", false);
+  
+  protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      OPT_PORTS, OPT_CLUSTER
+  );
+  
   // --------------------------------------------------------------------------
+  
+  protected java.util.List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
@@ -55,27 +65,27 @@ public class Ps extends CorusCliCommand {
 
     CmdLine cmd = ctx.getCommandLine();
 
-    if (cmd.containsOption(DIST_OPT, true)) {
-      dist = cmd.assertOption(DIST_OPT, true).getValue();
+    if (cmd.containsOption(OPT_DIST.getName(), true)) {
+      dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
     }
 
-    if (cmd.containsOption(VERSION_OPT, true)) {
-      version = cmd.assertOption(VERSION_OPT, true).getValue();
+    if (cmd.containsOption(OPT_VERSION.getName(), true)) {
+      version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
     }
 
-    if (cmd.containsOption(PROFILE_OPT, true)) {
-      profile = cmd.assertOption(PROFILE_OPT, true).getValue();
+    if (cmd.containsOption(OPT_PROFILE.getName(), true)) {
+      profile = cmd.assertOption(OPT_PROFILE.getName(), true).getValue();
     }
 
-    if (cmd.containsOption(VM_NAME_OPT, true)) {
-      vmName = cmd.assertOption(VM_NAME_OPT, true).getValue();
+    if (cmd.containsOption(OPT_PROCESS_NAME.getName(), true)) {
+      vmName = cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue();
     }
 
-    if (cmd.containsOption(VM_ID_OPT, true)) {
-      pid = cmd.assertOption(VM_ID_OPT, true).getValue();
+    if (cmd.containsOption(OPT_PROCESS_ID.getName(), true)) {
+      pid = cmd.assertOption(OPT_PROCESS_ID.getName(), true).getValue();
     }
 
-    displayPorts = cmd.containsOption(OPT_PORTS, false);
+    displayPorts = cmd.containsOption(OPT_PORTS.getName(), false);
 
     ClusterInfo cluster = getClusterInfo(ctx);
 

@@ -10,7 +10,7 @@ import org.sapia.corus.client.cli.CliContext;
  * @author yduchesne
  * 
  */
-public class Ver extends CorusCliCommand {
+public class Ver extends NoOptionCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

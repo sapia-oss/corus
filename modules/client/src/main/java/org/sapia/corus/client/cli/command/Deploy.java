@@ -17,6 +17,7 @@ import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 
 /**
@@ -26,22 +27,30 @@ public class Deploy extends CorusCliCommand {
 
   private static final String SCRIPT_DESC_UNDEFINED = "no desc.";
 
-  public static final String OPT_EXEC_CONF = "e";
-  public static final String OPT_FILE = "f";
-  public static final String OPT_SCRIPT = "s";
-  public static final String OPT_DESC_OR_DIR = "d";
-  public static final String OPT_ALIAS = "a";
-  public static final String OPT_SEQ = "seq";
-
+  private static final OptionDef OPT_EXEC_CONF = new OptionDef("e", true);
+  private static final OptionDef OPT_FILE = new OptionDef("f", true);
+  private static final OptionDef OPT_SCRIPT = new OptionDef("s", true);
+  private static final OptionDef OPT_DESC_OR_DIR = new OptionDef("d", true);
+  private static final OptionDef OPT_ALIAS = new OptionDef("a", true);
+  private static final OptionDef OPT_SEQ = new OptionDef("seq", false);
+  
+  private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+    OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, OPT_SEQ,
+    OPT_CLUSTER
+  );
+    
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF, true)) {
-      deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF, true).getValue());
-    } else if (ctx.getCommandLine().containsOption(OPT_FILE, true)) {
-      deployFile(ctx, ctx.getCommandLine().assertOption(OPT_FILE, true).getValue());
-    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT, true)) {
-      deployScript(ctx, ctx.getCommandLine().assertOption(OPT_SCRIPT, true).getValue(), ctx.getCommandLine().assertOption(OPT_ALIAS, true).getValue());
+    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
+      deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF.getName(), true).getValue());
+    } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
+      deployFile(ctx, ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue());
+    } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), true)) {
+      deployScript(
+          ctx, ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue(), 
+          ctx.getCommandLine().assertOption(OPT_ALIAS.getName(), true).getValue()
+      );
     } else {
       if (ctx.getCommandLine().isNextArg()) {
         while (ctx.getCommandLine().hasNext()) {
@@ -55,11 +64,16 @@ public class Deploy extends CorusCliCommand {
       }
     }
   }
+  
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
 
   private void deployDistribution(final CliContext ctx, final String fileName) throws AbortException, InputException {
     if (fileName.endsWith("xml")) {
       deployExec(ctx, fileName);
-    } else if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+    } else if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
       doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
         @Override
         public Void call(CorusHost target) {
@@ -87,13 +101,13 @@ public class Deploy extends CorusCliCommand {
 
   private void deployScript(final CliContext ctx, final String fileName, final String alias) throws AbortException, InputException {
     final String desc;
-    if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true)) {
-      desc = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue();
+    if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR.getName(), true)) {
+      desc = ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR.getName(), true).getValue();
     } else {
       desc = SCRIPT_DESC_UNDEFINED;
     }
     
-    if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+    if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
       doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
         @Override
         public Void call(CorusHost target) {
@@ -117,10 +131,10 @@ public class Deploy extends CorusCliCommand {
   }
 
   private void deployFile(final CliContext ctx, final String fileName) throws AbortException, InputException {
-    final String destDir = ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR, true) ?
-        ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR, true).getValue() : null;
+    final String destDir = ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR.getName(), true) ?
+        ctx.getCommandLine().assertOption(OPT_DESC_OR_DIR.getName(), true).getValue() : null;
     
-    if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+    if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
       doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
         @Override
         public Void call(CorusHost target) {
@@ -154,7 +168,7 @@ public class Deploy extends CorusCliCommand {
       ctx.getConsole().println(err.getSimpleMessage());
 
     } else {
-      if (ctx.getCommandLine().containsOption(OPT_SEQ, false)) {
+      if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
         doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
           @Override
           public Void call(CorusHost target) {

@@ -14,7 +14,7 @@ import org.sapia.ubik.serialization.SerializationStreams;
  */
 public class ClientDeployOutputStream implements DeployOutputStream {
 
-  private static final int BYTES_FOR_INT = 4;
+  private static final int BYTES_FOR_INT = 1;
 
   private ClientDebug log = ClientDebug.get(getClass());
 
@@ -32,6 +32,29 @@ public class ClientDeployOutputStream implements DeployOutputStream {
     oos.flush();
   }
 
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    out.write(b, off, len);
+    written += len;
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    out.write(b);
+    written += b.length;
+  }
+
+  @Override
+  public void write(int b) throws IOException {
+    out.write(b);
+    written += BYTES_FOR_INT;
+  }
+
+  @Override
+  public void flush() throws IOException {
+    out.flush();
+  }
+  
   @Override
   public void close() throws IOException {
     if (!closed) {
@@ -56,27 +79,11 @@ public class ClientDeployOutputStream implements DeployOutputStream {
     }
     return queue;
   }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    out.write(b, off, len);
-    written += len;
-  }
-
-  @Override
-  public void write(byte[] b) throws IOException {
-    out.write(b);
-    written += b.length;
-  }
-
-  @Override
-  public void write(int b) throws IOException {
-    out.write(b);
-    written += BYTES_FOR_INT;
-  }
-
-  @Override
-  public void flush() throws IOException {
-    out.flush();
+  
+  /**
+   * @return the number of bytes written.
+   */
+  public int getBytesWritten() {
+    return written;
   }
 }
