@@ -23,8 +23,8 @@ import org.sapia.ubik.util.Collects;
 public class Undeploy extends CorusCliCommand {
 
   private static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", true);
-  private static final OptionDef OPT_SCRIPT = new OptionDef("s", true);
-  private static final OptionDef OPT_FILE = new OptionDef("f", true);
+  private static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
+  private static final OptionDef OPT_FILE        = new OptionDef("f", true);
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_CLUSTER

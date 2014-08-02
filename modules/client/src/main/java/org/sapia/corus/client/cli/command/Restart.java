@@ -11,6 +11,7 @@ import org.sapia.corus.client.cli.command.exec.RestartAllCommand;
 import org.sapia.corus.client.cli.command.exec.RestartByOsPidCommand;
 import org.sapia.corus.client.cli.command.exec.RestartByProcessDescriptorsCommand;
 import org.sapia.corus.client.cli.command.exec.RestartByVmIdCommand;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Restarts processes.
@@ -20,6 +21,14 @@ import org.sapia.corus.client.cli.command.exec.RestartByVmIdCommand;
 public class Restart extends AbstractExecCommand {
 
   public static final int DEFAULT_RESTART_WAIT_TIME_SECONDS = 180;
+  
+  private static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
+  private static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
+  
+  protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
+  );
 
   @Override
   protected List<OptionDef> getAvailableOptions() {

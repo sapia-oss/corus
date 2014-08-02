@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -33,7 +35,7 @@ public abstract class CorusCliCommand implements Command {
    * @author yduchesne
    *
    */
-  public static final class OptionDef {
+  public static final class OptionDef implements Comparable<OptionDef> {
     
     private String name;
     private boolean mustHaveValue;
@@ -65,6 +67,25 @@ public abstract class CorusCliCommand implements Command {
     @Override
     public String toString() {
       return name;
+    }
+    
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof OptionDef) {
+        OptionDef def = (OptionDef) obj;
+        return name.equals(def.getName());
+      }
+      return false;
+    }
+    
+    @Override
+    public int compareTo(OptionDef o) {
+      return name.compareTo(o.getName());
     }
     
   }
@@ -255,9 +276,10 @@ public abstract class CorusCliCommand implements Command {
           Option o = (Option) e;
           OptionDef d = byName.get(o.getName());
           if (d == null) {
-            throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), availableOptions));
+            Set<OptionDef> sorted = new TreeSet<CorusCliCommand.OptionDef>(availableOptions); 
+            throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), sorted));
           }
-          if (d.mustHaveValue && o.getValue() == null || o.getValue().trim().length() == 0) {
+          if (d.mustHaveValue && (o.getValue() == null || o.getValue().trim().length() == 0)) {
             throw new InputException(String.format("Option %s must have a value", o.getName()));
           }
         }

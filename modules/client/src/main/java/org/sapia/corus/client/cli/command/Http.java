@@ -47,22 +47,24 @@ import org.sapia.ubik.util.Func;
 public class Http extends CorusCliCommand {
 
   private static final String CHECK_ARG = "check";
-  private static final String POST_ARG = "post";
-  private static final OptionDef URL_OPT = new OptionDef("u", true);
+  private static final String POST_ARG  = "post";
+  
+  private static final OptionDef URL_OPT          = new OptionDef("u", true);
   private static final OptionDef MAX_ATTEMPTS_OPT = new OptionDef("m", true);
-  private static final OptionDef INTERVAL_OPT = new OptionDef("t", true);
-  private static final OptionDef STATUS_OPT = new OptionDef("s", true);
-  private static final OptionDef PORT_RANGE_OPT = new OptionDef("p", true);
+  private static final OptionDef INTERVAL_OPT     = new OptionDef("t", true);
+  private static final OptionDef STATUS_OPT       = new OptionDef("s", true);
+  private static final OptionDef PORT_RANGE_OPT   = new OptionDef("p", true);
   private static final OptionDef CONTEXT_PATH_OPT = new OptionDef("c", true);
-  private static final OptionDef PREFIX_OPT = new OptionDef("x", true);
+  private static final OptionDef PREFIX_OPT       = new OptionDef("x", true);
+  
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       URL_OPT, MAX_ATTEMPTS_OPT, INTERVAL_OPT, STATUS_OPT, 
       PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT
   );
 
-  private static final int DEFAULT_STATUS = 200;
+  private static final int DEFAULT_STATUS       = 200;
   private static final int DEFAULT_MAX_ATTEMPTS = 3;
-  private static final int DEFAULT_INTERVAL = 30;
+  private static final int DEFAULT_INTERVAL     = 30;
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

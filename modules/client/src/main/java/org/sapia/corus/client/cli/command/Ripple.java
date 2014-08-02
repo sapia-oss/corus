@@ -32,11 +32,11 @@ import org.sapia.ubik.util.Collects;
  */
 public class Ripple extends CorusCliCommand {
 
-  private static final OptionDef SCRIPT_OPT = new OptionDef("s", true);
-  private static final OptionDef COMMAND_OPT = new OptionDef("c", true);
-  private static final OptionDef MIN_HOST_OPT = new OptionDef("m", true);
-  private static final OptionDef BATCH_POLICY_OPT = new OptionDef("b", true);
-  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(SCRIPT_OPT, COMMAND_OPT, MIN_HOST_OPT, BATCH_POLICY_OPT);
+  private static final OptionDef OPT_SCRIPT          = new OptionDef("s", true);
+  private static final OptionDef OPT_COMMAND         = new OptionDef("c", true);
+  private static final OptionDef OPT_MIN_HOST        = new OptionDef("m", true);
+  private static final OptionDef OPT_BATCH_POLICY    = new OptionDef("b", true);
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(OPT_SCRIPT, OPT_COMMAND, OPT_MIN_HOST, OPT_BATCH_POLICY);
   
   private static final String PIPE = "|";
 
@@ -54,14 +54,14 @@ public class Ripple extends CorusCliCommand {
 
     int minHosts = DEFAULT_MIN_HOSTS;
 
-    if (ctx.getCommandLine().containsOption(MIN_HOST_OPT.getName(), true)) {
-      minHosts = ctx.getCommandLine().assertOption(MIN_HOST_OPT.getName(), true).asInt();
+    if (ctx.getCommandLine().containsOption(OPT_MIN_HOST.getName(), true)) {
+      minHosts = ctx.getCommandLine().assertOption(OPT_MIN_HOST.getName(), true).asInt();
     }
     if (minHosts < DEFAULT_BATCH_SIZE) {
       throw new InputException("-m option value should be larger than 1");
     }
 
-    String policy = ctx.getCommandLine().assertOption(BATCH_POLICY_OPT.getName(), true).getValue();
+    String policy = ctx.getCommandLine().assertOption(OPT_BATCH_POLICY.getName(), true).getValue();
 
     List<CorusHost> allHosts = new ArrayList<CorusHost>();
     allHosts.add(ctx.getCorus().getContext().getServerHost());
@@ -94,13 +94,13 @@ public class Ripple extends CorusCliCommand {
     for (List<CorusHost> batch : hostBatches) {
       try {
         Map<String, String> vars = new HashMap<String, String>();
-        if (ctx.getCommandLine().containsOption(COMMAND_OPT.getName(), true)) {
-          StringTokenizer tk = new StringTokenizer(ctx.getCommandLine().assertOption(COMMAND_OPT.getName(), true).getValue().trim(), PIPE);
+        if (ctx.getCommandLine().containsOption(OPT_COMMAND.getName(), true)) {
+          StringTokenizer tk = new StringTokenizer(ctx.getCommandLine().assertOption(OPT_COMMAND.getName(), true).getValue().trim(), PIPE);
           while (tk.hasMoreTokens()) {
             processCommand(batch, tk.nextToken(), ctx);
           }
         } else {
-          String scriptFilePath = ctx.getCommandLine().assertOption(SCRIPT_OPT.getName(), true).getValue();
+          String scriptFilePath = ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue();
           File scriptFile = ctx.getFileSystem().getFile(scriptFilePath);
           if (!ctx.getCommandLine().hasNext()) {
             throw new InputException("Path to script file expected");

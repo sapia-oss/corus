@@ -38,8 +38,8 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
   protected static final OptionDef OPT_WAIT = new OptionDef("w", false);
   protected static final OptionDef OPT_HARD_KILL = new OptionDef("hard", false);
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
-      OPT_WAIT, OPT_HARD_KILL, OPT_CLUSTER
+      OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE,
+      OPT_WAIT, OPT_CLUSTER
   );
 
   protected AbstractExecCommand() {

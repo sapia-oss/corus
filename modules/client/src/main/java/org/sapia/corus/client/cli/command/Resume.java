@@ -17,7 +17,7 @@ import org.sapia.ubik.util.Collects;
 public class Resume extends CorusCliCommand {
   
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_PROCESS_ID, OPT_CLUSTER
+      OPT_DIST, OPT_VERSION, OPT_PROCESS_NAME, OPT_PROFILE, OPT_PROCESS_ID, OPT_CLUSTER
   );
   
   @Override
@@ -36,8 +36,8 @@ public class Resume extends CorusCliCommand {
     if (ctx.getCommandLine().containsOption(OPT_VERSION.getName(), true)) {
       builder.version(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_VERSION.getName(), true).getValue()));
     }
-    if (ctx.getCommandLine().containsOption(OPT_PROCESS_ID.getName(), true)) {
-      builder.name(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_ID.getName(), true).getValue()));
+    if (ctx.getCommandLine().containsOption(OPT_PROCESS_NAME.getName(), true)) {
+      builder.name(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_NAME.getName(), true).getValue()));
     }
     if (ctx.getCommandLine().containsOption(OPT_PROCESS_ID.getName(), true)) {
       builder.pid(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_ID.getName(), true).getValue()));

@@ -34,7 +34,7 @@ public class Status extends CorusCliCommand {
   private static final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
 
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_PROCESS_ID, OPT_CLUSTER
+      OPT_DIST, OPT_VERSION, OPT_PROCESS_NAME, OPT_PROFILE, OPT_PROCESS_ID, OPT_CLUSTER
   );
   
 

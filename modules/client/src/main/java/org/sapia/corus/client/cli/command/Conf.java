@@ -56,22 +56,22 @@ public class Conf extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  public static final String ARG_ADD = "add";
+  public static final String ARG_ADD    = "add";
   public static final String ARG_RENAME = "ren";
-  public static final String ARG_DEL = "del";
-  public static final String ARG_LS = "ls";
+  public static final String ARG_DEL    = "del";
+  public static final String ARG_LS     = "ls";
   public static final String ARG_EXPORT = "export";
-  public static final String ARG_MERGE = "merge";
+  public static final String ARG_MERGE  = "merge";
 
-  private static final OptionDef OPT_PROPERTY = new OptionDef("p", false);
-  private static final OptionDef OPT_FILE = new OptionDef("f", true);
-  private static final OptionDef OPT_BASE = new OptionDef("b", true);
-  private static final OptionDef OPT_TAG = new OptionDef("t", false);
-  private static final OptionDef OPT_REPLACE = new OptionDef("r", false);
-  private static final OptionDef OPT_SCOPE = new OptionDef("s", false);
-  private static final OptionDef OPT_SCOPE_SVR = new OptionDef("s", false);
+  private static final OptionDef OPT_PROPERTY   = new OptionDef("p", false);
+  private static final OptionDef OPT_FILE       = new OptionDef("f", true);
+  private static final OptionDef OPT_BASE       = new OptionDef("b", true);
+  private static final OptionDef OPT_TAG        = new OptionDef("t", false);
+  private static final OptionDef OPT_REPLACE    = new OptionDef("r", false);
+  private static final OptionDef OPT_SCOPE      = new OptionDef("s", false);
+  private static final OptionDef OPT_SCOPE_SVR  = new OptionDef("s", false);
   private static final OptionDef OPT_SCOPE_PROC = new OptionDef("p", false);
-  private static final OptionDef OPT_CLEAR = new OptionDef("clear", false);
+  private static final OptionDef OPT_CLEAR      = new OptionDef("clear", false);
   
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_PROPERTY, OPT_FILE, OPT_BASE, OPT_TAG, OPT_REPLACE, 

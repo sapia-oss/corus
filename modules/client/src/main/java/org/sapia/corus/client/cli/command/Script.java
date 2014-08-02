@@ -25,7 +25,7 @@ import org.sapia.ubik.util.Collects;
  */
 public class Script extends CorusCliCommand {
 
-  private static final OptionDef ENGINE_OPT = new OptionDef("e", true);
+  private static final OptionDef ENGINE_OPT   = new OptionDef("e", true);
   private static final OptionDef INCLUDES_OPT = new OptionDef("i", true);
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(ENGINE_OPT, INCLUDES_OPT);
   

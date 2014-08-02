@@ -21,7 +21,7 @@ import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 public class Exec extends AbstractExecCommand {
 
   public static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", true);
-  public static final OptionDef OPT_SCRIPT = new OptionDef("s", true);
+  public static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
   private static final List<OptionDef> ADDITIONAL_OPTIONS = new ArrayList<OptionDef>(AVAIL_OPTIONS);
   static {
     ADDITIONAL_OPTIONS.add(OPT_EXEC_CONFIG);

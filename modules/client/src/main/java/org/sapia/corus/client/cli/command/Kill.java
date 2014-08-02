@@ -31,7 +31,7 @@ public class Kill extends CorusCliCommand {
   public static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
 
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
       WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
   );
   

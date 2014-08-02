@@ -45,7 +45,8 @@ public class Cron extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
   
-  public static List<OptionDef> getAvailOptions() {
+  @Override
+  protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   
@@ -71,11 +72,6 @@ public class Cron extends CorusCliCommand {
     }
   }
   
-  @Override
-  protected List<OptionDef> getAvailableOptions() {
-    return Collects.arrayToList(JOB_ID, OPT_CLUSTER);
-  }
-
   private void displayResults(Results<List<CronJobInfo>> res, CliContext ctx) {
 
     while (res.hasNext()) {

@@ -44,7 +44,7 @@ public class Ps extends CorusCliCommand {
   private static final OptionDef OPT_PORTS = new OptionDef("ports", false);
   
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_PROCESS_INSTANCES, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
+      OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE,
       OPT_PORTS, OPT_CLUSTER
   );
   
