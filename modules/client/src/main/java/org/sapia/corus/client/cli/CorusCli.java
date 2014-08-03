@@ -46,6 +46,7 @@ import org.sapia.ubik.util.Localhost;
  */
 public class CorusCli extends CommandConsole {
 
+  public static final int    MIN_WIDTH         = 80;
   public static final int    DEFAULT_PORT      = 33000;
   public static final String HOST_OPT          = "h";
   public static final String PORT_OPT          = "p";
@@ -68,6 +69,9 @@ public class CorusCli extends CommandConsole {
   
   private CorusCli(CorusConnector corus, ConsoleIO io) throws IOException {
     super(io, new CorusCommandFactory());
+    if (getWidth() < MIN_WIDTH) {
+      super.setWidth(MIN_WIDTH);
+    }
     this.corus = corus;
     this.sortSwitches = new AtomicReference<SortSwitchInfo[]>();
     this.sortSwitches.set(new SortSwitchInfo[]{});
