@@ -242,25 +242,26 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
    * InternalDeployer INTERFACE IMPLEMENTATION
    * ////////////////////////////////////////////////////////////////////
    */
-
+  @Override
   public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException {
     return getDistributionStore().getDistribution(criteria);
   }
 
+  @Override
   public List<Distribution> getDistributions(DistributionCriteria criteria) {
     List<Distribution> dists = getDistributionStore().getDistributions(criteria);
     Collections.sort(dists);
     return dists;
   }
 
-  public ProgressQueue undeploy(DistributionCriteria criteria) {
+  @Override
+  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException {
+    ProcessCriteria processCriteria = ProcessCriteria.builder().distribution(criteria.getName()).version(criteria.getVersion()).build();
+    if (lookup(Processor.class).getProcesses(processCriteria).size() > 0) {
+      throw new RunningProcessesException("Processes for selected configuration are currently running; kill them prior to undeploying");
+    }
     ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
-      ProcessCriteria processCriteria = ProcessCriteria.builder().distribution(criteria.getName()).version(criteria.getVersion()).build();
-      if (lookup(Processor.class).getProcesses(processCriteria).size() > 0) {
-        throw new RunningProcessesException("Processes for selected configuration are currently running; kill them prior to undeploying");
-      }
-
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
       taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria.getName(), criteria.getVersion()), cfg).get();
     } catch (Throwable e) {

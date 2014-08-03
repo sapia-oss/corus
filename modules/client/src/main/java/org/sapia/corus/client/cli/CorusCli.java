@@ -262,8 +262,8 @@ public class CorusCli extends CommandConsole {
     System.out.println("  -c    executes the command-line corresponding to the");
     System.out.println("        value of this option and exits immediately.");
     System.out.println();
-    System.out.println("  -w    width of the console to use (attempts doing this)");
-    System.out.println("        automatically by default).");
+    System.out.println("  -w    console width to use for the console to use");
+    System.out.println("        (attempts setting it automatically by default).");
     System.out.println();
     System.out.println("  -ver  indicates that the version of this command-line");
     System.out.println("        is to be displayed in the terminal.");
@@ -335,24 +335,22 @@ public class CorusCli extends CommandConsole {
 
     void center(Console cons, String text) {
       int margin = (cons.getWidth() - text.length()) / 2;
+      int charCount = 0;
       cons.print("*");
+      charCount++;
 
       for (int i = 0; i < (margin - 1); i++) {
         cons.print(" ");
+        charCount++;
       }
 
       cons.print(text);
-
-      if ((text.length() % 2) == 0) {
-        for (int i = 0; i < (margin - 1); i++) {
-          cons.print(" ");
-        }
-      } else {
-        for (int i = 0; i < margin; i++) {
-          cons.print(" ");
-        }
+      charCount += text.length();
+      
+      int remaining = cons.getWidth() - charCount - 1;
+      for (int i = 0; i < remaining; i++) {
+        cons.print(" ");
       }
-
       cons.println("*");
     }
   }

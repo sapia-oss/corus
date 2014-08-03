@@ -175,7 +175,7 @@ public abstract class CorusCliCommand implements Command {
         if (msg.isThrowable()) {
           CliError err = ctx.createAndAddErrorFor(this, (Throwable) msg.getMessage());
           ctx.getConsole().println(err.getSimpleMessage());
-
+          break;
         } else if (msg.getStatus() >= ProgressMsg.INFO) {
           ctx.getConsole().println(msg.getMessage().toString());
         }
@@ -297,10 +297,11 @@ public abstract class CorusCliCommand implements Command {
           OptionDef d = byName.get(o.getName());
           if (d == null) {
             if (availableOptions.isEmpty()) {
-              throw new InputException("Command does not support options");
+              throw new InputException("Command " + getName() + " does not support options");
             } else {
               Set<OptionDef> sorted = new TreeSet<CorusCliCommand.OptionDef>(availableOptions); 
-              throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), sorted));
+              throw new InputException(String.format("Unsupported option: %s. '%s' supports following options: %s", 
+                  o.getName(), getName(), sorted));
             }
           }
           if (d.mustHaveValue && (o.getValue() == null || o.getValue().trim().length() == 0)) {
