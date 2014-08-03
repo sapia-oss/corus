@@ -139,7 +139,7 @@ public class Ripple extends CorusCliCommand {
 
   private void processScript(File scriptFile, CliContext ctx, StrLookup vars) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
-      Interpreter interpreter = new Interpreter(ctx.getCorus());
+      Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
       interpreter.interpret(new FileReader(scriptFile), vars);
     } else {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());
@@ -147,7 +147,7 @@ public class Ripple extends CorusCliCommand {
   }
 
   private void processCommand(List<CorusHost> batch, String cmdLine, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
-    Interpreter interpreter = new Interpreter(ctx.getCorus());
+    Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
     if (cmdLine.contains("-cluster")) {
       throw new InputException("Rippled command must not be invoked with -cluster option");
     }

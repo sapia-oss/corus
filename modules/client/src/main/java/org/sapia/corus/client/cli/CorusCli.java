@@ -188,6 +188,9 @@ public class CorusCli extends CommandConsole {
           Map<String, String> vars = CliUtils.getOptionsMap(main);
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+            if (main.containsOption(WIDTH_OPT, true)) {
+              console.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
+            }
             console.interpret(input, StrLookup.mapLookup(vars));
             System.exit(0);
           } catch (Throwable err) {

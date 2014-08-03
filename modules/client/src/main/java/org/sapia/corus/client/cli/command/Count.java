@@ -48,7 +48,7 @@ public class Count extends NoOptionCommand {
     
     try {
       turnOffOutput(ctx);
-      Interpreter intp = new Interpreter(ctx.getConsole().out(), ctx.getCorus());
+      Interpreter intp = new Interpreter(ctx.getConsole(), ctx.getCorus());
       intp.eval(toExecute, ctx.getVars());
     } catch (Throwable e) {
       throw new AbortException("Could not execute command: " + toExecute, e);

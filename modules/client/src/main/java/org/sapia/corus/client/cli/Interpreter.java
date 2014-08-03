@@ -62,6 +62,18 @@ public class Interpreter extends Console {
     super(new InterpreterConsoleInput(), output);
     this.corus = corus;
   }
+  
+  /**
+   * @param parent
+   *          the {@link Console} from which this instance is created.
+   * @param corus
+   *          the {@link CorusConnector} to use.
+   */
+  public Interpreter(Console parent, CorusConnector corus) {
+    super(new InterpreterConsoleInput(), parent.out());
+    this.setWidth(parent.getWidth());
+    this.corus = corus;
+  }
 
   /**
    * @return this instance's {@link CorusConnector}.
