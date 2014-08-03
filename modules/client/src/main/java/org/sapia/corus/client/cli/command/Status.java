@@ -28,10 +28,12 @@ import org.sapia.ubik.util.Collects;
  */
 public class Status extends CorusCliCommand {
 
-  private static final TableDef STAT_TBL = TableDef.newInstance().createCol("pid", 15).createCol("context", 15).createCol("name", 15)
-      .createCol("value", 25);
+  private static final TableDef STAT_TBL = TableDef.newInstance()
+      .createCol("pid", 15).createCol("context", 15)
+      .createCol("name", 15).createCol("value", 25);
 
-  private static final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
+  private static final TableDef TITLE_TBL = TableDef.newInstance()
+      .createCol("val", 78);
 
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_DIST, OPT_VERSION, OPT_PROCESS_NAME, OPT_PROFILE, OPT_PROCESS_ID, OPT_CLUSTER
@@ -43,6 +45,12 @@ public class Status extends CorusCliCommand {
   @Override
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
+  }
+  
+  @Override
+  protected void doInit(CliContext context) {
+    STAT_TBL.setTableWidth(context.getConsole().getWidth());
+    TITLE_TBL.setTableWidth(context.getConsole().getWidth());
   }
   
   @Override
@@ -110,7 +118,7 @@ public class Status extends CorusCliCommand {
   private void displayStatus(ProcStatus stat, CliContext ctx) {
     Table procTable = STAT_TBL.createTable(ctx.getConsole().out());
 
-    procTable.drawLine('-', 0, CONSOLE_WIDTH);
+    procTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = procTable.newRow();
     row.getCellAt(STAT_TBL.col("pid").index()).append(stat.getProcessID());
@@ -150,13 +158,13 @@ public class Status extends CorusCliCommand {
     Table procTable = STAT_TBL.createTable(ctx.getConsole().out());
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
 
-    procTable.drawLine('=', 0, CONSOLE_WIDTH);
+    procTable.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    procTable.drawLine(' ', 0, CONSOLE_WIDTH);
+    procTable.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = procTable.newRow();
 

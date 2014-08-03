@@ -13,6 +13,10 @@ import org.sapia.corus.client.cli.CliContext;
 public class Pwd extends NoOptionCommand {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     ctx.getConsole().println(ctx.getFileSystem().getBaseDir().getAbsolutePath());
   }

@@ -13,6 +13,10 @@ import org.sapia.corus.client.exceptions.cli.SystemExitException;
 public class Quit extends NoOptionCommand {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     throw new SystemExitException();
   }

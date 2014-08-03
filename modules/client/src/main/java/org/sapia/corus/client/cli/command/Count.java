@@ -23,6 +23,10 @@ public class Count extends NoOptionCommand {
   
   private static final String OPT_ASSERT = "a";
   
+  @Override
+  protected void doInit(CliContext context) {
+  }
+  
   @SuppressWarnings("unused")
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

@@ -28,6 +28,10 @@ public class RestartByOsPidCommand extends AbstractExecCommand {
   private static final long PAUSE = 1000;
   
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected List<OptionDef> getAvailableOptions() {
     return new ArrayList<OptionDef>();
   }

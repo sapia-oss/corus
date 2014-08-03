@@ -14,6 +14,10 @@ import org.sapia.corus.client.cli.CliContext;
  * 
  */
 public class Cd extends NoOptionCommand {
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

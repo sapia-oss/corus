@@ -39,6 +39,10 @@ public class Ant extends NoOptionCommand {
   }
   
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(final CliContext ctx) throws AbortException, InputException {
    
     File f = ctx.getFileSystem().getFile(ctx.getCommandLine().getOptNotNull(OPT_FILE).getValueNotNull());

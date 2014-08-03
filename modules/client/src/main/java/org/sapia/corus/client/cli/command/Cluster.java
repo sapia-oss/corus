@@ -49,6 +49,12 @@ public class Cluster extends CorusCliCommand {
   // --------------------------------------------------------------------------
 
   @Override
+  protected void doInit(CliContext context) {
+    STATUS_TBL.setTableWidth(context.getConsole().getWidth());
+    CHECK_TBL.setTableWidth(context.getConsole().getWidth());
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     if (ctx.getCommandLine().hasNext()) {
@@ -77,7 +83,7 @@ public class Cluster extends CorusCliCommand {
     results = Sorting.sortSingle(results, ClusterStatus.class, ctx.getSortSwitches());
     Table table = STATUS_TBL.createTable(ctx.getConsole().out());
 
-    table.drawLine('=', 0, CONSOLE_WIDTH);
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
 
     while (results.hasNext()) {
       Result<ClusterStatus> status = results.next();
@@ -127,7 +133,7 @@ public class Cluster extends CorusCliCommand {
     
     displayCheckHeader(ctx);
     Table table = CHECK_TBL.createTable(ctx.getConsole().out());
-    table.drawLine('=', 0, CONSOLE_WIDTH);
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
     
     Collections.sort(upHosts, Sorting.getHostComparatorFor(ctx.getSortSwitches()));
     for (CorusHost h : upHosts) {

@@ -37,10 +37,12 @@ import org.sapia.ubik.util.Func;
  */
 public class Port extends CorusCliCommand {
 
-  private static final TableDef RANGE_TBL = TableDef.newInstance().createCol("name", 10).createCol("range", 15).createCol("avail", 24)
-      .createCol("active", 24);
+  private static final TableDef RANGE_TBL = TableDef.newInstance()
+      .createCol("name", 10).createCol("range", 15)
+      .createCol("avail", 24).createCol("active", 24);
 
-  private static TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
+  private static TableDef TITLE_TBL = TableDef.newInstance()
+      .createCol("val", 78);
 
   // --------------------------------------------------------------------------
 
@@ -64,6 +66,12 @@ public class Port extends CorusCliCommand {
   @Override
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
+  }
+  
+  @Override
+  protected void doInit(CliContext context) {
+    RANGE_TBL.setTableWidth(context.getConsole().getWidth());
+    TITLE_TBL.setTableWidth(context.getConsole().getWidth());
   }
 
   @Override
@@ -204,7 +212,7 @@ public class Port extends CorusCliCommand {
   private void displayPorts(PortRange range, CliContext ctx) {
     Table table = RANGE_TBL.createTable(ctx.getConsole().out());
 
-    table.drawLine('-', 0, CONSOLE_WIDTH);
+    table.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = table.newRow();
     row.getCellAt(RANGE_TBL.col("name").index()).append(range.getName());
@@ -219,13 +227,13 @@ public class Port extends CorusCliCommand {
     Table ranges = RANGE_TBL.createTable(ctx.getConsole().out());
     Table title = TITLE_TBL.createTable(ctx.getConsole().out());
 
-    title.drawLine('=', 0, CONSOLE_WIDTH);
+    title.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row row = title.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    title.drawLine(' ', 0, CONSOLE_WIDTH);
+    title.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = ranges.newRow();
     headers.getCellAt(RANGE_TBL.col("name").index()).append("Name");

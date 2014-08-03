@@ -24,11 +24,19 @@ import org.sapia.ubik.net.TCPAddress;
  */
 public class Hosts extends NoOptionCommand {
 
-  private static final TableDef TBL = TableDef.newInstance().createCol("host", 10).createCol("addr", 15).createCol("os", 15).createCol("java", 20)
+  private static final TableDef TBL = TableDef.newInstance()
+      .createCol("host", 10)
+      .createCol("addr", 15)
+      .createCol("os", 15)
+      .createCol("java", 20)
       .createCol("repo", 10);
 
   // --------------------------------------------------------------------------
 
+  protected void doInit(CliContext context) {
+    TBL.setTableWidth(context.getConsole().getWidth());
+  }
+  
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     Collection<CorusHost> others = ctx.getCorus().getContext().getOtherHosts();
@@ -43,7 +51,7 @@ public class Hosts extends NoOptionCommand {
   private void displayHosts(Collection<CorusHost> others, CliContext ctx) {
     Table hostTable = TBL.createTable(ctx.getConsole().out());
 
-    hostTable.drawLine('=', 0, CONSOLE_WIDTH);
+    hostTable.drawLine('=', 0, ctx.getConsole().getWidth());
     List<CorusHost> sortedHosts = new ArrayList<CorusHost>();
     sortedHosts.add(ctx.getCorus().getContext().getServerHost());
     sortedHosts.addAll(others);

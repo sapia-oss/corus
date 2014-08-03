@@ -23,6 +23,11 @@ import org.sapia.corus.client.cli.TableDef;
 public class Dir extends NoOptionCommand {
 
   private static TableDef FILE_TBL = TableDef.newInstance().createCol("file", 25).createCol("type", 20).createCol("date", 31);
+  
+  @Override
+  protected void doInit(CliContext context) {
+    FILE_TBL.setTableWidth(context.getConsole().getWidth());
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
@@ -38,7 +43,7 @@ public class Dir extends NoOptionCommand {
       row.getCellAt(FILE_TBL.col("date").index()).append("Last Modified");
       row.flush();
 
-      title.drawLine('-', 0, CONSOLE_WIDTH);
+      title.drawLine('-', 0, ctx.getConsole().getWidth());
 
       List<File> toDisplay = Arrays.asList(files);
       Collections.sort(toDisplay, new FileComparator());

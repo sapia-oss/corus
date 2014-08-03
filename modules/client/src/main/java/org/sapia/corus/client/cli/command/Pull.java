@@ -15,6 +15,10 @@ import org.sapia.ubik.util.Collects;
 public class Pull extends CorusCliCommand {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     ctx.getCorus().getRepoFacade().pull(getClusterInfo(ctx));
   }

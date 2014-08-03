@@ -51,6 +51,7 @@ public class CorusCli extends CommandConsole {
   public static final String PORT_OPT          = "p";
   public static final String SCRIPT_OPT        = "s";
   public static final String COMMAND_OPT       = "c";
+  public static final String WIDTH_OPT         = "w";
   public static final int    MAX_ERROR_HISTORY = 20;
 
   private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();
@@ -72,7 +73,6 @@ public class CorusCli extends CommandConsole {
     this.sortSwitches.set(new SortSwitchInfo[]{});
     super.setCommandListener(new CliConsoleListener());
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
-
     // Change the prompt
     setPrompt(CliUtils.getPromptFor(corus.getContext()));
   }
@@ -201,6 +201,9 @@ public class CorusCli extends CommandConsole {
         } else {
           try {
             CorusCli cli = new CorusCli(connector);
+            if (main.containsOption(WIDTH_OPT, true)) {
+              cli.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
+            }
             List<NameValuePair> props = connector.getConfigFacade().getProperties(PropertyScope.SERVER, new ClusterInfo(false)).next().getData();
             for (NameValuePair p : props) {
               if (p.getName().equals(CliPropertyKeys.SORT_SWITCHES) && p.getValue() != null) {
@@ -258,6 +261,9 @@ public class CorusCli extends CommandConsole {
     System.out.println();
     System.out.println("  -c    executes the command-line corresponding to the");
     System.out.println("        value of this option and exits immediately.");
+    System.out.println();
+    System.out.println("  -w    width of the console to use (attempts doing this)");
+    System.out.println("        automatically by default).");
     System.out.println();
     System.out.println("  -ver  indicates that the version of this command-line");
     System.out.println("        is to be displayed in the terminal.");
@@ -320,7 +326,7 @@ public class CorusCli extends CommandConsole {
     }
     
     void line(Console cons) {
-      for (int i = 0; i < 80; i++) {
+      for (int i = 0; i < cons.getWidth(); i++) {
         cons.print("*");
       }
 
@@ -328,7 +334,7 @@ public class CorusCli extends CommandConsole {
     }
 
     void center(Console cons, String text) {
-      int margin = (80 - text.length()) / 2;
+      int margin = (cons.getWidth() - text.length()) / 2;
       cons.print("*");
 
       for (int i = 0; i < (margin - 1); i++) {

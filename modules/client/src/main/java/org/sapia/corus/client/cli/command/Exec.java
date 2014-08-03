@@ -27,6 +27,10 @@ public class Exec extends AbstractExecCommand {
     ADDITIONAL_OPTIONS.add(OPT_EXEC_CONFIG);
     ADDITIONAL_OPTIONS.add(OPT_SCRIPT);
   }
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
  
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

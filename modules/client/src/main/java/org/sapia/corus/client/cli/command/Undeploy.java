@@ -34,10 +34,12 @@ public class Undeploy extends CorusCliCommand {
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
-  /**
-   * @see CorusCliCommand#doExecute(CliContext)
-   */
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG.getName(), false)) {
       doUndeployExecConfig(ctx);

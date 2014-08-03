@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import org.sapia.console.ConsoleInput;
+import org.sapia.console.TerminalFacade;
 
 /**
  * Implements a {@link ConsoleInput} that reads commands from a file.
@@ -35,6 +36,11 @@ public class FileConsoleInput implements ConsoleInput {
   @Override
   public char[] readPassword() throws IOException {
     throw new UnsupportedOperationException();
+  }
+  
+  @Override
+  public TerminalFacade getTerminal() {
+    return new DefaultTerminalFacade();
   }
 
   /**

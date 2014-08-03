@@ -86,6 +86,13 @@ public class Conf extends CorusCliCommand {
   }
 
   // --------------------------------------------------------------------------
+  
+  @Override
+  protected void doInit(CliContext context) {
+    PROPS_TBL.setTableWidth(context.getConsole().getWidth());
+    TAGS_TBL.setTableWidth(context.getConsole().getWidth());
+    TITLE_TBL.setTableWidth(context.getConsole().getWidth());
+  }  
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
@@ -352,13 +359,13 @@ public class Conf extends CorusCliCommand {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = TAGS_TBL.createTable(ctx.getConsole().out());
 
-    titleTable.drawLine('=', 0, CONSOLE_WIDTH);
+    titleTable.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
+    titleTable.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = headersTable.newRow();
 
@@ -369,7 +376,7 @@ public class Conf extends CorusCliCommand {
   private void displayTag(String tag, CliContext ctx) {
     Table tagsTable = TAGS_TBL.createTable(ctx.getConsole().out());
 
-    tagsTable.drawLine('-', 0, CONSOLE_WIDTH);
+    tagsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = tagsTable.newRow();
     row.getCellAt(TAGS_TBL.col("val").index()).append(tag);
@@ -448,13 +455,13 @@ public class Conf extends CorusCliCommand {
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
     Table headersTable = PROPS_TBL.createTable(ctx.getConsole().out());
 
-    titleTable.drawLine('=', 0, CONSOLE_WIDTH);
+    titleTable.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    titleTable.drawLine(' ', 0, CONSOLE_WIDTH);
+    titleTable.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = headersTable.newRow();
 
@@ -466,7 +473,7 @@ public class Conf extends CorusCliCommand {
   private void displayProperties(NameValuePair prop, CliContext ctx) {
     Table propsTable = PROPS_TBL.createTable(ctx.getConsole().out());
 
-    propsTable.drawLine('-', 0, CONSOLE_WIDTH);
+    propsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = propsTable.newRow();
     row.getCellAt(PROPS_TBL.col("name").index()).append(prop.getName());

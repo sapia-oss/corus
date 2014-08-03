@@ -18,6 +18,7 @@ public class TableDef {
 
   private List<ColumnDef> columns = new ArrayList<ColumnDef>();
   private Map<String, ColumnDef> columnsByName = new HashMap<String, ColumnDef>();
+  private int tableWidth = -1;
 
   /**
    * Internally creates a {@link ColumnDef}.
@@ -54,6 +55,13 @@ public class TableDef {
     }
     return def;
   }
+  
+  /**
+   * @param width the table width.
+   */
+  public void setTableWidth(int width) {
+    this.tableWidth = width;
+  }
 
   /**
    * @param output
@@ -65,6 +73,9 @@ public class TableDef {
     Table table = new Table(output, columns.size(), 15);
     for (ColumnDef def : columns) {
       table.getTableMetaData().getColumnMetaDataAt(def.index()).setWidth(def.width());
+    }
+    if (tableWidth > 0) {
+      table.getTableMetaData().adjustToNewWidth(tableWidth);
     }
     return table;
   }

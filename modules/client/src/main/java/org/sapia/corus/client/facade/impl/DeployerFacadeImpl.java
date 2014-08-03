@@ -14,7 +14,6 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
-import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
@@ -224,22 +223,24 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
 
   static Object[] split(ClientFileSystem fileSys, String fileName) throws InputException {
-    if (fileName.startsWith(ArgFactory.PATTERN) || !CliUtils.isAbsolute(fileName)) {
-      return new Object[] { fileSys.getBaseDir(), fileName };
-    } else {
-      int idx = fileName.lastIndexOf("/");
-      if (idx <= 0) {
-        idx = fileName.lastIndexOf("\\");
-      }
-      if (idx <= 0) {
-        throw new InputException("Invalid file name: " + fileName);
-      }
-      
-      String baseDirName = fileName.substring(0, idx);
-      String theFileName = fileName.substring(idx + 1);
-      
-      return new Object[] { fileSys.getFile(baseDirName), theFileName };
+    int idx = fileName.lastIndexOf("/");
+    if (idx <= 0) {
+      idx = fileName.lastIndexOf("\\");
     }
+    
+    String baseDirName = null;
+    String theFileName = null;
+    
+    if (idx <= 0) {
+      baseDirName = fileSys.getBaseDir().getAbsolutePath();
+      theFileName = fileName;
+    } else if (idx >= fileName.length() - 1) {
+      throw new InputException("Cannot deploy a directory: " + fileName);
+    } else {
+      baseDirName = fileName.substring(0, idx);
+      theFileName = fileName.substring(idx + 1);      
+    }
+    return new Object[] { fileSys.getFile(baseDirName), theFileName };
   }
 
 }

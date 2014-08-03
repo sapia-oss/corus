@@ -29,6 +29,10 @@ public class ExecProcessesByConfig extends AbstractExecCommand {
   protected List<OptionDef> getAvailableOptions() {
     return new ArrayList<OptionDef>();
   }
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

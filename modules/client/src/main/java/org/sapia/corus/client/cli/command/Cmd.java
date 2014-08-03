@@ -21,6 +21,10 @@ public class Cmd extends NoOptionCommand {
   private static int COMMAND_TIME_OUT = 5000;
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     try {

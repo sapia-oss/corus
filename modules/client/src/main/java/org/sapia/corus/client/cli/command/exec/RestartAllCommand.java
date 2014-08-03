@@ -18,6 +18,10 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 public class RestartAllCommand extends RestartAndWaitCommandSupport {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     ClusterInfo cluster = getClusterInfo(ctx);

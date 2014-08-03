@@ -44,7 +44,12 @@ public class Sort extends NoOptionCommand {
         .createCol("value", 6)
         .createCol("sort",  6)
         .createCol("description", 45);
-   
+  
+  @Override
+  protected void doInit(CliContext context) {
+    TBL.setTableWidth(context.getConsole().getWidth());
+  }
+  
   @Override
   protected void doExecute(CliContext ctx) throws AbortException,
       InputException {
@@ -102,7 +107,7 @@ public class Sort extends NoOptionCommand {
       headers.getCellAt(TBL.col("description").index()).append("Description");
       headers.flush();      
       
-      propsTable.drawLine('-', 0, CONSOLE_WIDTH);
+      propsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
       for (SortSwitchInfo s : ctx.getSortSwitches()) {
         Row row = propsTable.newRow();

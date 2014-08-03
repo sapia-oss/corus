@@ -26,6 +26,10 @@ public class ExecProcessByDescriptors extends AbstractExecCommand {
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

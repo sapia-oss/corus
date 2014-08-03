@@ -16,6 +16,7 @@ import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.Console;
 import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleOutput;
+import org.sapia.console.TerminalFacade;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -180,10 +181,17 @@ public class Interpreter extends Console {
   // ==========================================================================
 
   static class InterpreterConsoleInput implements ConsoleInput {
+    
+    private TerminalFacade terminal = new DefaultTerminalFacade();
 
     @Override
     public String readLine() throws IOException {
       throw new IllegalStateException("Cannot read command from input in interpreter mode");
+    }
+    
+    @Override
+    public TerminalFacade getTerminal() {
+      return terminal;
     }
 
     @Override

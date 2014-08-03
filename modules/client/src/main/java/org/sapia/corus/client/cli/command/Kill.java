@@ -45,6 +45,10 @@ public class Kill extends CorusCliCommand {
   }
   
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }

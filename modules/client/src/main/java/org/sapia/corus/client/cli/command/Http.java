@@ -67,6 +67,10 @@ public class Http extends CorusCliCommand {
   private static final int DEFAULT_INTERVAL     = 30;
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     if (ctx.getCommandLine().isNextArg()) {

@@ -14,6 +14,10 @@ import org.sapia.ubik.net.TCPAddress;
  * @author Yanick Duchesne
  */
 public class Exit extends NoOptionCommand {
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

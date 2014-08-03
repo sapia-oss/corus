@@ -18,6 +18,10 @@ public class NoOptionCommandTest {
     cmd = new NoOptionCommand() {
       
       @Override
+      protected void doInit(CliContext context) {
+      }
+      
+      @Override
       protected void doExecute(CliContext ctx) throws AbortException,
           InputException {
       }

@@ -13,6 +13,10 @@ import org.sapia.corus.client.cli.CliContext;
 public class Echo extends NoOptionCommand {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     while (ctx.getCommandLine().hasNext()) {
       ctx.getConsole().println(ctx.getCommandLine().next().toString());

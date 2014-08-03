@@ -37,6 +37,12 @@ public class Err extends CorusCliCommand {
   );
 
   // --------------------------------------------------------------------------
+  
+  
+  protected void doInit(CliContext context) {
+    ERR_DETAIL.setTableWidth(context.getConsole().getWidth());
+    ERR_LIST.setTableWidth(context.getConsole().getWidth());
+  }
 
   public void doExecute(CliContext aContext) throws AbortException, InputException {
 
@@ -107,22 +113,22 @@ public class Err extends CorusCliCommand {
    * @param aMaxCount
    *          The maximum number of errors to show.
    */
-  private void doShowErrorList(CliContext aContext, int aMaxCount) {
-    Table table = ERR_LIST.createTable(aContext.getConsole().out());
+  private void doShowErrorList(CliContext ctx, int aMaxCount) {
+    Table table = ERR_LIST.createTable(ctx.getConsole().out());
 
-    table.drawLine('=', 0, CONSOLE_WIDTH);
-    aContext.getConsole().println(" ERROR LIST");
-    table.drawLine('=', 0, CONSOLE_WIDTH);
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
+    ctx.getConsole().println(" ERROR LIST");
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row headers = table.newRow();
     headers.getCellAt(ERR_LIST.col("id").index()).append("Id");
     headers.getCellAt(ERR_LIST.col("msg").index()).append("Error");
     headers.flush();
 
-    table.drawLine('-', 0, CONSOLE_WIDTH);
+    table.drawLine('-', 0, ctx.getConsole().getWidth());
 
     int count = 0;
-    for (Iterator<CliError> it = aContext.getErrors().iterator(); it.hasNext() && count++ < aMaxCount;) {
+    for (Iterator<CliError> it = ctx.getErrors().iterator(); it.hasNext() && count++ < aMaxCount;) {
       CliError error = it.next();
 
       Row data = table.newRow();
@@ -131,8 +137,8 @@ public class Err extends CorusCliCommand {
       data.flush();
     }
 
-    table.drawLine('=', 0, CONSOLE_WIDTH);
-    aContext.getConsole().println();
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
+    ctx.getConsole().println();
   }
 
   /**
@@ -179,12 +185,12 @@ public class Err extends CorusCliCommand {
     }
   }
 
-  private void displayErrorDetailsInTable(CliContext aContext, CliError anError) {
-    Table table = ERR_DETAIL.createTable(aContext.getConsole().out());
+  private void displayErrorDetailsInTable(CliContext ctx, CliError anError) {
+    Table table = ERR_DETAIL.createTable(ctx.getConsole().out());
 
-    table.drawLine('=', 0, CONSOLE_WIDTH);
-    aContext.getConsole().println(" ERROR DETAILS");
-    table.drawLine('=', 0, CONSOLE_WIDTH);
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
+    ctx.getConsole().println(" ERROR DETAILS");
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
 
     // Error id
     Row data = table.newRow();
@@ -212,14 +218,14 @@ public class Err extends CorusCliCommand {
 
     if (anError.getCause() != null) {
       // Exception
-      table.drawLine('-', 0, CONSOLE_WIDTH);
-      aContext.getConsole().print(" CAUSED BY:  ");
-      aContext.getConsole().out().flush();
-      aContext.getConsole().out().println(ExceptionUtils.getStackTrace(anError.getCause()));
+      table.drawLine('-', 0, ctx.getConsole().getWidth());
+      ctx.getConsole().print(" CAUSED BY:  ");
+      ctx.getConsole().out().flush();
+      ctx.getConsole().out().println(ExceptionUtils.getStackTrace(anError.getCause()));
     }
 
-    table.drawLine('=', 0, CONSOLE_WIDTH);
-    aContext.getConsole().println();
+    table.drawLine('=', 0, ctx.getConsole().getWidth());
+    ctx.getConsole().println();
   }
 
 }

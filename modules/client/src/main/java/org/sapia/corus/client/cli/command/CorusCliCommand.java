@@ -92,8 +92,6 @@ public abstract class CorusCliCommand implements Command {
   
   // --------------------------------------------------------------------------
 
-  public static final int CONSOLE_WIDTH = 80;
-
   public static final OptionDef OPT_CLUSTER           = new OptionDef("cluster", false);
   public static final OptionDef OPT_DIST              = new OptionDef("d", true);
   public static final OptionDef OPT_VERSION           = new OptionDef("v", true);
@@ -107,16 +105,25 @@ public abstract class CorusCliCommand implements Command {
   public static final String WILD_CARD = "*";
 
   private static final String NO_VALIDATE = "no-validate";
+  
+  private volatile boolean initialized;
 
+  
   /**
    * @see org.sapia.console.Command#execute(Context)
    */
   public void execute(Context ctx) throws AbortException, InputException {
-    CliContext cliCtx = (CliContext) ctx;
+    CliContext cliCtx = (CliContext) ctx;    
+    if (!initialized) {
+      doInit(cliCtx);
+      initialized = true;
+    }
 
+    
+    
     try {
+      validate(ctx.getCommandLine());      
       doExecute(cliCtx);
-
     } catch (InputException ie) {
       CliError err = cliCtx.createAndAddErrorFor(this, ie);
       ctx.getConsole().println(err.getSimpleMessage());
@@ -140,6 +147,19 @@ public abstract class CorusCliCommand implements Command {
     return getClass().getSimpleName().toLowerCase();
   }
 
+  /**
+   * This method is called only at this instance's first {@link #doExecute(CliContext)} invocation.
+   * 
+   * @param context the {@link CliContext} corresponding to the current invocation.
+   * 
+   */
+  protected abstract void doInit(CliContext context);
+  
+  /**
+   * @param ctx the current {@link CliContext}.
+   * @throws AbortException if the CLI should be terminated.
+   * @throws InputException if wrong input as been passed.
+   */
   protected abstract void doExecute(CliContext ctx) throws AbortException, InputException;
 
   protected void displayProgress(ProgressQueue queue, CliContext ctx) {
@@ -276,8 +296,12 @@ public abstract class CorusCliCommand implements Command {
           Option o = (Option) e;
           OptionDef d = byName.get(o.getName());
           if (d == null) {
-            Set<OptionDef> sorted = new TreeSet<CorusCliCommand.OptionDef>(availableOptions); 
-            throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), sorted));
+            if (availableOptions.isEmpty()) {
+              throw new InputException("Command does not support options");
+            } else {
+              Set<OptionDef> sorted = new TreeSet<CorusCliCommand.OptionDef>(availableOptions); 
+              throw new InputException(String.format("Unsupported option: %s. Supported options are: %s", o.getName(), sorted));
+            }
           }
           if (d.mustHaveValue && (o.getValue() == null || o.getValue().trim().length() == 0)) {
             throw new InputException(String.format("Option %s must have a value", o.getName()));

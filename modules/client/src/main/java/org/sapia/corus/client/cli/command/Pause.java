@@ -15,6 +15,10 @@ import org.sapia.corus.client.cli.CliContext;
 public class Pause extends NoOptionCommand {
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     int seconds = Integer.parseInt(ctx.getCommandLine().assertNextArg().getName());
     try {

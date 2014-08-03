@@ -34,6 +34,11 @@ public class CorusCliCommandTest {
   @Before
   public void setUp() {
     cmd = new CorusCliCommand() {
+      
+      @Override
+      protected void doInit(CliContext context) {
+      }
+      
       @Override
       protected void doExecute(CliContext ctx) throws AbortException {
       }

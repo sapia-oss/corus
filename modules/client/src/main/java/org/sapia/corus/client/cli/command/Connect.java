@@ -16,6 +16,10 @@ public class Connect extends CorusCliCommand {
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(OPT_HOST, OPT_PORT);
   
   private static final int DEFAULT_PORT = 33000;
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

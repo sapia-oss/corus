@@ -27,17 +27,21 @@ public class Deploy extends CorusCliCommand {
 
   private static final String SCRIPT_DESC_UNDEFINED = "no desc.";
 
-  private static final OptionDef OPT_EXEC_CONF = new OptionDef("e", true);
-  private static final OptionDef OPT_FILE = new OptionDef("f", true);
-  private static final OptionDef OPT_SCRIPT = new OptionDef("s", true);
+  private static final OptionDef OPT_EXEC_CONF   = new OptionDef("e", true);
+  private static final OptionDef OPT_FILE        = new OptionDef("f", true);
+  private static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
   private static final OptionDef OPT_DESC_OR_DIR = new OptionDef("d", true);
-  private static final OptionDef OPT_ALIAS = new OptionDef("a", true);
-  private static final OptionDef OPT_SEQ = new OptionDef("seq", false);
+  private static final OptionDef OPT_ALIAS       = new OptionDef("a", true);
+  private static final OptionDef OPT_SEQ         = new OptionDef("seq", false);
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
     OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, OPT_SEQ,
     OPT_CLUSTER
   );
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
     
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {

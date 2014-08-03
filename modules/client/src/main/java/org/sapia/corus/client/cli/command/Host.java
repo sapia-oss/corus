@@ -10,6 +10,10 @@ import org.sapia.corus.client.cli.CliContext;
  * @author Yanick Duchesne
  */
 public class Host extends NoOptionCommand {
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     StringBuilder hostInfo = new StringBuilder();

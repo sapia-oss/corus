@@ -29,11 +29,12 @@ public class Cron extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private static final String STAR = "*";
-  private static final String ADD = "add";
-  private static final String LIST = "list";
-  private static final String LS = "ls";
+  private static final String STAR   = "*";
+  private static final String ADD    = "add";
+  private static final String LIST   = "list";
+  private static final String LS     = "ls";
   private static final String REMOVE = "delete";
+  
   private static final OptionDef JOB_ID = new OptionDef("i", true);
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       JOB_ID, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_PROCESS_NAME, OPT_CLUSTER
@@ -48,6 +49,12 @@ public class Cron extends CorusCliCommand {
   @Override
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
+  }
+  
+  @Override
+  protected void doInit(CliContext context) {
+    CRON_TBL.setTableWidth(context.getConsole().getWidth());
+    HOST_TBL.setTableWidth(context.getConsole().getWidth());
   }
   
   @Override
@@ -86,7 +93,7 @@ public class Cron extends CorusCliCommand {
   private void displayJob(CronJobInfo info, CliContext ctx) {
     Table cronTable = CRON_TBL.createTable(ctx.getConsole().out());
 
-    cronTable.drawLine('-', 0, CONSOLE_WIDTH);
+    cronTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = cronTable.newRow();
     row.getCellAt(CRON_TBL.col("id").index()).append(info.getId());
@@ -126,12 +133,12 @@ public class Cron extends CorusCliCommand {
     Table hostTable = HOST_TBL.createTable(ctx.getConsole().out());
     Table infoTable = CRON_TBL.createTable(ctx.getConsole().out());
 
-    hostTable.drawLine('=', 0, CONSOLE_WIDTH);
+    hostTable.drawLine('=', 0, ctx.getConsole().getWidth());
     Row row = hostTable.newRow();
     row.getCellAt(HOST_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    hostTable.drawLine(' ', 0, CONSOLE_WIDTH);
+    hostTable.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = infoTable.newRow();
     headers.getCellAt(CRON_TBL.col("id").index()).append("ID");

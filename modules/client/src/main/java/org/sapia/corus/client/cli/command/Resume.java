@@ -26,6 +26,10 @@ public class Resume extends CorusCliCommand {
   }
 
   @Override
+  protected void doInit(CliContext context) {
+  }
+  
+  @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     ProcessCriteria.Builder builder = ProcessCriteria.builder();

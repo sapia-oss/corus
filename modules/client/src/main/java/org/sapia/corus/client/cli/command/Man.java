@@ -57,6 +57,10 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("undeploy", Undeploy.class);
     COMMANDS.put("ver", Ver.class);
   }
+  
+  @Override
+  protected void doInit(CliContext context) {
+  }
 
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     CmdLine cmd = ctx.getCommandLine();

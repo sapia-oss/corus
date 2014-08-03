@@ -25,21 +25,24 @@ import org.sapia.ubik.util.Collects;
  */
 public class Ps extends CorusCliCommand {
 
-  private static final TableDef PROC_TBL = TableDef.newInstance().createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
+  private static final TableDef PROC_TBL = TableDef.newInstance()
+      .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ospid", 6).createCol("status", 9);
 
-  private static final TableDef PROC_PORTS_TBL = TableDef.newInstance().createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
+  private static final TableDef PROC_PORTS_TBL = TableDef.newInstance()
+      .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ports", 15);
 
-  private static TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
+  private static TableDef TITLE_TBL = TableDef.newInstance()
+      .createCol("val", 78);
 
   // --------------------------------------------------------------------------
 
   private static final String TERMINATING = "shutd.";
-  private static final String ACTIVE = "act.";
-  private static final String RESTART = "rest.";
-  private static final String SUSPENDED = "susp.";
-  private static final String STALLED = "stal.";
+  private static final String ACTIVE      = "act.";
+  private static final String RESTART     = "rest.";
+  private static final String SUSPENDED   = "susp.";
+  private static final String STALLED     = "stal.";
 
   private static final OptionDef OPT_PORTS = new OptionDef("ports", false);
   
@@ -52,6 +55,13 @@ public class Ps extends CorusCliCommand {
   
   protected java.util.List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
+  }
+  
+  @Override
+  protected void doInit(CliContext context) {
+    PROC_TBL.setTableWidth(context.getConsole().getWidth());
+    PROC_PORTS_TBL.setTableWidth(context.getConsole().getWidth());
+    TITLE_TBL.setTableWidth(context.getConsole().getWidth());
   }
 
   @Override
@@ -120,7 +130,7 @@ public class Ps extends CorusCliCommand {
   private void displayProcess(Process proc, CliContext ctx, boolean displayPorts) {
     Table procTable = displayPorts ? PROC_PORTS_TBL.createTable(ctx.getConsole().out()) : PROC_TBL.createTable(ctx.getConsole().out());
 
-    procTable.drawLine('-', 0, CONSOLE_WIDTH);
+    procTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = procTable.newRow();
     row.getCellAt(PROC_TBL.col("dist").index()).append(proc.getDistributionInfo().getName());
@@ -162,13 +172,13 @@ public class Ps extends CorusCliCommand {
     Table procTable = displayPorts ? PROC_PORTS_TBL.createTable(ctx.getConsole().out()) : PROC_TBL.createTable(ctx.getConsole().out());
     Table titleTable = TITLE_TBL.createTable(ctx.getConsole().out());
 
-    titleTable.drawLine('=', 0, CONSOLE_WIDTH);
+    titleTable.drawLine('=', 0, ctx.getConsole().getWidth());
 
     Row row = titleTable.newRow();
     row.getCellAt(TITLE_TBL.col("val").index()).append("Host: ").append(addr.getFormattedAddress());
     row.flush();
 
-    procTable.drawLine(' ', 0, CONSOLE_WIDTH);
+    procTable.drawLine(' ', 0, ctx.getConsole().getWidth());
 
     Row headers = procTable.newRow();
     headers.getCellAt(PROC_TBL.col("dist").index()).append("Distribution");
