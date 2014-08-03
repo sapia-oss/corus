@@ -28,11 +28,11 @@ import org.sapia.ubik.util.Collects;
  */
 public class Status extends CorusCliCommand {
 
-  private static final TableDef STAT_TBL = TableDef.newInstance()
+  private final TableDef STAT_TBL = TableDef.newInstance()
       .createCol("pid", 15).createCol("context", 15)
       .createCol("name", 15).createCol("value", 25);
 
-  private static final TableDef TITLE_TBL = TableDef.newInstance()
+  private final TableDef TITLE_TBL = TableDef.newInstance()
       .createCol("val", 78);
 
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(

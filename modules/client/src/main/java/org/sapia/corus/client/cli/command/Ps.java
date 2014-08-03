@@ -25,15 +25,15 @@ import org.sapia.ubik.util.Collects;
  */
 public class Ps extends CorusCliCommand {
 
-  private static final TableDef PROC_TBL = TableDef.newInstance()
+  private final TableDef PROC_TBL = TableDef.newInstance()
       .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ospid", 6).createCol("status", 9);
 
-  private static final TableDef PROC_PORTS_TBL = TableDef.newInstance()
+  private final TableDef PROC_PORTS_TBL = TableDef.newInstance()
       .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ports", 15);
 
-  private static TableDef TITLE_TBL = TableDef.newInstance()
+  private TableDef TITLE_TBL = TableDef.newInstance()
       .createCol("val", 78);
 
   // --------------------------------------------------------------------------

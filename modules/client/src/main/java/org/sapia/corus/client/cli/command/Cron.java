@@ -22,10 +22,13 @@ import org.sapia.ubik.util.Collects;
  */
 public class Cron extends CorusCliCommand {
 
-  private static TableDef CRON_TBL = TableDef.newInstance().createCol("id", 17).createCol("dist", 7).createCol("version", 7).createCol("vm", 7)
-      .createCol("profile", 10).createCol("hour", 2).createCol("minute", 2).createCol("day", 2).createCol("month", 2).createCol("year", 4);
+  private TableDef CRON_TBL = TableDef.newInstance()
+      .createCol("id", 17).createCol("dist", 7).createCol("version", 7).createCol("vm", 7)
+      .createCol("profile", 10).createCol("hour", 2).createCol("minute", 2)
+      .createCol("day", 2).createCol("month", 2).createCol("year", 4);
 
-  private static TableDef HOST_TBL = TableDef.newInstance().createCol("val", 78);
+  private TableDef HOST_TBL = TableDef.newInstance()
+      .createCol("val", 78);
 
   // --------------------------------------------------------------------------
 

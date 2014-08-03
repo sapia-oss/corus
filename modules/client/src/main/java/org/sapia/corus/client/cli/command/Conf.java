@@ -48,11 +48,11 @@ public class Conf extends CorusCliCommand {
   private static final String PASSWORD_PATTERN = "password";
   private static final String PASSWORD_OBFUSCATION = "********";
 
-  private static final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 38).createCol("val", 38);
+  private final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 38).createCol("val", 38);
 
-  private static final TableDef TAGS_TBL = TableDef.newInstance().createCol("val", 78);
+  private final TableDef TAGS_TBL = TableDef.newInstance().createCol("val", 78);
 
-  private static final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
+  private final TableDef TITLE_TBL = TableDef.newInstance().createCol("val", 78);
 
   // --------------------------------------------------------------------------
 

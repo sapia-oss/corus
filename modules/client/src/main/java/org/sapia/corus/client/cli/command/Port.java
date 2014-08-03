@@ -37,11 +37,11 @@ import org.sapia.ubik.util.Func;
  */
 public class Port extends CorusCliCommand {
 
-  private static final TableDef RANGE_TBL = TableDef.newInstance()
+  private final TableDef RANGE_TBL = TableDef.newInstance()
       .createCol("name", 10).createCol("range", 15)
       .createCol("avail", 24).createCol("active", 24);
 
-  private static TableDef TITLE_TBL = TableDef.newInstance()
+  private TableDef TITLE_TBL = TableDef.newInstance()
       .createCol("val", 78);
 
   // --------------------------------------------------------------------------

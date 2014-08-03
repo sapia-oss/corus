@@ -40,7 +40,7 @@ public class Sort extends NoOptionCommand {
   
   private static final String SORT_DESCENDING = "d";
   
-  private static final TableDef TBL = TableDef.newInstance()
+  private final TableDef TBL = TableDef.newInstance()
         .createCol("value", 6)
         .createCol("sort",  6)
         .createCol("description", 45);

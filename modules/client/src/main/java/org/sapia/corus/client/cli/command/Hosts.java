@@ -24,7 +24,7 @@ import org.sapia.ubik.net.TCPAddress;
  */
 public class Hosts extends NoOptionCommand {
 
-  private static final TableDef TBL = TableDef.newInstance()
+  private final TableDef TBL = TableDef.newInstance()
       .createCol("host", 10)
       .createCol("addr", 15)
       .createCol("os", 15)

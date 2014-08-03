@@ -37,11 +37,11 @@ public class Cluster extends CorusCliCommand {
   
   private static final OptionDef OPT_ASSERT = new OptionDef("assert", true);
 
-  private static final TableDef STATUS_TBL = TableDef.newInstance()
+  private final TableDef STATUS_TBL = TableDef.newInstance()
       .createCol("host", 30)
       .createCol("role", 32);
   
-  private static final TableDef CHECK_TBL = TableDef.newInstance()
+  private final TableDef CHECK_TBL = TableDef.newInstance()
       .createCol("host", 30)
       .createCol("role", 32)
       .createCol("status", 8);
