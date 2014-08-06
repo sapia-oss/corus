@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli.command.exec;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
@@ -20,10 +21,20 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  * 
  */
 public class RestartByProcessDescriptorsCommand extends RestartAndWaitCommandSupport {
+  
+  private static List<OptionDef> AVAIL_OPTIONS = new ArrayList<OptionDef>(RestartAndWaitCommandSupport.AVAIL_OPTIONS);
+  static {
+    AVAIL_OPTIONS.add(OPT_HARD_KILL);
+  }
 
   @Override
   protected List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
+  }
+  
+  @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
   }
   
   @Override

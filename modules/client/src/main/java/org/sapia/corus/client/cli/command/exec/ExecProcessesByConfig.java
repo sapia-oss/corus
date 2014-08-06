@@ -1,9 +1,9 @@
 package org.sapia.corus.client.cli.command.exec;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.command.Exec;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Implements execution of processes by configuration (
@@ -24,10 +25,18 @@ import org.sapia.corus.client.services.processor.ProcessDef;
  * 
  */
 public class ExecProcessesByConfig extends AbstractExecCommand {
-  
+    
   @Override
   protected List<OptionDef> getAvailableOptions() {
-    return new ArrayList<OptionDef>();
+    return Collects.arrayToList(Exec.OPT_EXEC_CONFIG, Exec.OPT_WAIT);
+  }
+  
+  /**
+   * Overriden to allow for unit testing.
+   */
+  @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
   }
   
   @Override

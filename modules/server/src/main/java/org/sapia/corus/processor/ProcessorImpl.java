@@ -108,7 +108,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     // of time that is longer then some process' tolerated idle delay).
     List<Process> processes = (List<Process>) active.getProcesses(ProcessCriteria.builder().all());
     Process proc;
-
+    
     for (int i = 0; i < processes.size(); i++) {
       proc = (Process) processes.get(i);
       if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
@@ -125,7 +125,16 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         proc.save();
       }
     }
-
+    
+    // remove processes in auto-restart - put them back in active process list
+    // if process is down, it will not poll and enter the shutdown procedure, 
+    // eventually cleaning it up definitively
+    for (Process p : toRestart.getProcesses(ProcessCriteria.builder().all())) {
+      toRestart.removeProcess(p.getProcessID());
+      p.setStatus(LifeCycleStatus.ACTIVE);
+      active.addProcess(p);
+    }
+    
     if (!configuration.autoRestartStaleProcesses()) {
       log.warn("Process auto-restart is disabled. Stale processes will not automatically be restarted");
     }

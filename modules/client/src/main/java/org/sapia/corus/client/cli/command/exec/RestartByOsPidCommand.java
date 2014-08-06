@@ -1,6 +1,5 @@
 package org.sapia.corus.client.cli.command.exec;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
@@ -15,6 +14,7 @@ import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Implements the logic to restart process by OS pid (
@@ -28,12 +28,17 @@ public class RestartByOsPidCommand extends AbstractExecCommand {
   private static final long PAUSE = 1000;
   
   @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
+  }
+  
+  @Override
   protected void doInit(CliContext context) {
   }
   
   @Override
   protected List<OptionDef> getAvailableOptions() {
-    return new ArrayList<OptionDef>();
+    return Collects.arrayToList(OPT_OS_PID, OPT_HARD_KILL);
   }
 
   @Override

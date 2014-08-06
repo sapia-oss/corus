@@ -156,9 +156,12 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
 
   protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) throws Throwable {
     try {
-      ProcessorConfiguration procConfig = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
       ctx.info(String.format("Process kill (by %s) confirmed for %s", requestor, proc));
 
+      ProcessorConfiguration procConfig = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
+      PortManager ports = ctx.getServerContext().getServices().getPortManager();
+      proc.releasePorts(ports);
+      
       try {
         OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {

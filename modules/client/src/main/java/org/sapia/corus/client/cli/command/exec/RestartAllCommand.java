@@ -1,6 +1,7 @@
 package org.sapia.corus.client.cli.command.exec;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
@@ -17,6 +18,11 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  */
 public class RestartAllCommand extends RestartAndWaitCommandSupport {
 
+  @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
+  }
+  
   @Override
   protected void doInit(CliContext context) {
   }

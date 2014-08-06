@@ -44,10 +44,11 @@ public class RestartTask extends KillTask {
       DistributionDatabase dists = ctx.getServerContext().getServices().getDistributions();
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
 
-      DistributionCriteria criteria = DistributionCriteria.builder().name(proc.getDistributionInfo().getName())
+      DistributionCriteria criteria = DistributionCriteria.builder()
+          .name(proc.getDistributionInfo().getName())
           .version(proc.getDistributionInfo().getVersion()).build();
 
-      Distribution dist = dists.getDistribution(criteria);
+      Distribution  dist = dists.getDistribution(criteria);
       ProcessConfig conf = dist.getProcess(proc.getDistributionInfo().getProcessName());
 
       synchronized (dists) {
@@ -70,11 +71,12 @@ public class RestartTask extends KillTask {
             processes.getProcessesToRestart().removeProcess(proc.getProcessID());
             proc.clear();
             processes.getActiveProcesses().addProcess(proc);
+            proc.save();
+          } else {
+            processes.getProcessesToRestart().removeProcess(proc.getProcessID());
           }
         } catch (IOException e) {
           ctx.error(String.format("Could not restart: %s", conf.getName()), e);
-        } finally {
-          proc.save();
         }
       }
     } catch (Exception e) {

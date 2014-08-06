@@ -28,6 +28,11 @@ public class ExecProcessByDescriptors extends AbstractExecCommand {
   }
   
   @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
+  }
+  
+  @Override
   protected void doInit(CliContext context) {
   }
 

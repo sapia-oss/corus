@@ -1,6 +1,5 @@
 package org.sapia.corus.client.cli.command.exec;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.console.AbortException;
@@ -15,6 +14,7 @@ import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Restarts processes by JVM identifier (<code>restart -i 12345 12346</code>).
@@ -27,12 +27,17 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
   private static final long PAUSE = 1000;
   
   @Override
+  protected void validate(CmdLine cmdLine) throws InputException {
+    super.validate(cmdLine);
+  }
+  
+  @Override
   protected void doInit(CliContext context) {
   }
   
   @Override
   protected List<OptionDef> getAvailableOptions() {
-    return new ArrayList<OptionDef>();
+    return Collects.arrayToList(OPT_PROCESS_ID, OPT_HARD_KILL);
   }
 
   @Override

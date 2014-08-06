@@ -1,6 +1,5 @@
 package org.sapia.corus.client.cli.command.exec;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +17,7 @@ import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Implements restart-an-wait logic.
@@ -33,7 +33,7 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
   
   @Override
   protected List<OptionDef> getAvailableOptions() {
-    return new ArrayList<OptionDef>();
+    return Collects.arrayToList(OPT_CLUSTER, OPT_WAIT, OPT_HARD_KILL);
   }
 
   /**
