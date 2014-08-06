@@ -1,5 +1,6 @@
 package org.sapia.corus.processor;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
+import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -78,6 +80,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private HttpModule http;
   @Autowired
   private PortManager portManager;
+  @Autowired
+  private OsModule os;
 
   private ProcessRepository processes;
   private ExecConfigDatabaseImpl execConfigs;
@@ -205,13 +209,32 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Override
   public void clean() {
     for (Process p : processes.getProcessesToRestart().getProcesses(ProcessCriteria.builder().all())) {
-      processes.getProcessesToRestart().removeProcess(p.getProcessID());      
+      processes.getProcessesToRestart().removeProcess(p.getProcessID());
       p.releasePorts(portManager);
     }
 
     for (Process p : processes.getSuspendedProcesses().getProcesses(ProcessCriteria.builder().all())) {
       processes.getSuspendedProcesses().removeProcess(p.getProcessID());
       p.releasePorts(portManager);
+    }
+    
+    for (Process p : processes.getActiveProcesses().getProcesses(ProcessCriteria.builder().all())) {
+      // trying to kill stale process, just it case it is zombie
+      if (p.getStatus() == LifeCycleStatus.STALE) {
+        try {
+          os.killProcess(new OsModule.LogCallback() {
+            @Override
+            public void error(String error) {
+            }
+            @Override
+            public void debug(String msg) {
+            }
+          }, p.getOsPid());
+        } catch (IOException e) {
+        }
+        processes.getSuspendedProcesses().removeProcess(p.getProcessID());
+        p.releasePorts(portManager);
+      }
     }
   }
 
