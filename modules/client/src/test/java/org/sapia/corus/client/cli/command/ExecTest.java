@@ -21,6 +21,11 @@ public class ExecTest {
   public void testValidateOption_cluster() {
     exec.validate(CmdLine.parse("-cluster"));
   }
+  
+  @Test
+  public void testValidateOption_clean() {
+    exec.validate(CmdLine.parse("-clean"));
+  }
 
   @Test
   public void testValidateOption_e() {

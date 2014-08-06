@@ -170,6 +170,11 @@ public interface Processor extends java.rmi.Remote, Module {
    *          argument.
    */
   public void removeExecConfig(Arg name);
+  
+  /**
+   * Cleans process info.
+   */
+  public void clean();
 
   /**
    * @return this instance's {@link ProcessorConfiguration}

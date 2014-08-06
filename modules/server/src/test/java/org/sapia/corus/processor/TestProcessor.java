@@ -126,4 +126,8 @@ public class TestProcessor implements Processor{
   public ProcessRepository getProcessDB(){
     return db;
   }
+  
+  @Override
+  public void clean() {
+  }
 }

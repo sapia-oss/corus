@@ -45,10 +45,11 @@ public class Ps extends CorusCliCommand {
   private static final String STALLED     = "stal.";
 
   private static final OptionDef OPT_PORTS = new OptionDef("ports", false);
+  private static final OptionDef OPT_CLEAN = new OptionDef("clean", false);
   
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE,
-      OPT_PORTS, OPT_CLUSTER
+      OPT_PORTS, OPT_CLEAN, OPT_CLUSTER
   );
   
   // --------------------------------------------------------------------------
@@ -74,6 +75,12 @@ public class Ps extends CorusCliCommand {
     boolean displayPorts = false;
 
     CmdLine cmd = ctx.getCommandLine();
+    
+    if (cmd.containsOption(OPT_CLEAN.getName(), false)) {
+      ctx.getConsole().println("Wiping out inactive process info (this will remove all such references from Corus)");
+      ctx.getCorus().getProcessorFacade().clean(getClusterInfo(ctx));
+      return;
+    }
 
     if (cmd.containsOption(OPT_DIST.getName(), true)) {
       dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();

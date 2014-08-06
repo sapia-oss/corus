@@ -22,6 +22,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
+import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
@@ -75,6 +76,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private EventDispatcher events;
   @Autowired
   private HttpModule http;
+  @Autowired
+  private PortManager portManager;
 
   private ProcessRepository processes;
   private ExecConfigDatabaseImpl execConfigs;
@@ -197,6 +200,19 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
     return progress;
 
+  }
+  
+  @Override
+  public void clean() {
+    for (Process p : processes.getProcessesToRestart().getProcesses(ProcessCriteria.builder().all())) {
+      processes.getProcessesToRestart().removeProcess(p.getProcessID());      
+      p.releasePorts(portManager);
+    }
+
+    for (Process p : processes.getSuspendedProcesses().getProcesses(ProcessCriteria.builder().all())) {
+      processes.getSuspendedProcesses().removeProcess(p.getProcessID());
+      p.releasePorts(portManager);
+    }
   }
 
   @Override

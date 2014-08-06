@@ -203,5 +203,11 @@ public interface ProcessorFacade {
    *          a {@link ClusterInfo} instance.
    */
   public Results<List<ProcStatus>> getStatus(ProcessCriteria criteria, ClusterInfo cluster);
+  
+  /**
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   */
+  public void clean(ClusterInfo cluster);
 
 }

@@ -132,5 +132,11 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   public synchronized ProcStatus getStatusFor(String pid) throws ProcessNotFoundException {
     return context.lookup(Processor.class).getStatusFor(pid);
   }
+  
+  @Override
+  public synchronized void clean(ClusterInfo cluster) {
+    proxy.clean();
+    invoker.invokeLenient(void.class, cluster);  
+  }
 
 }
