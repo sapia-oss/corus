@@ -20,6 +20,11 @@ public class PsTest {
   }
   
   @Test
+  public void testValidateOption_clean() {
+    ps.validate(CmdLine.parse("-clean"));
+  }
+  
+  @Test
   public void testValidateOption_d() {
     ps.validate(CmdLine.parse("-d d"));
   }

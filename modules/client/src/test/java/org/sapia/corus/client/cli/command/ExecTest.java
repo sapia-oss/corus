@@ -23,11 +23,6 @@ public class ExecTest {
   }
   
   @Test
-  public void testValidateOption_clean() {
-    exec.validate(CmdLine.parse("-clean"));
-  }
-
-  @Test
   public void testValidateOption_e() {
     exec.validate(CmdLine.parse("-e e"));
   }
