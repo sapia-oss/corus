@@ -13,12 +13,17 @@ public class ExecProcessesByConfigTest {
   public void setUp() {
     exec = new ExecProcessesByConfig();
   }
+  
+  @Test
+  public void testValidationOption_cluster() {
+    exec.validate(CmdLine.parse("-cluster"));
+  }
 
   @Test
   public void testValidationOption_e() {
     exec.validate(CmdLine.parse("-e e"));
   }
-
+  
   @Test(expected = InputException.class)
   public void testValidationOption_e_no_value() {
     exec.validate(CmdLine.parse("-e"));

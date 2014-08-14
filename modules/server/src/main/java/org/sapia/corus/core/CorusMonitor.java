@@ -45,7 +45,7 @@ public class CorusMonitor {
     int level = ProgressMsg.DEBUG;
 
     try {
-      String verbosity = cmd.assertOption(CorusServer.DEBUG_VERBOSITY, true).getValue();
+      String verbosity = cmd.assertOption(CorusServer.LOG_VERBOSITY_OPT, true).getValue();
       verbosity = verbosity.toLowerCase();
 
       if (verbosity.startsWith("debug")) {

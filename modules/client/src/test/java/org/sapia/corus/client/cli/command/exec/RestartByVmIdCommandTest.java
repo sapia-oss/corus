@@ -13,7 +13,12 @@ public class RestartByVmIdCommandTest {
   public void setUp() {
     restart = new RestartByVmIdCommand();
   }
-
+  
+  @Test(expected = InputException.class)
+  public void testValidationOption_cluster() {
+    restart.validate(CmdLine.parse("-cluster"));
+  }
+  
   @Test
   public void testValidateOption_i() {
     restart.validate(CmdLine.parse("-i i"));

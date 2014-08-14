@@ -13,6 +13,11 @@ public class RestartByOsPidCommandTest {
   public void setUp() {
     restart = new RestartByOsPidCommand();
   }
+  
+  @Test(expected = InputException.class)
+  public void testValidationOption_cluster() {
+    restart.validate(CmdLine.parse("-cluster"));
+  }
 
   @Test
   public void testValidateOption_op() {

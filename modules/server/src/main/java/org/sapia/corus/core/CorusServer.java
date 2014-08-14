@@ -50,19 +50,19 @@ import org.sapia.ubik.util.Conf;
  * @author Yanick Duchesne
  */
 public class CorusServer {
-  public static final int DEFAULT_PORT = 33000;
-  public static final String CONFIG_FILE_OPT = "c";
-  public static final String PORT_OPT = "p";
-  public static final String DOMAIN_OPT = "d";
-  public static final String BIND_ADDR_OPT = "a";
-  public static final String DEBUG_VERBOSITY = "v";
-  public static final String DEBUG_FILE = "f";
-  public static final String USER_DATA = "u";
-  public static final String PROP_SYSLOG_HOST = "corus.server.syslog.host";
-  public static final String PROP_SYSLOG_PORT = "corus.server.syslog.port";
+  public static final int DEFAULT_PORT            = 33000;
+  public static final String CONFIG_FILE_OPT      = "c";
+  public static final String PORT_OPT             = "p";
+  public static final String DOMAIN_OPT           = "d";
+  public static final String BIND_ADDR_OPT        = "a";
+  public static final String LOG_VERBOSITY_OPT    = "v";
+  public static final String LOG_FILE_OPT         = "f";
+  public static final String USER_DATA            = "u";
+  public static final String PROP_SYSLOG_HOST     = "corus.server.syslog.host";
+  public static final String PROP_SYSLOG_PORT     = "corus.server.syslog.port";
   public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
-  public static final String PROP_INCLUDES = "corus.server.properties.include";
-  private static final String LOCK_FILE_NAME = ".lock";
+  public static final String PROP_INCLUDES        = "corus.server.properties.include";
+  private static final String LOCK_FILE_NAME      = ".lock";
 
   @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
@@ -245,8 +245,8 @@ public class CorusServer {
 
       Priority p = Priority.DEBUG;
 
-      if (cmd.containsOption(DEBUG_VERBOSITY, true)) {
-        p = Priority.getPriorityForName(cmd.assertOption(DEBUG_VERBOSITY, true).getValue());
+      if (cmd.containsOption(LOG_VERBOSITY_OPT, true)) {
+        p = Priority.getPriorityForName(cmd.assertOption(LOG_VERBOSITY_OPT, true).getValue());
 
         if (p == null) {
           p = Priority.DEBUG;
@@ -255,12 +255,12 @@ public class CorusServer {
 
       h.setDefaultPriority(p);
 
-      if (cmd.containsOption(DEBUG_FILE, false)) {
+      if (cmd.containsOption(LOG_FILE_OPT, false)) {
 
         File logsDir;
 
-        if (cmd.containsOption(DEBUG_FILE, true)) {
-          logsDir = new File(cmd.assertOption(DEBUG_FILE, true).getValue());
+        if (cmd.containsOption(LOG_FILE_OPT, true)) {
+          logsDir = new File(cmd.assertOption(LOG_FILE_OPT, true).getValue());
         } else {
           logsDir = new File(corusHome + File.separator + "logs");
         }
