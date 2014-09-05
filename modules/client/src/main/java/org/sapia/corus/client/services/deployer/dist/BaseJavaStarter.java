@@ -13,6 +13,7 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.EnvVariableStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
@@ -165,7 +166,9 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     Property[] envProperties = env.getProperties();
 
     CompositeStrLookup propContext = new CompositeStrLookup().add(StrLookup.mapLookup(cmdLineVars))
-        .add(PropertiesStrLookup.getInstance(envProperties)).add(PropertiesStrLookup.getSystemInstance());
+        .add(PropertiesStrLookup.getInstance(envProperties))
+        .add(PropertiesStrLookup.getSystemInstance())
+        .add(new EnvVariableStrLookup());
 
     CmdLine cmd = new CmdLine();
 

@@ -2,6 +2,7 @@ package org.sapia.corus.processor.task;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -152,14 +153,19 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     List<Property> props = new ArrayList<Property>(10);
     String host = null;
+    String hostName = null;
     try {
-      host = Localhost.getPreferredLocalAddress().getHostAddress();
+      InetAddress inetAddr = Localhost.getPreferredLocalAddress();
+      host                 = inetAddr.getHostAddress();
+      hostName             = inetAddr.getHostName();
     } catch (Exception e) {
       host = ctx.getServerContext().getCorusHost().getEndpoint().getServerTcpAddress().getHost();
+      hostName = ctx.getServerContext().getCorusHost().getHostName();
     }
     int port = ctx.getServerContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort();
     props.add(new Property("corus.home", ctx.getServerContext().getHomeDir()));
     props.add(new Property("corus.server.host", host));
+    props.add(new Property("corus.server.host.name", hostName));
     props.add(new Property("corus.server.port", "" + port));
     if (System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
       props.add(new Property("corus.server.domain", System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN)));
