@@ -205,7 +205,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       }
 
       // Adding symbolic links
-      if (dir.getAbsolutePath().equals(context.getHomeDir())) {
+      if (dir.getAbsolutePath().replace("\\", "/").equalsIgnoreCase(context.getHomeDir())) {
         for (Map.Entry<String, String> linkEntry : symlinks.entrySet()) {
           dirs.add(FileEntry.createNewLink(linkEntry.getKey(), new File(linkEntry.getValue())));
         }
