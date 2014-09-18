@@ -3,17 +3,21 @@ package org.sapia.corus.os;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.hyperic.sigar.ProcExe;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.hyperic.sigar.SigarPermissionDeniedException;
+import org.javasimon.callback.logging.LoggingCallback;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.sigar.SigarSupplier;
 import org.sapia.corus.util.IOUtil;
 
@@ -24,11 +28,157 @@ import org.sapia.corus.util.IOUtil;
  *
  */
 public class WindowsProcess implements NativeProcess {
+  
+  /**
+   * Abstracts how the process is killed.
+   * 
+   * @author yduchesne
+   *
+   */
+  public interface KillProcessFunction {
+    
+    /**
+     * @param log the {@link LoggingCallback} instance to log to.
+     * @param pid the OS pid of the process to kill.
+     */
+    public void call(OsModule.LogCallback log, String pid) throws IOException;
+    
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Kills using the <code>pv.exe</code> executable
+   * 
+   * @author yduchesne
+   *
+   */
+  public class KillWithPvFunction implements KillProcessFunction {
+
+    @Override
+    public void call(OsModule.LogCallback log, String pid) throws IOException {
+  
+      // Generate the kill command
+      CmdLine aKillCommand = createPVCmdLine();
+      aKillCommand.addOpt("-kill", null).addOpt("-id", pid).addOpt("-force", null);
+  
+      // Execute the kill command
+      log.debug("--> Executing: " + aKillCommand.toString());
+      ExecHandle pvHandle = aKillCommand.exec();
+  
+      // Extract the output stream of the process
+      ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      log.debug(anOutput.toString("UTF-8"));
+  
+      // Extract the error stream of the process
+      anOutput.reset();
+      IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
+      if (anOutput.size() > 0) {
+        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
+      }   
+    }
+    
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Kills using the <code>taskkill</code> executable
+   * 
+   * @author yduchesne
+   *
+   */
+  public class KillWithTaskKillFunction implements KillProcessFunction {
+
+    @Override
+    public void call(OsModule.LogCallback log, String pid) throws IOException {
+  
+      // Generate the kill command
+      CmdLine aKillCommand = CmdLine.parse(String.format("cmd /c taskkill /PID %s", pid));
+  
+      // Execute the kill command
+      log.debug("--> Executing: " + aKillCommand.toString());
+      ExecHandle pvHandle = aKillCommand.exec();
+  
+      // Extract the output stream of the process
+      ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
+      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      log.debug(anOutput.toString("UTF-8"));
+  
+      // Extract the error stream of the process
+      anOutput.reset();
+      IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
+      if (anOutput.size() > 0) {
+        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
+      }   
+    }
+    
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Kills using <code>SIGAR</code>.
+   * 
+   * @author yduchesne
+   *
+   */
+  public class KillWithSigarFunction implements KillProcessFunction {
+    
+    @Override
+    public void call(LogCallback log, String pid) throws IOException {
+      try {
+        ((Sigar) SigarSupplier.get()).kill(Long.parseLong(pid), KILL_SIG);
+      } catch (SigarException e) {
+        log.debug("Error caught trying to kill process: " + e.getMessage());
+      }
+    }
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Chains a series {@link KillProcessFunction}.
+   * 
+   * @author yduchesne
+   *
+   */
+  public class CompositeKillFunction implements KillProcessFunction {
+    
+    private List<KillProcessFunction> funcs = new ArrayList<WindowsProcess.KillProcessFunction>();
+    
+    @Override
+    public void call(LogCallback log, String pid) throws IOException {
+      for (KillProcessFunction f : funcs) {
+        f.call(log, pid);
+        if (SigarSupplier.isSet()) {
+          try {
+            ProcExe exe = SigarSupplier.get().getProcExe(pid);
+            if (exe == null) {
+              log.debug(String.format("Process %s can no more be found: assuming it was successfully killed", pid));
+              break;
+            } else {
+              log.debug(String.format("Process %s is still up. Diagnostics:", pid));
+              log.debug("  Name:              " + exe.getName());
+              log.debug("  Process directory: " + exe.getCwd());
+            }
+          } catch (SigarException e) {
+            log.debug(String.format("Got SIGAR exception, process %s unavailable (probably been killed successfully): %s)", pid, e.getMessage()));
+            break;
+          }
+        }
+      }
+    }
+    
+  }
+  
+  // ==========================================================================
 
   private static final long PAUSE_AFTER_START = 1000;
-  private static final int BUFSZ = 1024;
-  private static final int COMMAND_TIME_OUT = 5000;
-  private static final int KILL_SIG = 9;
+  private static final int  BUFSZ             = 1024;
+  private static final int  COMMAND_TIME_OUT  = 5000;
+  private static final int  KILL_SIG          = 9;
 
   private static String pvPath;
 
@@ -44,7 +194,8 @@ public class WindowsProcess implements NativeProcess {
     if (pvPath == null) {
       // Generate the command line to the process viewer tool
       StringBuffer aCommand = new StringBuffer();
-      aCommand.append(System.getProperty("corus.home")).append(File.separator).append("bin").append(File.separator).append("win")
+      aCommand.append(System.getProperty("corus.home"))
+          .append(File.separator).append("bin").append(File.separator).append("win")
           .append(File.separator).append("pv.exe");
 
       // Validate the presence and accessibility of the process viewer tool
@@ -177,7 +328,11 @@ public class WindowsProcess implements NativeProcess {
     if (SigarSupplier.isSet() && SigarSupplier.get() instanceof Sigar) {
       try {
         log.debug(String.format("Killing process %s with SIGAR", pid));
-        ((Sigar) SigarSupplier.get()).kill(Long.parseLong(pid), KILL_SIG);
+        
+        CompositeKillFunction func = new CompositeKillFunction();
+        func.funcs.add(new KillWithSigarFunction());
+        func.funcs.add(new KillWithTaskKillFunction());
+        func.call(log, pid);
       } catch (Exception e) {
         log.debug(String.format("Error caught trying to kill process with SIGAR - falling back to default mechanism: %s", e.getMessage()));
         killWithPv(log, pid);
@@ -210,25 +365,8 @@ public class WindowsProcess implements NativeProcess {
   }
   
   private void killWithPv(OsModule.LogCallback log, String pid) throws IOException {
-    // Generate the kill command
-    CmdLine aKillCommand = createPVCmdLine();
-    aKillCommand.addOpt("-kill", null).addOpt("-id", pid).addOpt("-force", null);
-
-    // Execute the kill command
-    log.debug("--> Executing: " + aKillCommand.toString());
-    ExecHandle pvHandle = aKillCommand.exec();
-
-    // Extract the output stream of the process
-    ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
-    log.debug(anOutput.toString("UTF-8"));
-
-    // Extract the error stream of the process
-    anOutput.reset();
-    IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
-    if (anOutput.size() > 0) {
-      log.error("Error killing the process: " + anOutput.toString("UTF-8"));
-    }    
+    KillWithPvFunction func = new KillWithPvFunction();
+    func.call(log, pid); 
   }
   
   private String extractPidUsingPV(OsModule.LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
