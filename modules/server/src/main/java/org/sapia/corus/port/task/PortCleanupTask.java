@@ -27,19 +27,22 @@ public class PortCleanupTask extends RunnableTask {
   public void run() {
     PortManager pm = context().getServerContext().getServices().getPortManager();
     Processor pc = context().getServerContext().getServices().getProcessor();
-    List<Process> processes = pc.getProcessesWithPorts();
-    List<PortRange> ranges = pm.getPortRanges();
-    Set<PortKey> processPorts = new HashSet<PortKey>();
-    for (Process p : processes) {
-      for (ActivePort ap : p.getActivePorts()) {
-        processPorts.add(new PortKey(ap.getName(), ap.getPort()));
+    
+    synchronized (pm) {
+      List<Process> processes = pc.getProcessesWithPorts();
+      List<PortRange> ranges = pm.getPortRanges();
+      Set<PortKey> processPorts = new HashSet<PortKey>();
+      for (Process p : processes) {
+        for (ActivePort ap : p.getActivePorts()) {
+          processPorts.add(new PortKey(ap.getName(), ap.getPort()));
+        }
       }
-    }
-    List<PortRange> toCleanup = new ArrayList<PortRange>(ranges);
-    for (PortRange pr : toCleanup) {
-      for (Integer ap : pr.getActive()) {
-        if (!processPorts.contains(new PortKey(pr.getName(), ap))) {
-          pm.releasePort(pr.getName(), ap);
+      List<PortRange> toCleanup = new ArrayList<PortRange>(ranges);
+      for (PortRange pr : toCleanup) {
+        for (Integer ap : pr.getActive()) {
+          if (!processPorts.contains(new PortKey(pr.getName(), ap))) {
+            pm.releasePort(pr.getName(), ap);
+          }
         }
       }
     }

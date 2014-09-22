@@ -11,8 +11,14 @@
       <property name="server.port" value="8${corus.process.port.http.server}" />
       <xoption  name="ms" value="16M" />
     </java>
+    
+    <java mainClass="org.sapia.corus.examples.HttpServer"
+          profile="prod" vmType="server">
+      <property name="server.port" value="8${corus.process.port.http.server}" />
+      <xoption  name="ms" value="16M" />
+    </java>
   </process>
-
+  
   <process name="restartApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
     <java mainClass="org.sapia.corus.examples.RestartApplication"
           profile="test" vmType="server">

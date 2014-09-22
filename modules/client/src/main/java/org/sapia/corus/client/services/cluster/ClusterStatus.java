@@ -20,14 +20,16 @@ public class ClusterStatus implements Externalizable {
 
   private Role role;
   private CorusHost host;
+  private int nodeCount;
 
   /** DO NOT USE: meant for externalization only. */
   public ClusterStatus() {
   }
 
-  public ClusterStatus(Role role, CorusHost host) {
+  public ClusterStatus(Role role, CorusHost host, int nodeCount) {
     this.role = role;
     this.host = host;
+    this.nodeCount = nodeCount;
   }
 
   /**
@@ -43,6 +45,13 @@ public class ClusterStatus implements Externalizable {
   public CorusHost getHost() {
     return host;
   }
+  
+  /**
+   * @return the number of nodes in the cluster.
+   */
+  public int getNodeCount() {
+    return nodeCount;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable interface
@@ -51,11 +60,13 @@ public class ClusterStatus implements Externalizable {
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     role = (EventChannel.Role) in.readObject();
     host = (CorusHost) in.readObject();
+    nodeCount = in.readInt();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(role);
     out.writeObject(host);
+    out.writeInt(nodeCount);
   }
 }

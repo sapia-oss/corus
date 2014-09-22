@@ -44,6 +44,13 @@ public class PortManagerImplTest {
     ports.releasePort("single", port);
     ports.aquirePort("single");
   }
+  
+  @Test
+  public void testReleaseMultiPort() throws Exception{
+    int port  = ports.aquirePort("multi");
+    ports.releasePort("multi", port);
+    assertEquals(20, ports.aquirePort("multi"));
+  }
 
   @Test
   public void testAddOverlappingPortRange() throws Exception{

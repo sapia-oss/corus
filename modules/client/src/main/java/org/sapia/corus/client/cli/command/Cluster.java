@@ -39,7 +39,8 @@ public class Cluster extends CorusCliCommand {
 
   private final TableDef STATUS_TBL = TableDef.newInstance()
       .createCol("host", 30)
-      .createCol("role", 32);
+      .createCol("role", 32)
+      .createCol("nodeCount", 6);
   
   private final TableDef CHECK_TBL = TableDef.newInstance()
       .createCol("host", 30)
@@ -74,7 +75,7 @@ public class Cluster extends CorusCliCommand {
   
   @Override
   protected List<OptionDef> getAvailableOptions() {
-    return Collects.arrayToList(OPT_ASSERT);
+    return Collects.arrayToList(OPT_ASSERT, OPT_CLUSTER);
   }
 
   private void status(CliContext ctx) throws InputException {
@@ -90,6 +91,7 @@ public class Cluster extends CorusCliCommand {
       Row row = table.newRow();
       row.getCellAt(STATUS_TBL.col("host").index()).append(status.getOrigin().getFormattedAddress());
       row.getCellAt(STATUS_TBL.col("role").index()).append(status.getData().getRole().name());
+      row.getCellAt(STATUS_TBL.col("nodeCount").index()).append(Integer.toString(status.getData().getNodeCount()));
       row.flush();
     }
   }
@@ -160,6 +162,7 @@ public class Cluster extends CorusCliCommand {
     Row headers = table.newRow();
     headers.getCellAt(STATUS_TBL.col("host").index()).append("Host");
     headers.getCellAt(STATUS_TBL.col("role").index()).append("Role");
+    headers.getCellAt(STATUS_TBL.col("nodeCount").index()).append("View");
     headers.flush();
   }
   

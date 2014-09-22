@@ -19,8 +19,6 @@ import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.port.task.PortCleanupTask;
-import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Bind(moduleInterface = PortManager.class)
 @Remote(interfaces = PortManager.class)
 public class PortManagerImpl extends ModuleHelper implements Service, PortManager {
-
-  private static final long EXEC_INTERVAL_MILLIS = 30000;
 
   @Autowired
   private DbModule db;
@@ -65,9 +61,6 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   }
 
   public void start() {
-    taskMan.executeBackground(new PortCleanupTask(), null,
-        BackgroundTaskConfig.create().setExecDelay(EXEC_INTERVAL_MILLIS).setExecInterval(EXEC_INTERVAL_MILLIS));
-
     try {
       PortManagerHttpExtension extension = new PortManagerHttpExtension(this);
       httpModule.addHttpExtension(extension);
@@ -103,7 +96,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   }
 
   @Override
-  public void addPortRanges(List<PortRange> ranges, boolean clearExisting) throws PortRangeInvalidException, PortRangeConflictException {
+  public synchronized void addPortRanges(List<PortRange> ranges, boolean clearExisting) throws PortRangeInvalidException, PortRangeConflictException {
     if (clearExisting) {
       store.clear();
     }

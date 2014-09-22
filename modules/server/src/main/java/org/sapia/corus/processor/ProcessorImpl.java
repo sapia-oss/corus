@@ -232,7 +232,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
           }, p.getOsPid());
         } catch (IOException e) {
         }
-        processes.getSuspendedProcesses().removeProcess(p.getProcessID());
+        processes.getActiveProcesses().removeProcess(p.getProcessID());
         p.releasePorts(portManager);
       }
     }

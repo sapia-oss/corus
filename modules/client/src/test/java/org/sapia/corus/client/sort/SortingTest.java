@@ -544,7 +544,7 @@ public class SortingTest {
   private ClusterStatus status(EventChannel.Role role, String host, int port) {
     CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "");
     h.setHostName(host);
-    return new ClusterStatus(role, h);
+    return new ClusterStatus(role, h, 0);
   }
   
   private ExecConfig config(String name, String profile) {

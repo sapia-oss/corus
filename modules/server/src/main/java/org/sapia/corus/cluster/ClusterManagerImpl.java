@@ -151,7 +151,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public ClusterStatus getClusterStatus() {
-    return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo());
+    return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
   }
 
   @Override
