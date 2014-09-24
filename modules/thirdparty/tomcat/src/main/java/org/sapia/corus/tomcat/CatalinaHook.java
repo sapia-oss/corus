@@ -16,8 +16,9 @@ public class CatalinaHook {
 	public static String DEFAULT_CATALINA_MAIN_CLASS = "org.apache.catalina.startup.Bootstrap";
 
 	public static String PROPERTY_MONITOR_CATALINA_MBEANS = "sapia.corus.tomcat.monitorCatalinaMbeans";
-	public static String DEFAULT_MONITOR_CATALINA_MBEANS = "true";
+	public static String DEFAULT_MONITOR_CATALINA_MBEANS = "false";
 	
+	private static ShutdownDelegate shutdown;
 	
 	/**
 	 * Main method to start.
@@ -52,7 +53,8 @@ public class CatalinaHook {
 		}
 
 		try {
-			new ShutdownDelegate().registerWithCorusInterop();
+		  shutdown = new ShutdownDelegate();
+			shutdown.registerWithCorusInterop();
 			String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
 			doCallStaticMethod(className, "main", new Object[] { args });
 			
@@ -112,16 +114,16 @@ public class CatalinaHook {
 			}
 		}
 		
-		/* (non-Javadoc)
-		 * @see org.sapia.corus.interop.api.ShutdownListener#onShutdown()
-		 */
 		@Override
 		public void onShutdown() {
 			try {
+			  
 				String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
 				String argument = System.getProperty(PROPERTY_CATALINA_STOP_METHOD, DEFAULT_CATALINA_STOP_METHOD);
-				
+				System.out.println("Shutting down Tomcat at");
 				doCallStaticMethod(className, "main", new Object[] { new String[] {argument} });
+        System.out.println("Tomcat completed shutdown");
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

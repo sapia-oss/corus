@@ -165,6 +165,9 @@ public class JmxMonitorAdapter {
 	    /** The parent JMX monitor adapter of this listener. */
 	    private JmxMonitorAdapter _parent;
 	    
+	    private MBeanServer       _server;
+	    private List<ObjectName>  _mbeanNames;
+	    
 	    /**
 	     * Creates a new StatusListener instance.
 	     * 
@@ -180,19 +183,21 @@ public class JmxMonitorAdapter {
 	    public void onStatus(Status aStatus) {
 	      Context context = null;
 	      try {
-	        MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-	        List<ObjectName> mbeanNames = getMbeansForDomain(server, _parent.getDomain());
+	        if (_server == null) {
+	          _server     = ManagementFactory.getPlatformMBeanServer();
+	          _mbeanNames = getMbeansForDomain(_server, _parent.getDomain());
+	        }
 	        
-	        for (Iterator<ObjectName> it = mbeanNames.iterator(); it.hasNext(); ) {
-	            ObjectName mbeanName = it.next();
-	            try {
+	        for (Iterator<ObjectName> it = _mbeanNames.iterator(); it.hasNext(); ) {
+	          ObjectName mbeanName = it.next();
+	          try {
 	  
 	            // Create the context for the mbean name
 	            context = new Context();
 	            aStatus.addContext(context);
 	            context.setName(generatedContextNameFor(mbeanName));
 	            
-	            MBeanInfo mbeanInfo = server.getMBeanInfo(mbeanName);
+	            MBeanInfo mbeanInfo = _server.getMBeanInfo(mbeanName);
 	            MBeanAttributeInfo[] mbeanAttributes = mbeanInfo.getAttributes();
 	            
 	            if (_parent.getAppendMbeanInfo()) {
@@ -202,7 +207,7 @@ public class JmxMonitorAdapter {
 	            }
 	  
 	            for (int i = 0; i < mbeanAttributes.length; i++) {
-	              Object value = server.getAttribute(mbeanName, mbeanAttributes[i].getName());
+	              Object value = _server.getAttribute(mbeanName, mbeanAttributes[i].getName());
 	              
 	              if (value != null && value.getClass().isArray()) {
 	                Object[] valueArray = (Object[]) value;
