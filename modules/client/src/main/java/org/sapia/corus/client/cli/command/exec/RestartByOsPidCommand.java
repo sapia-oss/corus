@@ -37,7 +37,7 @@ public class RestartByOsPidCommand extends AbstractExecCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(OPT_OS_PID, OPT_HARD_KILL);
   }
 

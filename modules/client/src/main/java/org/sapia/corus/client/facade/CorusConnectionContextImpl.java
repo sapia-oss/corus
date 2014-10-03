@@ -22,6 +22,8 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.Results.ResultListener;
 import org.sapia.corus.client.cli.ClientFileSystem;
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
@@ -41,21 +43,22 @@ import org.sapia.ubik.util.Assertions;
  */
 public class CorusConnectionContextImpl implements CorusConnectionContext {
 
-  static final int INVOKER_THREADS = 10;
-  static final long RECONNECT_INTERVAL = 15000;
+  static final int  INVOKER_THREADS     = 10;
+  static final long RECONNECT_INTERVAL  = 15000;
 
-  private long lastReconnect = System.currentTimeMillis();
-  private Corus corus;
-  private ServerAddress connectAddress;
-  private CorusHost serverHost;
-  private String domain;
-  private Map<Class<?>, Object> modules = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
-  private Map<ServerAddress, CorusHost> otherHosts = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
-  private Map<ServerAddress, Corus> cachedStubs = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
-  private Stack<ServerAddress> connectionHistory = new Stack<ServerAddress>();
-  private ExecutorService executor;
-  private ClientSideClusterInterceptor interceptor;
-  private ClientFileSystem fileSys;
+  private long                          lastReconnect     = System.currentTimeMillis();
+  private Corus                         corus;
+  private ServerAddress                 connectAddress;
+  private CorusHost                     serverHost;
+  private String                        domain;
+  private Map<Class<?>, Object>         modules           = Collections.synchronizedMap(new HashMap<Class<?>, Object>());
+  private Map<ServerAddress, CorusHost> otherHosts        = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
+  private Map<ServerAddress, Corus>     cachedStubs       = Collections.synchronizedMap(new HashMap<ServerAddress, Corus>());
+  private Stack<ServerAddress>          connectionHistory = new Stack<ServerAddress>();
+  private ExecutorService               executor;
+  private ClientSideClusterInterceptor  interceptor;
+  private ClientFileSystem              fileSys;
+  private Pattern                       resultPattern     = Matcheable.AnyPattern.newInstance();
 
   /**
    * @param host
@@ -101,6 +104,17 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   @Override
   public String getDomain() {
     return domain;
+  }
+  
+  @Override
+  public void setResultFilter(Pattern pattern) {
+    resultPattern = pattern;
+  }
+  
+  
+  @Override
+  public void unsetResultFilter() {
+    resultPattern = Matcheable.AnyPattern.newInstance();    
   }
 
   @Override
@@ -195,7 +209,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
     results.addListener(new ResultListener<T>() {
       @Override
       public void onResult(Result<T> result) {
-        resultList.add(result);
+        resultList.add(result.filter(resultPattern));
       }
     });
     FacadeInvocationContext.set(resultList);
@@ -206,7 +220,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       } else {
         T returnValue = (T) method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result<T>(serverHost, returnValue, Result.Type.forClass(method.getReturnType())));
+        results.addResult(new Result<T>(serverHost, returnValue, Result.Type.forClass(method.getReturnType())).filter(resultPattern));
       }
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
@@ -286,7 +300,8 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
           try {
             module = corus.lookup(moduleInterface.getName());
             returnValue = method.invoke(module, params);
-            results.addResult(new Result(addr, returnValue, Result.Type.forClass(method.getReturnType())));
+            Result.Type resultType = Result.Type.forClass(method.getReturnType());
+            results.addResult(new Result(addr, returnValue, resultType).filter(resultPattern));
           } catch (Exception err) {
             results.decrementInvocationCount();
           }
@@ -323,4 +338,6 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       lastReconnect = System.currentTimeMillis();
     }
   }
+  
+  
 }

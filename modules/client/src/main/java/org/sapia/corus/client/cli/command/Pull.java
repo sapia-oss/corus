@@ -24,7 +24,7 @@ public class Pull extends CorusCliCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(OPT_CLUSTER);
   }
 

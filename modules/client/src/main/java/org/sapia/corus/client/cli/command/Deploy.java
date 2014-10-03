@@ -70,7 +70,7 @@ public class Deploy extends CorusCliCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
 

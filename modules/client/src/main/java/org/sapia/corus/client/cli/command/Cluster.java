@@ -74,7 +74,7 @@ public class Cluster extends CorusCliCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(OPT_ASSERT, OPT_CLUSTER);
   }
 

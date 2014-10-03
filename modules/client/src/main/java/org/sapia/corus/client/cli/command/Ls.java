@@ -66,7 +66,7 @@ public class Ls extends CorusCliCommand {
   
   // --------------------------------------------------------------------------
   
-  protected java.util.List<OptionDef> getAvailableOptions() {
+  public java.util.List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   

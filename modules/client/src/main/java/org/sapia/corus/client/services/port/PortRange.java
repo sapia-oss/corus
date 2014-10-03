@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
@@ -22,7 +23,7 @@ import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 /**
  * @author yduchesne
  */
-public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable, Comparable<PortRange> {
+public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable, Comparable<PortRange>, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -143,7 +144,15 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
   public int compareTo(PortRange other) {
     return getName().compareTo(other.getName());
   }
+  
+  @Override
+  public boolean matches(Pattern pattern) {
+    return pattern.matches(name) || 
+        pattern.matches(Integer.toString(min)) || 
+        pattern.matches(Integer.toString(max));
+  }
 
+  @Override
   public String toString() {
     return new StringBuffer().append("[").append("name=").append(name).append(", min=").append(min).append(", max=").append(max).append("]")
         .toString();

@@ -44,7 +44,7 @@ public class CorusCliCommandTest {
       }
     
       @Override
-      protected List<OptionDef> getAvailableOptions() {
+      public List<OptionDef> getAvailableOptions() {
         return Collects.arrayToList(new OptionDef("a", true), new OptionDef("b", false));
       }
     };

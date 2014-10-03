@@ -11,6 +11,7 @@ import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.util.xml.confix.ConfigurationException;
@@ -22,7 +23,7 @@ import org.sapia.util.xml.confix.ObjectHandlerIF;
  * 
  * @author Yanick Duchesne
  */
-public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
+public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -350,6 +351,20 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF {
   public void addStarter(Starter starter) {
     starters.add(starter);
   }
+  
+  @Override
+  public boolean matches(Pattern pattern) {
+    return pattern.matches(name) || matchesProfile(pattern);
+  }
+  
+  private boolean matchesProfile(Pattern pattern) {
+    for (String p : this.getProfiles()) {
+      if (pattern.matches(p)) {
+        return true;
+      }
+    }
+    return false;
+  }  
 
   public void handleObject(String elementName, Object starter) throws ConfigurationException {
     if (starter instanceof Starter) {

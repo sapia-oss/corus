@@ -27,10 +27,10 @@ public class Script extends CorusCliCommand {
 
   private static final OptionDef ENGINE_OPT   = new OptionDef("e", true);
   private static final OptionDef INCLUDES_OPT = new OptionDef("i", true);
-  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(ENGINE_OPT, INCLUDES_OPT);
+  private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(ENGINE_OPT, INCLUDES_OPT, OPT_CLUSTER);
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   
@@ -40,8 +40,7 @@ public class Script extends CorusCliCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-
-    Arg fileName;
+    Arg    fileName;
     String scriptEngineName = null;
     if (ctx.getCommandLine().containsOption(ENGINE_OPT.getName(), true)) {
       scriptEngineName = ctx.getCommandLine().assertOption(ENGINE_OPT.getName(), true).getValue();

@@ -38,12 +38,6 @@ public class Ps extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private static final String TERMINATING = "shutd.";
-  private static final String ACTIVE      = "act.";
-  private static final String RESTART     = "rest.";
-  private static final String SUSPENDED   = "susp.";
-  private static final String STALLED     = "stal.";
-
   private static final OptionDef OPT_PORTS = new OptionDef("ports", false);
   private static final OptionDef OPT_CLEAN = new OptionDef("clean", false);
   
@@ -54,7 +48,7 @@ public class Ps extends CorusCliCommand {
   
   // --------------------------------------------------------------------------
   
-  protected java.util.List<OptionDef> getAvailableOptions() {
+  public java.util.List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   
@@ -149,28 +143,7 @@ public class Ps extends CorusCliCommand {
       row.getCellAt(PROC_PORTS_TBL.col("ports").index()).append(proc.getActivePorts().toString());
     } else {
       row.getCellAt(PROC_TBL.col("ospid").index()).append(proc.getOsPid() == null ? "n/a" : proc.getOsPid());
-
-      switch (proc.getStatus()) {
-      case KILL_CONFIRMED:
-      case KILL_REQUESTED:
-        row.getCellAt(PROC_TBL.col("status").index()).append(TERMINATING);
-        break;
-      case SUSPENDED:
-        row.getCellAt(PROC_TBL.col("status").index()).append(SUSPENDED);
-        break;
-      case RESTARTING:
-        row.getCellAt(PROC_TBL.col("status").index()).append(RESTART);
-        break;
-      case ACTIVE:
-        row.getCellAt(PROC_TBL.col("status").index()).append(ACTIVE);
-        break;
-      case STALE:
-        row.getCellAt(PROC_TBL.col("status").index()).append(STALLED);
-        break;
-      default:
-        row.getCellAt(PROC_TBL.col("status").index()).append("n/a");
-        break;
-      }
+      row.getCellAt(PROC_TBL.col("status").index()).append(proc.getStatus().abbreviation());
     }
     row.flush();
   }

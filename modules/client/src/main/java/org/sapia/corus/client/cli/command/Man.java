@@ -41,6 +41,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("kill", Kill.class);
     COMMANDS.put("ls", Ls.class);
     COMMANDS.put("man", Man.class);
+    COMMANDS.put("match", Match.class);
     COMMANDS.put("pause", Pause.class);
     COMMANDS.put("port", Port.class);
     COMMANDS.put("ps", Ps.class);

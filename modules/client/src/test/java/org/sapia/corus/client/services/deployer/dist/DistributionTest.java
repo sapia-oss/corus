@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
@@ -11,6 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Matcheable.Pattern;
+import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.Process;
 
 public class DistributionTest {
 
@@ -116,6 +122,21 @@ public class DistributionTest {
     Assert.assertTrue(dist.getTagSet().contains("tag1"));
     Assert.assertTrue(dist.getTagSet().contains("tag2"));
     Assert.assertTrue(dist.getTagSet().contains("tag3"));
+  }
+  
+  
+  @Test
+  public void testMatchesDist() {
+    Distribution dist = new Distribution("dist", "1.0");
+    Pattern pattern = Matcheable.DefaultPattern.parse("dis*");
+    assertTrue(dist.matches(pattern));
+  }
+
+  @Test
+  public void testMatchesVersion() {
+    Distribution dist = new Distribution("dist", "1.0");
+    Pattern pattern = Matcheable.DefaultPattern.parse("1.*");
+    assertTrue(dist.matches(pattern));
   }
 
 }

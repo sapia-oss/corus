@@ -23,7 +23,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 public class ExecProcessByDescriptors extends AbstractExecCommand {
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   

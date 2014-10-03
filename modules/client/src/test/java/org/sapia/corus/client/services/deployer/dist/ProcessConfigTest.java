@@ -7,6 +7,7 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.Matcheable;
 
 public class ProcessConfigTest {
 
@@ -55,6 +56,18 @@ public class ProcessConfigTest {
   public void testContainsProfile() {
     Assert.assertTrue(conf.containsProfile("test"));
     Assert.assertTrue(conf.containsProfile("prod"));
+  }
+  
+  @Test
+  public void testMatchesProfile() {
+    Assert.assertTrue(conf.matches(Matcheable.DefaultPattern.parse("test")));
+    Assert.assertFalse(conf.matches(Matcheable.DefaultPattern.parse("foo")));
+  }
+  
+  @Test
+  public void testMatchesProcessName() {
+    Assert.assertTrue(conf.matches(Matcheable.DefaultPattern.parse("server")));
+    Assert.assertFalse(conf.matches(Matcheable.DefaultPattern.parse("foo")));
   }
 
 }

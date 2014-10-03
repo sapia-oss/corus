@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
+import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.Result;
@@ -50,6 +51,10 @@ public class Count extends NoOptionCommand {
       turnOffOutput(ctx);
       Interpreter intp = new Interpreter(ctx.getConsole(), ctx.getCorus());
       intp.eval(toExecute, ctx.getVars());
+    } catch (CommandNotFoundException e) {
+      throw new InputException("Command not found: " + e.getMessage());
+    } catch (InputException e) {
+      throw e;
     } catch (Throwable e) {
       throw new AbortException("Could not execute command: " + toExecute, e);
     } finally {

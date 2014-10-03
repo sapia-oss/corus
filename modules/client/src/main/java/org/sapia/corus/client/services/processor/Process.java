@@ -8,6 +8,7 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
@@ -19,7 +20,7 @@ import org.sapia.corus.interop.Shutdown;
  * 
  * @author Yanick Duchesne
  */
-public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable, Comparable<Process> {
+public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable, Comparable<Process>, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -49,21 +50,21 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    ACTIVE,
+    ACTIVE("act."),
 
     /**
      * Corresponds to the "kill requested" status: the process is shutting down.
      * 
      * @see #getStatus()
      */
-    KILL_REQUESTED,
+    KILL_REQUESTED("shutd."),
 
     /**
      * Corresponds to the "kill confirmed" status: the process has terminated.
      * 
      * @see #getStatus()
      */
-    KILL_CONFIRMED,
+    KILL_CONFIRMED("shutd."),
 
     /**
      * Corresponds to the "restarting" status: the process is in the
@@ -71,7 +72,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    RESTARTING,
+    RESTARTING("rest."),
 
     /**
      * Corresponds to the "suspended" status: the process is in the "suspended"
@@ -79,7 +80,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    SUSPENDED,
+    SUSPENDED("susp."),
 
     /**
      * Corresponds to the "stale" status: the process is in the active queue
@@ -87,7 +88,20 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    STALE
+    STALE("stal.");
+    
+    private String abbr;
+    
+    private LifeCycleStatus(String abbr) {
+      this.abbr = abbr;
+    }
+    
+    /**
+     * @return this instance's corresponding abbreviation (used for display).
+     */
+    public String abbreviation() {
+      return abbr;
+    }
   }
 
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
@@ -510,6 +524,18 @@ public class Process extends AbstractPersistent<String, Process> implements java
     _creationTime = System.currentTimeMillis();
     _lastAccess = System.currentTimeMillis();
     _status = LifeCycleStatus.ACTIVE;
+  }
+  
+  @Override
+  public boolean matches(Pattern pattern) {
+    return (_pid != null && pattern.matches(_pid)) || 
+        pattern.matches(_processID) ||
+        pattern.matches(_distributionInfo.getName()) ||
+        pattern.matches(_distributionInfo.getProcessName()) ||
+        pattern.matches(_distributionInfo.getProfile()) ||
+        pattern.matches(_distributionInfo.getVersion()) ||
+        pattern.matches(_status.name().toLowerCase()) ||
+        pattern.matches(_status.abbreviation());
   }
 
   public String toString() {

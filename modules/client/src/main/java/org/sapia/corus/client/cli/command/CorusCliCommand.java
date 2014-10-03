@@ -118,8 +118,6 @@ public abstract class CorusCliCommand implements Command {
       doInit(cliCtx);
       initialized = true;
     }
-
-    
     
     try {
       validate(ctx.getCommandLine());      
@@ -312,5 +310,8 @@ public abstract class CorusCliCommand implements Command {
     }
   }
   
-  protected abstract List<OptionDef> getAvailableOptions();
+  /**
+   * @return the {@link List} of {@link OptionDef} instances that this command supports.
+   */
+  public abstract List<OptionDef> getAvailableOptions();
 }

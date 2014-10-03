@@ -7,6 +7,7 @@ import java.io.ObjectOutput;
 import java.net.UnknownHostException;
 import java.util.Comparator;
 
+import org.sapia.corus.client.common.Matcheable;
 import org.sapia.ubik.util.Localhost;
 import org.sapia.ubik.util.Strings;
 
@@ -15,7 +16,7 @@ import org.sapia.ubik.util.Strings;
  * 
  * @author J-C Desrochers
  */
-public class CorusHost implements Externalizable {
+public class CorusHost implements Externalizable, Matcheable {
 
   /**
    * Indicates the role of the Corus node corresponding to this instance.
@@ -191,6 +192,16 @@ public class CorusHost implements Externalizable {
         return o1.hostName.compareTo(o2.hostName);
       }
     };
+  }
+  
+  @Override
+  public boolean matches(Pattern pattern) {
+    return pattern.matches(hostName) || 
+        pattern.matches(javaVmInfo) ||
+        pattern.matches(osInfo) ||
+        pattern.matches(osInfo) ||
+        pattern.matches(role.name().toLowerCase()) ||
+        pattern.matches(this.endpoint.getChannelAddress().toString());
   }
 
   // --------------------------------------------------------------------------

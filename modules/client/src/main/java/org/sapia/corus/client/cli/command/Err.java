@@ -86,7 +86,7 @@ public class Err extends CorusCliCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
 

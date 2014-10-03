@@ -8,6 +8,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.ClientFileSystem;
+import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
@@ -148,5 +149,15 @@ public interface CorusConnectionContext {
    *           if no such address is found.
    */
   public CorusHost resolve(ServerAddress addr) throws IllegalArgumentException;
+  
+  /**
+   * @param pattern a {@link Pattern} to use for filtering results.
+   */
+  public void setResultFilter(Pattern pattern);
+  
+  /**
+   * Resets the result filter to the default pattern (which, in fact, will not perform any filtering).
+   */
+  public void unsetResultFilter();
 
 }

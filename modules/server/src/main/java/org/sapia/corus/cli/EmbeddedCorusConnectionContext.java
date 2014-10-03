@@ -14,6 +14,8 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.Results.ResultListener;
 import org.sapia.corus.client.cli.ClientFileSystem;
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
@@ -30,7 +32,8 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
 
   private Corus            corus;
   private ClientFileSystem fileSys;
-
+  private Pattern          resultFilter = Matcheable.AnyPattern.newInstance();
+  
   /**
    * @param corus
    *          the local Corus instance.
@@ -56,7 +59,17 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   public String getDomain() {
     return corus.getDomain();
   }
-
+  
+  @Override
+  public void setResultFilter(Pattern pattern) {
+    resultFilter = pattern;
+  }
+  
+  @Override
+  public void unsetResultFilter() {
+    resultFilter = Matcheable.AnyPattern.newInstance();
+  }
+  
   @Override
   public Collection<CorusHost> getOtherHosts() {
     return Collections.emptyList();
@@ -99,7 +112,7 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
     try {
       T returnValue = (T) method.invoke(lookup(moduleInterface), params);
       results.incrementInvocationCount();
-      results.addResult(new Result<T>(corus.getHostInfo(), returnValue, Result.Type.forClass(method.getReturnType())));
+      results.addResult(new Result<T>(corus.getHostInfo(), returnValue, Result.Type.forClass(method.getReturnType())).filter(resultFilter));
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
     }

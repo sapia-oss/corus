@@ -1,8 +1,14 @@
 package org.sapia.corus.client;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Matcheable.AnyPattern;
+import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.util.Strings;
 
@@ -68,6 +74,42 @@ public class Result<T> {
    */
   public CorusHost getOrigin() {
     return origin;
+  }
+  
+  /**
+   * Filters this instance's content based on the given pattern.
+   * 
+   * @param pattern a {@link Pattern} to use for filtering.
+   * @return this instance.
+   */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public Result filter(Pattern pattern) {
+    if (data == null || pattern.getClass().equals(AnyPattern.class)) {
+      // noop
+    } else if (type == Result.Type.COLLECTION) {
+      List newData = new ArrayList<>();
+      if (data instanceof Iterable) {
+        Iterable<?> elements = (Iterable<?>) data;
+        for (Object e : elements) {
+          if (e instanceof Matcheable && ((Matcheable) e).matches(pattern)) {
+            newData.add(e);
+          }
+        }
+        data = (T) newData;
+      } else if (data instanceof Object[]) {
+        for (Object o : (Object[]) data) {
+          if (o instanceof Matcheable && ((Matcheable) o).matches(pattern)) {
+            newData.add(o);
+          }
+        }
+        Object[] newArray = (Object[]) Array.newInstance(data.getClass().getComponentType(), newData.size());
+        for (int i = 0; i < newArray.length; i++) {
+          newArray[i]  = newData.get(i);
+        }
+        data = (T) newArray;
+      }
+    }
+    return this;
   }
 
   @Override

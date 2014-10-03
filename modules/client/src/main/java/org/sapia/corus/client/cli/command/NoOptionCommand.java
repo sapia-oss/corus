@@ -17,7 +17,7 @@ public abstract class NoOptionCommand extends CorusCliCommand {
   protected void validate(CmdLine cmdLine) throws InputException {
   }
   
-  protected java.util.List<OptionDef> getAvailableOptions() {
+  public java.util.List<OptionDef> getAvailableOptions() {
     return new ArrayList<CorusCliCommand.OptionDef>();
   }
 }

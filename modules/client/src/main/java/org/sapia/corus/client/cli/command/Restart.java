@@ -31,7 +31,7 @@ public class Restart extends AbstractExecCommand {
   );
 
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   

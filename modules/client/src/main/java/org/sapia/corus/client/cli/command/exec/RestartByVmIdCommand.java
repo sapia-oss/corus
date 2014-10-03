@@ -36,7 +36,7 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(OPT_PROCESS_ID, OPT_HARD_KILL);
   }
 

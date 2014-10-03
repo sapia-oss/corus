@@ -45,7 +45,7 @@ public class Ripple extends CorusCliCommand {
   private static final String TARGETS_VAR_NAME = "cluster.targets";
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
   }
   

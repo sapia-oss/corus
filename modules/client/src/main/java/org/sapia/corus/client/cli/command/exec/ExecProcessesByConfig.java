@@ -27,7 +27,7 @@ import org.sapia.ubik.util.Collects;
 public class ExecProcessesByConfig extends AbstractExecCommand {
     
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(Exec.OPT_EXEC_CONFIG, Exec.OPT_WAIT, Exec.OPT_CLUSTER);
   }
   

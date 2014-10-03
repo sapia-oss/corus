@@ -30,9 +30,6 @@
     <p>- op: the Operating System specific identifier of the process to restart.</p>
     <p/>
   </section>
-  <section title="Notes">
-    <p>This operation is not clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
-  </section>
   <section title="Examples">
     <p>restart -d myapp -v 1.0 -n jetty -p qa</p>
     <p/>

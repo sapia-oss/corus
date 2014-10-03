@@ -44,7 +44,7 @@ public class Exec extends AbstractExecCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return ADDITIONAL_OPTIONS;
   }
 

@@ -32,7 +32,7 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
   }
   
   @Override
-  protected List<OptionDef> getAvailableOptions() {
+  public List<OptionDef> getAvailableOptions() {
     return Collects.arrayToList(OPT_CLUSTER, OPT_WAIT, OPT_HARD_KILL);
   }
 

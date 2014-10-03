@@ -40,7 +40,7 @@ public class RestartAllCommand extends RestartAndWaitCommandSupport {
       doRestartAndWait(ctx, cluster, criteria, prefs, wait.getValue() == null ? Restart.DEFAULT_RESTART_WAIT_TIME_SECONDS : wait.asInt());
 
     } else {
-      ctx.getConsole().println("Triggering to process restart...");
+      ctx.getConsole().println("Triggering process restart...");
       ctx.getCorus().getProcessorFacade().restart(criteria, prefs, cluster);
     }
   }
