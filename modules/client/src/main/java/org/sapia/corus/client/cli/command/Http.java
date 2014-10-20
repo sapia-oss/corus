@@ -22,6 +22,7 @@ import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.CollectionUtils;
 import org.sapia.corus.client.common.PathUtils;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -59,7 +60,8 @@ public class Http extends CorusCliCommand {
   
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       URL_OPT, MAX_ATTEMPTS_OPT, INTERVAL_OPT, STATUS_OPT, 
-      PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT
+      PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT,
+      OPT_CLUSTER
   );
 
   private static final int DEFAULT_STATUS       = 200;
@@ -115,7 +117,7 @@ public class Http extends CorusCliCommand {
       Map<ServerAddress, List<Distribution>> distsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getDeployerFacade()
           .getDistributions(DistributionCriteria.builder().all(), cluster));
 
-      Map<ServerAddress, Set<String>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
+      Map<ServerAddress, Set<Tag>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
 
       List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT.getName(), new Func<Arg, String>() {
         @Override
@@ -208,8 +210,8 @@ public class Http extends CorusCliCommand {
     }
   }
 
-  static boolean hasProcessForRange(CliContext ctx, PortRange r, List<Distribution> nodeDists, Set<String> nodeTags) {
-    Set<String> corusTags = new HashSet<String>();
+  static boolean hasProcessForRange(CliContext ctx, PortRange r, List<Distribution> nodeDists, Set<Tag> nodeTags) {
+    Set<Tag> corusTags = new HashSet<Tag>();
     if (nodeTags != null) {
       corusTags.addAll(nodeTags);
     }
@@ -219,9 +221,9 @@ public class Http extends CorusCliCommand {
         for (ProcessConfig p : d.getProcesses()) {
           for (org.sapia.corus.client.services.deployer.dist.Port pt : p.getPorts()) {
             if (r.getName().equals(pt.getName())) {
-              Set<String> processTags = new HashSet<String>();
-              processTags.addAll(d.getTagSet());
-              processTags.addAll(p.getTagSet());
+              Set<Tag> processTags = new HashSet<Tag>();
+              processTags.addAll(Tag.asTags(d.getTagSet()));
+              processTags.addAll(Tag.asTags(p.getTagSet()));
               return processTags.isEmpty() || corusTags.containsAll(processTags);
             }
           }

@@ -34,6 +34,7 @@ import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
@@ -164,8 +165,8 @@ public class Conf extends CorusCliCommand {
       String toRemove = ctx.getCommandLine().assertOption(OPT_TAG.getName(), true).getValue();
       ctx.getCorus().getConfigFacade().removeTag(toRemove, getClusterInfo(ctx));
     } else if (op == Op.LIST) {
-      Results<Set<String>> tags = ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx));
-      Results<List<String>> sorted = Sorting.sortSet(tags, String.class, ctx.getSortSwitches());
+      Results<Set<Tag>> tags = ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx));
+      Results<List<Tag>> sorted = Sorting.sortSet(tags, Tag.class, ctx.getSortSwitches());
       displayTagResults(sorted, ctx);
     } else if (op == Op.EXPORT) {
       exportTagResults(ctx.getCorus().getConfigFacade().getTags(getClusterInfo(ctx)), ctx);
@@ -197,8 +198,7 @@ public class Conf extends CorusCliCommand {
     }
     if (op == Op.ADD) {
       String pair = ctx.getCommandLine().assertOption(OPT_PROPERTY.getName(), true).getValue();
-
-      if (!pair.contains("=") && pair.endsWith(".properties")) {
+      if (!pair.contains("=")) {
         File propFile = ctx.getFileSystem().getFile(pair);
         if (!propFile.exists()) {
           throw new InputException("File does not exist: " + pair);
@@ -306,15 +306,15 @@ public class Conf extends CorusCliCommand {
     }
   }
 
-  private void exportTagResults(Results<Set<String>> res, CliContext ctx) throws InputException {
+  private void exportTagResults(Results<Set<Tag>> res, CliContext ctx) throws InputException {
     File exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue());
     try {
       PrintWriter writer = new PrintWriter(new FileOutputStream(exportFile));
       try {
         while (res.hasNext()) {
-          Result<Set<String>> result = res.next();
-          for (String tag : result.getData()) {
-            writer.println(tag);
+          Result<Set<Tag>> result = res.next();
+          for (Tag tag : result.getData()) {
+            writer.println(tag.getValue());
           }
         }
       } finally {
@@ -329,17 +329,17 @@ public class Conf extends CorusCliCommand {
 
   }
 
-  private void displayTagResults(Results<List<String>> res, CliContext ctx) throws InputException {
+  private void displayTagResults(Results<List<Tag>> res, CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_TAG.getName());
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Func<List<String>, List<String>>() {
+      res = res.filter(new Func<List<Tag>, List<Tag>>() {
         @Override
-        public List<String> call(List<String> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<String>() {
+        public List<Tag> call(List<Tag> toFilter) {
+          return Collects.filterAsList(toFilter, new Condition<Tag>() {
             @Override
-            public boolean apply(String item) {
-              return pattern.matches(item);
+            public boolean apply(Tag item) {
+              return pattern.matches(item.getValue());
             }
           });
         }
@@ -347,9 +347,9 @@ public class Conf extends CorusCliCommand {
     }
 
     while (res.hasNext()) {
-      Result<List<String>> result = res.next();
+      Result<List<Tag>> result = res.next();
       displayTagsHeader(result.getOrigin(), ctx);
-      for (String tag : result.getData()) {
+      for (Tag tag : result.getData()) {
         displayTag(tag, ctx);
       }
     }
@@ -373,13 +373,13 @@ public class Conf extends CorusCliCommand {
     headers.flush();
   }
 
-  private void displayTag(String tag, CliContext ctx) {
+  private void displayTag(Tag tag, CliContext ctx) {
     Table tagsTable = TAGS_TBL.createTable(ctx.getConsole().out());
 
     tagsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = tagsTable.newRow();
-    row.getCellAt(TAGS_TBL.col("val").index()).append(tag);
+    row.getCellAt(TAGS_TBL.col("val").index()).append(tag.getValue());
     row.flush();
   }
 

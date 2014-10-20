@@ -111,6 +111,10 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
     resultPattern = pattern;
   }
   
+  @Override
+  public Pattern getResultFilter() {
+    return resultPattern;
+  }
   
   @Override
   public void unsetResultFilter() {
@@ -220,7 +224,12 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       } else {
         T returnValue = (T) method.invoke(lookup(moduleInterface), params);
         results.incrementInvocationCount();
-        results.addResult(new Result<T>(serverHost, returnValue, Result.Type.forClass(method.getReturnType())).filter(resultPattern));
+        Result<T> newResult = new Result<T>(serverHost, returnValue, Result.Type.forClass(method.getReturnType())).filter(resultPattern);
+        if (!resultPattern.getClass().equals(Matcheable.AnyPattern.class) && newResult.size() == 0) {
+          // noop
+        } else {
+          results.addResult(newResult);
+        }
       }
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
@@ -301,7 +310,13 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
             module = corus.lookup(moduleInterface.getName());
             returnValue = method.invoke(module, params);
             Result.Type resultType = Result.Type.forClass(method.getReturnType());
-            results.addResult(new Result(addr, returnValue, resultType).filter(resultPattern));
+            
+            Result newResult = new Result(addr, returnValue, resultType).filter(resultPattern);
+            if (!resultPattern.getClass().equals(Matcheable.AnyPattern.class) && newResult.size() == 0) {
+              results.decrementInvocationCount();
+            } else {
+              results.addResult(newResult);
+            }
           } catch (Exception err) {
             results.decrementInvocationCount();
           }

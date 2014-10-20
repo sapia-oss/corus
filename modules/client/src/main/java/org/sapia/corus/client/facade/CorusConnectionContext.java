@@ -156,6 +156,11 @@ public interface CorusConnectionContext {
   public void setResultFilter(Pattern pattern);
   
   /**
+   * @return the {@link Pattern} corresponding to the currently set result filter.
+   */
+  public Pattern getResultFilter();
+  
+  /**
    * Resets the result filter to the default pattern (which, in fact, will not perform any filtering).
    */
   public void unsetResultFilter();

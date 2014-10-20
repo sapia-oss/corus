@@ -22,6 +22,7 @@ import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.console.TerminalFacade;
+import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.cli.command.CorusCliCommand.OptionDef;
@@ -217,7 +218,7 @@ public class Interpreter extends Console {
           for (int i = 0; i < cmd.size(); i++) {
             CmdElement cmdElem = cmd.get(i);
             if (cmdElem instanceof Option && ((Option) cmdElem).getName().equals(CorusCliCommand.OPT_CLUSTER.getName())) {
-              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), getTargetString(clusterInfo.getTargets()));
+              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toString());
               newCmd.addElement(newOpt);
             } else {
               newCmd.addElement(cmdElem);
@@ -225,21 +226,12 @@ public class Interpreter extends Console {
           }
         }
       }
+      if (newCmd != cmd) {
+        ClientDebug.get(getClass()).trace("Processed command: %s %s", cliCmd.getName(), newCmd);
+      }
       return newCmd;
     }
     return cmd;
-  }
-  
-  private String getTargetString(Set<ServerAddress> batch) {
-    StringBuilder targets = new StringBuilder();
-    for (ServerAddress a : batch) {
-      if (targets.length() > 0) {
-        targets.append(",");
-      }
-      TCPAddress tcpAddress = (TCPAddress) a;
-      targets.append(tcpAddress.getHost()).append(":").append(a);
-    }
-    return targets.toString();
   }
   
   // ==========================================================================

@@ -10,7 +10,7 @@ import org.sapia.ubik.util.Strings;
  * @author yduchesne
  * 
  */
-public class NameValuePair implements Serializable, Comparable<NameValuePair> {
+public class NameValuePair implements Serializable, Comparable<NameValuePair>, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -34,9 +34,17 @@ public class NameValuePair implements Serializable, Comparable<NameValuePair> {
   public String getName() {
     return name;
   }
+  
+  // --------------------------------------------------------------------------
 
+  @Override
   public int compareTo(NameValuePair o) {
     return name.compareTo(o.getName());
+  }
+  
+  @Override
+  public boolean matches(Pattern pattern) {
+    return value == null ? false : pattern.matches(value);
   }
 
   @Override

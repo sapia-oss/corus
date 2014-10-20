@@ -4,6 +4,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.repository.ConfigNotification;
 import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.taskmanager.util.RunnableTask;
@@ -28,7 +29,7 @@ public class SendConfigNotificationTask extends RunnableTask {
   public void run() {
     try {
       Properties props = context().getServerContext().getProcessProperties();
-      Set<String> tags = context().getServerContext().getServices().getConfigurator().getTags();
+      Set<Tag>   tags  = context().getServerContext().getServices().getConfigurator().getTags();
 
       if (props.isEmpty() && tags.isEmpty()) {
         context().debug("No tags or properties to push to: " + targets);
@@ -48,7 +49,7 @@ public class SendConfigNotificationTask extends RunnableTask {
 
         if (config.isPushTagsEnabled()) {
           context().debug("Pushing tags to: " + targets);
-          notif.addTags(tags);
+          notif.addTags(Tag.asStrings(tags));
         } else {
           context().debug("Pushing of tags disabled, NOT pushing to: " + targets);
         }

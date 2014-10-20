@@ -9,6 +9,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Tag;
 
 /**
  * This interface specifies a facade to the Corus {@link Configurator}
@@ -97,6 +98,6 @@ public interface ConfiguratorFacade {
    * 
    * @return a {@link Results} holding tags.
    */
-  public Results<Set<String>> getTags(ClusterInfo cluster);
+  public Results<Set<Tag>> getTags(ClusterInfo cluster);
 
 }

@@ -12,6 +12,7 @@ import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Tag;
 
 public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implements ConfiguratorFacade {
 
@@ -28,8 +29,8 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   }
 
   @Override
-  public Results<Set<String>> getTags(ClusterInfo cluster) {
-    Results<Set<String>> results = new Results<Set<String>>();
+  public Results<Set<Tag>> getTags(ClusterInfo cluster) {
+    Results<Set<Tag>> results = new Results<Set<Tag>>();
     proxy.getTags();
     invoker.invokeLenient(results, cluster);
     return results;

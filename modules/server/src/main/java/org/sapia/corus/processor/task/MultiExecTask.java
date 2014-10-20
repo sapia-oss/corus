@@ -1,10 +1,10 @@
 package org.sapia.corus.processor.task;
 
 import java.util.List;
-
 import java.util.Set;
 
 import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.processor.ProcessRef;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
@@ -18,7 +18,7 @@ public class MultiExecTask extends Task<Void, List<ProcessRef>> {
     ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
     Configurator configurator = ctx.getServerContext().getServices().lookup(Configurator.class);
 
-    Set<String> serverTags = configurator.getTags();
+    Set<Tag> serverTags = configurator.getTags();
 
     for (ProcessRef current : processRefs) {
 
@@ -26,8 +26,8 @@ public class MultiExecTask extends Task<Void, List<ProcessRef>> {
       int startedCount = current.isRoot() ? 0 : processes.getActiveProcessCountFor(current.getCriteria());
 
       // checking for tags
-      Set<String> processTags = current.getDist().getTagSet();
-      processTags.addAll(current.getProcessConfig().getTagSet());
+      Set<Tag> processTags = Tag.asTags(current.getDist().getTagSet());
+      processTags.addAll(Tag.asTags(current.getProcessConfig().getTagSet()));
       ctx.debug("Got server tags: " + serverTags);
       ctx.debug("Got process tags: " + processTags);
 

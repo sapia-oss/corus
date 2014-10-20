@@ -3,6 +3,7 @@ package org.sapia.corus.client;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,12 +84,12 @@ public class Result<T> {
    * @return this instance.
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public Result filter(Pattern pattern) {
+  public Result<T> filter(Pattern pattern) {
     if (data == null || pattern.getClass().equals(AnyPattern.class)) {
       // noop
     } else if (type == Result.Type.COLLECTION) {
-      List newData = new ArrayList<>();
       if (data instanceof Iterable) {
+        List newData = new ArrayList<>();
         Iterable<?> elements = (Iterable<?>) data;
         for (Object e : elements) {
           if (e instanceof Matcheable && ((Matcheable) e).matches(pattern)) {
@@ -97,6 +98,7 @@ public class Result<T> {
         }
         data = (T) newData;
       } else if (data instanceof Object[]) {
+        List newData = new ArrayList<>();
         for (Object o : (Object[]) data) {
           if (o instanceof Matcheable && ((Matcheable) o).matches(pattern)) {
             newData.add(o);
@@ -107,9 +109,33 @@ public class Result<T> {
           newArray[i]  = newData.get(i);
         }
         data = (T) newArray;
+      } else if (data instanceof Map) {
+        Map<Object, Object> newData = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) data).entrySet()) {
+          if (entry.getValue() instanceof Matcheable && ((Matcheable) entry.getValue()).matches(pattern)) {
+            newData.put(entry.getKey(), entry.getValue());
+          }
+        }
+        data = (T) newData;
       }
     }
     return this;
+  }
+  
+  /**
+   * @return the number of elements that this instance holds.
+   */
+  public int size() {
+    if (type == Type.COLLECTION) {
+      if (data instanceof Object[]) {
+        return ((Object[]) data).length;
+      } else if (data instanceof Collection) {
+        return ((Collection<?>) data).size();
+      } else if (data instanceof Map) {
+        return Map.class.cast(data).size();
+      }
+    }
+    return 1;
   }
 
   @Override

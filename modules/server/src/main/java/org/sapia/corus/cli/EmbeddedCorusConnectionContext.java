@@ -66,6 +66,11 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   }
   
   @Override
+  public Pattern getResultFilter() {
+    return resultFilter;
+  }
+  
+  @Override
   public void unsetResultFilter() {
     resultFilter = Matcheable.AnyPattern.newInstance();
   }

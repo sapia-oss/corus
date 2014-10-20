@@ -17,6 +17,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.common.Delay;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
@@ -98,23 +99,23 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Results<List<Distribution>> distResults = ctx.getCorus().getDeployerFacade().getDistributions(criteria.getDistributionCriteria(), cluster);
     Set<Distribution> dists = new HashSet<Distribution>();
 
-    Map<ServerAddress, Set<String>> hostsWithDist = new HashMap<ServerAddress, Set<String>>();
+    Map<ServerAddress, Set<Tag>> hostsWithDist = new HashMap<ServerAddress, Set<Tag>>();
     while (distResults.hasNext()) {
       Result<List<Distribution>> distResult = distResults.next();
       if (!distResult.getData().isEmpty()) {
         dists.addAll(distResult.getData());
       }
-      hostsWithDist.put(distResult.getOrigin().getEndpoint().getServerAddress(), new HashSet<String>());
+      hostsWithDist.put(distResult.getOrigin().getEndpoint().getServerAddress(), new HashSet<Tag>());
     }
 
     // distribution set should not be empty, but considering anyway
     if (!dists.isEmpty()) {
 
       // obtaining the tags for each targeted host in the cluster
-      Results<Set<String>> tagResults = ctx.getCorus().getConfigFacade().getTags(cluster);
+      Results<Set<Tag>> tagResults = ctx.getCorus().getConfigFacade().getTags(cluster);
 
-      for (Result<Set<String>> t : tagResults) {
-        Set<String> hostTags = hostsWithDist.get(t.getOrigin());
+      for (Result<Set<Tag>> t : tagResults) {
+        Set<Tag> hostTags = hostsWithDist.get(t.getOrigin());
         if (hostTags != null) {
           hostTags.addAll(t.getData());
         }
@@ -128,10 +129,10 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
         List<ProcessConfig> procConfigs = dist.getProcesses(criteria.getName());
         for (ProcessConfig procConfig : procConfigs) {
           for (ServerAddress host : hostsWithDist.keySet()) {
-            Set<String> hostTags = hostsWithDist.get(host);
-            Set<String> procTags = new HashSet<String>();
-            procTags.addAll(dist.getTagSet());
-            procTags.addAll(procConfig.getTagSet());
+            Set<Tag> hostTags = hostsWithDist.get(host);
+            Set<Tag> procTags = new HashSet<Tag>();
+            procTags.addAll(Tag.asTags(dist.getTagSet()));
+            procTags.addAll(Tag.asTags(procConfig.getTagSet()));
             if (procTags.isEmpty() || hostTags.containsAll(procTags)) {
               targets.add(host);
             }

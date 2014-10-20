@@ -5,8 +5,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
 /**
  * This class models meta-information about an operation performed in the
@@ -17,6 +20,8 @@ import org.sapia.ubik.net.ServerAddress;
  */
 public class ClusterInfo implements Serializable {
 
+  private static final int HOST_INDEX = 0;
+  private static final int PORT_INDEX = 1;
   private static final long serialVersionUID = 1L;
 
   private boolean cluster;
@@ -53,9 +58,9 @@ public class ClusterInfo implements Serializable {
     return this;
   }
 
-  /*
+  /**
    * @param endpoints a {@link Collection} of {@link Endpoint}s whose addresses
-   * correspond to target Corus servers.
+   * correspond to targeted Corus servers.
    * 
    * @return this instance.
    */
@@ -78,5 +83,48 @@ public class ClusterInfo implements Serializable {
    */
   public Set<ServerAddress> getTargets() {
     return new HashSet<ServerAddress>(targets);
+  }
+  
+  /**
+   * @return a string representation that can be parsed.
+   */
+  public String toLiteralForm() {
+    StringBuilder s = new StringBuilder();
+    for (ServerAddress addr : targets) {
+      TCPAddress tcpAddr = (TCPAddress) addr;
+      if (s.length() > 0) {
+        s.append(",");
+      }
+      s.append(tcpAddr.getHost()).append(":").append(tcpAddr.getPort());
+    }
+    return s.toString();
+  }
+  
+  /**
+   * This method parses the given literal form into a new instance of this class. The form must
+   * respect the following syntax:
+   * <pre>
+   * host_0:port_0[host_1:port_1[...,host_N:port_N]]
+   * </pre>
+   * 
+   * @param literalForm a literal form.
+   * @return a new {@link ClusterInfo} instance, based on the given literal form.
+   */
+  public static ClusterInfo fromLiteralForm(String literalForm) {
+    String[] addresses = StringUtils.split(literalForm, ',');
+    ClusterInfo cluster = new ClusterInfo(true);
+    for (String addressLiteral : addresses) {
+     String[] parts = StringUtils.split(addressLiteral, ':');
+     if (parts.length != 2) {
+       throw new IllegalArgumentException("Expected host:port, got: " + addressLiteral);
+     }
+     cluster.addTarget(HttpAddress.newDefaultInstance(parts[HOST_INDEX], Integer.parseInt(parts[PORT_INDEX])));
+    }
+    return cluster;
+  }
+  
+  @Override
+  public String toString() {
+    return toLiteralForm();
   }
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.Tag;
 
 public class TestConfigurator implements Configurator {
 
@@ -64,8 +65,8 @@ public class TestConfigurator implements Configurator {
   }
 
   @Override
-  public Set<String> getTags() {
-    return new HashSet<String>();
+  public Set<Tag> getTags() {
+    return new HashSet<Tag>();
   }
 
   @Override

@@ -29,7 +29,9 @@
     <p>- t: the interval (in seconds) between polling attempts (defaults to 10).</p>
     <p/>
     <p>- s: the expected status code (defaults to 200 HTTP status code).</p>
-    <p/>    
+    <p/>   
+    <p>- x: a port prefix to use.</p>
+    <p/>     
   </section>
   <section title="Notes">
     <p>- When using the -p option with http check, the command will internally create a HTTP URLs of the form http://${corus_host}:${active_port}. 
@@ -51,11 +53,13 @@
     <p>http check -u http://192.168.0.101:8080/demo -m 10 -t 5</p>
     <p/>    
     <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node in the Corus cluster:</p>
-    <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster</p>
-    <p/>    
-    <p>- Polls the given URLs corresponding to the port ranges whose name matches the given pattern, at each node specified by the ${cluster.targets} variable 
-    (see the ripple command for more on how the value of that variable is made available to scripts):</p>
     <p/>
-    <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster ${cluster.targets}</p>
+    <p>http check -p http.server.* -m 10 -t 5 -c /demo -cluster</p>
+    <p/>
+    <p>- Same as above, but adds the -x option, which allows specifying a port prefix. That is: given port range named http.server, whose min is 100 and max is 105 (for example),
+     if a currently active port is, say, 100, and the prefix is specified as -x 8, then the actual checked URL will have port 8100:</p>
+    <p/>
+    <p>http check -p http.server.* -m 10 -t 5  -x 8 -c /demo -cluster</p>
+    <p/>
   </section>    
 </help>

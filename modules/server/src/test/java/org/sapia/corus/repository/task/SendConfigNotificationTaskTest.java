@@ -13,11 +13,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.configurator.Tag;
 
 public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   
   private Properties properties;
-  private Set<String> tags;
+  private Set<Tag> tags;
   private SendConfigNotificationTask task;
 
   @Before
@@ -27,8 +28,8 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
     task = new SendConfigNotificationTask(repoConfig, endpoints);
     properties = new Properties();
     properties.setProperty("test", "testValue");
-    tags = new HashSet<String>();
-    tags.add("testTag");
+    tags = new HashSet<Tag>();
+    tags.add(new Tag("testTag"));
   }
   
   @Test

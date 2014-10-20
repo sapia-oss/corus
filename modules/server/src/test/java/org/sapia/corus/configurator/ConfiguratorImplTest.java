@@ -15,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
@@ -208,9 +209,9 @@ public class ConfiguratorImplTest {
   public void testGetTags() {
     when(tagsProperties.keys()).thenReturn(Collects.arrayToList("test").iterator());
 
-    Set<String> tags = configurator.getTags();
+    Set<Tag> tags = configurator.getTags();
     
-    assertTrue(tags.contains("test"));
+    assertTrue(tags.contains(new Tag("test")));
   }
 
   @Test

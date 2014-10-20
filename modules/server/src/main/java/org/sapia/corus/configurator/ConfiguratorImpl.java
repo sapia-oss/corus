@@ -13,6 +13,7 @@ import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.event.EventDispatcher;
@@ -205,12 +206,12 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
   }
 
   @Override
-  public Set<String> getTags() {
+  public Set<Tag> getTags() {
     Iterator<String> names = tags.keys();
-    Set<String> tags = new TreeSet<String>();
+    Set<Tag> tags = new TreeSet<Tag>();
     while (names.hasNext()) {
       String name = names.next();
-      tags.add(name);
+      tags.add(new Tag(name));
     }
     return tags;
   }
@@ -222,9 +223,9 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   @Override
   public void removeTag(Arg tag) {
-    for (String t : getTags()) {
-      if (tag.matches(t)) {
-        removeTag(t);
+    for (Tag t : getTags()) {
+      if (tag.matches(t.getValue())) {
+        removeTag(t.getValue());
       }
     }
   }

@@ -1,0 +1,33 @@
+<help>
+  <section title="Description">
+   <p>The match command returns output matching a given pattern. It also allows executing a script against hosts for which matching occurred.</p>
+  </section>
+  <section title="Syntax">
+    <p>match [apply &lt;script_path&gt;] &lt;pattern&gt; &lt;command&gt;</p>
+    <p/>
+    <p/>
+    <p>Where:</p>
+    <p/>    
+    <p>- &lt;script_name&gt;: the path to the script to execute.</p>
+    <p/>
+    <p>- &lt;pattern&gt;: the pattern to use for matching (note: this is note a regex. Only the '*' character is used as an atom).</p>
+    <p/>
+    <p>- &lt;command&gt;: the command to execute.</p>
+    <p/>
+  </section>
+  <section title="Notes">
+    <p>If a script is provided for execution, the clustered commands therein (i.e.: the ones using the -cluster option) 
+    will be executed against the hosts that matched (that is, not against the whole cluster).
+    </p>
+  </section>
+  <section title="Examples">
+    <p>Outputs stale processes in the cluster:</p>
+    <p/>
+    <p>match stal* ps -cluster</p>
+    <p/>
+    <p>Executes the commands in the given script against each host for which the match occurred (in this case, for each host having a stale processes):</p>
+    <p/>
+    <p>match apply restart_stale.txt stal* ps -cluster</p>
+    <p/>    
+  </section>    
+</help>

@@ -16,6 +16,8 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Condition;
 
 /**
  * Lists the Corus server nodes in the domain.
@@ -38,25 +40,29 @@ public class Hosts extends NoOptionCommand {
   }
   
   @Override
-  protected void doExecute(CliContext ctx) throws AbortException, InputException {
+  protected void doExecute(final CliContext ctx) throws AbortException, InputException {
     Collection<CorusHost> others = ctx.getCorus().getContext().getOtherHosts();
-    displayHeader(ctx);
-    displayHosts(others, ctx);
     List<CorusHost> hosts = new ArrayList<CorusHost>();
     hosts.add(ctx.getCorus().getContext().getServerHost());
     hosts.addAll(others);
+    hosts = Collects.filterAsList(hosts, new Condition<CorusHost>() {
+      @Override
+      public boolean apply(CorusHost item) {
+        return item.matches(ctx.getCorus().getContext().getResultFilter());
+      }
+    });
+    Collections.sort(hosts, Sorting.getHostComparatorFor(ctx.getSortSwitches()));
+    displayHeader(ctx);
+    displayHosts(hosts, ctx);
     FacadeInvocationContext.set(hosts);
   }
 
-  private void displayHosts(Collection<CorusHost> others, CliContext ctx) {
+  private void displayHosts(Collection<CorusHost> hosts, CliContext ctx) {
     Table hostTable = TBL.createTable(ctx.getConsole().out());
 
     hostTable.drawLine('=', 0, ctx.getConsole().getWidth());
-    List<CorusHost> sortedHosts = new ArrayList<CorusHost>();
-    sortedHosts.add(ctx.getCorus().getContext().getServerHost());
-    sortedHosts.addAll(others);
-    Collections.sort(sortedHosts, Sorting.getHostComparatorFor(ctx.getSortSwitches()));
-    for (CorusHost other : sortedHosts) {
+
+    for (CorusHost other : hosts) {
       Row row = hostTable.newRow();
       row.getCellAt(TBL.col("host").index()).append(other.getHostName());
       TCPAddress addr = other.getEndpoint().getServerTcpAddress();

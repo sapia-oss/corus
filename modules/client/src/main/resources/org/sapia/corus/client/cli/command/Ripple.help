@@ -6,11 +6,6 @@
    <p>Given that there are 10 nodes in a cluster, the command allows "rippling" the effect of the script 
    against, say, 2 nodes at a time: the script will then be executed a total of 5 times.</p>
    <p/>
-   <p>This commands exports to the specified script the string representation of the list of hosts
-   corresponding to the batch of Corus nodes being currently targeted. That representation is bound under the
-   corus.targets variable, and can then be used in the script using ${corus.targets}. This is convenient
-   in order to reuse it as a value for the -cluster switch.
-   </p>
   </section>
   <section title="Syntax">
     <p>ripple -s script_file_path -b batch_size  [-m min_hosts]</p>
@@ -24,7 +19,7 @@
     <p>- c: the command line to "ripple".</p>
     <p/>
     <p>- b: the size of the batches of Corus hosts to which to deploy at a time (the batch size can also be expressed
-    as a percentage of nodes in the cluster).</p>
+    as a percentage of nodes in the cluster). Defaults to 1 (i.e.: one node at a time)</p>
     <p/>
     <p>- m: the minimum number number of hosts in the cluster for the -b switch to take effect (a batch size of 1 will
     be used if the number of hosts in the cluster is less than the value of this option). If that option is not 
@@ -36,11 +31,15 @@
     <p/>
     <p>As indicated above, the value of the -b option can also be expressed as a percentage: 10%, 50%, etc. It is
     required to add the percentage symbol (%) in order for the value to be interpreted as such.</p>   
+    <p/>
+    <p>Clustered commands (using the -cluster option) will be executed against the hosts currently targeted by
+    rippling (that is, not against the whole cluster at once).
+    </p>
   </section>
   <section title="Basic Examples">
     <p>Given the following commands:</p>
     <p/>
-    <p>ripple -c "kill all" -b 2 -m 5</p>
+    <p>ripple -c "kill all -cluster" -b 2 -m 5</p>
     <p/>
     <p>ripple -s myDeploymentScript.txt -b 2 -m 5</p>
     <p/>    
@@ -50,10 +49,10 @@
     <p/>    
     <p>The content of the myDeploymentScript.txt file specified above could be as follows: </p>
     <p/>      
-    <p>echo "deploying to: ${cluster.targets}"</p>
-    <p>kill all -w -cluster ${cluster.targets}</p>
-    <p>undeploy all -cluster ${cluster.targets}</p>
-    <p>deploy *.zip -cluster ${cluster.targets}</p>
+    <p>echo "performing deployment"</p>
+    <p>kill all -w -cluster </p>
+    <p>undeploy all -cluster</p>
+    <p>deploy *.zip -cluster</p>
     <p>pause 45</p>
     <p/>
     <p>The convenience of the ripple command can clearly be seen above: the kill/undeploy/deploy sequence 
@@ -62,7 +61,7 @@
     <p/>
   </section>
   <section title="Additional Examples">
-    <p>ripple -c "restart all | pause 45"</p>
+    <p>ripple -c "restart all -cluster | pause 45"</p>
     <p/>
     <p>The above illustrates the use of a pipe to pass in mutiple commands at once.</p>
     <p/>    

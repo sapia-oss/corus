@@ -136,10 +136,10 @@ public interface Configurator extends java.rmi.Remote, Module {
   public void removeTag(Arg tag);
 
   /**
-   * @return a {@link Set} of {@link String}s corresponding to the tags held by
+   * @return a {@link Set} of {@link Tag}s corresponding to the tags held by
    *         this instance.
    */
-  public Set<String> getTags();
+  public Set<Tag> getTags();
 
   /**
    * Clears all the tags held by this instance.
