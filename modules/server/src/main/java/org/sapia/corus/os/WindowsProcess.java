@@ -129,6 +129,8 @@ public class WindowsProcess implements NativeProcess {
     @Override
     public void call(LogCallback log, String pid) throws IOException {
       try {
+        log.debug("--> Killing with SIGAR: " + pid);
+
         ((Sigar) SigarSupplier.get()).kill(Long.parseLong(pid), KILL_SIG);
       } catch (SigarException e) {
         log.debug("Error caught trying to kill process: " + e.getMessage());
