@@ -195,7 +195,7 @@
 			<dependency>
 				<groupId>org.sapia</groupId>
 				<artifactId>sapia_corus_iop</artifactId>
-				<version>2.5-SNAPSHOT</version>
+				<version>2.5</version>
 			</dependency>
 
 			<dependency>
