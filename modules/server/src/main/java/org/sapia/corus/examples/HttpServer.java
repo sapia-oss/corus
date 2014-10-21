@@ -38,7 +38,8 @@ public class HttpServer implements Container {
     Server server = new ContainerServer(container);
     Connection connection = new SocketConnection(server);
     SocketAddress address = new InetSocketAddress(Conf.getSystemProperties().getIntProperty(HTTP_SERVER_PORT_KEY));
-    System.out.println("Starting server on port: " + address);
+    System.out.println("Starting server on address: " + address);
+    System.err.println("Starting server on address: " + address);
     connection.connect(address);
   }
 
