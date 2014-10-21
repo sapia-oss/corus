@@ -21,6 +21,7 @@ import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.ConsoleOutput;
+import org.sapia.console.TerminalFacade;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
@@ -86,7 +87,10 @@ public class CorusCli extends CommandConsole {
 
     final AtomicReference<ConsoleInput> input = new AtomicReference<ConsoleInput>();
     // note: a case of the os.name being set to Vista has been reported.
-    if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
+    boolean useJline = Boolean.parseBoolean(System.getProperty(CliPropertyKeys.USE_JLINE, "false"));
+    if (!useJline) {
+      input.set(new CorusConsoleInput(ConsoleInputFactory.createDefaultConsoleInput()));
+    } else if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
       // condition occurs in Eclipse
       if (System.console() == null) {
         input.set(ConsoleInputFactory.createDefaultConsoleInput());
@@ -280,6 +284,32 @@ public class CorusCli extends CommandConsole {
 
   // ==========================================================================
   // Inner classes
+  
+  static class CorusConsoleInput implements ConsoleInput {
+    
+    private TerminalFacade terminal = new DefaultTerminalFacade();
+    private ConsoleInput   delegate;
+    
+    private CorusConsoleInput(ConsoleInput delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public TerminalFacade getTerminal() {
+      return terminal;
+    }
+    
+    @Override
+    public String readLine() throws IOException {
+      return delegate.readLine();
+    }
+    
+    @Override
+    public char[] readPassword() throws IOException {
+      return delegate.readPassword();
+    }
+    
+  }
 
   public class CliConsoleListener implements ConsoleListener {
     /**

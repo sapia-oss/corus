@@ -9,6 +9,7 @@ package org.sapia.corus.client;
 public class CliPropertyKeys {
 
   public static final String SORT_SWITCHES = "corus.client.sort.switches";
+  public static final String USE_JLINE     = "corus.client.jline";
   
   private CliPropertyKeys() {
   }
