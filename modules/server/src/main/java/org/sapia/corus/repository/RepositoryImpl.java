@@ -48,6 +48,7 @@ import org.sapia.corus.util.TimeUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.SyncEventListener;
+import org.sapia.ubik.net.ConnectionStateListener;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Repository.class })
 @Remote(interfaces = { Repository.class })
-public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEventListener, SyncEventListener, Interceptor, java.rmi.Remote {
+public class RepositoryImpl extends ModuleHelper 
+  implements 
+    Repository, 
+    AsyncEventListener, 
+    SyncEventListener, 
+    Interceptor, 
+    ConnectionStateListener,
+    java.rmi.Remote {
 
   private static final long MIN_BOOSTRAP_INTERVAL = TimeUnit.SECONDS.toMillis(5);
   private static final int MAX_BOOSTRAP_INTERVAL_OFFSET = (int) TimeUnit.SECONDS.toMillis(5);
@@ -127,7 +135,8 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
   @Override
   public void init() throws Exception {
     dispatcher.addInterceptor(ServerStartedEvent.class, this);
-
+    clusterManager.getEventChannel().addConnectionStateListener(this);
+    
     if (serverContext().getCorusHost().getRepoRole().isServer()) {
       logger().info("Node is repo server");
       clusterManager.getEventChannel().registerAsyncListener(ArtifactListRequest.EVENT_TYPE, this);
@@ -183,6 +192,22 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
   public String getRoleName() {
     return ROLE;
   }
+  
+  // --------------------------------------------------------------------------
+  // ConnectionStateListener interface
+  
+  @Override
+  public void onConnected() {
+  }
+  
+  @Override
+  public void onDisconnected() {
+  }
+  
+  @Override
+  public void onReconnected() {
+    doFirstPull();
+  }
 
   // --------------------------------------------------------------------------
   // Repository interface
@@ -221,6 +246,10 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
   // Interceptor interface
 
   public void onServerStartedEvent(ServerStartedEvent event) {
+    doFirstPull();
+  }
+  
+  private void doFirstPull() {
     if (serverContext().getCorusHost().getRepoRole().isClient()) {
       logger().debug("Node is a repo client: will request distributions from repository");
       Task<Void, Void> task = new ForcePullTask(this);
@@ -229,7 +258,7 @@ public class RepositoryImpl extends ModuleHelper implements Repository, AsyncEve
       taskManager.executeBackground(task, null, BackgroundTaskConfig.create().setExecInterval(delay).setExecDelay(delay));
     } else {
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));
-    }
+    }    
   }
 
   // --------------------------------------------------------------------------
