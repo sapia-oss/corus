@@ -112,6 +112,41 @@ class DeferredAsyncListener implements AsyncEventListener, EventChannelStateList
       }
     }
   }
+  
+  
+  @Override
+  public void onHeartbeatRequest(final EventChannelEvent event) {
+    for (EventChannelStateListenerWrapper wrapper : eventChannelListeners) {
+      if (ready) {
+        wrapper.delegate.onHeartbeatRequest(event);
+      } else {
+        wrapper.pending.add(new Func<Void, EventChannelStateListener>() {
+          @Override
+          public Void call(EventChannelStateListener arg) {
+            arg.onHeartbeatRequest(event);
+            return null;
+          }
+        });
+      }
+    }
+  }
+  
+  @Override
+  public void onHeartbeatResponse(final EventChannelEvent event) {
+    for (EventChannelStateListenerWrapper wrapper : eventChannelListeners) {
+      if (ready) {
+        wrapper.delegate.onHeartbeatResponse(event);
+      } else {
+        wrapper.pending.add(new Func<Void, EventChannelStateListener>() {
+          @Override
+          public Void call(EventChannelStateListener arg) {
+            arg.onHeartbeatResponse(event);
+            return null;
+          }
+        });
+      }
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Specific instance methods.

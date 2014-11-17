@@ -54,8 +54,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>jdbm</groupId>
-			<artifactId>jdbm</artifactId>
+		  <groupId>org.mapdb</groupId>
+		  <artifactId>mapdb</artifactId>
 		</dependency>
 
 		<dependency>

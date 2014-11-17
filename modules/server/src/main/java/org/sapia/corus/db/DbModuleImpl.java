@@ -23,9 +23,9 @@ public class DbModuleImpl extends ModuleHelper implements DbModule {
   private File _dbDir;
 
   /**
-   * The {@link JdbmDb} instance.
+   * The {@link PersistentDb} instance.
    */
-  private JdbmDb _db;
+  private PersistentDb _db;
 
   public DbModuleImpl() {
     super();
@@ -58,7 +58,7 @@ public class DbModuleImpl extends ModuleHelper implements DbModule {
     }
 
     try {
-      _db = JdbmDb.open(_dbDir.getAbsolutePath() + File.separator + File.separator + "database");
+      _db = PersistentDb.open(_dbDir.getAbsolutePath() + File.separator + File.separator + "database");
     } catch (Exception e) {
       throw new IllegalStateException("Could not open database", e);
     }

@@ -8,10 +8,10 @@ import org.sapia.corus.client.services.db.DbMap;
 
 public class TestDbModule{
   
-  private JdbmDb db;
+  private PersistentDb db;
 
   public void setup() throws IOException{
-    db = JdbmDb.open(System.getProperty("java.io.tmpdir")
+    db = PersistentDb.open(System.getProperty("java.io.tmpdir")
           + File.separator + "testdb" + UUID.randomUUID());
   }
   

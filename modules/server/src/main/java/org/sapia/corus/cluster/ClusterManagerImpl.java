@@ -258,5 +258,15 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       }
     }
   }
+  
+  @Override
+  public void onHeartbeatRequest(EventChannelEvent event) {
+    onUp(event);
+  }
+  
+  @Override
+  public void onHeartbeatResponse(EventChannelEvent event) {
+    onUp(event);
+  }
 
 }
