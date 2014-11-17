@@ -14,6 +14,9 @@
     <p>OR:</p>
     <p>port ls [-cluster]</p>
     <p/>
+    <p>OR:</p>
+    <p>port release -n range_name [-cluster]</p>
+    <p/> 
     <p>Where:</p>
     <p/>
     <p>- add: indicates that a port range is to be added.</p>
@@ -21,6 +24,8 @@
     <p>- del: indicates that a port range is to be deleted.</p>
     <p/>
     <p>- ls: lists all configured port ranges.</p>
+    <p/>
+    <p>- release: releases given port ranges (based on the name given).</p>
     <p/>
     <p>- n: the name of the port range to add or delete.</p>
     <p/>
@@ -38,4 +43,18 @@
     <p>- cluster: specifies if the command should be executed cluster-wide.</p>
     <p/>        
   </section>
+  <section title="Examples">
+    <p>port add -n http.server -min 8000 -max 8005 -cluster</p>
+    <p/>
+    <p>port del -n http.server -f</p>
+    <p/>
+    <p>port del -n * -f -cluster</p>
+    <p/>
+    <p>port ls -cluster</p>
+    <p/>
+    <p>port release -n http.server -cluster</p>
+    <p/>
+    <p>port release -n *</p>
+    <p/>
+  </section>      
 </help>
