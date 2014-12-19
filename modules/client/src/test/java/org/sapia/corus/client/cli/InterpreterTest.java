@@ -3,6 +3,7 @@ package org.sapia.corus.client.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -82,7 +83,7 @@ public class InterpreterTest {
 
     console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());
 
-    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), anySetOf(String.class), any(ClusterInfo.class));
   }
 
   @Test(expected = AbortException.class)

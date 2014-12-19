@@ -57,4 +57,5 @@ public interface CorusConsts {
    * Defines the property prefix of a symbolic link definition.
    */
   public static final String PROPERTY_CORUS_FILE_LINK_PREFIX = "corus.server.file.link.";
+  
 }

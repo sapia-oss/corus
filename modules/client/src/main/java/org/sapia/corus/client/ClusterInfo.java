@@ -122,9 +122,24 @@ public class ClusterInfo implements Serializable {
     }
     return cluster;
   }
+
+  /**
+   * @return returns a {@link ClusterInfo} whose <code>clustered</code> flag is <code>false</code>.
+   */
+  public static ClusterInfo clustered() {
+    return new ClusterInfo(true);
+  }
+  
+  /**
+   * @return returns a {@link ClusterInfo} whose <code>clustered</code> flag is <code>false</code>.
+   */
+  public static ClusterInfo notClustered() {
+    return new ClusterInfo(false);
+  }
   
   @Override
   public String toString() {
     return toLiteralForm();
   }
+
 }

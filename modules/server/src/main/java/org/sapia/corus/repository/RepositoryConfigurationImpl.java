@@ -26,6 +26,8 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private boolean pullPropertiesEnabled = true;
   private boolean pushPortRangesEnabled = true;
   private boolean pullPortRangesEnabled = true;
+  private boolean pushSecurityConfigEnabeld = true;
+  private boolean pullSecurityConfigEnabled = true;
   private boolean bootExecEnabled = true;
 
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
@@ -135,6 +137,27 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
 
   public void setPullPortRangesEnabled(boolean pullPortRangesEnabled) {
     this.pullPortRangesEnabled = pullPortRangesEnabled;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Security
+  
+  @Override
+  public boolean isPushSecurityConfigEnabled() {
+    return pushSecurityConfigEnabeld;
+  }
+  
+  public void setPushSecurityConfigEnabled(boolean pushSecurityConfigEnabeld) {
+    this.pushSecurityConfigEnabeld = pushSecurityConfigEnabeld;
+  }
+  
+  @Override
+  public boolean isPullSecurityConfigEnabled() {
+    return pullSecurityConfigEnabled;
+  }
+  
+  public void setPullSecurityConfigEnabled(boolean pullSecurityConfigEnabled) {
+    this.pullSecurityConfigEnabled = pullSecurityConfigEnabled;
   }
 
   // --------------------------------------------------------------------------

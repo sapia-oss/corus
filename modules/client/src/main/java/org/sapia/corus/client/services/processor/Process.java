@@ -1,18 +1,20 @@
 package org.sapia.corus.client.services.processor;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
 import org.sapia.corus.interop.Shutdown;
+import org.sapia.ubik.util.Strings;
 
 /**
  * This class models an external process. An instance of this class actually
@@ -20,28 +22,50 @@ import org.sapia.corus.interop.Shutdown;
  * 
  * @author Yanick Duchesne
  */
-public class Process extends AbstractPersistent<String, Process> implements java.io.Serializable, Comparable<Process>, Matcheable {
+public class Process extends AbstractPersistent<String, Process> 
+  implements java.io.Serializable, Comparable<Process>, JsonStreamable, Matcheable {
 
   static final long serialVersionUID = 1L;
+  
+  // --------------------------------------------------------------------------
+  // Identifies the different types kill "requestors".
 
   public enum ProcessTerminationRequestor {
 
-    KILL_REQUESTOR_ADMIN("corus.admin"), KILL_REQUESTOR_SERVER("corus.server"), KILL_REQUESTOR_PROCESS("corus.process");
+    KILL_REQUESTOR_ADMIN("corus.admin", "Process termination has been requested by a Corus end user"), 
+    KILL_REQUESTOR_SERVER("corus.server", "Process termination has been requested by the Corus instance"), 
+    KILL_REQUESTOR_PROCESS("corus.process", "Process termination has been requested by the process itself");
 
     private String type;
+    private String description;
 
-    private ProcessTerminationRequestor(String type) {
-      this.type = type;
+    private ProcessTerminationRequestor(String type, String description) {
+      this.type        = type;
+      this.description = description;
     }
-
-    public String toString() {
-      return type;
-    }
-
+    
+    /**
+     * @return the actual requestor type.
+     */
     public String getType() {
       return type;
     }
+    
+    /**
+     * @return this instance's description.
+     */
+    public String description() {
+      return description;
+    }
+
+    @Override
+    public String toString() {
+      return type;
+    }
   }
+  
+  // --------------------------------------------------------------------------
+  // Holds the constants corresponding to the different process lifecycles.
 
   public enum LifeCycleStatus {
 
@@ -50,21 +74,21 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    ACTIVE("act."),
+    ACTIVE("act.", "Indicates that a process is running"),
 
     /**
      * Corresponds to the "kill requested" status: the process is shutting down.
      * 
      * @see #getStatus()
      */
-    KILL_REQUESTED("shutd."),
+    KILL_REQUESTED("shutd.", "Indicates that the shutdown of a process has been requested"),
 
     /**
      * Corresponds to the "kill confirmed" status: the process has terminated.
      * 
      * @see #getStatus()
      */
-    KILL_CONFIRMED("shutd."),
+    KILL_CONFIRMED("shutd.", "Indicates that a process has confirmed its termination"),
 
     /**
      * Corresponds to the "restarting" status: the process is in the
@@ -72,7 +96,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    RESTARTING("rest."),
+    RESTARTING("rest.", "Indicates that a process is restarting"),
 
     /**
      * Corresponds to the "suspended" status: the process is in the "suspended"
@@ -80,7 +104,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    SUSPENDED("susp."),
+    SUSPENDED("susp.", "Indicates that a process is currently suspended"),
 
     /**
      * Corresponds to the "stale" status: the process is in the active queue
@@ -88,12 +112,14 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * 
      * @see #getStatus()
      */
-    STALE("stal.");
+    STALE("stal.", "Indicates that a process is stale (was deemed unresponsived and killed, and not restarted)");
     
     private String abbr;
+    private String description;
     
-    private LifeCycleStatus(String abbr) {
-      this.abbr = abbr;
+    private LifeCycleStatus(String abbr, String description) {
+      this.abbr        = abbr;
+      this.description = description;
     }
     
     /**
@@ -102,25 +128,34 @@ public class Process extends AbstractPersistent<String, Process> implements java
     public String abbreviation() {
       return abbr;
     }
+    
+    /**
+     * @return
+     */
+    public String description() {
+      return description;
+    }
   }
+  
+  // --------------------------------------------------------------------------
 
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
-  public static final int DEFAULT_KILL_RETRY = 3;
-  private DistributionInfo _distributionInfo;
-  private String _processID = IDGenerator.makeIdFromDate();
-  private String _processDir;
-  private String _pid;
-  private boolean _deleteOnKill = false;
-  private ProcessLock _lock = new ProcessLock();
-  private long _creationTime = System.currentTimeMillis();
-  private long _lastAccess = System.currentTimeMillis();
-  private int _shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
-  private int _maxKillRetry = DEFAULT_KILL_RETRY;
-  private LifeCycleStatus _status = LifeCycleStatus.ACTIVE;
-  private transient List<AbstractCommand> _commands = new ArrayList<AbstractCommand>();
-  private transient int _staleDetectionCount;
-  private List<ActivePort> _activePorts = new ArrayList<ActivePort>();
-  private transient org.sapia.corus.interop.Status _processStatus;
+  public static final int DEFAULT_KILL_RETRY            = 3;
+  private DistributionInfo                         distributionInfo;
+  private String                                   processID       = IDGenerator.makeIdFromDate();
+  private String                                   processDir;
+  private String                                   pid;
+  private boolean                                  deleteOnKill    = false;
+  private ProcessLock                              lock            = new ProcessLock();
+  private long                                     creationTime    = System.currentTimeMillis();
+  private long                                     lastAccess      = System.currentTimeMillis();
+  private int                                      shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
+  private int                                      maxKillRetry    = DEFAULT_KILL_RETRY;
+  private LifeCycleStatus                          status          = LifeCycleStatus.ACTIVE;
+  private transient List<AbstractCommand>          commands        = new ArrayList<AbstractCommand>();
+  private transient int                            staleDeleteCount;
+  private List<ActivePort>                         activePorts     = new ArrayList<ActivePort>();
+  private transient org.sapia.corus.interop.Status processStatus;
 
   Process() {
   }
@@ -132,7 +167,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a {@link DistributionInfo}.
    */
   public Process(DistributionInfo info) {
-    _distributionInfo = info;
+    distributionInfo = info;
   }
 
   /**
@@ -144,8 +179,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          the identifier of the suspended process.
    */
   public Process(DistributionInfo info, String processID) {
-    _distributionInfo = info;
-    _processID = processID;
+    this(info);
+    this.processID = processID;
   }
 
   /**
@@ -159,7 +194,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   public Process(DistributionInfo info, int shutDownTimeoutSeconds) {
     this(info);
-    _shutdownTimeout = shutDownTimeoutSeconds;
+    shutdownTimeout = shutDownTimeoutSeconds;
   }
 
   /**
@@ -177,14 +212,14 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   public Process(DistributionInfo info, int shutDownTimeoutSeconds, int maxKillRetry) {
     this(info);
-    _shutdownTimeout = shutDownTimeoutSeconds;
-    _maxKillRetry = maxKillRetry;
+    this.shutdownTimeout = shutDownTimeoutSeconds;
+    this.maxKillRetry = maxKillRetry;
   }
 
   @Override
   @Transient
   public String getKey() {
-    return _processID;
+    return processID;
   }
 
   /**
@@ -192,7 +227,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * (defaults to true).
    */
   public void setDeleteOnKill(boolean delete) {
-    _deleteOnKill = delete;
+    deleteOnKill = delete;
   }
 
   /**
@@ -200,7 +235,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *         being terminated
    */
   public boolean isDeleteOnKill() {
-    return _deleteOnKill;
+    return deleteOnKill;
   }
 
   /**
@@ -209,7 +244,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return this instance's {@link DistributionInfo}.
    */
   public DistributionInfo getDistributionInfo() {
-    return _distributionInfo;
+    return distributionInfo;
   }
 
   /**
@@ -218,7 +253,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return this instance's process identifier as a string.
    */
   public String getProcessID() {
-    return _processID;
+    return processID;
   }
 
   /**
@@ -227,7 +262,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return this instance's process process private directory.
    */
   public String getProcessDir() {
-    return _processDir;
+    return processDir;
   }
 
   /**
@@ -237,7 +272,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a valid directory path.
    */
   public void setProcessDir(String dir) {
-    _processDir = dir;
+    processDir = dir;
   }
 
   /**
@@ -246,7 +281,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return this instance's creation time as a long.
    */
   public long getCreationTime() {
-    return _creationTime;
+    return creationTime;
   }
 
   /**
@@ -255,7 +290,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return this instance's shutdown timeout, in seconds.
    */
   public int getShutdownTimeout() {
-    return _shutdownTimeout;
+    return shutdownTimeout;
   }
 
   /**
@@ -265,7 +300,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a timeout in seconds.
    */
   public void setShutdownTimeout(int timeout) {
-    _shutdownTimeout = timeout;
+    shutdownTimeout = timeout;
   }
 
   /**
@@ -273,7 +308,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *         instance holds.
    */
   public List<ActivePort> getActivePorts() {
-    return _activePorts;
+    return activePorts;
   }
 
   /**
@@ -281,8 +316,8 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a <code>PortManager</code>.
    */
   public void releasePorts(PortManager ports) {
-    for (int i = 0; i < _activePorts.size(); i++) {
-      ActivePort port = (ActivePort) _activePorts.remove(i--);
+    for (int i = 0; i < activePorts.size(); i++) {
+      ActivePort port = (ActivePort) activePorts.remove(i--);
       ports.releasePort(port.getName(), port.getPort());
     }
   }
@@ -292,7 +327,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          an <code>ActivePort</code>.
    */
   public void addActivePort(ActivePort port) {
-    _activePorts.add(port);
+    activePorts.add(port);
   }
 
   /**
@@ -303,7 +338,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *         process corresponding to this instance.
    */
   public int getMaxKillRetry() {
-    return _maxKillRetry;
+    return maxKillRetry;
   }
 
   /**
@@ -313,7 +348,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a max number of retries.
    */
   public void setMaxKillRetry(int retry) {
-    _maxKillRetry = retry;
+    maxKillRetry = retry;
   }
 
   /**
@@ -321,7 +356,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *         or <code>null</code> if that identifier is not accessible.
    */
   public String getOsPid() {
-    return _pid;
+    return pid;
   }
 
   /**
@@ -331,7 +366,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          an OS-specific identifier.
    */
   public void setOsPid(String pid) {
-    _pid = pid;
+    this.pid = pid;
   }
 
   /**
@@ -342,7 +377,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * 
    */
   public long getLastAccess() {
-    return _lastAccess;
+    return lastAccess;
   }
 
   /**
@@ -350,21 +385,21 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   @Transient
   public int getStaleDetectionCount() {
-    return _staleDetectionCount;
+    return staleDeleteCount;
   }
 
   /**
    * Increments this instance's stale detection count.
    */
   public void incrementStaleDetectionCount() {
-    _staleDetectionCount++;
+    staleDeleteCount++;
   }
 
   /**
    * Called by this instance's corresponding process when the latter polls the
    * corus server.
    * 
-   * @return the <code>List</code> of pending commands for the process.
+   * @return the {@link List} of pending commands for the process.
    */
   public synchronized List<AbstractCommand> poll() {
     touch();
@@ -383,7 +418,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   public synchronized List<AbstractCommand> status(org.sapia.corus.interop.Status stat) {
     touch();
-    _processStatus = stat;
+    processStatus = stat;
 
     List<AbstractCommand> commands = new ArrayList<AbstractCommand>(getCommands());
     getCommands().clear();
@@ -406,7 +441,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   @Transient
   public synchronized org.sapia.corus.interop.Status getProcessStatus() {
-    return _processStatus;
+    return processStatus;
   }
 
   /**
@@ -420,14 +455,14 @@ public class Process extends AbstractPersistent<String, Process> implements java
      * command since the process command queue is emptied at every poll/status
      * request. We can thus support multiple kill attempts on a given process.
      */
-    if (_status == LifeCycleStatus.ACTIVE || _status == LifeCycleStatus.KILL_REQUESTED) {
-      _status = LifeCycleStatus.KILL_REQUESTED;
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.KILL_REQUESTED) {
+      status = LifeCycleStatus.KILL_REQUESTED;
 
       Shutdown shutdown = new Shutdown();
       shutdown.setCommandId(CyclicIdGenerator.newRequestId());
       shutdown.setRequestor(requestor.getType());
       getCommands().add(shutdown);
-      _lastAccess = System.currentTimeMillis();
+      lastAccess = System.currentTimeMillis();
     }
   }
 
@@ -437,7 +472,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * down).
    */
   public synchronized void confirmKilled() {
-    _status = LifeCycleStatus.KILL_CONFIRMED;
+    status = LifeCycleStatus.KILL_CONFIRMED;
   }
 
   /**
@@ -445,14 +480,14 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * time.
    */
   public void touch() {
-    _lastAccess = System.currentTimeMillis();
+    lastAccess = System.currentTimeMillis();
   }
 
   /**
    * @return this instance's {@link LifeCycleStatus}.
    */
   public LifeCycleStatus getStatus() {
-    return _status;
+    return status;
   }
 
   /**
@@ -462,7 +497,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    *          a {@link LifeCycleStatus}
    */
   public void setStatus(LifeCycleStatus status) {
-    _status = status;
+    this.status = status;
   }
 
   /**
@@ -474,7 +509,7 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * @return <code>true</code> if this process has timed-out.
    */
   public boolean isTimedOut(long timeout) {
-    return (System.currentTimeMillis() - _lastAccess) > timeout;
+    return (System.currentTimeMillis() - lastAccess) > timeout;
   }
 
   /**
@@ -486,12 +521,12 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   @Transient
   public boolean isShutdownTimedOut() {
-    return (System.currentTimeMillis() - _lastAccess) > _shutdownTimeout;
+    return (System.currentTimeMillis() - lastAccess) > shutdownTimeout;
   }
 
   @Transient
   public List<AbstractCommand> getCommands() {
-    return _commands == null ? _commands = new ArrayList<AbstractCommand>(5) : _commands;
+    return commands == null ? commands = new ArrayList<AbstractCommand>(5) : commands;
   }
 
   /**
@@ -501,11 +536,11 @@ public class Process extends AbstractPersistent<String, Process> implements java
    */
   @Transient
   public ProcessLock getLock() {
-    return _lock;
+    return lock;
   }
 
   void setLock(ProcessLock lock) {
-    _lock = lock;
+    this.lock = lock;
   }
 
   /**
@@ -519,28 +554,62 @@ public class Process extends AbstractPersistent<String, Process> implements java
    * </ul>
    */
   public void clear() {
-    if (_commands != null)
-      _commands.clear();
-    _creationTime = System.currentTimeMillis();
-    _lastAccess = System.currentTimeMillis();
-    _status = LifeCycleStatus.ACTIVE;
+    if (commands != null)
+      commands.clear();
+    creationTime = System.currentTimeMillis();
+    lastAccess = System.currentTimeMillis();
+    status = LifeCycleStatus.ACTIVE;
+  }
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("id").value(processID)
+      .field("name").value(distributionInfo.getProcessName())
+      .field("pid").value(pid)
+      .field("distribution").value(distributionInfo.getName())
+      .field("version").value(distributionInfo.getVersion())
+      .field("profile").value(distributionInfo.getProfile())
+      .field("creationTimeMillis").value(creationTime)
+      .field("creationTimestamp").value(new Date(creationTime))
+      .field("lastAccessTimeMillis").value(lastAccess)
+      .field("lastAccessTimestamp").value(new Date(lastAccess))
+      .field("status").value(status.name())
+      .field("maxKillRetry").value(maxKillRetry)
+      .field("deleteOnKill").value(deleteOnKill)
+      .field("shutdownTimeout").value(shutdownTimeout)
+      .field("staleDetectionCount").value(staleDeleteCount)
+      .field("activePorts").beginArray();
+    for (ActivePort p : activePorts) {
+      stream.beginObject()
+        .field("name").value(p.getName())
+        .field("port").value(p.getPort())
+      .endObject();
+    }
+    stream.endArray();
+    stream.endObject();
   }
   
   @Override
   public boolean matches(Pattern pattern) {
-    return (_pid != null && pattern.matches(_pid)) || 
-        pattern.matches(_processID) ||
-        pattern.matches(_distributionInfo.getName()) ||
-        pattern.matches(_distributionInfo.getProcessName()) ||
-        pattern.matches(_distributionInfo.getProfile()) ||
-        pattern.matches(_distributionInfo.getVersion()) ||
-        pattern.matches(_status.name().toLowerCase()) ||
-        pattern.matches(_status.abbreviation());
+    return (pid != null && pattern.matches(pid)) || 
+        pattern.matches(processID) ||
+        pattern.matches(distributionInfo.getName()) ||
+        pattern.matches(distributionInfo.getProcessName()) ||
+        pattern.matches(distributionInfo.getProfile()) ||
+        pattern.matches(distributionInfo.getVersion()) ||
+        pattern.matches(status.name().toLowerCase()) ||
+        pattern.matches(status.abbreviation());
   }
 
+  @Override
   public String toString() {
-    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("pid", _processID).append("OS pid", _pid).append("status", _status)
-        .append("isLocked", _lock.isLocked()).toString();
+    return Strings.toStringFor(
+        this, "id", processID, 
+        "pid", pid, 
+        "status", status, 
+        "locked", lock.isLocked()
+    );
   }
 
   @Override
@@ -548,21 +617,20 @@ public class Process extends AbstractPersistent<String, Process> implements java
     if (obj instanceof Process) {
       Process other = (Process) obj;
       return this.getProcessID().equals(other.getProcessID());
-    } else {
-      return false;
     }
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return _processID.hashCode();
+    return processID.hashCode();
   }
 
   @Override
   public int compareTo(Process other) {
-    int c = _distributionInfo.compareTo(other.getDistributionInfo());
+    int c = distributionInfo.compareTo(other.getDistributionInfo());
     if (c == 0) {
-      c = _processID.compareTo(other.getProcessID());
+      c = processID.compareTo(other.getProcessID());
     }
     return c;
   }

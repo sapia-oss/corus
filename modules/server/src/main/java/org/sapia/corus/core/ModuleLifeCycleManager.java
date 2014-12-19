@@ -78,8 +78,8 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   }
 
   @Override
-  public Properties getProcessProperties() throws IOException {
-    return delegate.getProcessProperties();
+  public Properties getProcessProperties(List<String> categories) throws IOException {
+    return delegate.getProcessProperties(categories);
   }
 
   @Override

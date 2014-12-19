@@ -13,7 +13,6 @@
   </section>
   <section title="Examples">
     <p>connect -h jupiter -p 33000</p>
-    <p/>
     <p>connect -p 33001</p>
     <p/>    
   </section>  

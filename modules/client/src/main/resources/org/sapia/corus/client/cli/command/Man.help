@@ -30,6 +30,8 @@
     <p/>
     <p>- conf</p>    
     <p>- port</p>
+    <p>- role</p>
+    <p>- appkey</p>
     <p/>
     <p>Misc:</p>
     <p/>
@@ -44,6 +46,7 @@
     <p>- hosts</p>
     <p>- http</p>
     <p>- man</p>
+    <p>- match</p>
     <p>- pull</p>
     <p>- pwd</p>
     <p>- quit</p>

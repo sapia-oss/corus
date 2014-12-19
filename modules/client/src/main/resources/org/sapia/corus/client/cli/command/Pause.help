@@ -3,7 +3,7 @@
    <p>Forces a pause, for a given amount of seconds.</p>
   </section>
   <section title="Syntax">
-    <p>pause number_of_seconds</p>
+    <p>pause &lt;number_of_seconds&gt;</p>
     <p/>    
   </section>
 </help>

@@ -83,6 +83,9 @@ public class HttpExtensionManager implements Handler {
   @Override
   public void handle(Request req, Response res) {
     try {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Handling request: " + req.getPath());
+      }
       doHandle(req, res);
     } catch (Exception e) {
       res.setCode(HttpResponseFacade.STATUS_SERVER_ERROR);

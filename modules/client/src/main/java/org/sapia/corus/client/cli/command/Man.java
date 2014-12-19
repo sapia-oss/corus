@@ -23,6 +23,7 @@ public class Man extends NoOptionCommand {
 
   static {
     COMMANDS.put("ant", Ant.class);
+    COMMANDS.put("appkey", Appkey.class);
     COMMANDS.put("cd", Cd.class);
     COMMANDS.put("cluster", Cluster.class);
     COMMANDS.put("cmd", Cmd.class);
@@ -51,6 +52,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("restart", Restart.class);
     COMMANDS.put("resume", Resume.class);
     COMMANDS.put("ripple", Ripple.class);
+    COMMANDS.put("role", Role.class);
     COMMANDS.put("script", Script.class);
     COMMANDS.put("sort", Sort.class);
     COMMANDS.put("status", Status.class);

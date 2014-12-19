@@ -8,9 +8,9 @@
    <p/>
   </section>
   <section title="Syntax">
-    <p>ripple -s script_file_path -b batch_size  [-m min_hosts]</p>
+    <p>ripple -s &lt;script_file_path&gt; -b &lt;batch_size&gt;  [-m &lt;min_hosts&gt;]</p>
     <p/>
-    <p>ripple -c "command_line_to_execute-1 [| command_line_to_execute-2 [| command_line_to_execute-n]" -b batch_size  [-m min_hosts]</p>
+    <p>ripple -c "&lt;command_line_to_execute-1&gt; [| &lt;command_line_to_execute-2&gt; [...| &lt;command_line_to_execute-n&gt;]" -b &lt;batch_size&gt;  [-m &lt;min_hosts&gt;]</p>
     <p/>
     <p>Where:</p>
     <p/>    
@@ -58,7 +58,6 @@
     <p>The convenience of the ripple command can clearly be seen above: the kill/undeploy/deploy sequence 
     will only be performed against a subset of the cluster, sparing the whole cluster from being brought to
     a halt when upgrading an application.</p>
-    <p/>
   </section>
   <section title="Additional Examples">
     <p>ripple -c "restart all -cluster | pause 45"</p>

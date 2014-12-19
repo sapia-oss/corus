@@ -39,6 +39,12 @@ public interface RepositoryConfiguration extends Remote {
    *         repo clients (<code>true</code> by default).
    */
   public boolean isPushPortRangesEnabled();
+  
+  /**
+   * @return <code>true</code> if the repo server should send security configuration to
+   *         repo clients (<code>true</code> by default).
+   */
+  public boolean isPushSecurityConfigEnabled();
 
   /**
    * @return <code>true</code> if the repo client should accept tags from repo
@@ -70,6 +76,12 @@ public interface RepositoryConfiguration extends Remote {
    */
   public boolean isPullPortRangesEnabled();
 
+  /**
+   * @return <code>true</code> if the repo client should accept security configuration
+   * from repo servers (<code>true</code> by default).
+   */
+  public boolean isPullSecurityConfigEnabled();
+  
   /**
    * @return <code>true</code> if process configs that have their
    *         <code>startOnBoot</code> flag to true should have their processes

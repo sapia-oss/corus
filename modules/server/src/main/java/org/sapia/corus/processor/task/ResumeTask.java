@@ -35,7 +35,7 @@ public class ResumeTask extends Task<Void, TaskParams<Process, Distribution, Pro
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
       ProcessInfo info = new ProcessInfo(process, dist, conf, true);
-      Properties props = ctx.getServerContext().getProcessProperties();
+      Properties props = ctx.getServerContext().getProcessProperties(conf.getCategoryList());
       if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, props)).get()) {
         processes.getSuspendedProcesses().removeProcess(process.getProcessID());
         process.setStatus(Process.LifeCycleStatus.ACTIVE);

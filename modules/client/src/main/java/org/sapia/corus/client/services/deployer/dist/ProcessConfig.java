@@ -14,6 +14,7 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.ubik.util.Collects;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectHandlerIF;
 
@@ -41,6 +42,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   private int pollInterval = DEFAULT_POLL_INTERVAL;
   private boolean deleteOnKill = false;
   private String[] tags;
+  private String[] categories;
   private PreExec preExec; 
 
   public ProcessConfig() {
@@ -79,7 +81,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   /**
    * Sets this instance's tags.
    * 
-   * @param tagList
+   * @param tagList a comma-delimited list of tags.
    */
   public void setTags(String tagList) {
     tags = tagList.split(",");
@@ -92,13 +94,32 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
    * @return the set of tags held by this instance.
    */
   public Set<String> getTagSet() {
-    Set<String> set = new HashSet<String>();
-    if (tags != null) {
-      for (String t : tags) {
-        set.add(t);
-      }
+    if (tags == null) {
+      return new HashSet<>(0);
     }
-    return set;
+    return Collects.arrayToSet(tags);
+  }
+  
+  /**
+   * Sets this instance's categories.
+   * 
+   * @param categoryList a comma-delimited list of categories.
+   */
+  public void setPropertyCategories(String categoryList) {
+    categories = categoryList.split(",");
+    for (int i = 0; i < categories.length; i++) {
+      categories[i] = categories[i].trim();
+    }  
+  }
+  
+  /**
+   * @return the list of categories held by this instance.
+   */
+  public List<String> getCategoryList() {
+    if (categories == null) {
+      return new ArrayList<>(0);
+    }
+    return Collects.arrayToList(categories);
   }
 
   /**

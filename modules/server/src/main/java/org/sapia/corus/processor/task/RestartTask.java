@@ -65,7 +65,7 @@ public class RestartTask extends KillTask {
       synchronized (proc) {
         try {
           ProcessInfo info = new ProcessInfo(proc, dist, conf, true);
-          Properties processProperties = ctx.getServerContext().getProcessProperties();
+          Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getCategoryList());
           PerformExecProcessTask execProcess = new PerformExecProcessTask();
           if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
             processes.getProcessesToRestart().removeProcess(proc.getProcessID());

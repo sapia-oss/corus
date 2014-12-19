@@ -11,8 +11,12 @@ import java.util.Set;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.PathUtils;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 import org.sapia.util.xml.ProcessingException;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.Dom4jProcessor;
@@ -25,7 +29,8 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  * 
  * @author Yanick Duchesne
  */
-public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>, Matcheable {
+
+public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>, JsonStreamable, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -305,17 +310,58 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     return String.format("[%s-%s]", name, version);
   }
   
+  // --------------------------------------------------------------------------
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("name").value(name)
+      .field("version").value(version);
+    
+    stream.field("processConfigs").beginArray();
+    for (ProcessConfig pc : processConfigs) {
+      stream.beginObject()
+        .field("name").value(pc.getName())
+        .field("maxInstances").value(pc.getMaxInstances())
+        .field("maxKillRetry").value(pc.getMaxKillRetry())
+        .field("pollInterval").value(pc.getPollInterval())
+        .field("shutdownTimeout").value(pc.getShutdownTimeout())
+        .field("statusInterval").value(pc.getStatusInterval())
+        .field("deleteOnKill").value(pc.isDeleteOnKill())
+        .field("invoke").value(pc.isInvoke());
+      
+      stream.field("ports");
+      stream.strings(Collects.convertAsArray(pc.getPorts(), String.class, new Func<String, Port>() {
+        @Override
+        public String call(Port port) {
+          return port.getName();
+        }
+      }));
+      
+      stream.field("profiles");
+      stream.strings(pc.getProfiles().toArray(new String[pc.getProfiles().size()]));
+      
+      stream.field("tags");
+      stream.strings(pc.getTagSet().toArray(new String[pc.getTagSet().size()]));
+      stream.endObject();
+    }
+    stream.endArray();
+    stream.endObject();
+  }
   
   // --------------------------------------------------------------------------
   
-  public String toString() {
+  @Override
+  public String toString() {  
     return "[ name=" + name + ", version=" + version + ", processes=" + processConfigs.toString() + " ]";
   }
 
+  @Override
   public int hashCode() {
     return name.hashCode() ^ version.hashCode();
   }
 
+  @Override
   public boolean equals(Object other) {
     if (other instanceof Distribution) {
       Distribution otherDist = (Distribution) other;

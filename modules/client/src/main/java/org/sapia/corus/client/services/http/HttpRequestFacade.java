@@ -2,14 +2,33 @@ package org.sapia.corus.client.services.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Hides HTTP reqiest implementation details.
+ * Hides HTTP request implementation details.
  * 
  * @author yduchesne
  * 
  */
 public interface HttpRequestFacade {
+  
+  /**
+   * @return the HTTP method name (POST, GET, etc.).
+   */
+  public String getMethod();
+  
+  /**
+   * @return the {@link Set} of mime-types corresponding to the different content types
+   * accepted by the client.
+   */
+  public Set<String> getAccepts();
+  
+  /**
+   * @return the mime-type of the request's payload, or <code>null</code> if none
+   * has been specified, or if this does not apply (for example in the case of a GET method).
+   */
+  public String getContentType();
 
   /**
    * @param name
@@ -25,7 +44,12 @@ public interface HttpRequestFacade {
    *         value.
    */
   public String getParameter(String name);
-
+  
+  /**
+   * @return the {@link Map} of name/values corresponding to the request's parameters.
+   */
+  public Map<String, String> getParameters();
+  
   /**
    * @return this instance's {@link InputStream}.
    * @throws IOException

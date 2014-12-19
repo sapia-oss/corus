@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.processor;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import org.sapia.ubik.util.Strings;
 
@@ -80,5 +81,19 @@ public class KillPreferences implements Serializable {
   @Override
   public String toString() {
     return Strings.toStringFor(this, "hard", hard, "suspend", suspend);
+  }
+  
+  @Override
+  public int hashCode() {
+    return Objects.hash(hard, suspend);
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof KillPreferences) {
+      KillPreferences other = (KillPreferences) obj;
+      return this.hard == other.hard && this.suspend == other.suspend;
+    }
+    return false;
   }
 }

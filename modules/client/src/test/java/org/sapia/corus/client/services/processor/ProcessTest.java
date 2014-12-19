@@ -1,18 +1,25 @@
 package org.sapia.corus.client.services.processor;
 
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import junit.framework.Assert;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 
 public class ProcessTest {
 
@@ -61,6 +68,47 @@ public class ProcessTest {
     Assert.assertEquals(proc3, procs.get(2));
     Assert.assertEquals(proc2, procs.get(3));
 
+  }
+  
+  @Test
+  public void testToJson() throws Exception {
+    StringWriter     writer = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(writer);
+    
+    Process p = new Process(new DistributionInfo("test-dist", "1.0", "test-profile", "test-process"), "test-id");
+    p.setDeleteOnKill(true);
+    p.setMaxKillRetry(5);
+    p.setOsPid("test-os-pid");
+    p.setProcessDir("test-dir");
+    p.setShutdownTimeout(5);
+    p.setStatus(LifeCycleStatus.KILL_CONFIRMED);
+    p.addActivePort(new ActivePort("port0", 0));
+    p.addActivePort(new ActivePort("port1", 1));
+    p.incrementStaleDetectionCount();
+    p.toJson(stream);
+    
+    JSONObject json = JSONObject.fromObject(writer.toString());
+    
+    assertEquals(true, json.getBoolean("deleteOnKill"));
+    assertEquals(5, json.getInt("maxKillRetry"));
+    assertEquals("test-os-pid", json.getString("pid"));
+    assertEquals("test-process", json.getString("name"));
+    assertEquals("test-dist", json.getString("distribution"));
+    assertEquals("1.0", json.getString("version"));
+    assertEquals("test-profile", json.getString("profile"));
+    assertEquals(5, json.getLong("shutdownTimeout"));
+    assertEquals(LifeCycleStatus.KILL_CONFIRMED.name(), json.getString("status"));
+    assertEquals(1, json.getInt("staleDetectionCount"));
+    
+    WriterJsonStream.parseDate(json.getString("creationTimestamp"));
+    WriterJsonStream.parseDate(json.getString("lastAccessTimestamp"));
+    
+    JSONArray activePorts = json.getJSONArray("activePorts");
+    for (int i = 0; i < activePorts.size(); i++) {
+      JSONObject ap = activePorts.getJSONObject(i);
+      assertEquals(i, ap.getInt("port"));
+      assertEquals("port" + i, ap.getString("name"));
+    }
   }
   
   @Test

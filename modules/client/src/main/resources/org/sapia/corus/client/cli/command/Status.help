@@ -3,11 +3,11 @@
    <p>Lists the status of processes that are currently running.</p>
   </section>
   <section title="Syntax">
-    <p>status [-d distribution_name][-v version][-n process_name][-p profile][-cluster]</p>
+    <p>status [-d &lt;distribution_name&gt;][-v &lt;version&gt;][-n &lt;process_name&gt;][-p &lt;profile&gt;][-cluster]</p>
     <p/>
     <p>OR</p>
     <p/>
-    <p>status [-i process_identifier]</p>
+    <p>status [-i &lt;process_identifier&gt;]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -25,14 +25,11 @@
   </section>
   <section title="Notes">
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
-    <p/>
     <p>- When used with the -i option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
   </section>  
   <section title="Examples">
     <p>status -d myapp -v 1.0 -n jetty -p qa</p>
-    <p/>
     <p>status -d myapp -v 1.* -n * -p qa</p>
-    <p/>    
     <p>status -d * -v * -n * -p qa</p>
     <p/>    
   </section>    

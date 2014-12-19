@@ -25,13 +25,9 @@
   </section>
   <section title="Examples">
     <p>err</p>
-    <p/>
     <p>err -l</p>
-    <p/>
     <p>err -l 5</p>
-    <p/>    
     <p>err -i 3</p>
-    <p/>    
     <p>err -c</p>
     <p/>    
   </section>  

@@ -1,0 +1,866 @@
+<sapia:page title="REST API" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+ 	  <sapia:vsection name="In 2 minutes" href="overview.html"/>    
+    <sapia:vsection name="Interop Spec" href="CorusInterop.pdf"/>    
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="REST API">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="rest" />
+    </sapia:section>
+  
+    <toc/>
+  
+    <sapia:sect-desc>
+      <p>
+        As of Corus 4.5, the REST API provides a means to access functionality similar to the one offered 
+        by the command-line interface over HTTP/JSON. 
+      </p>
+      <p>
+        The design of the API takes into account the possibility of managing multiple Corus clusters (or domains)
+        through a single REST entry point. Such a design choice was made to allow for the introduction of a centralized
+        Corus management server.
+      </p>
+      <p>
+        Currently though, each individual Corus node publishes an implementation of the API which potentially allows managing
+        all the Corus peers in that node's cluster - that is to say: the API allows managing a Corus cluster indivually, by 
+        accessing one of its nodes through the REST API. This will become clearer in the API documentation below.
+      </p>
+      <p>
+        In summary, that is to say that the API currently allows performing operations on a cluster as a whole, 
+        or on a single node in the cluster.
+      </p>
+    </sapia:sect-desc>
+    
+    <!-- ======================      SECURITY      ====================== -->
+    
+    <sapia:sect2 title="Security">
+      <p>
+        The API gives access to "write" operations (killing processes, deploying, etc.) that require authentication and authorization.
+        In addition, such calls should be made over SSL, which Corus supports. The following sections explain these security considerations.
+      </p>
+      <sapia:sect3 title="Authentication and authorization">
+        <p>
+          Authentication and authorization require the creation of application keys. An application key is associated to an application
+          ID, and together they  provide the credentials required by an application to be authenticated. In turn, such credentials are associated
+          to a role, which itself corresponds to a set of permissions. The association of an application key to a role thus allows for authorization.
+        </p>
+        <sapia:note>Each Corus node keeps role definitions and application keys in its own local database. The CLI commands allowing for the 
+        administration of roles and application keys support the <tt>-cluster</tt> option, which allows replicating that data across a
+        cluster. In addition, when the <a href="advanced.html#repo">repository</a> functionality is used, replication of roles and 
+        application keys is performed automatically (from repo servers to repo clients).</sapia:note>
+        
+        <sapia:sect4 title="Creating roles">
+          <p>
+            Prior to creating application keys, a logical step is to create one or more roles, to which application keys are meant to
+            be associated. Roles and permissions are created in Corus, through the CLI. Roles can be created, deleted, and listed, 
+            through the <tt>role</tt> command in the CLI.
+          </p>
+          <p>Furthermore, each role must be associated to a set of permissions. Corus supports the following predefined permissions:</p>
+          <ul>
+            <li><tt>READ</tt>: this permission does not required authentication. All read resources in the API (those that do not modify the state
+            of Corus - which are typically <tt>GET</tt> calls) are configured with such a permission.</li>
+            
+            <li><tt>WRITE</tt>: this permission corresponds to <tt>PUT</tt>, <tt>POST</tt> and <tt>DELETE</tt> resources that modify the state of Corus by adding or
+            removing data (similary to the CLI's <tt>port add</tt>, <tt>conf del</tt>, etc.</li>
+            
+            <li><tt>EXECUTE</tt>: this permission corresponds to resources that affect process lifecycle, and correspond to the CLI's
+            <tt>exec</tt>, <tt>kill</tt>, <tt>suspend</tt>, <tt>resume</tt> and <tt>restart</tt> commands.</li>
+            
+            <li><tt>DEPLOY</tt>: this permissions strictly corresponds to the API's deployment/undeployment resources (analoguous to the CLI's
+            <tt>deploy</tt> and <tt>undeploy</tt> commands.</li>
+          </ul>
+          <p>
+            To create (or update) a role, use the <tt>role add</tt> command in the CLI (roles cannot be administered through the API):
+          </p>
+          <sapia:code>role add -n admin -p rwxd -cluster</sapia:code>
+          <p>
+            The above creates a role, which is replicated through all the cluster. In a similar manner, roles can be deleted (through 
+            <tt>role del</tt> and listed, using <tt>role ls</tt> (see the CLI's help for the details, by typing <tt>man role</tt>). 
+          </p>
+          <p>
+            One thing to note is that the command can take up to two options, aside from the <tt>-cluster</tt> one:
+            <ul>
+              <li><b><tt>-n</tt></b>: specifies the name of the role.</li>
+              <li><b><tt>-p</tt></b>: specifies the set of permissions to assign to the role. In this case, note that one character is used
+              for each permission:
+                <ul>
+                  <li><b><tt>r</tt></b>: <tt>READ</tt></li>
+                  <li><b><tt>w</tt></b>: <tt>WRITE</tt></li>
+                  <li><b><tt>x</tt></b>: <tt>EXECUTE</tt></li>
+                  <li><b><tt>d</tt></b>: <tt>DEPLOY</tt></li>
+                </ul>
+              </li>
+            </ul>
+          </p>
+
+        </sapia:sect4>
+        <sapia:sect4 title="Creating application keys">
+          <p>
+            Once at least one role is created, you can proceed to creating application keys. To that end, the <tt>appkey</tt> command is used:
+          </p>
+          <sapia:code>appkey add -a chef -r admin -k akw71sey927a -cluster</sapia:code>
+          <p>
+            The above creates (or updates) an application key for the "chef" application, assigning to it the "admin" role, and the application key
+            specified by the <tt>-k</tt> option. That new application key is replicated across the cluster.
+          </p>
+          <p>
+            More formally, the options shown in the example above correspond to:
+          </p>
+          <ul>
+            <li><b><tt>-a</tt></b>: application ID.</li>
+            <li><b><tt>-k</tt></b>: application key (optional, defaults to a generated one).</li>
+            <li><b><tt>-r</tt></b>: role (corresponds to the name of an already defined role).</li>
+          </ul>
+          
+          <sapia:note>Similarly to roles, the API does not allow managing application keys - this must be done through the CLI.</sapia:note>
+          
+          <p>It is optional to specify an application key as a parameter: if none is passed, one is automatically created (that application key
+          consists of a randomnly generated sequence of 32 characters).</p>
+          <p>You can view the existing application keys with <tt>appkey ls</tt> and delete application keys with <tt>appkey del</tt>.</p>
+        </sapia:sect4>
+        <sapia:sect4 title="Using an application key">
+          <p>
+            Once an application key is configured, it can be used to make API calls (this should be done over a SSL link, which Corus has support for,
+            as explained further below). There are two ways to do this: by providing the application ID and application key as HTTP headers, 
+            or by specifying that information as HTTP request parameters (the former method is preferred).
+          </p>
+          <p>
+            The HTTP headers to use are the following:
+          </p>
+          <ul>
+            <li><tt>X-corus-app-id</tt>: specifies the application ID.</li>
+            <li><tt>X-corus-app-key</tt>: specifies the application key.</li>
+          </ul>
+          <p>
+            In place of the above headers, the <tt>aid</tt> and <tt>apk</tt> request parameters can be used to specify the application ID and key,
+            respectively, as in the following:
+          </p>
+          <sapia:code>https://localhost:33443/rest/clusters/app-01/distributions?aid=chef&amp;apk=akw71sey927a</sapia:code>
+        </sapia:sect4>
+      
+      </sapia:sect3>
+      
+      <sapia:sect3 title="SSL">
+        <p>
+          When using the REST API, it is recommended to connect to the Corus SLL port. By default, SSL is disabled. It can be enabled through
+          simple configuration (in the <tt>corus.properties</tt> file).
+        </p>
+        <p>
+          A prerequisite, though, is to have created the required SSL certificate (and the keystore that stores it). 
+          This is widely documented online. Once the keystore has been created (using the JDK's <tt>keytool</tt> command), 
+          the Corus configuration can be modified accordingly. 
+        </p>
+        <p>
+          The following configuration properties drive SSL support by Corus:
+          <ul>
+            <li><b><tt>corus.server.ssl.enabled</tt></b>: enables/disables SSL (defaults to false, must of course be set to true for SSL to work).</li>
+            <li><b><tt>corus.server.ssl.keystore.file</tt></b>: points to the keystore file (normally, 
+            it corresponds to <tt>${user.home}/.keystore</tt>.</li>
+            <li><b><tt>corus.server.ssl.key.password</tt></b>: the password used to access the SSL certificate in the keystore.</li>
+            <li><b><tt>corus.server.ssl.keystore.password</tt></b>: the password used to access the keystore itself.</li>
+            <li><b><tt>corus.server.ssl.port</tt></b>: the SSL port to use. If zero (0) is specified, the port will default 
+            to <tt>corus_port + 443</tt>. That is, if the server runs on port 33000, the SSL port will be set to 33443; if it runs
+            on 33001, the port will be set to 33444, and so on.</li>
+          </ul>
+        </p>
+        <p>Here's an example configuration for the above properties</p>
+        <sapia:code>corus.server.ssl.key.password=corus-ssl
+corus.server.ssl.keystore.password=corus-ssl
+corus.server.ssl.keystore.file=${user.home}/.keystore
+corus.server.ssl.port=0
+corus.server.ssl.enabled=true</sapia:code>
+        
+        <p>
+          Once the configuration is done, Corus must be restarted.
+        </p>
+        
+      </sapia:sect3>
+    
+    </sapia:sect2>
+    
+    
+    <!-- ====================== CLUSTERS AND HOSTS ====================== -->
+    
+    <sapia:sect2 title="Using the API">
+      <p>
+        Using the API is straighforward. All <tt>GET</tt> resources described further below return a JSON response (for which a sample
+        is provided in the documentation). The API is accessible at any Corus node, under the following URI:
+      </p>
+      <sapia:code>http://&lt;host&gt;:&lt;port&gt;/rest</sapia:code>
+      <p>
+        For other resources, they always return a JSON payload, which is the following in non-error situations:
+      </p>
+      <sapia:code>{
+  "status": 200
+}</sapia:code>
+      <p>
+        When an error occurs, the following JSON response is returned:
+      </p>
+      <sapia:code>{
+  "status": 500
+  "stackTrace": "&lt;stack_trace&gt;"
+}</sapia:code>
+      <p>
+      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace.
+      </p>
+      <p>Of course, the HTTP status response header is always available, and a status message will be set in the case of an error.</p>
+    
+    
+      <sapia:sect3 title="Clusters and hosts">
+        <p>
+          The API allows accessing the different clusters, and obtaining information for each host in a cluster. When connecting to 
+          a Corus node in a given cluster, the only cluster information returned will be the one corresponding to that node's cluster.
+        </p>
+        
+        <sapia:sect4 title="Get clusters">
+          <p>
+          This call returns JSON objects (in an array) corresponding to the clusters that are available. When connecting to a given Corus node, 
+          it returns the cluster object for the cluster it is part of - still in an array, which will then hold a single object.
+          </p>
+          <p>
+          Obtaining cluster information is the first logical step when using the API: the cluster name is used to target against 
+          which cluster an operation should be performed - as explained later in this documentation.
+          </p>
+          <sapia:code>GET
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters</sapia:code>
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "name": "app-01"
+  },
+  {
+    "name": "app-02"
+  }
+]</sapia:code>
+        </sapia:sect4>	      
+        <sapia:sect4 title="Get hosts">
+          <p>
+          This call returns the JSON objects corresponding to each host in a given cluster.
+          </p>
+          <sapia:code>GET
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters/{clusterName}/hosts
+
+- Path variables:
+  - clusterName: the name of the cluster to access.</sapia:code>
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "corusVersion": "4.5",
+    "hostName": "saturn",
+    "hostAddress": "192.168.0.103",
+    "port": 33000,
+    "jvmInfo": "1.7.0_45 Java HotSpot(TM) 64-Bit Server VM",
+    "osInfo": "Mac OS X 10.9.5",
+    "repoRole": "SERVER"      
+  },
+  {
+    "cluster": "app-01",
+    "corusVersion": "4.5",
+    "hostName": "saturn",
+    "hostAddress": "192.168.0.104",
+    "port": 33000,
+    "jvmInfo": "1.7.0_45 Java HotSpot(TM) 64-Bit Server VM",
+    "osInfo": "Mac OS X 10.9.5",
+    "repoRole": "CLIENT"
+  }  
+]</sapia:code>
+        </sapia:sect4>        
+      </sapia:sect3>
+      
+      <!-- ====================== DISTRIBUTIONS ====================== -->
+      
+      <sapia:sect3 title="Distributions">
+        <p>
+        The REST API allows accessing distribution information.
+        </p>
+        <sapia:sect4 title="Get distributions">
+          <p>
+          This call is similar to the <tt>ls</tt> command in the Corus CLI. Note that it takes optional <tt>d</tt> and
+          <tt>v</tt> parameters for filtering distributions by name and version, just like the CLI.
+          </p>
+          <sapia:code>GET
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host........: a host literal (taking the form: ip_address:port)
+  
+- parameters:
+  - d (optional): a distribution name    (pattern matching supported)
+  - v (optional): a distribution version (pattern matching supported)</sapia:code>
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/distributions
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/distributions 
+http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "name": "demo",
+      "version": "1.0",
+      "processConfigs": [
+        {
+          "name": "httpServer",
+          "maxInstances": 0,
+          "maxKillRetry": 3,
+          "pollInterval": 10,
+          "shutdownTimeout": 30000,
+          "statusInterval": 30,
+          "deleteOnKill": false,
+          "invoke": true,
+          "ports": [
+              "http.server"
+          ],
+          "profiles": [
+              "test",
+              "prod"
+          ],
+          "tags": [
+              "http-server"
+          ]
+        }
+      ]
+    }
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        <sapia:sect4 title="Deploy distributions">
+          <p>
+          This call is similar to the CLI's <tt>deploy</tt> command.
+          </p>
+          <sapia:code>PUT
+- Request headers:
+  - Accept......: application/json
+  - Content-type: application/octet-stream
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host........: a host literal (taking the form: ip_address:port)</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
+        </sapia:sect4>
+        <sapia:sect4 title="Undeploy distributions">
+          <p>
+          This call is similar to the CLI's <tt>undeploy</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host........: a host literal (taking the form: ip_address:port)
+  
+- parameters:
+  - d (optional): a distribution name    (pattern matching supported)
+  - v (optional): a distribution version (pattern matching supported)</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
+        </sapia:sect4>
+      </sapia:sect3>
+      
+      <!-- ====================== PROCESSES ====================== -->
+      
+      <sapia:sect3 title="Processes">
+        <p>
+        This section documents API calls pertaining to processes. Note that operations impacting process lifecycle (kill, restart, etc.) 
+        are performed asynchronously (a successful response does not mean that the operation has completed).
+        </p>
+        <sapia:sect4 title="Get processes">
+          <p>
+          This call returns an array of JSON objects corresponding to running processes. The command is similar to <tt>ps</tt>
+          command of the Corus CLI, in supports parameters corresponding to the same options of that command 
+          (<tt>d</tt>, <tt>v</tt>, <tt>n</tt>, <tt>p</tt>).
+          </p>
+        
+          <sapia:code>GET
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/processes
+  /clusters/{clusterName}/hosts/{host}/processes
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+- parameters:
+  - d (optional): a distribution name    (pattern matching supported)
+  - v (optional): a distribution version (pattern matching supported)
+  - n (optional): a process name         (pattern matching supported)
+  - p (optional): a profile name</sapia:code>
+          
+          <p>
+          As the URI templates above illustrate, use of the <tt>process_id</tt> path variable is only supported when targeting a specific host.
+          </p>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes 
+http://saturn:33000/rest/clusters/app-01/processes?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod    
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143294992920</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "id": "141123240721",
+      "name": "httpServer",
+      "pid": "76096",
+      "distribution": "demo",
+      "version": "1.0",
+      "profile": "test",
+      "creationTimeMillis": 1416796872842,
+      "creationTimestamp": "2014-11-24T02:41:12:012Z",
+      "lastAccessTimeMillis": 1416796923259,
+      "lastAccessTimestamp": "2014-11-24T02:42:03:003Z",
+      "status": "ACTIVE",
+      "maxKillRetry": 3,
+      "deleteOnKill": false,
+      "shutdownTimeout": 30000,
+      "staleDetectionCount": 0,
+      "activePorts": [ ]
+    }
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        <sapia:sect4 title="Execute processes">
+          <p>Corresponds to the CLI's <tt>exec</tt> command.</p>
+        
+          <sapia:code>PUT
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/exec
+  /clusters/{clusterName}/hosts/{host}/processes/exec
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/exec
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/exec 
+http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Kill processes">
+          <p>Corresponds to the CLI's <tt>kill</tt> command.</p>
+        
+          <sapia:code>DELETE
+- Request headers:
+  - Accept......: application/json
+ 
+- Resources:
+  /clusters/{clusterName}/processes/kill
+  /clusters/{clusterName}/hosts/{host}/processes/kill
+  /clusters/{clusterName}/hosts/{host}/processes/kill/{process_id}
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/kill</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Suspend processes">
+          <p>Corresponds to the CLI's <tt>suspend</tt> command.</p>
+        
+          <sapia:code>POST
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/suspend
+  /clusters/{clusterName}/hosts/{host}/processes/suspend
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/suspend
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/suspend</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Resume processes">
+          <p>Corresponds to the CLI's <tt>resume</tt> command.</p>
+        
+          <sapia:code>POST
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/resume
+  /clusters/{clusterName}/hosts/{host}/processes/resume
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/resume
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/resume?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/resume?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/resume</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Restart processes">
+          <p>Corresponds to the CLI's <tt>restart</tt> command.</p>
+        
+          <sapia:code>POST
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/restart
+  /clusters/{clusterName}/hosts/{host}/processes/restart
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/restart
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/restart</sapia:code>
+        </sapia:sect4>
+        
+         <sapia:sect4 title="Clean processes">
+          <p>Corresponds to the CLI's <tt>ps -clean</tt> command.</p>
+        
+          <sapia:code>POST
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/processes/clean
+  /clusters/{clusterName}/hosts/{host}/processes/clean
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/clean
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - process_id..: the Corus-generated process identifier of a given process 
+                 (which will then restrict the response to that process) 
+
+  - parameters:
+  - d: a distribution name    (pattern matching supported)
+  - v: a distribution version (pattern matching supported)
+  - n: a process name         (pattern matching supported)
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/clean?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/clean?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/clean</sapia:code>
+        </sapia:sect4>
+        
+      </sapia:sect3>
+
+      
+      <!-- ====================== PROPERTIES ====================== -->
+      
+      <sapia:sect3 title="Properties">
+        <p>
+        The API gives access to both server and process properties stored in Corus. 
+        </p>
+        <sapia:sect4 title="Get properties">
+          <p>
+          This call is similar to the CLI's <tt>conf ls -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf ls -p -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf ls -p -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Note that the scope in the case of this call is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>GET
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - scope.......: indicates the scope of the properties to get 
+                  (must be 'process' to obtain process properties stored 
+                  in Corus, or 'server' for the server properties)
+   
+- parameters:
+  - p (optional): a property name (pattern matching supported)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/process
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process 
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?p=corp.acme.*
+http://saturn:33000/rest/clusters/app-01/properties/server
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/server</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        
+        <p>
+        The properties are returned as part of the <tt>data</tt> field, in an array of name/value pairs 
+        (each such pair corresponding to a property).
+        </p>
+        
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": [
+      {
+        "name": "corp.acme.connections.max",
+        "value": "200"
+      },
+      {
+        "name": "corp.acme.session.timeout",
+        "value": "10min"
+      }
+    ]
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Add properties">
+          <p>
+          This call is similar to the CLI's <tt>conf add -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf add -p ... -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf add -p ... -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>PUT
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - scope.......: indicates the scope of the properties to get 
+                  (must be 'process' to obtain process properties stored 
+                  in Corus, or 'server' for the server properties)</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?connections.min=100&amp;connections.max=200</sapia:code>
+    
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Delete properties">
+          <p>
+          This call is similar to the CLI's <tt>conf del -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf del -p ... -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf del -p ... -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>DELETE
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - scope.......: indicates the scope of the properties to get 
+                  (must be 'process' to obtain process properties stored 
+                  in Corus, or 'server' for the server properties)
+                  
+- parameters:
+  - p: a property name (pattern matching supported)</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?p=corp.acme.*</sapia:code>
+    
+        </sapia:sect4>
+           
+      </sapia:sect3>    
+      
+      <!-- ====================== Tags ====================== -->
+      
+      <sapia:sect3 title="Tags">
+        <p>
+        The REST API allows managing tags.
+        </p>
+        <sapia:sect4 title="Get tags">
+          <p>
+          This call corresponds to the <tt>conf ls -t</tt> command in the Corus CLI.
+          </p>
+          <sapia:code>GET
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/tags
+  /clusters/{clusterName}/hosts/{host}/tags
+
+- Path variables:
+  - clusterName.: the name of the cluster to access.
+  - host:.......: a host literal (taking the form: ip_address:port)
+  
+- parameters:
+  - t (optional): a tag name (pattern matching supported)</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags
+http://saturn:33000/rest/clusters/app-01/tags?t=tag-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <p>
+        The tags are returned in an array, as part of the <tt>data</tt> field.
+        </p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": [
+      "tag-01", "tag-02"
+    ]
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Add tags">
+          <p>
+          This call corresponds to the CLI's <tt>conf add -t</tt> command.
+          </p>
+          <sapia:code>PUT
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/{tag}
+  /clusters/{clusterName}/hosts/{host}/tags/{tag}
+
+- Path variables:
+  - clusterName.: the name of the cluster to access
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - tag:........: the tag to add</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Delete tags">
+          <p>
+          This call corresponds to the CLI's <tt>conf del -t</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/{tag}
+  /clusters/{clusterName}/hosts/{host}/tags/{tag}
+
+- Path variables:
+  - clusterName.: the name of the cluster to access
+  - host:.......: a host literal (taking the form: ip_address:port)
+  - tag:........: the tag to delete</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env</sapia:code>
+        </sapia:sect4>
+           
+      </sapia:sect3>
+    
+    </sapia:sect2>
+         
+  </sapia:sect1>
+</sapia:page>

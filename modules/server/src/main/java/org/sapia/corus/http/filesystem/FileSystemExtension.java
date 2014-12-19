@@ -1,7 +1,6 @@
 package org.sapia.corus.http.filesystem;
 
 import java.io.File;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,12 +35,12 @@ import org.sapia.corus.http.helpers.NotFoundHelper;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 
 /**
- * This extension serves files from the corus.home dir. This extension can be
- * accessed with an URL similar as the following one:
+ * This extension serves files from the corus.home dir. 
+ * It can be accessed with an URL similar as the following one:
  * <p>
  * 
  * <pre>
- * http://localhost:33000/files
+ * http://localhost:33000/files/
  * </pre>
  * 
  * 
@@ -52,9 +51,13 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
   public static final String HTTP_FILESYSTEM_CONTEXT = "files";
 
-  private static final String PARAMETER_ACTION = "action";
-  private static final String ACTION_LIST = "list";
-  private static final String ACTION_COMPRESS = "compress";
+  private static final String PARAM_ACTION     = "action";
+  private static final String ACTION_LIST      = "list";
+  private static final String ACTION_COMPRESS  = "compress";
+  
+  private static final String PARAM_SORT_BY    = "sortBy";
+  private static final String SORT_BY_DATE     = "date";
+  private static final String SORT_BY_SIZE     = "size";
 
   static final int BUFSZ = 1024;
 
@@ -77,7 +80,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       }
     }
 
-    Properties serverProps = context.getServices().getConfigurator().getProperties(PropertyScope.SERVER);
+    Properties serverProps = context.getServices().getConfigurator().getProperties(PropertyScope.SERVER, new ArrayList<String>(0));
     for (String propName : serverProps.stringPropertyNames()) {
       if (propName.startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
         symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName));
@@ -146,7 +149,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   }
 
   private void output(File requested, HttpContext ctx) throws Exception {
-    String action = ctx.getRequest().getParameter(PARAMETER_ACTION);
+    String action = ctx.getRequest().getParameter(PARAM_ACTION);
 
     if (ACTION_COMPRESS.equals(action)) {
       compressDirContent(requested, ctx);
@@ -210,14 +213,28 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
           dirs.add(FileEntry.createNewLink(linkEntry.getKey(), new File(linkEntry.getValue())));
         }
       }
+      
+      String sortBy = ctx.getRequest().getParameter(PARAM_SORT_BY);
+      Comparator<FileEntry> sort;
+      if (sortBy == null) {
+        sort = FileEntry.sortByName();
+      } else if (sortBy.equalsIgnoreCase(SORT_BY_DATE)) {
+        sort = FileEntry.sortByDate();
+      } else if (sortBy.equalsIgnoreCase(SORT_BY_SIZE)) { 
+        sort = FileEntry.sortBySize();
+      } else {
+        sort = FileEntry.sortByName();
+      }
 
-      FileComparator fc = new FileComparator();
-      Collections.sort(dirs, fc);
-      Collections.sort(files, fc);
+      Collections.sort(dirs, sort);
+      Collections.sort(files, sort);
 
       ps.println("<p><b>Content:</b></p><ul>");
       ps.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\" width=\"80%\">");
-      ps.println("<th width=\"5%\"></th><th width=\"40%\">Name</th><th width=\"10%\">Size</th><th width=\"15%\">Last Modified</th>");
+      ps.println("<th width=\"5%\"></th><th width=\"40%\"><a href=\"?sortBy=name\">Name</a></th>" 
+          + "<th width=\"10%\"><a href=\"?sortBy=size\">Size</a></th>"
+          + "<th width=\"15%\"><a href=\"?sortBy=date\">Last Modified</a></th>");
+      
       for (int i = 0; i < dirs.size(); i++) {
         printFileInfo(dirs.get(i), ps, ctx);
       }
@@ -342,12 +359,6 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       return lengthGiga + " GB";
     }
 
-  }
-
-  static final class FileComparator implements Comparator<FileEntry> {
-    public int compare(FileEntry arg0, FileEntry arg1) {
-      return arg0.getName().compareTo(arg1.getName());
-    }
   }
 
 }

@@ -8,6 +8,8 @@ import java.net.UnknownHostException;
 import java.util.Comparator;
 
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.ubik.util.Localhost;
 import org.sapia.ubik.util.Strings;
 
@@ -15,8 +17,9 @@ import org.sapia.ubik.util.Strings;
  * Holds misc information about a Corus host.
  * 
  * @author J-C Desrochers
+ * @author yduchesne
  */
-public class CorusHost implements Externalizable, Matcheable {
+public class CorusHost implements Externalizable, JsonStreamable, Matcheable {
 
   /**
    * Indicates the role of the Corus node corresponding to this instance.
@@ -52,6 +55,8 @@ public class CorusHost implements Externalizable, Matcheable {
       return this == SERVER;
     }
   }
+  
+  // ==========================================================================
 
   static final long serialVersionUID = 1L;
 
@@ -59,10 +64,10 @@ public class CorusHost implements Externalizable, Matcheable {
   public static final String UNDEFINED_HOSTNAME = "N/A";
 
   private Endpoint endpoint;
-  private String osInfo;
-  private String javaVmInfo;
-  private RepoRole role = RepoRole.NONE;
-  private String hostName;
+  private String   osInfo;
+  private String   javaVmInfo;
+  private RepoRole role        = RepoRole.NONE;
+  private String   hostName;
 
   static {
     try {
@@ -178,8 +183,9 @@ public class CorusHost implements Externalizable, Matcheable {
    *         display to users.
    */
   public String getFormattedAddress() {
-    return hostName.equals(CorusHost.UNDEFINED_HOSTNAME) ? endpoint.getServerTcpAddress().toString() : hostName + ":"
-        + endpoint.getServerTcpAddress().getPort();
+    return hostName.equals(CorusHost.UNDEFINED_HOSTNAME) ? 
+        endpoint.getServerTcpAddress().toString() : 
+        hostName + ":" + endpoint.getServerTcpAddress().getPort();
   }
   
   /**
@@ -204,6 +210,21 @@ public class CorusHost implements Externalizable, Matcheable {
         pattern.matches(this.endpoint.getChannelAddress().toString());
   }
 
+  // --------------------------------------------------------------------------
+  // JsonStreamable
+  
+  public void toJson(JsonStream stream) {
+    stream.beginObject();
+    stream
+      .field("hostName").value(hostName)
+      .field("jvmInfo").value(javaVmInfo)
+      .field("osInfo").value(osInfo)
+      .field("host").value(endpoint.getServerTcpAddress().getHost())
+      .field("port").value(endpoint.getServerTcpAddress().getPort())
+      .field("repoRole").value(role.name())
+    .endObject();
+  }
+  
   // --------------------------------------------------------------------------
   // Externalization
 

@@ -2,6 +2,7 @@ package org.sapia.corus.configurator;
 
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.rmi.interceptor.Event;
 
@@ -23,7 +24,27 @@ public class PropertyChangeEvent extends NameValuePair implements Event {
 
   private PropertyScope scope;
   private Type type;
+  private String category;
 
+  /**
+   * @param name
+   *          a property name.
+   * @param value
+   *          a property value.
+   * @param category
+   *          a property category.
+   * @param scope
+   *          a {@link PropertyScope}.
+   * @param type
+   *          a {@link Type}.
+   */
+  public PropertyChangeEvent(String name, String value, String category, PropertyScope scope, Type type) {
+    super(name, value);
+    this.scope    = scope;
+    this.category = category;
+    this.type     = type;
+  }
+  
   /**
    * @param name
    *          a property name.
@@ -35,9 +56,7 @@ public class PropertyChangeEvent extends NameValuePair implements Event {
    *          a {@link Type}.
    */
   public PropertyChangeEvent(String name, String value, PropertyScope scope, Type type) {
-    super(name, value);
-    this.scope = scope;
-    this.type = type;
+    this(name, value, null, scope, type);
   }
 
   /**
@@ -45,6 +64,13 @@ public class PropertyChangeEvent extends NameValuePair implements Event {
    */
   public PropertyScope getScope() {
     return scope;
+  }
+  
+  /**
+   * @return this instance's category (if set) in an {@link OptionalValue}.
+   */
+  public OptionalValue<String> getCategory() {
+    return OptionalValue.of(category);
   }
 
   /**
@@ -58,13 +84,15 @@ public class PropertyChangeEvent extends NameValuePair implements Event {
   public boolean equals(Object obj) {
     if (obj instanceof PropertyChangeEvent) {
       PropertyChangeEvent other = (PropertyChangeEvent) obj;
-      return super.equals(obj) && ObjectUtils.safeEquals(other.scope, scope) && ObjectUtils.safeEquals(other.type, type);
+      return super.equals(obj) 
+          && ObjectUtils.safeEquals(other.category, category) 
+          && ObjectUtils.safeEquals(other.scope, scope) && ObjectUtils.safeEquals(other.type, type);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(getName(), getValue(), scope, type);
+    return ObjectUtils.safeHashCode(getName(), getValue(), category, scope, type);
   }
 }

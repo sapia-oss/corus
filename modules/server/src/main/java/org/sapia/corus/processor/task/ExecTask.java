@@ -47,7 +47,7 @@ public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig,
 
     ProcessInfo info = new ProcessInfo(process, dist, conf, false);
     PerformExecProcessTask execProcess = new PerformExecProcessTask();
-    Properties processProperties = ctx.getServerContext().getProcessProperties();
+    Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getCategoryList());
 
     ctx.info(String.format("Executing process: %s", process));
     if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {

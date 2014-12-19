@@ -27,6 +27,12 @@ public interface HttpResponseFacade {
    *          a status code.
    */
   public void setStatusCode(int code);
+  
+  /**
+   * @param msg
+   *          a status message.
+   */
+  public void setStatusMessage(String msg);
 
   /**
    * @param name
@@ -41,6 +47,12 @@ public interface HttpResponseFacade {
    *          a content length.
    */
   public void setContentLength(int len);
+  
+  /**
+   * @param contentType
+   *          a mime-type corresponding to the content type of this instance's payload.
+   */
+  public void setContentType(String contentType);
 
   /**
    * @return this instance's {@link OutputStream}.

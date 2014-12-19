@@ -89,7 +89,7 @@ public class Result<T> {
       // noop
     } else if (type == Result.Type.COLLECTION) {
       if (data instanceof Iterable) {
-        List newData = new ArrayList<>();
+        List newData = new ArrayList();
         Iterable<?> elements = (Iterable<?>) data;
         for (Object e : elements) {
           if (e instanceof Matcheable && ((Matcheable) e).matches(pattern)) {
@@ -98,7 +98,7 @@ public class Result<T> {
         }
         data = (T) newData;
       } else if (data instanceof Object[]) {
-        List newData = new ArrayList<>();
+        List newData = new ArrayList();
         for (Object o : (Object[]) data) {
           if (o instanceof Matcheable && ((Matcheable) o).matches(pattern)) {
             newData.add(o);
@@ -110,7 +110,7 @@ public class Result<T> {
         }
         data = (T) newArray;
       } else if (data instanceof Map) {
-        Map<Object, Object> newData = new HashMap<>();
+        Map<Object, Object> newData = new HashMap<Object, Object>();
         for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) data).entrySet()) {
           if (entry.getValue() instanceof Matcheable && ((Matcheable) entry.getValue()).matches(pattern)) {
             newData.put(entry.getKey(), entry.getValue());

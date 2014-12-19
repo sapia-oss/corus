@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -366,7 +367,7 @@ public class CorusServer {
         context.getServices().getConfigurator().addTags(userData.getServerTags());
       }
       if (!userData.getProcessProperties().isEmpty()) {
-        context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), false);
+        context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), new HashSet<String>(), false);
       }
 
       // keeping reference to stub

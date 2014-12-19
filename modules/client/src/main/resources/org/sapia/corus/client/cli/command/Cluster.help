@@ -26,7 +26,6 @@
   </section>  
   <section title="Examples">
     <p>cluster status -cluster</p>
-    <p/>
     <p>cluster resync</p>
     <p/>    
   </section>

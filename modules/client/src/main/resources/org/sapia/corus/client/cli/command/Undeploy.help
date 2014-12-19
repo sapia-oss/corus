@@ -6,19 +6,19 @@
    <p>- If the processes could not be terminated, undeployment fails.</p>   
   </section>
   <section title="Syntax">
-    <p>undeploy -d distribution_name -v version [-cluster]</p>
+    <p>undeploy -d &lt;distribution_name&gt; -v &lt;version&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>undeploy all [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>undeploy -e exec_config_name [-cluster]</p>
+    <p>undeploy -e &lt;exec_config_name&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>undeploy -s shell_script_alias [-cluster]</p>
+    <p>undeploy -s &lt;shell_script_alias&gt; [-cluster]</p>
     <p/>    
     <p>OR:</p>    
-    <p>undeploy -f file_name [-cluster]</p>
+    <p>undeploy -f &lt;file_name&gt; [-cluster]</p>
     <p/>    
     <p>Where:</p>
     <p/>
@@ -38,18 +38,11 @@
   </section>
   <section title="Examples">
     <p>undeploy -d * -v *</p>
-    <p/>
     <p>undeploy all</p>
-    <p/>    
     <p>undeploy -d myDistribution -v 1.*</p>
-    <p/>
     <p>undeploy -d myDistribution -v 1.*</p>
-    <p/>
     <p>undeploy -e myConf</p>
-    <p/>    
-    <p/>
     <p>undeploy -s restart-memcached</p>
-    <p/>    
     <p>undeploy -f static-content.tar</p>
     <p/>    
   </section>

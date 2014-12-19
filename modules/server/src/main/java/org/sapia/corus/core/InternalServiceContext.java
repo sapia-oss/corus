@@ -14,6 +14,8 @@ import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Processor;
+import org.sapia.corus.client.services.security.ApplicationKeyManager;
+import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.processor.ProcessRepository;
@@ -134,6 +136,20 @@ public class InternalServiceContext {
    */
   public ShellScriptManager getScriptManager() {
     return lookup(ShellScriptManager.class);
+  }
+  
+  /**
+   * @return the {@link SecurityModule}.
+   */
+  public SecurityModule getSecurityModule() {
+    return lookup(SecurityModule.class);
+  }
+  
+  /**
+   * @return the {@link ApplicationKeyManager}.
+   */
+  public ApplicationKeyManager getAppKeyManager() {
+    return lookup(ApplicationKeyManager.class);
   }
 
   /**

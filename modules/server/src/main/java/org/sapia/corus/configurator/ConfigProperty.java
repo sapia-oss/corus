@@ -50,5 +50,10 @@ public class ConfigProperty {
   public int hashCode() {
     return ObjectUtils.safeHashCode(name, value);
   }
+  
+  @Override
+  public String toString() {
+    return value;
+  }
 
 }

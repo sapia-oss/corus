@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -21,22 +22,22 @@ import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.ConsoleOutput;
-import org.sapia.console.TerminalFacade;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.TerminalFacade;
 import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.cli.command.Sort;
 import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 import org.sapia.ubik.util.Localhost;
 
@@ -215,8 +216,12 @@ public class CorusCli extends CommandConsole {
             if (main.containsOption(WIDTH_OPT, true)) {
               cli.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
             }
-            List<NameValuePair> props = connector.getConfigFacade().getProperties(PropertyScope.SERVER, new ClusterInfo(false)).next().getData();
-            for (NameValuePair p : props) {
+            
+            List<Property> props = connector.getConfigFacade().getProperties(
+                PropertyScope.SERVER, new ArrayList<String>(0), 
+                new ClusterInfo(false)).next().getData();
+            
+            for (Property p : props) {
               if (p.getName().equals(CliPropertyKeys.SORT_SWITCHES) && p.getValue() != null) {
                 List<SortSwitchInfo> s = Sort.getSwitches(p.getValue());
                 cli.sortSwitches.set(s.toArray(new SortSwitchInfo[s.size()]));

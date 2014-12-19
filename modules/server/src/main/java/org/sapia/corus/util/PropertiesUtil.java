@@ -3,14 +3,19 @@ package org.sapia.corus.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 
 /**
  * Encapsulates various properties methods.
@@ -187,6 +192,38 @@ public class PropertiesUtil {
       }
     }
     return toReturn;
+  }
+  
+  /**
+   * @param scope a {@link PropertyScope}.
+   * @param category the {@link OptionalValue} corresponding to an optional category to assign to the properties.
+   * @param props the {@link Properties} to transform to a list of {@link Property} instances.
+   * @return a {@link List} of {@link Property} instances.
+   */
+  public static List<Property> propertyList(PropertyScope scope, OptionalValue<String> category, Properties props) {
+    List<Property> propList = new ArrayList<>(props.size());
+    for (String n : props.stringPropertyNames()) {
+      String v = props.getProperty(n);
+      if (v != null) {
+        propList.add(new Property(n, v, category.isNull() ? null : category.get()));
+      }
+    }
+    return propList;
+  }
+  
+  /**
+   * Converts a {@link List} of {@link Property} instances to a {@link Properties} object,
+   * discarding category information in the process.
+   * 
+   * @param propList a {@link List} of {@link Property} instances.
+   * @return the {@link Properties} corresponding to the given list. 
+   */
+  public static Properties properties(List<Property> propList) {
+    Properties props = new Properties();
+    for (Property p : propList) {
+      props.setProperty(p.getName(), p.getValue());
+    }
+    return props;
   }
 
   /**

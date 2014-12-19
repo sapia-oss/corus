@@ -240,7 +240,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
     
   </sapia:sect2>
   
-  <sapia:sect2 title="Repository">
+  <sapia:sect2 title="Repository" alias="repo">
     <p>
       The repository functionality has been introduced as of version 4.0. The
       <a href="CorusGuide.pdf">Corus Guide</a> provides exhaustive documentation as
