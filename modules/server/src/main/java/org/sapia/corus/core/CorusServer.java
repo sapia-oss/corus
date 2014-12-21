@@ -26,6 +26,7 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
@@ -203,12 +204,37 @@ public class CorusServer {
       Properties corusProps = new Properties(System.getProperties());
       PropertiesUtil.copy(includedProps, corusProps);
       CorusPropertiesLoader.load(corusProps, configFiles);
-
+      
       // -----------------------------------------------------------------------
       // Overridding config properties with user-data properties
 
       PropertiesUtil.copy(userData.getServerProperties(), corusProps);
 
+      // ----------------------------------------------------------------------
+      // Determining port: if a port other than the default was passed at the
+      // command-line, we're using it. Otherwise, we're using the configured
+      // port.
+      //
+      // We're checking for the port property again since it can be configured
+      // in property files loaded after the port was taken from the user-data
+      // properties.
+
+      if (port == DEFAULT_PORT && corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT) != null) {
+        port = Integer.parseInt(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT));
+      }
+      
+      // ----------------------------------------------------------------------
+      // Loading Corus domain file for current instance
+      
+      File corusDomainPropsFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile(".corus_domain_" + port + ".properties")
+          .createFile();
+   
+      Properties domainProps = new Properties();
+      PropertiesUtil.loadIfExist(domainProps, corusDomainPropsFile);
+      PropertiesUtil.copy(domainProps, corusProps);
+      
       // ----------------------------------------------------------------------
       // Determining domain: can be specified at command line, or in server
       // properties.
@@ -224,19 +250,6 @@ public class CorusServer {
       }
 
       System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
-
-      // ----------------------------------------------------------------------
-      // Determining port: if a port other than the default was passed at the
-      // command-line, we're using it. Otherwise, we're using the configured
-      // port.
-      //
-      // We're checking for the port property again since it can be configured
-      // in property files loaded after the port was taken from the user-data
-      // properties.
-
-      if (port == DEFAULT_PORT && corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT) != null) {
-        port = Integer.parseInt(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT));
-      }
 
       // ----------------------------------------------------------------------
       // Setting up logging.

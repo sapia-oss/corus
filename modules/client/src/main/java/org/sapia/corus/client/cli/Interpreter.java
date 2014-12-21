@@ -3,7 +3,6 @@ package org.sapia.corus.client.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
@@ -29,8 +28,6 @@ import org.sapia.corus.client.cli.command.CorusCliCommand.OptionDef;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
 import org.sapia.corus.client.sort.SortSwitchInfo;
-import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.net.TCPAddress;
 
 /**
  * This class implements a {@link Console} that may be embedded in applications
@@ -39,7 +36,7 @@ import org.sapia.ubik.net.TCPAddress;
  * @author yduchesne
  * 
  */
-public class Interpreter extends Console {
+public class Interpreter extends Console implements CorusConsole {
 
   private static final String COMMENT_MARKER = "#";
 
@@ -98,6 +95,18 @@ public class Interpreter extends Console {
    */
   public CorusConnector getCorus() {
     return corus;
+  }
+  
+  @Override
+  public CorusCommandFactory getCommands() {
+    return commandFactory;
+  }
+  
+  /**
+   * @param commandFactory a {@link CorusCommandFactory} instance.
+   */
+  public void setCommandFactory(CorusCommandFactory commandFactory) {
+    this.commandFactory = commandFactory;
   }
 
   /**

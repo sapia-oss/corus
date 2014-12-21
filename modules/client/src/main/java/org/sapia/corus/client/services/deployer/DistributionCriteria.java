@@ -19,6 +19,7 @@ public class DistributionCriteria implements Serializable {
   static final long serialVersionUID = 1L;
 
   private Arg name, version;
+  private int     backup = 0;
 
   /**
    * @see {@link #name}
@@ -47,7 +48,21 @@ public class DistributionCriteria implements Serializable {
   public void setVersion(Arg version) {
     this.version = version;
   }
-
+ 
+  /**
+   * @return the number of backup distributions to keep upon undeploy.
+   */
+  public int getBackup() {
+    return backup;
+  }
+  
+  /**
+   * @see #getBackup()
+   */
+  public void setBackup(int backup) {
+    this.backup = backup;
+  }
+  
   public static Builder builder() {
     return new Builder();
   }
@@ -61,6 +76,7 @@ public class DistributionCriteria implements Serializable {
   public static final class Builder {
 
     private Arg name, version;
+    private int backup;
 
     private Builder() {
     }
@@ -82,7 +98,12 @@ public class DistributionCriteria implements Serializable {
     public Builder version(String version) {
       return version(ArgFactory.parse(version));
     }
-
+    
+    public Builder backup(int backup) {
+      this.backup = backup;
+      return this;
+    }
+    
     public DistributionCriteria all() {
       return name(any()).version(any()).build();
     }
@@ -91,6 +112,7 @@ public class DistributionCriteria implements Serializable {
       DistributionCriteria criteria = new DistributionCriteria();
       criteria.setName(anyIfNull(name));
       criteria.setVersion(anyIfNull(version));
+      criteria.setBackup(backup);
       return criteria;
     }
   }

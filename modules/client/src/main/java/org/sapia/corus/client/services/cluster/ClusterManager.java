@@ -53,6 +53,11 @@ public interface ClusterManager extends java.rmi.Remote, Module {
    * Forces a resync of this node with the other nodes in the cluster.
    */
   public void resync();
+  
+  /**
+   * @param name the name of the cluster to which to reassign the Corus instance.
+   */
+  public void changeCluster(String name);
 
   /**
    * @param notif

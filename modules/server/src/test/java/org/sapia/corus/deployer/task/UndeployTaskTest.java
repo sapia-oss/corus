@@ -28,7 +28,7 @@ public class UndeployTaskTest extends TestBaseTask{
     UndeployTask task = new UndeployTask();
     ctx.getTm().executeAndWait(
         task, 
-        TaskParams.createFor(ArgFactory.exact("test"), ArgFactory.exact("1.0"))
+        TaskParams.createFor(DistributionCriteria.builder().name(ArgFactory.exact("test")).version(ArgFactory.exact("1.0")).build())
     ).get();
     
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();

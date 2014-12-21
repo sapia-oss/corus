@@ -1,16 +1,21 @@
 package org.sapia.corus.core;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.naming.JndiModule;
+import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.RemoteContextProvider;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -24,7 +29,8 @@ import org.springframework.context.support.GenericApplicationContext;
  * 
  * @author Yanick Duchesne
  */
-public class CorusImpl implements Corus, RemoteContextProvider {
+@Remote(interfaces = { Corus.class, RemoteContextProvider.class})
+public class CorusImpl implements InternalCorus, RemoteContextProvider {
 
   private ModuleLifeCycleManager lifeCycle;
   private String domain;
@@ -40,6 +46,42 @@ public class CorusImpl implements Corus, RemoteContextProvider {
 
   public String getDomain() {
     return domain;
+  }
+  
+  @Override
+  public void changeDomain(String newDomainName) {
+    File corusDomainPropFile = FilePath.newInstance()
+        .addCorusUserDir()
+        .setRelativeFile(".corus_domain_" + getHostInfo().getEndpoint().getServerTcpAddress().getPort() + ".properties")
+        .createFile();
+    Properties props = new Properties();
+    try {
+      PropertiesUtil.loadIfExist(props, corusDomainPropFile);
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not load Corus domain properties file: " 
+          + corusDomainPropFile.getAbsolutePath());
+    }
+    props.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, newDomainName);
+    
+    FileOutputStream out = null;
+    
+    try {
+      out = new FileOutputStream(corusDomainPropFile);
+      props.store(out, "WRITTEN BY CORUS SERVER. DO NOT EDIT MANUALLY.");
+    } catch (IOException exception) {
+      throw new IllegalStateException("Could not store Corus domain properties file: " 
+          + corusDomainPropFile.getAbsolutePath());
+    } finally {
+      if (out != null) {
+        try {
+          out.close();
+        } catch (IOException e) {
+          // noop
+        }
+      }
+    }
+    this.domain = newDomainName;
+    System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
   }
 
   public RemoteContext getRemoteContext() throws RemoteException {

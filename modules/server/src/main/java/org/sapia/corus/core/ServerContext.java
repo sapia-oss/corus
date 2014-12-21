@@ -41,6 +41,11 @@ public interface ServerContext {
    * @return the domain of the Corus server.
    */
   public String getDomain();
+  
+  /**
+   * @return the name of the subdirectory that is specific to this node, under ${corus.home}.
+   */
+  public String getNodeSubdirName();
 
   /**
    * This method returns properties that can be defined for all processes

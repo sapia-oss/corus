@@ -3,6 +3,7 @@ package org.sapia.corus.deployer.task;
 import java.io.File;
 import java.io.IOException;
 
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -16,7 +17,6 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
-import org.sapia.corus.util.FilePath;
 
 /**
  * This task handles the extraction of deployment jars from the temporary file

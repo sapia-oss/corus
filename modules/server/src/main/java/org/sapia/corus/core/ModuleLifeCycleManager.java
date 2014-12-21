@@ -56,6 +56,11 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   public String getHomeDir() {
     return delegate.getHomeDir();
   }
+  
+  @Override
+  public String getNodeSubdirName() {
+    return delegate.getNodeSubdirName();
+  }
 
   @Override
   public EventChannel getEventChannel() {

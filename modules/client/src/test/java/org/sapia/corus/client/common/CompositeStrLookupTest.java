@@ -16,12 +16,6 @@ public class CompositeStrLookupTest {
   }
 
   @Test
-  public void testLenient() {
-    lookup.lenient();
-    assertEquals("${test}", lookup.lookup("test"));
-  }
-
-  @Test
   public void testLookup() {
     lookup.add(StrLookup.systemPropertiesLookup());
     assertEquals(System.getProperty("user.name"), lookup.lookup("user.name"));

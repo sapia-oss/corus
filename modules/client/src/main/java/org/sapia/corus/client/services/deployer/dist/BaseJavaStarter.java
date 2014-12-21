@@ -36,11 +36,12 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected String javaCmd = "java";
   protected String vmType;
   protected String profile;
-  protected String corusHome = System.getProperty("corus.home");
-  protected List<VmArg> vmArgs = new ArrayList<VmArg>();
-  protected List<Property> vmProps = new ArrayList<Property>();
-  protected List<Option> options = new ArrayList<Option>();
-  protected List<XOption> xoptions = new ArrayList<XOption>();
+  
+  protected String         corusHome    = System.getProperty("corus.home");
+  protected List<VmArg>    vmArgs       = new ArrayList<VmArg>();
+  protected List<Property> vmProps      = new ArrayList<Property>();
+  protected List<Option>   options      = new ArrayList<Option>();
+  protected List<XOption>  xoptions     = new ArrayList<XOption>();
   private List<Dependency> dependencies = new ArrayList<Dependency>();
 
   /**
@@ -165,7 +166,8 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     cmdLineVars.put("user.dir", env.getCommonDir());
     Property[] envProperties = env.getProperties();
 
-    CompositeStrLookup propContext = new CompositeStrLookup().add(StrLookup.mapLookup(cmdLineVars))
+    CompositeStrLookup propContext = new CompositeStrLookup()
+        .add(StrLookup.mapLookup(cmdLineVars))
         .add(PropertiesStrLookup.getInstance(envProperties))
         .add(PropertiesStrLookup.getSystemInstance())
         .add(new EnvVariableStrLookup());

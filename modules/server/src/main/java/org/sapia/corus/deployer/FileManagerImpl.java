@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
@@ -16,7 +17,6 @@ import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.FileManager;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.util.FilePath;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 import org.sapia.ubik.rmi.Remote;

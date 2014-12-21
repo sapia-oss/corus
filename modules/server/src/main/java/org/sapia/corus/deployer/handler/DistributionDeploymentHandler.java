@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
@@ -15,7 +16,6 @@ import org.sapia.corus.deployer.task.DeployTask;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
-import org.sapia.corus.util.FilePath;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

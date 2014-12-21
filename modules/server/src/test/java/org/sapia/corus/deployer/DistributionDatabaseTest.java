@@ -1,69 +1,65 @@
 package org.sapia.corus.deployer;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
-
-/**
- * @author Yanick Duchesne
- * 2002-03-01
- */
-public class DistributionDatabaseTest extends TestCase {
+public class DistributionDatabaseTest {
   
-  DistributionDatabase _store;
+  private DistributionDatabase store;
   
-  /**
-   * Constructor for DistributionStoreTest.
-   * @param arg0
-   */
-  public DistributionDatabaseTest(String arg0) {
-    super(arg0);
-  }
-  
-  protected void setUp() throws Exception {
-    _store = new DistributionDatabaseImpl();
+  @Before
+  public void setUp() throws Exception {
+    store = new DistributionDatabaseImpl();
     Distribution      d1 = new Distribution();
     Distribution      d2 = new Distribution();
     d1.setName("test1");
     d1.setVersion("1.0");
     d2.setName("test2");
     d2.setVersion("1.0");
-    _store.addDistribution(d1);
-    _store.addDistribution(d2);
+    store.addDistribution(d1);
+    store.addDistribution(d2);
 
   }
 
+  @Test
   public void testContainsDistribution() throws Exception {
     DistributionCriteria criteria = DistributionCriteria.builder()
       .name("test2")
       .version("1.0")
       .build();
     
-    super.assertTrue(_store.containsDistribution(criteria));
+    assertTrue(store.containsDistribution(criteria));
     
     criteria = DistributionCriteria.builder()
       .name("test*")
       .version("1.0")
       .build();
     
-    super.assertTrue(_store.containsDistribution(criteria));    
+    assertTrue(store.containsDistribution(criteria));    
   }
 
+  @Test
   public void testAddDuplicate() throws Exception {
     Distribution      d = new Distribution();
     d.setName("test1");
     d.setVersion("1.0");
     try {
-      _store.addDistribution(d);
+      store.addDistribution(d);
       throw new Exception("DuplicateDistributionException should have been thrown");
     } catch (DuplicateDistributionException e) {
       // ok
     }
   }
 
+  @Test
   public void testRemoveDistribution() throws Exception {
     Distribution      d = new Distribution();
     d.setName("test1");
@@ -74,63 +70,130 @@ public class DistributionDatabaseTest extends TestCase {
       .version("1.0")
       .build();    
     
-    _store.removeDistribution(criteria);
-    _store.addDistribution(d);
+    store.removeDistribution(criteria);
+    store.addDistribution(d);
   }
   
+  @Test
   public void testRemoveDistributionForName() throws Exception {
     DistributionCriteria criteria = DistributionCriteria.builder()
       .name("test*")
       .version("1.0")
       .build();    
-    _store.removeDistribution(criteria);
-    assertEquals(0, _store.getDistributions(DistributionCriteria.builder().all()).size());
+    store.removeDistribution(criteria);
+    assertEquals(0, store.getDistributions(DistributionCriteria.builder().all()).size());
   }  
   
+  @Test
   public void testRemoveDistributionForNameAndVersion() throws Exception {
     Distribution      d = new Distribution();
     d.setName("test1");
     d.setVersion("2.0");
-    _store.addDistribution(d);
+    store.addDistribution(d);
     
     DistributionCriteria criteria = DistributionCriteria.builder()
       .name("test1")
       .version("*")
       .build();        
     
-    _store.removeDistribution(criteria);
-    assertEquals(1, _store.getDistributions(DistributionCriteria.builder().all()).size());
+    store.removeDistribution(criteria);
+    assertEquals(1, store.getDistributions(DistributionCriteria.builder().all()).size());
+  }  
+  
+  @Test
+  public void testRemoveDistributionForNameAndVersion_backup() throws Exception {
+    store = new DistributionDatabaseImpl();
+
+    for (int i = 0; i < 5; i++) {
+      Distribution      d = new Distribution();
+      d.setName("test1");
+      d.setVersion("2." + i);
+      store.addDistribution(d);
+    }
+    
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test1")
+      .version("*")
+      .backup(2)
+      .build();        
+    
+    store.removeDistribution(criteria);
+    List<Distribution> dists = store.getDistributions(DistributionCriteria.builder().all());
+
+    assertEquals(2, dists.size());
+
+    int v = 3;
+    for (Distribution d : dists) {
+      assertEquals("2." + v, d.getVersion());
+      v++;
+    }
+  }  
+  
+  @Test
+  public void testRemoveDistributions_backup() throws Exception {
+    store = new DistributionDatabaseImpl();
+
+    for (int n = 0; n < 2; n++) {
+      for (int i = 0; i < 5; i++) {
+        Distribution      d = new Distribution();
+        d.setName("test" + n);
+        d.setVersion("2." + i);
+        store.addDistribution(d);
+      }
+    }
+    
+    DistributionCriteria criteria = DistributionCriteria.builder()
+      .name("test*")
+      .version("*")
+      .backup(2)
+      .build();        
+    
+    store.removeDistribution(criteria);
+    List<Distribution> dists = store.getDistributions(DistributionCriteria.builder().all());
+
+    assertEquals(4, dists.size());
+    
+    for (int n = 0; n < 2; n++) {
+      int v = 3;
+      for (int i = 0; i < 2; i++) {
+        assertEquals("2." + v, dists.get(i).getVersion());
+        v++;
+      }
+    }
   }  
 
+  @Test
   public void testGetDistributions() throws Exception {
-    super.assertEquals(2, _store.getDistributions(DistributionCriteria.builder().all()).size());
+    assertEquals(2, store.getDistributions(DistributionCriteria.builder().all()).size());
   }
   
-  public void testGetDistributionsForName() throws Exception{
+  @Test
+  public void testGetDistributionsForName() throws Exception {
     Distribution      d = new Distribution();
     d.setName("dist");
     d.setVersion("1.0");
-    _store.addDistribution(d);
+    store.addDistribution(d);
     
     DistributionCriteria criteria = DistributionCriteria.builder()
       .name("test*")
       .build();        
     
-    super.assertEquals(2, _store.getDistributions(criteria).size());
+    assertEquals(2, store.getDistributions(criteria).size());
   }
   
+  @Test
   public void testGetDistributionsForNameVersion() throws Exception{
     Distribution      d = new Distribution();
     d.setName("dist");
     d.setVersion("2.0");
-    _store.addDistribution(d);
+    store.addDistribution(d);
     
     DistributionCriteria criteria = DistributionCriteria.builder()
       .name("*")
       .version("1.0")
       .build();        
     
-    super.assertEquals(2, _store.getDistributions(criteria).size());
+    assertEquals(2, store.getDistributions(criteria).size());
   }
   
   

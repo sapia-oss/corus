@@ -95,6 +95,23 @@ class DeferredAsyncListener implements AsyncEventListener, EventChannelStateList
       }
     }
   }
+  
+  @Override
+  public void onLeft(final EventChannelEvent event) {
+    for (EventChannelStateListenerWrapper wrapper : eventChannelListeners) {
+      if (ready) {
+        wrapper.delegate.onDown(event);
+      } else {
+        wrapper.pending.add(new Func<Void, EventChannelStateListener>() {
+          @Override
+          public Void call(EventChannelStateListener arg) {
+            arg.onLeft(event);
+            return null;
+          }
+        });
+      }
+    }    
+  }
 
   @Override
   public synchronized void onUp(final EventChannelEvent event) {

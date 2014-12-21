@@ -2,6 +2,7 @@ package org.sapia.corus.deployer.handler;
 
 import java.io.File;
 
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.ShellScript;
@@ -10,7 +11,6 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata.Typ
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
 import org.sapia.corus.deployer.DeploymentHandler;
 import org.sapia.corus.deployer.InternalShellScriptManager;
-import org.sapia.corus.util.FilePath;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

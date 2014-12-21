@@ -225,7 +225,7 @@ public class PropertiesUtil {
     }
     return props;
   }
-
+  
   /**
    * Performs obfuscation of property value when it's a password.
    * 

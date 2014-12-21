@@ -269,7 +269,6 @@ public class Conf extends CorusCliCommand {
             .add(PropertiesStrLookup.getInstance(processProps))
             .add(ctx.getVars())
             .add(PropertiesStrLookup.systemPropertiesLookup())
-            .lenient()
        );
       
       for (String n : baseProperties.stringPropertyNames()) {

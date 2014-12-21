@@ -1,10 +1,10 @@
-package org.sapia.corus.util;
+package org.sapia.corus.client.common;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.util.Assert;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * A utility class used to build file paths dynamically.
@@ -24,6 +24,27 @@ public class FilePath {
    */
   public FilePath addDir(String dir) {
     dirs.add(dir);
+    return this;
+  }
+  
+  /**
+   * Adds the ${user.home} directory to this instance.
+   * 
+   * @return this instance.
+   */
+  public FilePath addUserHome() {
+    dirs.add(System.getProperty("user.home"));
+    return this;
+  }
+  
+  /**
+   * Adds the ${user.home}/.corus directory to this instance.
+   * 
+   * @return this instance.
+   */
+  public FilePath addCorusUserDir() {
+    dirs.add(System.getProperty("user.home"));
+    dirs.add(".corus");
     return this;
   }
 
@@ -52,7 +73,7 @@ public class FilePath {
    * @return the path corresponding to this instance.
    */
   public String createFilePathFrom(File baseDir) {
-    Assert.isTrue(baseDir.isDirectory(), "File does not correspond to a directory: " + baseDir.getAbsolutePath());
+    Assertions.isTrue(baseDir.isDirectory(), "File does not correspond to a directory: " + baseDir.getAbsolutePath());
     StringBuilder sb = new StringBuilder();
     sb.append(baseDir.getAbsolutePath()).append(File.separator);
     if (file != null) {

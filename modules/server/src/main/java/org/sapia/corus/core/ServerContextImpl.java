@@ -80,6 +80,11 @@ public class ServerContextImpl implements ServerContext {
   public String getHomeDir() {
     return homeDir;
   }
+  
+  @Override
+  public String getNodeSubdirName() {
+    return "port_" + getCorusHost().getEndpoint().getServerTcpAddress().getPort();
+  }
 
   @Override
   public String getDomain() {

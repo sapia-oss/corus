@@ -28,7 +28,6 @@ public class EnvImpl implements Env {
   private Interpreter interpreter;
 
   /**
-   * Constructor for Env.
    * 
    * @param corus
    *          the {@link Corus} instance.

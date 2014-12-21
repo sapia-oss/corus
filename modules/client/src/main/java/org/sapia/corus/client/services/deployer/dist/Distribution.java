@@ -35,12 +35,13 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   static final long serialVersionUID = 1L;
 
   private static final String DEPLOYMENT_DESCRIPTOR = "META-INF/corus.xml";
-  private String name;
-  private String version;
-  private String baseDir;
-  private String commonDir;
-  private String processesDir;
+  private String   name;
+  private String   version;
+  private String   baseDir;
+  private String   commonDir;
+  private String   processesDir;
   private String[] tags;
+  private String[] categories;
   private List<ProcessConfig> processConfigs = new ArrayList<ProcessConfig>();
 
   public Distribution() {
@@ -84,6 +85,28 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
       }
     }
     return set;
+  }
+  
+  /**
+   * Sets this instance's categories.
+   * 
+   * @param categoryList a comma-delimited list of categories.
+   */
+  public void setPropertyCategories(String categoryList) {
+    categories = categoryList.split(",");
+    for (int i = 0; i < categories.length; i++) {
+      categories[i] = categories[i].trim();
+    }  
+  }
+  
+  /**
+   * @return the list of categories held by this instance.
+   */
+  public List<String> getPropertyCategories() {
+    if (categories == null) {
+      return new ArrayList<>(0);
+    }
+    return Collects.arrayToList(categories);
   }
 
   /**

@@ -42,7 +42,7 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
     if (repo.getProcessesToRestart().containsProcess(process.getProcessID())) {
       ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
       ProcessInfo info = new ProcessInfo(process, dist, processConf, true);
-      Properties processProperties = ctx.getServerContext().getProcessProperties(processConf.getCategoryList());
+      Properties processProperties = ctx.getServerContext().getProcessProperties(processConf.getPropertyCategories());
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
 
       try {
@@ -76,7 +76,7 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
 
       ProcessConfig conf = dist.getProcess(process.getDistributionInfo().getProcessName());
       ProcessInfo info = new ProcessInfo(process, dist, conf, true);
-      Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getCategoryList());
+      Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getPropertyCategories());
 
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
       if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {

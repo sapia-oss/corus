@@ -1,5 +1,7 @@
 package org.sapia.corus.processor.task;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -39,15 +41,21 @@ public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig,
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<Distribution, ProcessConfig, String, Void> params) throws Throwable {
 
-    Distribution dist = params.getParam1();
-    ProcessConfig conf = params.getParam2();
-    String profile = params.getParam3();
+    Distribution  dist    = params.getParam1();
+    ProcessConfig conf    = params.getParam2();
+    String        profile = params.getParam3();
 
     Process process = new Process(new DistributionInfo(dist.getName(), dist.getVersion(), profile, conf.getName()));
 
     ProcessInfo info = new ProcessInfo(process, dist, conf, false);
     PerformExecProcessTask execProcess = new PerformExecProcessTask();
-    Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getCategoryList());
+    List<String> categories = new ArrayList<>(dist.getPropertyCategories());
+    for (String c : conf.getPropertyCategories()) {
+      if (!categories.contains(c)) {
+        categories.add(c);
+      }
+    }
+    Properties processProperties = ctx.getServerContext().getProcessProperties(categories);
 
     ctx.info(String.format("Executing process: %s", process));
     if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {

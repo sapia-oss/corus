@@ -22,6 +22,7 @@ public class Man extends NoOptionCommand {
   private static final Map<String, Class<?>> COMMANDS = new HashMap<String, Class<?>>();
 
   static {
+    COMMANDS.put("alias", Alias.class);
     COMMANDS.put("ant", Ant.class);
     COMMANDS.put("appkey", Appkey.class);
     COMMANDS.put("cd", Cd.class);

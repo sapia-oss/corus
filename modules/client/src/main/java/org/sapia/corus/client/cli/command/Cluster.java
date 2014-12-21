@@ -16,6 +16,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.sort.Sorting;
@@ -34,9 +35,11 @@ public class Cluster extends CorusCliCommand {
   private static final String STATUS = "status";
   private static final String CHECK  = "check";
   private static final String RESYNC = "resync";
+  private static final String DOMAIN = "domain";
   
-  private static final OptionDef OPT_ASSERT = new OptionDef("assert", true);
+  private static final OptionDef OPT_ASSERT = new OptionDef("a", true);
 
+  
   private final TableDef STATUS_TBL = TableDef.newInstance()
       .createCol("host", 30)
       .createCol("role", 32)
@@ -59,11 +62,17 @@ public class Cluster extends CorusCliCommand {
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
 
     if (ctx.getCommandLine().hasNext()) {
-      Arg arg = ctx.getCommandLine().assertNextArg(new String[] { STATUS, RESYNC, CHECK });
+      Arg arg = ctx.getCommandLine().assertNextArg(new String[] { STATUS, RESYNC, CHECK, DOMAIN });
       if (arg.getName().equals(STATUS)) {
         status(ctx);
       } else if (arg.getName().equals(CHECK)) {
         check(ctx);
+      } else if (arg.getName().equals(DOMAIN)) {
+        if (ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()) {
+          cluster(ctx, ctx.getCommandLine().assertNextArg().getName());
+        } else {
+          throw new InputException("New domain expected");
+        }
       } else {
         resync(ctx);
       }
@@ -94,6 +103,12 @@ public class Cluster extends CorusCliCommand {
       row.getCellAt(STATUS_TBL.col("nodeCount").index()).append(Integer.toString(status.getData().getNodeCount()));
       row.flush();
     }
+  }
+  
+  private void cluster(CliContext ctx, String newClusterName) throws InputException {
+    ctx.getCorus().getCluster().changeCluster(newClusterName, getClusterInfo(ctx));
+    ctx.getCorus().getContext().reconnect();
+    ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
   }
 
   private void check(final CliContext ctx) throws InputException {
