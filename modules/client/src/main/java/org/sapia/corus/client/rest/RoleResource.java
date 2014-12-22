@@ -1,0 +1,149 @@
+package org.sapia.corus.client.rest;
+
+import java.io.StringWriter;
+import java.util.List;
+
+import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.Result;
+import org.sapia.corus.client.Results;
+import org.sapia.corus.client.annotations.Authorized;
+import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.services.security.Permission;
+import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
+
+/**
+ * Manages roles.
+ * 
+ * @author yduchesne
+ *
+ */
+public class RoleResource {
+  
+  // --------------------------------------------------------------------------
+  // GET
+  
+  @Path("/clusters/{corus:cluster}/roles")
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public String getRolesForCluster(RequestContext context) {
+    return doProcessResults(
+        context, 
+        context.getConnector().getSecurityManagementFacade().getRoleConfig(ArgFactory.any(), ClusterInfo.clustered())
+    );
+  }
+  
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/roles")
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public String getRolesForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    return doProcessResults(
+        context, 
+        context.getConnector().getSecurityManagementFacade().getRoleConfig(
+            ArgFactory.any(), 
+            cluster
+        )
+    );
+  }
+  
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/roles/{corus:role}")
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public String getRolesForRolePattern(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    return doProcessResults(
+        context, 
+        context.getConnector().getSecurityManagementFacade().getRoleConfig(
+            ArgFactory.parse(context.getRequest().getValue("corus:host").asString()), 
+            cluster
+        )
+    );
+  }
+  
+  // --------------------------------------------------------------------------
+  // PUT
+  
+  @Path("/clusters/{corus:cluster}/roles/{corus:role}")
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createOrUpdateRoleForCluster(RequestContext context) {
+    context.getConnector().getSecurityManagementFacade().addOrUpdateRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        Permission.forPermissionSet(context.getRequest().getValue("permissions").asString()),
+        ClusterInfo.clustered()
+    );
+  }
+  
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/roles/{corus:role}")
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createOrUpdateRoleForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    context.getConnector().getSecurityManagementFacade().addOrUpdateRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        Permission.forPermissionSet(context.getRequest().getValue("permissions").asString()),
+        cluster
+    );
+  }
+  
+  // --------------------------------------------------------------------------
+  // DELETE
+
+  @Path("/clusters/{corus:cluster}/roles/{corus:role}")
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void deleteRoleForCluster(RequestContext context) {
+    context.getConnector().getSecurityManagementFacade().removeRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        ClusterInfo.clustered()
+    );
+  }
+  
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/roles/{corus:role}")
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void deleteRoleForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    context.getConnector().getSecurityManagementFacade().removeRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        cluster
+    );
+  }
+  
+  private String doProcessResults(RequestContext context, Results<List<RoleConfig>> results) {
+    StringWriter output = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(output);
+    stream.beginArray();
+    while (results.hasNext()) {
+      Result<List<RoleConfig>> result = results.next();
+      for (RoleConfig r : result.getData()) {
+        stream.beginObject()
+          .field("cluster").value(context.getConnector().getContext().getDomain())
+          .field("host").value(
+              result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
+              result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
+          )
+          .field("data");
+        r.toJson(stream);
+        stream.endObject();
+      }      
+    }
+    stream.endArray();
+    return output.toString();   
+  }
+}

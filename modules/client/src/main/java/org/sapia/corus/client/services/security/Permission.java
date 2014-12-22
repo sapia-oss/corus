@@ -1,5 +1,6 @@
 package org.sapia.corus.client.services.security;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,7 +19,8 @@ public enum Permission {
   READ("ls, ps", 'r', 0),
   WRITE("conf add, conf del, port add, port del, ps -clean, etc.", 'w', 1),
   EXECUTE("exec, kill, suspend, resume, restart", 'x', 2),
-  DEPLOY("deploy, undeploy", 'd', 3);
+  DEPLOY("deploy, undeploy", 'd', 3),
+  ADMIN("change cluster name, change repository role, manage security (roles and application keys)", 'a', 4);;
   
   private static final Map<Character, Permission> PERMISSIONS_BY_ABBREVIATION = new HashMap<>();
   
@@ -81,5 +83,18 @@ public enum Permission {
       permissions.add(forAbbreviation(permissionSet.charAt(i)));
     }
     return permissions;
+  }
+  
+  /**
+   * Converts the given permissions to a permission set.
+   * @param permissions some {@link Permission}s to convert.
+   * @return a permission set.
+   */
+  public static String toPermissionSet(Collection<Permission> permissions) {
+    StringBuilder set = new StringBuilder();
+    for (Permission p : permissions) {
+      set.append(p.abbreviation());
+    }
+    return set.toString();
   }
 }

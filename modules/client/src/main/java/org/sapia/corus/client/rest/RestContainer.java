@@ -63,7 +63,7 @@ public class RestContainer {
     /**
      * Builds a new {@link RestContainer}, with the following resources:
      * <ul>
-     *  <li> {@link HostResource}
+     *  <li> {@link ClusterResource}
      *  <li> {@link PortResource}
      *  <li> {@link ProcessResource}
      *  <li> {@link PropertiesResource}
@@ -76,7 +76,7 @@ public class RestContainer {
     public RestContainer buildDefaultInstance() {
       resource(new DistributionResource())
       .resource(new DistributionWriteResource())
-      .resource(new HostResource())
+      .resource(new ClusterResource())
       .resource(new PortResource())
       .resource(new PortWriteResource())
       .resource(new ProcessResource())

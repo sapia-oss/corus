@@ -10,7 +10,11 @@ import java.util.Set;
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * @author Yanick Duchesne
@@ -24,7 +28,7 @@ public interface SecurityModule extends java.rmi.Remote, Module {
    *
    */
   public static class RoleConfig extends AbstractPersistent<String, RoleConfig> 
-    implements Externalizable, Comparable<RoleConfig>, Matcheable {
+    implements Externalizable, Comparable<RoleConfig>, Matcheable, JsonStreamable {
     
     static final long serialVersionUID = 1L;
     
@@ -88,6 +92,21 @@ public interface SecurityModule extends java.rmi.Remote, Module {
       out.writeObject(permissions);
     }
     
+    // ------------------------------------------------------------------------
+    // JsonStreamable interface
+    
+    @Override
+    public void toJson(JsonStream stream) {
+      stream.beginObject()
+        .field("role").value(role)
+        .field("permissions").strings(Collects.convertAsList(permissions, new Func<String, Permission>() {
+          @Override
+          public String call(Permission p) {
+            return p.name();
+          }
+        }));
+      stream.endObject();
+    }
   }
   
   // ==========================================================================

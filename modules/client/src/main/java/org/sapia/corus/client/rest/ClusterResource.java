@@ -7,12 +7,12 @@ import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.CorusHost;
 
 /**
- * A REST resources that gives access to {@link CorusHost} data.
+ * A REST resources that allows viewing cluster-related information.
  * 
  * @author yduchesne
  *
  */
-public class HostResource {
+public class ClusterResource {
 
   @Path("/clusters")
   @HttpMethod(HttpMethod.GET)
@@ -45,7 +45,7 @@ public class HostResource {
     stream.endArray();
     return output.toString();   
   }
-   
+  
   // --------------------------------------------------------------------------
 
   private void streamHost(RequestContext context, JsonStream stream, CorusHost host) {

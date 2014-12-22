@@ -25,7 +25,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 
 @RunWith(MockitoJUnitRunner.class)
-public class HostResourceTest {
+public class ClusterResourceTest {
 
   @Mock
   private CorusConnector connector;
@@ -38,12 +38,12 @@ public class HostResourceTest {
   
   private List<CorusHost> hosts;
   private RequestContext context;
-  private HostResource   resource;
+  private ClusterResource   resource;
   
   @Before
   public void setUp() {
     context  = new RequestContext(request, connector);
-    resource = new HostResource();
+    resource = new ClusterResource();
     
     when(connector.getContext()).thenReturn(connection);
     

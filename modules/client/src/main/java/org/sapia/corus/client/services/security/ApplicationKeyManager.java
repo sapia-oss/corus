@@ -9,6 +9,8 @@ import java.util.List;
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.ubik.util.Strings;
 
@@ -27,7 +29,7 @@ public interface ApplicationKeyManager extends java.rmi.Remote, Module {
    *
    */
   public static class AppKeyConfig extends AbstractPersistent<String, AppKeyConfig> 
-    implements Externalizable, Comparable<AppKeyConfig>, Matcheable {
+    implements Externalizable, Comparable<AppKeyConfig>, Matcheable, JsonStreamable {
     
     static final long serialVersionUID = 1L;
     
@@ -105,10 +107,23 @@ public interface ApplicationKeyManager extends java.rmi.Remote, Module {
     }
     
     // ------------------------------------------------------------------------
+    // JsonStreamable interface
+    
+    @Override
+    public void toJson(JsonStream stream) {
+      stream.beginObject()
+        .field("appId").value(appId)
+        .field("role").value(role)
+        .field("applicationKey").value(applicationKey)
+      .endObject();      
+    }
+    
+    // ------------------------------------------------------------------------
     // Object overrides
     
     @Override
     public String toString() {
+      // not returning application key to avoid logging it
       return Strings.toStringFor(this, "appId", appId, "role", role);
     }
   }
