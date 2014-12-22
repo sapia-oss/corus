@@ -14,8 +14,8 @@ import java.util.Set;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Interpolation;
-import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
@@ -129,7 +129,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
   private File makeProcessDir(TaskExecutionContext ctx, ProcessInfo info) {
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
-    File processDir = new File(PathUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
+    File processDir = new File(FileUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
 
     if (info.isRestart() && !fs.exists(processDir)) {
       ctx.warn("Process directory: " + processDir + " does not exist; restart aborted");

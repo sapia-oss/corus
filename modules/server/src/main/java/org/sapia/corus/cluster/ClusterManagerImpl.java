@@ -47,12 +47,12 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private static final int RECONNECTION_DELAY        = 10000;
   private static final int RECONNECTION_DELAY_OFFSET = 2000;
 
-  private EventChannel channel;
-  private Set<CorusHost> hostsInfos = Collections.synchronizedSet(new HashSet<CorusHost>());
-  private Map<String, CorusHost> hostsByNode = Collections.synchronizedMap(new HashMap<String, CorusHost>());
+  private EventChannel                 channel;
+  private Set<CorusHost>               hostsInfos        = Collections.synchronizedSet(new HashSet<CorusHost>());
+  private Map<String, CorusHost>       hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
   private ServerSideClusterInterceptor interceptor;
-  private DeferredAsyncListener deferredListeners = new DeferredAsyncListener();
-  private long startTime = System.currentTimeMillis();
+  private DeferredAsyncListener        deferredListeners = new DeferredAsyncListener();
+  private long                         startTime         = System.currentTimeMillis();
 
   /**
    * @see Service#init()

@@ -1,7 +1,8 @@
 package org.sapia.corus.client.cli.command;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -11,6 +12,7 @@ import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CorusCommandFactory.AliasCommand;
 import org.sapia.corus.client.cli.CorusConsole;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -45,11 +47,13 @@ public class Alias extends CorusCliCommand {
       if (cmd.getName().equals(ARG_DEL)) {
         String alias = ctx.getCommandLine()
             .assertOption(OPT_NAME.getName(), true).getValue();
-        ((CorusConsole) ctx.getConsole()).getCommands().removeAlias(alias);
+        ((CorusConsole) ctx.getConsole()).getCommands().removeAlias(ArgFactory.parse(alias));
       } else {
-        for (Map.Entry<String, AliasCommand> entry : ((CorusConsole) ctx.getConsole()).getCommands().getAliases().entrySet()) {
-          ctx.getConsole().println(entry.getKey() + " >> "
-              + entry.getValue().getAliasedCommand() + " " + entry.getValue().getCmdLine());
+        List<AliasCommand> aliases = new ArrayList<>(((CorusConsole) ctx.getConsole()).getCommands().getAliases().values());
+        Collections.sort(aliases);
+        for (AliasCommand a : aliases) {
+          ctx.getConsole().println(a.getAlias() + " >> "
+              + a.getAliasedCommand() + " " + a.getCmdLine());
         }
       }
     } else {

@@ -1,15 +1,21 @@
 package org.sapia.corus.repository;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
@@ -19,6 +25,7 @@ import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
+import org.sapia.corus.client.services.repository.ChangeRepoRoleNotification;
 import org.sapia.corus.client.services.repository.ConfigNotification;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
@@ -36,6 +43,7 @@ import org.sapia.corus.client.services.security.ApplicationKeyManager;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
+import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.repository.task.ArtifactDeploymentRequestHandlerTask;
@@ -78,12 +86,12 @@ public class RepositoryImpl extends ModuleHelper
     ConnectionStateListener,
     java.rmi.Remote {
 
-  private static final long MIN_BOOSTRAP_INTERVAL = TimeUnit.SECONDS.toMillis(5);
-  private static final int MAX_BOOSTRAP_INTERVAL_OFFSET = (int) TimeUnit.SECONDS.toMillis(5);
-  private static final long DEFAULT_HANDLE_EXEC_CONFIG_DELAY = TimeUnit.SECONDS.toMillis(1);
-  private static final long DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL = TimeUnit.SECONDS.toMillis(3);
-  private static final int DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS = 5;
-
+  private static final long MIN_BOOSTRAP_INTERVAL                   = TimeUnit.SECONDS.toMillis(5);
+  private static final int  MAX_BOOSTRAP_INTERVAL_OFFSET            = (int) TimeUnit.SECONDS.toMillis(5);
+  private static final long DEFAULT_HANDLE_EXEC_CONFIG_DELAY        = TimeUnit.SECONDS.toMillis(1);
+  private static final long DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL     = TimeUnit.SECONDS.toMillis(3);
+  private static final int  DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS = 5;
+  
   @Autowired
   private TaskManager taskManager;
 
@@ -161,17 +169,11 @@ public class RepositoryImpl extends ModuleHelper
   public void init() throws Exception {
     dispatcher.addInterceptor(ServerStartedEvent.class, this);
     clusterManager.getEventChannel().addConnectionStateListener(this);
-    
     if (serverContext().getCorusHost().getRepoRole().isServer()) {
       logger().info("Node is repo server");
-      clusterManager.getEventChannel().registerAsyncListener(ArtifactListRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(DistributionDeploymentRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(FileDeploymentRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(ShellScriptDeploymentRequest.EVENT_TYPE, this);
-
       taskManager.registerThrottle(ArtifactDeploymentRequestHandlerTask.DEPLOY_REQUEST_THROTTLE,
           new SemaphoreThrottle(repoConfig.getMaxConcurrentDeploymentRequests()));
-
+      
       if (!repoConfig.isPushPropertiesEnabled()) {
         logger().info("Properties push is disabled");
       }
@@ -183,13 +185,6 @@ public class RepositoryImpl extends ModuleHelper
       }
     } else if (serverContext().getCorusHost().getRepoRole().isClient()) {
       logger().info("Node is repo client");
-      clusterManager.getEventChannel().registerAsyncListener(DistributionListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(FileListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(ShellScriptListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(ConfigNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(ExecConfigNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(PortRangeNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(SecurityConfigNotification.EVENT_TYPE, this);
 
       if (!repoConfig.isPullPropertiesEnabled()) {
         logger().info("Properties pull is disabled");
@@ -209,6 +204,25 @@ public class RepositoryImpl extends ModuleHelper
     } else {
       logger().info("This node will not act as either a repository server or client");
     }
+    doRegisterEventListeners();
+  }
+  
+  private void doRegisterEventListeners() throws Exception {
+    clusterManager.getEventChannel().registerAsyncListener(ChangeRepoRoleNotification.EVENT_TYPE, this);
+    if (serverContext().getCorusHost().getRepoRole().isServer()) {
+      clusterManager.getEventChannel().registerAsyncListener(ArtifactListRequest.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerAsyncListener(DistributionDeploymentRequest.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerAsyncListener(FileDeploymentRequest.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerAsyncListener(ShellScriptDeploymentRequest.EVENT_TYPE, this);
+    } else if (serverContext().getCorusHost().getRepoRole().isClient()) {
+      clusterManager.getEventChannel().registerAsyncListener(DistributionListResponse.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerAsyncListener(FileListResponse.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerAsyncListener(ShellScriptListResponse.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerSyncListener(ConfigNotification.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerSyncListener(ExecConfigNotification.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerSyncListener(PortRangeNotification.EVENT_TYPE, this);
+      clusterManager.getEventChannel().registerSyncListener(SecurityConfigNotification.EVENT_TYPE, this);
+    } 
   }
 
   @Override
@@ -271,6 +285,55 @@ public class RepositoryImpl extends ModuleHelper
       }
     }
   }
+  
+  @Override
+  public synchronized void changeRole(RepoRole newRole) {
+    log.debug("Setting new repo role: " + newRole);
+    Endpoint thisEndpoint = serverContext().getCorusHost().getEndpoint();
+    File repoFile = FilePath.newInstance()
+        .addCorusUserDir()
+        .setRelativeFile(".corus_repo_" + thisEndpoint.getServerTcpAddress().getPort() + ".properties")
+        .createFile();
+    
+    Properties props = new Properties();
+    props.setProperty(CorusConsts.PROPERTY_REPO_TYPE, newRole.name().toLowerCase());
+    FileWriter writer = null;
+    try {
+      writer = new FileWriter(repoFile);
+      props.store(writer, "WRITTEN BY CORUS SERVER. DO NOT EDIT.");
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not save repo file", e);
+    } finally {
+      if (writer != null) {
+        try {
+          writer.close();
+        } catch (Exception e) {
+          // noop
+        }
+      }
+    }
+    
+    serverContext().getCorusHost().setRepoRole(newRole);
+    
+    clusterManager.getEventChannel().unregisterAsyncListener(this);
+    try {
+      doRegisterEventListeners();
+    } catch (Exception e) {
+      throw new IllegalStateException("Could not register notification listeners after repo role change", e);
+    }
+    
+    ChangeRepoRoleNotification notif = new ChangeRepoRoleNotification(thisEndpoint, newRole);
+    for (CorusHost host : clusterManager.getHosts()) {
+      if (host.getRepoRole().isClient()) {
+        notif.addTarget(host.getEndpoint());
+      }
+    }
+    try {
+      clusterManager.send(notif);
+    } catch (Exception e) {
+      logger().error("Could not send change-role notification", e);
+    }
+  }
 
   // -------------------------------------------------------------------------
   // Interceptor interface
@@ -295,7 +358,7 @@ public class RepositoryImpl extends ModuleHelper
   // AsyncEventListener interface
 
   @Override
-  public void onAsyncEvent(RemoteEvent evt) {
+  public synchronized void onAsyncEvent(RemoteEvent evt) {
     try {
       if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE)) {
         logger().debug("Got artifact list request");
@@ -325,6 +388,10 @@ public class RepositoryImpl extends ModuleHelper
         logger().debug("Got file deployment request");
         handleFileDeploymentRequest((FileDeploymentRequest) evt.getData());
 
+      } else if (evt.getType().equals(ChangeRepoRoleNotification.EVENT_TYPE)) {
+        logger().debug("Got repo role change notification");
+        handleChangeRoleNotification((ChangeRepoRoleNotification) evt.getData());
+        
       } else {
         logger().debug("Unknown event type: " + evt.getType());
       }
@@ -370,8 +437,13 @@ public class RepositoryImpl extends ModuleHelper
       }
 
       taskManager.executeBackground(
-          new HandleExecConfigTask(repoConfig, notif.getConfigs()).setMaxExecution(DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS), null,
-          BackgroundTaskConfig.create().setExecDelay(DEFAULT_HANDLE_EXEC_CONFIG_DELAY).setExecInterval(DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL));
+          new HandleExecConfigTask(repoConfig, notif.getConfigs())
+              .setMaxExecution(DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS), 
+          null,
+          BackgroundTaskConfig.create()
+            .setExecDelay(DEFAULT_HANDLE_EXEC_CONFIG_DELAY)
+            .setExecInterval(DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL)
+      );
     }
 
     // cascading to next host
@@ -482,6 +554,23 @@ public class RepositoryImpl extends ModuleHelper
         logger().info("Adding application keys");
         for (AppKeyConfig apk : notif.getAppKeyConfigurations()) {
           applicationKeys.addOrUpdateApplicationKey(apk.getAppId(), apk.getApplicationKey(), apk.getRole());
+        }
+      }
+    }
+    
+    // cascading to next host
+    try {
+      clusterManager.send(notif);
+    } catch (Exception e) {
+      logger().error("Could not cascade notification to next host", e);
+    }
+  }
+  
+  void handleChangeRoleNotification(ChangeRepoRoleNotification notif) {
+    if (notif.isTargeted(serverContext().getCorusHost().getEndpoint())) {
+      for (CorusHost h : clusterManager.getHosts()) {
+        if (h.getEndpoint().equals(notif.getRepoEndpoint())) {
+          h.setRepoRole(notif.getNewRole());
         }
       }
     }

@@ -3,7 +3,7 @@
    <p>Displays help about commands.</p>
   </section>
   <section title="Syntax">
-    <p>man command_name</p>
+    <p>man &lt;command_name&gt;</p>
   </section>
   <section title="Notes">
     <p>- If no command name is given, this help is displayed.</p>
@@ -33,24 +33,48 @@
     <p>- role</p>
     <p>- appkey</p>
     <p/>
+    <p>Topology/Network:</p>
+    <p/>
+    <p>- cluster</p>
+    <p>- connect</p>
+    <p>- host</p>
+    <p>- hosts</p>
+    <p>- resync</p>
+    <p/>
+    <p>Cluster management, automation:</p>
+    <p/>
+    <p>- http</p>
+    <p>- pull</p>
+    <p>- ripple</p>
+    <p/>
+    <p>Productivity:</p>
+    <p/>
+    <p>- alias</p>
+    <p>- count</p>
+    <p>- match</p>
+    <p/>
+    <p>File system, OS:</p>
+    <p/>
+    <p>- cd</p>
+    <p>- cmd</p>
+    <p>- dir</p>
+    <p>- env</p>
+    <p>- pwd</p>
+    <p/>
+    <p>Operating system:</p>
+    <p/>
+    <p>- cmd</p>
+    <p>- dir</p>
+    <p>- pwd</p>
+    <p/>
     <p>Misc:</p>
     <p/>
     <p>- ant</p>
-    <p>- cd</p>
-    <p>- cluster</p>
-    <p>- cmd</p>
-    <p>- connect</p>
     <p>- err</p>
     <p>- exit</p>    
-    <p>- host</p>
-    <p>- hosts</p>
-    <p>- http</p>
     <p>- man</p>
-    <p>- match</p>
-    <p>- pull</p>
     <p>- pwd</p>
     <p>- quit</p>
-    <p>- ripple</p>
     <p>- ver</p>
     <p/>    
   </section>

@@ -1,6 +1,5 @@
 package org.sapia.corus.security;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +26,7 @@ import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
+import org.sapia.ubik.util.Localhost;
 import org.sapia.ubik.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,7 +46,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   static {
     String hostAddress = null;
     try {
-      hostAddress = InetAddress.getLocalHost().getHostAddress();
+      hostAddress = Localhost.getPreferredLocalAddress().getHostAddress();
     } catch (UnknownHostException uhe) {
       System.err.println("Unable to get the localhost address");
       uhe.printStackTrace();

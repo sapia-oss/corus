@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.FileUtils.FileInfo;
+import org.sapia.ubik.util.Collects;
 
 public class FileUtilsTest {
 
@@ -54,6 +58,65 @@ public class FileUtilsTest {
     assertEquals("/some/classes/", info.directory);
     assertTrue("Should be flagged as classes directory", info.isClasses);
     assertTrue(info.fileName == null);
+  }
+  
+  @Test
+  public void testSplitFilePaths() {
+    Set<String> paths = Collects.arrayToSet(FileUtils.splitFilePaths("path0:path1;path2"));
+    assertEquals(3, paths.size());
+    for (int i = 0; i < 3; i++) {
+      assertTrue("Expected path" + i , paths.contains("path" + i));
+    }
+  }
+  
+  @Test
+  public void testAppendWithSeparatorInPathAndSubPath() {
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path/", "/subPath"));
+  }
+
+  @Test
+  public void testAppendWithSeparatorInPath() {
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path/", "subPath"));
+  }
+
+  @Test
+  public void testAppendWithSeparatorInSubPath() {
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path", "/subPath"));
+  }
+
+  @Test
+  public void testAppendWithNullSubPath() {
+    assertEquals("path", FileUtils.append("path", null));
+  }
+
+  @Test
+  public void testAppendWithEmptySubPath() {
+    assertEquals("path", FileUtils.append("path", ""));
+  }
+
+  @Test
+  public void testAppendWithSeparatorSubPath() {
+    assertEquals("path", FileUtils.append("path", "/"));
+  }
+
+  @Test
+  public void testAppendWithWindowsSeparatorSubPath() {
+    assertEquals("path", FileUtils.append("path", "\\"));
+  }
+
+  @Test
+  public void testToPathNullArray() {
+    assertEquals("", FileUtils.toPath(null));
+  }
+
+  @Test
+  public void testToPathSingleElement() {
+    assertEquals("path", FileUtils.toPath("path"));
+  }
+
+  @Test
+  public void testToPathMultipleElements() {
+    assertEquals("path1" + File.separator + "path2", FileUtils.toPath("path1", "path2"));
   }
 
 }

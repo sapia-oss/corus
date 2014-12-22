@@ -1,5 +1,6 @@
 package org.sapia.corus.client.cli;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,9 @@ import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
+import org.sapia.corus.client.common.Arg;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Condition;
 
 /**
  * A factory of {@link Command}s. Internally caches command instances based on their name.
@@ -51,16 +55,24 @@ public class CorusCommandFactory extends ReflectCommandFactory {
       delegate = super.getCommandFor(commandName);
       cachedCommands.put(commandName, delegate);
     }
-    aliases.put(aliasName, new AliasCommand(delegate, commandName, cmdLine));
+    aliases.put(aliasName, new AliasCommand(delegate, aliasName, commandName, cmdLine));
   }
   
   /**
    * Removes the given alias.
    * 
-   * @param aliasName the name of an existing alias.
+   * @param aliasNamePattern the pattern to use for matching aliases that should be removed.
    */
-  public void removeAlias(String aliasName) {
-    aliases.remove(aliasName);
+  public void removeAlias(final Arg aliasNamePattern) {
+    Collection<String> toRemove = Collects.filterAsList(this.aliases.keySet(), new Condition<String>() {
+      @Override
+      public boolean apply(String item) {
+        return aliasNamePattern.matches(item);
+      }
+    });
+    for (String r : toRemove) {
+      aliases.remove(r);
+    }
   }
   
   @Override
@@ -95,14 +107,16 @@ public class CorusCommandFactory extends ReflectCommandFactory {
    * @author yduchesne
    *
    */
-  public static class AliasCommand extends CorusCliCommand {
+  public static class AliasCommand extends CorusCliCommand implements Comparable<AliasCommand> {
     
     private Command delegate;
+    private String  aliasName;
     private String  commandName;
     private CmdLine cmdLine;
     
-    private AliasCommand(Command delegate, String commandName, CmdLine cmdLine) {
+    private AliasCommand(Command delegate, String aliasName, String commandName, CmdLine cmdLine) {
       this.delegate    = delegate;
+      this.aliasName   = aliasName;
       this.commandName = commandName;
       this.cmdLine     = cmdLine;
     }
@@ -120,6 +134,13 @@ public class CorusCommandFactory extends ReflectCommandFactory {
      */
     public String getAliasedCommand() {
       return commandName;
+    }
+    
+    /**
+     * @return the alias.
+     */
+    public String getAlias() {
+      return aliasName;
     }
     
     @Override
@@ -155,6 +176,11 @@ public class CorusCommandFactory extends ReflectCommandFactory {
     
     @Override
     protected void doInit(CliContext context) {
+    }
+    
+    @Override
+    public int compareTo(AliasCommand o) {
+      return this.aliasName.compareTo(o.aliasName);
     }
     
   }

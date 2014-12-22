@@ -5,6 +5,7 @@ import java.io.File;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 
@@ -71,11 +72,14 @@ public class Java extends BaseJavaStarter {
     prop.setName(CORUS_JAVAPROC_MAIN_CLASS);
     prop.setValue(mainClass);
     result.command.addElement(prop.convert());
-
-    String pathSep = System.getProperty("path.separator");
-
-    String classpath = env.getCorusIopLibPath() + pathSep + getCp(env, env.getJavaLibDir()) + pathSep + env.getJavaStarterLibPath() + pathSep
-        + getProcessCp(result.variables, env) + pathSep + getMainCp(env);
+    
+    String classpath = FileUtils.mergeFilePaths(
+        env.getCorusIopLibPath(), 
+        getCp(env, env.getJavaLibDir()),
+        env.getJavaStarterLibPath(),
+        getProcessCp(result.variables, env),
+        getMainCp(env)
+    );
 
     result.command.addOpt("cp", render(result.variables, classpath).replace(';', System.getProperty("path.separator").charAt(0)));
 

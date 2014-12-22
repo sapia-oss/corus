@@ -122,39 +122,34 @@ public class CorusServer {
       }
 
       // ----------------------------------------------------------------------
-      // Determining location of server properties
-      // (can be specified at command-line)
-
+      // Setting up files for config loading
+      
       String configFileName = "corus.properties";
       if (cmd.containsOption(CONFIG_FILE_OPT, true)) {
         configFileName = cmd.assertOption(CONFIG_FILE_OPT, true).getValue();
       }
       
-      String aFilename = new StringBuffer(corusHome)
-          .append(File.separator)
-          .append("config").append(File.separator)
-          .append(configFileName).toString();
-
-      File propFile = new File(aFilename);
-
-      String specificFileName = new StringBuffer(corusHome)
-          .append(File.separator)
-          .append("config").append(File.separator)
-          .append("corus_").append(port).append(".properties").toString();
-
-      String userConfigName = new StringBuffer(System.getProperty("user.home"))
-          .append(File.separator)
-          .append(".corus").append(File.separator)
-          .append(configFileName).toString();
+      File propFile = FilePath.newInstance()
+          .addDir(corusHome)
+          .addDir("config")
+          .setRelativeFile(configFileName).createFile();
       
-      String userSpecificFileName = new StringBuffer(System.getProperty("user.home"))
-          .append(File.separator)
-          .append(".corus").append(File.separator)
-          .append("corus_").append(port).append(".properties").toString();
-      
-      File specificPropFile     = new File(specificFileName);
-      File userPropFile         = new File(userConfigName);
-      File userSpecificPropFile = new File(userSpecificFileName);
+      File specificPropFile = FilePath.newInstance()
+          .addDir(corusHome)
+          .addDir("config")
+          .setRelativeFile("corus_" + port + ".properties")
+          .createFile();
+
+      // files under $HOME/.corus
+      File userPropFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile("corus.properties")
+          .createFile();
+
+      File userSpecificPropFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile("corus_" + port + ".properties")
+          .createFile();
       
       // ----------------------------------------------------------------------
       // First off, we're loading the server properties to extract the includes
@@ -230,10 +225,16 @@ public class CorusServer {
           .addCorusUserDir()
           .setRelativeFile(".corus_domain_" + port + ".properties")
           .createFile();
-   
-      Properties domainProps = new Properties();
-      PropertiesUtil.loadIfExist(domainProps, corusDomainPropsFile);
-      PropertiesUtil.copy(domainProps, corusProps);
+      PropertiesUtil.loadIfExist(corusProps, corusDomainPropsFile);
+      
+      // ----------------------------------------------------------------------
+      // Loading Corus repo file for current instance
+      
+      File repoFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile(".corus_repo_" + port + ".properties")
+          .createFile();
+      PropertiesUtil.loadIfExist(corusProps, repoFile);
       
       // ----------------------------------------------------------------------
       // Determining domain: can be specified at command line, or in server

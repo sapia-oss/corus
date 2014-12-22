@@ -37,6 +37,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("err", Err.class);
     COMMANDS.put("exec", Exec.class);
     COMMANDS.put("exit", Exit.class);
+    COMMANDS.put("env", Exit.class);
     COMMANDS.put("host", Host.class);
     COMMANDS.put("hosts", Hosts.class);
     COMMANDS.put("http", Http.class);

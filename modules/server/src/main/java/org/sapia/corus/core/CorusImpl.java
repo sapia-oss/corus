@@ -67,7 +67,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     
     try {
       out = new FileOutputStream(corusDomainPropFile);
-      props.store(out, "WRITTEN BY CORUS SERVER. DO NOT EDIT MANUALLY.");
+      props.store(out, "WRITTEN BY CORUS SERVER. DO NOT EDIT.");
     } catch (IOException exception) {
       throw new IllegalStateException("Could not store Corus domain properties file: " 
           + corusDomainPropFile.getAbsolutePath());
