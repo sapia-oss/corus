@@ -143,7 +143,7 @@ public class Interpreter extends Console implements CorusConsole {
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
         commandLine = subs.replace(commandLine).trim();
-        if (!commandLine.isEmpty() && !commandLine.startsWith(COMMENT_MARKER)) {
+        if (!commandLine.isEmpty()) {
           eval(commandLine, vars);
         }
       }
@@ -179,6 +179,11 @@ public class Interpreter extends Console implements CorusConsole {
 
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
+    
+    if (commandLine.startsWith(COMMENT_MARKER)) {
+      FacadeInvocationContext.set(null);
+      return null;
+    }
 
     try {
       CmdLine cmdLine = CmdLine.parse(commandLine);
