@@ -13,8 +13,6 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
-import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Func;
 
 /**
  * @author Yanick Duchesne
@@ -98,13 +96,18 @@ public interface SecurityModule extends java.rmi.Remote, Module {
     @Override
     public void toJson(JsonStream stream) {
       stream.beginObject()
-        .field("role").value(role)
-        .field("permissions").strings(Collects.convertAsList(permissions, new Func<String, Permission>() {
-          @Override
-          public String call(Permission p) {
-            return p.name();
-          }
-        }));
+        .field("name").value(role)
+        .field("permissions");
+      
+      stream.beginArray();
+        for (Permission p : permissions) {
+          stream.beginObject()
+            .field("name").value(p.name())
+            .field("abbreviation").value("" + p.abbreviation())
+          .endObject();
+        }
+      stream.endArray();
+      
       stream.endObject();
     }
   }

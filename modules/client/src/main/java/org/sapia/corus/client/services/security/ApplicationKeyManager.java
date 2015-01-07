@@ -114,7 +114,7 @@ public interface ApplicationKeyManager extends java.rmi.Remote, Module {
       stream.beginObject()
         .field("appId").value(appId)
         .field("role").value(role)
-        .field("applicationKey").value(applicationKey)
+        .field("key").value(applicationKey)
       .endObject();      
     }
     

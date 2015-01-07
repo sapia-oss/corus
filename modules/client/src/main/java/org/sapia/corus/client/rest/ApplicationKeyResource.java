@@ -31,7 +31,10 @@ public class ApplicationKeyResource {
   public String getAppKeysForCluster(RequestContext context) {
     return doProcessResults(
         context, 
-        context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(ArgFactory.any(), ClusterInfo.clustered())
+        context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
+            ArgFactory.any(), 
+            ClusterInfo.clustered()
+        )
     );
   }
   
@@ -69,8 +72,37 @@ public class ApplicationKeyResource {
   
   // --------------------------------------------------------------------------
   // POST, PUT
+
+  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}/{corus:role}")
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createAppKeyForCluster(RequestContext context) {
+    context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
+        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:key").asString(),
+        context.getRequest().getValue("corus:role").asString(), 
+        ClusterInfo.clustered()
+    );
+  }
   
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/appkeys")
+  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}/{corus:role}")
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createAppKeyForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
+        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:key").asString(),
+        context.getRequest().getValue("corus:role").asString(), 
+        cluster
+    );
+  }
+  
+  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}")
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -78,12 +110,12 @@ public class ApplicationKeyResource {
   public void updateAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:appKey").asString(), 
+        context.getRequest().getValue("corus:key").asString(), 
         ClusterInfo.clustered()
     );
   }
   
-  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key/{corus:appKey}")
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key/{corus:key}")
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -92,7 +124,7 @@ public class ApplicationKeyResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:appKey").asString(), 
+        context.getRequest().getValue("corus:key").asString(), 
         cluster
     );
   }
@@ -144,7 +176,7 @@ public class ApplicationKeyResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.ADMIN)
-  public void deleteRoleForHost(RequestContext context) {
+  public void deleteAppKeyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
         ArgFactory.parse(context.getRequest().getValue("corus:appId").asString()), 
