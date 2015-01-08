@@ -1,378 +1,342 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<name>Sapia Corus</name>
-	<description>Corus is a generic application process manager</description>
-	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
-	<artifactId>sapia_corus_parent</artifactId>
-	<version>4.4.2-SNAPSHOT</version>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus</name>
+  <description>Corus is a generic application process manager</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <artifactId>sapia_corus_parent</artifactId>
+  <version>4.4.2-SNAPSHOT</version>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<springframework.version>4.1.3.RELEASE</springframework.version>
-	</properties>
+  <properties>
+    <springframework.version>4.1.3.RELEASE</springframework.version>
+  </properties>
 
-	<parent>
-		<groupId>org.sapia</groupId>
-		<artifactId>sapia_global</artifactId>
-		<version>1.21</version>
-	</parent>
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_global</artifactId>
+    <version>2.0</version>
+  </parent>
 
-	<licenses>
-		<license>
-			<name>Apache 2</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-		<license>
-			<name>GNU General Public License (GPL), version 3</name>
-			<url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-		</license>
-	</licenses>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+    <license>
+      <name>GNU General Public License (GPL), version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
 
-	<packaging>pom</packaging>
+  <packaging>pom</packaging>
 
-	<modules>
-		<module>modules/client</module>
-		<module>modules/thirdparty</module>
-		<module>modules/server</module>
-		<module>modules/package</module>
-		<module>samples</module>
-	</modules>
+  <scm>
+    <connection>scm:git:https://github.com/sapia-oss/corus.git</connection>
+    <developerConnection>scm:git:git@github.com:sapia-oss/corus.git</developerConnection>
+    <url>https://github.com/sapia-oss/corus</url>
+  </scm>
 
-	<repositories>
-		<repository>
-			<id>jline</id>
-			<name>JLine Project Repository</name>
-			<url>http://jline.sourceforge.net/m2repo</url>
-		</repository>
-		<repository>
-			<id>jboss-third-party</id>
-			<name>JBosse 3rd-party dependencies</name>
-			<url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
-		</repository>
-	</repositories>
+  <modules>
+    <module>modules/client</module>
+    <module>modules/thirdparty</module>
+    <module>modules/server</module>
+    <module>modules/package</module>
+    <module>samples</module>
+  </modules>
 
-	<dependencies>
+  <repositories>
+    <repository>
+      <id>jline</id>
+      <name>JLine Project Repository</name>
+      <url>http://jline.sourceforge.net/m2repo</url>
+    </repository>
+    <repository>
+      <id>jboss-third-party</id>
+      <name>JBosse 3rd-party dependencies</name>
+      <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+    </repository>
+  </repositories>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+  <dependencies>
+  </dependencies>
 
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<scope>test</scope>
-		</dependency>
+  <dependencyManagement>
+    <dependencies>
 
-	</dependencies>
+      <dependency>
+        <groupId>avalon-logkit</groupId>
+        <artifactId>avalon-logkit</artifactId>
+        <version>2.0</version>
+      </dependency>
 
-	<dependencyManagement>
-		<dependencies>
+      <dependency>
+        <groupId>commons-lang</groupId>
+        <artifactId>commons-lang</artifactId>
+        <version>2.3</version>
+      </dependency>
 
-			<dependency>
-				<groupId>avalon-logkit</groupId>
-				<artifactId>avalon-logkit</artifactId>
-				<version>2.0</version>
-			</dependency>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.0.1</version>
+      </dependency>
 
-			<dependency>
-				<groupId>commons-lang</groupId>
-				<artifactId>commons-lang</artifactId>
-				<version>2.3</version>
-			</dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.0.4</version>
+      </dependency>
 
-			<dependency>
-				<groupId>commons-io</groupId>
-				<artifactId>commons-io</artifactId>
-				<version>2.0.1</version>
-			</dependency>
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+      </dependency>
 
-			<dependency>
-				<groupId>commons-logging</groupId>
-				<artifactId>commons-logging</artifactId>
-				<version>1.0.4</version>
-			</dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.8</version>
+      </dependency>
 
-			<dependency>
-				<groupId>dom4j</groupId>
-				<artifactId>dom4j</artifactId>
-				<version>1.6.1</version>
-			</dependency>
+      <dependency>
+        <groupId>org.mapdb</groupId>
+        <artifactId>mapdb</artifactId>
+        <version>1.0.6</version>
+      </dependency>
 
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>4.7</version>
-				<scope>test</scope>
-			</dependency>
+      <dependency>
+        <groupId>jdring</groupId>
+        <artifactId>jdring</artifactId>
+        <version>1.0</version>
+      </dependency>
 
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>1.2.8</version>
-			</dependency>
-
-			<dependency>
-			  <groupId>org.mapdb</groupId>
-			  <artifactId>mapdb</artifactId>
-			  <version>1.0.6</version>
-			</dependency>
-
-			<dependency>
-				<groupId>jdring</groupId>
-				<artifactId>jdring</artifactId>
-				<version>1.0</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.mockito</groupId>
-				<artifactId>mockito-all</artifactId>
-				<version>1.8.5</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.apache.ant</groupId>
-				<artifactId>ant</artifactId>
-				<version>1.9.4</version>
-				<optional>true</optional>
-			</dependency>
-
-			<dependency>
-			  <groupId>ant</groupId>
-			  <artifactId>ant-optional</artifactId>
-			  <version>1.5.3-1</version>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>1.9.4</version>
         <optional>true</optional>
-			</dependency>
+      </dependency>
 
-			<dependency>
-				<groupId>jline</groupId>
-				<artifactId>jline</artifactId>
-				<version>0.9.9</version>
-				<optional>true</optional>
-			</dependency>
+      <dependency>
+        <groupId>ant</groupId>
+        <artifactId>ant-optional</artifactId>
+        <version>1.5.3-1</version>
+        <optional>true</optional>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_client</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>0.9.9</version>
+        <optional>true</optional>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_tomcat</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_tomcat</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_server</artifactId>
-				<classifier>server</classifier>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_server</artifactId>
-				<classifier>starter</classifier>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>server</classifier>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_server</artifactId>
-				<classifier>demo</classifier>
-				<version>${project.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>starter</classifier>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_iop</artifactId>
-				<version>2.6</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_server</artifactId>
+        <classifier>demo</classifier>
+        <version>${project.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_corus_iop_api</artifactId>
-				<version>2.4</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_iop</artifactId>
+        <version>2.6</version>
+      </dependency>
 
-			<!-- Sapia -->
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_as</artifactId>
-				<version>2.3</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_iop_api</artifactId>
+        <version>2.6</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_magnet</artifactId>
-				<version>2.3</version>
-			</dependency>
+      <!-- Sapia -->
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_as</artifactId>
+        <version>2.3</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_console</artifactId>
-				<version>2.0</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.sapia</groupId>
-						<artifactId>sapia_global</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_magnet</artifactId>
+        <version>2.3</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_utils</artifactId>
-				<version>2.3</version>
-			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_console</artifactId>
+        <version>2.0</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.sapia</groupId>
+            <artifactId>sapia_global</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
 
-			<!-- Ubik -->
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_utils</artifactId>
+        <version>2.3</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.sapia</groupId>
-				<artifactId>sapia_ubik</artifactId>
-				<version>4.0.4</version>
-			</dependency>
+      <!-- Ubik -->
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_ubik</artifactId>
+        <version>4.0.4</version>
+      </dependency>
 
-			<!-- http client -->
+      <!-- http client -->
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.2.4</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
-				<version>4.2.4</version>
-			</dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.1.2</version>
+      </dependency>
 
-			<dependency>
-				<groupId>commons-logging</groupId>
-				<artifactId>commons-logging</artifactId>
-				<version>1.1.2</version>
-			</dependency>
+      <!-- simple web server integration -->
+      <dependency>
+        <groupId>org.simpleframework</groupId>
+        <artifactId>simple</artifactId>
+        <version>5.1.1</version>
+        <optional>true</optional>
+      </dependency>
 
-			<!-- simple web server integration -->
-
-			<dependency>
-				<groupId>org.simpleframework</groupId>
-				<artifactId>simple</artifactId>
-				<version>5.1.1</version>
-				<optional>true</optional>
-			</dependency>
-
-			<!-- Spring -->
-			<!--dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring</artifactId>
-				<version>2.5.6</version>
-			</dependency-->
-		    <dependency>
-		        <groupId>org.springframework</groupId>
-		        <artifactId>spring-context</artifactId>
-		        <version>${springframework.version}</version>
-		    </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context-support</artifactId>
-                <version>${springframework.version}</version>
-            </dependency>
+      <!-- Spring -->
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${springframework.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+        <version>${springframework.version}</version>
+      </dependency>
             
-			<dependency>
-				<groupId>org.syslog4j</groupId>
-				<artifactId>syslog4j</artifactId>
-				<version>0.9.30</version>
-			</dependency>
+      <dependency>
+        <groupId>org.syslog4j</groupId>
+        <artifactId>syslog4j</artifactId>
+        <version>0.9.30</version>
+      </dependency>
 
-			<dependency>
-				<groupId>piccolo</groupId>
-				<artifactId>piccolo</artifactId>
-				<version>1.0.4</version>
-			</dependency>
+      <dependency>
+        <groupId>piccolo</groupId>
+        <artifactId>piccolo</artifactId>
+        <version>1.0.4</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.simpleframework</groupId>
-				<artifactId>simple</artifactId>
-				<version>2.7</version>
-			</dependency>
+      <dependency>
+        <groupId>org.simpleframework</groupId>
+        <artifactId>simple</artifactId>
+        <version>2.7</version>
+      </dependency>
 
-			<dependency>
-				<groupId>tanukisoft</groupId>
-				<artifactId>wrapper</artifactId>
-				<version>3.2.3</version>
-			</dependency>
+      <dependency>
+        <groupId>tanukisoft</groupId>
+        <artifactId>wrapper</artifactId>
+        <version>3.2.3</version>
+      </dependency>
 
-			<dependency>
-				<groupId>dom4j</groupId>
-				<artifactId>dom4j</artifactId>
-				<version>1.6.1</version>
-			</dependency>
+      <dependency>
+        <groupId>dom4j</groupId>
+        <artifactId>dom4j</artifactId>
+        <version>1.6.1</version>
+      </dependency>
 
-			<dependency>
-				<groupId>javax.mail</groupId>
-				<artifactId>mail</artifactId>
-				<version>1.4.5</version>
-			</dependency>
+      <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+        <version>1.4.5</version>
+      </dependency>
 
-			<dependency>
-				<groupId>net.sf.json-lib</groupId>
-				<artifactId>json-lib</artifactId>
-				<version>2.4</version>
-				<classifier>jdk15</classifier>
-			</dependency>
+      <dependency>
+        <groupId>net.sf.json-lib</groupId>
+        <artifactId>json-lib</artifactId>
+        <version>2.4</version>
+        <classifier>jdk15</classifier>
+      </dependency>
 
-			<!-- Monitoring -->
+      <!-- Monitoring -->
 
-			<dependency>
-				<groupId>org.hyperic</groupId>
-				<artifactId>sigar</artifactId>
-				<version>1.6.3.82</version>
-			</dependency>
+      <dependency>
+        <groupId>org.hyperic</groupId>
+        <artifactId>sigar</artifactId>
+        <version>1.6.3.82</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.hyperic</groupId>
-				<artifactId>sigar-dist</artifactId>
-				<version>1.6.3.82</version>
-				<type>zip</type>
-			</dependency>
+      <dependency>
+        <groupId>org.hyperic</groupId>
+        <artifactId>sigar-dist</artifactId>
+        <version>1.6.3.82</version>
+        <type>zip</type>
+      </dependency>
 
-		</dependencies>
-	</dependencyManagement>
+    </dependencies>
+  </dependencyManagement>
 
-	<build>
-		<finalName>${artifactId}-${version}</finalName>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-deploy-plugin</artifactId>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>**/Test*.java</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
+  <build>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/Test*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
@@ -381,6 +345,6 @@
           <failOnError>false</failOnError>
         </configuration>
       </plugin>
-		</plugins>
-	</build>
+    </plugins>
+  </build>
 </project>

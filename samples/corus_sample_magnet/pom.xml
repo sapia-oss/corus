@@ -12,24 +12,15 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
   <dependencies>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <scope>test</scope>
-      </dependency>
     <dependency>
       <groupId>org.sapia</groupId>
       <artifactId>sapia_corus_client</artifactId>
     </dependency>    
-      <dependency>
-	      <groupId>org.sapia</groupId>
-	      <artifactId>sapia_magnet</artifactId>
-      </dependency> 
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_magnet</artifactId>
+    </dependency> 
   </dependencies>
   
   <build>

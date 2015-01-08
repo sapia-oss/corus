@@ -24,11 +24,6 @@
       <type>war</type>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.sapia</groupId>
       <artifactId>sapia_corus_client</artifactId>
     </dependency>    
