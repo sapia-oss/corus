@@ -10,14 +10,10 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>4.4.2-SNAPSHOT</version>
+    <version>4.4.2</version>
     <relativePath>../..</relativePath>
   </parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-  
   <licenses>
     <license>
       <name>Apache 2</name>

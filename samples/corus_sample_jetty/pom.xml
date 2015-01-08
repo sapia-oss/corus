@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_samples_parent</artifactId>
-    <version>4.4.2-SNAPSHOT</version>
+    <version>4.4.2</version>
     <relativePath>..</relativePath>
   </parent>
 
@@ -22,11 +22,6 @@
       <groupId>org.sapia</groupId>
       <artifactId>corus_sample_grails_app</artifactId>
       <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sapia</groupId>

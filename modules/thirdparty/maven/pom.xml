@@ -8,10 +8,9 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_thirdparty</artifactId>
-    <version>4.4.2-SNAPSHOT</version>
+    <version>4.4.2</version>
     <relativePath>..</relativePath>
   </parent>
-
 
   <dependencies>
     <dependency>
@@ -28,11 +27,6 @@
       <groupId>org.sapia</groupId>
       <artifactId>sapia_corus_client</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+  
 </project>
