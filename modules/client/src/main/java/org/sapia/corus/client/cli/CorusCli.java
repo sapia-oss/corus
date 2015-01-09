@@ -88,7 +88,7 @@ public class CorusCli extends CommandConsole {
 
     final AtomicReference<ConsoleInput> input = new AtomicReference<ConsoleInput>();
     // note: a case of the os.name being set to Vista has been reported.
-    boolean useJline = Boolean.parseBoolean(System.getProperty(CliPropertyKeys.USE_JLINE, "false"));
+    boolean useJline = Boolean.parseBoolean(System.getProperty(CliPropertyKeys.USE_JLINE, "true"));
     if (!useJline) {
       input.set(new CorusConsoleInput(ConsoleInputFactory.createDefaultConsoleInput()));
     } else if (SystemUtils.IS_OS_WINDOWS || osName.contains("vista")) {
