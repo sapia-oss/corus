@@ -5,16 +5,16 @@
    the command to block until the kill has completed, use the -w option (see documentation below).</p>
   </section>
   <section title="Syntax">
-    <p>kill [-w [&lt;seconds&gt;]] -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-cluster]</p> 
+    <p>kill [-w [&lt;seconds&gt;]] -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-hard] [-cluster]</p> 
     <p/>
     <p>OR:</p>
     <p>kill all [-w [&lt;seconds&gt;]] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>kill [-w [&lt;seconds&gt;]] -i &lt;process_identifier&gt; [&lt;process_identifier2&gt; [&lt;process_identifier3&gt; [...]]]</p>
+    <p>kill [-w [&lt;seconds&gt;]] [-hard] -i &lt;process_identifier&gt; [&lt;process_identifier2&gt; [&lt;process_identifier3&gt; [...]]]</p>
     <p/>
     <p>OR:</p>
-    <p>kill [-w [&lt;seconds&gt;]] -op &lt;os_pid&gt; [&lt;os_pid2&gt; [&lt;os_pid3&gt; [...]]]</p>
+    <p>kill [-w [&lt;seconds&gt;]] [-hard] -op &lt;os_pid&gt; [&lt;os_pid2&gt; [&lt;os_pid3&gt; [...]]]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -31,6 +31,8 @@
     <p>- i: the Corus specific identifier of the process to terminate.</p>
     <p/>
     <p>- op: the Operating System specific identifier of the process to terminate.</p>
+    <p/>
+    <p>- hard: use an OS kill, rather then the "Corus kill" interacting with the in-process agent.</p>
     <p/>
     <p>- cluster: if specified, the operation will be performed cluster-wide.</p>
   </section>

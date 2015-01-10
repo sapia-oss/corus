@@ -59,7 +59,30 @@ public class ProcessResource {
     Results<List<org.sapia.corus.client.services.processor.Process>> results = context.getConnector()
         .getProcessorFacade()
         .getProcesses(criteria.build(), cluster);
-    return doProcessResults(context, results);
+    if (results.hasNext()) {
+      Result<List<Process>> r = results.next();
+      if (r.getData().isEmpty()) {
+        throw new ResourceNotFoundException("No process for: " + context.getRequest().getValue("corus:process_id"));        
+      } else if (r.getData().size() != 1) {
+        throw new IllegalStateException("More than one process for " + context.getRequest().getValue("corus:process_id"));
+      } else {
+        StringWriter output = new StringWriter();
+        Process p = r.getData().get(0);
+        WriterJsonStream stream = new WriterJsonStream(output);
+        stream.beginObject()
+          .field("cluster").value(context.getConnector().getContext().getDomain())
+          .field("host").value(
+              r.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
+              r.getOrigin().getEndpoint().getServerTcpAddress().getPort()
+          )
+          .field("data");  
+        p.toJson(stream);
+        stream.endObject();  
+        return output.toString();    
+      }
+    } else {
+      throw new ResourceNotFoundException("No process for: " + context.getRequest().getValue("corus:process_id"));
+    }
   }
   
   // --------------------------------------------------------------------------

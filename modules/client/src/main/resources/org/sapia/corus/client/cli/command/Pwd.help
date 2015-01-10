@@ -1,9 +1,9 @@
 <help>
   <section title="Description">
-   <p>Lists the files in the CLI's base directory</p>
+   <p>Displays the CLI's current working directory</p>
   </section>
   <section title="Syntax">
-    <p>dir</p>
+    <p>pwd</p>
     <p/>
   </section>
 </help>

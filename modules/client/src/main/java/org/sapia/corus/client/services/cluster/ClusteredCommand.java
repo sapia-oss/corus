@@ -35,6 +35,10 @@ public class ClusteredCommand extends InvokeCommand {
   public void addTargets(Set<ServerAddress> targets) {
     targeted.addAll(targets);
   }
+  
+  public void exclude(Set<ServerAddress> excludedSet) {
+    visited.addAll(excludedSet);
+  }
 
   public void setCallback(CorusCallback callback) {
     this.callback = callback;

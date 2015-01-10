@@ -88,6 +88,7 @@ public class ApplicationKeyResourceTest {
     when(connection.getVersion()).thenReturn("test-version");
     when(connection.getOtherHosts()).thenReturn(hosts);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
+    when(request.getValue("a", "*")).thenReturn(new Value("a", "*"));
     when(connector.getApplicationKeyManagementFacade()).thenReturn(facade);
     when(facade.getAppKeyInfos(any(Arg.class), any(ClusterInfo.class)))
       .thenReturn(results);
@@ -114,24 +115,12 @@ public class ApplicationKeyResourceTest {
       doCheckApplicationKey(appkey, count++);
     }
   }
-
-  @Test
-  public void testGetAppKeysForAppId() {
-    when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    String response = resource.getAppKeysForAppId(context);
-    JSONArray json = JSONArray.fromObject(response);
-    int count = 0;
-    for (int i = 0; i < json.size(); i++) {
-      JSONObject appkey = json.getJSONObject(i).getJSONObject("data");
-      doCheckApplicationKey(appkey, count++);
-    }
-  }
   
   @Test
   public void testCreateAppKeyForCluster() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("corus:key")).thenReturn(new Value("corus:key", "abcdef"));
-    when(request.getValue("corus:role")).thenReturn(new Value("corus:role", "admin"));
+    when(request.getValue("k")).thenReturn(new Value("k", "abcdef"));
+    when(request.getValue("r")).thenReturn(new Value("r", "admin"));
     
     resource.createAppKeyForCluster(context);
     
@@ -141,8 +130,8 @@ public class ApplicationKeyResourceTest {
   @Test
   public void testCreateAppKeyForHost() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("corus:key")).thenReturn(new Value("corus:key", "abcdef"));
-    when(request.getValue("corus:role")).thenReturn(new Value("corus:role", "admin"));
+    when(request.getValue("k")).thenReturn(new Value("k", "abcdef"));
+    when(request.getValue("r")).thenReturn(new Value("r", "admin"));
 
     resource.createAppKeyForHost(context);
     

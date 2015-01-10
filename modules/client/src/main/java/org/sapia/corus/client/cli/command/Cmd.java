@@ -28,7 +28,7 @@ public class Cmd extends NoOptionCommand {
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
     
     if (!ctx.getCommandLine().hasNext()) {
-      throw new InputException("Command is empty, cannot be executed (specify an OS command to execute)");
+      throw new InputException("Command has no arguments, cannot be executed (specify an OS command to execute)");
     }
 
     try {

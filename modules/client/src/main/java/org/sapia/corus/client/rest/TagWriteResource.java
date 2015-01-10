@@ -16,7 +16,7 @@ public class TagWriteResource {
   //  add
 
   @Path({
-    "/clusters/{corus:cluster}/tags",
+    "/clusters/{corus:cluster}/tags/{corus:tag}",
     "/clusters/{corus:cluster}/hosts/tags/{corus:tag}"
   })
   @HttpMethod(HttpMethod.PUT)

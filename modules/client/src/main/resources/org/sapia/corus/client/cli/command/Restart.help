@@ -3,17 +3,17 @@
    <p>Restarts a process.</p>
   </section>
   <section title="Syntax">
-    <p>restart -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-w [&lt;seconds&gt;]] [-cluster]</p>
+    <p>restart -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-w [&lt;seconds&gt;]] [-hard] [-cluster]</p>
     <p/>
     <p>OR:</p>      
-    <p>restart all [-w [&lt;seconds&gt;]]</p>
+    <p>restart all [-w [&lt;seconds&gt;]] [-hard] [-cluster]</p>
     <p/>
     <p>OR:</p>  
-    <p>restart -i &lt;process_id&gt; [&lt;process_id2&gt; [&lt;process_id3&gt; [...]]] </p>
+    <p>restart [-hard] -i &lt;process_id&gt; [&lt;process_id2&gt; [&lt;process_id3&gt; [...]]] </p>
     <p/>
     <p>OR:</p>
     <p/>
-    <p>restart -op &lt;os_pid&gt; [&lt;os_pid2&gt; [&lt;os_pid3&gt; [...]]]</p>
+    <p>restart [-hard] -op &lt;os_pid&gt; [&lt;os_pid2&gt; [&lt;os_pid3&gt; [...]]]</p>
     <p/>
     <p>Where:</p>
     <p/>    
@@ -30,6 +30,15 @@
     <p>- i: the Corus specific identifier of the process to restart.</p>
     <p/>
     <p>- op: the operating system-specific identifier of the process to restart.</p>
+    <p/>
+    <p>- hard: use an OS kill, rather then the "Corus kill" interacting with the in-process agent.</p>
+    <p/>
+    <p>- cluster: if specified, the operation will be performed cluster-wide.</p>
+  </section>
+  <section title="Notes">
+    <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
+    <p/>
+    <p>- When used with the -i or -op option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
   </section>
   <section title="Examples">
     <p>restart -d myapp -v 1.0 -n jetty -p qa</p>

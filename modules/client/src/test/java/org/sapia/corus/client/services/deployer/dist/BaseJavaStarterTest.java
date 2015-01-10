@@ -247,12 +247,13 @@ public class BaseJavaStarterTest {
     starter.addArg(arg0);
 
     VmArg arg1 = new VmArg();
-    arg0.setValue("${test.arg1}");
+    arg1.setValue("${test.arg1}");
     starter.addArg(arg1);
 
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
-    assertEquals("test-path/bin/java -XXarg0 XXarg1 -Dtest.property=test.property.value", result.command.toString());
+    System.out.println(result.command.toString());
+    assertEquals("test-path/bin/java -XXarg0 -XXarg1 -Dtest.arg0=-XXarg0 -Dtest.arg1=-XXarg1 -Dtest.property=test.property.value", result.command.toString());
   }
   
   @Test

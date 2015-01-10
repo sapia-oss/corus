@@ -16,6 +16,7 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorBuilder;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Localhost;
 
@@ -25,7 +26,7 @@ import org.sapia.ubik.util.Localhost;
  * @author yduchesne
  * 
  */
-public class RestClient {
+public class FtestClient {
 
   public static final String HEADER_APP_ID  = "X-corus-app-id";
   public static final String HEADER_APP_KEY = "X-corus-app-key";
@@ -40,12 +41,12 @@ public class RestClient {
   
   private static final AtomicInteger REF_COUNT = new AtomicInteger();
   
-  private static RestClient instance;
+  private static FtestClient instance;
   
   private CorusConnector connector;
   private Client         client;
   
-  private RestClient(CorusConnector connector, Client client) {
+  private FtestClient(CorusConnector connector, Client client) {
     this.connector = connector;
     this.client    = client;
   }
@@ -85,6 +86,7 @@ public class RestClient {
    * @throws IOException if an I/O error occurs.
    */
   public WebTarget resource(String path) throws IOException {
+    Assertions.illegalState(client == null,"Client not initialized");
     WebTarget target = client.target(UriBuilder.fromUri(url(path)));
     return target;
   }
@@ -94,6 +96,7 @@ public class RestClient {
    * @return the URL string for the given path.
    */
   public String url(String path) {
+    Assertions.illegalState(instance == null,"Client not initialized");
     TCPAddress corusAddress = getConnector().getContext().getServerHost().getEndpoint().getServerTcpAddress();
     String url = "http://" + corusAddress.getHost() + ":" + corusAddress.getPort() + "/rest" 
         + (path.startsWith("/") ? path : "/" + path);
@@ -101,9 +104,26 @@ public class RestClient {
   }
   
   /**
+   * @return the number of hosts in the cluster.
+   */
+  public int getHostCount() {
+    Assertions.illegalState(instance == null,"Client not initialized");
+    return instance.getConnector().getContext().getOtherHosts().size() + 1;
+  }
+
+  /**
+   * @return the host literal corresponding to the "current" Corus server.
+   */
+  public String getHostLiteral() {
+    Assertions.illegalState(instance == null,"Client not initialized");
+    TCPAddress addr = instance.getConnector().getContext().getServerHost().getEndpoint().getServerTcpAddress();
+    return addr.getHost() + ":" + addr.getPort();
+  }
+  
+  /**
    * @return this class' singleton.
    */
-  public static RestClient open() {
+  public static FtestClient open() {
     if (instance == null) {
       try {
         init();
@@ -144,7 +164,7 @@ public class RestClient {
       ClientConfig conf = new ClientConfig();
       conf.register(JsonMessageBodyConverter.class);
       Client client = ClientBuilder.newClient(conf);
-      instance = new RestClient(connector, client);
+      instance = new FtestClient(connector, client);
     }
   }
 

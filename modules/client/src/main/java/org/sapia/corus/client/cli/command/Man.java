@@ -78,7 +78,7 @@ public class Man extends NoOptionCommand {
         displayHelp(ctx, Man.class);
       } else {
         displayHelp(ctx, cmdClass);
-      }
+      } 
     } else {
       displayHelp(ctx, Man.class);
     }

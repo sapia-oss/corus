@@ -62,4 +62,12 @@ public interface SecurityManagementFacade {
    * @throws IllegalArgumentException if the given role is not found.
    */
   public void removeRole(String role, ClusterInfo cluster) throws IllegalArgumentException;
+  
+  /**
+   * Removes the roles whose name matches the given pattern.
+   * 
+   * @param role an {@link Arg} instance corresponding to the roles to remove.
+   * @param cluster a {@link ClusterInfo} indicating if this operation should be clustered.
+   */
+  public void removeRole(Arg role, ClusterInfo cluster);
 }

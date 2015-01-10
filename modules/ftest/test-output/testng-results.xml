@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="12" passed="12">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="424078" started-at="2015-01-10T05:59:39Z" finished-at="2015-01-10T06:06:43Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="424078" started-at="2015-01-10T05:59:39Z" finished-at="2015-01-10T06:06:43Z">
+      <class name="org.sapia.corus.ftest.rest.ProcessResourcesFuncTest">
+        <test-method status="PASS" signature="beforeSuite()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeSuite" is-config="true" duration-ms="834" started-at="2015-01-09T21:59:38Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeSuite -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="15" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testClean_clustered()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testClean_clustered" duration-ms="359" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testClean_clustered -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="15" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testClean_specific_host()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testClean_specific_host" duration-ms="3" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testClean_specific_host -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="14" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:39Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testExec_clustered()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testExec_clustered" duration-ms="6054" started-at="2015-01-09T21:59:39Z" finished-at="2015-01-09T21:59:45Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testExec_clustered -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20143" started-at="2015-01-09T21:59:45Z" finished-at="2015-01-09T22:00:05Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testExec_specific_host()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testExec_specific_host" duration-ms="6059" started-at="2015-01-09T22:00:05Z" finished-at="2015-01-09T22:00:11Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testExec_specific_host -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20136" started-at="2015-01-09T22:00:11Z" finished-at="2015-01-09T22:00:31Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testKill_clustered()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testKill_clustered" duration-ms="27155" started-at="2015-01-09T22:00:31Z" finished-at="2015-01-09T22:00:59Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testKill_clustered -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="27" started-at="2015-01-09T22:00:59Z" finished-at="2015-01-09T22:00:59Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testKill_specific_host()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testKill_specific_host" duration-ms="27159" started-at="2015-01-09T22:00:59Z" finished-at="2015-01-09T22:01:26Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testKill_specific_host -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20125" started-at="2015-01-09T22:01:26Z" finished-at="2015-01-09T22:01:46Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testRestart_clustered()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testRestart_clustered" duration-ms="30185" started-at="2015-01-09T22:01:46Z" finished-at="2015-01-09T22:02:16Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testRestart_clustered -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20125" started-at="2015-01-09T22:02:16Z" finished-at="2015-01-09T22:02:36Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testRestart_specific_host()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testRestart_specific_host" duration-ms="30164" started-at="2015-01-09T22:02:36Z" finished-at="2015-01-09T22:03:06Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testRestart_specific_host -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20123" started-at="2015-01-09T22:03:06Z" finished-at="2015-01-09T22:03:26Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testRestart_specific_host_and_process()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testRestart_specific_host_and_process" duration-ms="30155" started-at="2015-01-09T22:03:26Z" finished-at="2015-01-09T22:03:57Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testRestart_specific_host_and_process -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20125" started-at="2015-01-09T22:03:57Z" finished-at="2015-01-09T22:04:17Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testSuspendResume_clustered()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testSuspendResume_clustered" duration-ms="36220" started-at="2015-01-09T22:04:17Z" finished-at="2015-01-09T22:04:53Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testSuspendResume_clustered -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20126" started-at="2015-01-09T22:04:53Z" finished-at="2015-01-09T22:05:13Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testSuspendResume_specific_host()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testSuspendResume_specific_host" duration-ms="33209" started-at="2015-01-09T22:05:13Z" finished-at="2015-01-09T22:05:46Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testSuspendResume_specific_host -->
+        <test-method status="PASS" signature="beforeMethod()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="beforeMethod" is-config="true" duration-ms="20132" started-at="2015-01-09T22:05:46Z" finished-at="2015-01-09T22:06:06Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- beforeMethod -->
+        <test-method status="PASS" signature="testSuspendResume_specific_host_and_process()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="testSuspendResume_specific_host_and_process" duration-ms="36230" started-at="2015-01-09T22:06:06Z" finished-at="2015-01-09T22:06:43Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testSuspendResume_specific_host_and_process -->
+        <test-method status="PASS" signature="afterSuite()[pri:0, instance:org.sapia.corus.ftest.rest.ProcessResourcesFuncTest@19a27795]" name="afterSuite" is-config="true" duration-ms="20167" started-at="2015-01-09T22:06:43Z" finished-at="2015-01-09T22:07:03Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- afterSuite -->
+      </class> <!-- org.sapia.corus.ftest.rest.ProcessResourcesFuncTest -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>

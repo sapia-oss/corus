@@ -24,6 +24,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.rest.RequestContext;
+import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
 import org.sapia.corus.client.rest.RestResponseFacade;
 import org.sapia.corus.client.services.http.HttpContext;
@@ -133,6 +134,9 @@ public class RestExtension implements HttpExtension {
       sendOkResponse(ctx, payload);
       
     } catch (FileNotFoundException e) {
+      logger.error("Error performing RESTful call (resource not found): " + ctx.getPathInfo());
+      sendErrorResponse(ctx, HttpStatus.SC_NOT_FOUND, e);
+    } catch (ResourceNotFoundException e) {
       logger.error("Error performing RESTful call (resource not found): " + ctx.getPathInfo());
       sendErrorResponse(ctx, HttpStatus.SC_NOT_FOUND, e);
     } catch (CorusSecurityException e) {

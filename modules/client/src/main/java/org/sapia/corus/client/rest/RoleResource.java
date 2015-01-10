@@ -23,7 +23,10 @@ public class RoleResource {
   // --------------------------------------------------------------------------
   // GET
   
-  @Path("/clusters/{corus:cluster}/roles")
+  @Path({
+    "/clusters/{corus:cluster}/roles", 
+    "/clusters/{corus:cluster}/hosts/roles"}
+  )
   @HttpMethod(HttpMethod.GET)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -31,7 +34,10 @@ public class RoleResource {
   public String getRolesForCluster(RequestContext context) {
     return doProcessResults(
         context, 
-        context.getConnector().getSecurityManagementFacade().getRoleConfig(ArgFactory.any(), ClusterInfo.clustered())
+        context.getConnector().getSecurityManagementFacade().getRoleConfig(
+            ArgFactory.parse(context.getRequest().getValue("n", "*").asString()), 
+            ClusterInfo.clustered()
+        )
     );
   }
   
@@ -45,23 +51,7 @@ public class RoleResource {
     return doProcessResults(
         context, 
         context.getConnector().getSecurityManagementFacade().getRoleConfig(
-            ArgFactory.any(), 
-            cluster
-        )
-    );
-  }
-  
-  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/roles/{corus:role}")
-  @HttpMethod(HttpMethod.GET)
-  @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.ADMIN)
-  public String getRolesForRolePattern(RequestContext context) {
-    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    return doProcessResults(
-        context, 
-        context.getConnector().getSecurityManagementFacade().getRoleConfig(
-            ArgFactory.parse(context.getRequest().getValue("corus:host").asString()), 
+            ArgFactory.parse(context.getRequest().getValue("n", "*").asString()), 
             cluster
         )
     );
@@ -70,7 +60,10 @@ public class RoleResource {
   // --------------------------------------------------------------------------
   // PUT
   
-  @Path("/clusters/{corus:cluster}/roles/{corus:role}")
+  @Path({
+      "/clusters/{corus:cluster}/roles/{corus:role}", 
+      "/clusters/{corus:cluster}/hosts/roles/{corus:role}"
+  })
   @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -100,7 +93,10 @@ public class RoleResource {
   // --------------------------------------------------------------------------
   // DELETE
 
-  @Path("/clusters/{corus:cluster}/roles/{corus:role}")
+  @Path({
+    "/clusters/{corus:cluster}/roles/{corus:role}", 
+    "/clusters/{corus:cluster}/hosts/roles/{corus:role}"
+  })
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})

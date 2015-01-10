@@ -31,7 +31,7 @@ public class DistributionWriteResource {
   })
   @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM, ContentTypes.ANY})
+  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM})
   @Authorized(Permission.DEPLOY)
   public void deployDistributionForCluster(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.clustered();
@@ -44,12 +44,11 @@ public class DistributionWriteResource {
   }
 
   @Path({
-    "/clusters/hosts/{corus:host}/distributions", 
     "/clusters/{corus:cluster}/hosts/{corus:host}/distributions"
   })
   @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM})
   @Authorized(Permission.DEPLOY)
   public void deployDistributionForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
@@ -65,9 +64,7 @@ public class DistributionWriteResource {
   // undeploy
 
   @Path({
-    "/clusters/distributions", 
     "/clusters/{corus:cluster}/distributions",
-    "/clusters/hosts/distributions", 
     "/clusters/{corus:cluster}/hosts/distributions"
   })
   @HttpMethod(HttpMethod.DELETE)
@@ -84,7 +81,6 @@ public class DistributionWriteResource {
   }  
   
   @Path({
-    "/clusters/hosts/{corus:host}/distributions", 
     "/clusters/{corus:cluster}/hosts/{corus:host}/distributions"
   })
   @HttpMethod(HttpMethod.DELETE)

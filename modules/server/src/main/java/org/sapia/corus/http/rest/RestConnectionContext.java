@@ -2,6 +2,7 @@ package org.sapia.corus.http.rest;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,6 +14,8 @@ import java.util.Stack;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Result;
@@ -40,6 +43,7 @@ public class RestConnectionContext implements CorusConnectionContext {
 
   static final int INVOKER_THREADS = 10;
 
+  private Logger                        log          = Hierarchy.getDefaultHierarchy().getLoggerFor(RestConnectionContext.class.getName());
   private Corus                         corus;
   private CorusHost                     serverHost;
   private String                        domain;
@@ -65,7 +69,6 @@ public class RestConnectionContext implements CorusConnectionContext {
     this.domain         = corus.getDomain();
     this.interceptor    = new ClientSideClusterInterceptor();
     this.fileSys        = fileSys;
-    cachedStubs.put(current.getHostInfo().getEndpoint().getServerAddress(), corus);
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
     executor = Executors.newFixedThreadPool(invokerThreads);
   }
@@ -216,9 +219,67 @@ public class RestConnectionContext implements CorusConnectionContext {
   public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     try {
 
-      ClientSideClusterInterceptor.clusterCurrentThread(info);
+      Object toReturn = null;
+      
+      if (info.isClustered()) {
+        if (log.isDebugEnabled()) {
+          log.debug("Invoking method " + method + " for cluster (" + info + ")");
+        }
+        
+        if (info.isTargetingHost(getAddress())) {
+          info.addExcluded(getAddress());
+          if (log.isDebugEnabled()) {
+            log.debug("Current host targeted for: " + method);
+          }
+          // invoking on this host first
+          toReturn = method.invoke(lookup(moduleInterface), params);
 
-      Object toReturn = method.invoke(lookup(moduleInterface), params);
+          if (info.isTargetingAllHosts() && !getOtherHosts().isEmpty()) {
+            if (log.isDebugEnabled()) {
+              log.debug("Other host(s) also targeted for: " + method);
+            }
+            ClientSideClusterInterceptor.clusterCurrentThread(info);
+          
+            if (log.isDebugEnabled()) {
+              log.debug("Chaining invocation to other hosts for: " + method);
+            }
+            Corus  corus        = getRemoteCorus(this.getOtherHosts().iterator().next());
+            Object remoteModule = corus.lookup(moduleInterface.getName());
+            try {
+              toReturn = method.invoke(remoteModule, params);
+            } catch (InvocationTargetException e) {
+              log.error("Could not cluster method call: " + method, e.getTargetException());
+            } catch (Exception e) {
+              log.error("Could not cluster method call: " + method, e);
+            }
+          }
+          
+        // only other hosts are targeted
+        } else {
+          Assertions.illegalState(getOtherHosts().isEmpty(), "No hosts to target command to");
+          
+          info.addExcluded(getAddress());
+          ClientSideClusterInterceptor.clusterCurrentThread(info);
+          if (log.isDebugEnabled()) {
+            log.debug("Other host(s) targeted for: " + method + " (" + info + ")");
+          }
+          Corus  corus        = getRemoteCorus(this.getOtherHosts().iterator().next());
+          Object remoteModule = corus.lookup(moduleInterface.getName());
+          try {
+            toReturn = method.invoke(remoteModule, params);
+          } catch (InvocationTargetException e) {
+            throw e.getTargetException();
+          } catch (Exception e) {
+            throw e;
+          }
+        } 
+      } else {
+        if (log.isDebugEnabled()) {
+          log.debug("Invocation NOT clustered for: " + method);
+        }
+        toReturn = method.invoke(lookup(moduleInterface), params);
+      }
+      
       if (toReturn != null) {
         return returnType.cast(toReturn);
       } else {
@@ -230,11 +291,14 @@ public class RestConnectionContext implements CorusConnectionContext {
       ClientSideClusterInterceptor.unregister();
     }
   }
-
+  
   @SuppressWarnings(value = "unchecked")
   void applyToCluster(final Results<?> results, final Class<?> moduleInterface, final Method method, final Object[] params, final ClusterInfo cluster) {
 
     List<CorusHost> hostList = new ArrayList<CorusHost>();
+    if (log.isDebugEnabled()) {
+      log.debug("==> Dispatching method invocation to cluster: " + method);
+    }
     if (cluster.isTargetingAllHosts()) {
       hostList.add(serverHost);
       for (CorusHost otherHost : getOtherHosts()) {
@@ -244,12 +308,10 @@ public class RestConnectionContext implements CorusConnectionContext {
       for (ServerAddress t : cluster.getTargets()) {
         if (serverHost.getEndpoint().getServerAddress().equals(t)) {
           hostList.add(serverHost);
-          break;
         } else {
           for (CorusHost o : getOtherHosts()) {
             if (o.getEndpoint().getServerAddress().equals(t)) {
               hostList.add(o);
-              break;
             }
           }
         }
@@ -270,12 +332,15 @@ public class RestConnectionContext implements CorusConnectionContext {
         @Override
         public void run() {
           Corus corus = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
-
+          if (log.isDebugEnabled()) {
+            log.debug("Invoking on host: " + addr);
+          }
           if (corus == null) {
             try {
               corus = (Corus) Hub.connect(addr.getEndpoint().getServerAddress());
               cachedStubs.put(addr.getEndpoint().getServerAddress(), corus);
             } catch (java.rmi.RemoteException e) {
+              log.debug("Error invoking on host: " + addr, e);
               results.decrementInvocationCount();
               return;
             }
@@ -286,6 +351,7 @@ public class RestConnectionContext implements CorusConnectionContext {
             returnValue = method.invoke(module, params);
             results.addResult(new Result(addr, returnValue, Result.Type.forClass(method.getReturnType())));
           } catch (Exception err) {
+            log.debug("Error invoking on host: " + addr, err);
             results.decrementInvocationCount();
           }
 
@@ -297,6 +363,10 @@ public class RestConnectionContext implements CorusConnectionContext {
 
     for (Runnable invoker : invokers) {
       executor.execute(invoker);
+    }
+    
+    if (log.isDebugEnabled()) {
+      log.debug("==> Completed dispatching of method invocation to cluster: " + method);
     }
   }
 
@@ -310,4 +380,13 @@ public class RestConnectionContext implements CorusConnectionContext {
   @Override
   public void reconnect(String host, int port) {
   }
-}
+  
+  private Corus getRemoteCorus(CorusHost remoteHost) throws RemoteException {
+    Corus corus = (Corus) cachedStubs.get(remoteHost.getEndpoint().getServerAddress());
+    if (corus == null) {
+      corus = (Corus) Hub.connect(remoteHost.getEndpoint().getServerAddress());
+      cachedStubs.put(remoteHost.getEndpoint().getServerAddress(), corus);
+    }
+    return corus;
+  }
+ }

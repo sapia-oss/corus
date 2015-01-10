@@ -54,6 +54,7 @@ public class PropertiesWriteResourceTest {
     when(request.getValue("corus:scope")).thenReturn(new Value("corus:scope", "process"));
     when(request.getValue("corus:propertyName")).thenReturn(new Value("corus:propertyName", "test"));
     when(request.getValue("corus:category")).thenReturn(new Value("corus:category", null));
+    when(request.getValue("p")).thenReturn(new Value("p", "test"));
     when(request.getValue("clearExisting", "false")).thenReturn(new Value("clearExisting", "false"));
     when(request.getValues()).thenReturn(Collects.arrayToList(new Value("a", "v1"), new Value("b", "v2")));
   }

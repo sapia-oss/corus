@@ -2,6 +2,7 @@ package org.sapia.corus.security;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +25,7 @@ import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.Hub;
+import org.sapia.ubik.rmi.server.VmId;
 import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Localhost;
@@ -156,6 +158,17 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   }
   
   @Override
+  public void removeRole(Arg rolePattern) {
+    Iterator<String> roleNames = roles.keys();
+    while (roleNames.hasNext()) {
+      String roleName = roleNames.next();
+      if (rolePattern.matches(roleName)) {
+        roles.remove(roleName);
+      }
+    }
+  }
+  
+  @Override
   public void updateRole(String role, Set<Permission> permissions)
       throws IllegalArgumentException {
     RoleConfig rc = roles.get(role);
@@ -220,10 +233,13 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
       throw new IllegalStateException("This security module is not currently running");
     }
 
-    TCPAddress addr = (TCPAddress) evt.getInvokeCommand().getConnection().getServerAddress();
-    if (!isMatch(addr.getHost())) {
-      logger().error("Security breach; could not execute: " + evt.getInvokeCommand().getMethodName());
-      throw new CorusSecurityException("Host does not have access to corus server: " + addr, Type.HOST_NOT_AUTHORIZED);
+    // Applying security check only if command comes from remote JVM
+    if (!evt.getInvokeCommand().getVmId().equals(VmId.getInstance())) {
+      TCPAddress addr = (TCPAddress) evt.getInvokeCommand().getConnection().getServerAddress();
+      if (!isMatch(addr.getHost())) {
+        logger().error("Security breach; could not execute: " + evt.getInvokeCommand().getMethodName());
+        throw new CorusSecurityException("Host does not have access to corus server: " + addr, Type.HOST_NOT_AUTHORIZED);
+      }
     }
   }
   

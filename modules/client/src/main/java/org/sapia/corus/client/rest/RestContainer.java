@@ -64,25 +64,35 @@ public class RestContainer {
      * Builds a new {@link RestContainer}, with the following resources:
      * <ul>
      *  <li> {@link ClusterResource}
+     *  <li> {@link RoleResource}
+     *  <li> {@link ApplicationKeyResource}
+     *  <li> {@link DistributionResource}
+     *  <li> {@link DistributionWriteResource}
      *  <li> {@link PortResource}
+     *  <li> {@link PortWriteResource}
      *  <li> {@link ProcessResource}
+     *  <li> {@link ProcessWriteResource}
      *  <li> {@link PropertiesResource}
+     *  <li> {@link PropertiesWriteResource}
      *  <li> {@link TagResource}
+     *  <li> {@link TagWriteResource}
      *  <li> {@link MetadataResource}
      * </ul>
      * 
      * @return a new {@link RestContainer} instance.
      */
     public RestContainer buildDefaultInstance() {
-      resource(new DistributionResource())
-      .resource(new DistributionWriteResource())
+      resource(new ApplicationKeyResource())
       .resource(new ClusterResource())
+      .resource(new DistributionResource())
+      .resource(new DistributionWriteResource())
       .resource(new PortResource())
       .resource(new PortWriteResource())
       .resource(new ProcessResource())
       .resource(new ProcessWriteResource())
       .resource(new PropertiesResource())
-      .resource(new ProcessWriteResource())
+      .resource(new PropertiesWriteResource())
+      .resource(new RoleResource())
       .resource(new TagResource())
       .resource(new TagWriteResource())
       .resource(new MetadataResource());

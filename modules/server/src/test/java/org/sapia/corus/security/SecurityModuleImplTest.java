@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.security.Permission;
@@ -37,6 +38,7 @@ public class SecurityModuleImplTest {
   public void setUp() {
     mod = new SecurityModuleImpl();
     mod.setRoles(roles);
+    when(roles.keys()).thenReturn(Collects.arrayToList("admin").iterator());
     
     config = new RoleConfig("admin", Collects.arrayToSet(Permission.values()));
     config.setDbMap(roles);
@@ -199,6 +201,13 @@ public class SecurityModuleImplTest {
   @Test
   public void testRemoveRole() {
     mod.removeRole("admin");
+    
+    verify(roles).remove("admin");
+  }
+  
+  @Test
+  public void testRemoveRole_with_pattern() {
+    mod.removeRole(ArgFactory.parse("adm*"));
     
     verify(roles).remove("admin");
   }

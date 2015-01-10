@@ -116,13 +116,29 @@ public class ProcessResourceTest {
   @Test
   public void testGetProcess() {
     when(request.getValue("corus:process_id")).thenReturn(new Value("corus:process_id", "" + 0));
+    results = new Results<List<Process>>();
+    CorusHost host = CorusHost.newInstance(
+        new Endpoint(new TCPAddress("test", "host", 0), mock(ServerAddress.class)), 
+        "os", 
+        "jvm"
+    );
+    host.setHostName("hostname");
+    host.setRepoRole(RepoRole.CLIENT);
+    List<Process> processes = new ArrayList<Process>();
+    DistributionInfo dist = new DistributionInfo("dist", "1.0", "test-profile", "test-process");
+    Process proc = new Process(dist, String.format("id-0"));
+    proc.setOsPid(String.format("pid-0"));
+    proc.setStatus( LifeCycleStatus.ACTIVE);
+    processes.add(proc);
+    Result<List<Process>> result = new Result<List<Process>>(host, processes, Result.Type.COLLECTION);
+    results.addResult(result);
+    
+    when(processor.getProcesses(any(ProcessCriteria.class), any(ClusterInfo.class))).thenReturn(results);
+    
     String response = resource.getProcess(new RequestContext(request, connector));
-    JSONArray json = JSONArray.fromObject(response);
-    int count = 0;
-    for (int i = 0; i < json.size(); i++) {
-      JSONObject p = json.getJSONObject(i).getJSONObject("data");
-      doCheckProcess(p, count++);
-    }
+    JSONObject json = JSONObject.fromObject(response);
+    JSONObject p = json.getJSONObject("data");
+    doCheckProcess(p, 0);
   }
   
   private void doCheckProcess(JSONObject process, int i) {

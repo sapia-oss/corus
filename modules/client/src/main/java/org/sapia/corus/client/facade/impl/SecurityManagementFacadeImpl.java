@@ -54,6 +54,12 @@ public class SecurityManagementFacadeImpl extends FacadeHelper<SecurityModule> i
   }
   
   @Override
+  public void removeRole(Arg role, ClusterInfo cluster) {
+    proxy.removeRole(role);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
   public void udpateRole(String role, Set<Permission> permissions, ClusterInfo cluster) 
       throws IllegalArgumentException {
     proxy.updateRole(role, permissions);

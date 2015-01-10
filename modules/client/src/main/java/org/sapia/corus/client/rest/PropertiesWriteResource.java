@@ -56,10 +56,10 @@ public class PropertiesWriteResource {
   // --------------------------------------------------------------------------
 
   @Path({
-    "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:propertyName}",
-    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}/{corus:propertyName}",
-    "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:propertyName}/{corus:category}",
-    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}/{corus:propertyName}/{corus:category}"
+    "/clusters/{corus:cluster}/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:category}",
+    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}/{corus:category}"
   })
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -72,8 +72,8 @@ public class PropertiesWriteResource {
   // --------------------------------------------------------------------------
   
   @Path({
-    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}/{corus:propertyName}",
-    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}/{corus:propertyName}/{corus:category}"
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}/{corus:category}"
   })
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -116,14 +116,14 @@ public class PropertiesWriteResource {
     if (category.isNull()) {
       context.getConnector().getConfigFacade().removeProperty(
           getScope(context), 
-          ArgFactory.parse(context.getRequest().getValue("corus:propertyName").asString()), 
+          ArgFactory.parse(context.getRequest().getValue("p").asString()), 
           new HashSet<Arg>(0),
           cluster
       );
     } else {
       context.getConnector().getConfigFacade().removeProperty(
           getScope(context), 
-          ArgFactory.parse(context.getRequest().getValue("corus:propertyName").asString()), 
+          ArgFactory.parse(context.getRequest().getValue("p").asString()), 
           Collects.arrayToSet(ArgFactory.parse(category.asString())),
           cluster
       );      

@@ -1,5 +1,7 @@
 package org.sapia.corus.ftest;
 
+import org.sapia.ubik.util.Condition;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -42,6 +44,22 @@ public class JSONValue {
    */
   public JSONArray asArray() {
     return (JSONArray) json;
+  }
+  
+  /**
+   * @return a {@link JSONArray} containing this instance's {@link JSONObject}s, as they
+   * were filtered by the given {@link Condition}.
+   */
+  public JSONArray asArray(Condition<JSONObject> filter) {
+    JSONArray array = (JSONArray) json;
+    JSONArray filtered = new JSONArray();
+    for (int i = 0; i < array.size(); i++) {
+      JSONObject o = array.getJSONObject(i);
+      if (filter.apply(o)) {
+        filtered.add(o);
+      }
+    }
+    return filtered;
   }
 
   @Override

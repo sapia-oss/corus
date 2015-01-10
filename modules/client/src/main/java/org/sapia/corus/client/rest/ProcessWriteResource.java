@@ -232,7 +232,6 @@ public class ProcessWriteResource {
   }
   
   @Path({
-    "/clusters/hosts/{corus:host}/processes/resume", 
     "/clusters/{corus:cluster}/hosts/{corus:host}/processes/resume"
   })
   @HttpMethod(HttpMethod.POST)

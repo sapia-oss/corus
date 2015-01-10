@@ -1,6 +1,7 @@
 package org.sapia.corus.client.cli;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
@@ -130,6 +131,12 @@ public class InterpreterTest {
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
     assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());
     assertTrue("Expected clustered", inputClusterInfo.get().isClustered());
+  }
+  
+  @Test
+  public void testComment() throws Throwable {
+    Object value = console.eval("# this is a comment", StrLookup.noneLookup());
+    assertNull("Expected <null> as return value from eval() when comment is passed in", value);
   }
 
 }

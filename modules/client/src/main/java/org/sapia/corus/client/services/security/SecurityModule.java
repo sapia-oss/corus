@@ -156,5 +156,9 @@ public interface SecurityModule extends java.rmi.Remote, Module {
    * @throws IllegalArgumentException when no such role exists.
    */
   public void removeRole(String role) throws IllegalArgumentException;
-  
+
+  /**
+   * @param rolePattern an {@link Arg} instance corresponding to the roles to remove.
+   */
+  public void removeRole(Arg rolePattern);
 }

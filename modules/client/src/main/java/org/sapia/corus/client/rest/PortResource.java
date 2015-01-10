@@ -1,13 +1,17 @@
 package org.sapia.corus.client.rest;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.ubik.util.Func;
 
 /**
  * A REST resources that gives access to {@link PortRange}s.
@@ -43,9 +47,22 @@ public class PortResource {
   // Restricted methods
   
   private String doGetPortRanges(RequestContext context, ClusterInfo cluster) {
+    final Arg filter = ArgFactory.parse(context.getRequest().getValue("n", "*").asString());
     Results<List<PortRange>> results = context.getConnector()
         .getPortManagementFacade()
-        .getPortRanges(cluster);
+        .getPortRanges(cluster).filter(new Func<List<PortRange>, List<PortRange>>() {
+          
+          @Override
+          public List<PortRange> call(List<PortRange> ranges) {
+            List<PortRange> filtered = new ArrayList<>();
+            for (PortRange r : ranges) {
+              if (filter.matches(r.getName())) {
+                filtered.add(r);
+              }
+            }
+            return filtered;
+          }
+        });
     
     return doProcessPortRangeResults(context, results);
   }

@@ -90,6 +90,7 @@ public class RoleResourceTest {
     when(connection.getVersion()).thenReturn("test-version");
     when(connection.getOtherHosts()).thenReturn(hosts);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
+    when(request.getValue("n", "*")).thenReturn(new Value("n", "*"));
     when(connector.getSecurityManagementFacade()).thenReturn(facade);
     when(facade.getRoleConfig(any(Arg.class), any(ClusterInfo.class)))
       .thenReturn(results);

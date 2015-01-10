@@ -23,7 +23,10 @@ public class ApplicationKeyResource {
   // --------------------------------------------------------------------------
   // GET
   
-  @Path("/clusters/{corus:cluster}/appkeys")
+  @Path({
+    "/clusters/{corus:cluster}/appkeys",
+    "/clusters/{corus:cluster}/hosts/appkeys"
+  })
   @HttpMethod(HttpMethod.GET)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -32,7 +35,7 @@ public class ApplicationKeyResource {
     return doProcessResults(
         context, 
         context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
-            ArgFactory.any(), 
+            ArgFactory.parse(context.getRequest().getValue("a", "*").asString()), 
             ClusterInfo.clustered()
         )
     );
@@ -48,47 +51,34 @@ public class ApplicationKeyResource {
     return doProcessResults(
         context, 
         context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
-            ArgFactory.any(), 
-            cluster
-        )
-    );
-  }
-  
-  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}")
-  @HttpMethod(HttpMethod.GET)
-  @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.ADMIN)
-  public String getAppKeysForAppId(RequestContext context) {
-    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    return doProcessResults(
-        context, 
-        context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
-            ArgFactory.parse(context.getRequest().getValue("corus:appId").asString()), 
+            ArgFactory.parse(context.getRequest().getValue("a", "*").asString()), 
             cluster
         )
     );
   }
   
   // --------------------------------------------------------------------------
-  // POST, PUT
+  // PUT
 
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}/{corus:role}")
-  @HttpMethod(HttpMethod.POST)
+  @Path({
+    "/clusters/{corus:cluster}/appkeys/{corus:appId}",
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}"
+  })
+  @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.ADMIN)
   public void createAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:key").asString(),
-        context.getRequest().getValue("corus:role").asString(), 
+        context.getRequest().getValue("k").asString(),
+        context.getRequest().getValue("r").asString(), 
         ClusterInfo.clustered()
     );
   }
   
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}/{corus:role}")
-  @HttpMethod(HttpMethod.POST)
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}")
+  @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.ADMIN)
@@ -96,13 +86,19 @@ public class ApplicationKeyResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:key").asString(),
-        context.getRequest().getValue("corus:role").asString(), 
+        context.getRequest().getValue("k").asString(),
+        context.getRequest().getValue("r").asString(), 
         cluster
     );
   }
   
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}")
+  // --------------------------------------------------------------------------
+  // POST
+  
+  @Path({
+    "/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}",
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}/key/{corus:key}"
+  })
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -129,7 +125,10 @@ public class ApplicationKeyResource {
     );
   }
   
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}/role/{corus:role}")
+  @Path({
+    "/clusters/{corus:cluster}/appkeys/{corus:appId}/role/{corus:role}",
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}/role/{corus:role}"
+  })
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -159,7 +158,10 @@ public class ApplicationKeyResource {
   // --------------------------------------------------------------------------
   // DELETE
 
-  @Path("/clusters/{corus:cluster}/appkeys/{corus:appId}")
+  @Path({
+    "/clusters/{corus:cluster}/appkeys/{corus:appId}",
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}"
+  })
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -171,7 +173,7 @@ public class ApplicationKeyResource {
     );
   }
   
-  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appKeys/{corus:appId}")
+  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}")
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
