@@ -53,7 +53,6 @@ public class MetadataResource {
     return output.toString();
   }
   
-  
   @Path("/metadata/repo/roles")
   @HttpMethod(HttpMethod.GET)
   @Output(ContentTypes.APPLICATION_JSON)
