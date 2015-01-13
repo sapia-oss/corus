@@ -342,7 +342,7 @@ public class ProcessWriteResource {
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.EXECUTE)
+  @Authorized(Permission.ADMIN)
   public void cleanProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     context.getConnector().getProcessorFacade().clean(cluster);
@@ -354,7 +354,7 @@ public class ProcessWriteResource {
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.EXECUTE)
+  @Authorized(Permission.ADMIN)
   public void cleanProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getProcessorFacade().clean(cluster);

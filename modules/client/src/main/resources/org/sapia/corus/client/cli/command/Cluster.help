@@ -4,13 +4,28 @@
   </section>
   <section title="Syntax">
     <p>cluster status [-cluster]</p>
-    <p/>     
+    <p/>    
     <p>OR:</p>    
+    <p>cluster check</p>
+    <p/>    
+    <p>OR:</p>    
+    <p>cluster domain &lt;name&gt; [-cluster]</p>
+    <p/>    
+    <p>OR:</p>
+    <p>cluster repo &lt;role&gt; [-cluster]</p>
+    <p/>    
+    <p>OR:</p>      
     <p>cluster resync</p>
     <p/>    
     <p>Where:</p>
     <p/>
-    <p>- status : displays the cluster status info.</p>
+    <p>- status: displays the cluster status info.</p>
+    <p/>
+    <p>- check: checks the status of each node in the cluster (attempts connecting to each one) and displays the corresponding information (the -cluster option does not apply).</p>
+    <p/>
+    <p>- domain: changes the name of the cluster to which the targeted nodes belong (these nodes will re-broadcast their presence, to the cluster whose name is given).</p>
+    <p/>
+    <p>- repo: changes the repository role of the targeted nodes (role must be either on of these strings: client, server, none).</p>
     <p/>
     <p>- resync : forces a resync of the current node with the other nodes in the cluster (this command does not support the -cluster option).</p>
     <p/>    

@@ -141,6 +141,9 @@ public class RestExtension implements HttpExtension {
       sendErrorResponse(ctx, HttpStatus.SC_NOT_FOUND, e);
     } catch (CorusSecurityException e) {
       sendErrorResponse(ctx, HttpStatus.SC_FORBIDDEN, e);
+    } catch (IllegalArgumentException e) {
+      logger.error("Error performing RESTful call: " + ctx.getPathInfo(), e);
+      sendErrorResponse(ctx, HttpStatus.SC_NOT_ACCEPTABLE, e);
     } catch (Throwable e) {
       logger.error("Error performing RESTful call: " + ctx.getPathInfo(), e);
       sendErrorResponse(ctx, HttpStatus.SC_INTERNAL_SERVER_ERROR, e);

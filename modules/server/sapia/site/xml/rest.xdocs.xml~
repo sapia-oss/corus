@@ -37,22 +37,6 @@
         or on a single node in the cluster.
       </p>
     </sapia:sect-desc>
- 
-    <!-- ======================    DESIGN NOTES    ====================== -->
-    
-    <sapia:sect2 title="Design Notes">
-      <p>
-      The API has been design with simplicity in mind, first and foremost. It avoids taking JSON documents as input, and rather takes:
-        <ul>
-          <li>RESTful URLs without a request body as input to <tt>POST</tt> and <tt>PUT</tt> resources. In such a case, the data to use for updating 
-          is specified as part of the URL.</li>
-          <li>HTTP parameters where a RESTful approach is not well-suited.</li>
-        </ul>
-      </p>
-      <p>
-      The intent was to swift adoption of the API by system administrators, as part of automation tasks.
-      </p>
-    </sapia:sect2>
     
     <!-- ======================      SECURITY      ====================== -->
     
@@ -89,13 +73,11 @@
             <li><tt>EXECUTE</tt>: this permission corresponds to resources that affect process lifecycle, and correspond to the CLI's
             <tt>exec</tt>, <tt>kill</tt>, <tt>suspend</tt>, <tt>resume</tt> and <tt>restart</tt> commands.</li>
             
-            <li><tt>DEPLOY</tt>: this permission strictly corresponds to the API's deployment/undeployment resources (analoguous to the CLI's
+            <li><tt>DEPLOY</tt>: this permissions strictly corresponds to the API's deployment/undeployment resources (analoguous to the CLI's
             <tt>deploy</tt> and <tt>undeploy</tt> commands.</li>
-            
-            <li><tt>ADMIN</tt>: this permission is required to administer roles and application keys through the REST API.</li>
           </ul>
           <p>
-            To create (or update) a role, use the <tt>role add</tt> command in the CLI (see further below about managing roles through the API):
+            To create (or update) a role, use the <tt>role add</tt> command in the CLI (roles cannot be administered through the API):
           </p>
           <sapia:code>role add -n admin -p rwxd -cluster</sapia:code>
           <p>
@@ -105,15 +87,14 @@
           <p>
             One thing to note is that the command can take up to two options, aside from the <tt>-cluster</tt> one:
             <ul>
-              <li><b><tt>n</tt></b>: specifies the name of the role.</li>
-              <li><b><tt>p</tt></b>: specifies the set of permissions to assign to the role. In this case, note that one character is used
-              for each permission (that character is nicknamed the "abbreviation"):
+              <li><b><tt>-n</tt></b>: specifies the name of the role.</li>
+              <li><b><tt>-p</tt></b>: specifies the set of permissions to assign to the role. In this case, note that one character is used
+              for each permission:
                 <ul>
                   <li><b><tt>r</tt></b>: <tt>READ</tt></li>
                   <li><b><tt>w</tt></b>: <tt>WRITE</tt></li>
                   <li><b><tt>x</tt></b>: <tt>EXECUTE</tt></li>
                   <li><b><tt>d</tt></b>: <tt>DEPLOY</tt></li>
-                  <li><b><tt>a</tt></b>: <tt>ADMIN</tt></li>
                 </ul>
               </li>
             </ul>
@@ -138,12 +119,11 @@
             <li><b><tt>-r</tt></b>: role (corresponds to the name of an already defined role).</li>
           </ul>
           
+          <sapia:note>Similarly to roles, the API does not allow managing application keys - this must be done through the CLI.</sapia:note>
+          
           <p>It is optional to specify an application key as a parameter: if none is passed, one is automatically created (that application key
           consists of a randomnly generated sequence of 32 characters).</p>
           <p>You can view the existing application keys with <tt>appkey ls</tt> and delete application keys with <tt>appkey del</tt>.</p>
-          
-          <sapia:note>Application keys can be managed through the REST API - see further below.</sapia:note>
-          
         </sapia:sect4>
         <sapia:sect4 title="Using an application key">
           <p>
@@ -205,6 +185,9 @@ corus.server.ssl.enabled=true</sapia:code>
     
     </sapia:sect2>
     
+    
+    <!-- ====================== CLUSTERS AND HOSTS ====================== -->
+    
     <sapia:sect2 title="Using the API">
       <p>
         Using the API is straighforward. All <tt>GET</tt> resources described further below return a JSON response (for which a sample
@@ -221,16 +204,14 @@ corus.server.ssl.enabled=true</sapia:code>
         When an error occurs, the following JSON response is returned:
       </p>
       <sapia:code>{
-  "status": "&lt;error_code&gt;"
+  "status": 500
   "stackTrace": "&lt;stack_trace&gt;"
 }</sapia:code>
       <p>
-      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
-      relevant HTTP error code, given the error that occurred.
+      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace.
       </p>
       <p>Of course, the HTTP status response header is always available, and a status message will be set in the case of an error.</p>
     
-      <!-- ====================== CLUSTERS AND HOSTS ====================== -->
     
       <sapia:sect3 title="Clusters and hosts">
         <p>
@@ -248,8 +229,6 @@ corus.server.ssl.enabled=true</sapia:code>
           which cluster an operation should be performed - as explained later in this documentation.
           </p>
           <sapia:code>GET
-- Permission: READ
-
 - Request headers:
   - Accept: application/json
 
@@ -265,14 +244,11 @@ corus.server.ssl.enabled=true</sapia:code>
   }
 ]</sapia:code>
         </sapia:sect4>	      
-        
         <sapia:sect4 title="Get hosts">
           <p>
           This call returns the JSON objects corresponding to each host in a given cluster.
           </p>
           <sapia:code>GET
-- Permission: READ
-
 - Request headers:
   - Accept: application/json
 
@@ -280,7 +256,7 @@ corus.server.ssl.enabled=true</sapia:code>
   /clusters/{clusterName}/hosts
 
 - Path variables:
-  - clusterName: the name of the cluster to access</sapia:code>
+  - clusterName: the name of the cluster to access.</sapia:code>
         <p><b>Sample response</b></p>
         <sapia:code>[
   {
@@ -304,348 +280,8 @@ corus.server.ssl.enabled=true</sapia:code>
     "repoRole": "CLIENT"
   }  
 ]</sapia:code>
-        </sapia:sect4>
-        
-        
-        <sapia:sect4 title="Modify cluster name">
-          <p>
-          The resources herein allow changing the cluster to which one or a whole cluster of Corus instances belong, in a manner similar to 
-          the CLI's <tt>cluster domain</tt> command.
-          </p>
-          <sapia:code>POST
-- Permission: ADMIN
-
-- Request headers:
-  - Accept: application/json
-
-- Resources:
-  /clusters/{clusterName}/name/{newClusterName}
-  /clusters/{clusterName}/hosts/{host}/name/{newClusterName}
-
-- Path variables:
-  - clusterName....: the name of the cluster to access
-  - host:..........: a host literal (taking the form: ip_address:port)
-  - newClusterName.: the name of the new cluster to which the Corus instance(s) should publish themselves</sapia:code>
-  
-          <p><b>Sample requests</b></p>
-          
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/name/app-10
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/name/app-10</sapia:code>
-
-        </sapia:sect4>
-        
-        <sapia:sect4 title="Modify repository role">
-          <p>
-          The following resources allow modifying the repository role of one Corus instance, or of all instances in the cluster. Akin to CLI's 
-          <tt>cluster repo</tt> command.
-          </p>
-          <sapia:code>POST
-- Permission: ADMIN
-
-- Request headers:
-  - Accept: application/json
-
-- Resources:
-  /clusters/{clusterName}/repo/role/{newRepoRole}
-  /clusters/{clusterName}/hosts/{host}/repo/role/{newRepoRole}
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - newRepoRole.: the new repo role (must be either: CLIENT, SERVER or NONE - handling is case-insensitive)</sapia:code>
-  
-          <p><b>Sample requests</b></p>
-          
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/role/client
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</sapia:code>
-
-        </sapia:sect4>
-        
-        <sapia:sect4 title="Pull">
-          <p>
-          The following resources are meant to trigger a pull (the same way as the CLI's <tt>pull</tt>  command).
-          </p>
-          <sapia:code>POST
-- Permission: DEPLOY
-
-- Request headers:
-  - Accept: application/json
-
-- Resources:
-  /clusters/{clusterName}/repo/pull
-  /clusters/{clusterName}/hosts/{host}/repo/pull
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)</sapia:code>
-  
-          <p><b>Sample requests</b></p>
-          
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/role/client
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</sapia:code>
-
-        </sapia:sect4>
-          
+        </sapia:sect4>        
       </sapia:sect3>
-      
-      <!-- ====================== ROLES ====================== -->
-
-      <sapia:sect3 title="Roles">
-        <p>
-        The API allows managing roles. All REST resources pertaining to role management, including <tt>GET</tt> calls, require <tt>ADMIN</tt> 
-        permission.  
-        </p>
-        <sapia:note>All resources described in this section require the <tt>ADMIN</tt> permission.</sapia:note>
-        
-        <sapia:sect4 title="Get roles">
-          <p>This resource corresponds to the <tt>role ls</tt> command in the CLI. It returns a JSON array composed of
-          the roles matching the query (see the <tt>n</tt> parameter.</p>
-          
-          <sapia:code>GET
-- Permission: ADMIN
-          
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/roles
-  /clusters/{clusterName}/hosts/{host}/roles
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
-  
-- Parameters:
-  - n (optional): a role name (pattern matching supported)</sapia:code>
-  
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles 
-http://saturn:33000/rest/clusters/app-01/roles?n=test*</sapia:code>
-        
-        <p><b>Sample response</b></p>
-        <sapia:code>[
-  {
-    "cluster": "app-01",
-    "host": "192.168.0.103:33000",
-    "data":
-      {
-        "name": "administrator",
-        "permissions": [
-          {
-            "name": "READ",
-            "abbreviation": "r"
-          },
-          {
-            "name": "WRITE",
-            "abbreviation": "w"
-          },
-          {
-            "name": "EXECUTE",
-            "abbreviation": "e"
-          },
-          {
-            "name": "DEPLOY",
-            "abbreviation": "d"
-          },
-          {
-            "name": "ADMIN",
-            "abbreviation": "a"
-          }
-        ]
-      }
-    }
-  }
-]</sapia:code>  
-        </sapia:sect4>  
-        
-        <sapia:sect4 title="Create or update roles">
-          <p>This resource is meant to create a new role, or update the corresponding role if it already exists.</p>
-        
-          <sapia:code>PUT
-- Permission: ADMIN
-          
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/roles/{role}
-  /clusters/{clusterName}/hosts/{host}/roles/{role}
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - role:.......: the name of the role to create/update
-
-- Parameters:
-  - permissions: the set of permissions to assign to the role (specified in a single string composed of the letters consisting of the permissions' abbreviations)</sapia:code>
-          
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles/administrator?permissions=rwxda
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/developer?permissions=rwxd</sapia:code>
-        </sapia:sect4>
-        
-        <sapia:sect4 title="Delete roles">
-          <p>Use the resources below to delete roles.</p>
-        
-          <sapia:code>DELETE
-- Permission: ADMIN
-
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/roles/{role}
-  /clusters/{clusterName}/hosts/{host}/roles/{role}
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - role:.......: the name of the role to delete
-
-- Parameters:
-  - permissions: the set of permissions to assign to the role</sapia:code>
-          
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles/administrator
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/developer</sapia:code>
-        </sapia:sect4>
-        
-      </sapia:sect3>
-      
-      <!-- ====================== APPLICATION KEYS ====================== -->
-
-      <sapia:sect3 title="Application Keys">
-        <p>
-        The resources described in this section are used to manage application keys, and correspond to the CLI's <tt>appkey</tt> command.
-        </p>
-        <sapia:note>All resources described in this section require the <tt>ADMIN</tt> permission.</sapia:note>
-        
-        <sapia:sect4 title="Get application keys">
-          <p>This resource is akin to the <tt>appkey ls</tt> command in the CLI. It returns a JSON array composed of
-          the application keys matching the query (see the <tt>a</tt> parameter.</p>
-
-          <sapia:code>GET
-- Permission: ADMIN
-
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/appkeys
-  /clusters/{clusterName}/hosts/{host}/appkeys
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
-  
-- Parameters:
-  - a (optional): a application identifier (pattern matching supported)</sapia:code>
-  
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys 
-http://saturn:33000/rest/clusters/app-01/appkeys?a=test*</sapia:code>
-        
-        <p><b>Sample response</b></p>
-        <sapia:code>[
-  {
-    "cluster": "app-01",
-    "host": "192.168.0.103:33000",
-    "data":
-      {
-        "appId": "test-app",
-        "role": "test-role",
-        "key": "c59a07fd075140e790f07b4c3da4aa50"
-      }
-    }
-  }
-]</sapia:code>      
-        </sapia:sect4>  
-      
-        <sapia:sect4 title="Create application keys">
-          <p>This resource is used to create application keys.</p>
-        
-          <sapia:code>PUT
-- Permission: ADMIN
-          
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/appkeys/{appId}
-  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}
-
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
-
-- Parameters:
-  - k (optional): the actual application key to use (if not specified, one is internally created)
-  - r ..........: the role to associate to the new application key</sapia:code>
-          
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app?k=c59a07fd075140e790f07b4c3da4aa50&amp;r=administrator
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app?k=c59a07fd075140e790f07b4c3da4aa50&amp;r=administrator</sapia:code>
-        </sapia:sect4>
-        
-        <sapia:sect4 title="Update the value associated to an application key">
-          <p>This resource is meant to update the key associated to an application key.</p>
-        
-          <sapia:code>POST
-- Permission: ADMIN
-
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/appkeys/{appId}/key/{value}
-  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/key/{value}
-  /clusters/{clusterName}/appkeys/{appId}/key
-  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/key  
-  
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
-  - value:......: the actual value of the key (if not specified, one is internally created)</sapia:code>
-          
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50
-http://saturn:33000/rest/clusters/app-01/appkeys/test-app/key
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/key</sapia:code>
-
-        </sapia:sect4>
-        
-        <sapia:sect4 title="Update the role associated to an application key">
-          <p>Use this resource to modify the role associated to an application key.</p>
-        
-          <sapia:code>POST
-- Permission: ADMIN
-          
-- Request headers:
-  - Accept......: application/json
-
-- Resources:
-  /clusters/{clusterName}/appkeys/{appId}/role/{role}
-  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/role/{role}
-  
-- Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
-  - role:.......: the role to associate to the application key</sapia:code>
-          
-          <p><b>Sample requests</b></p>
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/role/developer
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/role/developer</sapia:code>
-
-        </sapia:sect4>
-        
-      </sapia:sect3>
-      
       
       <!-- ====================== DISTRIBUTIONS ====================== -->
       
@@ -659,8 +295,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
           <tt>v</tt> parameters for filtering distributions by name and version, just like the CLI.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
 - Request headers:
   - Accept......: application/json
 
@@ -669,10 +303,10 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host........: a host literal (taking the form: ip_address:port)
   
-- Parameters:
+- parameters:
   - d (optional): a distribution name    (pattern matching supported)
   - v (optional): a distribution version (pattern matching supported)</sapia:code>
           <p><b>Sample requests</b></p>
@@ -719,8 +353,6 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           This call is similar to the CLI's <tt>deploy</tt> command.
           </p>
           <sapia:code>PUT
-- Permission: DEPLOY
-          
 - Request headers:
   - Accept......: application/json
   - Content-type: application/octet-stream
@@ -730,7 +362,7 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host........: a host literal (taking the form: ip_address:port)</sapia:code>
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
@@ -740,8 +372,6 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           This call is similar to the CLI's <tt>undeploy</tt> command.
           </p>
           <sapia:code>DELETE
-- Permission: DEPLOY
-          
 - Request headers:
   - Accept......: application/json
 
@@ -750,10 +380,10 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host........: a host literal (taking the form: ip_address:port)
   
-- Parameters:
+- parameters:
   - d (optional): a distribution name    (pattern matching supported)
   - v (optional): a distribution version (pattern matching supported)</sapia:code>
         
@@ -776,8 +406,6 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           </p>
         
           <sapia:code>GET
-- Permission: READ
-          
 - Request headers:
   - Accept......: application/json
 
@@ -787,11 +415,11 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
-- Parameters:
+- parameters:
   - d (optional): a distribution name    (pattern matching supported)
   - v (optional): a distribution version (pattern matching supported)
   - n (optional): a process name         (pattern matching supported)
@@ -837,8 +465,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143
           <p>Corresponds to the CLI's <tt>exec</tt> command.</p>
         
           <sapia:code>PUT
-- Permission: EXECUTE
-          
 - Request headers:
   - Accept......: application/json
   
@@ -847,10 +473,10 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143
   /clusters/{clusterName}/hosts/{host}/processes/exec
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -866,8 +492,6 @@ http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=htt
           <p>Corresponds to the CLI's <tt>kill</tt> command.</p>
         
           <sapia:code>DELETE
-- Permission: EXECUTE
-
 - Request headers:
   - Accept......: application/json
  
@@ -877,12 +501,12 @@ http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=htt
   /clusters/{clusterName}/hosts/{host}/processes/kill/{process_id}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -898,8 +522,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>suspend</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
 - Request headers:
   - Accept......: application/json
   
@@ -909,12 +531,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/suspend
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -930,8 +552,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>resume</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
 - Request headers:
   - Accept......: application/json
   
@@ -941,12 +561,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/resume
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -962,8 +582,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>restart</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
 - Request headers:
   - Accept......: application/json
   
@@ -973,12 +591,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/restart
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -994,8 +612,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>ps -clean</tt> command.</p>
         
           <sapia:code>POST
-- Permission: ADMIN
-          
 - Request headers:
   - Accept......: application/json
 
@@ -1005,12 +621,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/clean
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - process_id..: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
-  - Parameters:
+  - parameters:
   - d: a distribution name    (pattern matching supported)
   - v: a distribution version (pattern matching supported)
   - n: a process name         (pattern matching supported)
@@ -1041,26 +657,21 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           Note that the scope in the case of this call is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
 - Request headers:
   - Accept......: application/json
 
 - Resources:
   /clusters/{clusterName}/properties/{scope}
   /clusters/{clusterName}/hosts/{host}/properties/{scope}
-  /clusters/{clusterName}/properties/{scope}/{category}
-  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}  
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - scope.......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
                   in Corus, or 'server' for the server properties)
-  - category....: a property category
    
-- Parameters:
+- parameters:
   - p (optional): a property name (pattern matching supported)</sapia:code>
         
         <p><b>Sample requests</b></p>
@@ -1105,24 +716,19 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>PUT
-- Permission: ADMIN
- 
 - Request headers:
   - Accept......: application/json
 
 - Resources:
   /clusters/{clusterName}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
   /clusters/{clusterName}/hosts/{host}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
-  /clusters/{clusterName}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
-  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
-  
+
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - scope.......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
-                  in Corus, or 'server' for the server properties)
-  - category....: a property category</sapia:code>
+                  in Corus, or 'server' for the server properties)</sapia:code>
         
         <p><b>Sample request</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?connections.min=100&amp;connections.max=200</sapia:code>
@@ -1139,26 +745,21 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>DELETE
-- Permission: ADMIN
-          
 - Request headers:
   - Accept......: application/json
 
 - Resources:
-  /clusters/{clusterName}/properties/{scope}?p=propNamePattern
-  /clusters/{clusterName}/hosts/{host}/properties/{scope}?p=propNamePattern
-  /clusters/{clusterName}/properties/{scope}/{category}?p=propNamePattern
-  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?p=propNamePattern
+  /clusters/{clusterName}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   - scope.......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
                   in Corus, or 'server' for the server properties)
-  - category....: a property category
                   
-- Parameters:
+- parameters:
   - p: a property name (pattern matching supported)</sapia:code>
         
         <p><b>Sample request</b></p>
@@ -1168,7 +769,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
            
       </sapia:sect3>    
       
-      <!-- ====================== TAGS ====================== -->
+      <!-- ====================== Tags ====================== -->
       
       <sapia:sect3 title="Tags">
         <p>
@@ -1179,8 +780,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           This call corresponds to the <tt>conf ls -t</tt> command in the Corus CLI.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
 - Request headers:
   - Accept......: application/json
 
@@ -1189,10 +788,10 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
   /clusters/{clusterName}/hosts/{host}/tags
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
+  - clusterName.: the name of the cluster to access.
   - host:.......: a host literal (taking the form: ip_address:port)
   
-- Parameters:
+- parameters:
   - t (optional): a tag name (pattern matching supported)</sapia:code>
   
         <p><b>Sample requests</b></p>
@@ -1220,8 +819,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags</sapia:c
           This call corresponds to the CLI's <tt>conf add -t</tt> command.
           </p>
           <sapia:code>PUT
-- Permission: ADMIN
-          
 - Request headers:
   - Accept......: application/json
   
@@ -1244,8 +841,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
           This call corresponds to the CLI's <tt>conf del -t</tt> command.
           </p>
           <sapia:code>DELETE
-- Permission: ADMIN
-
 - Request headers:
   - Accept......: application/json
   

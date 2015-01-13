@@ -2,6 +2,7 @@ package org.sapia.corus.client.rest;
 
 import java.io.StringWriter;
 import java.util.List;
+import java.util.UUID;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
@@ -71,7 +72,7 @@ public class ApplicationKeyResource {
   public void createAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("k").asString(),
+        context.getRequest().getValue("k", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(),
         context.getRequest().getValue("r").asString(), 
         ClusterInfo.clustered()
     );
@@ -86,7 +87,7 @@ public class ApplicationKeyResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("k").asString(),
+        context.getRequest().getValue("k", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(),
         context.getRequest().getValue("r").asString(), 
         cluster
     );
@@ -97,7 +98,9 @@ public class ApplicationKeyResource {
   
   @Path({
     "/clusters/{corus:cluster}/appkeys/{corus:appId}/key/{corus:key}",
-    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}/key/{corus:key}"
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}/key/{corus:key}",
+    "/clusters/{corus:cluster}/appkeys/{corus:appId}/key",
+    "/clusters/{corus:cluster}/hosts/appkeys/{corus:appId}/key"
   })
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -106,12 +109,15 @@ public class ApplicationKeyResource {
   public void updateAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:key").asString(), 
+        context.getRequest().getValue("corus:key", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(), 
         ClusterInfo.clustered()
     );
   }
   
-  @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key/{corus:key}")
+  @Path({
+      "/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key/{corus:key}",
+      "/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key"
+  })
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
@@ -120,7 +126,7 @@ public class ApplicationKeyResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
         context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:key").asString(), 
+        context.getRequest().getValue("corus:key", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(), 
         cluster
     );
   }
