@@ -219,32 +219,19 @@ public class CorusServer {
       }
       
       // ----------------------------------------------------------------------
-      // Loading Corus domain file for current instance
+      // Loading Corus read-only file for current instance
       
-      File corusDomainPropsFile = FilePath.newInstance()
-          .addCorusUserDir()
-          .setRelativeFile(".corus_domain_" + port + ".properties")
-          .createFile();
-      PropertiesUtil.loadIfExist(corusProps, corusDomainPropsFile);
-      
-      // ----------------------------------------------------------------------
-      // Loading Corus repo file for current instance
-      
-      File repoFile = FilePath.newInstance()
-          .addCorusUserDir()
-          .setRelativeFile(".corus_repo_" + port + ".properties")
-          .createFile();
-      PropertiesUtil.loadIfExist(corusProps, repoFile);
+      CorusReadonlyProperties.loadInto(corusProps, new File(corusHome), port);
       
       // ----------------------------------------------------------------------
       // Determining domain: can be specified at command line, or in server
       // properties.
 
       String domain = null;
-      if (cmd.containsOption(DOMAIN_OPT, true)) {
-        domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
-      } else if (corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
+      if (corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
         domain = corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+      } else if (cmd.containsOption(DOMAIN_OPT, true)) {
+        domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
       } else {
         throw new CorusException("Domain must be set; pass -d option to command-line, " + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
             + " as part of " + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());

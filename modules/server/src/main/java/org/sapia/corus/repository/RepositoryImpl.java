@@ -1,7 +1,6 @@
 package org.sapia.corus.repository;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,7 +10,6 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
@@ -44,6 +42,7 @@ import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConf
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 import org.sapia.corus.core.CorusConsts;
+import org.sapia.corus.core.CorusReadonlyProperties;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.repository.task.ArtifactDeploymentRequestHandlerTask;
@@ -289,29 +288,12 @@ public class RepositoryImpl extends ModuleHelper
   @Override
   public synchronized void changeRole(RepoRole newRole) {
     log.debug("Setting new repo role: " + newRole);
-    Endpoint thisEndpoint = serverContext().getCorusHost().getEndpoint();
-    File repoFile = FilePath.newInstance()
-        .addCorusUserDir()
-        .setRelativeFile(".corus_repo_" + thisEndpoint.getServerTcpAddress().getPort() + ".properties")
-        .createFile();
     
     Properties props = new Properties();
     props.setProperty(CorusConsts.PROPERTY_REPO_TYPE, newRole.name().toLowerCase());
-    FileWriter writer = null;
-    try {
-      writer = new FileWriter(repoFile);
-      props.store(writer, "WRITTEN BY CORUS SERVER. DO NOT EDIT.");
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not save repo file", e);
-    } finally {
-      if (writer != null) {
-        try {
-          writer.close();
-        } catch (Exception e) {
-          // noop
-        }
-      }
-    }
+
+    Endpoint thisEndpoint = serverContext().getCorusHost().getEndpoint();
+    CorusReadonlyProperties.save(props, new File(serverContext().getHomeDir()), thisEndpoint.getServerTcpAddress().getPort(), false);
     
     serverContext().getCorusHost().setRepoRole(newRole);
     

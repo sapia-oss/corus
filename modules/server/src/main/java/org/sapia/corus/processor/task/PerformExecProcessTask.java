@@ -203,7 +203,11 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       .add(StrLookup.mapLookup(coreProps))
       .add(StrLookup.mapLookup(System.getenv()));
 
-    processProperties = Interpolation.interpolate(processProperties, vars, conf.getInterpolationPasses() <= 0 ? 1 : conf.getInterpolationPasses());
+    processProperties = Interpolation.interpolate(
+        processProperties, 
+        vars, 
+        conf.getInterpolationPasses() <= 0 ? ProcessConfig.DEFAULT_INTERPOLATION_PASSES : conf.getInterpolationPasses()
+    );
     
     // ------------------------------------------------------------------------
     // Adding quotes to values, and then adding to Property list

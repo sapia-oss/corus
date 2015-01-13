@@ -28,8 +28,9 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
 
   static final long serialVersionUID = 1L;
 
-  public static final int DEFAULT_POLL_INTERVAL = 10;
-  public static final int DEFAULT_STATUS_INTERVAL = 30;
+  public static final int DEFAULT_POLL_INTERVAL        = 10;
+  public static final int DEFAULT_STATUS_INTERVAL      = 30;
+  public static final int DEFAULT_INTERPOLATION_PASSES = 2;
 
   private boolean       invoke   = true;
   private List<Starter> starters = new ArrayList<Starter>();
@@ -38,12 +39,12 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   private int      shutDownTimeout   = -1;
   private int      maxInstances;
   private String   name;
-  private int      statusInterval    = DEFAULT_STATUS_INTERVAL;
-  private int      pollInterval      = DEFAULT_POLL_INTERVAL;
-  private boolean  deleteOnKill      = false;
+  private int      statusInterval      = DEFAULT_STATUS_INTERVAL;
+  private int      pollInterval        = DEFAULT_POLL_INTERVAL;
+  private boolean  deleteOnKill        = false;
   private String[] tags;
   private String[] categories;
-  private int      interpolationPasses = 2;
+  private int      interpolationPasses = DEFAULT_INTERPOLATION_PASSES;
   private PreExec  preExec; 
 
   public ProcessConfig() {

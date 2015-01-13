@@ -2,6 +2,7 @@ package org.sapia.corus.client.rest;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -119,7 +120,7 @@ public class ApplicationKeyResourceTest {
   @Test
   public void testCreateAppKeyForCluster() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("k")).thenReturn(new Value("k", "abcdef"));
+    when(request.getValue(eq("k"), anyString())).thenReturn(new Value("k", "abcdef"));
     when(request.getValue("r")).thenReturn(new Value("r", "admin"));
     
     resource.createAppKeyForCluster(context);
@@ -130,7 +131,7 @@ public class ApplicationKeyResourceTest {
   @Test
   public void testCreateAppKeyForHost() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("k")).thenReturn(new Value("k", "abcdef"));
+    when(request.getValue(eq("k"), anyString())).thenReturn(new Value("k", "abcdef"));
     when(request.getValue("r")).thenReturn(new Value("r", "admin"));
 
     resource.createAppKeyForHost(context);
@@ -141,7 +142,7 @@ public class ApplicationKeyResourceTest {
   @Test
   public void testUpdateAppKeyForCluster() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("corus:key")).thenReturn(new Value("corus:key", "abcdef"));
+    when(request.getValue(eq("corus:key"), anyString())).thenReturn(new Value("corus:key", "abcdef"));
 
     resource.updateAppKeyForCluster(context);
     
@@ -151,7 +152,7 @@ public class ApplicationKeyResourceTest {
   @Test
   public void testUpdateAppKeyForHost() {
     when(request.getValue("corus:appId")).thenReturn(new Value("corus:appId", "1234"));
-    when(request.getValue("corus:key")).thenReturn(new Value("corus:key", "abcdef"));
+    when(request.getValue(eq("corus:key"), anyString())).thenReturn(new Value("corus:key", "abcdef"));
 
     resource.updateAppKeyForHost(context);
     
