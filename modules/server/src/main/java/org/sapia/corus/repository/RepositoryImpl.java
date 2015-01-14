@@ -1,6 +1,5 @@
 package org.sapia.corus.repository;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -207,21 +206,24 @@ public class RepositoryImpl extends ModuleHelper
   }
   
   private void doRegisterEventListeners() throws Exception {
+    
+    // all node types
     clusterManager.getEventChannel().registerAsyncListener(ChangeRepoRoleNotification.EVENT_TYPE, this);
-    if (serverContext().getCorusHost().getRepoRole().isServer()) {
-      clusterManager.getEventChannel().registerAsyncListener(ArtifactListRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(DistributionDeploymentRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(FileDeploymentRequest.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(ShellScriptDeploymentRequest.EVENT_TYPE, this);
-    } else if (serverContext().getCorusHost().getRepoRole().isClient()) {
-      clusterManager.getEventChannel().registerAsyncListener(DistributionListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(FileListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerAsyncListener(ShellScriptListResponse.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(ConfigNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(ExecConfigNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(PortRangeNotification.EVENT_TYPE, this);
-      clusterManager.getEventChannel().registerSyncListener(SecurityConfigNotification.EVENT_TYPE, this);
-    } 
+    
+    // repo server-related
+    clusterManager.getEventChannel().registerAsyncListener(ArtifactListRequest.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(DistributionDeploymentRequest.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(FileDeploymentRequest.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(ShellScriptDeploymentRequest.EVENT_TYPE, this);
+
+    // repo client-related
+    clusterManager.getEventChannel().registerAsyncListener(DistributionListResponse.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(FileListResponse.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(ShellScriptListResponse.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerSyncListener(ExecConfigNotification.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerSyncListener(PortRangeNotification.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerSyncListener(SecurityConfigNotification.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerSyncListener(ConfigNotification.EVENT_TYPE, this);
   }
 
   @Override
@@ -293,17 +295,15 @@ public class RepositoryImpl extends ModuleHelper
     props.setProperty(CorusConsts.PROPERTY_REPO_TYPE, newRole.name().toLowerCase());
 
     Endpoint thisEndpoint = serverContext().getCorusHost().getEndpoint();
-    CorusReadonlyProperties.save(props, new File(serverContext().getHomeDir()), thisEndpoint.getServerTcpAddress().getPort(), false);
+    CorusReadonlyProperties.save(
+        props, 
+        CorusConsts.CORUS_USER_HOME, 
+        thisEndpoint.getServerTcpAddress().getPort(), 
+        false
+    );
     
     serverContext().getCorusHost().setRepoRole(newRole);
-    
-    clusterManager.getEventChannel().unregisterAsyncListener(this);
-    try {
-      doRegisterEventListeners();
-    } catch (Exception e) {
-      throw new IllegalStateException("Could not register notification listeners after repo role change", e);
-    }
-    
+        
     ChangeRepoRoleNotification notif = new ChangeRepoRoleNotification(thisEndpoint, newRole);
     for (CorusHost host : clusterManager.getHosts()) {
       if (host.getRepoRole().isClient()) {
@@ -335,38 +335,39 @@ public class RepositoryImpl extends ModuleHelper
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));
     }    
   }
-
+  
   // --------------------------------------------------------------------------
   // AsyncEventListener interface
 
   @Override
   public synchronized void onAsyncEvent(RemoteEvent evt) {
+    RepoRole role = serverContext().getCorusHost().getRepoRole();
     try {
-      if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE)) {
+      if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got artifact list request");
         handleArtifactListRequest((ArtifactListRequest) evt.getData());
 
-        // Distribution (list response, deployment request
-      } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE)) {
+      // Distribution (list response, deployment request)
+      } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got distribution list response");
         handleDistributionListResponse((DistributionListResponse) evt.getData());
-      } else if (evt.getType().equals(DistributionDeploymentRequest.EVENT_TYPE)) {
+      } else if (evt.getType().equals(DistributionDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got distribution deployment request");
         handleDistributionDeploymentRequest((DistributionDeploymentRequest) evt.getData());
 
-        // Shell script (list response, deployment request
-      } else if (evt.getType().equals(ShellScriptListResponse.EVENT_TYPE)) {
+      // Shell script (list response, deployment request)
+      } else if (evt.getType().equals(ShellScriptListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got shell script list response");
         handleShellScriptListResponse((ShellScriptListResponse) evt.getData());
-      } else if (evt.getType().equals(ShellScriptDeploymentRequest.EVENT_TYPE)) {
+      } else if (evt.getType().equals(ShellScriptDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got shell script deployment request");
         handleShellScriptDeploymentRequest((ShellScriptDeploymentRequest) evt.getData());
 
-        // File (list response, deployment request
-      } else if (evt.getType().equals(FileListResponse.EVENT_TYPE)) {
+      // File (list response, deployment request)
+      } else if (evt.getType().equals(FileListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got file list response");
         handleFileListResponse((FileListResponse) evt.getData());
-      } else if (evt.getType().equals(FileDeploymentRequest.EVENT_TYPE)) {
+      } else if (evt.getType().equals(FileDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got file deployment request");
         handleFileDeploymentRequest((FileDeploymentRequest) evt.getData());
 
@@ -384,17 +385,18 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public Object onSyncEvent(RemoteEvent evt) {
+    RepoRole role = serverContext().getCorusHost().getRepoRole();
     try {
-      if (evt.getType().equals(ExecConfigNotification.EVENT_TYPE)) {
+      if (evt.getType().equals(ExecConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got exec config notification");
         handleExecConfigNotification((ExecConfigNotification) evt.getData());
-      } else if (evt.getType().equals(ConfigNotification.EVENT_TYPE)) {
+      } else if (evt.getType().equals(ConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got config notification");
         handleConfigNotification((ConfigNotification) evt.getData());
-      } else if (evt.getType().equals(PortRangeNotification.EVENT_TYPE)) {
+      } else if (evt.getType().equals(PortRangeNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got port range notification");
         handlePortRangeNotification((PortRangeNotification) evt.getData());
-      } else if (evt.getType().equals(SecurityConfigNotification.EVENT_TYPE)) {
+      } else if (evt.getType().equals(SecurityConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got security config notification");
         handleSecurityConfigNotification((SecurityConfigNotification) evt.getData());
       }

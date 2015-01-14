@@ -1,6 +1,5 @@
 package org.sapia.corus.core;
 
-import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Properties;
@@ -51,7 +50,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     props.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, newDomainName);
     CorusReadonlyProperties.save(
         props, 
-        new File(lifeCycle.getHomeDir()), 
+        CorusConsts.CORUS_USER_HOME, 
         lifeCycle.getCorusHost().getEndpoint().getServerTcpAddress().getPort(), 
         false
     );

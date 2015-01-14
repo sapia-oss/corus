@@ -47,11 +47,12 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Conf;
 
 /**
- * This class is the entry point called from the 'java' command line.
+ * This class is the entry point called from the <tt>java</tt> command line.
  * 
  * @author Yanick Duchesne
  */
 public class CorusServer {
+  
   public static final int DEFAULT_PORT            = 33000;
   public static final String CONFIG_FILE_OPT      = "c";
   public static final String PORT_OPT             = "p";
@@ -221,7 +222,7 @@ public class CorusServer {
       // ----------------------------------------------------------------------
       // Loading Corus read-only file for current instance
       
-      CorusReadonlyProperties.loadInto(corusProps, new File(corusHome), port);
+      CorusReadonlyProperties.loadInto(corusProps, CorusConsts.CORUS_USER_HOME, port);
       
       // ----------------------------------------------------------------------
       // Determining domain: can be specified at command line, or in server
@@ -233,7 +234,8 @@ public class CorusServer {
       } else if (cmd.containsOption(DOMAIN_OPT, true)) {
         domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
       } else {
-        throw new CorusException("Domain must be set; pass -d option to command-line, " + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
+        throw new CorusException("Domain must be set; pass -d option to command-line, " 
+            + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
             + " as part of " + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());
       }
 

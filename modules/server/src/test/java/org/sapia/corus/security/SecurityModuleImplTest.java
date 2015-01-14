@@ -23,6 +23,7 @@ import org.sapia.corus.configurator.PropertyChangeEvent;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.util.UriPattern;
 import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Localhost;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SecurityModuleImplTest {
@@ -111,7 +112,7 @@ public class SecurityModuleImplTest {
   @Test
   public void testAllowedLocalhost() throws Exception {
     mod.setAllowedHostPatterns("localhost");
-    String localhost = InetAddress.getLocalHost().getHostAddress();
+    String localhost = Localhost.getPreferredLocalAddress().getHostAddress();
     boolean isAllowed = mod.isMatch(localhost);
     
     assertTrue("The localhost [" + localhost + "] should match the allowed pattern", isAllowed);
@@ -120,7 +121,7 @@ public class SecurityModuleImplTest {
   @Test
   public void testDeniedLocalhost() throws Exception {
     mod.setDeniedHostPatterns("localhost");
-    String localhost = InetAddress.getLocalHost().getHostAddress();
+    String localhost = Localhost.getPreferredLocalAddress().getHostAddress();
     boolean isAllowed = mod.isMatch(localhost);
     
     assertTrue("The localhost [" + localhost + "] should match the denied pattern", !isAllowed);
