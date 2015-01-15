@@ -38,7 +38,8 @@ Thumbs.db
 
 # Dev resources #
 #################
-/target/
-/.settings/
+target/
+.settings/
+test-output/
 .classpath
 .project
