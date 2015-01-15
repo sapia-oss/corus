@@ -3,4 +3,4 @@ echo "deploying to ${cluster.targets}"
 echo ""
 kill all -w -cluster ${cluster.targets}
 undeploy all -cluster ${cluster.targets}
-deploy ../server/target/*demo.zip -cluster ${cluster.targets}
+deploy ../package/target/*demo.zip -cluster ${cluster.targets}

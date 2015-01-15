@@ -33,8 +33,7 @@ public class PropertiesResource {
     "/clusters/{corus:cluster}/properties/{corus:scope}",
     "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:category}",
     "/clusters/{corus:cluster}/hosts/properties/{corus:scope}",
-    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}/{corus:category}"
-    
+    "/clusters/{corus:cluster}/hosts/properties/{corus:scope}/{corus:category}"    
   })
   @HttpMethod(HttpMethod.GET)
   @Output(ContentTypes.APPLICATION_JSON)

@@ -232,7 +232,7 @@ public class Interpreter extends Console implements CorusConsole {
           for (int i = 0; i < cmd.size(); i++) {
             CmdElement cmdElem = cmd.get(i);
             if (cmdElem instanceof Option && ((Option) cmdElem).getName().equals(CorusCliCommand.OPT_CLUSTER.getName())) {
-              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toString());
+              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toLiteralForm());
               newCmd.addElement(newOpt);
             } else {
               newCmd.addElement(cmdElem);

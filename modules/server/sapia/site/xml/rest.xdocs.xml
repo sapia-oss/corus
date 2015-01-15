@@ -31,7 +31,7 @@
         Currently though, each individual Corus node publishes an implementation of the API which potentially allows managing
         all the Corus peers in that node's cluster - that is to say: the API allows managing a Corus cluster indivually, by 
         accessing one of its nodes through the REST API. This will become clearer in the API documentation below.
-      </p>
+      </p>ÿ
       <p>
         In summary, that is to say that the API currently allows performing operations on a cluster as a whole, 
         or on a single node in the cluster.
