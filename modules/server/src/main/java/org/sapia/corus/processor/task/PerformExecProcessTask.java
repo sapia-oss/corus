@@ -210,14 +210,26 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     );
     
     // ------------------------------------------------------------------------
-    // Adding quotes to values, and then adding to Property list
+    // Processing double quotes to values, and then adding to Property list
     
     for (String name : processProperties.stringPropertyNames()) {
       String value = processProperties.getProperty(name);
       if (value != null) {
-        if (value.indexOf(' ') > 0) {
-          value = "\"" + value + "\"";
+        boolean toEncloseInDoubleQuotes = (value.indexOf(' ') >= 0);
+        if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
+            // Temporarely removing surrounding double quotes 
+            value = value.substring(1, value.length()-1);
+            toEncloseInDoubleQuotes = true;
         }
+
+        // Escaping any double quotes
+        value = value.replace("\"", "\\\"");
+        
+        // Surrounding with double quotes
+        if (toEncloseInDoubleQuotes) {
+            value = "\"" + value + "\"";
+        }
+        
         ctx.info("Passing process property: " + name + "=" + PropertiesUtil.hideIfPassword(name, value));
         props.add(new Property(name, value));
       }
