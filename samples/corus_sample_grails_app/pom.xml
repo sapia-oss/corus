@@ -132,9 +132,9 @@
 							<goal>validate</goal>
 							<goal>config-directories</goal>
 							<goal>maven-compile</goal>
-							<goal>maven-test</goal>
+							<!--goal>maven-test</goal-->
 							<goal>maven-war</goal>
-							<goal>maven-functional-test</goal>
+							<!--goal>maven-functional-test</goal-->
 						</goals>
 						<configuration>
 							<showStacktrace>true</showStacktrace>
