@@ -30,24 +30,17 @@ public class ProcessWriteResource {
   @Authorized(Permission.EXECUTE)
   public void execProcessesForCluster(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.clustered();
-    if (context.getRequest().getValue("e").isSet()) {
-      context.getConnector().getProcessorFacade().execConfig(
-          context.getRequest().getValue("e").asString(), 
-          cluster
-      );
-    } else {
-      ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-      criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-      criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-      criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
-      criteria.profile(context.getRequest().getValue("p").asString());
-      int instances = context.getRequest().getValue("i", "1").asInt();
-      context.getConnector().getProcessorFacade().exec( 
-          criteria.build(), 
-          instances,
-          cluster
-      );
-    }
+    ProcessCriteria.Builder criteria = ProcessCriteria.builder();
+    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.profile(context.getRequest().getValue("p").asString());
+    int instances = context.getRequest().getValue("i", "1").asInt();
+    context.getConnector().getProcessorFacade().exec( 
+        criteria.build(), 
+        instances,
+        cluster
+    );
   }
   
   @Path({
@@ -59,24 +52,17 @@ public class ProcessWriteResource {
   @Authorized(Permission.EXECUTE)
   public void execProcessesForHost(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    if (context.getRequest().getValue("e").isSet()) {
-      context.getConnector().getProcessorFacade().execConfig(
-          context.getRequest().getValue("e").asString(), 
-          cluster
-      );
-    } else {
-      ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-      criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-      criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-      criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
-      criteria.profile(context.getRequest().getValue("p").asString());
-      int instances = context.getRequest().getValue("i", "1").asInt();
-      context.getConnector().getProcessorFacade().exec( 
-          criteria.build(), 
-          instances,
-          cluster
-      );
-    }
+    ProcessCriteria.Builder criteria = ProcessCriteria.builder();
+    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.profile(context.getRequest().getValue("p").asString());
+    int instances = context.getRequest().getValue("i", "1").asInt();
+    context.getConnector().getProcessorFacade().exec( 
+        criteria.build(), 
+        instances,
+        cluster
+    );
   }
   
   // --------------------------------------------------------------------------

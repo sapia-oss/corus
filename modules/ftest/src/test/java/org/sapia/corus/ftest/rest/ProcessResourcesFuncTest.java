@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 
 public class ProcessResourcesFuncTest {
   
- private static final int MAX_ATTEMPTS      = 19;
+ private static final int MAX_ATTEMPTS      = 10;
  private static final int INTERVAL_SECONDS  = 3;
 
  private FtestClient client;
@@ -474,7 +474,8 @@ public class ProcessResourcesFuncTest {
           .queryParam("d", "demo")
           .queryParam("v", "*")
           .queryParam("n", "noopApp")
-          .queryParam("p", "test")        .request()
+          .queryParam("p", "test")
+          .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class).asArray();
       

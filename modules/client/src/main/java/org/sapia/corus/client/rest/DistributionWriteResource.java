@@ -1,10 +1,6 @@
 package org.sapia.corus.client.rest;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.UUID;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
@@ -18,10 +14,8 @@ import org.sapia.corus.client.services.security.Permission;
  * @author yduchesne
  *
  */
-public class DistributionWriteResource {
+public class DistributionWriteResource extends DeploymentResourceSupport {
   
-  private static final int BUFSZ = 8192;
- 
   // --------------------------------------------------------------------------
   //  deploy
   
@@ -58,7 +52,7 @@ public class DistributionWriteResource {
     } finally {
       file.delete();
     }
-  }  
+  }
   
   // --------------------------------------------------------------------------
   // undeploy
@@ -95,47 +89,5 @@ public class DistributionWriteResource {
         .build();
     context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster);
   }  
-  
-  // --------------------------------------------------------------------------
-  // Restricted methods
-  
-  protected File transfer(RequestContext ctx) throws IOException {
-    File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-    if (!tmpDir.exists()) {
-      throw new IllegalStateException("Directory corresponding to java.io.tmpdir does not exist");
-    }
-    File                tmpFile = new File(tmpDir, UUID.randomUUID() + ".zip");
-    FileOutputStream    fos     = null;
-    BufferedInputStream bis     = null;
-    try {
-      byte[] buf  = new byte[BUFSZ];
-      int    read = 0;
-      fos = new FileOutputStream(tmpFile);
-      bis = new BufferedInputStream(ctx.getRequest().getContent(), BUFSZ);
-      while ((read = bis.read(buf)) > -1) {
-        fos.write(buf, 0, read);
-      }
-      return tmpFile;
-    } catch (IOException e) {
-      tmpFile.delete();
-      throw e;
-    } finally {
-      if (fos != null) {
-        try {
-          fos.flush();
-          fos.close();
-        } catch (Exception e2) {
-          // NOOP
-        }
-      }
-      if (bis != null) {
-        try {
-          bis.close();
-        } catch (Exception e2) {
-          // NOOP
-        }
-      }
-    }
-  }
   
 }

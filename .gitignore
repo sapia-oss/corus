@@ -44,3 +44,7 @@ Thumbs.db
 target/
 lib/
 extra-lib/
+deploy/
+files/
+db/
+tmp/
