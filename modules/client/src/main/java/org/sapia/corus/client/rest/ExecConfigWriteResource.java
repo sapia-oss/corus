@@ -92,7 +92,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void execProcessConfigForCluster(RequestContext context) throws TooManyProcessInstanceException {
+  public void execProcessConfigForCluster(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.clustered();
     context.getConnector().getProcessorFacade().execConfig(
         context.getRequest().getValue("corus:name").asString(), 
@@ -107,7 +107,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void execProcessConfigForHost(RequestContext context) throws TooManyProcessInstanceException {
+  public void execProcessConfigForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getProcessorFacade().execConfig(
         context.getRequest().getValue("corus:name").asString(), 

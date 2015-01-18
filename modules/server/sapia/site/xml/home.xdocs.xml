@@ -49,6 +49,9 @@
 	        Install on OS of choice (Corus has been deployed and tested on 
 	        multiple Linux/Unix distributions: Ubuntu, CentOS, Solaris, etc.).
 	      </li>
+	      <li>
+	        Implement language-agnosting automation through REST API.
+	      </li>
 	    </ul>
 	  </sapia:sect2>
 	  
@@ -95,7 +98,7 @@
           <span class="text">
             Learn more about the technical details: from development to
             deployment to actually managing your applications. See our 
-            tutorials, examples, screenshots.
+            guides, cookbooks, tutorials, examples, screenshots.
             <br/><a href="learning.html">more...</a>
           </span>
         </div>

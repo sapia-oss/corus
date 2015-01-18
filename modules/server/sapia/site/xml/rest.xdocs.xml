@@ -12,6 +12,7 @@
       <sapia:path name="home" href="../../home.html" />
       <sapia:path name="projects" />
       <sapia:path name="corus" href="home.html" />
+      <sapia:path name="learning" href="learning.html" />
       <sapia:path name="rest" />
     </sapia:section>
   
@@ -31,9 +32,9 @@
         Currently though, each individual Corus node publishes an implementation of the API which potentially allows managing
         all the Corus peers in that node's cluster - that is to say: the API allows managing a Corus cluster indivually, by 
         accessing one of its nodes through the REST API. This will become clearer in the API documentation below.
-      </p>ÿ
+      </p>
       <p>
-        In summary, that is to say that the API currently allows performing operations on a cluster as a whole, 
+        In summary, that is to say the API currently allows performing operations on a cluster as a whole, 
         or on a single node in the cluster.
       </p>
     </sapia:sect-desc>
@@ -50,7 +51,7 @@
         </ul>
       </p>
       <p>
-      The intent was to swift adoption of the API by system administrators, as part of automation tasks.
+      The intent was to suggest an as simple as possible API in order to favor swift adoption by system administrators, as part of automation tasks.
       </p>
     </sapia:sect2>
     
@@ -1024,6 +1025,140 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
         
       </sapia:sect3>
 
+      <!-- ====================== EXEC CONFIGS ====================== -->
+      
+      <sapia:sect3 title="Execution Configurations">
+        <p>The resources described in this section allow managing execution configurations.</p>
+        
+        <sapia:sect4 title="Get execution configurations">
+          <p>This resource corresponds to the CLI's <tt>ls -e</tt> command.</p>
+
+           <sapia:code>GET
+- Permission: READ
+          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs
+  /clusters/{clusterName}/hosts/{host}/exec-configs
+
+- Path variables:
+  - clusterName.: the name of the cluster to access
+  - host:.......: a host literal (taking the form: ip_address:port)
+   
+- Parameters:
+  - n (optional): an execution configuration name (pattern matching supported)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs 
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?n=test-*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        
+        <p>
+        The properties are returned as part of the <tt>data</tt> field, in an array of name/value pairs 
+        (each such pair corresponding to a property).
+        </p>
+        
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data":
+      {
+        "name": "test-exec",
+        "profile": "test",
+        "startOnBoot": true,
+        "processes": [
+          {
+            "distribution": "http-server",
+            "version": "1.0",
+            "profile": "test",
+            "instances": 1
+          }
+        ]
+      }
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Add execution configurations">
+          <p>Resources described in this section allow adding/updating execution configurations, in a manner identical to
+          the CLI's <tt>deploy -e</tt> command.</p>
+          
+           <sapia:code>PUT
+- Permission: DEPLOY
+          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs
+  /clusters/{clusterName}/hosts/{host}/exec-configs
+
+- Path variables:
+  - clusterName.: the name of the cluster to access
+  - host:.......: a host literal (taking the form: ip_address:port)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs</sapia:code>
+        
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Delete execution configurations">
+          <p>Resources described in this section allow deleting execution configurations, similarly to
+          the CLI's <tt>undeploy -e</tt> command.</p>
+          
+           <sapia:code>DELETE
+- Permission: DEPLOY
+          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}
+
+- Path variables:
+  - clusterName......: the name of the cluster to access
+  - host:............: a host literal (taking the form: ip_address:port)
+  - exec-config-name.: the name of the execution configuration to delete</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/test-exec</sapia:code>
+        
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Execute execution configurations">
+          <p>Resources described in this section allow deleting execution configurations, similarly to
+          the CLI's <tt>exec -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission: EXECUTE
+          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/exec
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/exec
+
+- Path variables:
+  - clusterName......: the name of the cluster to access
+  - host:............: a host literal (taking the form: ip_address:port)
+  - exec-config-name.: the name of the execution configuration to delete</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec/exec
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/test-exec/exec</sapia:code>
+        
+        </sapia:sect4>
+        
+      </sapia:sect3>
       
       <!-- ====================== PROPERTIES ====================== -->
       
