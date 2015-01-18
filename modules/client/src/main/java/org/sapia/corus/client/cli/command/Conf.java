@@ -9,8 +9,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -63,6 +66,7 @@ public class Conf extends CorusCliCommand {
   public static final String ARG_RENAME = "ren";
   public static final String ARG_DEL    = "del";
   public static final String ARG_LS     = "ls";
+  public static final String ARG_LOAD   = "load";
   public static final String ARG_EXPORT = "export";
   public static final String ARG_MERGE  = "merge";
   public static final String ARG_ALL    = "all";
@@ -86,7 +90,7 @@ public class Conf extends CorusCliCommand {
   // --------------------------------------------------------------------------
 
   private enum Op {
-    ADD, DELETE, LIST, EXPORT, RENAME, MERGE
+    ADD, DELETE, LIST, EXPORT, RENAME, MERGE, LOAD
   }
 
   // --------------------------------------------------------------------------
@@ -116,6 +120,8 @@ public class Conf extends CorusCliCommand {
         op = Op.RENAME;
       } else if (opArg.equalsIgnoreCase(ARG_MERGE)) {
         op = Op.MERGE;
+      } else if (opArg.equalsIgnoreCase(ARG_LOAD)) {
+        op = Op.LOAD;
       } else {
         throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
       }
@@ -124,7 +130,13 @@ public class Conf extends CorusCliCommand {
     }
 
     if (op != null) {
-      if (ctx.getCommandLine().containsOption(OPT_TAG.getName(), false)) {
+      if (op == Op.LOAD) {
+        try {
+          handlePropertyOp(op, ctx);
+        } catch (IOException e) {
+          throw new AbortException("I/O Error performing command", e);
+        }        
+      } else if (ctx.getCommandLine().containsOption(OPT_TAG.getName(), false)) {
         try {
           handleTag(op, ctx);
         } catch (IOException e) {
@@ -184,7 +196,7 @@ public class Conf extends CorusCliCommand {
         }
       }
       ctx.getCorus().getConfigFacade().renameTags(nvPairs, getClusterInfo(ctx));
-    } 
+    }
   }
 
   private void handlePropertyOp(Op op, CliContext ctx) throws InputException, IOException {
@@ -267,7 +279,7 @@ public class Conf extends CorusCliCommand {
       StrSubstitutor substitutor = new StrSubstitutor(
           new CompositeStrLookup()
             .add(PropertiesStrLookup.getInstance(processProps))
-            .add(ctx.getVars())
+            .add(ctx.getVars().get())
             .add(PropertiesStrLookup.systemPropertiesLookup())
        );
       
@@ -323,6 +335,29 @@ public class Conf extends CorusCliCommand {
       exportPropertyResults(results, ctx);
     } else if (op == Op.RENAME) {
       throw new InputException("Rename option not supported for properties");
+    } else if (op == Op.LOAD) {
+      List<String> categories = new ArrayList<>();
+      Arg filter;
+      if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
+        categories.addAll(Arrays.asList(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue().split(",")));
+      }
+      if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
+        filter = ArgFactory.parse(ctx.getCommandLine().getOpt(OPT_PROPERTY.getName()).getValue());
+      } else {
+        filter = ArgFactory.any();
+      }
+      
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categories, getClusterInfo(ctx));
+      Map<String, String> newVars = new HashMap<String, String>();
+      while (results.hasNext()) {
+        Result<List<Property>> result = results.next();
+        for (Property p : result.getData()) {
+          if (filter.matches(p.getName())) {
+            newVars.put(p.getName(), p.getValue());
+          }
+        }
+      }
+      ctx.addVars(newVars);
     }
   }
 

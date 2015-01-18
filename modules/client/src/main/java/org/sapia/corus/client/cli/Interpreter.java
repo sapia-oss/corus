@@ -117,10 +117,8 @@ public class Interpreter extends Console implements CorusConsole {
    * 
    * @param reader
    *          a {@link Reader} to read commands from.
-   * @param the
-   *          {@link StrLookup} of variables to use when performing variable
-   *          substitution.
-   * 
+   * @param vars
+   *          a {@link StrLookup} holding the values to use when performing variable interpolation.
    * @throws IOException
    *           if a problem occurs while trying to read commands from the given
    *           reader.
@@ -134,18 +132,39 @@ public class Interpreter extends Console implements CorusConsole {
    *           if an undefined error occurs.
    */
   public void interpret(Reader reader, StrLookup vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
-
+    interpret(reader, new StrLookupState(vars));
+  }
+  
+  /**
+   * This method interprets the given command-line. That is: it parses it and
+   * processes it into a command - executing the said command.
+   * 
+   * This method closes the reader provided as input upon exiting.
+   * 
+   * @param reader
+   *          a {@link Reader} to read commands from.
+   * @param vars
+   *          a {@link StrLookupState} holding the values to use when performing variable interpolation.
+   * @throws IOException
+   *           if a problem occurs while trying to read commands from the given
+   *           reader.
+   * @throws CommandNotFoundException
+   *           if the command on the command-line is unknown.
+   * @throws InputException
+   *           if some command arguments/options are missing/invalid.
+   * @throws AbortException
+   *           if execution of the command has been aborted.
+   * @throws Throwable
+   *           if an undefined error occurs.
+   */
+  public void interpret(Reader reader, StrLookupState vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
     try {
       BufferedReader bufReader = new BufferedReader(reader);
-      StrSubstitutor subs = new StrSubstitutor(vars);
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
-        commandLine = subs.replace(commandLine).trim();
-        if (!commandLine.isEmpty()) {
-          eval(commandLine, vars);
-        }
+        eval(commandLine.trim(), vars);
       }
     } finally {
       enableLogging(old);
@@ -163,8 +182,8 @@ public class Interpreter extends Console implements CorusConsole {
    * 
    * @param commandLine
    *          the command-line to interpret.
-   * @param the
-   *          {@link StrLookup} holding variables to use.
+   * @param vars
+   *          a {@link StrLookup} holding the values to use when performing variable interpolation.
    * @throws CommandNotFoundException
    *           if the command on the command-line is unknown.
    * @throws InputException
@@ -176,11 +195,41 @@ public class Interpreter extends Console implements CorusConsole {
    * @return this instance.
    */
   public Object eval(String commandLine, StrLookup vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
-
+    return eval(commandLine, new StrLookupState(vars));
+  }
+  
+  /**
+   * This method interprets the given command-line. That is: it parses it and
+   * processes it into a command - executing the said command.
+   * 
+   * @param commandLine
+   *          the command-line to interpret.
+   * @param vars 
+   *          a {@link StrLookupState} holding the values to use when performing variable interpolation.
+   * @throws CommandNotFoundException
+   *           if the command on the command-line is unknown.
+   * @throws InputException
+   *           if some command arguments/options are missing/invalid.
+   * @throws AbortException
+   *           if execution of the command has been aborted.
+   * @throws Throwable
+   *           if an undefined error occurs.
+   * @return this instance.
+   */
+  public Object eval(String commandLine, StrLookupState vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
+  
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
     
     if (commandLine.startsWith(COMMENT_MARKER)) {
+      FacadeInvocationContext.set(null);
+      return null;
+    }
+    
+    StrSubstitutor subs = new StrSubstitutor(vars.get());    
+    commandLine = subs.replace(commandLine);
+
+    if (commandLine.isEmpty()) {
       FacadeInvocationContext.set(null);
       return null;
     }

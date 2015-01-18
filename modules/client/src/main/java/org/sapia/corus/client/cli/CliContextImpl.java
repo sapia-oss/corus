@@ -2,6 +2,7 @@ package org.sapia.corus.client.cli;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
@@ -10,6 +11,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 
@@ -23,10 +25,10 @@ public class CliContextImpl extends Context implements CliContext {
   private CorusConnector corus;
   private List<CliError> errors;
   private boolean        abortOnError;
-  private StrLookup      vars;
+  private StrLookupState vars;
   private AtomicReference<SortSwitchInfo[]> sortSwitches = new AtomicReference<SortSwitchInfo[]>();
   
-  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookup vars, AtomicReference<SortSwitchInfo[]> sortSwitches) {
+  public CliContextImpl(CorusConnector corus, List<CliError> anErrorList, StrLookupState vars, AtomicReference<SortSwitchInfo[]> sortSwitches) {
     this.corus = corus;
     this.errors = anErrorList;
     this.vars = vars;
@@ -44,8 +46,15 @@ public class CliContextImpl extends Context implements CliContext {
   }
 
   @Override
-  public StrLookup getVars() {
+  public StrLookupState getVars() {
     return vars;
+  }
+  
+  @Override
+  public void addVars(Map<String, String> vars) {
+    this.vars.set(CompositeStrLookup.newInstance()
+          .add(StrLookup.mapLookup(vars))
+          .add(this.vars.get()));
   }
 
   @Override

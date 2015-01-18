@@ -7,7 +7,7 @@
     <p/> 
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
     <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
-    <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2,[name-n=value-n]]] [-clear] [-c &lt;category&gt;] [-cluster]</p>
+    <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2[,name-n=value-n]]] [-clear] [-c &lt;category&gt;] [-cluster]</p>
     <p/>
     <p>OR:</p>    
     <p>conf add -t &lt;file&gt; [-cluster]</p>
@@ -25,13 +25,15 @@
     <p>conf del -t &lt;tag_name&gt;</p>
     <p>conf del [-s s | p] -p property_name [-c &lt;category&gt;] [-cluster]</p>
     <p>conf del all [-cluster]</p>
-    
     <p/>
     <p>OR:</p>    
     <p>conf ren -t current_tag_name1=new_tag_name1,current_tag_name2=new_tag_name2...</p>
     <p/>
     <p>OR:</p>    
     <p>conf merge -b &lt;base_file&gt;.properties -f &lt;target_file&gt;.properties</p>
+    <p/>
+    <p>OR:</p>    
+    <p>conf load [-s s | p] [-p &lt;pattern&gt;][-c &lt;category&gt;] [-cluster]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -66,10 +68,14 @@
     to the current tag, the one on the right-hand side to the tag that will replace it. Only tags that exist on
     the respective Corus instance will be impacted (i.e.: will be renamed).</p>
     <p/>
-    <p>- The merge operation consists of merging the content of a given properties file (known as the base) with
+    <p>- The 'merge' operation consists of merging the content of a given properties file (known as the base) with
     Corus process properties (with the latter overwriting any identically named properties in the base file).
     The result of the merge is output to a given target file (identified by the -f option). This operation DOES NOT 
     SUPPORT THE -cluster OPTION.</p>
+    <p/>
+    <p>- The 'load' operation gets the properties kept in Corus (either the server or process properties, depending on the scope)
+    and loads them into the CLI, allowing these properties to be used for variable interpolation on the client side, in commands
+    that execute scripts (the match, ripple, and script commands execute scripts).</p>
   </section>
   <section title="Examples">
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
@@ -95,7 +101,10 @@
     <p>conf del -t singletons</p>
     <p>conf del all</p>
     <p>conf merge -b myBaseAppConfig.properties -f appConfig.properties</p>
-    <p>conf ls -t</p>
+    <p>conf load</p>
+    <p>conf load -cluster</p>
+    <p>conf load -c test</p>
+    <p>conf load -p com.acme*</p>
     <p/>
   </section>
 </help>

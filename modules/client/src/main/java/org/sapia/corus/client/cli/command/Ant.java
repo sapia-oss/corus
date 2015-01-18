@@ -88,7 +88,7 @@ public class Ant extends NoOptionCommand {
           } else if (ctx.getCommandLine().containsOption(name, true)) {
             return ctx.getCommandLine().getOpt(name).getValue();
           }
-          return ctx.getVars().lookup(name);
+          return ctx.getVars().get().lookup(name);
         }
       });
 

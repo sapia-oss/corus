@@ -65,7 +65,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
   protected CorusConnector corus;
   private List<CliError>   errors;
   private boolean          abortOnError;
-  private StrLookup        vars = StrLookup.systemPropertiesLookup();
+  private StrLookupState   vars = new StrLookupState(StrLookup.systemPropertiesLookup());
   private AtomicReference<SortSwitchInfo[]> sortSwitches;
  
   public CorusCli(CorusConnector corus) throws IOException {

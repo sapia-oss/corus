@@ -70,6 +70,7 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
     DistributionCriteria criteria = DistributionCriteria.builder()
         .name(ArgFactory.parse(context.getRequest().getValue("d").asString()))
         .version(ArgFactory.parse(context.getRequest().getValue("v").asString()))
+        .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
     context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster);
   }  
@@ -86,6 +87,7 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
     DistributionCriteria criteria = DistributionCriteria.builder()
         .name(ArgFactory.parse(context.getRequest().getValue("d").asString()))
         .version(ArgFactory.parse(context.getRequest().getValue("v").asString()))
+        .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
     context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster);
   }  
