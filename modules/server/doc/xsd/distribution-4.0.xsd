@@ -13,6 +13,7 @@
 			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
 			<xs:attribute name="version" type="xs:string" use="required"></xs:attribute>
 			<xs:attribute name="tags" type="xs:string"></xs:attribute>
+			<xs:attribute name="propertyCategories" type="xs:string"></xs:attribute>
 		</xs:complexType>
 	</xs:element>
 
@@ -44,7 +45,9 @@
 			<xs:attribute name="statusInterval" type="xs:integer"
 				default="30"></xs:attribute>
 			<xs:attribute name="tags" type="xs:string"></xs:attribute>
-			<xs:attribute name="maxInstances" type="xs:integer"></xs:attribute>
+			<xs:attribute name="propertyCategories" type="xs:string"></xs:attribute>
+   		<xs:attribute name="interpolationPasses" type="xs:integer"></xs:attribute>
+	<xs:attribute name="maxInstances" type="xs:integer"></xs:attribute>
 		</xs:complexType>
 	</xs:element>
 

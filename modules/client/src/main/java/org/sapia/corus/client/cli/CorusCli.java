@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.SystemUtils;
@@ -21,22 +21,25 @@ import org.sapia.console.ConsoleInput;
 import org.sapia.console.ConsoleInputFactory;
 import org.sapia.console.ConsoleListener;
 import org.sapia.console.ConsoleOutput;
-import org.sapia.console.TerminalFacade;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.TerminalFacade;
 import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.cli.command.Sort;
 import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 import org.sapia.ubik.util.Localhost;
 
@@ -45,7 +48,7 @@ import org.sapia.ubik.util.Localhost;
  * 
  * @author Yanick Duchesne
  */
-public class CorusCli extends CommandConsole {
+public class CorusCli extends CommandConsole implements CorusConsole {
 
   public static final int    MIN_WIDTH         = 80;
   public static final int    DEFAULT_PORT      = 33000;
@@ -55,13 +58,14 @@ public class CorusCli extends CommandConsole {
   public static final String COMMAND_OPT       = "c";
   public static final String WIDTH_OPT         = "w";
   public static final int    MAX_ERROR_HISTORY = 20;
+  public static final String CORUSCLI_SCRIPT   = ".profile.corus";
 
   private static ClientFileSystem FILE_SYSTEM = new DefaultClientFileSystem();
 
   protected CorusConnector corus;
   private List<CliError>   errors;
   private boolean          abortOnError;
-  private StrLookup        vars = StrLookup.systemPropertiesLookup();
+  private StrLookupState   vars = new StrLookupState(StrLookup.systemPropertiesLookup());
   private AtomicReference<SortSwitchInfo[]> sortSwitches;
  
   public CorusCli(CorusConnector corus) throws IOException {
@@ -126,6 +130,11 @@ public class CorusCli extends CommandConsole {
       
     };
   }
+  
+  @Override
+  public CorusCommandFactory getCommands() {
+    return (CorusCommandFactory) super.getCommandFactory();
+  }
 
   public static void main(String[] args) {
 
@@ -171,9 +180,15 @@ public class CorusCli extends CommandConsole {
           String command = sub.toString().trim();
           command        = command.substring(("-" + COMMAND_OPT).length());
           CmdLine toRun  = CmdLine.parse(command);
+          
+          // overloading system properties with environnment variables 
+          CompositeStrLookup vars = new CompositeStrLookup();
+          vars.add(new PropertiesStrLookup(System.getProperties()));
+          vars.add(StrLookup.mapLookup(System.getenv()));
+          
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
-            console.eval(toRun.toString(), StrLookup.systemPropertiesLookup());
+            console.eval(toRun.toString(), vars);
             System.exit(0);
           } catch (Throwable err) {
             err.printStackTrace();
@@ -193,13 +208,19 @@ public class CorusCli extends CommandConsole {
             e.printStackTrace();
             System.exit(1);
           }
-          Map<String, String> vars = CliUtils.getOptionsMap(main);
+          
+          // overriding system properties with  specified at the command-line
+          CompositeStrLookup vars = new CompositeStrLookup()
+            .add(StrLookup.mapLookup(CliUtils.getOptionsMap(main)))
+            .add(new PropertiesStrLookup(System.getProperties()))
+            .add(StrLookup.mapLookup(System.getenv()));
+          
           try {
             Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             if (main.containsOption(WIDTH_OPT, true)) {
               console.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
             }
-            console.interpret(input, StrLookup.mapLookup(vars));
+            console.interpret(input, vars);
             System.exit(0);
           } catch (Throwable err) {
             err.printStackTrace();
@@ -215,13 +236,47 @@ public class CorusCli extends CommandConsole {
             if (main.containsOption(WIDTH_OPT, true)) {
               cli.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
             }
-            List<NameValuePair> props = connector.getConfigFacade().getProperties(PropertyScope.SERVER, new ClusterInfo(false)).next().getData();
-            for (NameValuePair p : props) {
+            
+            List<Property> props = connector.getConfigFacade().getProperties(
+                PropertyScope.SERVER, new ArrayList<String>(0), 
+                new ClusterInfo(false)).next().getData();
+            
+            for (Property p : props) {
               if (p.getName().equals(CliPropertyKeys.SORT_SWITCHES) && p.getValue() != null) {
                 List<SortSwitchInfo> s = Sort.getSwitches(p.getValue());
                 cli.sortSwitches.set(s.toArray(new SortSwitchInfo[s.size()]));
               } 
             }
+            
+            File userCommands = FilePath.newInstance()
+                .addCorusUserDir()
+                .setRelativeFile(CORUSCLI_SCRIPT)
+                .createFile();
+            
+            if (userCommands.exists()) {
+              Interpreter interp = new Interpreter(cli, connector);
+              interp.setCommandFactory(cli.getCommands());
+              FileReader reader = new FileReader(userCommands);
+              
+              try {
+                interp.interpret(reader, 
+                    CompositeStrLookup.newInstance()
+                      .add(StrLookup.systemPropertiesLookup())
+                      .add(StrLookup.mapLookup(System.getenv()))
+                );
+              } catch (Throwable e) {
+                cli.println("Could not execute user script: " + userCommands.getAbsolutePath());
+                e.printStackTrace();
+                return;
+              } finally {
+                try {
+                  reader.close();
+                } catch (IOException e) {
+                  // noop
+                }
+              }
+            }
+            
             cli.start();
           } catch (NullPointerException e) {
             e.printStackTrace();
@@ -257,7 +312,7 @@ public class CorusCli extends CommandConsole {
     System.out.println();
     System.out.println("Corus client command-line syntax:");
     System.out.println();
-    System.out.println("coruscli [-help] [-h <host>] [-p <port>] [-s script_path] [-c command_line]");
+    System.out.println("coruscli [-help] [-h <host>] [-p <port>] [-s <script_path>] [-c <command_line>]");
     System.out.println("or");
     System.out.println("coruscli -ver");
     System.out.println();

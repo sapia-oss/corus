@@ -6,11 +6,13 @@ import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Tag;
 
@@ -21,33 +23,44 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   }
 
   @Override
-  public Results<List<NameValuePair>> getProperties(PropertyScope scope, ClusterInfo cluster) {
-    Results<List<NameValuePair>> results = new Results<List<NameValuePair>>();
-    proxy.getPropertiesAsNameValuePairs(scope);
+  public Results<List<Property>> getProperties(PropertyScope scope,
+      List<String> categories, ClusterInfo cluster) {
+    Results<List<Property>> results = new Results<List<Property>>();
+    proxy.getPropertiesList(scope, categories);
     invoker.invokeLenient(results, cluster);
     return results;
   }
-
+  
   @Override
-  public Results<Set<Tag>> getTags(ClusterInfo cluster) {
-    Results<Set<Tag>> results = new Results<Set<Tag>>();
-    proxy.getTags();
+  public Results<List<Property>> getAllProperties(PropertyScope scope,
+      ClusterInfo cluster) {
+    Results<List<Property>> results = new Results<List<Property>>();
+    proxy.getAllPropertiesList(scope);
     invoker.invokeLenient(results, cluster);
     return results;
   }
-
+  
   @Override
-  public void addProperty(PropertyScope scope, String name, String value, ClusterInfo cluster) {
-    proxy.addProperty(scope, name, value);
+  public void addProperty(PropertyScope scope, String name, String value,
+      Set<String> categories, ClusterInfo cluster) {
+    proxy.addProperty(scope, name, value, categories);
     invoker.invokeLenient(void.class, cluster);
   }
-
+  
   @Override
-  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting, ClusterInfo cluster) {
-    proxy.addProperties(scope, props, clearExisting);
+  public void addProperties(PropertyScope scope, Properties props,
+      Set<String> categories, boolean clearExisting, ClusterInfo cluster) {
+    proxy.addProperties(scope, props, categories, clearExisting);
     invoker.invokeLenient(void.class, cluster);
   }
-
+  
+  @Override
+  public void removeProperty(PropertyScope scope, Arg name,
+      Set<Arg> categories, ClusterInfo cluster) {
+    proxy.removeProperty(scope, name, categories);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
   @Override
   public void addTag(String tag, ClusterInfo cluster) {
     proxy.addTag(tag);
@@ -59,11 +72,13 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
     proxy.addTags(tags);
     invoker.invokeLenient(void.class, cluster);
   }
-
+  
   @Override
-  public void removeProperty(PropertyScope scope, String name, ClusterInfo cluster) {
-    proxy.removeProperty(scope, ArgFactory.parse(name));
-    invoker.invokeLenient(void.class, cluster);
+  public Results<Set<Tag>> getTags(ClusterInfo cluster) {
+    Results<Set<Tag>> results = new Results<Set<Tag>>();
+    proxy.getTags();
+    invoker.invokeLenient(results, cluster);
+    return results;
   }
 
   @Override

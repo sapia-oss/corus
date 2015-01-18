@@ -32,8 +32,24 @@ public interface Configurator extends java.rmi.Remote, Module {
 
   public enum PropertyScope {
     PROCESS, SERVER;
-  }
 
+    /**
+     * @param name a scope name.
+     * @return the {@link PropertyScope} corresponding to the given name.
+     */
+    public static final PropertyScope forName(String name) {
+      if (name.startsWith("p")) {
+        return PROCESS;
+      } else if (name.startsWith("s")) {
+        return SERVER;
+      } else {
+        throw new IllegalArgumentException("Expected either p or s, got: " + name);
+      }
+    }
+  }
+  
+  // --------------------------------------------------------------------------
+  
   /**
    * Adds a property.
    * 
@@ -43,55 +59,94 @@ public interface Configurator extends java.rmi.Remote, Module {
    *          the name of the property
    * @param value
    *          the value of the property
+   * @param categories
+   *          the {@link Set} of categories to which to associate the given property.
    */
-  public void addProperty(PropertyScope scope, String name, String value);
+  public void addProperty(PropertyScope scope, String name, String value, Set<String> categories);
 
   /**
    * @param scope
    *          a {@link PropertyScope}
    * @param props
    *          the {@link Properties} to add
+   * @param categories
+   *          the {@link Set} of categories to which to associate the given properties.
    * @param clearExisting
    *          if <code>true</code>, indicates that the existing properties
    *          should be cleared.
    */
-  public void addProperties(PropertyScope scope, Properties props, boolean clearExisting);
+  public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting);
+  
+  /**
+   * Returns a property value, for the first category that matches. This method first looks in the
+   * properties with the {@link PropertyScope#SERVER} scope. If no corresponding value is found there,
+   * the {@link PropertyScope#PROCESS} scope is searched, in the order specified by the given categories.
+   * <p>
+   * In the above case, properties with given names found in subsequent categories override properties
+   * with the same name in previous categories.
+   * <p>
+   * If no property is found for the given property, the global process properties are searched.
+   * 
+   * @param name
+   * @param categories 
+   *         the {@link List} of categories for which to get the corresponding property.
+   * @return the value corresponding to the given property name, or
+   *         <code>null</code> if no such value exists.
+   */
+  public String getProperty(String name, List<String> categories);
+  
+  /**
+   * Returns a copy of the properties held in this instance. Properties with given names found in 
+   * subsequent categories override properties with the same name in previous categories.
+   * <p>
+   * For any property for which no category match is found, the global process properties are ultimately
+   * looked up.
+   * 
+   * @param scope
+   *          a {@link PropertyScope}
+   * @param categories 
+   *         the {@link List} of categories for which to return the corresponding properties.
+   * @return a {@link Properties} instance.
+   */
+  public Properties getProperties(PropertyScope scope, List<String> categories);
 
+  /**
+   * Returns a list of name/value pairs corresponding to the properties held in this instance.
+   * <p>
+   * Properties with given names found in subsequent categories override properties with the 
+   * same name in previous categories.
+   * <p>
+   * If no categories are specified, only the global process properties are returned.
+   * <p>
+   * By the same token, if categories are specified but none matches anyone of the given 
+   * categories, the global process properties are returned.
+   *  
+   * @param scope
+   *          a {@link PropertyScope}
+   * @param categories 
+   *          a {@link List} of categories for which to return the corresponding properties.
+   * @return  a list of {@link Property} instances.
+   */
+  public List<Property> getPropertiesList(PropertyScope scope, List<String> categories);
+  
+  /**
+   * @param scope
+   *          a {@link PropertyScope}.
+   * @return the {@link List} of all {@link Property} instances, regardless of category.
+   */
+  public List<Property> getAllPropertiesList(PropertyScope scope);
+  
   /**
    * @param scope
    *          a {@link PropertyScope}
    * @param name
    *          the name of the property to remove.
+   * @param categories 
+   *          the {@link Set} of category matchers for which to remove the corresponding properties.
    */
-  public void removeProperty(PropertyScope scope, Arg name);
-
-  /**
-   * Returns a property value.
-   * 
-   * @param name
-   * @return the value corresponding to the given property name, or
-   *         <code>null</code> if no such value exists.
-   */
-  public String getProperty(String name);
-
-  /**
-   * Returns a copy of the properties held in this instance.
-   * 
-   * @param scope
-   *          a {@link PropertyScope}
-   * @return a {@link Properties} instance.
-   */
-  public Properties getProperties(PropertyScope scope);
-
-  /**
-   * Returns a list of name/value pairs corresponding to the properties held in
-   * this instance.
-   * 
-   * @param scope
-   *          a {@link PropertyScope}
-   * @return a list of {@link org.sapia.corus.client.common.NameValuePair}
-   */
-  public List<NameValuePair> getPropertiesAsNameValuePairs(PropertyScope scope);
+  public void removeProperty(PropertyScope scope, Arg name, Set<Arg> categories);
+  
+  // --------------------------------------------------------------------------
 
   /**
    * Adds a tag to this instance.

@@ -17,7 +17,6 @@ import org.sapia.corus.client.common.EnvVariableStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.FileUtils.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
-import org.sapia.corus.client.common.PathUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Strings;
@@ -33,14 +32,15 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   static final long serialVersionUID = 1L;
 
   protected String javaHome = System.getProperty("java.home");
-  protected String javaCmd = "java";
+  protected String javaCmd  = "java";
   protected String vmType;
   protected String profile;
-  protected String corusHome = System.getProperty("corus.home");
-  protected List<VmArg> vmArgs = new ArrayList<VmArg>();
-  protected List<Property> vmProps = new ArrayList<Property>();
-  protected List<Option> options = new ArrayList<Option>();
-  protected List<XOption> xoptions = new ArrayList<XOption>();
+  
+  protected String         corusHome    = System.getProperty("corus.home");
+  protected List<VmArg>    vmArgs       = new ArrayList<VmArg>();
+  protected List<Property> vmProps      = new ArrayList<Property>();
+  protected List<Option>   options      = new ArrayList<Option>();
+  protected List<XOption>  xoptions     = new ArrayList<XOption>();
   private List<Dependency> dependencies = new ArrayList<Dependency>();
 
   /**
@@ -163,20 +163,22 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected CmdLineBuildResult buildCommandLine(Env env) {
     Map<String, String> cmdLineVars = new HashMap<String, String>();
     cmdLineVars.put("user.dir", env.getCommonDir());
+    cmdLineVars.put("java.home", javaHome);
     Property[] envProperties = env.getProperties();
 
-    CompositeStrLookup propContext = new CompositeStrLookup().add(StrLookup.mapLookup(cmdLineVars))
+    CompositeStrLookup propContext = new CompositeStrLookup()
+        .add(StrLookup.mapLookup(cmdLineVars))
         .add(PropertiesStrLookup.getInstance(envProperties))
         .add(PropertiesStrLookup.getSystemInstance())
         .add(new EnvVariableStrLookup());
 
     CmdLine cmd = new CmdLine();
 
-    File javaHomeDir = new File(javaHome);
+    File javaHomeDir = env.getFileSystem().getFile(javaHome);
     if (!javaHomeDir.exists()) {
       throw new MissingDataException("java.home not found");
     }
-    cmd.addArg(PathUtils.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
+    cmd.addArg(FileUtils.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
 
     if (vmType != null) {
       if (!vmType.startsWith("-")) {
@@ -238,7 +240,8 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
 
   protected String getOptionalCp(String libDirs, StrLookup envVars, Env env) {
     String processUserDir;
-    if ((processUserDir = env.getCommonDir()) == null || !new File(env.getCommonDir()).exists()) {
+    if ((processUserDir = env.getCommonDir()) == null 
+        || !env.getFileSystem().getFile(env.getCommonDir()).exists()) {
       processUserDir = System.getProperty("user.dir");
     }
 
@@ -246,7 +249,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (libDirs == null) {
       return "";
     } else {
-      baseDirs = libDirs.split(";");
+      baseDirs = FileUtils.splitFilePaths(libDirs);
     }
 
     StringBuffer buf = new StringBuffer();
@@ -257,12 +260,15 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       if (FileUtils.isAbsolute(baseDir)) {
         currentDir = baseDir;
       } else {
-        currentDir = PathUtils.toPath(processUserDir, baseDir);
+        currentDir = FileUtils.toPath(processUserDir, baseDir);
       }
 
       FileInfo fileInfo = FileUtils.getFileInfo(currentDir);
       PathFilter filter = env.createPathFilter(fileInfo.directory);
       if (fileInfo.isClasses) {
+        if (buf.length() > 0) {
+          buf.append(File.pathSeparator);
+        }
         buf.append(fileInfo.directory);
       } else {
         if (fileInfo.fileName == null) {
@@ -271,24 +277,21 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
           filter.setIncludes(new String[] { fileInfo.fileName });
         }
 
+        if (buf.length() > 0) {
+          buf.append(File.pathSeparator);
+        }
+        
         String[] jars = filter.filter();
         Arrays.sort(jars);
         for (int i = 0; i < jars.length; i++) {
-          buf.append(fileInfo.directory).append(FileUtils.FILE_SEPARATOR).append(jars[i]);
+          buf.append(fileInfo.directory).append(File.separator).append(jars[i]);
           if (i < (jars.length - 1)) {
-            buf.append(FileUtils.PATH_SEPARATOR);
+            buf.append(File.pathSeparator);
           }
-        }
-
-        if (dirIndex < baseDirs.length - 1) {
-          buf.append(FileUtils.PATH_SEPARATOR);
         }
       }
     }
-    Map<String, String> values = new HashMap<String, String>();
-    values.put("user.dir", processUserDir);
-    CompositeStrLookup vars = new CompositeStrLookup().add(StrLookup.mapLookup(values)).add(envVars);
-    return render(vars, buf.toString());
+    return render(envVars, buf.toString());
   }
 
   protected String render(StrLookup context, String value) {
@@ -307,7 +310,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       buf.append(basedir).append(File.separator).append(jars[i]);
 
       if (i < (jars.length - 1)) {
-        buf.append(System.getProperty("path.separator"));
+        buf.append(File.pathSeparator);
       }
     }
 

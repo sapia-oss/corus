@@ -18,11 +18,8 @@
   </section>
   <section title="Examples">
     <p>count hosts</p>
-    <p/>
     <p>count ps -cluster</p>
-    <p/>    
     <p>count ls -d myApp -v 1.0 -cluster</p>
-    <p/> 
     <p>count -a 3 ls -d myApp -v 1.0 -cluster</p>
     <p/>    
   </section>  

@@ -1,5 +1,6 @@
 package org.sapia.corus.client.facade;
 
+import org.sapia.corus.client.facade.impl.ApplicationKeyManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.ClusterfacadeImpl;
 import org.sapia.corus.client.facade.impl.ConfiguratorFacadeImpl;
 import org.sapia.corus.client.facade.impl.CronFacadeImpl;
@@ -8,6 +9,7 @@ import org.sapia.corus.client.facade.impl.FileManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.PortManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.ProcessorFacadeImpl;
 import org.sapia.corus.client.facade.impl.RepoFacadeImpl;
+import org.sapia.corus.client.facade.impl.SecurityManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.ShellScriptManagementFacadeImpl;
 
 /**
@@ -29,18 +31,22 @@ public class CorusConnectorImpl implements CorusConnector {
   private RepoFacade repo;
   private ShellScriptManagementFacade scripts;
   private FileManagementFacade files;
+  private SecurityManagementFacade security;
+  private ApplicationKeyManagementFacade appKeys;
 
   public CorusConnectorImpl(CorusConnectionContext context) {
     this.context = context;
-    deployer = new DeployerFacadeImpl(context);
-    processor = new ProcessorFacadeImpl(context);
-    cron = new CronFacadeImpl(context);
-    ports = new PortManagementFacadeImpl(context);
-    config = new ConfiguratorFacadeImpl(context);
-    cluster = new ClusterfacadeImpl(context);
-    repo = new RepoFacadeImpl(context);
-    scripts = new ShellScriptManagementFacadeImpl(context);
-    files = new FileManagementFacadeImpl(context);
+    deployer     = new DeployerFacadeImpl(context);
+    processor    = new ProcessorFacadeImpl(context);
+    cron         = new CronFacadeImpl(context);
+    ports        = new PortManagementFacadeImpl(context);
+    config       = new ConfiguratorFacadeImpl(context);
+    cluster      = new ClusterfacadeImpl(context);
+    repo         = new RepoFacadeImpl(context);
+    scripts      = new ShellScriptManagementFacadeImpl(context);
+    files        = new FileManagementFacadeImpl(context);
+    security     = new SecurityManagementFacadeImpl(context);
+    appKeys      = new ApplicationKeyManagementFacadeImpl(context);
   }
 
   @Override
@@ -91,6 +97,16 @@ public class CorusConnectorImpl implements CorusConnector {
   @Override
   public FileManagementFacade getFileManagementFacade() {
     return files;
+  }
+  
+  @Override
+  public SecurityManagementFacade getSecurityManagementFacade() {
+    return security;
+  }
+  
+  @Override
+  public ApplicationKeyManagementFacade getApplicationKeyManagementFacade() {
+    return appKeys;
   }
 
 }

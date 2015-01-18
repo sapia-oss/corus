@@ -11,6 +11,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.naming.JndiModule;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.naming.remote.RemoteContext;
 import org.sapia.ubik.rmi.naming.remote.RemoteContextProvider;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -24,10 +25,11 @@ import org.springframework.context.support.GenericApplicationContext;
  * 
  * @author Yanick Duchesne
  */
-public class CorusImpl implements Corus, RemoteContextProvider {
+@Remote(interfaces = { Corus.class, RemoteContextProvider.class})
+public class CorusImpl implements InternalCorus, RemoteContextProvider {
 
   private ModuleLifeCycleManager lifeCycle;
-  private String domain;
+  private volatile String domain;
 
   CorusImpl(Properties config, String domain, ServerAddress serverAddress, EventChannel channel, CorusTransport aTransport, String corusHome)
       throws IOException, Exception {
@@ -40,6 +42,20 @@ public class CorusImpl implements Corus, RemoteContextProvider {
 
   public String getDomain() {
     return domain;
+  }
+  
+  @Override
+  public void changeDomain(String newDomainName) {
+    Properties props = new Properties();
+    props.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, newDomainName);
+    CorusReadonlyProperties.save(
+        props, 
+        CorusConsts.CORUS_USER_HOME, 
+        lifeCycle.getCorusHost().getEndpoint().getServerTcpAddress().getPort(), 
+        false
+    );
+    this.domain = newDomainName;
+    System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
   }
 
   public RemoteContext getRemoteContext() throws RemoteException {

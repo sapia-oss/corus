@@ -8,6 +8,7 @@ import java.util.List;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.services.db.DbModule;
@@ -19,7 +20,6 @@ import org.sapia.corus.client.services.deployer.ShellScriptManager;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.util.FilePath;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,7 +70,7 @@ public class ShellScriptManagerImpl extends ModuleHelper implements InternalShel
 
   @Override
   public void init() throws Exception {
-    database = new ShellScriptDatabaseImpl(dbModule.getDbMap(String.class, ShellScript.class, "deployer.ShellScripts"));
+    database = new ShellScriptDatabaseImpl(dbModule.getDbMap(String.class, ShellScript.class, "deployer.shellscripts"));
   }
 
   @Override

@@ -11,7 +11,7 @@ import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
  * 
  * @author Yanick Duchesne
  */
-public interface DbMap<K, V> {
+public interface DbMap<K, V> extends Iterable<V> {
 
   /**
    * @return the {@link ClassDescriptor} corresponding to the type of object
@@ -61,7 +61,7 @@ public interface DbMap<K, V> {
    * @return an {@link Iterator}.
    */
   public Iterator<K> keys();
-
+  
   /**
    * Closes this instance - releases all resources held by it.
    */

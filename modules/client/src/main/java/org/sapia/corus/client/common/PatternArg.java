@@ -31,29 +31,34 @@ public class PatternArg implements Arg {
   /** The int value that terminates the pattern <code>int []</code>. */
   protected static final int MATCH_END = -3;
 
-  private int[] _pattern;
-  private String _token;
+  private int[]  pattern;
+  private String token;
 
   PatternArg(String token) {
-    _pattern = compilePattern(token);
-    _token = token;
+    this.pattern = compilePattern(token);
+    this.token   = token;
   }
 
   @SuppressWarnings("rawtypes")
   public boolean matches(String str) {
-    return match(new HashMap(5), str, _pattern);
+    return match(new HashMap(5), str, pattern);
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof PatternArg) {
-      return _token.equals(((PatternArg) obj)._token);
+      return token.equals(((PatternArg) obj).token);
     }
     return false;
   }
+  
+  @Override
+  public int hashCode() {
+    return token.hashCode();
+  }
 
   public String toString() {
-    return _token;
+    return token;
   }
 
   /**

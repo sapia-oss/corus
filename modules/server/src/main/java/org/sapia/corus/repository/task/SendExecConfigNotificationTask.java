@@ -28,7 +28,7 @@ public class SendExecConfigNotificationTask extends RunnableTask {
   public void run() {
     try {
       if (execConfigs.isEmpty()) {
-        context().debug("No execution configurations to sent to: " + targets);
+        context().debug("No execution configurations to send to: " + targets);
       } else {
         context().debug("Sending execution configuration notification to: " + targets);
         ExecConfigNotification notif = new ExecConfigNotification(execConfigs);
@@ -36,7 +36,6 @@ public class SendExecConfigNotificationTask extends RunnableTask {
         context().getServerContext().getServices().getClusterManager().send(notif);
       }
     } catch (Exception e) {
-      e.printStackTrace();
       context().error("Could not send execution configurations", e);
     }
 

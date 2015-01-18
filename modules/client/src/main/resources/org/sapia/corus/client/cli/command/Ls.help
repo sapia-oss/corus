@@ -3,7 +3,7 @@
    <p>Lists the current distributions or execution configurations</p>
   </section>
   <section title="Syntax">
-    <p>ls [-d distribution_name] [-cluster]</p>
+    <p>ls [-d &lt;distribution_name&gt;] [-cluster]</p>
     <p/>
 	<p>or:</p>
     <p/>
@@ -20,9 +20,7 @@
   </section>
   <section title="Examples">
     <p>ls -d myapp</p>
-    <p/>
     <p>ls -d *</p>
-    <p/>
     <p>ls -e *</p>
     <p/>    
   </section>      

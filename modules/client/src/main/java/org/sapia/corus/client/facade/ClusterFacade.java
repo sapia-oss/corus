@@ -29,5 +29,10 @@ public interface ClusterFacade {
    * the cluster.
    */
   public void resync();
+  
+  /**
+   * @param newClusterName the name of the new cluster to which to reassign the targeted Corus instance(s).
+   */
+  public void changeCluster(String newClusterName, ClusterInfo cluster);
 
 }

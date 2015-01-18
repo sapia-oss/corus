@@ -6,13 +6,13 @@
    for the command to block until the processes have been started, use the -w option (see below).</p>
   </section>
   <section title="Syntax">
-    <p>exec -d distribution_name -v version -p profile [-n process_name] [-i instances] [-w [seconds]] [-cluster]</p>
+    <p>exec -d &lt;distribution_name&gt; -v &lt;version&gt; -p &lt;profile&gt; [-n &lt;process_name&gt;] [-i &lt;instances&gt;] [-w [&lt;seconds&gt;]] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>exec -e exec_config_name [-cluster]</p>
+    <p>exec -e &lt;exec_config_name&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>exec -s shell_script_alias [-cluster]</p>
+    <p>exec -s &lt;shell_script_alias&gt; [-cluster]</p>
     <p/>    
     <p>Where:</p>
     <p/>
@@ -43,17 +43,11 @@
   </section>
   <section title="Examples">
     <p>exec -d myapp -v 1.0 -n jetty -p qa</p>
-    <p/>
     <p>exec -d myapp -v 1.* -n * -p qa</p>
-    <p/>    
     <p>exec -d * -v * -n * -p qa</p>
-    <p/> 
     <p>exec -d * -v * -n * -p qa -w 60</p>
-    <p/>    
     <p>exec -e myExecConfig</p>
-    <p/>
     <p>exec -e myExecConfig -w</p>
-    <p/>
     <p>exec -s restart-memcached</p>
     <p/>        
   </section>  

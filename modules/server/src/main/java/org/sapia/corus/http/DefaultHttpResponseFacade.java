@@ -30,10 +30,20 @@ public class DefaultHttpResponseFacade implements HttpResponseFacade {
   public void setStatusCode(int code) {
     response.setCode(code);
   }
+  
+  @Override
+  public void setStatusMessage(String msg) {
+    response.setDescription(msg);
+  }
 
   @Override
   public void setContentLength(int len) {
     response.setContentLength(len);
+  }
+  
+  @Override
+  public void setContentType(String contentType) {
+    response.setContentType(contentType);
   }
 
   @Override
@@ -50,5 +60,4 @@ public class DefaultHttpResponseFacade implements HttpResponseFacade {
   public void commit() throws IOException {
     response.commit();
   }
-
 }

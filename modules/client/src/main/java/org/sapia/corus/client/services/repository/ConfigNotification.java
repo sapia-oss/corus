@@ -3,11 +3,13 @@ package org.sapia.corus.client.services.repository;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Properties;
+import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.services.cluster.ClusterNotification;
+import org.sapia.corus.client.services.configurator.Property;
 
 /**
  * Holds properties and tags to send to targeted nodes.
@@ -24,8 +26,8 @@ public class ConfigNotification extends ClusterNotification {
    */
   public static final String EVENT_TYPE = "corus.event.repository.notif.config";
 
-  private Properties properties = new Properties();
-  private Set<String> tags = new HashSet<String>();
+  private List<Property> properties = new ArrayList<>();
+  private Set<String>    tags       = new HashSet<>();
 
   public ConfigNotification() {
   }
@@ -37,16 +39,16 @@ public class ConfigNotification extends ClusterNotification {
 
   /**
    * @param props
-   *          the {@link Properties} to add to this instance.
+   *          a {@link List} of {@link Property} instances.
    */
-  public void addProperties(Properties props) {
-    properties.putAll(props);
+  public void addProperties(List<Property> props) {
+    properties.addAll(props);
   }
 
   /**
-   * @return this instance's {@link Properties}.
+   * @return this instance's {@link Property} instances.
    */
-  public Properties getProperties() {
+  public List<Property> getProperties() {
     return properties;
   }
 
@@ -69,7 +71,7 @@ public class ConfigNotification extends ClusterNotification {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
-    properties = (Properties) in.readObject();
+    properties = (List<Property>) in.readObject();
     tags = (Set<String>) in.readObject();
   }
 

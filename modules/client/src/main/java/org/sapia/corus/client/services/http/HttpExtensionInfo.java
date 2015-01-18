@@ -17,8 +17,9 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo> {
     return contextPath;
   }
 
-  public void setContextPath(String contextPath) {
+  public HttpExtensionInfo setContextPath(String contextPath) {
     this.contextPath = contextPath;
+    return this;
   }
 
   /**
@@ -28,8 +29,9 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo> {
     return description;
   }
 
-  public void setDescription(String description) {
+  public HttpExtensionInfo setDescription(String description) {
     this.description = description;
+    return this;
   }
 
   /**
@@ -39,8 +41,17 @@ public class HttpExtensionInfo implements Comparable<HttpExtensionInfo> {
     return name;
   }
 
-  public void setName(String name) {
+  public HttpExtensionInfo setName(String name) {
     this.name = name;
+    return this;
+  }
+  
+  /**
+   * Convenience factory method, creates instances of this class.
+   * @return a new {@link HttpExtensionInfo}.
+   */
+  public static HttpExtensionInfo newInstance() {
+    return new HttpExtensionInfo();
   }
 
   public int hashCode() {

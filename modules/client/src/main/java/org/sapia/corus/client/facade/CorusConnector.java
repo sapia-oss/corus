@@ -48,4 +48,14 @@ public interface CorusConnector {
    * @return the {@link FileManagementFacade}.
    */
   public FileManagementFacade getFileManagementFacade();
+  
+  /**
+   * @return the {@link SecurityManagementFacade}.
+   */
+  public SecurityManagementFacade getSecurityManagementFacade();
+  
+  /**
+   * @return the {@link ApplicationKeyManagementFacade}.
+   */
+  public ApplicationKeyManagementFacade getApplicationKeyManagementFacade();
 }

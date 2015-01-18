@@ -1,8 +1,8 @@
 package org.sapia.corus.client.cli;
 
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
@@ -88,9 +88,14 @@ public interface CliContext {
   public void setAbortOnError(boolean abortOnError);
 
   /**
-   * @return the {@link StrLookup} of variables that this instance holds.
+   * @return the {@link StrLookupState} of variables that this instance holds.
    */
-  public StrLookup getVars();
+  public StrLookupState getVars();
+  
+  /**
+   * @param vars a {@link Map} of variables to add.
+   */
+  public void addVars(Map<String, String> vars);
   
   /**
    * @return the sort switches that were passed.

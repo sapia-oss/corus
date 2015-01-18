@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -27,7 +29,7 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  * @author yduchesne
  * 
  */
-public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable, Comparable<ExecConfig> {
+public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable, Comparable<ExecConfig>, JsonStreamable {
 
   static final long serialVersionUID = 1L;
 
@@ -138,6 +140,25 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     List<ProcessDef> toKeep = new ArrayList<ProcessDef>(processes);
     toKeep.removeAll(toRemove);
     processes = toKeep;
+  }
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("name").value(name)
+      .field("profile").value(profile)
+      .field("startOnBoot").value(startOnBoot);
+    stream.field("processes").beginArray();
+    for (ProcessDef d : processes) {
+      stream.beginObject()
+        .field("distribution").value(d.getDist())
+        .field("version").value(d.getVersion())
+        .field("profile").value(d.getProfile())
+        .field("instances").value(d.getInstances())
+      .endObject();
+    }
+    stream.endArray();
+    stream.endObject();
   }
 
   @Override

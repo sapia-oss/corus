@@ -16,6 +16,7 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
@@ -46,12 +47,12 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private static final int RECONNECTION_DELAY        = 10000;
   private static final int RECONNECTION_DELAY_OFFSET = 2000;
 
-  private EventChannel channel;
-  private Set<CorusHost> hostsInfos = Collections.synchronizedSet(new HashSet<CorusHost>());
-  private Map<String, CorusHost> hostsByNode = Collections.synchronizedMap(new HashMap<String, CorusHost>());
+  private EventChannel                 channel;
+  private Set<CorusHost>               hostsInfos        = Collections.synchronizedSet(new HashSet<CorusHost>());
+  private Map<String, CorusHost>       hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
   private ServerSideClusterInterceptor interceptor;
-  private DeferredAsyncListener deferredListeners = new DeferredAsyncListener();
-  private long startTime = System.currentTimeMillis();
+  private DeferredAsyncListener        deferredListeners = new DeferredAsyncListener();
+  private long                         startTime         = System.currentTimeMillis();
 
   /**
    * @see Service#init()
@@ -157,7 +158,13 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   @Override
   public void resync() {
     channel.resync();
-    channel.forceResync();
+  }
+  
+  @Override
+  public void changeCluster(String name) {
+    log.info("Changing cluster to: " + name);
+    channel.changeDomain(name);
+    ((InternalCorus) serverContext().getCorus()).changeDomain(name);
   }
 
   @Override
@@ -235,6 +242,19 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       CorusHost host = hostsByNode.remove(event.getNode());
       if (host != null) {
         log.info(String.format("Corus server detected as down: %s. Removing from cluster view", host.getEndpoint()));
+        synchronized (hostsInfos) {
+          hostsInfos.remove(host);
+        }
+      }
+    }
+  }
+  
+  @Override
+  public void onLeft(EventChannelEvent event) {
+    synchronized (hostsByNode) {
+      CorusHost host = hostsByNode.remove(event.getNode());
+      if (host != null) {
+        log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host.getEndpoint()));
         synchronized (hostsInfos) {
           hostsInfos.remove(host);
         }

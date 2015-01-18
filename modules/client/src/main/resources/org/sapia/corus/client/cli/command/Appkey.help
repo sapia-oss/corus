@@ -1,0 +1,39 @@
+<help>
+  <section title="Description">
+   <p>Allows managing application keys, in the context of the REST API.</p>
+  </section>
+  <section title="Syntax">
+    <p>appkey add -a &lt;app_id&gt; -r &lt;role&gt; [-k &lt;app_key&gt;] [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>appkey del -a &lt;app_id&gt; [-l] [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>appkey ls [-a &lt;app_id&gt;] [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- add: indicates that an application key is to be added (or an existing one to be updated).</p>
+    <p/>
+    <p>- del: indicates that an application key is to be deleted.</p>
+    <p/>
+    <p>- ls: lists all configured application keys.</p>
+    <p/>
+    <p>- a: an application ID, or a pattern matching multiple application IDs (depending on the command used).</p>
+    <p/>
+    <p>- r: the role to which to associate the application ID.</p>
+    <p/>    
+    <p>- k: the actual application key (optional - one will be generated if not specified).</p>
+    <p/>
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>
+  </section>
+  
+  <section title="Examples">
+    <p>appkey ls -cluster</p>
+    <p>appkey ls -a * -cluster</p>
+    <p>appkey add -a chef -r admin -cluster</p>
+    <p>appkey add -a chef -r admin -k akw71sey927a -cluster</p>
+    <p>appkey del -a * -cluster</p>
+    <p/>
+  </section>      
+</help>

@@ -93,4 +93,10 @@ public interface Env {
    * @see System#getenv()
    */
   public Map<String, String> getEnvironmentVariables();
+  
+  /**
+   * @return the {@link FileSystemFacade}.
+   */
+  public FileSystemFacade getFileSystem();
+  
 }

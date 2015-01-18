@@ -1,6 +1,7 @@
 package org.sapia.corus.core;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
@@ -40,6 +41,11 @@ public interface ServerContext {
    * @return the domain of the Corus server.
    */
   public String getDomain();
+  
+  /**
+   * @return the name of the subdirectory that is specific to this node, under ${corus.home}.
+   */
+  public String getNodeSubdirName();
 
   /**
    * This method returns properties that can be defined for all processes
@@ -56,7 +62,7 @@ public interface ServerContext {
    * <p>
    * The properties are passed to the processes upon their startup.
    */
-  public Properties getProcessProperties() throws IOException;
+  public Properties getProcessProperties(List<String> categories) throws IOException;
 
   /**
    * @return the {@link CorusHost} instance corresponding to this Corus node.

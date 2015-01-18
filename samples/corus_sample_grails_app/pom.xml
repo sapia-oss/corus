@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_samples_parent</artifactId>
-		<version>4.4.3</version>
+		<version>4.5</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -132,9 +132,9 @@
 							<goal>validate</goal>
 							<goal>config-directories</goal>
 							<goal>maven-compile</goal>
-							<goal>maven-test</goal>
+							<!--goal>maven-test</goal-->
 							<goal>maven-war</goal>
-							<goal>maven-functional-test</goal>
+							<!--goal>maven-functional-test</goal-->
 						</goals>
 						<configuration>
 							<showStacktrace>true</showStacktrace>

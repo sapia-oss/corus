@@ -30,6 +30,11 @@ public class StringArg implements Arg {
     }
     return false;
   }
+  
+  @Override
+  public int hashCode() {
+    return token.hashCode();
+  }
 
   public String toString() {
     return token;

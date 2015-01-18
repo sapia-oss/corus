@@ -6,13 +6,13 @@
     <p>deploy file [file2 [file3 [...]]] [-seq] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>deploy -e exec_config_file [-cluster]</p>
+    <p>deploy -e &lt;exec_config_file&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>deploy -f arbitrary_file.tar [-d remote_dir] [-cluster]</p>
+    <p>deploy -f &lt;arbitrary_file&gt; [-d &lt;remote_dir&gt;] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
-    <p>deploy -s restart_memcached.sh -a restart-memcached [-d "restarts memcached" ] [-cluster]</p>
+    <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-cluster]</p>
     <p/>    
     <p>Where:</p>
     <p/>
@@ -42,15 +42,11 @@
   </section>
   <section title="Examples">
     <p>deploy myDistribution.zip</p>
-    <p/>
     <p>deploy myDistribution.zip -cluster</p>
-    <p/>    
     <p>deploy myDistribution.zip -seq -cluster</p>
-    <p/>
     <p>deploy -e myExecConfig.xml</p>
-    <p/>    
     <p>deploy -f someArchive.tar</p>
-    <p/>    
+    <p>deploy -f someArchive.tar -d /opt/archives -cluster</p>
     <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
     <p/>    
   </section>

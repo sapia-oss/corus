@@ -56,6 +56,11 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   public String getHomeDir() {
     return delegate.getHomeDir();
   }
+  
+  @Override
+  public String getNodeSubdirName() {
+    return delegate.getNodeSubdirName();
+  }
 
   @Override
   public EventChannel getEventChannel() {
@@ -78,8 +83,8 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   }
 
   @Override
-  public Properties getProcessProperties() throws IOException {
-    return delegate.getProcessProperties();
+  public Properties getProcessProperties(List<String> categories) throws IOException {
+    return delegate.getProcessProperties(categories);
   }
 
   @Override

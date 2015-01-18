@@ -65,6 +65,8 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
       deployTasks.add(new SendConfigNotificationTask(repoConfig, allTargets));
 
       deployTasks.add(new SendPortRangeNotificationTask(repoConfig, allTargets));
+      
+      deployTasks.add(new SendSecurityConfigNotificationTask(repoConfig, allTargets));
 
       ArtifactDeploymentHandlerTaskHelper distHelper = getDistributionHelper(getDistributionRequests(requests));
       distHelper.addTo(deployTasks);

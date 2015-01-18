@@ -25,9 +25,11 @@ public class Undeploy extends CorusCliCommand {
   private static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", true);
   private static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
   private static final OptionDef OPT_FILE        = new OptionDef("f", true);
+  private static final OptionDef OPT_BACKUP      = new OptionDef("backup", true);
+
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_CLUSTER
+      OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_BACKUP, OPT_CLUSTER
   );
   
   @Override
@@ -59,8 +61,9 @@ public class Undeploy extends CorusCliCommand {
 
   private void doUndeployDist(CliContext ctx) throws AbortException, InputException {
     try {
-      String dist = null;
+      String dist    = null;
       String version = null;
+      int    backup  = 0;
       CmdLine cmd = ctx.getCommandLine();
 
       if (cmd.hasNext() && cmd.isNextArg()) {
@@ -71,10 +74,20 @@ public class Undeploy extends CorusCliCommand {
         dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
         version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
       }
+      
+      if (ctx.getCommandLine().containsOption(OPT_BACKUP.getName(), false)) {
+        backup = ctx.getCommandLine().assertOption(OPT_BACKUP.getName(), true).asInt();
+      }
 
       super.displayProgress(
-          ctx.getCorus().getDeployerFacade()
-              .undeployDistribution(DistributionCriteria.builder().name(dist).version(version).build(), getClusterInfo(ctx)), ctx);
+          ctx.getCorus().getDeployerFacade().undeployDistribution(
+               DistributionCriteria.builder()
+                 .name(dist).version(version)
+                 .backup(backup).build(), 
+               getClusterInfo(ctx)
+          ), 
+          ctx
+      );
 
     } catch (RunningProcessesException e) {
       CliError err = ctx.createAndAddErrorFor(this, e);

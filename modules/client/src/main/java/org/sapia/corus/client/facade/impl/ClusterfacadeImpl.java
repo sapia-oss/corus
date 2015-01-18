@@ -26,5 +26,15 @@ public class ClusterfacadeImpl extends FacadeHelper<ClusterManager> implements C
     proxy.resync();
     invoker.invokeLenient(void.class, new ClusterInfo(false));
   }
+  
+  @Override
+  public void changeCluster(String newClusterName, ClusterInfo cluster) {
+    proxy.changeCluster(newClusterName.trim());
+    try {
+      invoker.invoke(void.class, cluster);
+    } catch (Throwable e) {
+      throw new IllegalStateException("Error occurred trying to change cluster", e);
+    }
+  }
 
 }

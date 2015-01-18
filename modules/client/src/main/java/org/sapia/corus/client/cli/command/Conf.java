@@ -9,14 +9,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.console.AbortException;
-import org.sapia.console.Arg;
 import org.sapia.console.CmdElement;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
@@ -28,12 +31,14 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
@@ -49,7 +54,7 @@ public class Conf extends CorusCliCommand {
   private static final String PASSWORD_PATTERN = "password";
   private static final String PASSWORD_OBFUSCATION = "********";
 
-  private final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 38).createCol("val", 38);
+  private final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 31).createCol("val", 31).createCol("cat", 10);
 
   private final TableDef TAGS_TBL = TableDef.newInstance().createCol("val", 78);
 
@@ -61,10 +66,13 @@ public class Conf extends CorusCliCommand {
   public static final String ARG_RENAME = "ren";
   public static final String ARG_DEL    = "del";
   public static final String ARG_LS     = "ls";
+  public static final String ARG_LOAD   = "load";
   public static final String ARG_EXPORT = "export";
   public static final String ARG_MERGE  = "merge";
+  public static final String ARG_ALL    = "all";
 
   private static final OptionDef OPT_PROPERTY   = new OptionDef("p", false);
+  private static final OptionDef OPT_CATEGORY   = new OptionDef("c", false);
   private static final OptionDef OPT_FILE       = new OptionDef("f", true);
   private static final OptionDef OPT_BASE       = new OptionDef("b", true);
   private static final OptionDef OPT_TAG        = new OptionDef("t", false);
@@ -75,15 +83,14 @@ public class Conf extends CorusCliCommand {
   private static final OptionDef OPT_CLEAR      = new OptionDef("clear", false);
   
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_PROPERTY, OPT_FILE, OPT_BASE, OPT_TAG, OPT_REPLACE, 
-      OPT_SCOPE, OPT_SCOPE_SVR, OPT_SCOPE_PROC, OPT_CLEAR,
-      OPT_CLUSTER
+      OPT_PROPERTY, OPT_CATEGORY, OPT_FILE, OPT_BASE, OPT_TAG, OPT_REPLACE, 
+      OPT_SCOPE, OPT_SCOPE_SVR, OPT_SCOPE_PROC, OPT_CLEAR, OPT_CLUSTER
   );
 
   // --------------------------------------------------------------------------
 
   private enum Op {
-    ADD, DELETE, LIST, EXPORT, RENAME, MERGE
+    ADD, DELETE, LIST, EXPORT, RENAME, MERGE, LOAD
   }
 
   // --------------------------------------------------------------------------
@@ -113,6 +120,8 @@ public class Conf extends CorusCliCommand {
         op = Op.RENAME;
       } else if (opArg.equalsIgnoreCase(ARG_MERGE)) {
         op = Op.MERGE;
+      } else if (opArg.equalsIgnoreCase(ARG_LOAD)) {
+        op = Op.LOAD;
       } else {
         throw new InputException("Unknown argument " + opArg + "; expecting one of: add | del | ls");
       }
@@ -121,7 +130,13 @@ public class Conf extends CorusCliCommand {
     }
 
     if (op != null) {
-      if (ctx.getCommandLine().containsOption(OPT_TAG.getName(), false)) {
+      if (op == Op.LOAD) {
+        try {
+          handlePropertyOp(op, ctx);
+        } catch (IOException e) {
+          throw new AbortException("I/O Error performing command", e);
+        }        
+      } else if (ctx.getCommandLine().containsOption(OPT_TAG.getName(), false)) {
         try {
           handleTag(op, ctx);
         } catch (IOException e) {
@@ -181,7 +196,7 @@ public class Conf extends CorusCliCommand {
         }
       }
       ctx.getCorus().getConfigFacade().renameTags(nvPairs, getClusterInfo(ctx));
-    } 
+    }
   }
 
   private void handlePropertyOp(Op op, CliContext ctx) throws InputException, IOException {
@@ -213,7 +228,7 @@ public class Conf extends CorusCliCommand {
           input = new FileInputStream(propFile);
           props.load(input);
           boolean clearExisting = ctx.getCommandLine().containsOption(OPT_CLEAR.getName(), false);
-          ctx.getCorus().getConfigFacade().addProperties(scope, props, clearExisting, getClusterInfo(ctx));
+          ctx.getCorus().getConfigFacade().addProperties(scope, props, categorySet(ctx), clearExisting, getClusterInfo(ctx));
         } catch (IOException e) {
           CliError err = ctx.createAndAddErrorFor(this, e);
           ctx.getConsole().println(err.getSimpleMessage());
@@ -228,17 +243,17 @@ public class Conf extends CorusCliCommand {
         if (index > 0) {
           String name = pair.substring(0, index);
           String value = pair.substring(1 + index);
-          ctx.getCorus().getConfigFacade().addProperty(scope, name, value, getClusterInfo(ctx));
+          ctx.getCorus().getConfigFacade().addProperty(scope, name, value, categorySet(ctx), getClusterInfo(ctx));
         } else {
           throw new InputException("Invalid property format; expected: <name>=<value>");
         }
       }
     } else if (op == Op.MERGE) {
       Properties processProps = new Properties();
-      Results<List<NameValuePair>> propResults = ctx.getCorus().getConfigFacade().getProperties(PropertyScope.PROCESS, new ClusterInfo(false));
-      for (Result<List<NameValuePair>> r : propResults) {
-        for (NameValuePair nvp : r.getData()) {
-          processProps.setProperty(nvp.getName(), nvp.getValue());
+      Results<List<Property>> propResults = ctx.getCorus().getConfigFacade().getAllProperties(PropertyScope.PROCESS, new ClusterInfo(false));
+      for (Result<List<Property>> r : propResults) {
+        for (Property p : r.getData()) {
+          processProps.setProperty(p.getName(), p.getValue());
         }
       }
       
@@ -264,9 +279,8 @@ public class Conf extends CorusCliCommand {
       StrSubstitutor substitutor = new StrSubstitutor(
           new CompositeStrLookup()
             .add(PropertiesStrLookup.getInstance(processProps))
-            .add(ctx.getVars())
+            .add(ctx.getVars().get())
             .add(PropertiesStrLookup.systemPropertiesLookup())
-            .lenient()
        );
       
       for (String n : baseProperties.stringPropertyNames()) {
@@ -292,17 +306,58 @@ public class Conf extends CorusCliCommand {
         os.close();
       }
     } else if (op == Op.DELETE) {
-      String name = ctx.getCommandLine().assertOption(OPT_PROPERTY.getName(), true).getValue();
-      ctx.getCorus().getConfigFacade().removeProperty(scope, name, getClusterInfo(ctx));
+      if (ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()) {
+        ctx.getCommandLine().assertNextArg(new String[] { ARG_ALL });
+        ctx.getCorus().getConfigFacade().removeProperty(
+            scope, 
+            ArgFactory.any(), 
+            Collects.arrayToSet(ArgFactory.any()), 
+            getClusterInfo(ctx)
+        );
+        ctx.getCorus().getConfigFacade().removeProperty(
+            scope, 
+            ArgFactory.any(), 
+            new HashSet<Arg>(0), 
+            getClusterInfo(ctx)
+        );
+      } else {
+        String name = ctx.getCommandLine().assertOption(OPT_PROPERTY.getName(), true).getValue();
+        ctx.getCorus().getConfigFacade().removeProperty(
+            scope, ArgFactory.parse(name), categoryArgSet(ctx), getClusterInfo(ctx)
+        );
+      }
     } else if (op == Op.LIST) {
-      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
-      results = Sorting.sortList(results, NameValuePair.class, ctx.getSortSwitches());
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, getClusterInfo(ctx));
+      results = Sorting.sortList(results, Property.class, ctx.getSortSwitches());
       displayPropertyResults(results, ctx);
     } else if (op == Op.EXPORT) {
-      Results<List<NameValuePair>> results = ctx.getCorus().getConfigFacade().getProperties(scope, getClusterInfo(ctx));
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, getClusterInfo(ctx));
       exportPropertyResults(results, ctx);
     } else if (op == Op.RENAME) {
       throw new InputException("Rename option not supported for properties");
+    } else if (op == Op.LOAD) {
+      List<String> categories = new ArrayList<>();
+      Arg filter;
+      if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
+        categories.addAll(Arrays.asList(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue().split(",")));
+      }
+      if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
+        filter = ArgFactory.parse(ctx.getCommandLine().getOpt(OPT_PROPERTY.getName()).getValue());
+      } else {
+        filter = ArgFactory.any();
+      }
+      
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categories, getClusterInfo(ctx));
+      Map<String, String> newVars = new HashMap<String, String>();
+      while (results.hasNext()) {
+        Result<List<Property>> result = results.next();
+        for (Property p : result.getData()) {
+          if (filter.matches(p.getName())) {
+            newVars.put(p.getName(), p.getValue());
+          }
+        }
+      }
+      ctx.addVars(newVars);
     }
   }
 
@@ -385,14 +440,14 @@ public class Conf extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private void exportPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) throws InputException {
+  private void exportPropertyResults(Results<List<Property>> res, CliContext ctx) throws InputException {
     File exportFile = ctx.getFileSystem().getFile(ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue());
     try {
       PrintWriter writer = new PrintWriter(new FileOutputStream(exportFile));
       try {
         while (res.hasNext()) {
-          Result<List<NameValuePair>> result = res.next();
-          for (NameValuePair props : result.getData()) {
+          Result<List<Property>> result = res.next();
+          for (Property props : result.getData()) {
             writer.println(props.getName() + "=" + props.getValue());
           }
         }
@@ -408,7 +463,7 @@ public class Conf extends CorusCliCommand {
 
   }
 
-  private void displayPropertyResults(Results<List<NameValuePair>> res, CliContext ctx) throws InputException {
+  private void displayPropertyResults(Results<List<Property>> res, CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_PROPERTY.getName());
     if (nameFilter == null) {
       if (ctx.getCommandLine().size() > 0) {
@@ -419,8 +474,8 @@ public class Conf extends CorusCliCommand {
             element = ctx.getCommandLine().get(index);
           }
         }
-        if (element instanceof Arg) {
-          String argValue = ((Arg) element).getName().trim();
+        if (element instanceof org.sapia.console.Arg) {
+          String argValue = ((org.sapia.console.Arg) element).getName().trim();
           if (!argValue.equals(ARG_LS)) {
             nameFilter = argValue;
           }
@@ -429,12 +484,12 @@ public class Conf extends CorusCliCommand {
     }
     if (nameFilter != null) {
       final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
-      res = res.filter(new Func<List<NameValuePair>, List<NameValuePair>>() {
+      res = res.filter(new Func<List<Property>, List<Property>>() {
         @Override
-        public List<NameValuePair> call(List<NameValuePair> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<NameValuePair>() {
+        public List<Property> call(List<Property> toFilter) {
+          return Collects.filterAsList(toFilter, new Condition<Property>() {
             @Override
-            public boolean apply(NameValuePair item) {
+            public boolean apply(Property item) {
               return pattern.matches(item.getName());
             }
           });
@@ -443,10 +498,10 @@ public class Conf extends CorusCliCommand {
     }
 
     while (res.hasNext()) {
-      Result<List<NameValuePair>> result = res.next();
+      Result<List<Property>> result = res.next();
       displayPropertiesHeader(result.getOrigin(), ctx);
-      for (NameValuePair props : result.getData()) {
-        displayProperties(props, ctx);
+      for (Property prop : result.getData()) {
+        displayProperties(prop, ctx);
       }
     }
   }
@@ -467,10 +522,12 @@ public class Conf extends CorusCliCommand {
 
     headers.getCellAt(PROPS_TBL.col("name").index()).append("Name");
     headers.getCellAt(PROPS_TBL.col("val").index()).append("Value");
+    headers.getCellAt(PROPS_TBL.col("cat").index()).append("Category");
+
     headers.flush();
   }
 
-  private void displayProperties(NameValuePair prop, CliContext ctx) {
+  private void displayProperties(Property prop, CliContext ctx) {
     Table propsTable = PROPS_TBL.createTable(ctx.getConsole().out());
 
     propsTable.drawLine('-', 0, ctx.getConsole().getWidth());
@@ -482,7 +539,31 @@ public class Conf extends CorusCliCommand {
     } else {
       row.getCellAt(PROPS_TBL.col("val").index()).append(prop.getValue());
     }
+    row.getCellAt(PROPS_TBL.col("cat").index()).append(prop.getCategory().isNull() ? "N/A" : prop.getCategory().get());
     row.flush();
   }
+  
+  private Set<Arg> categoryArgSet(CliContext ctx) {
+    if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
+      List<String> toTransform =  Collects.arrayToList(
+          StringUtils.split(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue(), ",")
+      );
+      return Collects.convertAsSet(toTransform, new Func<Arg, String>() {
+        @Override
+        public Arg call(String s) {
+          return ArgFactory.parse(s);
+        }
+      });
+    }
+    return new HashSet<>(0);
+  }
 
+  private Set<String> categorySet(CliContext ctx) {
+    if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
+      return Collects.arrayToSet(
+          StringUtils.split(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue(), ",")
+      );
+    }
+    return new HashSet<>(0);
+  }
 }

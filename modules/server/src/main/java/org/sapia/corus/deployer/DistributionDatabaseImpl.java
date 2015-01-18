@@ -1,6 +1,8 @@
 package org.sapia.corus.deployer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +96,29 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
           }
         }
       }
+    }
+    if (criteria.getBackup() > 0) {
+      Map<String, ArrayList<Distribution>> distsByName = new HashMap<>();
+      
+      Collections.sort(dists);
+      
+      for(Distribution d : dists) {
+        ArrayList<Distribution> distsForName = distsByName.get(d.getName());
+        if (distsForName == null) {
+          distsForName = new ArrayList<>();
+          distsByName.put(d.getName(), distsForName);
+        }
+        distsForName.add(d);
+      }
+      
+      List<Distribution> toRemove = new ArrayList<>();
+      for (Map.Entry<String, ArrayList<Distribution>> entry : distsByName.entrySet()) {
+        if (entry.getValue().size() > criteria.getBackup()) {
+          List<Distribution> sublist = entry.getValue().subList(0, entry.getValue().size() - criteria.getBackup());
+          toRemove.addAll(sublist);
+        }
+      }
+      return toRemove;
     }
     return dists;
   }

@@ -21,11 +21,8 @@
   </section>
   <section title="Examples">
     <p>ant -f scripts/copy_files.xml</p>
-    <p/>
     <p>ant -f scripts/copy_files.xml -d</p>
-    <p/>    
     <p>ant -f scripts/copy_files.xml -l debug</p>
-    <p/>    
     <p>ant -f scripts/copy_files.xml -l debug -t clean-current-dir</p>
     <p/>    
   </section>

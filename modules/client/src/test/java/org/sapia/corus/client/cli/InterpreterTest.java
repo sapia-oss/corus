@@ -1,8 +1,10 @@
 package org.sapia.corus.client.cli;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -82,7 +84,7 @@ public class InterpreterTest {
 
     console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());
 
-    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), any(ClusterInfo.class));
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), anySetOf(String.class), any(ClusterInfo.class));
   }
 
   @Test(expected = AbortException.class)
@@ -129,6 +131,12 @@ public class InterpreterTest {
     assertEquals(expectedCriteria.getName(), inputCriteria.get().getName());
     assertEquals(expectedCriteria.getProfile(), inputCriteria.get().getProfile());
     assertTrue("Expected clustered", inputClusterInfo.get().isClustered());
+  }
+  
+  @Test
+  public void testComment() throws Throwable {
+    Object value = console.eval("# this is a comment", StrLookup.noneLookup());
+    assertNull("Expected <null> as return value from eval() when comment is passed in", value);
   }
 
 }

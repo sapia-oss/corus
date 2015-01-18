@@ -1,5 +1,7 @@
 package org.sapia.corus.core;
 
+import java.io.File;
+
 /**
  * This interface holds common property names.
  * 
@@ -57,4 +59,8 @@ public interface CorusConsts {
    * Defines the property prefix of a symbolic link definition.
    */
   public static final String PROPERTY_CORUS_FILE_LINK_PREFIX = "corus.server.file.link.";
+  
+  public static final File CORUS_USER_HOME = new File(System.getProperty("user.home") + File.separator + ".corus");
+  
+  
 }

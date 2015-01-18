@@ -10,6 +10,11 @@ import java.io.FileNotFoundException;
  * 
  */
 public interface HttpExtension {
+  
+  public static final String CORUS_HEADER_APP_ID  = "X-corus-app-id";
+  public static final String CORUS_HEADER_APP_KEY = "X-corus-app-key";
+  public static final String CORUS_PARAM_APP_ID   = "aid";
+  public static final String CORUS_PARAM_APP_KEY  = "apk";
 
   /**
    * @return the {@link HttpExtensionInfo} holding this instance's information.

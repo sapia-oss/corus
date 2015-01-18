@@ -1,0 +1,53 @@
+<help>
+  <section title="Description">
+   <p>Allows managing roles, in the context of the REST API.</p>
+  </section>
+  <section title="Syntax">
+    <p>role add -n &lt;role_name&gt; -p &lt;permission_set&gt; [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>role del -n &lt;role_name&gt; -p &lt;permission_list&gt; [-l] [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>role ls [-n &lt;role_name&gt;] [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- add: indicates that a role is to be added (or an existing one to be updated).</p>
+    <p/>
+    <p>- del: indicates that a role is to be deleted (the -n option used with this command does NOT support pattern matching).</p>
+    <p/>
+    <p>- ls: lists all configured roles (the -n option used with this command supports pattern matching).</p>
+    <p/>
+    <p>- n: the name of a role, or a pattern matching multiple role names (depending on the command used).</p>
+    <p/>
+    <p>- p: a permission set, comprising a letter for each permission that is desired for the role: 
+    r (read), w (write), x (execute) d (deploy). See notes below for more details.</p>
+    <p/>    
+    <p>- l: stands for "lenient". Indicates that if a role is not found upon deleting it, the "not found" error should be ignored.</p>
+    <p/>
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>
+  </section>
+  
+  <section title="Available Permissions">
+    <p>Permissions are specified using a character for each permission that is desired, in so-called "permission sets".
+    These characters map to the permissions as follows:
+    </p>
+    <p/>
+    <p>-r: read (corresponds to commands such as: ls, ps, conf ls, port ls, etc.)</p>
+    <p>-w: write (corresponds to commands such as: port add/del, conf add/del, ps -clean, etc.)</p>
+    <p>-x: execute (corresponds to the followingf commands: exec, kill, restart, suspend, resume)</p>    
+    <p>-d: deploy (corresponds to deploy/undeploy)</p>
+  </section>      
+  
+  <section title="Examples">
+    <p>port ls -cluster</p>
+    <p>port ls -n *admin* -cluster</p>
+    <p>role add -n guest -p r -cluster</p>
+    <p>role add -n admin -p rwxd -cluster</p>
+    <p>role del -n guest -cluster</p>
+    <p>role del -n guest -f -cluster</p>
+    <p>role del -n guest -f -cluster</p>
+    <p/>
+  </section>      
+</help>

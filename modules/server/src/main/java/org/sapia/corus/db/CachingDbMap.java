@@ -117,6 +117,11 @@ public class CachingDbMap<K, V> implements DbMap<K, V> {
   public Iterator<V> values() {
     return new CacheIterator(delegate.values());
   }
+  
+  @Override
+  public Iterator<V> iterator() {
+    return values();
+  }
 
   @Override
   public Collection<V> values(RecordMatcher<V> matcher) {

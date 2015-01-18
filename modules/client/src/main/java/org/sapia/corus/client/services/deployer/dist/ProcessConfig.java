@@ -14,6 +14,7 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.ubik.util.Collects;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectHandlerIF;
 
@@ -27,21 +28,24 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
 
   static final long serialVersionUID = 1L;
 
-  public static final int DEFAULT_POLL_INTERVAL = 10;
-  public static final int DEFAULT_STATUS_INTERVAL = 30;
+  public static final int DEFAULT_POLL_INTERVAL        = 10;
+  public static final int DEFAULT_STATUS_INTERVAL      = 30;
+  public static final int DEFAULT_INTERPOLATION_PASSES = 2;
 
-  private boolean invoke = true;
+  private boolean       invoke   = true;
   private List<Starter> starters = new ArrayList<Starter>();
-  private List<Port> ports = new ArrayList<Port>();
-  private int maxKillRetry = -1;
-  private int shutDownTimeout = -1;
-  private int maxInstances;
-  private String name;
-  private int statusInterval = DEFAULT_STATUS_INTERVAL;
-  private int pollInterval = DEFAULT_POLL_INTERVAL;
-  private boolean deleteOnKill = false;
+  private List<Port>    ports    = new ArrayList<Port>();
+  private int           maxKillRetry = -1;
+  private int      shutDownTimeout   = -1;
+  private int      maxInstances;
+  private String   name;
+  private int      statusInterval      = DEFAULT_STATUS_INTERVAL;
+  private int      pollInterval        = DEFAULT_POLL_INTERVAL;
+  private boolean  deleteOnKill        = false;
   private String[] tags;
-  private PreExec preExec; 
+  private String[] categories;
+  private int      interpolationPasses = DEFAULT_INTERPOLATION_PASSES;
+  private PreExec  preExec; 
 
   public ProcessConfig() {
   }
@@ -79,7 +83,7 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   /**
    * Sets this instance's tags.
    * 
-   * @param tagList
+   * @param tagList a comma-delimited list of tags.
    */
   public void setTags(String tagList) {
     tags = tagList.split(",");
@@ -92,13 +96,32 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
    * @return the set of tags held by this instance.
    */
   public Set<String> getTagSet() {
-    Set<String> set = new HashSet<String>();
-    if (tags != null) {
-      for (String t : tags) {
-        set.add(t);
-      }
+    if (tags == null) {
+      return new HashSet<>(0);
     }
-    return set;
+    return Collects.arrayToSet(tags);
+  }
+  
+  /**
+   * Sets this instance's categories.
+   * 
+   * @param categoryList a comma-delimited list of categories.
+   */
+  public void setPropertyCategories(String categoryList) {
+    categories = categoryList.split(",");
+    for (int i = 0; i < categories.length; i++) {
+      categories[i] = categories[i].trim();
+    }  
+  }
+  
+  /**
+   * @return the list of categories held by this instance.
+   */
+  public List<String> getPropertyCategories() {
+    if (categories == null) {
+      return new ArrayList<>(0);
+    }
+    return Collects.arrayToList(categories);
   }
 
   /**
@@ -269,6 +292,24 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   public int getMaxInstances() {
     return maxInstances;
   }
+  
+  /**
+   * Sets the number of interpolation passes to do when interpolating
+   * property variables in process configuration.
+   * 
+   * @param interpolationPasses a number of interpolation passes.
+   */
+  public void setInterpolationPasses(int interpolationPasses) {
+    this.interpolationPasses = interpolationPasses;
+  }
+  
+  /**
+   * @return the number of interpolation passes to do when interpolating
+   * property variables in process configuration (defaults to 2).
+   */
+  public int getInterpolationPasses() {
+    return interpolationPasses;
+  }
 
   /**
    * @param env the {@link Env} instance.
@@ -276,15 +317,15 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
    */
   public void preExec(Env env) throws Throwable {
     if (preExec != null && !preExec.getCommands().isEmpty()) {
-      CompositeStrLookup vars   = new CompositeStrLookup().lenient();
       Properties          props = new Properties();
       for (Property p : env.getProperties()) {
         props.setProperty(p.getName(), p.getValue());
       }
-      
-      vars.add(new PropertiesStrLookup(props));
-      vars.add(StrLookup.mapLookup(env.getEnvironmentVariables()));
-      vars.add(StrLookup.systemPropertiesLookup());
+
+      CompositeStrLookup vars   = new CompositeStrLookup()
+        .add(new PropertiesStrLookup(props))
+        .add(StrLookup.systemPropertiesLookup())
+        .add(StrLookup.mapLookup(env.getEnvironmentVariables()));
 
       StrSubstitutor subs = new StrSubstitutor(vars);
       for (Cmd c : preExec.getCommands()) {

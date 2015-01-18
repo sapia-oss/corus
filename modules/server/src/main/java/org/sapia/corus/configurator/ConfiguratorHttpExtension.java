@@ -10,6 +10,7 @@ import java.util.Properties;
 
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
@@ -74,20 +75,20 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     PrintStream responseStream = new PrintStream(httpContext.getResponse().getOutputStream());
     responseStream.println("<html><title>Corus Configurator</title><head>" + HttpExtensionManager.STYLE_HEADER + "</head><body>");
 
-    responseStream.println("<h3>Process Configuration Properties</h3>");
-    generatePropertiesTable(configurator.getProperties(PropertyScope.PROCESS), responseStream);
+    responseStream.println("<h3>Process Properties</h3>");
+    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.PROCESS), responseStream);
     responseStream.println("<br/>");
 
-    responseStream.println("<h3>Server Configuration Properties</h3>");
-    generatePropertiesTable(configurator.getProperties(PropertyScope.SERVER), responseStream);
+    responseStream.println("<h3>Server Properties</h3>");
+    generatePropertiesTable(serverContext.getCorusProperties(), responseStream);
+    responseStream.println("<br/>");
+    
+    responseStream.println("<h3>Stored Server Properties</h3>");
+    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.SERVER), responseStream);
     responseStream.println("<br/>");
 
     responseStream.println("<h3>Tag Configuration</h3>");
     generateValueTable(configurator.getTags(), responseStream);
-    responseStream.println("<br/>");
-
-    responseStream.println("<h3>Corus Properties</h3>");
-    generatePropertiesTable(serverContext.getCorusProperties(), responseStream);
     responseStream.println("<br/>");
 
     responseStream.println(HttpExtensionManager.FOOTER + "</body></html></body></html>");
@@ -104,17 +105,38 @@ public class ConfiguratorHttpExtension implements HttpExtension {
    *          The stream in which to send the output
    */
   protected void generatePropertiesTable(Properties someProps, PrintStream output) {
+    output.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"3\" width=\"75%\">");
+    output.println("<th width=\"60%\">Name</th><th width=\"40%\">Value</th>");
+    
     List<String> keys = new ArrayList<String>();
-    for (Object key: someProps.keySet()) {
-      keys.add((String) key);
+    for (String n : someProps.stringPropertyNames()) {
+      keys.add(n);
     }
     Collections.sort(keys);
-
+    for (String k : keys) {
+      String value = someProps.getProperty(k);
+      output.println("<tr valign=\"top\"><td>" + k + "</td><td>" 
+      + PropertiesUtil.hideIfPassword(k, value) + "</td></tr>");
+    }
+    
+    output.println("</table>");
+  }
+  
+  /**
+   * Internal method that generate an html table of some properties.
+   * 
+   * @param someProps
+   *          The properties to output.
+   * @param output
+   *          The stream in which to send the output
+   */
+  protected void generatePropertiesTable(List<Property> someProps, PrintStream output) {
     output.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"3\" width=\"75%\">");
-    output.println("<th width=\"50%\">Name</th><th width=\"50%\">Value</th>");
-    for (String name: keys) {
-      String value = someProps.getProperty(name);
-      output.println("<tr valign=\"top\"><td>" + name + "</td><td>" + PropertiesUtil.hideIfPassword(name, value) + "</td></tr>");
+    output.println("<th width=\"60%\">Name</th><th width=\"30%\">Value</th><th width=\"10%\">Category</th>");
+    for (Property p : someProps) {
+      output.println("<tr valign=\"top\"><td>" + p.getName() + "</td><td>" 
+      + PropertiesUtil.hideIfPassword(p.getName(), p.getValue()) + "</td>"
+      + "<td>" + (p.getCategory().isNull() ? "N/A" : p.getCategory().get()) + "</tr>");
     }
     
     output.println("</table>");

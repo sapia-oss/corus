@@ -73,6 +73,17 @@
 
   <!-- ============ HTTP ============ -->
 
+  <bean name="org.sapia.corus.http.SslExporter"
+        class="org.sapia.corus.http.SslExporterBean"
+        scope="singleton"
+        autowire="autodetect">
+    <property name="keyPassword"      value="${corus.server.ssl.key.password}" />      
+    <property name="keystorePassword" value="${corus.server.ssl.keystore.password}" />      
+    <property name="keystoreFile"     value="${corus.server.ssl.keystore.file}" />
+    <property name="sslPort"          value="${corus.server.ssl.port}" />
+    <property name="sslEnabled"       value="${corus.server.ssl.enabled}" />   
+  </bean>
+
   <bean name="org.sapia.corus.client.services.http.HttpModule" 
         class="org.sapia.corus.http.HttpModuleImpl" 
         scope="singleton"

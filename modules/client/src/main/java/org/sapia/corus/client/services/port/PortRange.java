@@ -15,7 +15,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
+
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
@@ -23,14 +26,15 @@ import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
 /**
  * @author yduchesne
  */
-public class PortRange extends AbstractPersistent<String, PortRange> implements java.io.Serializable, Comparable<PortRange>, Matcheable {
+public class PortRange extends AbstractPersistent<String, PortRange> 
+  implements java.io.Serializable, Comparable<PortRange>, JsonStreamable, Matcheable {
 
   static final long serialVersionUID = 1L;
 
   private String name;
   private int min, max;
   private List<Integer> available = new ArrayList<Integer>();
-  private List<Integer> active = new ArrayList<Integer>();
+  private List<Integer> active    = new ArrayList<Integer>();
 
   PortRange() {
   }
@@ -51,8 +55,8 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
       throw new PortRangeInvalidException("Min port must be lower than max port");
 
     this.name = name;
-    this.min = min;
-    this.max = max;
+    this.min  = min;
+    this.max  = max;
 
     for (int i = min; i <= max; i++) {
       available.add(new Integer(i));
@@ -121,7 +125,7 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
   /**
    * releases all active ports.
    */
-  public void releaseAll() {
+  public synchronized void releaseAll() {
     for (int i = 0; i < active.size(); i++) {
       Integer busy = (Integer) active.get(i);
       if (!available.contains(busy)) {
@@ -131,7 +135,7 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
     Collections.sort(available);
     active.clear();
   }
-
+  
   /**
    * @return <code>true</code> if the given port range is conflicting with this
    *         instance.
@@ -139,22 +143,36 @@ public class PortRange extends AbstractPersistent<String, PortRange> implements 
   public boolean isConflicting(PortRange other) {
     return (other.max <= max && other.max >= min) || (other.min >= min && other.min <= max);
   }
-
-  @Override
-  public int compareTo(PortRange other) {
-    return getName().compareTo(other.getName());
-  }
   
+  @Override
+  public synchronized void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("name").value(name)
+      .field("min").value(min)
+      .field("max").value(max)
+      .field("availablePorts").numbers(available)
+      .field("activePorts").numbers(active)
+    .endObject();
+  }
+
   @Override
   public boolean matches(Pattern pattern) {
     return pattern.matches(name) || 
         pattern.matches(Integer.toString(min)) || 
         pattern.matches(Integer.toString(max));
   }
+  
+  @Override
+  public int compareTo(PortRange other) {
+    return getName().compareTo(other.getName());
+  }
 
   @Override
   public String toString() {
-    return new StringBuffer().append("[").append("name=").append(name).append(", min=").append(min).append(", max=").append(max).append("]")
+    return new StringBuffer().append("[")
+        .append("name=").append(name)
+        .append(", min=").append(min)
+        .append(", max=").append(max).append("]")
         .toString();
   }
 

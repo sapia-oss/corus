@@ -10,6 +10,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.util.Strings;
 
 /**
  * This class models meta-information about an operation performed in the
@@ -25,7 +26,8 @@ public class ClusterInfo implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private boolean cluster;
-  private Set<ServerAddress> targets = new HashSet<ServerAddress>();
+  private Set<ServerAddress> targets  = new HashSet<>();
+  private Set<ServerAddress> excluded = new HashSet<>();
 
   public ClusterInfo(boolean cluster) {
     this.cluster = cluster;
@@ -77,12 +79,48 @@ public class ClusterInfo implements Serializable {
   public boolean isTargetingAllHosts() {
     return targets.isEmpty();
   }
+  
+  /**
+   * @param target the {@link ServerAddress} corresponding to the target to test for.
+   * @return <code>true</code> if a single host is targeted, which corresponds to the given target.
+   */
+  public boolean isTargetingSingleHost(ServerAddress target) {
+    return targets.size() == 1 && targets.contains(target);
+  }
+  
+  /**
+   * @param target the {@link ServerAddress} corresponding to the target to test for.
+   * @return <code>true</code> the given target is included in this instance's target set, or
+   * if all hosts are targeted.
+   */
+  public boolean isTargetingHost(ServerAddress target) {
+    return targets.contains(target) || targets.isEmpty();
+  }
 
   /**
    * @return a copy of this instance's target {@link ServerAddress}es.
    */
   public Set<ServerAddress> getTargets() {
     return new HashSet<ServerAddress>(targets);
+  }
+  
+  /**
+   * @return a copy of this instance excluded {@link ServerAddress}es.
+   */
+  public Set<ServerAddress> getExcluded() {
+    return new HashSet<ServerAddress>(excluded);
+  }
+  
+  /**
+   * Adds the given {@link ServerAddress} to this instance's excluded set.
+   * 
+   * @param target the {@link ServerAddress} corresponding to the target to exclude.
+   * @see #getTargets()
+   * @see #getExcluded()
+   */
+  public ClusterInfo addExcluded(ServerAddress target) {
+    excluded.add(target);
+    return this;
   }
   
   /**
@@ -122,9 +160,24 @@ public class ClusterInfo implements Serializable {
     }
     return cluster;
   }
+
+  /**
+   * @return returns a {@link ClusterInfo} whose <code>clustered</code> flag is <code>false</code>.
+   */
+  public static ClusterInfo clustered() {
+    return new ClusterInfo(true);
+  }
+  
+  /**
+   * @return returns a {@link ClusterInfo} whose <code>clustered</code> flag is <code>false</code>.
+   */
+  public static ClusterInfo notClustered() {
+    return new ClusterInfo(false);
+  }
   
   @Override
   public String toString() {
-    return toLiteralForm();
+    return Strings.toStringFor(this, "clustered", cluster, "targets", targets, "excluded", excluded);
   }
+
 }

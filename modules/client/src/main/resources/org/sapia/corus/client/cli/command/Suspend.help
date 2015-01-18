@@ -4,12 +4,20 @@
    <p>Upon termination, the process' corresponding "image" at the Corus server is put in the "suspended" queue. Such processes have the "suspended" status - this information can be seen when doing a "ps" on suspended processes.</p>
   </section>
   <section title="Syntax">
-    <p>suspend -d distribution_name -v version -p profile [-n process_name] [-cluster]</p>
+    <p>suspend [-w [&lt;seconds&gt;]] -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-hard] [-cluster]</p> 
     <p/>
     <p>OR:</p>
-    <p>suspend  -i process_identifier</p>
+    <p>suspend all [-w [&lt;seconds&gt;]] [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>suspend [-w [&lt;seconds&gt;]] [-hard] -i &lt;process_identifier&gt; [&lt;process_identifier2&gt; [&lt;process_identifier3&gt; [...]]]</p>
+    <p/>
+    <p>OR:</p>
+    <p>suspend [-w [&lt;seconds&gt;]] [-hard] -op &lt;os_pid&gt; [&lt;os_pid2&gt; [&lt;os_pid3&gt; [...]]]</p>
     <p/>
     <p>Where:</p>
+    <p/>
+    <p>- w: if specified, waits for process termination before giving back control to user (wait time defaults to 60 seconds).</p>
     <p/>
     <p>- d: the name of the distribution for which to suspend processes.</p>
     <p/>
@@ -21,12 +29,15 @@
     <p/>
     <p>- i: the Corus-specific identifier of the process to suspend.</p>
     <p/>    
+    <p>- op: the Operating System specific identifier of the process to terminate.</p>
+    <p/>
+    <p>- hard: use an OS kill, rather then the "Corus kill" interacting with the in-process agent.</p>
+    <p/>
     <p>- cluster: if specified, the operation will be performed cluster-wide.</p>
   </section>
   <section title="Notes">
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
-    <p/>
-    <p>- When used with the -i option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
+    <p>- When used with the -i or -op option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
     <p/>    
   </section>
 </help>

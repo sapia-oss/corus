@@ -23,7 +23,20 @@ public class PropertyStore {
   public PropertyStore(DbMap<String, ConfigProperty> properties) {
     this.properties = properties;
   }
-
+  
+  /**
+   * @return the names of the properties currently held by this instance.
+   */
+  public Iterable<String> propertyNames() {
+    return new Iterable<String>() { 
+      
+      @Override
+      public Iterator<String> iterator() {
+        return properties.keys();
+      }
+    };
+  }
+ 
   /**
    * @param name
    *          a property name.
@@ -92,6 +105,11 @@ public class PropertyStore {
       }
     }
     return props;
+  }
+  
+  @Override
+  public String toString() {
+    return properties.toString();
   }
 
 }

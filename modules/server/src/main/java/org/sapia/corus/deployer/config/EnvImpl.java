@@ -8,6 +8,9 @@ import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.FileSystemFacade;
+import org.sapia.corus.client.common.FileSystemFacade.DefaultFileSystemFacade;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.services.deployer.dist.Property;
 import org.sapia.ubik.util.Condition;
@@ -28,7 +31,6 @@ public class EnvImpl implements Env {
   private Interpreter interpreter;
 
   /**
-   * Constructor for Env.
    * 
    * @param corus
    *          the {@link Corus} instance.
@@ -99,27 +101,27 @@ public class EnvImpl implements Env {
 
   @Override
   public String getLibDir() {
-    return corusHome + File.separator + "lib";
+    return FileUtils.toPath(corusHome, "lib");
   }
 
   @Override
   public String getServerLibDir() {
-    return getLibDir() + File.separator + "server";
+    return FileUtils.toPath(getLibDir(), "server");
   }
 
   @Override
   public String getVmBootLibDir() {
-    return getLibDir() + File.separator + "vm-boot";
+    return FileUtils.toPath(getLibDir(), "vm-boot");
   }
 
   @Override
   public String getJavaLibDir() {
-    return getLibDir() + File.separator + "java";
+    return FileUtils.toPath(getLibDir(), "java");
   }
 
   @Override
   public String getMagnetLibDir() {
-    return getLibDir() + File.separator + "magnet";
+    return FileUtils.toPath(getLibDir(), "magnet");
   }
 
   @Override
@@ -145,6 +147,11 @@ public class EnvImpl implements Env {
   @Override
   public Map<String, String> getEnvironmentVariables() {
     return System.getenv();
+  }
+  
+  @Override
+  public FileSystemFacade getFileSystem() {
+    return DefaultFileSystemFacade.newInstance();
   }
   
   protected String findLibPath(String basedirName, final String fileName) {

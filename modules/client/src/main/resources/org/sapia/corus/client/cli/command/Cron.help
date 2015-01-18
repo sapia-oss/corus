@@ -11,7 +11,7 @@
     <p>cron list [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>cron delete -i cron_identifier</p>
+    <p>cron delete -i &lt;cron_identifier&gt;</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -21,7 +21,6 @@
   </section>
   <section title="Notes">
     <p>- The "add" action triggers a wizard that helps in providing the information necessary to schedule processes.</p>
-    <p/>
     <p>- A scheduled process cannot be configured cluster-wide. Schedules are defined on a per-Corus server basis.</p>
     <p/>    
   </section>

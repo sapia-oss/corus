@@ -21,7 +21,7 @@ import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.CollectionUtils;
-import org.sapia.corus.client.common.PathUtils;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -139,7 +139,7 @@ public class Http extends CorusCliCommand {
 
               for (Integer port : r.getActive()) {
                 String url = "http://" + address.getHost() + ":" + (portPrefix != null ? portPrefix + port : port);
-                url = PathUtils.append(url, contextPath);
+                url = FileUtils.append(url, contextPath);
                 doCheck(ctx, url, maxAttempts, expected, interval);
               }
             }

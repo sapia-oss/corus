@@ -1,6 +1,7 @@
 package org.sapia.corus.http.filesystem;
 
 import java.io.File;
+import java.util.Comparator;
 
 /**
  * Descriptor object of a file for the {@link FileSystemExtension}.
@@ -89,5 +90,58 @@ public class FileEntry {
   public File getFile() {
     return file;
   }
-
+  
+  /**
+   * @return a {@link Comparator} that sorts {@link FileEntry} instances by date.
+   */
+  public static Comparator<FileEntry> sortByDate() {
+    return new Comparator<FileEntry>() {
+      @Override
+      public int compare(FileEntry o1, FileEntry o2) {
+        long c = o1.getFile().lastModified() - o2.getFile().lastModified();
+        if (c == 0) {
+          return 0;
+        } else if (c < 0) {
+          return -1;
+        } else {
+          return 1;
+        }
+      }
+    };
+  }
+  
+  /**
+   * @return a {@link Comparator} that sorts {@link FileEntry} instances by name.
+   */
+  public static Comparator<FileEntry> sortByName() {
+    return new Comparator<FileEntry>() {
+      @Override
+      public int compare(FileEntry o1, FileEntry o2) {
+        return o2.getName().compareTo(o2.getName());
+      }
+    };
+  }
+  
+  /**
+   * @return a {@link Comparator} that sorts {@link FileEntry} instances by size.
+   */
+  public static Comparator<FileEntry> sortBySize() {
+    return new Comparator<FileEntry>() {
+      @Override
+      public int compare(FileEntry o1, FileEntry o2) {
+        if (o1.file.isFile() && o2.file.isFile()) {
+          long c = o1.getFile().length() - o2.getFile().length();
+          if (c == 0) {
+            return 0;
+          } else if (c < 0) {
+            return -1;
+          } else {
+            return 1;
+          }        
+        } 
+        return o1.name.compareTo(o2.name);
+        
+      }
+    };
+  }
 }

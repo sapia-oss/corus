@@ -22,7 +22,9 @@ public class Man extends NoOptionCommand {
   private static final Map<String, Class<?>> COMMANDS = new HashMap<String, Class<?>>();
 
   static {
+    COMMANDS.put("alias", Alias.class);
     COMMANDS.put("ant", Ant.class);
+    COMMANDS.put("appkey", Appkey.class);
     COMMANDS.put("cd", Cd.class);
     COMMANDS.put("cluster", Cluster.class);
     COMMANDS.put("cmd", Cmd.class);
@@ -35,6 +37,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("err", Err.class);
     COMMANDS.put("exec", Exec.class);
     COMMANDS.put("exit", Exit.class);
+    COMMANDS.put("env", Exit.class);
     COMMANDS.put("host", Host.class);
     COMMANDS.put("hosts", Hosts.class);
     COMMANDS.put("http", Http.class);
@@ -51,6 +54,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("restart", Restart.class);
     COMMANDS.put("resume", Resume.class);
     COMMANDS.put("ripple", Ripple.class);
+    COMMANDS.put("role", Role.class);
     COMMANDS.put("script", Script.class);
     COMMANDS.put("sort", Sort.class);
     COMMANDS.put("status", Status.class);
@@ -74,7 +78,7 @@ public class Man extends NoOptionCommand {
         displayHelp(ctx, Man.class);
       } else {
         displayHelp(ctx, cmdClass);
-      }
+      } 
     } else {
       displayHelp(ctx, Man.class);
     }

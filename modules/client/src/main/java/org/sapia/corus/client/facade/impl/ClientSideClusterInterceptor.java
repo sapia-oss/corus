@@ -15,7 +15,7 @@ import org.sapia.ubik.util.Assertions;
 public class ClientSideClusterInterceptor implements Interceptor {
 
   private static ThreadLocal<ClusterInfo> registration = new ThreadLocal<ClusterInfo>();
-
+  
   public static void clusterCurrentThread(ClusterInfo cluster) {
     registration.set(cluster);
   }
@@ -29,6 +29,7 @@ public class ClientSideClusterInterceptor implements Interceptor {
       ClusteredCommand command = new ClusteredCommand(evt.getCommand());
       ClusterInfo cluster = registration.get();
       Assertions.illegalState(cluster == null, "ClusterInfo instance not set");
+      command.exclude(cluster.getExcluded());
       command.addTargets(cluster.getTargets());
       evt.setCommand(command);
     }

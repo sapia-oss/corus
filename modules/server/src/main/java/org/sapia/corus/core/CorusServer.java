@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -25,6 +26,7 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
@@ -45,11 +47,12 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Conf;
 
 /**
- * This class is the entry point called from the 'java' command line.
+ * This class is the entry point called from the <tt>java</tt> command line.
  * 
  * @author Yanick Duchesne
  */
 public class CorusServer {
+  
   public static final int DEFAULT_PORT            = 33000;
   public static final String CONFIG_FILE_OPT      = "c";
   public static final String PORT_OPT             = "p";
@@ -120,39 +123,34 @@ public class CorusServer {
       }
 
       // ----------------------------------------------------------------------
-      // Determining location of server properties
-      // (can be specified at command-line)
-
+      // Setting up files for config loading
+      
       String configFileName = "corus.properties";
       if (cmd.containsOption(CONFIG_FILE_OPT, true)) {
         configFileName = cmd.assertOption(CONFIG_FILE_OPT, true).getValue();
       }
       
-      String aFilename = new StringBuffer(corusHome)
-          .append(File.separator)
-          .append("config").append(File.separator)
-          .append(configFileName).toString();
-
-      File propFile = new File(aFilename);
-
-      String specificFileName = new StringBuffer(corusHome)
-          .append(File.separator)
-          .append("config").append(File.separator)
-          .append("corus_").append(port).append(".properties").toString();
-
-      String userConfigName = new StringBuffer(System.getProperty("user.home"))
-          .append(File.separator)
-          .append(".corus").append(File.separator)
-          .append(configFileName).toString();
+      File propFile = FilePath.newInstance()
+          .addDir(corusHome)
+          .addDir("config")
+          .setRelativeFile(configFileName).createFile();
       
-      String userSpecificFileName = new StringBuffer(System.getProperty("user.home"))
-          .append(File.separator)
-          .append(".corus").append(File.separator)
-          .append("corus_").append(port).append(".properties").toString();
-      
-      File specificPropFile     = new File(specificFileName);
-      File userPropFile         = new File(userConfigName);
-      File userSpecificPropFile = new File(userSpecificFileName);
+      File specificPropFile = FilePath.newInstance()
+          .addDir(corusHome)
+          .addDir("config")
+          .setRelativeFile("corus_" + port + ".properties")
+          .createFile();
+
+      // files under $HOME/.corus
+      File userPropFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile("corus.properties")
+          .createFile();
+
+      File userSpecificPropFile = FilePath.newInstance()
+          .addCorusUserDir()
+          .setRelativeFile("corus_" + port + ".properties")
+          .createFile();
       
       // ----------------------------------------------------------------------
       // First off, we're loading the server properties to extract the includes
@@ -202,27 +200,11 @@ public class CorusServer {
       Properties corusProps = new Properties(System.getProperties());
       PropertiesUtil.copy(includedProps, corusProps);
       CorusPropertiesLoader.load(corusProps, configFiles);
-
+      
       // -----------------------------------------------------------------------
       // Overridding config properties with user-data properties
 
       PropertiesUtil.copy(userData.getServerProperties(), corusProps);
-
-      // ----------------------------------------------------------------------
-      // Determining domain: can be specified at command line, or in server
-      // properties.
-
-      String domain = null;
-      if (cmd.containsOption(DOMAIN_OPT, true)) {
-        domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
-      } else if (corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
-        domain = corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
-      } else {
-        throw new CorusException("Domain must be set; pass -d option to command-line, " + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
-            + " as part of " + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());
-      }
-
-      System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
 
       // ----------------------------------------------------------------------
       // Determining port: if a port other than the default was passed at the
@@ -236,6 +218,28 @@ public class CorusServer {
       if (port == DEFAULT_PORT && corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT) != null) {
         port = Integer.parseInt(corusProps.getProperty(CorusConsts.PROPERTY_CORUS_PORT));
       }
+      
+      // ----------------------------------------------------------------------
+      // Loading Corus read-only file for current instance
+      
+      CorusReadonlyProperties.loadInto(corusProps, CorusConsts.CORUS_USER_HOME, port);
+      
+      // ----------------------------------------------------------------------
+      // Determining domain: can be specified at command line, or in server
+      // properties.
+
+      String domain = null;
+      if (corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN) != null) {
+        domain = corusProps.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+      } else if (cmd.containsOption(DOMAIN_OPT, true)) {
+        domain = cmd.assertOption(DOMAIN_OPT, true).getValue();
+      } else {
+        throw new CorusException("Domain must be set; pass -d option to command-line, " 
+            + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
+            + " as part of " + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());
+      }
+
+      System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
 
       // ----------------------------------------------------------------------
       // Setting up logging.
@@ -366,7 +370,7 @@ public class CorusServer {
         context.getServices().getConfigurator().addTags(userData.getServerTags());
       }
       if (!userData.getProcessProperties().isEmpty()) {
-        context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), false);
+        context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), new HashSet<String>(), false);
       }
 
       // keeping reference to stub

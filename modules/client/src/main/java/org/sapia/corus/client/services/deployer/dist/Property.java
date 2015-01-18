@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import java.util.Objects;
+
 import org.sapia.console.CmdElement;
 import org.sapia.console.Option;
 
@@ -52,6 +54,21 @@ public class Property implements Param, java.io.Serializable {
     }
   }
 
+  @Override
+  public int hashCode() {
+      return Objects.hash(name, value);
+  }
+
+  @Override
+  public boolean equals(Object other) {
+      if (!(other instanceof Property)) {
+          return false;
+      }
+      
+      return Objects.equals(name, ((Property) other).name)
+              && Objects.equals(value, ((Property) other).value);
+  }
+  
   public String toString() {
     return "[ name=" + name + ", value=" + value + " ]";
   }

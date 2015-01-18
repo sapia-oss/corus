@@ -1,6 +1,7 @@
 package org.sapia.corus.client.facade;
 
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 
 /**
  * Provides Repository-related methods.
@@ -25,5 +26,14 @@ public interface RepoFacade {
    *          a {@link ClusterInfo}.
    */
   public void push(ClusterInfo cluster);
+  
+  /**
+   * Changes the {@link RepoRole} of given Corus nodes.
+   * 
+   * @param newRole the {@link RepoRole} to change to.
+   * @param cluster 
+   *          a {@link ClusterInfo}.
+   */
+  public void changeRole(RepoRole newRole, ClusterInfo cluster);
 
 }

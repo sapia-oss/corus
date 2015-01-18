@@ -7,7 +7,8 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
- 	<sapia:vsection name="In 2 minutes" href="overview.html"/>    
+ 	  <sapia:vsection name="In 2 minutes" href="overview.html"/>
+	 	<sapia:vsection name="REST API" href="rest.html"/>        
   </sapia:vmenu>
 
   <sapia:sect1 title="Learning">
@@ -26,8 +27,8 @@
       </p>
     
 
-   	  <div style="margin-left: 55px">
-        <div class="content-box">
+   	  <div style="margin-left: 3px">
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
           <div class="content-box-title">Gallery</div>
           <span class="text">
             Screeshots, screencasts... Like they say
@@ -37,7 +38,7 @@
           </span>
         </div>
 
-        <div class="content-box">
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
           <div class="content-box-title">Tutorials</div>
           <span class="text">
             Check out our tutorials to better grasp what Corus is all about: 
@@ -45,12 +46,21 @@
             <br/><a href="tutorials/index.html">more...</a>
           </span>
         </div>
+        
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">REST API</div>
+          <span class="text">
+            Want automation? Need to control Corus using a non-Java programming language? As of version 4.5, 
+            Corus features a REST API. Integrate the API as part of your processes.
+            <br/><a href="rest.html">more...</a>
+          </span>
+        </div>
       </div>
         
       <div style="clear: both;" />
       
-   	  <div style="margin-left: 55px">
-        <div class="content-box">
+   	  <div style="margin-left: 100px">
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
           <div class="content-box-title">Community</div>
           <span class="text">
             Subscribe to the Corus Google group to post inquiries and report 
@@ -60,7 +70,7 @@
           </span>
         </div>
         
-        <div class="content-box">
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
           <div class="content-box-title">Advanced</div>
           <span class="text">
             Learn more about Corus intricacies: distributed deployment, command 
@@ -68,6 +78,7 @@
             <br/><a href="advanced.html">more...</a>
           </span>
         </div>
+        
       </div>
 
     </sapia:sect-desc>

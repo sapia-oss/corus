@@ -3,7 +3,6 @@ package org.sapia.corus.client.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
@@ -29,8 +28,6 @@ import org.sapia.corus.client.cli.command.CorusCliCommand.OptionDef;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
 import org.sapia.corus.client.sort.SortSwitchInfo;
-import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.net.TCPAddress;
 
 /**
  * This class implements a {@link Console} that may be embedded in applications
@@ -39,7 +36,7 @@ import org.sapia.ubik.net.TCPAddress;
  * @author yduchesne
  * 
  */
-public class Interpreter extends Console {
+public class Interpreter extends Console implements CorusConsole {
 
   private static final String COMMENT_MARKER = "#";
 
@@ -99,6 +96,18 @@ public class Interpreter extends Console {
   public CorusConnector getCorus() {
     return corus;
   }
+  
+  @Override
+  public CorusCommandFactory getCommands() {
+    return commandFactory;
+  }
+  
+  /**
+   * @param commandFactory a {@link CorusCommandFactory} instance.
+   */
+  public void setCommandFactory(CorusCommandFactory commandFactory) {
+    this.commandFactory = commandFactory;
+  }
 
   /**
    * This method interprets the given command-line. That is: it parses it and
@@ -108,10 +117,8 @@ public class Interpreter extends Console {
    * 
    * @param reader
    *          a {@link Reader} to read commands from.
-   * @param the
-   *          {@link StrLookup} of variables to use when performing variable
-   *          substitution.
-   * 
+   * @param vars
+   *          a {@link StrLookup} holding the values to use when performing variable interpolation.
    * @throws IOException
    *           if a problem occurs while trying to read commands from the given
    *           reader.
@@ -125,18 +132,39 @@ public class Interpreter extends Console {
    *           if an undefined error occurs.
    */
   public void interpret(Reader reader, StrLookup vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
-
+    interpret(reader, new StrLookupState(vars));
+  }
+  
+  /**
+   * This method interprets the given command-line. That is: it parses it and
+   * processes it into a command - executing the said command.
+   * 
+   * This method closes the reader provided as input upon exiting.
+   * 
+   * @param reader
+   *          a {@link Reader} to read commands from.
+   * @param vars
+   *          a {@link StrLookupState} holding the values to use when performing variable interpolation.
+   * @throws IOException
+   *           if a problem occurs while trying to read commands from the given
+   *           reader.
+   * @throws CommandNotFoundException
+   *           if the command on the command-line is unknown.
+   * @throws InputException
+   *           if some command arguments/options are missing/invalid.
+   * @throws AbortException
+   *           if execution of the command has been aborted.
+   * @throws Throwable
+   *           if an undefined error occurs.
+   */
+  public void interpret(Reader reader, StrLookupState vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
     try {
       BufferedReader bufReader = new BufferedReader(reader);
-      StrSubstitutor subs = new StrSubstitutor(vars);
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
-        commandLine = subs.replace(commandLine).trim();
-        if (!commandLine.isEmpty() && !commandLine.startsWith(COMMENT_MARKER)) {
-          eval(commandLine, vars);
-        }
+        eval(commandLine.trim(), vars);
       }
     } finally {
       enableLogging(old);
@@ -154,8 +182,8 @@ public class Interpreter extends Console {
    * 
    * @param commandLine
    *          the command-line to interpret.
-   * @param the
-   *          {@link StrLookup} holding variables to use.
+   * @param vars
+   *          a {@link StrLookup} holding the values to use when performing variable interpolation.
    * @throws CommandNotFoundException
    *           if the command on the command-line is unknown.
    * @throws InputException
@@ -167,9 +195,44 @@ public class Interpreter extends Console {
    * @return this instance.
    */
   public Object eval(String commandLine, StrLookup vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
-
+    return eval(commandLine, new StrLookupState(vars));
+  }
+  
+  /**
+   * This method interprets the given command-line. That is: it parses it and
+   * processes it into a command - executing the said command.
+   * 
+   * @param commandLine
+   *          the command-line to interpret.
+   * @param vars 
+   *          a {@link StrLookupState} holding the values to use when performing variable interpolation.
+   * @throws CommandNotFoundException
+   *           if the command on the command-line is unknown.
+   * @throws InputException
+   *           if some command arguments/options are missing/invalid.
+   * @throws AbortException
+   *           if execution of the command has been aborted.
+   * @throws Throwable
+   *           if an undefined error occurs.
+   * @return this instance.
+   */
+  public Object eval(String commandLine, StrLookupState vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
+  
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
+    
+    if (commandLine.startsWith(COMMENT_MARKER)) {
+      FacadeInvocationContext.set(null);
+      return null;
+    }
+    
+    StrSubstitutor subs = new StrSubstitutor(vars.get());    
+    commandLine = subs.replace(commandLine);
+
+    if (commandLine.isEmpty()) {
+      FacadeInvocationContext.set(null);
+      return null;
+    }
 
     try {
       CmdLine cmdLine = CmdLine.parse(commandLine);
@@ -218,7 +281,7 @@ public class Interpreter extends Console {
           for (int i = 0; i < cmd.size(); i++) {
             CmdElement cmdElem = cmd.get(i);
             if (cmdElem instanceof Option && ((Option) cmdElem).getName().equals(CorusCliCommand.OPT_CLUSTER.getName())) {
-              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toString());
+              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toLiteralForm());
               newCmd.addElement(newOpt);
             } else {
               newCmd.addElement(cmdElem);

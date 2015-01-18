@@ -1,0 +1,37 @@
+<help>
+  <section title="Description">
+   <p>Resumes the execution of processes that have been suspended (using the 'suspend' command). Resuming of the
+   processes by Corus is done asynchronously.</p>
+  </section>
+  <section title="Syntax">
+    <p>resume -d &lt;distribution_name&gt; -v &lt;version&gt; -p &lt;profile&gt; [-n &lt;process_name&gt;] [-cluster]</p>
+    <p/>
+    <p>OR:</p>
+    <p>resume -i &lt;process_identifier&gt; [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- d: the name (or name pattern) of the distribution for which to resume processes.</p>
+    <p/>
+    <p>- v: the version (or version pattern) of the distribution for which to resume processes.</p>
+    <p/>
+    <p>- p: the profile under which to resume the process(es).</p>
+    <p/>
+    <p>- n: the name (or name pattern) of the process configurations for which processes should be resumed.</p>
+    <p/>
+    <p>- i: the Corus specific identifier of the process to resume.</p>
+    <p/>    
+    <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
+  </section>
+  <section title="Notes">
+    <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
+    <p/>
+  </section>
+  <section title="Examples">
+    <p>resume -d myapp -v 1.0 -n jetty -p qa -cluster</p>
+    <p>resume -d myapp -v 1.* -n * -p qa</p>
+    <p>resume -d * -v * -n * -p qa -cluster</p>
+    <p>resume -i 150109303662</p>
+    <p/>        
+  </section>  
+</help>

@@ -2,6 +2,7 @@ package org.sapia.corus.repository;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -9,12 +10,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -22,6 +25,7 @@ import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.event.EventDispatcher;
@@ -35,12 +39,19 @@ import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.ExecConfigNotification;
 import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.corus.client.services.repository.FileListResponse;
+import org.sapia.corus.client.services.repository.SecurityConfigNotification;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptListResponse;
+import org.sapia.corus.client.services.security.ApplicationKeyManager;
+import org.sapia.corus.client.services.security.Permission;
+import org.sapia.corus.client.services.security.SecurityModule;
+import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
+import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskManager;
+import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.corus.util.Queue;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.rmi.server.transport.socket.TcpSocketAddress;
@@ -49,16 +60,18 @@ import org.springframework.context.ApplicationContext;
 
 public class RepositoryImplTest {
   
-  private ClusterManager     cluster;
-  private Configurator       config;
-  private EventDispatcher    dispatcher;
-  private Processor          processor;
-  private TaskManager        tasks;
-  private ApplicationContext appCtx;
-  private ServerContext      serverCtx;
-  private CorusHost          host;
-  private RepositoryImpl     repo;
-  private Set<CorusHost>     peers;
+  private ClusterManager        cluster;
+  private Configurator          config;
+  private EventDispatcher       dispatcher;
+  private Processor             processor;
+  private TaskManager           tasks;
+  private SecurityModule        security;
+  private ApplicationKeyManager appkeys;
+  private ApplicationContext    appCtx;
+  private ServerContext         serverCtx;
+  private CorusHost             host;
+  private RepositoryImpl        repo;
+  private Set<CorusHost>        peers;
   private Queue<ArtifactListRequest>       listRequestQueue;
   private Queue<ArtifactDeploymentRequest> deployRequestQueue;
   private RepositoryConfigurationImpl      repoConfig;
@@ -74,6 +87,8 @@ public class RepositoryImplTest {
     dispatcher = mock(EventDispatcher.class);
     processor  = mock(Processor.class);
     tasks      = mock(TaskManager.class);
+    security   = mock(SecurityModule.class);
+    appkeys    = mock(ApplicationKeyManager.class);
     appCtx     = mock(ApplicationContext.class);
     serverCtx  = mock(ServerContext.class);
     listRequestQueue   = mock(Queue.class);
@@ -90,6 +105,8 @@ public class RepositoryImplTest {
     repo.setConfigurator(config);
     repo.setDispatcher(dispatcher);
     repo.setTaskManager(tasks);
+    repo.setSecurityModule(security);
+    repo.setApplicationKeys(appkeys);
     repo.setApplicationContext(appCtx);
     repo.setServerContext(serverCtx);
     repo.setDeployRequestQueue(deployRequestQueue);
@@ -287,13 +304,13 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(props);
+    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
     
-    verify(config).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Boolean.FALSE));
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
     verify(config).addTags(anySet());
     
     verify(cluster).send(any(ExecConfigNotification.class));
@@ -308,13 +325,13 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(props);
+    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
     
-    verify(config).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Boolean.FALSE));
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
     verify(config, never()).addTags(anySet());
     
     verify(cluster).send(any(ExecConfigNotification.class));
@@ -329,13 +346,13 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(props);
+    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
     
-    verify(config, never()).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Boolean.FALSE));
+    verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
     verify(config).addTags(anySet());
     
     verify(cluster).send(any(ExecConfigNotification.class));
@@ -349,16 +366,69 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(props);
+    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
     repo.onSyncEvent(event);
     
-    verify(config, never()).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Boolean.FALSE));
+    verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
     verify(config, never()).addTags(anySet());
     
     verify(cluster).send(any(ExecConfigNotification.class));
 
   }
+  
+  // --------------------------------------------------------------------------
+  // Security
+  
+  @Test
+  public void testHandleSecurityConfigNotification() throws Exception {
+    host.setRepoRole(RepoRole.CLIENT);
+    List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
+    List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
+    SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(SecurityConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(security).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
+    verify(appkeys).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
+    verify(cluster).send(any(SecurityConfigNotification.class));
+  }
+  
+  @Test
+  public void testHandleSecurityConfigPullDisabled() throws Exception {
+    repoConfig.setPullSecurityConfigEnabled(false);
+    host.setRepoRole(RepoRole.CLIENT);
+    List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
+    List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
+    SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(SecurityConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(security, never()).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
+    verify(appkeys, never()).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
+    verify(cluster).send(any(SecurityConfigNotification.class));
+  }
+  
+  @Test
+  public void testSecurityConfigNotificationHostNotTargeted() throws Exception {
+    host.setRepoRole(RepoRole.CLIENT);
+    List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
+    List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
+    SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
+    notif.addTarget(createCorusHost(RepoRole.CLIENT).getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(SecurityConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(security, never()).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
+    verify(appkeys, never()).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
+    verify(cluster).send(any(SecurityConfigNotification.class));
+  }  
+  
 }

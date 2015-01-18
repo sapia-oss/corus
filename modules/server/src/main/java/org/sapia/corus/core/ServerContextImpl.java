@@ -1,7 +1,7 @@
 package org.sapia.corus.core;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -11,8 +11,6 @@ import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
-import org.sapia.corus.util.PropertiesFilter;
-import org.sapia.corus.util.PropertiesFilter.NotPropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
@@ -82,6 +80,11 @@ public class ServerContextImpl implements ServerContext {
   public String getHomeDir() {
     return homeDir;
   }
+  
+  @Override
+  public String getNodeSubdirName() {
+    return "port_" + getCorusHost().getEndpoint().getServerTcpAddress().getPort();
+  }
 
   @Override
   public String getDomain() {
@@ -124,30 +127,10 @@ public class ServerContextImpl implements ServerContext {
   }
 
   @Override
-  public Properties getProcessProperties() throws IOException {
+  public Properties getProcessProperties(List<String> categories) throws IOException {
     Properties processProps = new Properties();
-
-    /*
-    // ------------------------------------------------------------------------
-    // copying Ubik properties to process properties
-    Properties ubikProperties = PropertiesUtil.filter(System.getProperties(), PropertiesFilter.NamePrefixPropertiesFilter.createInstance("ubik"));
-
-    // removing ubik log config properties
-    ubikProperties = PropertiesUtil.filter(ubikProperties,
-        NotPropertiesFilter.createInstance(PropertiesFilter.NameContainsPropertiesFilter.createInstance("ubik.rmi.log")));
-    PropertiesUtil.copy(ubikProperties, processProps);
-
-    // ------------------------------------------------------------------------
-    // loading process properties from file
-    // (trying "global" file and then domain-specific file
-    File home = new File(getHomeDir() + File.separator + "config");
-    PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + ".properties"));
-    PropertiesUtil.loadIfExist(processProps, new File(home, CORUS_PROCESS_FILE + "_" + getDomain() + ".properties"));
-    */
-    
-    // ------------------------------------------------------------------------
     // copying configurator props to process props
-    Properties configuratorProps = services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS);
+    Properties configuratorProps = services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS, categories);
     PropertiesUtil.copy(configuratorProps, processProps);
     return processProps;
   }

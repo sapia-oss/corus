@@ -97,6 +97,11 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
   public Iterator<V> values() {
     return new RecordIterator(map.values().iterator());
   }
+  
+  @Override
+  public Iterator<V> iterator() {
+    return values();
+  }
 
   @Override
   public org.sapia.corus.client.services.db.RecordMatcher<V> createMatcherFor(V template) {

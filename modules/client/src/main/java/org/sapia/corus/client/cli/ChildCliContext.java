@@ -1,12 +1,14 @@
 package org.sapia.corus.client.cli;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.console.Context;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
+import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 
@@ -19,20 +21,27 @@ import org.sapia.corus.client.sort.SortSwitchInfo;
  */
 public class ChildCliContext extends Context implements CliContext {
 
-  private CliContext parent;
-  private CmdLine    childCmd;
-  private boolean    abortOnError;
-  private StrLookup  vars;
+  private CliContext      parent;
+  private CmdLine         childCmd;
+  private boolean         abortOnError;
+  private StrLookupState  vars;
 
-  public ChildCliContext(CliContext parent, CmdLine childCmd, StrLookup vars) {
+  public ChildCliContext(CliContext parent, CmdLine childCmd, StrLookupState vars) {
     this.parent = parent;
     this.childCmd = childCmd;
     this.vars = vars;
   }
 
   @Override
-  public StrLookup getVars() {
+  public StrLookupState getVars() {
     return vars;
+  }
+  
+  @Override
+  public void addVars(Map<String, String> vars) {
+    this.vars.set(CompositeStrLookup.newInstance()
+          .add(StrLookup.mapLookup(vars))
+          .add(this.vars.get()));
   }
 
   @Override

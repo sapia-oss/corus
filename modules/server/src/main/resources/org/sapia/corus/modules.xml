@@ -102,6 +102,12 @@
     <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
     <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
   </bean>
+  
+  <bean name="org.sapia.corus.client.services.security.ApplicationKeyManager"
+        class="org.sapia.corus.security.ApplicationKeyManagerImpl"
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
 
   <!-- ============ REPO ============ -->
   
@@ -119,6 +125,8 @@
     <property name="pullScriptsEnabled"                   value="${corus.server.repository.scripts.pull.enabled}" />    
     <property name="pushPortRangesEnabled"                value="${corus.server.repository.port-ranges.push.enabled}" />    
     <property name="pullPortRangesEnabled"                value="${corus.server.repository.port-ranges.pull.enabled}" />    
+    <property name="pushSecurityConfigEnabled"            value="${corus.server.repository.security.push.enabled}" />    
+    <property name="pullSecurityConfigEnabled"            value="${corus.server.repository.security.pull.enabled}" />  
     <property name="bootExecEnabled"                      value="${corus.process.start-at-boot.enabled}" />
   </bean>
 

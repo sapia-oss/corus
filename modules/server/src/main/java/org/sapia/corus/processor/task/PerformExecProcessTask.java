@@ -4,14 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
-import org.sapia.corus.client.common.PathUtils;
+import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.Interpolation;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
@@ -43,13 +47,13 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
   @Override
   public Boolean execute(TaskExecutionContext ctx, TaskParams<ProcessInfo, Properties, Void, Void> params) throws Throwable {
 
-    ProcessInfo info = params.getParam1();
-    Properties processProperties = params.getParam2();
-    ProcessConfig conf = info.getConfig();
-    Process process = info.getProcess();
-    Distribution dist = info.getDistribution();
-    PortManager ports = ctx.getServerContext().getServices().getPortManager();
-    OsModule os = ctx.getServerContext().getServices().getOS();
+    ProcessInfo   info              = params.getParam1();
+    Properties    processProperties = params.getParam2();
+    ProcessConfig conf              = info.getConfig();
+    Process       process           = info.getProcess();
+    Distribution  dist              = info.getDistribution();
+    PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
+    OsModule      os                = ctx.getServerContext().getServices().getOS();
 
     if (conf.getMaxKillRetry() >= 0) {
       process.setMaxKillRetry(conf.getMaxKillRetry());
@@ -77,7 +81,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
           process.getDistributionInfo().getProfile(), 
           dist.getBaseDir(), dist.getCommonDir(),
           process.getProcessDir(),
-          getProcessProps(conf, process, dist, ctx, processProperties));
+          getProcessProps(conf, process, dist, ctx, processProperties)
+      );
     } catch (PortUnavailableException e) {
       process.releasePorts(ports);
       ctx.error(e);
@@ -124,7 +129,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
   private File makeProcessDir(TaskExecutionContext ctx, ProcessInfo info) {
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
-    File processDir = new File(PathUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
+    File processDir = new File(FileUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
 
     if (info.isRestart() && !fs.exists(processDir)) {
       ctx.warn("Process directory: " + processDir + " does not exist; restart aborted");
@@ -145,13 +150,12 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     return processDir;
   }
 
-  @SuppressWarnings("rawtypes")
-  private Property[] getProcessProps(ProcessConfig conf, Process proc, Distribution dist, TaskExecutionContext ctx, Properties processProperties)
+  Property[] getProcessProps(ProcessConfig conf, Process proc, Distribution dist, TaskExecutionContext ctx, Properties processProperties)
       throws PortUnavailableException {
 
     PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
 
-    List<Property> props = new ArrayList<Property>(10);
+    List<Property> props = new ArrayList<Property>();
     String host = null;
     String hostName = null;
     try {
@@ -183,23 +187,57 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     props.add(new Property("corus.process.status.interval", "" + conf.getStatusInterval()));
     props.add(new Property("corus.process.profile", proc.getDistributionInfo().getProfile()));
     props.add(new Property("user.dir", dist.getCommonDir()));
+    
+    
+    // ------------------------------------------------------------------------
+    // Performing variable interpolation for process properties passed in 
+    // from Corus
+    
+    Map<String, String> coreProps = new HashMap<>();
+    for (Property p : props) {
+      coreProps.put(p.getName(), p.getValue());
+    }
+    
+    // adding environment variables as fallback
+    CompositeStrLookup vars = new CompositeStrLookup()
+      .add(StrLookup.mapLookup(coreProps))
+      .add(StrLookup.mapLookup(System.getenv()));
 
-    Enumeration names = processProperties.propertyNames();
-
-    // process properties...
-    while (names.hasMoreElements()) {
-      String name = (String) names.nextElement();
+    processProperties = Interpolation.interpolate(
+        processProperties, 
+        vars, 
+        conf.getInterpolationPasses() <= 0 ? ProcessConfig.DEFAULT_INTERPOLATION_PASSES : conf.getInterpolationPasses()
+    );
+    
+    // ------------------------------------------------------------------------
+    // Processing double quotes to values, and then adding to Property list
+    
+    for (String name : processProperties.stringPropertyNames()) {
       String value = processProperties.getProperty(name);
       if (value != null) {
-        if (value.indexOf(' ') > 0) {
-          value = "\"" + value + "\"";
+        boolean toEncloseInDoubleQuotes = (value.indexOf(' ') >= 0);
+        if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
+            // Temporarely removing surrounding double quotes 
+            value = value.substring(1, value.length()-1);
+            toEncloseInDoubleQuotes = true;
         }
+
+        // Escaping any double quotes
+        value = value.replace("\"", "\\\"");
+        
+        // Surrounding with double quotes
+        if (toEncloseInDoubleQuotes) {
+            value = "\"" + value + "\"";
+        }
+        
         ctx.info("Passing process property: " + name + "=" + PropertiesUtil.hideIfPassword(name, value));
         props.add(new Property(name, value));
       }
     }
 
-    // process ports...
+    // ------------------------------------------------------------------------
+    // Adding port values
+    
     List<Port> ports = conf.getPorts();
     Set<String> added = new HashSet<String>();
     for (int i = 0; i < ports.size(); i++) {
@@ -211,7 +249,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
         added.add(p.getName());
       }
     }
-
+    
     return (Property[]) props.toArray(new Property[props.size()]);
   }
 
@@ -228,4 +266,5 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       }
     };
   }
+  
 }

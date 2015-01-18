@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
@@ -41,7 +42,6 @@ import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
-import org.sapia.corus.util.FilePath;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
@@ -118,7 +118,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
     String defaultUploadDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("uploads").createFilePath();
 
-    String pattern = serverContext().getDomain() + '_' + serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort();
+    String pattern = serverContext().getNodeSubdirName();
 
     DeployerConfigurationImpl config = new DeployerConfigurationImpl();
     config.setFileLockTimeout(configuration.getFileLockTimeout());
@@ -263,7 +263,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria.getName(), criteria.getVersion()), cfg).get();
+      taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria), cfg).get();
     } catch (Throwable e) {
       progress.error(e);
     }

@@ -20,23 +20,23 @@ import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
  * 
  */
 public class HashDbMap<K, V> implements DbMap<K, V> {
-  private Map<K, Record<V>> _map = new HashMap<K, Record<V>>();
-  private ClassDescriptor<V> _classDescriptor;
+  private Map<K, Record<V>> map = new HashMap<K, Record<V>>();
+  private ClassDescriptor<V> classDescriptor;
 
   public HashDbMap(ClassDescriptor<V> cd) {
-    _classDescriptor = cd;
+    classDescriptor = cd;
   }
 
   @Override
   public ClassDescriptor<V> getClassDescriptor() {
-    return _classDescriptor;
+    return classDescriptor;
   }
 
   public void close() {
   }
 
   public V get(K key) {
-    Record<V> record = _map.get(key);
+    Record<V> record = map.get(key);
     if (record != null) {
       return record.toObject(this);
     } else {
@@ -45,7 +45,7 @@ public class HashDbMap<K, V> implements DbMap<K, V> {
   }
 
   public void refresh(K key, V value) {
-    Record<V> record = _map.get(key);
+    Record<V> record = map.get(key);
     if (record == null) {
       throw new IllegalArgumentException(String.format("No record found for %s", key));
     } else {
@@ -54,28 +54,33 @@ public class HashDbMap<K, V> implements DbMap<K, V> {
   }
 
   public Iterator<K> keys() {
-    return _map.keySet().iterator();
+    return map.keySet().iterator();
   }
 
   public void put(K key, V value) {
-    _map.put(key, Record.createFor(this, value));
+    map.put(key, Record.createFor(this, value));
   }
 
   public void remove(K key) {
-    _map.remove(key);
+    map.remove(key);
   }
 
   public Iterator<V> values() {
-    return new RecordIterator(this, _map.values().iterator());
+    return new RecordIterator(this, map.values().iterator());
+  }
+  
+  @Override
+  public Iterator<V> iterator() {
+    return values();
   }
 
   public org.sapia.corus.client.services.db.RecordMatcher<V> createMatcherFor(V template) {
-    return new TemplateMatcher<V>(new Template<V>(_classDescriptor, template));
+    return new TemplateMatcher<V>(new Template<V>(classDescriptor, template));
   }
 
   public Collection<V> values(RecordMatcher<V> matcher) {
     Collection<V> result = new ArrayList<V>();
-    Iterator<Record<V>> iterator = _map.values().iterator();
+    Iterator<Record<V>> iterator = map.values().iterator();
     while (iterator.hasNext()) {
       Record<V> rec = iterator.next();
       if (matcher.matches(rec)) {
@@ -87,8 +92,16 @@ public class HashDbMap<K, V> implements DbMap<K, V> {
   }
 
   public void clear() {
-    _map.clear();
+    map.clear();
   }
+  
+  @Override
+  public String toString() {
+    return map.toString();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Inner classes
 
   class RecordIterator implements Iterator<V> {
 

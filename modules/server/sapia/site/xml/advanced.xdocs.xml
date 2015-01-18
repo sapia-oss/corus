@@ -7,7 +7,9 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
- 	<sapia:vsection name="In 2 minutes" href="overview.html"/>
+ 	  <sapia:vsection name="In 2 minutes" href="overview.html"/>
+ 	  <sapia:vsection name="REST API" href="rest.html"/>    
+
   </sapia:vmenu>
 
   <sapia:sect1 title="Advanced">
@@ -240,7 +242,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
     
   </sapia:sect2>
   
-  <sapia:sect2 title="Repository">
+  <sapia:sect2 title="Repository" alias="repo">
     <p>
       The repository functionality has been introduced as of version 4.0. The
       <a href="CorusGuide.pdf">Corus Guide</a> provides exhaustive documentation as

@@ -1,0 +1,50 @@
+<help>
+  <section title="Description">
+   <p>Creates/deletes command aliases, and allows viewing the currently defined ones.</p>
+  </section>
+  <section title="Syntax">
+    <p>alias -n &lt;alias_name&gt; -c "&lt;command_line&gt;"</p>
+    <p/>    
+    <p>OR</p>
+    <p/>    
+    <p>alias del -n "&lt;alias_name&gt;"</p>
+    <p/>    
+    <p>OR</p>
+    <p/>    
+    <p>alias ls</p>
+    <p/>    
+    <p>Where:</p>
+    <p/>
+    <p>- n takes the name of the command for which to create an alias.</p>
+    <p/>
+    <p>- c the command-line for which to create an alias.</p>
+  </section>
+  <section title="Notes">
+    <p>An the command-line arguments created for an aliased command will be passed to that command as-is at invocation time.</p>
+    <p/>
+    <p>If an alias is created  for a command, but no command-line arguments/options are specified, then it is possible to pass
+    command-line arguments at invocation time (they will be dispatched to the aliased command).</p>
+  </section>
+  <section title="Examples">
+    <p>- Creates an alias named "go", which can after be used directly as a command in the CLI:</p>
+    <p>alias -n go -c "exec -d demo -v 1.0 -n http-server -p test"</p>
+    <p/>
+    <p>In the above, typing "go" in the CLI will have the given command-line arguments/options passed to the exec command.</p>
+    <p/>
+    <p>- Creates an alias for a command, but without command-line arguments/options:</p>
+    <p>alias -n go -c "exec"</p>
+    <p/>
+    <p>- In the above case, new command-line arguments can be passed to the aliased command at each invocation:</p>
+    <p>go -d demo -v 1.0 -n http-server -p test</p>
+    <p/>
+    <p>- Deletes the alias named "go":</p>
+    <p>alias del -n go</p>
+    <p/>
+    <p>- Deletes aliases matching the given pattern:</p>
+    <p>alias g*</p>
+    <p/>
+    <p>- Lists current aliases:</p>
+    <p>alias ls</p>
+    <p/>    
+  </section>
+</help>

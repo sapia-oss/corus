@@ -3,19 +3,20 @@
    <p>Allows managing port ranges.</p>
   </section>
   <section title="Syntax">
-    <p>port add -n range_name -min min_port -max max_port [-cluster]</p>
+    <p>port add -n &lt;range_name&gt; -min &lt;min_port&gt; -max &lt;max_port&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>port add -p ranges.properties [-clear] [-cluster] (where properties must have format: range=min,max or range=singlePort)</p>
+    <p>port add -p &lt;ranges_file&gt; [-clear] [-cluster] (where ranges_file is a Java properties file where each line must 
+    have format: range=min,max or range=singlePort)</p>
     <p/>
     <p>OR:</p>
-    <p>port del -n range_name [-f][-cluster]</p>
+    <p>port del -n &lt;range_name&gt; [-f][-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>port ls [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>port release -n range_name [-cluster]</p>
+    <p>port release -n &lt;range_name&gt; [-cluster]</p>
     <p/> 
     <p>Where:</p>
     <p/>
@@ -45,15 +46,11 @@
   </section>
   <section title="Examples">
     <p>port add -n http.server -min 8000 -max 8005 -cluster</p>
-    <p/>
+    <p>port add -p ranges.properties -cluster</p>
     <p>port del -n http.server -f</p>
-    <p/>
     <p>port del -n * -f -cluster</p>
-    <p/>
     <p>port ls -cluster</p>
-    <p/>
     <p>port release -n http.server -cluster</p>
-    <p/>
     <p>port release -n *</p>
     <p/>
   </section>      
