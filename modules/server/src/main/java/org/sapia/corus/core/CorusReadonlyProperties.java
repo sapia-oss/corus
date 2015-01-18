@@ -3,7 +3,6 @@ package org.sapia.corus.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.Properties;
 
 import org.sapia.corus.util.PropertiesUtil;
@@ -22,7 +21,7 @@ public class CorusReadonlyProperties {
   }
   
   /**
-   * @param homeDir the {@link File} corresponding to the <tt>HOME</tt> directory, from which the read-only properties are read.
+   * @param homeDir the {@link File} corresponding to the <tt>$HOME/.corus</tt> directory, from which the read-only properties are read.
    * @param port the port of the current Corus server.
    * @return return the read-only properties for the current server.
    */
@@ -40,7 +39,7 @@ public class CorusReadonlyProperties {
   /**
    * @param target the {@link Properties} instance to which to load the read-only properties.
    * 
-   * @param homeDir the {@link File} corresponding to the <tt>HOME</tt> directory, from which the read-only properties are read.
+   * @param homeDir the {@link File} corresponding to the <tt>$HOME/.corus</tt> directory, from which the read-only properties are read.
    * @param port the port of the current Corus server.
    */
   public static synchronized void loadInto(Properties target, File homeDir, int port) {
@@ -49,7 +48,7 @@ public class CorusReadonlyProperties {
   }
   
   /**
-   * @param homeDir the {@link File} corresponding to the <tt>HOME</tt> directory, to which the read-only properties are saved.
+   * @param homeDir the {@link File} corresponding to the <tt>$HOME/.corus</tt> directory, to which the read-only properties are saved.
    * @param port the port of the current Corus server.
    * @param overwrite if <code>true</code>, overwrites any existing read-only Corus properties. Updates
    * the currently existing files (if any) otherwise.
@@ -74,7 +73,7 @@ public class CorusReadonlyProperties {
     PrintWriter writer = null;
     try {
       writer = new PrintWriter(toSave);
-      toWrite.store(writer, "FILE WRITTEN BY CORUS SERVER. DO NOT MODIFY MANUALLY. " + new Date().toString());
+      toWrite.store(writer, "FILE WRITTEN BY CORUS SERVER. DO NOT MODIFY MANUALLY");
       writer.flush();
     } catch (IOException e) {
       throw new IllegalStateException("Could not save properties:" + toSave.getName(), e);
