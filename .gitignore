@@ -35,11 +35,13 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.*~
 
 # Dev resources #
 #################
 .classpath
 .project
+pom.xml.versionsBackup
 .settings/
 target/
 lib/

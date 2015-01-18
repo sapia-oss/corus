@@ -324,9 +324,9 @@ corus.server.ssl.enabled=true</sapia:code>
   /clusters/{clusterName}/hosts/{host}/name/{newClusterName}
 
 - Path variables:
-  - clusterName....: the name of the cluster to access
-  - host:..........: a host literal (taking the form: ip_address:port)
-  - newClusterName.: the name of the new cluster to which the Corus instance(s) should publish themselves</sapia:code>
+  - clusterName...: the name of the cluster to access
+  - host:.........: a host literal (taking the form: ip_address:port)
+  - newClusterName: the name of the new cluster to which the Corus instance(s) should publish themselves</sapia:code>
   
           <p><b>Sample requests</b></p>
           
@@ -351,9 +351,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/name/app-10</
   /clusters/{clusterName}/hosts/{host}/repo/role/{newRepoRole}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - newRepoRole.: the new repo role (must be either: CLIENT, SERVER or NONE - handling is case-insensitive)</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - newRepoRole: the new repo role (must be either: CLIENT, SERVER or NONE - handling is case-insensitive)</sapia:code>
   
           <p><b>Sample requests</b></p>
           
@@ -377,8 +377,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</
   /clusters/{clusterName}/hosts/{host}/repo/pull
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)</sapia:code>
   
           <p><b>Sample requests</b></p>
           
@@ -413,8 +413,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</
   /clusters/{clusterName}/hosts/{host}/roles
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
   
 - Parameters:
   - n (optional): a role name (pattern matching supported)</sapia:code>
@@ -474,9 +474,9 @@ http://saturn:33000/rest/clusters/app-01/roles?n=test*</sapia:code>
   /clusters/{clusterName}/hosts/{host}/roles/{role}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - role:.......: the name of the role to create/update
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - role:......: the name of the role to create/update
 
 - Parameters:
   - permissions: the set of permissions to assign to the role (specified in a single string composed of the letters consisting of the permissions' abbreviations)</sapia:code>
@@ -500,9 +500,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/develop
   /clusters/{clusterName}/hosts/{host}/roles/{role}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - role:.......: the name of the role to delete
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - role:......: the name of the role to delete
 
 - Parameters:
   - permissions: the set of permissions to assign to the role</sapia:code>
@@ -537,8 +537,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/develop
   /clusters/{clusterName}/hosts/{host}/appkeys
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
   
 - Parameters:
   - a (optional): a application identifier (pattern matching supported)</sapia:code>
@@ -578,9 +578,9 @@ http://saturn:33000/rest/clusters/app-01/appkeys?a=test*</sapia:code>
   /clusters/{clusterName}/hosts/{host}/appkeys/{appId}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - appId:.....: the application identifier to associate to the application key
 
 - Parameters:
   - k (optional): the actual application key to use (if not specified, one is internally created)
@@ -607,10 +607,10 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
   /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/key  
   
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
-  - value:......: the actual value of the key (if not specified, one is internally created)</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - appId:.....: the application identifier to associate to the application key
+  - value:.....: the actual value of the key (if not specified, one is internally created)</sapia:code>
           
           <p><b>Sample requests</b></p>
           <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50
@@ -634,10 +634,10 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
   /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/role/{role}
   
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - appId:......: the application identifier to associate to the application key
-  - role:.......: the role to associate to the application key</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - appId:.....: the application identifier to associate to the application key
+  - role:......: the role to associate to the application key</sapia:code>
           
           <p><b>Sample requests</b></p>
           <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/role/developer
@@ -670,8 +670,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
   
 - Parameters:
   - d (optional): a distribution name    (pattern matching supported)
@@ -731,8 +731,8 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)</sapia:code>
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
@@ -751,12 +751,15 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/distributions
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host........: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
   
 - Parameters:
-  - d (optional): a distribution name    (pattern matching supported)
-  - v (optional): a distribution version (pattern matching supported)</sapia:code>
+  - d (optional).....: a distribution name    (pattern matching supported)
+  - v (optional).....: a distribution version (pattern matching supported)
+  - backup (optional): indicates how many distributions should be kept on the 
+                       Corus server as backup (same as the CLI's -backup 
+                       option)</sapia:code>
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
@@ -788,9 +791,9 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 - Parameters:
   - d (optional): a distribution name    (pattern matching supported)
@@ -848,8 +851,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143
   /clusters/{clusterName}/hosts/{host}/processes/exec
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
 
 - Parameters
   - d: a distribution name    (pattern matching supported)
@@ -878,9 +881,9 @@ http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=htt
   /clusters/{clusterName}/hosts/{host}/processes/kill/{process_id}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
 - Parameters
@@ -910,9 +913,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/suspend
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
 - Parameters
@@ -942,9 +945,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/resume
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
 - Parameters
@@ -974,9 +977,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/restart
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
 - Parameters
@@ -1006,9 +1009,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/processes/{process_id}/clean
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - process_id..: the Corus-generated process identifier of a given process 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 
 - Parameters
@@ -1044,8 +1047,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
   /clusters/{clusterName}/hosts/{host}/exec-configs
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
    
 - Parameters:
   - n (optional): an execution configuration name (pattern matching supported)</sapia:code>
@@ -1099,8 +1102,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?
   /clusters/{clusterName}/hosts/{host}/exec-configs
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)</sapia:code>
         
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs
@@ -1123,9 +1126,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs<
   /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}
 
 - Path variables:
-  - clusterName......: the name of the cluster to access
-  - host:............: a host literal (taking the form: ip_address:port)
-  - exec-config-name.: the name of the execution configuration to delete</sapia:code>
+  - clusterName.....: the name of the cluster to access
+  - host:...........: a host literal (taking the form: ip_address:port)
+  - exec-config-name: the name of the execution configuration to delete</sapia:code>
         
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec
@@ -1148,9 +1151,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
   /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/exec
 
 - Path variables:
-  - clusterName......: the name of the cluster to access
-  - host:............: a host literal (taking the form: ip_address:port)
-  - exec-config-name.: the name of the execution configuration to delete</sapia:code>
+  - clusterName.....: the name of the cluster to access
+  - host:...........: a host literal (taking the form: ip_address:port)
+  - exec-config-name: the name of the execution configuration to delete</sapia:code>
         
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec/exec
@@ -1188,12 +1191,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
   /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}  
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - scope.......: indicates the scope of the properties to get 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - scope......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
                   in Corus, or 'server' for the server properties)
-  - category....: a property category
+  - category...: a property category
    
 - Parameters:
   - p (optional): a property name (pattern matching supported)</sapia:code>
@@ -1252,12 +1255,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
   /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
   
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - scope.......: indicates the scope of the properties to get 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - scope......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
                   in Corus, or 'server' for the server properties)
-  - category....: a property category</sapia:code>
+  - category...: a property category</sapia:code>
         
         <p><b>Sample request</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?connections.min=100&amp;connections.max=200</sapia:code>
@@ -1286,12 +1289,12 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
   /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?p=propNamePattern
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - scope.......: indicates the scope of the properties to get 
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - scope......: indicates the scope of the properties to get 
                   (must be 'process' to obtain process properties stored 
                   in Corus, or 'server' for the server properties)
-  - category....: a property category
+  - category...: a property category
                   
 - Parameters:
   - p: a property name (pattern matching supported)</sapia:code>
@@ -1324,8 +1327,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
   /clusters/{clusterName}/hosts/{host}/tags
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
   
 - Parameters:
   - t (optional): a tag name (pattern matching supported)</sapia:code>
@@ -1365,9 +1368,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags</sapia:c
   /clusters/{clusterName}/hosts/{host}/tags/{tag}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - tag:........: the tag to add</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - tag:.......: the tag to add</sapia:code>
   
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
@@ -1389,9 +1392,9 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
   /clusters/{clusterName}/hosts/{host}/tags/{tag}
 
 - Path variables:
-  - clusterName.: the name of the cluster to access
-  - host:.......: a host literal (taking the form: ip_address:port)
-  - tag:........: the tag to delete</sapia:code>
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  - tag:.......: the tag to delete</sapia:code>
   
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env

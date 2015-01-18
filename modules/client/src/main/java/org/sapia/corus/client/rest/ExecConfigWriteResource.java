@@ -5,7 +5,6 @@ import java.io.File;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.rest.Value;
-import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.security.Permission;
 
 /**

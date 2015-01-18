@@ -57,6 +57,8 @@ public class DistributionWriteResourceTest {
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
     when(request.getValue("d")).thenReturn(new Value("d", "dist"));
     when(request.getValue("v")).thenReturn(new Value("v", "version"));
+    when(request.getValue("backup", "0")).thenReturn(new Value("backup", "0"));
+
   }
   
   @Test
