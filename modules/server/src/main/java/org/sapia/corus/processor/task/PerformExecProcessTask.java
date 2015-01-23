@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
@@ -215,19 +216,21 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     for (String name : processProperties.stringPropertyNames()) {
       String value = processProperties.getProperty(name);
       if (value != null) {
-        boolean toEncloseInDoubleQuotes = (value.indexOf(' ') >= 0);
-        if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
-            // Temporarely removing surrounding double quotes 
-            value = value.substring(1, value.length()-1);
-            toEncloseInDoubleQuotes = true;
-        }
-
-        // Escaping any double quotes
-        value = value.replace("\"", "\\\"");
-        
-        // Surrounding with double quotes
-        if (toEncloseInDoubleQuotes) {
-            value = "\"" + value + "\"";
+        if (StringUtils.isNotEmpty(value)) {
+          boolean toEncloseInDoubleQuotes = (value.indexOf(' ') >= 0);
+          if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
+              // Temporarely removing surrounding double quotes 
+              value = value.substring(1, value.length()-1);
+              toEncloseInDoubleQuotes = true;
+          }
+  
+          // Escaping any double quotes
+          value = value.replace("\"", "\\\"");
+          
+          // Surrounding with double quotes
+          if (toEncloseInDoubleQuotes) {
+              value = "\"" + value + "\"";
+          }
         }
         
         ctx.info("Passing process property: " + name + "=" + PropertiesUtil.hideIfPassword(name, value));

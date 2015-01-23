@@ -66,7 +66,8 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
    * Constructs an instance of this class with the given params.
    */
   public KillTask(int maxRetry) {
-    super.setMaxExecution(maxRetry);
+    // Ajusting the semantic meaning of max execution count vs. max retry attempt by adding one attempt
+    super.setMaxExecution(1 + maxRetry);
   }
   
   /**
