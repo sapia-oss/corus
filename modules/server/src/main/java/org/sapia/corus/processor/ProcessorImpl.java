@@ -324,6 +324,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
             .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
       } else {
         KillTask kill = new KillTask(proc.getMaxKillRetry());
+        kill.setHardKill(pref.isHard());
         taskman.executeBackground(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
             .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
       }

@@ -56,6 +56,16 @@ public class KillTaskTest extends TestBaseTask{
   }
 
   @Test
+  public void testKillFromCorus_zeroRetry() throws Exception {
+    KillTask kill = new KillTask(0);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
+    assertTrue(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+  }
+
+  @Test
   public void testKillFromCorusConfirmed() throws Exception {
     OsModule os = mock(OsModule.class);
     ctx.getServices().rebind(OsModule.class, os);
@@ -75,13 +85,45 @@ public class KillTaskTest extends TestBaseTask{
   }
 
   @Test
+  public void testKill_zeroRetryAttempt() throws Exception {
+    OsModule os = mock(OsModule.class);
+    ctx.getServices().rebind(OsModule.class, os);
+    
+    int      maxRetry = 0;
+    KillTask kill        = new KillTask(maxRetry);
+    for(int i = 0; i < 1+maxRetry; i++){
+      tm.executeAndWait(
+          kill, 
+          TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)
+      ).get();
+    }
+    
+    assertTrue(
+        "Process should not have been killed", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+
+    // ultimate attempt
+    tm.executeAndWait(
+        kill, 
+        TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)
+    ).get();
+    
+    assertFalse(
+        "Process should have been killed and not restarted", 
+        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+    );
+    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
+  }
+
+  @Test
   public void testKillMaxAttemptReachedNoRestart() throws Exception {
     OsModule os = mock(OsModule.class);
     ctx.getServices().rebind(OsModule.class, os);
     
-    int      maxAttempts = 3;
-    KillTask kill        = new KillTask(maxAttempts);
-    for(int i = 0; i < maxAttempts; i++){
+    int      maxRetry = 3;
+    KillTask kill        = new KillTask(maxRetry);
+    for(int i = 0; i < 1+maxRetry; i++){
       tm.executeAndWait(
           kill, 
           TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)
@@ -108,11 +150,11 @@ public class KillTaskTest extends TestBaseTask{
 
   @Test
   public void testKillMaxAttemptReachedWithRestart() throws Exception {
-    int      maxAttempts = 3;
+    int      maxRetry = 3;
     String   oldPid = proc.getOsPid();
     ctx.getProc().getConfigurationImpl().setRestartInterval(0);
-    KillTask kill        = new KillTask(maxAttempts);
-    for(int i = 0; i < maxAttempts; i++){
+    KillTask kill        = new KillTask(maxRetry);
+    for(int i = 0; i < 1+maxRetry; i++){
       tm.executeAndWait(
           kill, 
           TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)
