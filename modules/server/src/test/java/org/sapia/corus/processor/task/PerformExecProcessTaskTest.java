@@ -133,4 +133,11 @@ public class PerformExecProcessTaskTest extends TestBaseTask {
                 .contains(new Property("sna","\"foo \\\"bar\""));
     }
     
+    @Test
+    public void testGetProcessProps_emptyValue() throws Exception {
+        Properties props = createProperties("emptyVal", "");
+        Assertions.assertThat(task.getProcessProps(conf, process, dist, taskContext, props))
+                .contains(new Property("emptyVal",""));
+    }
+    
 }
