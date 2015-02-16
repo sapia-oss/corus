@@ -19,4 +19,11 @@ public interface HttpModule extends Module {
    */
   public void addHttpExtension(HttpExtension ext);
 
+  /***
+   * Adds a {@link HttpExtension} to this instance, but to the SSL publishing endpoint.
+   * 
+   * @param ext
+   *          a {@link HttpExtension}
+   */
+  public void addHttpsExtension(HttpExtension ext);
 }

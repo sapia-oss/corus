@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -16,6 +17,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.LockOwner;
@@ -81,7 +83,7 @@ public class KillTaskTest extends TestBaseTask{
     );
     assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
     
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
   }
 
   @Test
@@ -113,7 +115,7 @@ public class KillTaskTest extends TestBaseTask{
         "Process should have been killed and not restarted", 
         ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
     );
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
 
   @Test
@@ -145,7 +147,7 @@ public class KillTaskTest extends TestBaseTask{
         "Process should have been killed and not restarted", 
         ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
     );
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
 
   @Test
@@ -211,7 +213,7 @@ public class KillTaskTest extends TestBaseTask{
         ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
     );
     
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
   }
   
   @Test(expected=ProcessLockException.class)

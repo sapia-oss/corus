@@ -62,6 +62,9 @@
         The API gives access to "write" operations (killing processes, deploying, etc.) that require authentication and authorization.
         In addition, such calls should be made over SSL, which Corus supports. The following sections explain these security considerations.
       </p>
+      <p>
+        Note that it is possible to make the REST resources available and over SSL only, through <a href="#SSL-enforcing">configuration</a>.
+      </p>
       <sapia:sect3 title="Authentication and authorization">
         <p>
           Authentication and authorization require the creation of application keys. An application key is associated to an application
@@ -202,6 +205,25 @@ corus.server.ssl.enabled=true</sapia:code>
           Once the configuration is done, Corus must be restarted.
         </p>
         
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Enforcing SSL and Authentication" alias="SSL-enforcing">
+        <p>
+          As of release 4.5.2, it is possible to enforce use of the API over SSL (that is: REST resources will then not be available over plain HTTP). 
+          By the same token, it is also possible to require authentication for all REST resources (even <tt>GET</tt> ones).
+        </p>
+        <p>
+          To enforce the use of SSL, configure the <tt>corus.server.api.ssl.enforced</tt> property as follows, in <tt>corus.properties</tt>:
+        </p>
+        <sapia:code>corus.server.api.ssl.enforced=true</sapia:code>
+        <p>
+          When the above is set to <tt>true</tt>, REST resources are only available over HTTPS - see the <a href="#SSL">SSL</a> section for more details.
+        </p>
+        <p>
+          To require systematic authentication (even on <tt>GET</tt> resources), set the <tt>corus.server.api.auth.required</tt> property to 
+          <tt>true</tt> in <tt>corus.properties</tt>:
+        </p>
+        <sapia:code>corus.server.api.auth.required=true</sapia:code>
       </sapia:sect3>
     
     </sapia:sect2>
@@ -357,8 +379,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/name/app-10</
   
           <p><b>Sample requests</b></p>
           
-          <sapia:code>http://saturn:33000/rest/clusters/app-01/role/client
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</sapia:code>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/repo/role/client
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/repo/role/server</sapia:code>
 
         </sapia:sect4>
         

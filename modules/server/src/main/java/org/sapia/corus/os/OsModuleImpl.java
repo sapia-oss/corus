@@ -71,9 +71,9 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
   }
 
   @Override
-  public void killProcess(LogCallback log, String pid) throws IOException {
+  public void killProcess(LogCallback log, KillSignal sig, String pid) throws IOException {
     NativeProcess proc = NativeProcessFactory.newNativeProcess();
-    proc.kill(log, pid);
+    proc.kill(log, sig, pid);
   }
 
 }

@@ -10,16 +10,25 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.common.ReverseComparator;
+import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.http.HttpContext;
@@ -31,6 +40,7 @@ import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
+import org.sapia.corus.http.helpers.AccessDeniedHelper;
 import org.sapia.corus.http.helpers.NotFoundHelper;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 
@@ -54,10 +64,13 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   private static final String PARAM_ACTION     = "action";
   private static final String ACTION_LIST      = "list";
   private static final String ACTION_COMPRESS  = "compress";
-  
+
+  private static final String PARAM_SORT_ORDER = "sortOrder";
   private static final String PARAM_SORT_BY    = "sortBy";
   private static final String SORT_BY_DATE     = "date";
   private static final String SORT_BY_SIZE     = "size";
+  private static final String SORT_ORDER_ASC   = "asc";
+  private static final String SORT_ORDER_DESC  = "desc";
 
   static final int BUFSZ = 1024;
 
@@ -68,6 +81,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   private ServerContext context;
 
   private Map<String, String> symlinks;
+  private Set<Arg> hiddenFilePatterns = new HashSet<>();
 
   public FileSystemExtension(ServerContext context) {
     this.context = context;
@@ -86,6 +100,20 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName));
       }
     }
+    
+    String hidePatterns = context.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS);
+    processHiddenFilePatterns(hidePatterns);
+    
+    hidePatterns = context.getServices().getConfigurator()
+          .getProperties(PropertyScope.SERVER, new ArrayList<String>(0))
+          .getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS);
+    processHiddenFilePatterns(hidePatterns);
+    
+    for (String propName : serverProps.stringPropertyNames()) {
+      if (propName.startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
+        symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName));
+      }
+    }
 
     context.getServices().getEventDispatcher().addInterceptor(PropertyChangeEvent.class, this);
   }
@@ -99,20 +127,23 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       if (event.getName().startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
         String linkName = event.getName().substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length());
         if (event.getType() == Type.ADD) {
-          if (log.isDebugEnabled()) {
-            log.debug("Adding new symbolic link " + linkName);
-          }
+          log.debug("Adding new symbolic link " + linkName);
           symlinks.put(linkName, event.getValue());
         } else {
-          if (log.isDebugEnabled()) {
-            log.debug("Removing symbolic link " + linkName);
-          }
+          log.debug("Removing symbolic link " + linkName);
           symlinks.remove(linkName);
+        }
+      } else if (event.getName().equals(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS)) {
+        if (event.getType() == Type.ADD) {
+          processHiddenFilePatterns(event.getValue());
+        } else  {
+          log.debug("Resetting hidden file patterns");
+          processHiddenFilePatterns(context.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS));
         }
       }
     }
   }
-
+  
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(HTTP_FILESYSTEM_CONTEXT);
@@ -139,12 +170,42 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         requested = new File(context.getHomeDir() + File.separator + ctx.getPathInfo());
       }
     }
-
-    if (!requested.exists()) {
+    if (!isAccessAllowed(requested)) {
+      AccessDeniedHelper helper = new AccessDeniedHelper();
+      helper.print(ctx.getRequest(), ctx.getResponse());
+    } else if (!requested.exists()) {
       NotFoundHelper helper = new NotFoundHelper();
       helper.print(ctx.getRequest(), ctx.getResponse());
     } else {
       output(requested, ctx);
+    }
+  }
+  
+  boolean isAccessAllowed(File f) {
+    for (Arg pattern : hiddenFilePatterns) {
+      if (pattern.matches(f.getAbsolutePath().toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  void processHiddenFilePatterns(String hidePatterns) {
+    if (hidePatterns != null) {
+      StrSubstitutor sbs = new StrSubstitutor(StrLookups.merge(
+          PropertiesStrLookup.getInstance(context.getCorusProperties()), 
+          PropertiesStrLookup.getSystemInstance())
+       );
+      String thePatterns = sbs.replace(hidePatterns.toLowerCase()).replace("/", File.separator);
+      
+      String[] patterns = StringUtils.split(thePatterns, ",");
+      if (patterns.length > 0) {
+        Set<Arg> newPatterns = new HashSet<>();
+        for (String p : patterns) {
+          newPatterns.add(ArgFactory.parse(p));
+        }
+        this.hiddenFilePatterns = newPatterns;
+      }
     }
   }
 
@@ -214,7 +275,8 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         }
       }
       
-      String sortBy = ctx.getRequest().getParameter(PARAM_SORT_BY);
+      String sortBy    = ctx.getRequest().getParameter(PARAM_SORT_BY);
+      String sortOrder = ctx.getRequest().getParameter(PARAM_SORT_ORDER);
       Comparator<FileEntry> sort;
       if (sortBy == null) {
         sort = FileEntry.sortByName();
@@ -225,21 +287,28 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       } else {
         sort = FileEntry.sortByName();
       }
-
+      if (sortOrder != null && sortOrder.equalsIgnoreCase(SORT_ORDER_DESC)) {
+        sort = new ReverseComparator<FileEntry>(sort);
+      } 
+      
+      String newSortOrder = StringUtils.isBlank(sortOrder) || sortOrder.equalsIgnoreCase(SORT_ORDER_ASC) ? SORT_ORDER_DESC : SORT_ORDER_ASC;
+      
       Collections.sort(dirs, sort);
       Collections.sort(files, sort);
 
       ps.println("<p><b>Content:</b></p><ul>");
       ps.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\" width=\"80%\">");
-      ps.println("<th width=\"5%\"></th><th width=\"40%\"><a href=\"?sortBy=name\">Name</a></th>" 
-          + "<th width=\"10%\"><a href=\"?sortBy=size\">Size</a></th>"
-          + "<th width=\"15%\"><a href=\"?sortBy=date\">Last Modified</a></th>");
+      ps.println("<th width=\"5%\"></th><th width=\"40%\"><a href=\"?sortBy=name&sortOrder=" + newSortOrder + "\">Name</a></th>" 
+          + "<th width=\"10%\"><a href=\"?sortBy=size&sortOrder=" + newSortOrder + "\">Size</a></th>"
+          + "<th width=\"15%\"><a href=\"?sortBy=date&sortOrder=" + newSortOrder + "\">Last Modified</a></th>");
       
       for (int i = 0; i < dirs.size(); i++) {
         printFileInfo(dirs.get(i), ps, ctx);
       }
       for (int i = 0; i < files.size(); i++) {
-        printFileInfo(files.get(i), ps, ctx);
+        FileEntry f = files.get(i);
+        if (isAccessAllowed(f.getFile())) 
+        printFileInfo(f, ps, ctx);
       }
       ps.println("</table></ul><br/>");
     }

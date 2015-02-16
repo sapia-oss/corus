@@ -14,6 +14,40 @@ import org.sapia.console.CmdLine;
 public interface OsModule {
 
   public static final String ROLE = OsModule.class.getName();
+  
+  /**
+   * Holds constants corresponding to the different kill signals in Linux.
+   * 
+   * @author yduchesne
+   *
+   */
+  public enum KillSignal {
+    
+    /**
+     * Corresponds to <code>SIGTERM</code> (code 15).
+     */
+    SIGTERM(15),
+    
+    /**
+     * Corresponds to <code>SIGKILL</code> (code 9).
+     */
+    SIGKILL(9);
+    
+    private int code;
+    
+    private KillSignal(int code) {
+      this.code = code;
+    }
+    
+    /**
+     * 
+     * @return the signal's actual code.
+     */
+    public int code() {
+      return code;
+    }
+    
+  }
 
   /**
    * Callback specified for logging.
@@ -59,11 +93,13 @@ public interface OsModule {
    * 
    * @param log
    *          a {@link LogCallback}.
+   * @param sig
+   *          a {@link KillSignal}.
    * @param pid
    *          the PID of the process to kill.
    * @throws IOException
    *           if an error occurred while trying to kill the process.
    */
-  public void killProcess(LogCallback log, String pid) throws IOException;
+  public void killProcess(LogCallback log, KillSignal sig, String pid) throws IOException;
 
 }

@@ -24,6 +24,7 @@ import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -229,7 +230,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
             @Override
             public void debug(String msg) {
             }
-          }, p.getOsPid());
+          }, KillSignal.SIGKILL, p.getOsPid());
         } catch (IOException e) {
         }
         processes.getActiveProcesses().removeProcess(p.getProcessID());

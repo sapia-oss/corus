@@ -17,6 +17,7 @@ import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.sigar.SigarSupplier;
 import org.sapia.corus.util.IOUtil;
@@ -326,7 +327,7 @@ public class WindowsProcess implements NativeProcess {
 
 
   @Override
-  public void kill(OsModule.LogCallback log, String pid) throws IOException {
+  public void kill(OsModule.LogCallback log, KillSignal sig, String pid) throws IOException {
     if (SigarSupplier.isSet() && SigarSupplier.get() instanceof Sigar) {
       try {
         log.debug(String.format("Killing process %s with SIGAR", pid));

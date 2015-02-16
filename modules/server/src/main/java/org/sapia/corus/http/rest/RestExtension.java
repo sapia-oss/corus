@@ -27,12 +27,17 @@ import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
 import org.sapia.corus.client.rest.RestResponseFacade;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.Subject;
+import org.sapia.corus.configurator.PropertyChangeEvent;
+import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -41,7 +46,7 @@ import org.sapia.ubik.util.Strings;
  * @author yduchesne
  *
  */
-public class RestExtension implements HttpExtension {
+public class RestExtension implements HttpExtension, Interceptor {
     
   private static final int BYTES_PER_CHAR = 4;
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
@@ -64,6 +69,29 @@ public class RestExtension implements HttpExtension {
     );
     
     container = RestContainer.Builder.newInstance().buildDefaultInstance();
+    
+    String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
+    if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
+      container.setAuthRequired(true);
+    } else {
+      container.setAuthRequired(false);
+    }
+
+    serverContext.getServices().getEventDispatcher().addInterceptor(PropertyChangeEvent.class, this);
+  }
+  
+  private String doGetProperty(String propName) {
+    String value = serverContext
+        .getCorusProperties()
+        .getProperty(propName);
+    
+    String overridde = serverContext.getServices().getConfigurator()
+        .getProperties(PropertyScope.SERVER, new ArrayList<String>(0))
+        .getProperty(propName);
+    if (overridde != null) {
+      value = overridde;
+    }
+    return value;
   }
   
   @Override
@@ -185,6 +213,32 @@ public class RestExtension implements HttpExtension {
     } finally {
       writer.close();
       ctx.getResponse().commit();
+    }
+  }
+  
+  /**
+   * @param event
+   *          a {@link PropertyChangeEvent}.
+   */
+  public void onPropertyChangeEvent(PropertyChangeEvent event) {
+    if (event.getScope() == PropertyScope.SERVER) {
+      if (event.getName().equals(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED)) {
+        if (event.getType() == Type.ADD) {
+          String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
+          if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
+            container.setAuthRequired(true);
+          } else {
+            container.setAuthRequired(false);
+          }
+        } else  {
+          String authRequired = serverContext.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
+          if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
+            container.setAuthRequired(true);
+          } else {
+            container.setAuthRequired(false);
+          }
+        }
+      }
     }
   }
 

@@ -8,6 +8,7 @@ import java.util.StringTokenizer;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.util.IOUtil;
 
@@ -72,9 +73,9 @@ public class UnixProcess implements NativeProcess {
   }
 
   @Override
-  public void kill(LogCallback log, String pid) throws IOException {
+  public void kill(LogCallback log, KillSignal sig, String pid) throws IOException {
     // Generate the kill command
-    CmdLine aKillCommand = CmdLine.parse("kill -9 " + pid);
+    CmdLine aKillCommand = CmdLine.parse("kill -" + sig.code() + " " + pid);
 
     // Execute the kill command
     log.debug("--> Executing: " + aKillCommand.toString());

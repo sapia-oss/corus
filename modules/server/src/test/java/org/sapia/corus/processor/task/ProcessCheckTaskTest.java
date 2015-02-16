@@ -1,5 +1,6 @@
 package org.sapia.corus.processor.task;
 
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -14,6 +15,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
@@ -47,7 +49,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
         latch.countDown();
         return null;
       }
-    }).when(os).killProcess(any(OsModule.LogCallback.class), any(String.class));
+    }).when(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), any(String.class));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
@@ -88,7 +90,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     );
     
     verify(dispatcher).dispatch(any(ProcessStaleEvent.class));
-    verify(os, never()).killProcess(any(LogCallback.class), anyString());
+    verify(os, never()).killProcess(any(LogCallback.class), eq(KillSignal.SIGKILL), anyString());
     
   }  
   
