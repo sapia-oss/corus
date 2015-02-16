@@ -117,7 +117,7 @@ public class FileEntry {
     return new Comparator<FileEntry>() {
       @Override
       public int compare(FileEntry o1, FileEntry o2) {
-        return o2.getName().compareTo(o2.getName());
+        return o1.getName().compareTo(o2.getName());
       }
     };
   }

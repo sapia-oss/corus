@@ -15,6 +15,7 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
@@ -55,6 +56,7 @@ public class ForcefulKillTaskTest extends TestBaseTask{
     OsModule os = mock(OsModule.class);
     doThrow(new IOException("Kill error")).when(os).killProcess(
           any(OsModule.LogCallback.class), 
+          any(KillSignal.class),
           any(String.class));
     ctx.getServices().rebind(OsModule.class, os);
     ForcefulKillTask task = new ForcefulKillTask();

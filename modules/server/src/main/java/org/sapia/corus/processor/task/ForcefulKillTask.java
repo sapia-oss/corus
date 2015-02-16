@@ -3,6 +3,7 @@ package org.sapia.corus.processor.task;
 import java.io.IOException;
 
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
@@ -34,7 +35,7 @@ public class ForcefulKillTask extends Task<Boolean, TaskParams<Process, ProcessT
     // try forceful kill if OS pid not null...
     if (process.getOsPid() != null) {
       try {
-        os.killProcess(callback(ctx), process.getOsPid());
+        os.killProcess(callback(ctx), KillSignal.SIGKILL, process.getOsPid());
         process.setStatus(LifeCycleStatus.KILL_CONFIRMED);
         process.save();
       } catch (IOException e) {

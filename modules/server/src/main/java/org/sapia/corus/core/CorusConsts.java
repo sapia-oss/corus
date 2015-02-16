@@ -60,6 +60,16 @@ public interface CorusConsts {
    */
   public static final String PROPERTY_CORUS_FILE_LINK_PREFIX = "corus.server.file.link.";
   
+  /**
+   * Defines the patterns that will determine which resources should be hidden.
+   */
+  public static final String PROPERTY_CORUS_FILE_HIDE_PATTERNS = "corus.server.file.hide.patterns";
+  
+  /**
+   * Indicates if authentication should be required for all REST calls - including <code>GET</code> ones.
+   */
+  public static final String PROPERTY_CORUS_REST_AUTH_REQUIRED = "corus.server.api.auth.required";
+  
   public static final File CORUS_USER_HOME = new File(System.getProperty("user.home") + File.separator + ".corus");
   
   

@@ -20,16 +20,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Bind(moduleInterface = HttpModule.class)
 public class HttpModuleImpl extends ModuleHelper implements HttpModule {
 
-  private HttpExtensionManager httpExt;
+  private HttpExtensionManager httpExt, sslExt;
   
   @Autowired
   private SslExporter          sslExporter;
 
+  private boolean apiSSLOnly;
+  
   /**
    * Constructor for HttpModuleImpl.
    */
   public HttpModuleImpl() {
     super();
+  }
+  
+  public void setApiSSLOnly(boolean apiSSLOnly) {
+    this.apiSSLOnly = apiSSLOnly;
   }
 
   /**
@@ -44,34 +50,37 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
    */
   public void init() throws Exception {
     httpExt = new HttpExtensionManager(logger(), serverContext());
+    sslExt  = new HttpExtensionManager(logger(), serverContext());
     HttpTransportProvider transportProvider = (HttpTransportProvider) serverContext().getTransport().getTransportProvider();
     transportProvider.getRouter().setCatchAllHandler(httpExt);
   }
 
-  /**
-   * @see Service#start()
-   */
+  @Override
   public void start() throws Exception {
     addHttpExtension(new FileSystemExtension(serverContext));
     addHttpExtension(new JmxExtension(serverContext));
-    addHttpExtension(new RestExtension(serverContext));
     addHttpExtension(new SoapExtension(serverContext));
-    sslExporter.export(httpExt);
+    if (apiSSLOnly) {
+      logger().debug("Publishing REST extension over SSL only");
+      addHttpsExtension(new RestExtension(serverContext));
+    } else {
+      addHttpExtension(new RestExtension(serverContext));
+    }
+    sslExporter.export(sslExt);
   }
 
-  /**
-   * @see Service#dispose()
-   */
+  @Override
   public void dispose() {
   }
 
-  /**
-   * Adds a {@link HttpExtension} to this instance.
-   * 
-   * @param ext
-   *          a {@link HttpExtension}
-   */
+  @Override
   public void addHttpExtension(HttpExtension ext) {
     httpExt.addHttpExtension(ext);
+    sslExt.addHttpExtension(ext);
+  }
+
+  @Override
+  public void addHttpsExtension(HttpExtension ext) {
+    sslExt.addHttpExtension(ext);
   }
 }

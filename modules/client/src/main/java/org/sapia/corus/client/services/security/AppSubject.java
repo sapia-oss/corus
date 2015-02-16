@@ -40,6 +40,11 @@ public class AppSubject implements Subject {
     return permissions.containsAll(perms);
   }
   
+  @Override
+  public boolean isAnonymous() {
+    return false;
+  }
+  
   // --------------------------------------------------------------------------
   // Object overrides
   

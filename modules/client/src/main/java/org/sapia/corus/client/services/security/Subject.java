@@ -24,6 +24,11 @@ public interface Subject {
    */
   public boolean hasPermissions(Set<Permission> perms);
   
+  /**
+   * @return <code>true</code> if this subject is anonymous.
+   */
+  public boolean isAnonymous();
+  
   // ==========================================================================
   // Anonymous subject impl.
   
@@ -39,6 +44,11 @@ public interface Subject {
     @Override
     public boolean hasPermissions(Set<Permission> perms) {
       return permissions.containsAll(perms);
+    }
+    
+    @Override
+    public boolean isAnonymous() {
+      return true;
     }
     
     /**

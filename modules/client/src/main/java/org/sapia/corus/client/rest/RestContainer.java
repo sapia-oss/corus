@@ -221,11 +221,20 @@ public class RestContainer {
   
   private List<RestResourceMetadata> resources  = new ArrayList<RestResourceMetadata>();
   
+  private volatile boolean authRequired;
+  
   /**
    * @param resources a {@link List} of {@link RestResourceMetadata} instances.
    */
   private RestContainer(List<RestResourceMetadata> resources) {
     this.resources  = resources;
+  }
+  
+  /**
+   * @param authRequired if <code>true</code>, forces authentication for all REST calls, even <code>GET</code> ones.
+   */
+  public void setAuthRequired(boolean authRequired) {
+    this.authRequired = authRequired;
   }
   
   /**
@@ -241,7 +250,10 @@ public class RestContainer {
       Map<String, String> values = r.matches(context, pathValues);
       if (values != null) {
         try {
-          context.addParams(values);        
+          context.addParams(values);
+          if (context.getSubject().isAnonymous() && authRequired) {
+            throw new CorusSecurityException("Authentication is required", Type.OPERATION_NOT_AUTHORIZED);
+          } 
           if (!context.getSubject().hasPermissions(r.permissions)) {
             throw new CorusSecurityException("Subject does not have required permission(s)", Type.OPERATION_NOT_AUTHORIZED);
           }

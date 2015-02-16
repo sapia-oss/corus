@@ -3,6 +3,7 @@ package org.sapia.corus.processor.task;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +16,7 @@ import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
@@ -62,7 +64,7 @@ public class RestartTaskTest extends TestBaseTask{
     assertNotSame("Creation times should not be identical", oldCreationTime, proc.getCreationTime());
     assertNotSame("Last access times should not be identical", lastAccessTime, proc.getLastAccess());    
     assertTrue("Process should be active", ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID()));
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
   
   @Test
@@ -87,7 +89,7 @@ public class RestartTaskTest extends TestBaseTask{
         "Process should have been removed from restart list", 
         ctx.getServices().getProcesses().getProcessesToRestart().containsProcess(procWithPort.getProcessID())
     );
-    verify(os).killProcess(any(OsModule.LogCallback.class), anyString());    
+    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
 
 }

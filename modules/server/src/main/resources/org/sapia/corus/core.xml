@@ -88,6 +88,7 @@
         class="org.sapia.corus.http.HttpModuleImpl" 
         scope="singleton"
         autowire="autodetect">
+        <property name="apiSSLOnly" value="${corus.server.api.ssl.enforced}" />   
   </bean>
 
   <!-- ============ PORTS ============ -->

@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 
 /**
  * Specifies the behavior for launching native external processes.
@@ -34,9 +35,11 @@ public interface NativeProcess {
    * 
    * @param log
    *          the {@link OsModule#LogCallback} to use for logging activity.
+   * @param sig
+   *          the {@link KillSignal} to use.
    * @param pid
    *          a process' OS-specific identifier.
    * @throws IOException
    */
-  public void kill(OsModule.LogCallback log, String pid) throws IOException;
+  public void kill(OsModule.LogCallback log, KillSignal sig, String pid) throws IOException;
 }

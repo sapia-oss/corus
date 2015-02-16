@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
@@ -114,7 +115,8 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
         ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get();
         doKillConfirmed(false, ctx);
       } else {
-        ctx.getTaskManager().executeAndWait(new AttemptKillTask(), TaskParams.createFor(proc, requestor, super.getExecutionCount())).get();
+        ctx.getTaskManager().executeAndWait(new AttemptKillTask(), 
+            TaskParams.createFor(proc, requestor, super.getExecutionCount(), super.getMaxExecution())).get();
       }
     }
 
@@ -166,7 +168,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       try {
         OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {
-          os.killProcess(osKillCallback(), proc.getOsPid());
+          os.killProcess(osKillCallback(), KillSignal.SIGKILL, proc.getOsPid());
         }
       } catch (IOException e) {
         ctx.warn("Error caught trying to hard kill process as part of cleanup (process probably absent, so it properly shut down)", e);

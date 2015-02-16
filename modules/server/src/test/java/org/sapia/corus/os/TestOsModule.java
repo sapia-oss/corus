@@ -22,7 +22,7 @@ public class TestOsModule implements OsModule{
   }
   
   @Override
-  public void killProcess(LogCallback log, String pid) throws IOException {
+  public void killProcess(LogCallback log, KillSignal sig, String pid) throws IOException {
   }
 
 }
