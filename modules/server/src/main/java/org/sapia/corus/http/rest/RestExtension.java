@@ -1,11 +1,10 @@
 package org.sapia.corus.http.rest;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,6 @@ import org.sapia.ubik.util.Strings;
  */
 public class RestExtension implements HttpExtension, Interceptor {
     
-  private static final int BYTES_PER_CHAR = 4;
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")
    .setDescription("Handles REST calls")
@@ -201,17 +199,18 @@ public class RestExtension implements HttpExtension, Interceptor {
   }
   
   public void sendResponse(HttpContext ctx, int statusCode, String statusMsg, String payload) throws IOException {
-    PrintWriter writer = new PrintWriter(new OutputStreamWriter(ctx.getResponse().getOutputStream()));
-    ctx.getResponse().setContentLength(payload.length() * BYTES_PER_CHAR);
+    BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream());
+    byte[] content = payload.getBytes("UTF-8");
+    ctx.getResponse().setContentLength(content.length);
     try {
       ctx.getResponse().setStatusCode(statusCode);
       if (statusMsg != null) {
         ctx.getResponse().setStatusMessage(statusMsg);
       }
-      writer.print(payload);
-      writer.flush();
+      bos.write(content);
+      bos.flush();
     } finally {
-      writer.close();
+      bos.close();
       ctx.getResponse().commit();
     }
   }
