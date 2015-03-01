@@ -8,6 +8,7 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.http.filesystem.FileSystemExtension;
 import org.sapia.corus.http.interop.SoapExtension;
 import org.sapia.corus.http.jmx.JmxExtension;
+import org.sapia.corus.http.ping.PingExtension;
 import org.sapia.corus.http.rest.RestExtension;
 import org.sapia.ubik.rmi.server.transport.http.HttpTransportProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
 
   @Override
   public void start() throws Exception {
+    addHttpExtension(new PingExtension());
     addHttpExtension(new FileSystemExtension(serverContext));
     addHttpExtension(new JmxExtension(serverContext));
     addHttpExtension(new SoapExtension(serverContext));

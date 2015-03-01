@@ -38,7 +38,7 @@
         autowire="autodetect">
   </bean>
   
-  <!-- ============ FileSystem ============ -->
+  <!-- ============ FILESYSTEM ============ -->
 
   <bean name="org.sapia.corus.client.services.file.FileSystemModule" 
         class="org.sapia.corus.file.FileSystemModuleImpl" 

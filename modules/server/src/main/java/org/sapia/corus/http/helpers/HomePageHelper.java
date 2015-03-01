@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
@@ -35,7 +36,8 @@ public class HomePageHelper {
       res.setValue("Content-Type", "text/html");
       res.setCode(HttpResponseFacade.STATUS_OK);
       PrintStream ps = res.getPrintStream();
-      ps.println("<html><body><h1>Welcome to Corus @ " + context.getDomain() + "</h1> ");
+      ps.println("<html><body><h1>Welcome to Corus @ " + context.getDomain() + " - version " + CorusVersion.create().toString() + " </h1>");
+      
       ps.println("<h2>Available Extensions</h2>");
       ps.println("<table border=\"0\">");
       ps.println("<th>Context Path</th><th>Name</th><th>Description</th>");

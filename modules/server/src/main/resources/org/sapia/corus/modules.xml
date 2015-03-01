@@ -148,7 +148,18 @@
     <property name="fromEmail"       value="${corus.server.alert.sender}" />    
     <property name="recipientEmails" value="${corus.server.alert.recipients}" />
     <property name="enabled"   	     value="${corus.server.alert.enabled}" />
-    
-  </bean>  
+  </bean> 
+
+  <!-- ============ CONSUL ============ -->
+  
+  <bean name="org.sapia.corus.ext.pub.consul.ConsulPublisher"
+  		class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
+  		scope="singleton"
+  		autowire="autodetect">
+    <property name="enabled"   	            value="${corus.server.pub.consul.enabled}" />
+    <property name="agentUrl"               value="${corus.server.pub.consul.agent-url}" />
+    <property name="publishIntervalSeconds" value="${corus.server.pub.consul.interval}" />
+    <property name="publishTtlSeconds"      value="${corus.server.pub.consul.ttl}" />
+  </bean> 
    
 </beans>

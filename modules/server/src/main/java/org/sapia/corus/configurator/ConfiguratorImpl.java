@@ -1,5 +1,6 @@
 package org.sapia.corus.configurator;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,7 +28,10 @@ import org.sapia.corus.configurator.PropertyChangeEvent.Type;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
+import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
+import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Configurator.class })
 @Remote(interfaces = Configurator.class)
-public class ConfiguratorImpl extends ModuleHelper implements Configurator {
+public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator {
 
   public static final String PROP_SERVER_NAME   = "corus.server.name";
 
@@ -59,9 +63,12 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   private DbMap<String, ConfigProperty> internalConfig;
   private PropertyStore                 processProperties, serverProperties;
+  private Properties                    defaultServerProperties;
   private DbMap<String, ConfigProperty> tags;
   private Map<String, PropertyStore>    processPropertiesByCategory  = new ConcurrentHashMap<>();
+  private SimpleTypeConverter           converter                    = new SimpleTypeConverter();
 
+  
   // --------------------------------------------------------------------------
   // Visible for testing
 
@@ -110,9 +117,19 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   @Override
   public void init() throws Exception {
+    defaultServerProperties = new Properties();
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("org/sapia/corus/default.properties");
+    if (is == null) {
+      throw new IllegalStateException("Could not find default properties");
+    }
+    defaultServerProperties.load(is);
+    is.close();
+    
     processProperties = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process"));
     serverProperties  = new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.server"));
     internalConfig    = db.getDbMap(String.class, ConfigProperty.class, "configurator.internal.config");
+    tags              = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
+    propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
     
     ConfigProperty categoryList = internalConfig.get(CONFIG_CATEGORIES);
     if (categoryList != null) {
@@ -121,8 +138,6 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
         processPropertiesByCategory.put(c.trim(), storeForCategory(c));
       }
     }
-    tags              = db.getDbMap(String.class, ConfigProperty.class, "configurator.tags");
-    propertyProvider.overrideInitProperties(new ConfigPropertyContainer(propertyProvider.getInitProperties()));
   }
 
   @Override
@@ -137,6 +152,32 @@ public class ConfiguratorImpl extends ModuleHelper implements Configurator {
 
   @Override
   public void dispose() {
+  }
+  
+  // --------------------------------------------------------------------------
+  // InternalConfigurator interface
+  
+  @Override
+  public <T> void registerForPropertyChange(final String propertyName, final DynamicProperty<T> dynProperty) {
+    dispatcher.addInterceptor(PropertyChangeEvent.class, new Interceptor() {
+      @SuppressWarnings("unused")
+      public void onPropertyChangeEvent(PropertyChangeEvent event) {
+        if (event.getName().equals(propertyName)) {
+          if (log.isDebugEnabled()) {
+            log.debug("Property change detected for " + propertyName);
+          }
+          
+          // if the operation is a removal, we want to reset to the default value.
+          if (event.getType() == Type.REMOVE) {
+            String defaultProp = defaultServerProperties.getProperty(event.getValue());
+            if (defaultProp != null) {
+              event = new PropertyChangeEvent(event.getName(), defaultProp, PropertyScope.SERVER, Type.ADD);
+            }
+          }
+          dynProperty.setValue(converter.convertIfNecessary(event.getValue(), dynProperty.getType()));
+        }       
+      }
+    });
   }
   
   // --------------------------------------------------------------------------

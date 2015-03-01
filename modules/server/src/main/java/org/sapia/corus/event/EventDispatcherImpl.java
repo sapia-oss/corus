@@ -1,17 +1,13 @@
 package org.sapia.corus.event;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.ubik.concurrent.ConfigurableExecutor;
-import org.sapia.ubik.concurrent.NamedThreadFactory;
 import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
+import org.sapia.ubik.concurrent.NamedThreadFactory;
 import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
