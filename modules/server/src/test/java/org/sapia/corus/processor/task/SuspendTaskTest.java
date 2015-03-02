@@ -11,11 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -48,7 +50,10 @@ public class SuspendTaskTest extends TestBaseTask{
     proc.getLock().awaitRelease(10, TimeUnit.SECONDS);
     
     assertEquals(LifeCycleStatus.SUSPENDED, proc.getStatus());
-    assertTrue("Process should be in suspended list", ctx.getServices().getProcesses().getSuspendedProcesses().containsProcess(proc.getProcessID()));
+    
+    ProcessCriteria suspCriteria = ProcessCriteria.builder().pid(ArgFactory.exact(proc.getProcessID())).lifecycles(LifeCycleStatus.SUSPENDED).build();
+
+    assertFalse("Process should be in suspended list", ctx.getServices().getProcesses().getProcesses(suspCriteria).isEmpty());
 
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }  

@@ -100,47 +100,36 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     execConfigs = new ExecConfigDatabaseImpl(db.getDbMap(String.class, ExecConfig.class, "processor.execConfigs"));
     services().bind(ExecConfigDatabase.class, execConfigs);
 
-    ProcessDatabase suspended = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class,
-        "processor.suspended")));
+    ProcessDatabase processDb = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class, "processor.processes")));
 
-    ProcessDatabase active = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class, "processor.active")));
-
-    ProcessDatabase toRestart = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class,
-        "processor.toRestart")));
-
-    processes = new ProcessRepositoryImpl(suspended, active, toRestart);
+    processes = new ProcessRepositoryImpl(processDb);
     services().bind(ProcessRepository.class, processes);
 
     // here we "touch" the process objects to prevent their automatic
     // termination (the Corus server might have been down for a period
     // of time that is longer then some process' tolerated idle delay).
-    List<Process> processes = (List<Process>) active.getProcesses(ProcessCriteria.builder().all());
+    List<Process> processes = (List<Process>) processDb.getProcesses(ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING, LifeCycleStatus.KILL_CONFIRMED
+    ).build());
     Process proc;
     
     for (int i = 0; i < processes.size(); i++) {
       proc = (Process) processes.get(i);
       if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
+        // make sure we're removing process that might not have been removed
+        // before the last Corus shutdown.
         log.debug("Removing stale process object - is confirmed as killed");
-        suspended.removeProcess(proc.getProcessID());
-        active.removeProcess(proc.getProcessID());
-        toRestart.removeProcess(proc.getProcessID());
-        if (active.containsProcess(proc.getProcessID())) {
-          log.debug("Process not removed!");
-        }
-
+        processDb.removeProcess(proc.getProcessID());
+      } else if (proc.getStatus() == LifeCycleStatus.RESTARTING) {
+        // set process in auto-restart to active. if it is down, 
+        // it will not poll and enter the shutdown procedure, 
+        // eventually cleaning it up definitively.
+        proc.setStatus(LifeCycleStatus.ACTIVE);
+        proc.save();
       } else {
         proc.touch();
         proc.save();
       }
-    }
-    
-    // remove processes in auto-restart - put them back in active process list
-    // if process is down, it will not poll and enter the shutdown procedure, 
-    // eventually cleaning it up definitively
-    for (Process p : toRestart.getProcesses(ProcessCriteria.builder().all())) {
-      toRestart.removeProcess(p.getProcessID());
-      p.setStatus(LifeCycleStatus.ACTIVE);
-      active.addProcess(p);
     }
     
     if (!configuration.autoRestartStaleProcesses()) {
@@ -209,17 +198,15 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   
   @Override
   public void clean() {
-    for (Process p : processes.getProcessesToRestart().getProcesses(ProcessCriteria.builder().all())) {
-      processes.getProcessesToRestart().removeProcess(p.getProcessID());
-      p.releasePorts(portManager);
-    }
-
-    for (Process p : processes.getSuspendedProcesses().getProcesses(ProcessCriteria.builder().all())) {
-      processes.getSuspendedProcesses().removeProcess(p.getProcessID());
-      p.releasePorts(portManager);
-    }
+    ProcessCriteria criteria = ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.SUSPENDED, 
+        LifeCycleStatus.STALE, 
+        LifeCycleStatus.KILL_CONFIRMED
+    ).build();
     
-    for (Process p : processes.getActiveProcesses().getProcesses(ProcessCriteria.builder().all())) {
+    List<Process> toClean = processes.getProcesses(criteria);
+    
+    for (Process p : toClean) {
       // trying to kill stale process, just it case it is zombie
       if (p.getStatus() == LifeCycleStatus.STALE) {
         try {
@@ -233,9 +220,9 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
           }, KillSignal.SIGKILL, p.getOsPid());
         } catch (IOException e) {
         }
-        processes.getActiveProcesses().removeProcess(p.getProcessID());
-        p.releasePorts(portManager);
       }
+      processes.removeProcess(p.getProcessID());
+      p.releasePorts(portManager);
     }
   }
 
@@ -315,7 +302,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public void kill(ProcessCriteria criteria, KillPreferences pref) {
-    List<Process> procs = processes.getActiveProcesses().getProcesses(criteria);
+    criteria.setLifeCycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING);
+    List<Process> procs = processes.getProcesses(criteria);
  
     for (Process proc : procs) {
       if (pref.isSuspend()) {
@@ -335,18 +323,22 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Override
   public void kill(String corusPid, KillPreferences pref) throws ProcessNotFoundException {
 
-    Process proc = processes.getActiveProcesses().getProcess(corusPid);
+    Process proc = processes.getProcess(corusPid);
 
-    if (pref.isSuspend()) {
-      SuspendTask susp = new SuspendTask(proc.getMaxKillRetry());
-      susp.setHardKill(pref.isHard());
-      taskman.executeBackground(susp, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
-          .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+    if (proc.getStatus() == LifeCycleStatus.ACTIVE || proc.getStatus() == LifeCycleStatus.STALE || proc.getStatus() == LifeCycleStatus.RESTARTING) {
+      if (pref.isSuspend()) {
+        SuspendTask susp = new SuspendTask(proc.getMaxKillRetry());
+        susp.setHardKill(pref.isHard());
+        taskman.executeBackground(susp, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
+            .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+      } else {
+        KillTask kill = new KillTask(proc.getMaxKillRetry());
+        kill.setHardKill(pref.isHard());
+        taskman.executeBackground(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
+            .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+      }
     } else {
-      KillTask kill = new KillTask(proc.getMaxKillRetry());
-      kill.setHardKill(pref.isHard());
-      taskman.executeBackground(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
-          .setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+      throw new ProcessNotFoundException("No process found for ID: " + corusPid);
     }
   }
 
@@ -359,8 +351,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       taskman.execute(new ProcessAutoshutDownConfirmTask(), process);
 
       // else, just making sure the status is set to confirm, the current
-      // background
-      // kill task will complete the work based on that status being set.
+      // background kill task will complete the work based on that status being set.
     } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
       process.confirmKilled();
       process.save();
@@ -379,7 +370,9 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public void restart(ProcessCriteria criteria, KillPreferences prefs) {
-    List<Process> procs = processes.getActiveProcesses().getProcesses(criteria);
+    criteria.setLifeCycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE);
+    
+    List<Process> procs = processes.getProcesses(criteria);
 
     for (int i = 0; i < procs.size(); i++) {
       Process proc = (Process) procs.get(i);
@@ -391,12 +384,15 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   private void doRestart(String pid, ProcessTerminationRequestor origin, KillPreferences prefs) throws ProcessNotFoundException {
-    Process proc = processes.getActiveProcesses().getProcess(pid);
-    RestartTask restart = new RestartTask(proc.getMaxKillRetry());
-    restart.setHardKill(prefs.isHard());
-
-    taskman.executeBackground(restart, TaskParams.createFor(proc, origin),
-        BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+    Process proc = processes.getProcess(pid);
+    
+    if (proc.getStatus() == LifeCycleStatus.ACTIVE || proc.getStatus() == LifeCycleStatus.STALE || proc.getStatus() == LifeCycleStatus.RESTARTING) {
+      RestartTask restart = new RestartTask(proc.getMaxKillRetry());
+      restart.setHardKill(prefs.isHard());
+  
+      taskman.executeBackground(restart, TaskParams.createFor(proc, origin),
+          BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
+    }
   }
 
   @Override
@@ -406,7 +402,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public ProgressQueue resume(ProcessCriteria processCriteria) {
-    Iterator<Process> procs = processes.getSuspendedProcesses().getProcesses(processCriteria).iterator();
+    processCriteria.setLifeCycles(LifeCycleStatus.SUSPENDED);
+    Iterator<Process> procs = processes.getProcesses(processCriteria).iterator();
     ResumeTask resume;
     Process proc;
 
@@ -459,8 +456,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public Process getProcess(String corusPid) throws ProcessNotFoundException {
-    return processes.getActiveProcesses().getProcess(corusPid);
+  public Process getProcess(final String corusPid) throws ProcessNotFoundException {
+    return this.processes.getProcess(corusPid);
   }
 
   @Override

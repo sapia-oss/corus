@@ -17,6 +17,7 @@ import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
+import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 
@@ -38,31 +39,25 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   }
   
   @Test
-  public void testStaleVmCheck() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    
+  public void testStaleVmCheck() throws Exception {   
     OsModule os = mock(OsModule.class);
     ctx.getServices().rebind(OsModule.class, os);
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        latch.countDown();
-        return null;
-      }
-    }).when(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), any(String.class));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
-
+    
+    LockOwner owner = LockOwner.createInstance().nonExclusive();
+    proc.getLock().acquire(owner);
+    proc.save();
     Thread.sleep(1100);
     ProcessCheckTask task = new ProcessCheckTask();
     ctx.getTm().executeAndWait(task, null).get();
-    latch.await(10, TimeUnit.SECONDS);
-    proc.getLock().awaitRelease(10, TimeUnit.SECONDS);
-   
+    
+    proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
+    
     assertFalse(
         "Process should have been removed from active process list", 
-        ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getServices().getProcesses().containsProcess(proc.getProcessID())
     );
     
   }
@@ -86,7 +81,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     
     assertTrue(
         "Process should not have been removed from active process list", 
-        ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getServices().getProcesses().containsProcess(proc.getProcessID())
     );
     
     verify(dispatcher).dispatch(any(ProcessStaleEvent.class));

@@ -159,25 +159,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public <T> void registerForPropertyChange(final String propertyName, final DynamicProperty<T> dynProperty) {
-    dispatcher.addInterceptor(PropertyChangeEvent.class, new Interceptor() {
-      @SuppressWarnings("unused")
-      public void onPropertyChangeEvent(PropertyChangeEvent event) {
-        if (event.getName().equals(propertyName)) {
-          if (log.isDebugEnabled()) {
-            log.debug("Property change detected for " + propertyName);
-          }
-          
-          // if the operation is a removal, we want to reset to the default value.
-          if (event.getType() == Type.REMOVE) {
-            String defaultProp = defaultServerProperties.getProperty(event.getValue());
-            if (defaultProp != null) {
-              event = new PropertyChangeEvent(event.getName(), defaultProp, PropertyScope.SERVER, Type.ADD);
-            }
-          }
-          dynProperty.setValue(converter.convertIfNecessary(event.getValue(), dynProperty.getType()));
-        }       
-      }
-    });
+    dispatcher.addInterceptor(PropertyChangeEvent.class, new PropertyChangeInterceptor<T>(propertyName, dynProperty));
   }
   
   // --------------------------------------------------------------------------
@@ -469,6 +451,34 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   // ==========================================================================
   // Inner classes
   
+  public final class PropertyChangeInterceptor<T> implements Interceptor {
+    private final String propertyName;
+    private final DynamicProperty<T> dynProperty;
+
+    private PropertyChangeInterceptor(String propertyName,
+        DynamicProperty<T> dynProperty) {
+      this.propertyName = propertyName;
+      this.dynProperty = dynProperty;
+    }
+
+    public void onPropertyChangeEvent(PropertyChangeEvent event) {
+      if (event.getName().equals(propertyName)) {
+        if (log.isDebugEnabled()) {
+          log.debug("Property change detected for " + propertyName);
+        }
+        
+        // if the operation is a removal, we want to reset to the default value.
+        if (event.getType() == Type.REMOVE) {
+          String defaultProp = defaultServerProperties.getProperty(event.getValue());
+          if (defaultProp != null) {
+            event = new PropertyChangeEvent(event.getName(), defaultProp, PropertyScope.SERVER, Type.ADD);
+          }
+        }
+        dynProperty.setValue(converter.convertIfNecessary(event.getValue(), dynProperty.getType()));
+      }       
+    }
+  }
+
   interface PropertyAccumulator<R> {
     
     public void onProperty(Property property);

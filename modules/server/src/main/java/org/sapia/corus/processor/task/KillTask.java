@@ -119,7 +119,6 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
             TaskParams.createFor(proc, requestor, super.getExecutionCount(), super.getMaxExecution())).get();
       }
     }
-
     return null;
   }
 
@@ -149,7 +148,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       ctx.error(String.format("Process %s could not be killed forcefully; auto-restart is aborted", proc));
       proc.releasePorts(ports);
       proc.save();
-      ctx.getServerContext().getServices().getProcesses().getActiveProcesses().removeProcess(proc.getProcessID());
+      ctx.getServerContext().getServices().getProcesses().removeProcess(proc.getProcessID());
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
         ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
       }
@@ -175,6 +174,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       }
 
       ctx.getTaskManager().executeAndWait(new CleanupProcessTask(), proc).get();
+
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
         if ((System.currentTimeMillis() - proc.getCreationTime()) > procConfig.getRestartIntervalMillis()) {
           ctx.warn(String.format("Restarting process: %s", proc));
@@ -182,7 +182,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
           ctx.getTaskManager().executeAndWait(restartProcess, proc).get();
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, true));
         } else {
-          ctx.debug(String.format("Restarting interval (millis): %s", procConfig.getRestartIntervalMillis()));
+          ctx.debug(String.format("Restart interval (millis): %s", procConfig.getRestartIntervalMillis()));
           ctx.warn("Process will not be restarted; not enough time since last restart");
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
         }

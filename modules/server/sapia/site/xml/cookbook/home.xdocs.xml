@@ -1,0 +1,31 @@
+<sapia:page title="Roadmap" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="In 2 minutes" href="overview.html"/>
+    <sapia:vsection name="REST API" href="rest.html"/>    
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Cookbook">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="cookbook" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+      The cookbook is a work-in-progress. It is meant to address specific Corus topics. You'll find below the 
+      different recipes we've compiled.
+      </p>
+    </sapia:sect-desc>
+    <sapia:sect2 title="Tomcat">
+      <p>
+       This recipe describes how to deploy a Tomcat-based app in Corus.
+      </p>
+      <p><a href="tomcat.html">go to recipe</a></p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

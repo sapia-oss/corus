@@ -19,7 +19,7 @@
     <p/>
     <p>- n: the name (or name pattern) of the process configurations for which processes should be resumed.</p>
     <p/>
-    <p>- i: the Corus specific identifier of the process to resume.</p>
+    <p>- i: the Corus-specific identifier of the process to resume.</p>
     <p/>    
     <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
   </section>

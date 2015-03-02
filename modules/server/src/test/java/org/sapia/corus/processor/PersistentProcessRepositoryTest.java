@@ -1,7 +1,9 @@
 package org.sapia.corus.processor;
 
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -27,19 +29,13 @@ public class PersistentProcessRepositoryTest {
   public static void setUp() throws Exception {
     db = new TestDbModule();
     db.setup();
-    
-    DbMap<String, org.sapia.corus.client.services.processor.Process> suspended = db.createDbMap("suspended", String.class, org.sapia.corus.client.services.processor.Process.class);
-    DbMap<String, org.sapia.corus.client.services.processor.Process> active = db.createDbMap("active", String.class, org.sapia.corus.client.services.processor.Process.class);
-    DbMap<String, org.sapia.corus.client.services.processor.Process> toRestart = db.createDbMap("toRestart", String.class, org.sapia.corus.client.services.processor.Process.class);
 
-    suspended = new CachingDbMap<String, Process>(suspended);
-    active = new CachingDbMap<String, Process>(active);
-    toRestart = new CachingDbMap<String, Process>(toRestart);
-    
-    repo = new ProcessRepositoryImpl(
-        new ProcessDatabaseImpl(suspended), 
-        new ProcessDatabaseImpl(active), 
-        new ProcessDatabaseImpl(toRestart));
+    DbMap<String, org.sapia.corus.client.services.processor.Process> processDb = db.createDbMap(
+        "processes", 
+        String.class, org.sapia.corus.client.services.processor.Process.class
+    );
+    processDb = new CachingDbMap<String, Process>(processDb);
+    repo = new ProcessRepositoryImpl(new ProcessDatabaseImpl(processDb));
   }
   
   @AfterClass
@@ -48,25 +44,21 @@ public class PersistentProcessRepositoryTest {
   }
   
   @Test
-  public void testAddProcess() throws Exception{
+  public void testAddProcess() throws Exception {
     DistributionInfo info = new DistributionInfo("test", "1.0", "prod", "app");
     Process proc = new Process(info);
-    repo.getActiveProcesses().addProcess(proc);
-    repo.getActiveProcesses().getProcess(proc.getProcessID());
+    repo.addProcess(proc);
+    repo.getProcess(proc.getProcessID());
   }
   
-  @Test
+  @Test(expected = ProcessNotFoundException.class)
   public void testRemoveProcess() throws Exception{
     DistributionInfo info = new DistributionInfo("test", "1.0", "prod", "app");
     Process proc = new Process(info);
     
-    repo.getActiveProcesses().addProcess(proc);
-    repo.getActiveProcesses().removeProcess(proc.getProcessID());
-    try{
-      repo.getActiveProcesses().getProcess(proc.getProcessID());
-      Assert.fail("Process was not removed");
-    }catch(ProcessNotFoundException e){
-    }
+    repo.addProcess(proc);
+    repo.removeProcess(proc.getProcessID());
+    repo.getProcess(proc.getProcessID());
   }
   
   @Test
@@ -74,12 +66,12 @@ public class PersistentProcessRepositoryTest {
     DistributionInfo info = new DistributionInfo("test", "1.0", "prod", "app");
     Process proc = new Process(info);
     
-    repo.getActiveProcesses().addProcess(proc);
+    repo.addProcess(proc);
     proc.setOsPid("1234");
     proc.save();
     
-    Process updated = repo.getActiveProcesses().getProcess(proc.getProcessID());
-    Assert.assertEquals("1234", updated.getOsPid());
+    Process updated = repo.getProcess(proc.getProcessID());
+    assertEquals("1234", updated.getOsPid());
   }
   
   @Test
@@ -88,12 +80,12 @@ public class PersistentProcessRepositoryTest {
     Process proc = new Process(info);
     
     LockOwner lck = new LockOwner();
-    repo.getActiveProcesses().addProcess(proc);
+    repo.addProcess(proc);
     proc.getLock().acquire(lck);
     proc.save();
     
-    Process updated = repo.getActiveProcesses().getProcess(proc.getProcessID());
-    Assert.assertTrue("Process should be locked", updated.getLock().isLocked());
+    Process updated = repo.getProcess(proc.getProcessID());
+    assertTrue("Process should be locked", updated.getLock().isLocked());
   }
 
   @Test
@@ -101,7 +93,7 @@ public class PersistentProcessRepositoryTest {
     DistributionInfo info = new DistributionInfo("test", "1.0", "prod", "app");
     Process proc = new Process(info);
     
-    repo.getActiveProcesses().addProcess(proc);
+    repo.addProcess(proc);
     
     Status stat = new Status();
     Context ctx = new Context("aContext");
@@ -109,19 +101,19 @@ public class PersistentProcessRepositoryTest {
     proc.status(stat);
     proc.save();
     
-    Process withStatus = repo.getActiveProcesses().getProcess(proc.getProcessID());
-    Assert.assertTrue(withStatus.getProcessStatus() != null);
+    Process withStatus = repo.getProcess(proc.getProcessID());
+    assertTrue(withStatus.getProcessStatus() != null);
     
     boolean found = false;
-    for(Process p: repo.getActiveProcesses().getProcesses(ProcessCriteria.builder().all())){
+    for(Process p: repo.getProcesses(ProcessCriteria.builder().all())){
       if(p.getProcessID().equals(proc.getProcessID())){
-        Assert.assertTrue(p.getProcessStatus() != null);
+        assertTrue(p.getProcessStatus() != null);
         found = true;
       }
     }
     
     if(!found){
-      Assert.fail(String.format("Process not found: %s", proc.getProcessID()));
+      fail(String.format("Process not found: %s", proc.getProcessID()));
     }
 
   }

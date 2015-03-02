@@ -5,10 +5,14 @@ import static org.sapia.corus.client.common.ArgFactory.anyIfNull;
 import static org.sapia.corus.client.common.ArgFactory.parse;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Holds criteria for selecting processes.
@@ -38,6 +42,11 @@ public class ProcessCriteria implements Serializable {
    * Corresponds to the process distribution.
    */
   private Arg distribution;
+  
+  /**
+   * Holds the {@link LifeCycleStatus}es to match.
+   */
+  private Set<Process.LifeCycleStatus> lifeCycles = new HashSet<Process.LifeCycleStatus>();
 
   /**
    * Corresponds to the process version.
@@ -79,9 +88,21 @@ public class ProcessCriteria implements Serializable {
   public Arg getVersion() {
     return version;
   }
-
+  
   public void setVersion(Arg version) {
     this.version = version;
+  }
+  
+  public void setLifeCycles(Set<LifeCycleStatus> lifeCycles) {
+    this.lifeCycles = lifeCycles;
+  }
+  
+  public void setLifeCycles(LifeCycleStatus...lifeCycles) {
+    this.lifeCycles = Collects.arrayToSet(lifeCycles);
+  }
+  
+  public Set<Process.LifeCycleStatus> getLifeCycles() {
+    return lifeCycles;
   }
 
   /**
@@ -97,15 +118,21 @@ public class ProcessCriteria implements Serializable {
   }
 
   public String toString() {
-    return new ToStringBuilder(this).append("distribution", distribution).append("name", name).append("version", version).append("profile", profile)
+    return new ToStringBuilder(this)
+        .append("distribution", distribution)
+        .append("name", name)
+        .append("version", version)
+        .append("profile", profile)
         .toString();
   }
 
   // //////////// Builder class
 
   public static final class Builder {
+    
     private Arg name, distribution, version, pid;
     private String profile;
+    private Set<LifeCycleStatus> lifeCycles;
 
     private Builder() {
     }
@@ -146,6 +173,11 @@ public class ProcessCriteria implements Serializable {
     public Builder version(String version) {
       return version(parse(version));
     }
+    
+    public Builder lifecycles(LifeCycleStatus...lifeCycles) {
+      this.lifeCycles = Collects.arrayToSet(lifeCycles);
+      return this;
+    }
 
     public ProcessCriteria all() {
       ProcessCriteria criteria = new ProcessCriteria();
@@ -160,9 +192,14 @@ public class ProcessCriteria implements Serializable {
       ProcessCriteria criteria = new ProcessCriteria();
       criteria.setDistribution(anyIfNull(distribution));
       criteria.setName(anyIfNull(name));
-      criteria.setProfile(profile);
+      if (profile != null) {
+        criteria.setProfile(profile);
+      }
       criteria.setVersion(anyIfNull(version));
       criteria.setPid(anyIfNull(pid));
+      if (lifeCycles != null) {
+        criteria.setLifeCycles(this.lifeCycles);
+      }
       return criteria;
     }
   }

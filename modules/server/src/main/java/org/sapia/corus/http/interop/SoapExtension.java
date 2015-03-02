@@ -36,8 +36,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
   public static final String HTTP_INTEROP_SOAP_CONTEXT = "interop/soap";
 
   private ServerStatelessSoapStreamHelper helper;
-  private Logger logger;
-  private ServerContext serverContext;
+  private Logger                          logger;
+  private ServerContext                   serverContext;
 
   public SoapExtension(ServerContext serverContext) {
     helper = new ServerStatelessSoapStreamHelper(this, "corus.server");
@@ -70,7 +70,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     }
 
     logger.info("Process: " + proc + " confirming shutdown");
-    Processor processor = serverContext.lookup(Processor.class);
+    Processor processor = serverContext.getServices().getProcessor();
     processor.confirmShutdown(proc.getCorusPid());
   }
 
@@ -82,8 +82,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
     if (logger.isDebugEnabled()) {
       logger.debug("Process: " + proc + " polling...");
     }
-
-    org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
+    Processor processor = serverContext.getServices().getProcessor();
+    org.sapia.corus.client.services.processor.Process corusProcess = processor.getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.poll();
     logger.debug("Process commands: " + commands);
     corusProcess.save();
@@ -98,8 +98,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
     if (logger.isDebugEnabled()) {
       logger.debug("Process requested a restart: " + proc);
     }
-
-    serverContext.lookup(Processor.class).restart(proc.getCorusPid(), KillPreferences.newInstance());
+    Processor processor = serverContext.getServices().getProcessor();
+    processor.restart(proc.getCorusPid(), KillPreferences.newInstance());
   }
 
   public synchronized List<AbstractCommand> onStatus(Process proc, Status stat) throws Exception {
@@ -110,8 +110,8 @@ public class SoapExtension implements HttpExtension, RequestListener {
     if (logger.isDebugEnabled()) {
       logger.debug("Status received for " + proc);
     }
-
-    org.sapia.corus.client.services.processor.Process corusProcess = serverContext.lookup(Processor.class).getProcess(proc.getCorusPid());
+    Processor processor = serverContext.getServices().getProcessor();
+    org.sapia.corus.client.services.processor.Process corusProcess = processor.getProcess(proc.getCorusPid());
     List<AbstractCommand> commands = corusProcess.status(stat);
     logger.debug("Process commands: " + commands);
     corusProcess.save();

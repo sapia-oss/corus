@@ -8,7 +8,6 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.processor.ProcessInfo;
-import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -32,14 +31,12 @@ public class ResumeTask extends Task<Void, TaskParams<Process, Distribution, Pro
     process.getLock().acquire(lockOwner);
 
     try {
-      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
       ProcessInfo info = new ProcessInfo(process, dist, conf, true);
       Properties props = ctx.getServerContext().getProcessProperties(conf.getPropertyCategories());
       if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, props)).get()) {
-        processes.getSuspendedProcesses().removeProcess(process.getProcessID());
         process.setStatus(Process.LifeCycleStatus.ACTIVE);
-        processes.getActiveProcesses().addProcess(process);
+        process.save();
       } else {
         ctx.error(String.format("Process: %s will not be resumed", process));
       }

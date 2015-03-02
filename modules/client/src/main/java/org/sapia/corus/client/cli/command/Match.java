@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
@@ -16,7 +17,7 @@ import org.sapia.corus.client.cli.CorusConsoleOutput;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.Matcheable;
-import org.sapia.corus.client.common.Matcheable.Pattern;
+import org.sapia.corus.client.common.Matcheable.CompositePattern;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
 
 /**
@@ -65,8 +66,12 @@ public class Match extends NoOptionCommand {
       throw new InputException("Invalid input. Expected: 'apply <script_file_name>' or <pattern>, followed by <command> (<command> is missing), got: " + patternArg.getName());
     }
     
-    Pattern pattern   = new Matcheable.DefaultPattern(ArgFactory.parse(patternArg.getName()));
-    String  toExecute = remaining.toString();
+    CompositePattern pattern = CompositePattern.newInstance();
+    String[] patternValues   = StringUtils.split(patternArg.getName(), ",");
+    for (String p : patternValues) {
+      pattern.add(new Matcheable.DefaultPattern(ArgFactory.parse(p)));
+    }
+    String  toExecute        = remaining.toString();
     
     if (scriptName != null) {
       turnOffOutput(ctx);
@@ -82,10 +87,10 @@ public class Match extends NoOptionCommand {
     } catch (Throwable e) {
       throw new AbortException("Could not execute command: " + toExecute, e);
     } finally {
+      ctx.getCorus().getContext().unsetResultFilter();
       if (scriptName != null) {
         turnOnOutput(ctx);
       }
-      ctx.getCorus().getContext().unsetResultFilter();
     }
     
     if (scriptName != null && FacadeInvocationContext.get() != null && FacadeInvocationContext.get() instanceof List) {

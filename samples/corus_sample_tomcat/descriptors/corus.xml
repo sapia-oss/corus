@@ -1,0 +1,37 @@
+<distribution name="greetings" version="1.0"
+	xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.0.xsd">
+
+	<process name="server" maxKillRetry="3" shutdownTimeout="300000"
+		invoke="true">
+
+		<!-- Port management requirements -->
+		<port name="tomcat.http" />
+		<port name="tomcat.ajp" />
+		<port name="tomcat.redirect" />
+		<port name="tomcat.jmx" />
+
+		<!-- Server profile -->
+		<magnet magnetFile="tomcat-launch.xml" magnetOptions="-debug"
+			profile="server" vmType="server">
+
+			<libDirs>${tomcat.home}/bin/bootstrap.jar;${tomcat.home}/bin/tomcat-juli.jar</libDirs>
+			<arg value="-Xss512K" />
+			<arg value="-XX:PermSize=256M" />
+
+			<xoption name="ms" value="${tomcat.mem.ms}" />
+			<xoption name="mx" value="${tomcat.mem.mx}" />
+
+			<property name="java.awt.headless" value="true" />
+			<property name="catalina.home" value="${tomcat.home}" />
+			<property name="file.encoding" value="UTF-8" />
+			<property name="tomcat.log.dir" value="/var/log/tomcat/${corus.process.port.tomcat.http}" />
+
+			<property name="com.sun.management.jmxremote" value="" />
+			<property name="com.sun.management.jmxremote.local.only" value="false" />
+			<property name="com.sun.management.jmxremote.ssl" value="false" />
+			<property name="com.sun.management.jmxremote.port" value="${corus.process.port.tomcat.jmx}" />
+			<property name="com.sun.management.jmxremote.authenticate" value="false" />
+		</magnet>
+
+	</process>
+</distribution>

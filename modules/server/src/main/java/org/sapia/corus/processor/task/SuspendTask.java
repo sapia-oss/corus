@@ -39,8 +39,6 @@ public class SuspendTask extends KillTask {
         proc.releasePorts(ports);
         proc.setStatus(Process.LifeCycleStatus.SUSPENDED);
         proc.save();
-        processes.getSuspendedProcesses().addProcess(proc);
-        processes.getActiveProcesses().removeProcess(proc.getProcessID());
       }
 
       ctx.warn(String.format("Process %s put in suspended process queue.", proc));

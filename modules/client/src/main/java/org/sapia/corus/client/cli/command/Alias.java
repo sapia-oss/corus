@@ -67,7 +67,7 @@ public class Alias extends CorusCliCommand {
       if (!cmdLine.hasNext()) {
         throw new InputException("Aliased command-line cannot be empty");
       } else if (cmdLine.hasNext() && cmdLine.isNextArg()) {
-        Arg cmdName = cmdLine.assertNextArg();
+        Arg cmdName = cmdLine.chopArg();
         try {
           ((CorusConsole) ctx.getConsole()).getCommands().addAlias(alias, cmdName.getName(), cmdLine);
         } catch (CommandNotFoundException e) {

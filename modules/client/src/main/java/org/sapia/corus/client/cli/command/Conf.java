@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +33,8 @@ import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Matcheable.CompositePattern;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -327,34 +328,18 @@ public class Conf extends CorusCliCommand {
         );
       }
     } else if (op == Op.LIST) {
-      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, getClusterInfo(ctx));
-      results = Sorting.sortList(results, Property.class, ctx.getSortSwitches());
-      displayPropertyResults(results, ctx);
+      displayPropertyResults(doGetResults(ctx, scope), ctx);
     } else if (op == Op.EXPORT) {
-      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, getClusterInfo(ctx));
-      exportPropertyResults(results, ctx);
+      exportPropertyResults(doGetResults(ctx, scope), ctx);
     } else if (op == Op.RENAME) {
       throw new InputException("Rename option not supported for properties");
     } else if (op == Op.LOAD) {
-      List<String> categories = new ArrayList<>();
-      Arg filter;
-      if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
-        categories.addAll(Arrays.asList(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue().split(",")));
-      }
-      if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
-        filter = ArgFactory.parse(ctx.getCommandLine().getOpt(OPT_PROPERTY.getName()).getValue());
-      } else {
-        filter = ArgFactory.any();
-      }
-      
-      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categories, getClusterInfo(ctx));
+      Results<List<Property>> results = doGetResults(ctx, scope);
       Map<String, String> newVars = new HashMap<String, String>();
       while (results.hasNext()) {
         Result<List<Property>> result = results.next();
         for (Property p : result.getData()) {
-          if (filter.matches(p.getName())) {
-            newVars.put(p.getName(), p.getValue());
-          }
+          newVars.put(p.getName(), p.getValue());
         }
       }
       ctx.addVars(newVars);
@@ -381,7 +366,6 @@ public class Conf extends CorusCliCommand {
       CliError err = ctx.createAndAddErrorFor(this, e);
       ctx.getConsole().println(err.getSimpleMessage());
     }
-
   }
 
   private void displayTagResults(Results<List<Tag>> res, CliContext ctx) throws InputException {
@@ -565,5 +549,35 @@ public class Conf extends CorusCliCommand {
       );
     }
     return new HashSet<>(0);
+  }
+  
+  private List<String> categoryList(CliContext ctx) {
+    if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
+      return Collects.arrayToList(
+          StringUtils.split(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue(), ",")
+      );
+    }
+    return new ArrayList<String>(0);
+  }
+  
+  private Results<List<Property>> doGetResults(CliContext ctx, PropertyScope scope) {
+    if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
+      CompositePattern pattern = CompositePattern.newInstance();
+      String[] patternValues   = StringUtils.split(ctx.getCommandLine().getOpt(OPT_PROPERTY.getName()).getValue(), ",");
+      for (String p : patternValues) {
+        pattern.add(new Matcheable.DefaultPattern(ArgFactory.parse(p)));
+      }
+      ctx.getCorus().getContext().setResultFilter(pattern);
+      try {
+        Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categoryList(ctx), getClusterInfo(ctx));
+        return Sorting.sortList(results, Property.class, ctx.getSortSwitches());
+      } finally {
+        ctx.getCorus().getContext().unsetResultFilter();
+      }
+    } else {
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categoryList(ctx), getClusterInfo(ctx));
+      results = Sorting.sortList(results, Property.class, ctx.getSortSwitches());
+      return results;
+    }
   }
 }

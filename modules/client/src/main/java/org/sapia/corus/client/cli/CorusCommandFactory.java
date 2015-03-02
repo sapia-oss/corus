@@ -50,6 +50,9 @@ public class CorusCommandFactory extends ReflectCommandFactory {
    * could be found.
    */
   public void addAlias(String aliasName, String commandName, CmdLine cmdLine) throws CommandNotFoundException {
+    if (aliases.containsKey(aliasName)) {
+      aliases.remove(aliasName);
+    }
     Command delegate = cachedCommands.get(commandName);
     if (delegate == null) {
       delegate = super.getCommandFor(commandName);
@@ -125,8 +128,13 @@ public class CorusCommandFactory extends ReflectCommandFactory {
      * @return the {@link CmdLine} instance holding the options/arguments to pass to the
      * aliased command.
      */
-    public CmdLine getCmdLine() {
-      return cmdLine;
+    public synchronized CmdLine getCmdLine() {
+      CmdLine copy = new CmdLine();
+      while (cmdLine.hasNext()) {
+        copy.addElement(cmdLine.next());
+      }
+      cmdLine.reset();
+      return copy;
     }
     
     /**
@@ -145,20 +153,21 @@ public class CorusCommandFactory extends ReflectCommandFactory {
     
     @Override
     public void execute(Context ctx) throws AbortException, InputException {
-      CliContext      parent = (CliContext) ctx;
-      
+      CliContext parent = (CliContext) ctx;
+      CmdLine    toExecute = getCmdLine();
+
       // if the alias has no arguments/options, using command-line passed in
-      if (!cmdLine.hasNext()) {
+      if (!toExecute.hasNext()) {
         delegate.execute(ctx);
      
       // the passed in command has no arguments/options, using alias arguments/options
       } else if (!ctx.getCommandLine().hasNext()) {
-        ChildCliContext child  = new ChildCliContext(parent, cmdLine, parent.getVars());
+        ChildCliContext child  = new ChildCliContext(parent, toExecute, parent.getVars());
         delegate.execute(child);
         
       // if both alias and original command have arguments/options, overriding with alias  
       } else {
-        ChildCliContext child  = new ChildCliContext(parent, cmdLine, parent.getVars());
+        ChildCliContext child  = new ChildCliContext(parent, toExecute, parent.getVars());
         delegate.execute(child);
       }
     }

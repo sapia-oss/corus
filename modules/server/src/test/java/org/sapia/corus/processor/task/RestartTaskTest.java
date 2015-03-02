@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -19,6 +20,8 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
@@ -62,8 +65,9 @@ public class RestartTaskTest extends TestBaseTask{
     proc.getLock().awaitRelease(10, TimeUnit.SECONDS);
     
     assertNotSame("Creation times should not be identical", oldCreationTime, proc.getCreationTime());
-    assertNotSame("Last access times should not be identical", lastAccessTime, proc.getLastAccess());    
-    assertTrue("Process should be active", ctx.getServices().getProcesses().getActiveProcesses().containsProcess(proc.getProcessID()));
+    assertNotSame("Last access times should not be identical", lastAccessTime, proc.getLastAccess());  
+    ProcessCriteria crit = ProcessCriteria.builder().pid(ArgFactory.parse(proc.getProcessID())).lifecycles(LifeCycleStatus.ACTIVE).build();
+    assertTrue("Process should be active", !ctx.getServices().getProcesses().getProcesses(crit).isEmpty());
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
   
@@ -85,9 +89,11 @@ public class RestartTaskTest extends TestBaseTask{
     tm.executeAndWait(restart, params).get();
     procWithPort.getLock().awaitRelease(10, TimeUnit.SECONDS);
     
-    assertFalse(
-        "Process should have been removed from restart list", 
-        ctx.getServices().getProcesses().getProcessesToRestart().containsProcess(procWithPort.getProcessID())
+    ProcessCriteria crit = ProcessCriteria.builder().pid(ArgFactory.parse(proc.getProcessID())).lifecycles(LifeCycleStatus.RESTARTING).build();
+
+    assertTrue(
+        "Process should have been removed", 
+        ctx.getServices().getProcesses().getProcesses(crit).isEmpty()
     );
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }

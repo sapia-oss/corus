@@ -1,10 +1,14 @@
 package org.sapia.corus.client.services.processor;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.common.Delay;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
+import org.sapia.ubik.util.Strings;
 
 /**
  * Models a lock on a {@link Process}.
@@ -12,11 +16,11 @@ import org.sapia.corus.client.exceptions.processor.ProcessLockException;
  * @author yduchesne
  * 
  */
-public class ProcessLock implements Serializable {
+public class ProcessLock implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
-  private transient LockOwner lockOwner;
+  private LockOwner lockOwner;
 
   /**
    * Acquires the lock on this instance.
@@ -27,10 +31,18 @@ public class ProcessLock implements Serializable {
    *           if this instance is already locked by another object.
    */
   public synchronized void acquire(LockOwner leaser) throws ProcessLockException {
-    if ((lockOwner != null) && (!lockOwner.equals(leaser))) {
-      throw new ProcessLockException("Process is currently locked - probably in shutdown; try again");
+    if (lockOwner != null) {
+      if (lockOwner.isExclusive()) {
+        if (!lockOwner.equals(leaser)) {
+          throw new ProcessLockException("Process is currently locked - probably in shutdown; try again");
+        }
+      } else {
+        // we leave the ownership to the non-exclusive owner.
+        return;
+      }
+    } else {
+      lockOwner = leaser;
     }
-    lockOwner = leaser;
   }
 
   /**
@@ -44,8 +56,8 @@ public class ProcessLock implements Serializable {
    */
   public synchronized void awaitRelease(long timeout, TimeUnit timeUnit) throws InterruptedException {
     Delay delay = new Delay(timeout, timeUnit).start();
-    while ((lockOwner != null) && delay.isNotOver()) {
-      wait(delay.remainingMillis());
+    while (lockOwner != null && delay.isNotOver()) {
+      wait(delay.remainingMillisNotZero());
     }
   }
 
@@ -65,10 +77,17 @@ public class ProcessLock implements Serializable {
   }
 
   /**
-   * @return <code>true</code> if this instance is locked.
+   * @return <code>true</code> if this instance is locked by an exclusive {@link LockOwner}.
    */
   public synchronized boolean isLocked() {
-    return lockOwner != null;
+    return lockOwner != null && lockOwner.isExclusive();
+  }
+  
+  /**
+   * @return <code>true</code> if this instance is locked by a non-exclusive {@link LockOwner}.
+   */
+  public synchronized boolean isShared() {
+    return lockOwner != null && !lockOwner.isExclusive();
   }
 
   /**
@@ -82,12 +101,38 @@ public class ProcessLock implements Serializable {
    *         otherwise.
    */
   public synchronized boolean release(LockOwner leaser) {
-    if ((lockOwner != null) && (lockOwner.equals(leaser))) {
-      lockOwner = null;
-      notifyAll();
-      return true;
+    if (lockOwner != null) {
+      if (lockOwner.isExclusive()) {
+        if (lockOwner.equals(leaser)) {
+          release();
+          notifyAll();
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        release();
+        notifyAll();
+        return true;
+      }
     }
-    return false;
+    return true;
+  }
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    lockOwner = (LockOwner) in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(lockOwner);
+  }
+  
+  @Override
+  public String toString() {
+    return Strings.toString("owner", lockOwner);
   }
 
 }

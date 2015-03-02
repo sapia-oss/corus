@@ -9,6 +9,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.util.CompositeMatcher;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
+import org.sapia.ubik.util.Strings;
 
 /**
  * Holds {@link Process} instances.
@@ -70,6 +71,15 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
       public boolean matches(Process object) {
         return true;
       }
+    }).add(new Matcher<Process>() {
+      @Override
+      public boolean matches(Process object) {
+        if (criteria.getLifeCycles().isEmpty()) {
+          return true;
+        }
+        return criteria.getLifeCycles().contains(object.getStatus());
+      }
+      
     });
 
     return new IteratorFilter<Process>(matcher).filter(_processes.values()).sort(new ProcessComparator()).get();
@@ -87,5 +97,10 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
     }
 
     return current;
+  }
+  
+  @Override
+  public String toString() {
+    return Strings.toString("processes", _processes);
   }
 }

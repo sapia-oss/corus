@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<magnet xmlns="http://schemas.sapia-oss.org/magnet/" name="Tomcat" description="Tomcat 7 Server">
+
+    <!-- Parameters -->
+    <parameters>
+        <!-- Tomcat specific configuration (catalina.home is set in the corus.xml)-->
+        <param name="catalina.base"   value="${user.dir}"           scope="system" />
+        <param name="catalina.tmpdir" value="${catalina.base}/${corus.process.port.tomcat.http}/temp" scope="system" />
+        <param name="java.io.tmpdir"  value="${catalina.base}/${corus.process.port.tomcat.http}/temp" scope="system" />
+
+        <param name="java.util.logging.config.file" scope="system"
+               value="${catalina.base}/conf/logging.properties" />
+
+        <param name="java.util.logging.manager"     scope="system"
+               value="org.apache.juli.ClassLoaderLogManager" />
+
+        <param name="java.endorsed.dirs"            scope="system"
+               value="${catalina.home}/endorsed" />
+
+    </parameters>
+
+    <!-- Profile-specific configuration -->
+
+    <launcher type="tomcat" name="Tomcat launcher" args="start">
+        <profile name="server">
+            <classpath />
+        </profile>
+    </launcher>
+
+</magnet>

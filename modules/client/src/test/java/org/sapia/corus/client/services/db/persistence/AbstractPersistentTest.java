@@ -28,21 +28,29 @@ public class AbstractPersistentTest {
 
   @Test
   public void testDelete() {
-    assertTrue(persistent.delete());
+    persistent.delete();
     verify(map).remove(eq(persistent.getKey()));
+    assertTrue(persistent.isDeleted());
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void testDeleteMoreThanOnce() {
-    assertTrue(persistent.delete());
     persistent.delete();
-    verify(map, times(1)).remove(eq(persistent.getKey()));
+    persistent.delete();
   }
+  
+  @Test
+  public void testRecycle() {
+    persistent.delete();
+    persistent.recycle();
+  
+    verify(map).remove(eq(persistent.getKey()));
+    verify(map).put(eq(persistent.getKey()), eq(persistent));
+   }
 
   @Test
   public void testMarkDeleted() {
     persistent.markDeleted();
-    persistent.delete();
     verify(map, never()).remove(eq(persistent.getKey()));
   }
 
@@ -52,11 +60,10 @@ public class AbstractPersistentTest {
     verify(map).refresh(eq(persistent.getKey()), eq(persistent));
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void testRefreshAfterDelete() {
     persistent.delete();
     persistent.refresh();
-    verify(map, never()).refresh(eq(persistent.getKey()), eq(persistent));
   }
 
   class TestAbstractPersistent extends AbstractPersistent<String, TestAbstractPersistent> {

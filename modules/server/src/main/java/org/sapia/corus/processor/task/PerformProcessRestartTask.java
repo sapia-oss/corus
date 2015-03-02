@@ -8,8 +8,8 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.processor.ProcessInfo;
-import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -25,12 +25,12 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
   @Override
   public Boolean execute(TaskExecutionContext ctx, Process process) throws Throwable {
     Deployer deployer = ctx.getServerContext().getServices().lookup(Deployer.class);
-    ProcessRepository repo = ctx.getServerContext().getServices().getProcesses();
     Distribution dist;
 
     ctx.debug("Executing process");
     try {
-      DistributionCriteria criteria = DistributionCriteria.builder().name(process.getDistributionInfo().getName())
+      DistributionCriteria criteria = DistributionCriteria.builder()
+          .name(process.getDistributionInfo().getName())
           .version(process.getDistributionInfo().getVersion()).build();
 
       dist = deployer.getDistribution(criteria);
@@ -38,8 +38,8 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
       ctx.error(String.format("Could not find corresponding distribution; process %s will not be restarted", process), e);
       return false;
     }
-
-    if (repo.getProcessesToRestart().containsProcess(process.getProcessID())) {
+    
+    if (process.getStatus() == LifeCycleStatus.RESTARTING) {
       ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
       ProcessInfo info = new ProcessInfo(process, dist, processConf, true);
       Properties processProperties = ctx.getServerContext().getProcessProperties(processConf.getPropertyCategories());
@@ -47,13 +47,15 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
 
       try {
         if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
-          repo.getProcessesToRestart().removeProcess(process.getProcessID());
           process.touch();
           process.clearCommands();
           process.setStatus(Process.LifeCycleStatus.ACTIVE);
-          repo.getActiveProcesses().addProcess(process);
+          process.recycle();
           return true;
         } else {
+          if (!process.isDeleted()) {
+            process.delete();
+          }
           return false;
         }
       } catch (Exception e) {
@@ -62,8 +64,10 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
       }
     } else {
       try {
-        DistributionCriteria criteria = DistributionCriteria.builder().name(process.getDistributionInfo().getName())
-            .version(process.getDistributionInfo().getVersion()).build();
+        DistributionCriteria criteria = DistributionCriteria.builder()
+            .name(process.getDistributionInfo().getName())
+            .version(process.getDistributionInfo().getVersion())
+            .build();
 
         dist = deployer.getDistribution(criteria);
       } catch (DistributionNotFoundException e) {
@@ -83,9 +87,12 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
         process.touch();
         process.clearCommands();
         process.setStatus(Process.LifeCycleStatus.ACTIVE);
-        repo.getActiveProcesses().addProcess(process);
+        process.recycle();
         return true;
       } else {
+        if (!process.isDeleted()) {
+          process.delete();
+        }
         return false;
       }
     }

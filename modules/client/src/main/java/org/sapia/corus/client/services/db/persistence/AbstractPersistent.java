@@ -7,7 +7,7 @@ public abstract class AbstractPersistent<K, V> implements Persistent<K, V> {
 
   private volatile transient DbMap<K, V> db;
 
-  private volatile boolean deleted;
+  private volatile transient boolean deleted;
 
   @Override
   @Transient
@@ -17,38 +17,67 @@ public abstract class AbstractPersistent<K, V> implements Persistent<K, V> {
 
   @Override
   @SuppressWarnings(value = "unchecked")
-  public boolean save() {
-    if (db != null && !deleted) {
-      db.put(this.getKey(), (V) this);
-      return true;
+  public void save() {
+    if (deleted) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") deleted. Cannot save a deleted object. Invoke recycle() to reuse a deleted object");
     }
-    return false;
+    if (db == null) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") is not associated to DB.");
+    }
+     db.put(this.getKey(), (V) this);
+  }
+  
+  @Override
+  @SuppressWarnings(value = "unchecked")
+  public void recycle() {
+    if (db == null) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") is not associated to DB.");
+    }
+    deleted = false;
+    db.put(this.getKey(), (V) this);
   }
 
+
   @Override
-  public boolean delete() {
-    if (db != null && !deleted) {
-      db.remove(getKey());
-      deleted = true;
-      return true;
+  public void delete() {
+    if (deleted) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") already deleted.");
     }
-    return false;
+    if (db == null) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") is not associated to DB.");
+    }
+    db.remove(getKey());
+    deleted = true;
+  }
+  
+  @Override
+  @Transient
+  public boolean isDeleted() {
+    return deleted;
   }
 
   @Override
   public void markDeleted() {
     deleted = true;
-    setDbMap(null);
   }
 
   @Override
   @SuppressWarnings(value = "unchecked")
-  public boolean refresh() {
-    if (db != null && !deleted) {
-      db.refresh(getKey(), (V) this);
-      return true;
+  public void refresh() {
+    if (deleted) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") deleted");
     }
-    return false;
+    if (db == null) {
+      throw new IllegalStateException(getClass().getSimpleName() + "(" + getKey() 
+          + ") is not associated to DB.");
+    }
+    db.refresh(getKey(), (V) this);
   }
 
 }

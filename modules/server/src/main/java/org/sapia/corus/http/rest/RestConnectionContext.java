@@ -52,8 +52,12 @@ public class RestConnectionContext implements CorusConnectionContext {
   private ExecutorService               executor;
   private ClientSideClusterInterceptor  interceptor;
   private ClientFileSystem              fileSys;
-  private Pattern                       resultFilter = Matcheable.AnyPattern.newInstance();
-
+  private Stack<Pattern>                resultFilter = new Stack<Matcheable.Pattern>();
+  
+  {
+    resultFilter.push(Matcheable.AnyPattern.newInstance()); 
+  }
+  
   /**
    * @param current
    *          the current {@link Corus} host.
@@ -124,17 +128,19 @@ public class RestConnectionContext implements CorusConnectionContext {
   
   @Override
   public void setResultFilter(Pattern pattern) {
-    this.resultFilter = pattern;
+    resultFilter.push(pattern);
   }
   
   @Override
   public Pattern getResultFilter() {
-    return resultFilter;
+    return resultFilter.peek();
   }
   
   @Override
   public void unsetResultFilter() {
-    resultFilter = Matcheable.AnyPattern.newInstance();
+    if (resultFilter.size() > 1) {
+      resultFilter.pop();
+    }
   }
   
   // --------------------------------------------------------------------------

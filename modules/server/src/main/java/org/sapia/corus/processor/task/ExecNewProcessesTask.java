@@ -14,6 +14,7 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.Processor;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.processor.ProcessDependencyFilter;
 import org.sapia.corus.processor.ProcessRef;
 import org.sapia.corus.processor.ProcessRepository;
@@ -54,9 +55,14 @@ public class ExecNewProcessesTask extends Task<Void, Void> {
       Arg version = new StringArg(pd.getVersion());
       Arg processName = new StringArg(pd.getName());
 
-      ProcessCriteria criteria = ProcessCriteria.builder().distribution(distName).version(version).name(processName).profile(pd.getProfile()).build();
+      ProcessCriteria criteria = ProcessCriteria.builder()
+          .distribution(distName)
+          .version(version)
+          .name(processName)
+          .lifecycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING)
+          .profile(pd.getProfile()).build();
 
-      List<Process> activeProcesses = processes.getActiveProcesses().getProcesses(criteria);
+      List<Process> activeProcesses = processes.getProcesses(criteria);
       if (activeProcesses.size() < pd.getInstances()) {
         try {
           DistributionCriteria distCriteria = DistributionCriteria.builder().name(distName).version(version).build();

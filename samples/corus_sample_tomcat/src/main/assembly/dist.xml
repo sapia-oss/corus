@@ -1,0 +1,65 @@
+<assembly>
+  <id>dist</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <fileSets>
+    
+    <!-- Webapp resources -->
+    
+    <fileSet>
+       <outputDirectory>/webapps/greetings/WEB-INF/lib</outputDirectory>
+       <directory>${basedir}/target/web-lib</directory>
+       <includes>
+          <include>**/*</include>
+       </includes>
+    </fileSet>
+  
+    <fileSet>
+       <outputDirectory>/webapps/greetings/WEB-INF/lib</outputDirectory>    
+       <directory>${basedir}/target</directory>
+       <includes>
+          <include>corus_sample*.jar</include>
+       </includes>
+    </fileSet>  
+    
+    <fileSet>
+       <outputDirectory>/webapps/greetings/WEB-INF</outputDirectory>    
+       <directory>${basedir}/descriptors</directory>
+       <includes>
+          <include>web.xml</include>
+       </includes>
+    </fileSet>  
+    
+    <!-- Tomcat server resources -->
+    
+    <fileSet>
+       <outputDirectory>/conf</outputDirectory>    
+       <directory>${basedir}/conf/</directory>
+       <includes>
+          <include>*.*</include>
+       </includes>
+    </fileSet>  
+    
+    <!-- Corus stuff -->
+    
+    <fileSet>
+       <outputDirectory>/META-INF</outputDirectory>
+       <directory>${basedir}/descriptors</directory>
+       <includes>
+          <include>corus.xml</include>
+       </includes>
+    </fileSet>
+
+    <fileSet>
+       <outputDirectory>/</outputDirectory>
+       <directory>${basedir}/descriptors</directory>
+       <includes>
+          <include>tomcat-launch.xml</include>
+       </includes>
+    </fileSet>
+
+  </fileSets>
+  
+</assembly>

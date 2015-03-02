@@ -37,7 +37,9 @@ public class ProcessCheckTask extends Task<Void, Void> {
     ctx.debug("Checking for stale processes...");
 
     ProcessorConfiguration processorConf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
-    List<Process> processes = ctx.getServerContext().getServices().getProcesses().getActiveProcesses().getProcesses(ProcessCriteria.builder().all());
+    List<Process> processes = ctx.getServerContext().getServices().getProcesses().getProcesses(
+        ProcessCriteria.builder().lifecycles(LifeCycleStatus.ACTIVE).build()
+    );
 
     Process proc;
 

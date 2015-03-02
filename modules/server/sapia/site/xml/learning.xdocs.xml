@@ -59,7 +59,16 @@
         
       <div style="clear: both;" />
       
-   	  <div style="margin-left: 100px">
+   	  <div style="margin-left: 3px">
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">Cookbook</div>
+          <span class="text">
+            Check our applied Corus recipes, discover the features through concrete
+            examples. 
+            <br/><a href="cookbook/home.html">more...</a>
+          </span>
+        </div>
+   	  
         <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
           <div class="content-box-title">Community</div>
           <span class="text">

@@ -112,7 +112,7 @@ public class Process extends AbstractPersistent<String, Process>
      * 
      * @see #getStatus()
      */
-    STALE("stal.", "Indicates that a process is stale (was deemed unresponsived and killed, and not restarted)");
+    STALE("stale", "Indicates that a process is stale (was deemed unresponsived and killed, and not restarted)");
     
     private String abbr;
     private String description;
@@ -141,12 +141,13 @@ public class Process extends AbstractPersistent<String, Process>
 
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int DEFAULT_KILL_RETRY            = 3;
+  
   private DistributionInfo                         distributionInfo;
   private String                                   processID       = IDGenerator.makeIdFromDate();
   private String                                   processDir;
   private String                                   pid;
   private boolean                                  deleteOnKill    = false;
-  private ProcessLock                              lock            = new ProcessLock();
+  private transient ProcessLock                    lock            = new ProcessLock();
   private long                                     creationTime    = System.currentTimeMillis();
   private long                                     lastAccess      = System.currentTimeMillis();
   private int                                      shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
@@ -455,7 +456,7 @@ public class Process extends AbstractPersistent<String, Process>
      * command since the process command queue is emptied at every poll/status
      * request. We can thus support multiple kill attempts on a given process.
      */
-    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.KILL_REQUESTED) {
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
       status = LifeCycleStatus.KILL_REQUESTED;
 
       Shutdown shutdown = new Shutdown();
@@ -608,7 +609,8 @@ public class Process extends AbstractPersistent<String, Process>
         this, "id", processID, 
         "pid", pid, 
         "status", status, 
-        "locked", lock.isLocked()
+        "lock", lock,
+        "deleted", isDeleted()
     );
   }
 

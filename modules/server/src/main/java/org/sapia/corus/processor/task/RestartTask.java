@@ -10,9 +10,9 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.processor.ProcessInfo;
-import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
@@ -43,7 +43,6 @@ public class RestartTask extends KillTask {
 
       PortManager ports = ctx.getServerContext().lookup(PortManager.class);
       DistributionDatabase dists = ctx.getServerContext().getServices().getDistributions();
-      ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
 
       DistributionCriteria criteria = DistributionCriteria.builder()
           .name(proc.getDistributionInfo().getName())
@@ -57,8 +56,6 @@ public class RestartTask extends KillTask {
         proc.clearCommands();
         proc.releasePorts(ports);
         proc.save();
-        processes.getProcessesToRestart().addProcess(proc);
-        processes.getActiveProcesses().removeProcess(proc.getProcessID());
       }
 
       ctx.warn(String.format("Process %s will be restarted... ", proc));
@@ -69,12 +66,11 @@ public class RestartTask extends KillTask {
           Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getPropertyCategories());
           PerformExecProcessTask execProcess = new PerformExecProcessTask();
           if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
-            processes.getProcessesToRestart().removeProcess(proc.getProcessID());
+            proc.setStatus(LifeCycleStatus.ACTIVE);
             proc.clear();
-            processes.getActiveProcesses().addProcess(proc);
             proc.save();
           } else {
-            processes.getProcessesToRestart().removeProcess(proc.getProcessID());
+            proc.delete();
           }
         } catch (IOException e) {
           ctx.error(String.format("Could not restart: %s", conf.getName()), e);

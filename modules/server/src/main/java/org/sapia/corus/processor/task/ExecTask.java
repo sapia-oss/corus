@@ -60,7 +60,7 @@ public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig,
     ctx.info(String.format("Executing process: %s", process));
     if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
       ctx.info(String.format("Added process to active process list: %s", process));
-      ctx.getServerContext().getServices().getProcesses().getActiveProcesses().addProcess(process);
+      ctx.getServerContext().getServices().getProcesses().addProcess(process);
     } else {
       ctx.info("Process execution failed; no process representation internally kept");
     }

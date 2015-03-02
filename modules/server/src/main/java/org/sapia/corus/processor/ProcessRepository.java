@@ -17,17 +17,17 @@ public interface ProcessRepository {
   /**
    * @return the {@link ProcessDatabase} that holds suspended processes.
    */
-  public ProcessDatabase getSuspendedProcesses();
+  public List<Process> getSuspendedProcesses();
 
   /**
    * @return the {@link ProcessDatabase} that holds active processes.
    */
-  public ProcessDatabase getActiveProcesses();
+  public List<Process> getActiveProcesses();
 
   /**
    * @return the {@link ProcessDatabase} that holds processes to restart.
    */
-  public ProcessDatabase getProcessesToRestart();
+  public List<Process> getProcessesToRestart();
 
   /**
    * @param criteria
@@ -65,5 +65,26 @@ public interface ProcessRepository {
    * @see Process
    */
   public List<Process> getProcesses(ProcessCriteria criteria);
+  
+  /**
+   * Removes the process with the given ID.
+   * 
+   * @param corusPid
+   *          a process identifier.
+   */
+  public void removeProcess(String corusPid);
+  
+  /**
+   * @param proc a {@link Process} to add to this instance.
+   */
+  public void addProcess(Process proc);
 
+  
+  /**
+   * @param corusPid a Corus process ID.
+   * @return <code>true</code> if this instance contains a {@link Process} which has
+   * the given identifier.
+   */
+  public boolean containsProcess(String corusPid);
+  
 }

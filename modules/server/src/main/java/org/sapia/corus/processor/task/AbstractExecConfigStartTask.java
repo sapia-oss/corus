@@ -9,6 +9,7 @@ import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
@@ -56,9 +57,14 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
         if (pd.getProfile() == null) {
           pd.setProfile(ec.getProfile());
         }
-        ProcessCriteria criteria = ProcessCriteria.builder().distribution(distName).version(version).name(processName).profile(pd.getProfile())
+        ProcessCriteria criteria = ProcessCriteria.builder()
+            .distribution(distName)
+            .version(version)
+            .name(processName)
+            .profile(pd.getProfile())
+            .lifecycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING)
             .build();
-        List<Process> activeProcesses = processes.getActiveProcesses().getProcesses(criteria);
+        List<Process> activeProcesses = processes.getProcesses(criteria);
         if (activeProcesses.size() == 0) {
           ctx.debug("Process will be started: " + pd);
           toStart.add(pd);

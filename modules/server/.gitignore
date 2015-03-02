@@ -38,6 +38,7 @@ Thumbs.db
 
 # Dev resources #
 #################
+/bin/.lock*
 /extra-lib/
 /target/
 /.settings/

@@ -32,7 +32,11 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
 
   private Corus            corus;
   private ClientFileSystem fileSys;
-  private Pattern          resultFilter = Matcheable.AnyPattern.newInstance();
+  private Stack<Pattern>   resultFilter = new Stack<Matcheable.Pattern>();
+  
+  {
+    resultFilter.push(Matcheable.AnyPattern.newInstance()); 
+  }
   
   /**
    * @param corus
@@ -62,17 +66,19 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   
   @Override
   public void setResultFilter(Pattern pattern) {
-    resultFilter = pattern;
+    resultFilter.push(pattern);
   }
   
   @Override
   public Pattern getResultFilter() {
-    return resultFilter;
+    return resultFilter.peek();
   }
   
   @Override
   public void unsetResultFilter() {
-    resultFilter = Matcheable.AnyPattern.newInstance();
+    if (resultFilter.size() > 1) {
+      resultFilter.pop();
+    }
   }
   
   @Override
@@ -117,7 +123,7 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
     try {
       T returnValue = (T) method.invoke(lookup(moduleInterface), params);
       results.incrementInvocationCount();
-      results.addResult(new Result<T>(corus.getHostInfo(), returnValue, Result.Type.forClass(method.getReturnType())).filter(resultFilter));
+      results.addResult(new Result<T>(corus.getHostInfo(), returnValue, Result.Type.forClass(method.getReturnType())).filter(getResultFilter()));
     } catch (InvocationTargetException e) {
       throw e.getTargetException();
     }

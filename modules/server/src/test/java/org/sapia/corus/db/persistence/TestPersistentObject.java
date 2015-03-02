@@ -1,5 +1,6 @@
 package org.sapia.corus.db.persistence;
 
+import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.services.db.DbMap;
 import org.sapia.corus.client.services.db.persistence.Persistent;
 
@@ -34,8 +35,7 @@ public class TestPersistentObject implements Persistent<String, TestPersistentOb
   }
   
   @Override
-  public boolean refresh() {
-    return true;
+  public void refresh() {
   }
   
   @Override
@@ -44,17 +44,25 @@ public class TestPersistentObject implements Persistent<String, TestPersistentOb
   }
   
   @Override
-  public boolean save() {
-    return true;
+  public void save() {
   }
   
   @Override
-  public boolean delete() {
-    return true;
+  public void delete() {
+  }
+  
+  @Override
+  @Transient
+  public boolean isDeleted() {
+    return false;
   }
   
   @Override
   public void markDeleted() {
+  }
+  
+  @Override
+  public void recycle() throws IllegalArgumentException {
   }
   
   @Override

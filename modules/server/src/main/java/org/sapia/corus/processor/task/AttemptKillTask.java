@@ -37,7 +37,7 @@ public class AttemptKillTask extends Task<Boolean, TaskParams<Process, ProcessTe
     
     // try SIGTERM if we're at the before last attempt
     if (currentRetryCount >= currentMaxExec - 1) {
-      ctx.debug("Execution count is: " + super.getExecutionCount() + "; max executions: " + super.getMaxExecution());
+      ctx.debug("Execution count is: " + currentRetryCount + "; max executions: " + currentMaxExec);
       OsModule os = ctx.getServerContext().lookup(OsModule.class);
       os.killProcess(callback(ctx), KillSignal.SIGTERM, proc.getOsPid());
     }

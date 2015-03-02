@@ -30,7 +30,7 @@
     <p>conf ren -t current_tag_name1=new_tag_name1,current_tag_name2=new_tag_name2...</p>
     <p/>
     <p>OR:</p>    
-    <p>conf merge -b &lt;base_file&gt;.properties -f &lt;target_file&gt;.properties</p>
+    <p>conf merge [-r] -b &lt;base_file&gt;.properties -f &lt;target_file&gt;.properties</p>
     <p/>
     <p>OR:</p>    
     <p>conf load [-s s | p] [-p &lt;pattern&gt;][-c &lt;category&gt;] [-cluster]</p>
@@ -100,7 +100,7 @@
     <p>conf del -p com.acme.* -c *</p>
     <p>conf del -t singletons</p>
     <p>conf del all</p>
-    <p>conf merge -b myBaseAppConfig.properties -f appConfig.properties</p>
+    <p>conf merge -r -b myBaseAppConfig.properties -f appConfig.properties</p>
     <p>conf load</p>
     <p>conf load -cluster</p>
     <p>conf load -c test</p>

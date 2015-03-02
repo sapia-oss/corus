@@ -20,11 +20,15 @@ public interface Persistent<K, V> {
 
   public void setDbMap(DbMap<K, V> db);
 
-  public boolean save();
+  public void save() throws IllegalArgumentException;
 
-  public boolean delete();
+  public void recycle() throws IllegalArgumentException;
+  
+  public void delete() throws IllegalArgumentException;
+  
+  public boolean isDeleted();
 
-  public void markDeleted();
+  public void markDeleted() throws IllegalArgumentException;
 
-  public boolean refresh();
+  public void refresh();
 }

@@ -56,7 +56,7 @@ public class Deploy extends CorusCliCommand {
           ctx.getCommandLine().assertOption(OPT_ALIAS.getName(), true).getValue()
       );
     } else {
-      if (ctx.getCommandLine().isNextArg()) {
+      if (ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()) {
         while (ctx.getCommandLine().hasNext()) {
           CmdElement elem = ctx.getCommandLine().next();
           if (elem instanceof Arg) {

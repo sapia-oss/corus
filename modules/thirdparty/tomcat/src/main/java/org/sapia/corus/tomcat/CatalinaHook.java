@@ -120,7 +120,7 @@ public class CatalinaHook {
 			  
 				String className = System.getProperty(PROPERTY_CATALINA_MAIN_CLASS, DEFAULT_CATALINA_MAIN_CLASS);
 				String argument = System.getProperty(PROPERTY_CATALINA_STOP_METHOD, DEFAULT_CATALINA_STOP_METHOD);
-				System.out.println("Shutting down Tomcat at");
+				System.out.println("Shutting down Tomcat");
 				doCallStaticMethod(className, "main", new Object[] { new String[] {argument} });
         System.out.println("Tomcat completed shutdown");
 

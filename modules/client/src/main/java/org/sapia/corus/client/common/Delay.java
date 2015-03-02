@@ -69,4 +69,12 @@ public class Delay {
     long remaining = durationMillis - (System.currentTimeMillis() - start);
     return remaining < 0 ? 0 : remaining;
   }
+  
+  /**
+   * @return the time remaining to this delay, in millis.
+   */
+  public long remainingMillisNotZero() {
+    long remaining = durationMillis - (System.currentTimeMillis() - start);
+    return remaining <= 0 ? 1 : remaining;
+  }
 }

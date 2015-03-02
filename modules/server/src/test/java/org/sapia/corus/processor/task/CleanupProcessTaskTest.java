@@ -42,7 +42,7 @@ public class CleanupProcessTaskTest extends TestBaseTask{
     verify(fs).deleteDirectory(any(File.class));
     assertFalse(
         "Process should have been removed from active process list", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
   }
   
@@ -56,7 +56,7 @@ public class CleanupProcessTaskTest extends TestBaseTask{
     verify(fs, times(0)).deleteDirectory(any(File.class));
     assertFalse(
         "Process should have been removed from active process list", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
   }
   

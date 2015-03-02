@@ -1,5 +1,9 @@
 package org.sapia.corus.client.common;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Implemented by classes whose instances can test themselves for matching against
  * given {@link Pattern}s.
@@ -75,6 +79,85 @@ public interface Matcheable {
     public static Pattern newInstance() {
       return new AnyPattern();
     }
+  }
+  
+  // --------------------------------------------------------------------------
+  
+  /**
+   * Encapsulates a list of patterns. Depending on the operation ( {@link MatchOp#ALL} or {@link MatchOp#ANY}),
+   * all or any of the encapsulated patterns must evaluate to <code>true</code> for an instance of this
+   * class to itself return <code>true</code>. 
+   * 
+   * @author yduchesne
+   *
+   */
+  public static final class CompositePattern implements Pattern {
+    
+    public enum MatchOp {
+      ALL,
+      ANY;
+    }
+    
+    private MatchOp       op        = MatchOp.ANY;
+    private List<Pattern> patterns  = new ArrayList<Matcheable.Pattern>();
+    
+    /**
+     * @param p a {@link Pattern} to add to this instance's list of {@link Pattern}.
+     * @return this instance.
+     */
+    public CompositePattern add(Pattern...p) {
+      patterns.addAll(Arrays.asList(p));
+      return this;
+    }
+    
+    /**
+     * Flags {@link MatchOp#ANY} logic.
+     * 
+     * @return this instance.
+     */
+    public CompositePattern any() {
+      op = MatchOp.ANY;
+      return this;
+    }
+
+    /**
+     * Flags {@link MatchOp#ALL} logic.
+     * 
+     * @return this instance.
+     */
+    public CompositePattern all() {
+      op = MatchOp.ALL;
+      return this;
+    }
+    
+    @Override
+    public boolean matches(String value) {
+      int matchCount = 0;
+      for (Pattern p : patterns) {
+        if (p.matches(value)) {
+          matchCount++;
+          if (op == MatchOp.ANY) {
+            break;
+          }
+        }
+      }
+      
+      if (op == MatchOp.ALL) {
+        return matchCount == patterns.size();
+      } else {
+        return matchCount > 0;
+      }
+    }
+    
+    /**
+     * A constructor method, provided for convenience.
+     * 
+     * @return a new instance this class.
+     */
+    public static final CompositePattern newInstance() {
+      return new CompositePattern();
+    }
+    
   }
   
   // ==========================================================================

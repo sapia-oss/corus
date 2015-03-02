@@ -53,7 +53,7 @@ public class KillTaskTest extends TestBaseTask{
     tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
     assertTrue(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
   }
 
@@ -63,7 +63,7 @@ public class KillTaskTest extends TestBaseTask{
     tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
     assertTrue(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
   }
 
@@ -79,7 +79,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertFalse(
         "Process should have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
     
@@ -102,7 +102,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertTrue(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
 
     // ultimate attempt
@@ -113,7 +113,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertFalse(
         "Process should have been killed and not restarted", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
@@ -134,7 +134,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertTrue(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
 
     // ultimate attempt
@@ -145,7 +145,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertFalse(
         "Process should have been killed and not restarted", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
@@ -165,7 +165,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertTrue(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
 
     // ultimate attempt
@@ -176,10 +176,10 @@ public class KillTaskTest extends TestBaseTask{
     
     assertTrue(
         "Process should have been killed and restarted", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     
-    Process restarted = ctx.getProc().getProcessDB().getActiveProcesses().getProcess(proc.getProcessID());
+    Process restarted = ctx.getProc().getProcessDB().getProcess(proc.getProcessID());
     assertNotSame("Restarted process should have new PID", oldPid, restarted.getOsPid());
   }
 
@@ -195,7 +195,7 @@ public class KillTaskTest extends TestBaseTask{
     
     assertFalse(
         "Process should not have been restarted", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
   }
   
@@ -210,7 +210,7 @@ public class KillTaskTest extends TestBaseTask{
 
     assertFalse(
         "Process should not have been killed", 
-        ctx.getProc().getProcessDB().getActiveProcesses().containsProcess(proc.getProcessID())
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());

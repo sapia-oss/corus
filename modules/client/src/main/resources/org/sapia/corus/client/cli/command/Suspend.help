@@ -38,6 +38,14 @@
   <section title="Notes">
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
     <p>- When used with the -i or -op option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
-    <p/>    
   </section>
+  <section title="Examples">
+    <p>suspend -d myapp -v 1.0 -n jetty -p qa</p>
+    <p>suspend -d myapp -v 1.* -n * -p qa</p>
+    <p>suspend -d * -v * -n * -p qa</p>
+    <p>suspend -d * -v *</p>
+    <p>suspend all</p>
+    <p>suspend -i 2029090920909</p>
+    <p/>    
+  </section> 
 </help>

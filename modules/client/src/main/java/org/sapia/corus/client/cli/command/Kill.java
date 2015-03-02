@@ -88,7 +88,6 @@ public class Kill extends CorusCliCommand {
       killProcessByVmId(ctx, pid);
 
       while (cmd.hasNext()) {
-        sleep(1000);
         if (cmd.isNextArg()) {
           Arg argument = cmd.assertNextArg();
           pid = argument.getName();
@@ -109,7 +108,6 @@ public class Kill extends CorusCliCommand {
       completion.addPid(pid);
 
       while (cmd.hasNext()) {
-        sleep(1000);
         if (cmd.isNextArg()) {
           Arg argument = cmd.assertNextArg();
           pid = killProcessByOsPid(ctx, argument.getName());

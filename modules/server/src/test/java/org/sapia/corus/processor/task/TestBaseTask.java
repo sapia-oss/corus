@@ -67,7 +67,7 @@ public class TestBaseTask{
     Process proc = new Process(info);
     proc.setProcessDir("processdir");
     proc.setOsPid(Integer.toString(Integer.MAX_VALUE));
-    ctx.getProc().getProcessDB().getActiveProcesses().addProcess(proc);
+    ctx.getProc().getProcessDB().addProcess(proc);
     return proc;
   }
   

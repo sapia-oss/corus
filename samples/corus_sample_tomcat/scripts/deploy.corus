@@ -1,0 +1,15 @@
+echo "--> Killing currently running processes"
+kill all -w -cluster
+echo "--> Undeploying current version"
+undeploy all -cluster
+echo "--> Pushing config"
+port del -n tomcat.* -f -cluster
+port add -f -n tomcat.http -min 8100 -max 8105 -cluster
+port add -f -n tomcat.ajp -min 8200 -max 8205 -cluster
+port add -f -n tomcat.redirect -min 8300 -max 8305 -cluster
+port add -f -n tomcat.jmx -min 8400 -max 8405 -cluster
+conf add -p tomcat.mem.ms=512m -cluster
+conf add -p tomcat.mem.mx=1024m -cluster
+echo "--> Proceeding to deployment" 
+deploy target/corus_sample_tomcat*-dist.zip -cluster
+echo "Deployment completed"

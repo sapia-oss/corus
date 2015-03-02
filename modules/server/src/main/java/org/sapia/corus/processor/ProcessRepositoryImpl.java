@@ -7,6 +7,8 @@ import java.util.List;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.ubik.util.Strings;
 
 /**
  * An instance of this class holds the {@link ProcessDatabase}s that contain
@@ -17,77 +19,87 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  */
 public class ProcessRepositoryImpl implements ProcessRepository {
 
-  private ProcessDatabase suspended;
-  private ProcessDatabase active;
-  private ProcessDatabase toRestart;
+  private ProcessDatabase processDb;
 
   /**
-   * @param suspended
-   *          the {@link ProcessDatabase} that will hold {@link Process}
-   *          instances corresponding to suspended processes.
-   * @param active
-   *          the {@link ProcessDatabase} that will hold {@link Process}
-   *          instances corresponding to active processes.
-   * @param toRestart
-   *          the {@link ProcessDatabase} that will hold {@link Process}
-   *          instances corresponding to processes in restart mode.
+   * @param processDb
+   *          the {@link ProcessDatabase} that manage persistence of the {@link Process}
+   *          instances that this instance manipulates.
    */
-  public ProcessRepositoryImpl(ProcessDatabase suspended, ProcessDatabase active, ProcessDatabase toRestart) {
-    this.suspended = suspended;
-    this.active = active;
-    this.toRestart = toRestart;
+  public ProcessRepositoryImpl(ProcessDatabase processDb) {
+    this.processDb = processDb;
   }
 
   @Override
-  public synchronized ProcessDatabase getSuspendedProcesses() {
-    return suspended;
+  public synchronized List<Process> getSuspendedProcesses() {
+    return processDb.getProcesses(ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.SUSPENDED)
+    .build());
   }
 
   @Override
-  public synchronized ProcessDatabase getActiveProcesses() {
-    return active;
+  public synchronized List<Process> getActiveProcesses() {
+    return processDb.getProcesses(ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.ACTIVE,
+        LifeCycleStatus.STALE
+    ).build());
   }
 
   @Override
-  public synchronized ProcessDatabase getProcessesToRestart() {
-    return toRestart;
+  public synchronized List<Process> getProcessesToRestart() {
+    return processDb.getProcesses(ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.RESTARTING
+    ).build());
   }
 
   @Override
   public synchronized int getActiveProcessCountFor(ProcessCriteria criteria) {
-    return getActiveProcesses().getProcesses(criteria).size();
+    return getActiveProcesses().size();
   }
 
   @Override
   public synchronized List<Process> getProcesses() {
     List<Process> procs = new ArrayList<Process>();
     ProcessCriteria criteria = ProcessCriteria.builder().all();
-    procs.addAll(active.getProcesses(criteria));
-    procs.addAll(suspended.getProcesses(criteria));
-    procs.addAll(toRestart.getProcesses(criteria));
+    procs.addAll(processDb.getProcesses(criteria));
     Collections.sort(procs);
     return procs;
   }
 
   @Override
   public synchronized Process getProcess(String corusPid) throws ProcessNotFoundException {
-    if (active.containsProcess(corusPid)) {
-      return active.getProcess(corusPid);
-    } else if (suspended.containsProcess(corusPid)) {
-      return suspended.getProcess(corusPid);
-    } else if (toRestart.containsProcess(corusPid)) {
-      return toRestart.getProcess(corusPid);
+    Process toReturn = processDb.getProcess(corusPid);
+    if (toReturn == null) {
+      throw new ProcessNotFoundException("No process found for ID: " + corusPid);
     }
-    throw new ProcessNotFoundException("No process found for ID: " + corusPid);
+    return toReturn;
   }
 
   @Override
   public synchronized List<Process> getProcesses(ProcessCriteria criteria) {
     List<Process> procs = new ArrayList<Process>();
-    procs.addAll(active.getProcesses(criteria));
-    procs.addAll(suspended.getProcesses(criteria));
-    procs.addAll(toRestart.getProcesses(criteria));
+    procs.addAll(processDb.getProcesses(criteria));
     Collections.sort(procs);
     return procs;
+  }
+  
+  @Override
+  public  synchronized void removeProcess(String corusPid) {
+    processDb.removeProcess(corusPid);
+  }
+  
+  @Override
+  public synchronized void addProcess(Process proc) {
+    processDb.addProcess(proc);
+  }
+  
+  @Override
+  public synchronized boolean containsProcess(String corusPid) {
+    return processDb.containsProcess(corusPid);
+  }
+  
+  @Override
+  public String toString() {
+    return Strings.toString("processDb", processDb);
   }
 }
