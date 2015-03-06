@@ -50,11 +50,11 @@ public class InterpreterTest {
     ProcessorFacade processor = mock(ProcessorFacade.class);
     when(connector.getProcessorFacade()).thenReturn(processor);
 
-    ProcessCriteria expectedCriteria = new ProcessCriteria();
-    expectedCriteria.setDistribution(ArgFactory.exact("test"));
-    expectedCriteria.setVersion(ArgFactory.exact("1.0"));
-    expectedCriteria.setName(ArgFactory.exact("proc"));
-    expectedCriteria.setProfile("dev");
+    ProcessCriteria expectedCriteria = ProcessCriteria.builder()
+        .distribution(ArgFactory.exact("test"))
+        .version(ArgFactory.exact("1.0"))
+        .name(ArgFactory.exact("proc"))
+        .profile("dev").build();
 
     final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();
     final AtomicReference<ProcessCriteria> inputCriteria = new AtomicReference<ProcessCriteria>();
@@ -97,11 +97,11 @@ public class InterpreterTest {
     ProcessorFacade processor = mock(ProcessorFacade.class);
     when(connector.getProcessorFacade()).thenReturn(processor);
 
-    ProcessCriteria expectedCriteria = new ProcessCriteria();
-    expectedCriteria.setDistribution(ArgFactory.exact("test"));
-    expectedCriteria.setVersion(ArgFactory.exact("1.0"));
-    expectedCriteria.setName(ArgFactory.exact("proc"));
-    expectedCriteria.setProfile("dev");
+    ProcessCriteria expectedCriteria = ProcessCriteria.builder()
+        .distribution(ArgFactory.exact("test"))
+        .version(ArgFactory.exact("1.0"))
+        .name(ArgFactory.exact("proc"))
+        .profile("dev").build();
 
     final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();
     final AtomicReference<ProcessCriteria> inputCriteria = new AtomicReference<ProcessCriteria>();

@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
@@ -27,6 +26,7 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
@@ -36,7 +36,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.db.CachingDbMap;
+import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.interop.Status;
 import org.sapia.corus.processor.task.BootstrapExecConfigStartTask;
@@ -116,14 +116,14 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     for (int i = 0; i < processes.size(); i++) {
       proc = (Process) processes.get(i);
       if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
-        // make sure we're removing process that might not have been removed
+        // making sure we're removing process that might not have been removed
         // before the last Corus shutdown.
         log.debug("Removing stale process object - is confirmed as killed");
         processDb.removeProcess(proc.getProcessID());
-      } else if (proc.getStatus() == LifeCycleStatus.RESTARTING) {
+      } else if (proc.getStatus() == LifeCycleStatus.RESTARTING || proc.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
         // set process in auto-restart to active. if it is down, 
         // it will not poll and enter the shutdown procedure, 
-        // eventually cleaning it up definitively.
+        // eventually being clean up definitively.
         proc.setStatus(LifeCycleStatus.ACTIVE);
         proc.save();
       } else {
@@ -180,16 +180,16 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
    * ////////////////////////////////////////////////////////////////////
    */
 
-  public ProgressQueue execConfig(String execConfigName) {
+  @Override
+  public ProgressQueue execConfig(ExecConfigCriteria criteria) {
     ProgressQueue progress = new ProgressQueueImpl();
-    EndUserExecConfigStartTask start = new EndUserExecConfigStartTask(execConfigName);
+    EndUserExecConfigStartTask start = new EndUserExecConfigStartTask(criteria);
     try {
       taskman.executeAndWait(start, null, TaskConfig.create(new TaskLogProgressQueue(progress))).get();
     } catch (InvocationTargetException e) {
-      // noop
+      progress.error(e.getCause());
     } catch (InterruptedException e) {
       progress.error(e);
-      progress.close();
     }
 
     return progress;
@@ -197,35 +197,14 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
   
   @Override
-  public void clean() {
-    ProcessCriteria criteria = ProcessCriteria.builder().lifecycles(
-        LifeCycleStatus.SUSPENDED, 
-        LifeCycleStatus.STALE, 
-        LifeCycleStatus.KILL_CONFIRMED
-    ).build();
-    
-    List<Process> toClean = processes.getProcesses(criteria);
-    
-    for (Process p : toClean) {
-      // trying to kill stale process, just it case it is zombie
-      if (p.getStatus() == LifeCycleStatus.STALE) {
-        try {
-          os.killProcess(new OsModule.LogCallback() {
-            @Override
-            public void error(String error) {
-            }
-            @Override
-            public void debug(String msg) {
-            }
-          }, KillSignal.SIGKILL, p.getOsPid());
-        } catch (IOException e) {
-        }
-      }
-      processes.removeProcess(p.getProcessID());
-      p.releasePorts(portManager);
+  public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled) {
+    List<ExecConfig> configs = this.execConfigs.getConfigsFor(criteria);
+    for (ExecConfig c : configs) {
+      c.setEnabled(enabled);
+      c.save();
     }
   }
-
+  
   @Override
   public ProgressQueue exec(ProcessCriteria criteria, int instances) throws TooManyProcessInstanceException {
     try {
@@ -285,6 +264,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     }
   }
 
+  @Override
   public void addExecConfig(ExecConfig conf) {
     if (conf.getName() == null) {
       throw new MissingDataException("Execution configuration must have a name");
@@ -292,18 +272,22 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     this.execConfigs.addConfig(conf);
   }
 
-  public List<ExecConfig> getExecConfigs() {
-    return execConfigs.getConfigs();
+  @Override
+  public List<ExecConfig> getExecConfigs(ExecConfigCriteria criteria) {
+    return execConfigs.getConfigsFor(criteria);
   }
 
-  public void removeExecConfig(Arg name) {
-    execConfigs.removeConfigsFor(name);
+  @Override
+  public void removeExecConfig(ExecConfigCriteria criteria) {
+    execConfigs.removeConfigsFor(criteria);
   }
 
   @Override
   public void kill(ProcessCriteria criteria, KillPreferences pref) {
-    criteria.setLifeCycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING);
-    List<Process> procs = processes.getProcesses(criteria);
+    ProcessCriteria killCriteria = ProcessCriteria.builder().copy(criteria).lifecycles(
+        LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING
+    ).build();
+    List<Process> procs = processes.getProcesses(killCriteria);
  
     for (Process proc : procs) {
       if (pref.isSuspend()) {
@@ -355,6 +339,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
       process.confirmKilled();
       process.save();
+      logger().debug("Kill confirmed: " + processes);
     }
   }
 
@@ -370,9 +355,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public void restart(ProcessCriteria criteria, KillPreferences prefs) {
-    criteria.setLifeCycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE);
+    ProcessCriteria restartCriteria = ProcessCriteria.builder().copy(criteria).lifecycles(
+        LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING
+    ).build();
     
-    List<Process> procs = processes.getProcesses(criteria);
+    List<Process> procs = processes.getProcesses(restartCriteria);
 
     for (int i = 0; i < procs.size(); i++) {
       Process proc = (Process) procs.get(i);
@@ -402,8 +389,10 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public ProgressQueue resume(ProcessCriteria processCriteria) {
-    processCriteria.setLifeCycles(LifeCycleStatus.SUSPENDED);
-    Iterator<Process> procs = processes.getProcesses(processCriteria).iterator();
+    ProcessCriteria resumeCriteria = ProcessCriteria.builder().copy(processCriteria).lifecycles(
+        LifeCycleStatus.SUSPENDED
+    ).build();
+    Iterator<Process> procs = processes.getProcesses(resumeCriteria).iterator();
     ResumeTask resume;
     Process proc;
 
@@ -456,13 +445,14 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public Process getProcess(final String corusPid) throws ProcessNotFoundException {
+  public Process getProcess(String corusPid) throws ProcessNotFoundException {
     return this.processes.getProcess(corusPid);
   }
 
   @Override
   public List<Process> getProcesses(ProcessCriteria criteria) {
-    return processes.getProcesses(criteria);
+    List<Process> toReturn =  processes.getProcesses(criteria);
+    return toReturn;
   }
 
   @Override
@@ -488,6 +478,38 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     Process proc = getProcess(corusPid);
 
     return copyStatus(proc);
+  }
+  
+  @Override
+  public void clean() {
+    ProcessCriteria criteria = ProcessCriteria.builder().lifecycles(
+        LifeCycleStatus.SUSPENDED, 
+        LifeCycleStatus.STALE, 
+        LifeCycleStatus.KILL_CONFIRMED,
+        LifeCycleStatus.KILL_REQUESTED
+    ).build();
+    
+    List<Process> toClean = processes.getProcesses(criteria);
+    
+    for (Process p : toClean) {
+      // trying to kill stale process, just it case it is zombie
+      if (p.getStatus() == LifeCycleStatus.STALE || p.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
+        try {
+          os.killProcess(new OsModule.LogCallback() {
+            @Override
+            public void error(String error) {
+            }
+            @Override
+            public void debug(String msg) {
+            }
+          }, KillSignal.SIGKILL, p.getOsPid());
+        } catch (IOException e) {
+          // noop
+        }
+      }
+      processes.removeProcess(p.getProcessID());
+      p.releasePorts(portManager);
+    }
   }
 
   private List<Status> copyStatus(List<Process> processes) {

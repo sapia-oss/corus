@@ -33,6 +33,11 @@ import org.sapia.util.xml.confix.ReflectionFactory;
 public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>, JsonStreamable, Matcheable {
 
   static final long serialVersionUID = 1L;
+  
+  public enum State {
+    DEPLOYING,
+    DEPLOYED
+  }
 
   private static final String DEPLOYMENT_DESCRIPTOR = "META-INF/corus.xml";
   private String   name;
@@ -43,6 +48,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   private String[] tags;
   private String[] categories;
   private List<ProcessConfig> processConfigs = new ArrayList<ProcessConfig>();
+  private long     timestamp = System.currentTimeMillis();
+  private volatile State state = State.DEPLOYING;
 
   public Distribution() {
   }
@@ -135,6 +142,20 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public String getVersion() {
     return version;
+  }
+  
+  /**
+   * @param timestamp a timestamp.
+   */
+  public void setTimestamp(long timestamp) {
+    this.timestamp = timestamp;
+  }
+  
+  /**
+   * @return this instance's timestamp.
+   */
+  public long getTimestamp() {
+    return timestamp;
   }
 
   /**
@@ -256,6 +277,20 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public String getDistributionFileName() {
     return this.name + "-" + version + ".zip";
+  }
+  
+  /**
+   * @param state a {@link State} to assign to this instance.
+   */
+  public void setState(State state) {
+    this.state = state;
+  }
+  
+  /**
+   * @return this instance's current state.
+   */
+  public State getState() {
+    return state;
   }
 
   /**

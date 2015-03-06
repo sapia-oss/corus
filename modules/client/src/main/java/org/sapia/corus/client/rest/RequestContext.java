@@ -107,14 +107,17 @@ public class RequestContext {
       String value = params.get(name);
       if (value != null) {
         return new Value(name, value);
-      } else {
-        return delegate.getValue(name);
       }
-    }
+      return delegate.getValue(name);
+    }   
     
     @Override
     public Value getValue(String name, String defaultVal) {
-      return delegate.getValue(name, defaultVal);
+      String value = params.get(name);
+      if (value != null) {
+        return new Value(name, value);
+      }
+      return delegate.getValue(name, defaultVal); 
     }
     
     @Override

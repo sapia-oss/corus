@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
@@ -30,7 +31,12 @@ public class DistributionRequestHandlerTask extends ArtifactRequestHandlerTaskSu
     super(distFile, targets, new Func<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
-        return new DistributionDeploymentMetadata(distFile.getName(), distFile.length(), new ClusterInfo(clustered).addTargets(targets));
+        return new DistributionDeploymentMetadata(
+            distFile.getName(), 
+            distFile.length(), 
+            DeployPreferences.newInstance(),
+            new ClusterInfo(clustered).addTargets(targets)
+        );
       }
     });
   }

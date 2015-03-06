@@ -11,7 +11,7 @@ import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
-import org.sapia.corus.db.HashDbMap;
+import org.sapia.corus.database.HashDbMap;
 
 public class ShellScriptDatabaseImplTest {
   

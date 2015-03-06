@@ -11,7 +11,9 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.exec.ExecProcessByDescriptors;
 import org.sapia.corus.client.cli.command.exec.ExecProcessesByConfig;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 
 /**
  * Executes processes.
@@ -22,7 +24,12 @@ public class Exec extends AbstractExecCommand {
 
   public static final OptionDef OPT_EXEC_CONFIG = new OptionDef("e", true);
   public static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
+ 
+  public static final String ARG_ENABLE  = "enable";
+  public static final String ARG_DISABLE = "disable";
+  
   private static final List<OptionDef> ADDITIONAL_OPTIONS = new ArrayList<OptionDef>(AVAIL_OPTIONS);
+  
   static {
     ADDITIONAL_OPTIONS.add(OPT_EXEC_CONFIG);
     ADDITIONAL_OPTIONS.add(OPT_SCRIPT);
@@ -34,7 +41,18 @@ public class Exec extends AbstractExecCommand {
  
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG.getName(), true)) {
+    
+    if (ctx.getCommandLine().isNextArg()) {
+      String operation  = ctx.getCommandLine().assertNextArg(new String[] {ARG_ENABLE, ARG_DISABLE}).getName();
+      String configName = ctx.getCommandLine().assertOption(OPT_EXEC_CONFIG.getName(), true).getValue();
+      if (operation.equalsIgnoreCase(ARG_ENABLE)) {
+        ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(configName)).build();
+        ctx.getCorus().getProcessorFacade().setExecConfigEnabled(crit, true, getClusterInfo(ctx));
+      } else {
+        ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(configName)).build();
+        ctx.getCorus().getProcessorFacade().setExecConfigEnabled(crit, false, getClusterInfo(ctx));
+      } 
+    } else if (ctx.getCommandLine().containsOption(OPT_EXEC_CONFIG.getName(), true)) {
       new ExecProcessesByConfig().execute((Context) ctx);
     } else if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), true)) {
       doExecuteScript(ctx);

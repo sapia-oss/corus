@@ -1,9 +1,10 @@
 package org.sapia.corus.processor.task;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
@@ -16,21 +17,21 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  */
 public class EndUserExecConfigStartTask extends AbstractExecConfigStartTask {
 
-  private String execConfigName;
+  private ExecConfigCriteria criteria;
 
-  public EndUserExecConfigStartTask(String execConfigName) {
+  public EndUserExecConfigStartTask(ExecConfigCriteria criteria) {
     super(false);
-    this.execConfigName = execConfigName;
+    this.criteria = criteria;
   }
 
   @Override
   protected List<ExecConfig> getExecConfigsToStart(TaskExecutionContext ctx) throws Exception {
     ExecConfigDatabase execConfigs = ctx.getServerContext().getServices().getExecConfigs();
-    ExecConfig config = execConfigs.getConfigFor(execConfigName);
-    List<ExecConfig> toReturn = new ArrayList<ExecConfig>();
-    if (config != null) {
-      toReturn.add(config);
-    }
-    return toReturn;
+    return execConfigs.getConfigsFor(criteria);
+  }
+  
+  @Override
+  protected boolean canExecuteFor(TaskExecutionContext ctx, Distribution d) {
+    return true;
   }
 }

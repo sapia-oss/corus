@@ -25,12 +25,13 @@
 			<property name="catalina.home" value="${tomcat.home}" />
 			<property name="file.encoding" value="UTF-8" />
 			<property name="tomcat.log.dir" value="/var/log/tomcat/${corus.process.port.tomcat.http}" />
-
+      <!-- 
 			<property name="com.sun.management.jmxremote" value="" />
 			<property name="com.sun.management.jmxremote.local.only" value="false" />
 			<property name="com.sun.management.jmxremote.ssl" value="false" />
 			<property name="com.sun.management.jmxremote.port" value="${corus.process.port.tomcat.jmx}" />
 			<property name="com.sun.management.jmxremote.authenticate" value="false" />
+			-->
 		</magnet>
 
 	</process>

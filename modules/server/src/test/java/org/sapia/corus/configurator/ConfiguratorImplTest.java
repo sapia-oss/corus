@@ -25,7 +25,7 @@ import org.sapia.corus.client.services.db.DbModule;
 import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
-import org.sapia.corus.db.HashDbMap;
+import org.sapia.corus.database.HashDbMap;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)

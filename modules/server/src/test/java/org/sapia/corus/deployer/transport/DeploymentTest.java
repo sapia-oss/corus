@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.transport.ByteArrayDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
@@ -41,7 +42,7 @@ public class DeploymentTest {
   public void testGetContent() throws Exception{
   	ByteArrayOutputStream bos = new ByteArrayOutputStream();
   	byte[] data = new String("THIS IS DATA").getBytes();
-  	DeploymentMetadata meta = new DistributionDeploymentMetadata("test", data.length, new ClusterInfo(true));
+  	DeploymentMetadata meta = new DistributionDeploymentMetadata("test", data.length, DeployPreferences.newInstance(), new ClusterInfo(true));
     ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(bos);
     oos.writeObject(meta);
     bos.write(data);

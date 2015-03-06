@@ -230,28 +230,109 @@ corus.server.ssl.enabled=true</sapia:code>
     
     <sapia:sect2 title="Using the API">
       <p>
-        Using the API is straighforward. All <tt>GET</tt> resources described further below return a JSON response (for which a sample
-        is provided in the documentation). The API is accessible at any Corus node, under the following URI:
+        Using the API is straighforward as you will see. The REST resources are accessible at any Corus node, under the following URI:
       </p>
       <sapia:code>http://&lt;host&gt;:&lt;port&gt;/rest</sapia:code>
+      
       <p>
-        For other resources, they always return a JSON payload, which is the following in non-error situations:
+      Note that the above in itself returns nothing.
       </p>
-      <sapia:code>{
+      
+      <sapia:sect3 title="General Guidelines">
+          <p>
+          All <tt>GET</tt> resources described further below return a JSON response for which a sample provided in the documentation.
+          </p>
+		      <p>
+		        For other resources, they always return a JSON payload, consisting of the following in non-error situations:
+		      </p>
+		      <sapia:code>{
   "status": 200
 }</sapia:code>
-      <p>
-        When an error occurs, the following JSON response is returned:
-      </p>
-      <sapia:code>{
-  "status": "&lt;error_code&gt;"
+		      <p>
+		        When an error occurs, the following JSON response is returned:
+		      </p>
+		      <sapia:code>{
+  "status": &lt;error_code&gt;
   "stackTrace": "&lt;stack_trace&gt;"
 }</sapia:code>
-      <p>
-      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
-      relevant HTTP error code, given the error that occurred.
-      </p>
-      <p>Of course, the HTTP status response header is always available, and a status message will be set in the case of an error.</p>
+
+		      <p>
+		      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
+		      relevant HTTP error code, given the error that occurred.
+		      </p>
+		      <sapia:note>Note that the <tt>stackTrace</tt> field is <tt>optional</tt>: a response may result in an error even if it is not the result
+		      of an exception being thrown. The <tt>status</tt> field is indicative of an error, even <tt>stackTrace</tt> field is absent.</sapia:note>
+		      
+		      <p>Of course, the HTTP status response header is always available. The status message, though, may or may not be present - consider it optional, 
+		      from Corus' standpoint.</p>
+		     
+		      <p>
+		        Some resources may return feedback (which are progress messages emitted by Corus). Such a feedback, if any, is provided by the <tt>feeback</tt>
+		        field, which holds an array of progress messages:
+		      </p>
+		      <sapia:code>{
+  "status": 200
+  "feeback": [
+    "&lt;message_1&gt;",
+    "&lt;message_2&gt;",
+    "&lt;message_N&gt;"
+  ]
+}</sapia:code>
+		      <sapia:note>
+		        If the backend did not provide such progress messages, then the <tt>feedback</tt> field will be present, with an empty array as its value.
+		        It may occur that a response results in an error, has not HTTP status message set, and has no stack trace. It will in such a case 
+		        have feedback.
+		      </sapia:note>
+		        
+		      <p>
+		        Last but not least, some resources have an asynchronous behavior: upon being invoked, they trigger an asynchronous task on the server side. At
+		        that point, a resource may return status <tt>OK</tt>, but the background task's outcome may eventually be an error. This API documents the behavior
+		        of the resources from that standpoint. Asynchronous behavior will by identified by <tt>ASYNC</tt> in the doc, whilst synchronous behavior will
+		        be labeled <tt>SYNC</tt>.
+		      </p>
+		      <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>.</sapia:note>
+      
+      </sapia:sect3>
+
+      <sapia:sect3 title="Running Corus Scripts on the Server-Side">
+        <p>
+          Even though the API is meant to give access to all Corus functionality through HTTP (and thus acts as a substitute to the CLI), it may
+          still be convenient to have the ability to work with scripts, even for HTTP clients.   
+        </p>
+        <p>
+          The API thus allows pushing scripts to Corus, for them to be executed on the server-side. Given the implications, this requires 
+          <tt>ADMIN</tt> permissions.
+        </p>
+        <p>
+          Scripts are given the following as a base directory: <tt>$CORUS_HOME/files/uploads</tt>. They have access to the Java system properties
+          of the Corus JVM (since they're executed within Corus) and to its environment variables.
+        </p>
+        <p>
+          The resource to hit is given below. Note that is a very specific endpoint that differs from the normal shape of this API: since a
+          Corus script is meant to be executed at the current host, there was no point in publishing that functionality unde <tt>/clusters</tt>.       
+        </p>
+          <sapia:code>POST
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: text/plain
+
+- Resource:
+  /runscript
+ 
+- Parameters:
+  - clusteringEnabled (defaults to true): if set to false, clustering for the commands in the provided script will be disabled</sapia:code>
+          <p><b>Sample script</b></p>
+        <sapia:code>echo "test"</sapia:code>
+  
+        <p><b>Sample response</b></p>
+        <sapia:code>{
+  "status": 200,
+  "feedback": [ "test"]
+
+}</sapia:code>
+      </sapia:sect3>
+
     
       <!-- ====================== CLUSTERS AND HOSTS ====================== -->
     
@@ -271,8 +352,8 @@ corus.server.ssl.enabled=true</sapia:code>
           which cluster an operation should be performed - as explained later in this documentation.
           </p>
           <sapia:code>GET
-- Permission: READ
-
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept: application/json
 
@@ -294,8 +375,8 @@ corus.server.ssl.enabled=true</sapia:code>
           This call returns the JSON objects corresponding to each host in a given cluster.
           </p>
           <sapia:code>GET
-- Permission: READ
-
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept: application/json
 
@@ -336,8 +417,8 @@ corus.server.ssl.enabled=true</sapia:code>
           the CLI's <tt>cluster domain</tt> command.
           </p>
           <sapia:code>POST
-- Permission: ADMIN
-
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept: application/json
 
@@ -363,8 +444,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/name/app-10</
           <tt>cluster repo</tt> command.
           </p>
           <sapia:code>POST
-- Permission: ADMIN
-
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept: application/json
 
@@ -389,8 +470,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/repo/role/ser
           The following resources are meant to trigger a pull (the same way as the CLI's <tt>pull</tt>  command).
           </p>
           <sapia:code>POST
-- Permission: DEPLOY
-
+- Permission.....: DEPLOY
+- Behavior.......: ASYNC
 - Request headers:
   - Accept: application/json
 
@@ -425,8 +506,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/role/server</
           the roles matching the query (see the <tt>n</tt> parameter.</p>
           
           <sapia:code>GET
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -486,8 +567,8 @@ http://saturn:33000/rest/clusters/app-01/roles?n=test*</sapia:code>
           <p>This resource is meant to create a new role, or update the corresponding role if it already exists.</p>
         
           <sapia:code>PUT
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -512,8 +593,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/develop
           <p>Use the resources below to delete roles.</p>
         
           <sapia:code>DELETE
-- Permission: ADMIN
-
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -549,8 +630,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/develop
           the application keys matching the query (see the <tt>a</tt> parameter.</p>
 
           <sapia:code>GET
-- Permission: ADMIN
-
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -590,8 +671,8 @@ http://saturn:33000/rest/clusters/app-01/appkeys?a=test*</sapia:code>
           <p>This resource is used to create application keys.</p>
         
           <sapia:code>PUT
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -617,7 +698,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
           <p>This resource is meant to update the key associated to an application key.</p>
         
           <sapia:code>POST
-- Permission: ADMIN
+- Permission.....: ADMIN
 
 - Request headers:
   - Accept......: application/json
@@ -646,7 +727,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
           <p>Use this resource to modify the role associated to an application key.</p>
         
           <sapia:code>POST
-- Permission: ADMIN
+- Permission.....: ADMIN
           
 - Request headers:
   - Accept......: application/json
@@ -682,8 +763,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
           <tt>v</tt> parameters for filtering distributions by name and version, just like the CLI.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -742,8 +823,8 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           This call is similar to the CLI's <tt>deploy</tt> command.
           </p>
           <sapia:code>PUT
-- Permission: DEPLOY
-          
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
   - Content-type: application/octet-stream
@@ -763,8 +844,8 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           This call is similar to the CLI's <tt>undeploy</tt> command.
           </p>
           <sapia:code>DELETE
-- Permission: DEPLOY
-          
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -802,8 +883,8 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           </p>
         
           <sapia:code>GET
-- Permission: READ
-          
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -863,8 +944,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143
           <p>Corresponds to the CLI's <tt>exec</tt> command.</p>
         
           <sapia:code>PUT
-- Permission: EXECUTE
-          
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
 - Request headers:
   - Accept......: application/json
   
@@ -892,8 +973,8 @@ http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=htt
           <p>Corresponds to the CLI's <tt>kill</tt> command.</p>
         
           <sapia:code>DELETE
-- Permission: EXECUTE
-
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
 - Request headers:
   - Accept......: application/json
  
@@ -924,8 +1005,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>suspend</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
 - Request headers:
   - Accept......: application/json
   
@@ -956,8 +1037,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>resume</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
 - Request headers:
   - Accept......: application/json
   
@@ -988,8 +1069,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>restart</tt> command.</p>
         
           <sapia:code>POST
-- Permission: EXECUTE
-          
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
 - Request headers:
   - Accept......: application/json
   
@@ -1020,8 +1101,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>Corresponds to the CLI's <tt>ps -clean</tt> command.</p>
         
           <sapia:code>POST
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1059,8 +1140,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
           <p>This resource corresponds to the CLI's <tt>ls -e</tt> command.</p>
 
            <sapia:code>GET
-- Permission: READ
-          
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1114,8 +1195,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?
           the CLI's <tt>deploy -e</tt> command.</p>
           
            <sapia:code>PUT
-- Permission: DEPLOY
-          
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1138,8 +1219,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs<
           the CLI's <tt>undeploy -e</tt> command.</p>
           
            <sapia:code>DELETE
-- Permission: DEPLOY
-          
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1150,11 +1231,16 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs<
 - Path variables:
   - clusterName.....: the name of the cluster to access
   - host:...........: a host literal (taking the form: ip_address:port)
-  - exec-config-name: the name of the execution configuration to delete</sapia:code>
+  - exec-config-name: the name of the execution configuration to delete
+   
+- Parameters:
+  - n.....: an execution configuration name (pattern matching supported)
+  - backup: indicates how many execution configurations should be kept as backup</sapia:code>
         
         <p><b>Sample requests</b></p>
-        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/test-exec</sapia:code>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs?n=test*
+http://saturn:33000/rest/clusters/app-01/exec-configs?n=test*&amp;backup=1
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?n=test-exec</sapia:code>
         
         </sapia:sect4>
         
@@ -1163,8 +1249,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
           the CLI's <tt>exec -e</tt> command.</p>
           
            <sapia:code>POST
-- Permission: EXECUTE
-          
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC          
 - Request headers:
   - Accept......: application/json
 
@@ -1180,6 +1266,60 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec/exec
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/test-exec/exec</sapia:code>
+        
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Disable execution configurations">
+          <p>This resource is similar to the <tt>exec disable -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/exec
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/exec
+
+- Path variables:
+  - clusterName.....: the name of the cluster to access
+  - host:...........: a host literal (taking the form: ip_address:port)
+  - exec-config-name: the name of the execution configuration to disable
+  
+- Parameters:
+  - n: an execution configuration name (pattern matching supported)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/disable?n=test-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/disable?n=test-exec</sapia:code>
+        
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Enable execution configurations">
+          <p>This resource is similar to the CLI's <tt>exec enable -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/exec
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/exec
+
+- Path variables:
+  - clusterName.....: the name of the cluster to access
+  - host:...........: a host literal (taking the form: ip_address:port)
+  - exec-config-name: the name of the execution configuration to enable
+  
+- Parameters:
+  - n: an execution configuration name (pattern matching supported)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/enable?n=test-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/enable?n=test-exec</sapia:code>
         
         </sapia:sect4>
         
@@ -1201,8 +1341,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
           Note that the scope in the case of this call is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1265,8 +1405,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>PUT
-- Permission: ADMIN
- 
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1299,8 +1439,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>DELETE
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1339,8 +1479,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           This call corresponds to the <tt>conf ls -t</tt> command in the Corus CLI.
           </p>
           <sapia:code>GET
-- Permission: READ
-          
+- Permission.....: READ
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
 
@@ -1380,8 +1520,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags</sapia:c
           This call corresponds to the CLI's <tt>conf add -t</tt> command.
           </p>
           <sapia:code>PUT
-- Permission: ADMIN
-          
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
   
@@ -1404,8 +1544,8 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
           This call corresponds to the CLI's <tt>conf del -t</tt> command.
           </p>
           <sapia:code>DELETE
-- Permission: ADMIN
-
+- Permission.....: ADMIN
+- Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
   

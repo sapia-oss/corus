@@ -34,9 +34,11 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
   static final long serialVersionUID = 1L;
 
   private List<ProcessDef> processes = new ArrayList<ProcessDef>();
-  private String name, profile;
+  private String  name, profile;
   private boolean startOnBoot;
-
+  private boolean enabled = true;
+  private int     id;
+  
   @Override
   @Transient
   public String getKey() {
@@ -79,6 +81,17 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
   public void setStartOnBoot(boolean startOnBoot) {
     this.startOnBoot = startOnBoot;
   }
+  
+  /**
+   * @return <code>true</code> if this instance is enabled.
+   */
+  public boolean isEnabled() {
+    return enabled;
+  }
+  
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
   /**
    * @return the unmodifiable {@link List} of {@link ProcessDef}s that this
@@ -86,6 +99,17 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
    */
   public List<ProcessDef> getProcesses() {
     return Collections.unmodifiableList(processes);
+  }
+  
+  /**
+   * @return this instance's identifier.
+   */
+  public int getId() {
+    return id;
+  }
+  
+  public void setId(int id) {
+    this.id = id;
   }
 
   /**
@@ -146,7 +170,8 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
   public void toJson(JsonStream stream) {
     stream.beginObject()
       .field("name").value(name)
-      .field("profile").value(profile)
+      .field("profile").value(profile == null ? "N/A" : profile)
+      .field("enabled").value(enabled)
       .field("startOnBoot").value(startOnBoot);
     stream.field("processes").beginArray();
     for (ProcessDef d : processes) {

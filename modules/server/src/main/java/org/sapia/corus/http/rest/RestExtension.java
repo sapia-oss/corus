@@ -22,6 +22,7 @@ import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
+import org.sapia.corus.client.rest.ProgressResult;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
@@ -38,6 +39,7 @@ import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Strings;
+import org.sapia.ubik.util.pool.Pool;
 
 /**
  * Entry point into the RESTful API.
@@ -47,26 +49,22 @@ import org.sapia.ubik.util.Strings;
  */
 public class RestExtension implements HttpExtension, Interceptor {
     
+  private static final int DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 5;
+  
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")
    .setDescription("Handles REST calls")
    .setName("Corus REST API");
 
-  private Logger         logger     = Hierarchy.getDefaultHierarchy().getLoggerFor(RestExtension.class.getName());
-  private CorusConnector connector;
-  private RestContainer  container;
-  private ServerContext  serverContext;
+  private Logger             logger     = Hierarchy.getDefaultHierarchy().getLoggerFor(RestExtension.class.getName());
+  private CorusConnectorPool connectors;
+  private RestContainer      container;
+  private ServerContext      serverContext;
   
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
-    connector = new CorusConnectorImpl(
-        new RestConnectionContext(
-            serverContext.getCorus(), 
-            new DefaultClientFileSystem(new File(serverContext.getHomeDir()))
-        )
-    );
-    
-    container = RestContainer.Builder.newInstance().buildDefaultInstance();
+    connectors = new CorusConnectorPool(DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
+    container  = RestContainer.Builder.newInstance().buildDefaultInstance();
     
     String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
     if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
@@ -120,20 +118,28 @@ public class RestExtension implements HttpExtension, Interceptor {
     if (Strings.isBlank(appKey) || Strings.isBlank(appId)) {
       logger.debug("Application key or application ID not specified: giving anonymous access");
       subject = Subject.Anonymous.newInstance();
-      processRequest(subject, ctx);
+      CorusConnector connector = connectors.acquire();
+      try {
+        processRequest(subject, ctx, connector);
+      } finally {
+        connectors.release(connector);
+      }
     } else {
+      CorusConnector connector = connectors.acquire();
       try {
         subject = serverContext.getServices().getAppKeyManager().authenticate(appId, appKey);
-        processRequest(subject, ctx);
+        processRequest(subject, ctx, connector);
       } catch (CorusSecurityException e) {
         sendErrorResponse(ctx, HttpStatus.SC_FORBIDDEN, e);
+      } finally {
+        connectors.release(connector);
       }
     }
   }
   
-  private void processRequest(Subject subject, final HttpContext ctx) throws Exception, FileNotFoundException {
+  private void processRequest(Subject subject, final HttpContext ctx, CorusConnector connector) throws Exception, FileNotFoundException {
     ServerRestRequest request = new ServerRestRequest(ctx);
-    String            payload = null;
+    Object            payload = null;
     try {
       payload = container.invoke(new RequestContext(subject, request, connector), new RestResponseFacade() {
         @Override
@@ -152,12 +158,30 @@ public class RestExtension implements HttpExtension, Interceptor {
         }
       });
       
-      if (logger.isDebugEnabled()) {
-        logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
-        logger.debug(payload);
+      if (payload == null) {
+        sendOkResponse(ctx, null);
+      } else if (payload instanceof ProgressResult) {
+        ProgressResult result = (ProgressResult) payload;
+        StringWriter   sw     = new StringWriter();
+        JsonStream     stream = new WriterJsonStream(sw);
+        result.toJson(stream);
+        String content = sw.toString();
+        if (logger.isDebugEnabled()) {
+          logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
+          logger.debug(content);
+        }
+        sendResponse(ctx, result.getStatus(), null, content);
+        
+      } else if (payload instanceof String) {
+        String szPaylaod = (String) payload;
+        if (logger.isDebugEnabled()) {
+          logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
+          logger.debug(szPaylaod);
+        }
+        sendOkResponse(ctx, szPaylaod);
+      } else {
+        throw new IllegalStateException("Unhandled payload type: " + payload);
       }
-      
-      sendOkResponse(ctx, payload);
       
     } catch (FileNotFoundException e) {
       logger.error("Error performing RESTful call (resource not found): " + ctx.getPathInfo());
@@ -183,6 +207,7 @@ public class RestExtension implements HttpExtension, Interceptor {
       .beginObject()
         .field("status").value(status)
         .field("stackTrace").value(ExceptionUtils.getStackTrace(err))
+        .field("feedback").strings(new String[]{})
       .endObject();
     sendResponse(ctx, status, err.getMessage(), writer.toString());
   }
@@ -191,7 +216,7 @@ public class RestExtension implements HttpExtension, Interceptor {
     if (payload == null) {
       StringWriter writer = new StringWriter();
       JsonStream   stream = new WriterJsonStream(writer);
-      stream.beginObject().field("status").value(HttpStatus.SC_OK).endObject();
+      stream.beginObject().field("status").value(HttpStatus.SC_OK).field("feedback").strings(new String[]{}).endObject();
       sendResponse(ctx, HttpStatus.SC_OK, null, writer.toString());
     } else {
       sendResponse(ctx, HttpStatus.SC_OK, null, payload);
@@ -201,7 +226,6 @@ public class RestExtension implements HttpExtension, Interceptor {
   public void sendResponse(HttpContext ctx, int statusCode, String statusMsg, String payload) throws IOException {
     BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream());
     byte[] content = payload.getBytes("UTF-8");
-    ctx.getResponse().setContentLength(content.length);
     try {
       ctx.getResponse().setStatusCode(statusCode);
       if (statusMsg != null) {
@@ -315,6 +339,26 @@ public class RestExtension implements HttpExtension, Interceptor {
       }
       return Long.parseLong(value);
     }
+  }
+  
+  class CorusConnectorPool extends Pool<CorusConnector> {
+    
+    public CorusConnectorPool(int maxSize) {
+      super(maxSize);
+    }
+    
+    @Override
+    protected CorusConnector doNewObject() throws Exception {
+      return new CorusConnectorImpl(
+          new RestConnectionContext(
+              serverContext.getCorus(), 
+              new DefaultClientFileSystem(
+                  new File(serverContext.getServices().getDeployer().getConfiguration().getUploadDir())
+              )
+          )
+      );
+    }
+    
   }
 
 }

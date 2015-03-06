@@ -12,7 +12,9 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.cli.command.Exec;
+import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.ubik.util.Collects;
@@ -48,34 +50,33 @@ public class ExecProcessesByConfig extends AbstractExecCommand {
 
     ClusterInfo cluster = getClusterInfo(ctx);
     String configName = ctx.getCommandLine().assertOption(Exec.OPT_EXEC_CONFIG.getName(), true).getValue();
-    displayProgress(ctx.getCorus().getProcessorFacade().execConfig(configName, cluster), ctx);
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(configName)).build();
+    displayProgress(ctx.getCorus().getProcessorFacade().execConfig(crit, cluster), ctx);
 
     // determining which hosts may have the running processes: they must have
     // the
     // distribution, and the tags corresponding to these processes
-    Results<List<ExecConfig>> execResults = ctx.getCorus().getProcessorFacade().getExecConfigs(cluster);
+    Results<List<ExecConfig>> execResults = ctx.getCorus().getProcessorFacade().getExecConfigs(crit, cluster);
 
-    ExecConfig conf = null;
     while (execResults.hasNext()) {
       Result<List<ExecConfig>> execResult = execResults.next();
       for (ExecConfig e : execResult.getData()) {
         if (e.getName().equals(configName)) {
-          conf = e;
+          Option waitOpt = getOpt(ctx, OPT_WAIT.getName());
+          if (waitOpt != null) {
+            for (ProcessDef pd : e.getProcesses()) {
+              ProcessCriteria criteria = ProcessCriteria.builder().distribution(pd.getDist()).name(pd.getName()).profile(e.getProfile())
+                  .version(pd.getVersion()).build();
+
+              waitForProcessStartup(ctx, criteria, pd.getInstances(), waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(),
+                  cluster);
+            }
+            ctx.getConsole().println("Process startup completed on all nodes");
+          }
         }
       }
     }
 
-    Option waitOpt = getOpt(ctx, OPT_WAIT.getName());
-    if (waitOpt != null) {
-      for (ProcessDef pd : conf.getProcesses()) {
-        ProcessCriteria criteria = ProcessCriteria.builder().distribution(pd.getDist()).name(pd.getName()).profile(conf.getProfile())
-            .version(pd.getVersion()).build();
-
-        waitForProcessStartup(ctx, criteria, pd.getInstances(), waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(),
-            cluster);
-      }
-      ctx.getConsole().println("Process startup completed on all nodes");
-    }
   }
 
 }

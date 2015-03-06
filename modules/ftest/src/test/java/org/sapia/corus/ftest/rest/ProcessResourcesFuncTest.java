@@ -20,6 +20,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -58,7 +59,7 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
     
     // deploy demo dist
-    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
   }
   

@@ -14,6 +14,9 @@
     <p>OR:</p>
     <p>exec -s &lt;shell_script_alias&gt; [-cluster]</p>
     <p/>    
+    <p>OR:</p>
+    <p>exec disable | enable -e &lt;exec_config_name&gt; [-cluster]</p>
+    <p/>    
     <p>Where:</p>
     <p/>
     <p>- d: the name (or name pattern) of the distribution for which to start processes.</p>
@@ -40,6 +43,9 @@
     <p>- The -n option must be specified in cases where process configurations have their "invoke" attribute set to "true" (in the corus.xml file). This requires the name of the process configuration to be given in order for a process to be executed for it.</p>
     <p/>    
     <p>- The -i option is the number of processes to start per-process configuration. If it is not specified, 1 process per process configuration is started.</p>
+    <p/>    
+    <p>- When and execution configuration is disabled, calling exec -e on it will have not effect.</p>
+
   </section>
   <section title="Examples">
     <p>exec -d myapp -v 1.0 -n jetty -p qa</p>
@@ -48,6 +54,8 @@
     <p>exec -d * -v * -n * -p qa -w 60</p>
     <p>exec -e myExecConfig</p>
     <p>exec -e myExecConfig -w</p>
+    <p>exec disable -e myExec* </p>
+    <p>exec enable -e myExec* </p>
     <p>exec -s restart-memcached</p>
     <p/>        
   </section>  

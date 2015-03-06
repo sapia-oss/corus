@@ -54,6 +54,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("restart", Restart.class);
     COMMANDS.put("resume", Resume.class);
     COMMANDS.put("ripple", Ripple.class);
+    COMMANDS.put("rollback", Rollback.class);
     COMMANDS.put("role", Role.class);
     COMMANDS.put("script", Script.class);
     COMMANDS.put("sort", Sort.class);

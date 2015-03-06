@@ -1,0 +1,5 @@
+echo "killing processes..."
+kill -d ${corus.distribution.name} -v ${corus.distribution.version} -w
+echo "removing config"
+undeploy -e test
+port del -n http.server -f

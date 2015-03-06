@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.VmId;
 
@@ -42,6 +43,7 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
   private long contentLen;
   private ClusterInfo clusterInfo;
   private Type type;
+  private DeployPreferences preferences;
 
   /**
    * @param fileName
@@ -53,12 +55,15 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
    *          clustered or not.
    * @param type
    *          the deployment type.
+   * @param prefs
+   *          the {@link DeployPreferences} (which may or may not apply for the given deployment type).
    */
-  protected DeploymentMetadata(String fileName, long contentLen, ClusterInfo cluster, Type type) {
-    this.fileName = fileName;
-    this.contentLen = contentLen;
+  protected DeploymentMetadata(String fileName, long contentLen, ClusterInfo cluster, Type type, DeployPreferences prefs) {
+    this.fileName    = fileName;
+    this.contentLen  = contentLen;
     this.clusterInfo = cluster;
-    this.type = type;
+    this.type        = type;
+    this.preferences = prefs;
   }
 
   /**
@@ -121,5 +126,12 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
    */
   public VmId getOrigin() {
     return origin;
+  }
+  
+  /**
+   * @return this instance's {@link DeployPreferences}.
+   */
+  public DeployPreferences getPreferences() {
+    return preferences;
   }
 }

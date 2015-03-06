@@ -4,7 +4,7 @@ public class SequentialTaskConfig extends TaskConfig {
 
   private TaskListener listener;
   private int maxExecution;
-
+  
   void setListener(TaskListener listener) {
     this.listener = listener;
   }
@@ -26,6 +26,12 @@ public class SequentialTaskConfig extends TaskConfig {
     return new SequentialTaskConfig();
   }
 
+  public static SequentialTaskConfig create(TaskLog log) {
+    SequentialTaskConfig conf = new SequentialTaskConfig();
+    conf.setLog(log);
+    return conf;
+  }
+  
   public static SequentialTaskConfig create(TaskListener listener) {
     SequentialTaskConfig cfg = create();
     cfg.setListener(listener);

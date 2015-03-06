@@ -71,9 +71,9 @@ public class ApplicationKeyResource {
   @Authorized(Permission.ADMIN)
   public void createAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
-        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
         context.getRequest().getValue("k", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(),
-        context.getRequest().getValue("r").asString(), 
+        context.getRequest().getValue("r").notNull().asString(), 
         ClusterInfo.clustered()
     );
   }
@@ -86,9 +86,9 @@ public class ApplicationKeyResource {
   public void createAppKeyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
-        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
         context.getRequest().getValue("k", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(),
-        context.getRequest().getValue("r").asString(), 
+        context.getRequest().getValue("r").notNull().asString(), 
         cluster
     );
   }
@@ -108,7 +108,7 @@ public class ApplicationKeyResource {
   @Authorized(Permission.ADMIN)
   public void updateAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
-        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
         context.getRequest().getValue("corus:key", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(), 
         ClusterInfo.clustered()
     );
@@ -125,7 +125,7 @@ public class ApplicationKeyResource {
   public void updateAppKeyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
-        context.getRequest().getValue("corus:appId").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
         context.getRequest().getValue("corus:key", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(), 
         cluster
     );
@@ -141,8 +141,8 @@ public class ApplicationKeyResource {
   @Authorized(Permission.ADMIN)
   public void updateAppKeyRoleForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().changeRole(
-        context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:role").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
+        context.getRequest().getValue("corus:role").notNull().asString(), 
         ClusterInfo.clustered()
     );
   }
@@ -155,8 +155,8 @@ public class ApplicationKeyResource {
   public void updateAppKeyRoleForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getApplicationKeyManagementFacade().changeRole(
-        context.getRequest().getValue("corus:appId").asString(), 
-        context.getRequest().getValue("corus:role").asString(), 
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
+        context.getRequest().getValue("corus:role").notNull().asString(), 
         cluster
     );
   }
@@ -174,7 +174,7 @@ public class ApplicationKeyResource {
   @Authorized(Permission.ADMIN)
   public void deleteAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
-        ArgFactory.parse(context.getRequest().getValue("corus:appId").asString()), 
+        ArgFactory.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
         ClusterInfo.clustered()
     );
   }
@@ -185,9 +185,9 @@ public class ApplicationKeyResource {
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.ADMIN)
   public void deleteAppKeyForHost(RequestContext context) {
-    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
     context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
-        ArgFactory.parse(context.getRequest().getValue("corus:appId").asString()), 
+        ArgFactory.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
         cluster
     );
   }

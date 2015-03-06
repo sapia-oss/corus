@@ -46,8 +46,7 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
   public synchronized List<Process> getProcesses(final ProcessCriteria criteria) {
     Matcher<Process> matcher = new CompositeMatcher<Process>().add(new Matcher<Process>() {
       public boolean matches(Process object) {
-        boolean result = criteria.getDistribution().matches(object.getDistributionInfo().getName());
-        return result;
+        return criteria.getDistribution().matches(object.getDistributionInfo().getName());
       }
     }).add(new Matcher<Process>() {
       public boolean matches(Process object) {

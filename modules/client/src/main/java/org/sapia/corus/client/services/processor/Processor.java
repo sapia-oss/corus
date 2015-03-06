@@ -3,7 +3,6 @@ package org.sapia.corus.client.services.processor;
 import java.util.List;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
@@ -30,14 +29,6 @@ public interface Processor extends java.rmi.Remote, Module {
    * @return a {@link ProgressQueue}
    */
   public ProgressQueue exec(ProcessCriteria criteria, int instances) throws TooManyProcessInstanceException;
-
-  /**
-   * @param execConfigName
-   *          the name of the execution configuration from which to start
-   *          processes.
-   * @return a {@link ProgressQueue}
-   */
-  public ProgressQueue execConfig(String execConfigName);
 
   /**
    * Resumes all suspended processes.
@@ -159,17 +150,32 @@ public interface Processor extends java.rmi.Remote, Module {
   public void addExecConfig(ExecConfig conf);
 
   /**
+   * @param criteria the {@link ExecConfigCriteria} to use for selecting
+   *          desired configs.
    * @return the list of {@link ExecConfig}s that are contained in this
-   *         instance.
+   *          instance.
    */
-  public List<ExecConfig> getExecConfigs();
+  public List<ExecConfig> getExecConfigs(ExecConfigCriteria criteria);
+  
+  /**
+   * @param criteria the {@link ExecConfigCriteria} to use for selecting
+   *          desired configs.
+   * @return a {@link ProgressQueue}
+   */
+  public ProgressQueue execConfig(ExecConfigCriteria criteria);
+  
+  /**
+   * @param ethe {@link ExecConfigCriteria} to use for selecting
+   *          desired configs.
+   * @param execConfigEnable if <code>true</code>, enables the selected configs.
+   */
+  public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled);
 
   /**
-   * @param name
-   *          removes the {@link ExecConfig} whose name matches the given
-   *          argument.
-   */
-  public void removeExecConfig(Arg name);
+   * @param the {@link ExecConfigCriteria} to use for selecting
+   *          desired configs.
+   */          
+  public void removeExecConfig(ExecConfigCriteria criteria);
   
   /**
    * Cleans process info.

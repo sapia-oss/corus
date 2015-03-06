@@ -2,8 +2,11 @@ package org.sapia.corus.file;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,18 +55,22 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
 
   @Override
   public void deleteDirectory(File dir) throws IOException {
-    if (!dir.isDirectory()) {
-      throw new IllegalArgumentException(String.format("Not a directory: %s", dir.getAbsolutePath()));
+    if (dir.exists()) {
+      if (!dir.isDirectory()) {
+        throw new IllegalArgumentException(String.format("Not a directory: %s", dir.getAbsolutePath()));
+      }
+      FileUtils.deleteDirectory(dir);
     }
-    FileUtils.deleteDirectory(dir);
   }
 
   @Override
   public void deleteFile(File file) throws IOException {
-    if (file.isDirectory()) {
-      throw new IllegalArgumentException(String.format("File is a directory directory: %s", file.getAbsolutePath()));
+    if (file.exists()) {
+      if (file.isDirectory()) {
+        throw new IllegalArgumentException(String.format("File is a directory directory: %s", file.getAbsolutePath()));
+      }
+      file.delete();
     }
-    file.delete();
   }
 
   @Override
@@ -121,5 +128,20 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
     }
 
     return Arrays.asList(files);
+  }
+  
+  @Override
+  public File getFileHandle(String path) {
+    return new File(path);
+  }
+  
+  @Override
+  public Reader getFileReader(File f) throws FileNotFoundException, IOException {
+    return new FileReader(f);
+  }
+  
+  @Override
+  public void renameDirectory(File from, File to) throws IOException {
+    FileUtils.copyDirectory(from, to);
   }
 }

@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
@@ -42,7 +43,7 @@ public class ClusteredDeployOutputStreamImplTest {
       content[i] = (byte)1;
     }
     ClusterInfo info = new ClusterInfo(true);
-    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", CONTENT_LEN, info);
+    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", CONTENT_LEN, DeployPreferences.newInstance(), info);
     file = File.createTempFile("corus-test-" + UUID.randomUUID().toString(), "dat");
     file.deleteOnExit();
     deployOutput = new ClusteredDeployOutputStreamImpl(file, meta, handler, next);

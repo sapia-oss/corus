@@ -1,3 +1,0 @@
-kill all -w -cluster
-undeploy all -cluster
-deploy ../package/target/sapia*demo.zip -cluster

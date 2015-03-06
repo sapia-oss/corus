@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.sapia.console.AbortException;
-import org.sapia.console.Arg;
-import org.sapia.console.CmdElement;
+import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
@@ -16,6 +15,7 @@ import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
@@ -27,15 +27,17 @@ public class Deploy extends CorusCliCommand {
 
   private static final String SCRIPT_DESC_UNDEFINED = "no desc.";
 
-  private static final OptionDef OPT_EXEC_CONF   = new OptionDef("e", true);
-  private static final OptionDef OPT_FILE        = new OptionDef("f", true);
-  private static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
-  private static final OptionDef OPT_DESC_OR_DIR = new OptionDef("d", true);
-  private static final OptionDef OPT_ALIAS       = new OptionDef("a", true);
-  private static final OptionDef OPT_SEQ         = new OptionDef("seq", false);
+  private static final OptionDef OPT_EXEC_CONF      = new OptionDef("e", true);
+  private static final OptionDef OPT_FILE           = new OptionDef("f", true);
+  private static final OptionDef OPT_SCRIPT         = new OptionDef("s", true);
+  private static final OptionDef OPT_DESC_OR_DIR    = new OptionDef("d", true);
+  private static final OptionDef OPT_ALIAS          = new OptionDef("a", true);
+  private static final OptionDef OPT_DEPLOY_SCRIPTS = new OptionDef("r", false);
+  private static final OptionDef OPT_SEQ            = new OptionDef("seq", false);
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-    OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, OPT_SEQ,
+    OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, 
+    OPT_DEPLOY_SCRIPTS, OPT_SEQ,
     OPT_CLUSTER
   );
   
@@ -56,13 +58,13 @@ public class Deploy extends CorusCliCommand {
           ctx.getCommandLine().assertOption(OPT_ALIAS.getName(), true).getValue()
       );
     } else {
-      if (ctx.getCommandLine().hasNext() && ctx.getCommandLine().isNextArg()) {
-        while (ctx.getCommandLine().hasNext()) {
-          CmdElement elem = ctx.getCommandLine().next();
-          if (elem instanceof Arg) {
-            deployDistribution(ctx, elem.getName());
-          }
-        }
+      DeployPreferences prefs = DeployPreferences.newInstance();
+      if (ctx.getCommandLine().containsOption(OPT_DEPLOY_SCRIPTS.getName(), false)) {
+        prefs.setExecDeployScripts(true);
+      }
+      CmdLine cmdLine = ctx.getCommandLine();
+      if (cmdLine.hasNext() && cmdLine.isNextArg()) {
+        deployDistribution(ctx, cmdLine.assertNextArg().getName(), prefs);
       } else {
         throw new InputException("File name expected as argument");
       }
@@ -74,7 +76,7 @@ public class Deploy extends CorusCliCommand {
     return AVAIL_OPTIONS;
   }
 
-  private void deployDistribution(final CliContext ctx, final String fileName) throws AbortException, InputException {
+  private void deployDistribution(final CliContext ctx, final String fileName, final DeployPreferences prefs) throws AbortException, InputException {
     if (fileName.endsWith("xml")) {
       deployExec(ctx, fileName);
     } else if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
@@ -83,7 +85,7 @@ public class Deploy extends CorusCliCommand {
         public Void call(CorusHost target) {
           ClusterInfo info = new ClusterInfo(false);
           try {
-            displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, info), ctx);
+            displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, prefs, info), ctx);
           } catch (Exception e) {
             throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
           }
@@ -92,7 +94,7 @@ public class Deploy extends CorusCliCommand {
       });
     } else {
       try {
-        displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, getClusterInfo(ctx)), ctx);
+        displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, prefs, getClusterInfo(ctx)), ctx);
       } catch (ConcurrentDeploymentException e) {
         CliError err = ctx.createAndAddErrorFor(this, "Distribution file already being deployed", e);
         ctx.getConsole().println(err.getSimpleMessage());

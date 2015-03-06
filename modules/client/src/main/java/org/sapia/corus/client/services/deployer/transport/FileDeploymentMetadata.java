@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.transport;
 
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 
 /**
  * Corresponds to a file deployment.
@@ -15,7 +16,7 @@ public class FileDeploymentMetadata extends DeploymentMetadata {
   private String dirName;
 
   public FileDeploymentMetadata(String fileName, long contentLen, String dirName, ClusterInfo cluster) {
-    super(fileName, contentLen, cluster, DeploymentMetadata.Type.FILE);
+    super(fileName, contentLen, cluster, DeploymentMetadata.Type.FILE, DeployPreferences.newInstance());
     this.dirName = dirName;
   }
 

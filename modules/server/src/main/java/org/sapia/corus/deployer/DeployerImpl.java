@@ -3,6 +3,7 @@ package org.sapia.corus.deployer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +15,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
+import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.ClusterManager;
@@ -33,6 +35,7 @@ import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.task.BuildDistTask;
+import org.sapia.corus.deployer.task.RollbackTask;
 import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
@@ -55,6 +58,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Bind(moduleInterface = { Deployer.class, InternalDeployer.class })
 @Remote(interfaces = { Deployer.class })
 public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
+  
+  private static final int DEFAULT_THROTTLE = 1;
+  
   /**
    * The file lock timeout property name (<code>file-lock-timeout</code>).
    */
@@ -105,8 +111,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
     services().bind(DistributionDatabase.class, store);
 
-    services().getTaskManager().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, ThrottleFactory.createMaxConcurrentThrottle(1));
-    services().getTaskManager().registerThrottle(DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, ThrottleFactory.createMaxConcurrentThrottle(1));
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, 
+        ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, 
+        ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.ROLLBACK_DISTRIBUTION, 
+        ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
 
     String defaultDeployDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("deploy").createFilePath();
 
@@ -289,6 +299,23 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
         throw new DistributionNotFoundException(String.format("No distribution directory found for: %s, %s", name, version));
       }
     }
+  }
+  
+  @Override
+  public ProgressQueue rollbackDistribution(String name, String version)
+      throws RollbackScriptNotFoundException, DistributionNotFoundException {
+    Distribution dist = getDistributionStore().getDistribution(DistributionCriteria.builder().name(name).version(version).build());
+    
+    ProgressQueueImpl progress = new ProgressQueueImpl();
+    try {
+      TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
+      taskman.executeAndWait(new RollbackTask(), dist, cfg).get();
+    } catch (InvocationTargetException e) {
+      progress.error(e.getCause());
+    } catch (Exception e) {
+      progress.error(e);
+    }
+    return progress;    
   }
 
   /**

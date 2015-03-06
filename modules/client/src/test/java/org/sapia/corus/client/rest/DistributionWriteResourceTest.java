@@ -20,6 +20,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.DeployerFacade;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -58,19 +59,22 @@ public class DistributionWriteResourceTest {
     when(request.getValue("d")).thenReturn(new Value("d", "dist"));
     when(request.getValue("v")).thenReturn(new Value("v", "version"));
     when(request.getValue("backup", "0")).thenReturn(new Value("backup", "0"));
+    when(request.getValue("runScripts", "false")).thenReturn(new Value("backup", "0"));
+    when(request.getValue("name")).thenReturn(new Value("name", "dist"));
+    when(request.getValue("version")).thenReturn(new Value("version", "1.0"));
 
   }
   
   @Test
   public void testDeployDistributionForCluster() throws Exception {
     resource.deployDistributionForCluster(context);
-    verify(deployer).deployDistribution(eq("test"), any(ClusterInfo.class));
+    verify(deployer).deployDistribution(eq("test"), any(DeployPreferences.class), any(ClusterInfo.class));
   }
 
   @Test
   public void testDeployDistributionForHost() throws Exception {
     resource.deployDistributionForHost(context);
-    verify(deployer).deployDistribution(eq("test"), any(ClusterInfo.class));
+    verify(deployer).deployDistribution(eq("test"), any(DeployPreferences.class), any(ClusterInfo.class));
   }
 
   @Test
@@ -85,4 +89,16 @@ public class DistributionWriteResourceTest {
     verify(deployer).undeployDistribution(any(DistributionCriteria.class), any(ClusterInfo.class));
   }
 
+  
+  @Test
+  public void testRollbackDistributionForCluster() throws Exception {
+    resource.rollbackDistributionForCluster(context);
+    verify(deployer).rollbackDistribution(eq("dist"), eq("1.0"), any(ClusterInfo.class));
+  }
+
+  @Test
+  public void testRollbackDistributionForHost() throws Exception {
+    resource.rollbackDistributionForCluster(context);
+    verify(deployer).rollbackDistribution(eq("dist"), eq("1.0"), any(ClusterInfo.class));
+  }
 }

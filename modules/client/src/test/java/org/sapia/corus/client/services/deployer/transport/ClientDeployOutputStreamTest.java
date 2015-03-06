@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.serialization.SerializationStreams;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,7 +40,7 @@ public class ClientDeployOutputStreamTest {
     }
     
     ClusterInfo info = new ClusterInfo(true);
-    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", CONTENT_LEN, info);
+    DeploymentMetadata meta = new DistributionDeploymentMetadata("test", CONTENT_LEN, DeployPreferences.newInstance(), info);
 
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     ObjectOutputStream oos = SerializationStreams.createObjectOutputStream(bos);

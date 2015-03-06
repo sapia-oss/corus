@@ -29,6 +29,7 @@ import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
@@ -248,7 +249,13 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
 
       ClientSideClusterInterceptor.clusterCurrentThread(info);
 
-      Object toReturn = method.invoke(lookup(moduleInterface), params);
+      Object toReturn = null;
+      try {
+        toReturn = method.invoke(lookup(moduleInterface), params);
+      } catch (NoSuchObjectException e) {
+        this.reconnect();
+        toReturn = method.invoke(lookup(moduleInterface), params);
+      }
       if (toReturn != null) {
         FacadeInvocationContext.set(toReturn);
         return returnType.cast(toReturn);

@@ -11,6 +11,7 @@
        <outputDirectory>META-INF</outputDirectory>
        <includes>
           <include>*.xml</include>
+          <include>scripts/*.corus</include>
        </includes>
     </fileSet>
     <fileSet>
@@ -28,6 +29,14 @@
           <include>*.properties</include>
        </includes>
     </fileSet>
+    <fileSet>
+       <directory>etc/exec</directory>
+       <outputDirectory>/</outputDirectory>
+       <includes>
+          <include>testConf.xml</include>
+       </includes>
+    </fileSet>
+    
   </fileSets>
   
 </assembly>

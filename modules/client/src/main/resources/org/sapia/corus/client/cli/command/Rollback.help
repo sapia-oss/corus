@@ -1,0 +1,23 @@
+<help>
+  <section title="Description">
+   <p>Triggers the execution a distribution's rollback script (which should be present under META-INF/scripts).</p>
+  </section>
+  <section title="Syntax">
+    <p>rollback -d &lt;distribution_name&gt; -v &lt;version&gt; [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- d: the name of the distribution whose rollback script should be executed.</p>
+    <p/>
+    <p>- v: the version of the distribution whose rollback script should be executed.</p>
+    <p/>
+    <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
+  </section>
+  <section title="Notes">
+    <p>- Given the potential impact of this command, pattern-matching is not supported for its options.</p>
+  </section>
+  <section title="Examples">
+    <p>rollback -d myapp -v 1.0 -cluster</p>
+    <p/>        
+  </section>  
+</help>

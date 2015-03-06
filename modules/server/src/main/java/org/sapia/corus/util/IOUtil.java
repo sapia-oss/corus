@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -110,6 +111,40 @@ public class IOUtil {
       try {
         is.close();
       } catch (IOException e) {
+        // noop
+      }
+    }
+  }
+  
+  /**
+   * Returns the content provided by the given {@link Reader} in the form of a string.
+   * <p>
+   * Note: the {@link Reader} is closed by this method.
+   * 
+   * @param toRead
+   *          an {@link InputStream}
+   * @return a {@link String} containing the data in the given steam.
+   * @throws IOException
+   *           if an IO problem occurs.
+   */
+  public static String textReaderToString(Reader toRead) throws IOException {
+    try {
+      BufferedReader reader = new BufferedReader(toRead);
+      String line;
+      String lineSep = System.getProperty("line.separator");
+
+      StringBuilder content = new StringBuilder();
+      while ((line = reader.readLine()) != null) {
+        content.append(line).append(lineSep);
+      }
+
+      return content.toString();
+
+    } finally {
+      try {
+        toRead.close();
+      } catch (IOException e) {
+        // noop
       }
     }
   }
@@ -121,8 +156,11 @@ public class IOUtil {
    *           if a corresponding lock file already exists or could not be
    *           created.
    */
+  @SuppressWarnings("resource")
   public static void createLockFile(File file) throws IOException {
-
+    
+    // we will not close this file, since it should left open
+    // until JVM termination.
     RandomAccessFile randomFile = new RandomAccessFile(file, "rw");
     FileChannel channel = randomFile.getChannel();
 

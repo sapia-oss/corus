@@ -18,10 +18,13 @@ import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
+import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.DeployerFacade;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -69,12 +72,12 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
 
   @Override
-  public synchronized ProgressQueue deployDistribution(final String fileName, final ClusterInfo cluster) throws IOException,
+  public synchronized ProgressQueue deployDistribution(final String fileName, final DeployPreferences prefs, final ClusterInfo cluster) throws IOException,
       ConcurrentDeploymentException, DuplicateDistributionException, Exception {
     return doDeployArtifact(fileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster) {
-        return new DistributionDeploymentMetadata(fileName, fileLen, cluster);
+        return new DistributionDeploymentMetadata(fileName, fileLen, prefs, cluster);
       }
     });
   }
@@ -136,8 +139,6 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
             }
             if (fileCount == 0) {
               queue.warning("No file found to deploy for: " + fileName);
-            } else {
-              queue.info("Batch deployment completed");
             }
           } finally {
             queue.close();
@@ -206,7 +207,23 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     try {
       return invoker.invoke(ProgressQueue.class, cluster);
     } catch (RunningProcessesException e) {
-      throw (RunningProcessesException) e;
+      throw e;
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  @Override
+  public ProgressQueue rollbackDistribution(String name, String version,
+      ClusterInfo cluster) throws RollbackScriptNotFoundException,
+      DistributionNotFoundException {
+    proxy.rollbackDistribution(name, version);
+    try {
+      return invoker.invoke(ProgressQueue.class, cluster);
+    } catch (RollbackScriptNotFoundException | DistributionNotFoundException e) {
+      throw e;
     } catch (RuntimeException e) {
       throw e;
     } catch (Throwable e) {

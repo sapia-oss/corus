@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.transport;
 
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 
 /**
  * Describes a native script that is kept on the Corus server side and can be
@@ -17,7 +18,7 @@ public class ShellScriptDeploymentMetadata extends DeploymentMetadata {
   private String description;
 
   public ShellScriptDeploymentMetadata(String fileName, long contentLen, String alias, String description, ClusterInfo cluster) {
-    super(fileName, contentLen, cluster, DeploymentMetadata.Type.SCRIPT);
+    super(fileName, contentLen, cluster, DeploymentMetadata.Type.SCRIPT, DeployPreferences.newInstance());
     this.alias = alias;
     this.description = description;
   }

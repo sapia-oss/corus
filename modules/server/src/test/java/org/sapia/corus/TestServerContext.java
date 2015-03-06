@@ -81,6 +81,7 @@ public class TestServerContext extends ServerContextImpl{
     ctx.getTm().registerThrottle(ProcessorThrottleKeys.PROCESS_EXEC, throttle);
     ctx.getTm().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, throttle);
     ctx.getTm().registerThrottle(DeployerThrottleKeys.UNDEPLOY_DISTRIBUTION, throttle);
+    ctx.getTm().registerThrottle(DeployerThrottleKeys.ROLLBACK_DISTRIBUTION, throttle);
   }
 
   public TestServerContext(EventChannel channel) {

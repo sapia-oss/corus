@@ -13,6 +13,7 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -56,7 +57,12 @@ public class Undeploy extends CorusCliCommand {
 
   private void doUndeployExecConfig(CliContext ctx) throws AbortException, InputException {
     String name = ctx.getCommandLine().assertOption(OPT_EXEC_CONFIG.getName(), true).getValue();
-    ctx.getCorus().getProcessorFacade().undeployExecConfig(name, getClusterInfo(ctx));
+    int backup  = 0;
+    if (ctx.getCommandLine().containsOption(OPT_BACKUP.getName(), false)) {
+      backup = ctx.getCommandLine().assertOption(OPT_BACKUP.getName(), true).asInt();
+    }
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().backup(backup).name(ArgFactory.parse(name)).build();
+    ctx.getCorus().getProcessorFacade().undeployExecConfig(crit, getClusterInfo(ctx));
   }
 
   private void doUndeployDist(CliContext ctx) throws AbortException, InputException {

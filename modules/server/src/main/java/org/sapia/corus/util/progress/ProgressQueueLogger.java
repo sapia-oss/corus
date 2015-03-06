@@ -60,7 +60,7 @@ public class ProgressQueueLogger {
     case ProgressMsg.ERROR:
 
       if (msg.isThrowable()) {
-        Throwable t = msg.getError();
+        Throwable t = msg.getThrowable();
         log.error(t.getMessage(), t);
         throw t;
       } else {

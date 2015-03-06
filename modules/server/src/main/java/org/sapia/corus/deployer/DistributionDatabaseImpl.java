@@ -2,6 +2,7 @@ package org.sapia.corus.deployer;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +34,10 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
 
     if (distsByVersion.get(dist.getVersion()) != null) {
       throw new DuplicateDistributionException("Deployment already exists for distribution: " + dist.getName() + ", version: " + dist.getVersion());
+    }
+    
+    if (dist.getTimestamp() == 0) {
+      dist.setTimestamp(System.currentTimeMillis());
     }
 
     distsByVersion.put(dist.getVersion(), dist);
@@ -114,6 +119,23 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
       List<Distribution> toRemove = new ArrayList<>();
       for (Map.Entry<String, ArrayList<Distribution>> entry : distsByName.entrySet()) {
         if (entry.getValue().size() > criteria.getBackup()) {
+          List<Distribution> copy = new ArrayList<Distribution>(entry.getValue());
+          Collections.sort(copy, new Comparator<Distribution>() {
+            @Override
+            public int compare(Distribution d1, Distribution d2) {
+              int c = 0;
+              if (d1.getTimestamp() < d2.getTimestamp()) {
+                c = -1;
+              } else if (d1.getTimestamp() > d2.getTimestamp()) {
+                c = 1;
+              }
+              if (c == 0) {
+                c = d1.compareTo(d2);
+              }
+              
+              return c;
+            }
+          });
           List<Distribution> sublist = entry.getValue().subList(0, entry.getValue().size() - criteria.getBackup());
           toRemove.addAll(sublist);
         }

@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
-public abstract class DeploymentResourceSupport {
+public abstract class DeploymentResourceSupport extends ResourceSupport {
 
   private static final int BUFSZ = 8192;
   

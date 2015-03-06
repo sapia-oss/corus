@@ -25,6 +25,8 @@ import org.sapia.ubik.util.Collects;
  */
 public class Kill extends CorusCliCommand {
 
+  private static final long RETRY_PAUSE = 2000;
+  
   protected boolean suspend;
 
   public static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
@@ -238,7 +240,7 @@ public class Kill extends CorusCliCommand {
       }
       try {
         long start = System.currentTimeMillis();
-        Thread.sleep(2000);
+        Thread.sleep(RETRY_PAUSE);
         total += (System.currentTimeMillis() - start);
         if (timeout > 0 && total > timeout) {
           throw new InputException("Process(es) not killed within specified timeout; waiting aborted.");

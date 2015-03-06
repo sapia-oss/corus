@@ -27,6 +27,13 @@
           <include>*.xml</include>
        </includes>
     </fileSet>
+    <fileSet>
+       <directory>etc/exec</directory>
+       <outputDirectory>/exec</outputDirectory>
+       <includes>
+          <include>testConf.xml</include>
+       </includes>
+    </fileSet>
   </fileSets>
   
 </assembly>

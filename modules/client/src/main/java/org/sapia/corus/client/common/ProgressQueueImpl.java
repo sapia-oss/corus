@@ -9,11 +9,11 @@ import java.util.List;
  * @author Yanick Duchesne
  */
 public class ProgressQueueImpl implements ProgressQueue {
-  private List<ProgressMsg> _msgs = new ArrayList<ProgressMsg>();
-  private boolean _over;
+  private List<ProgressMsg> msgs = new ArrayList<ProgressMsg>();
+  private boolean over;
 
   public synchronized boolean hasNext() {
-    while ((_msgs.size() == 0) && !_over) {
+    while ((msgs.size() == 0) && !over) {
       try {
         wait();
       } catch (InterruptedException e) {
@@ -21,12 +21,12 @@ public class ProgressQueueImpl implements ProgressQueue {
       }
     }
 
-    return _msgs.size() > 0;
+    return msgs.size() > 0;
   }
 
   public synchronized List<ProgressMsg> next() {
-    List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>(_msgs);
-    _msgs.clear();
+    List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>(msgs);
+    msgs.clear();
 
     return toReturn;
   }
@@ -39,20 +39,20 @@ public class ProgressQueueImpl implements ProgressQueue {
   }
 
   public synchronized void addMsg(ProgressMsg msg) {
-    if (!_over) {
-      _msgs.add(msg);
+    if (!over || msg.isError()) {
+      msgs.add(msg);
       handleMsg(msg);
       notify();
     }
   }
 
   public synchronized void close() {
-    _over = true;
+    over = true;
     notify();
   }
 
   public boolean isClosed() {
-    return _over;
+    return over;
   }
 
   public synchronized void debug(Object msg) {

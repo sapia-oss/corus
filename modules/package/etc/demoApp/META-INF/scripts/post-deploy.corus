@@ -1,0 +1,3 @@
+port add -n http.server -min 8100 -max 8105
+deploy -e testConf.xml
+exec -e test

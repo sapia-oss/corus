@@ -1,11 +1,17 @@
 package org.sapia.corus.client.common;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.lang.reflect.InvocationTargetException;
+
 /**
- * This class consist of a progress message.
+ * This class consists of a progress message, holding a status and an arbitrary object acting as the "message".
  * 
  * @author Yanick Duchesne
  */
-public class ProgressMsg implements java.io.Serializable {
+public class ProgressMsg implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
@@ -19,9 +25,17 @@ public class ProgressMsg implements java.io.Serializable {
 
   private int status = INFO;
   private Object msg;
+ 
+  /** Do not call. Meant for Externalizable. */
+  public ProgressMsg() {
+  }
 
   public ProgressMsg(Object msg) {
-    this.msg = msg;
+    if (msg instanceof InvocationTargetException) {
+      this.msg = ((InvocationTargetException) msg).getCause();
+    } else {
+      this.msg = msg;
+    }
   }
 
   public ProgressMsg(Object msg, int status) {
@@ -40,7 +54,7 @@ public class ProgressMsg implements java.io.Serializable {
    * @return this instance's message, cast as a {@link Throwable}.
    * @see #isThrowable()
    */
-  public Throwable getError() {
+  public Throwable getThrowable() {
     return (Throwable) msg;
   }
 
@@ -55,7 +69,7 @@ public class ProgressMsg implements java.io.Serializable {
    * @return <code>true</code> if this instance's message object is an instance
    *         of {@link Throwable}
    * 
-   * @see #getError()
+   * @see #getThrowable()
    */
   public boolean isThrowable() {
     return msg instanceof Throwable;
@@ -72,7 +86,26 @@ public class ProgressMsg implements java.io.Serializable {
   public static final String getLabelFor(int status) {
     return STATUS_LABELS[status];
   }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    status = in.readInt();
+    msg    = in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeInt(status);
+    out.writeObject(msg);
+  }
 
+  // --------------------------------------------------------------------------
+  // Object overridde
+  
   public String toString() {
     return "[ msg=" + msg + ", level=" + status + "]";
   }

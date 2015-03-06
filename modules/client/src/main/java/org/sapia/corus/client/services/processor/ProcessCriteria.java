@@ -57,48 +57,20 @@ public class ProcessCriteria implements Serializable {
     return name;
   }
 
-  public void setName(Arg name) {
-    this.name = name;
-  }
-
   public Arg getPid() {
     return pid;
-  }
-
-  public void setPid(Arg pid) {
-    this.pid = pid;
   }
 
   public String getProfile() {
     return profile;
   }
 
-  public void setProfile(String profile) {
-    this.profile = profile;
-  }
-
   public Arg getDistribution() {
     return distribution;
   }
 
-  public void setDistribution(Arg distribution) {
-    this.distribution = distribution;
-  }
-
   public Arg getVersion() {
     return version;
-  }
-  
-  public void setVersion(Arg version) {
-    this.version = version;
-  }
-  
-  public void setLifeCycles(Set<LifeCycleStatus> lifeCycles) {
-    this.lifeCycles = lifeCycles;
-  }
-  
-  public void setLifeCycles(LifeCycleStatus...lifeCycles) {
-    this.lifeCycles = Collects.arrayToSet(lifeCycles);
   }
   
   public Set<Process.LifeCycleStatus> getLifeCycles() {
@@ -178,27 +150,37 @@ public class ProcessCriteria implements Serializable {
       this.lifeCycles = Collects.arrayToSet(lifeCycles);
       return this;
     }
+    
+    public Builder copy(ProcessCriteria c) {
+      this.distribution = c.distribution;
+      this.lifeCycles   = c.lifeCycles;
+      this.name         = c.name;
+      this.pid          = c.pid;
+      this.profile      = c.profile;
+      this.version      = c.version;
+      return this;
+    }
 
     public ProcessCriteria all() {
       ProcessCriteria criteria = new ProcessCriteria();
-      criteria.setDistribution(any());
-      criteria.setName(any());
-      criteria.setVersion(any());
-      criteria.setPid(any());
+      criteria.distribution = any();
+      criteria.name         = any();
+      criteria.version      = any();
+      criteria.pid          = any();
       return criteria;
     }
 
     public ProcessCriteria build() {
       ProcessCriteria criteria = new ProcessCriteria();
-      criteria.setDistribution(anyIfNull(distribution));
-      criteria.setName(anyIfNull(name));
+      criteria.distribution = anyIfNull(distribution);
+      criteria.name         = anyIfNull(name);
       if (profile != null) {
-        criteria.setProfile(profile);
+        criteria.profile = profile;
       }
-      criteria.setVersion(anyIfNull(version));
-      criteria.setPid(anyIfNull(pid));
+      criteria.version = anyIfNull(version);
+      criteria.pid     = anyIfNull(pid);
       if (lifeCycles != null) {
-        criteria.setLifeCycles(this.lifeCycles);
+        criteria.lifeCycles = lifeCycles;
       }
       return criteria;
     }

@@ -2,9 +2,11 @@ package org.sapia.corus.client.services.deployer;
 
 import java.util.List;
 
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
+import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
@@ -58,5 +60,16 @@ public interface Deployer extends java.rmi.Remote, Module {
    *           if no corresponding distribution could be found.
    */
   public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException;
+  
+  
+  /**
+   * Triggers execution of the <tt>META-INF/scripts/rollback.corus</tt> script for a given distribution.
+   * 
+   * @param name the name of the distribution to roll back.
+   * @param version the version of the distribution to roll back.
+   * @param cluster a {@link ClusterInfo} instance.
+   * @return a {@link ProgressQueue}.
+   */
+  public ProgressQueue rollbackDistribution(String name, String version) throws RollbackScriptNotFoundException, DistributionNotFoundException;
 
 }

@@ -16,8 +16,8 @@
                   
   <!-- ============ DB ============ -->
 
-  <bean name="org.sapia.corus.client.services.db.DbModule" 
-        class="org.sapia.corus.db.DbModuleImpl" 
+  <bean name="org.sapia.corus.client.services.database.DbModule" 
+        class="org.sapia.corus.database.DbModuleImpl" 
         scope="singleton"
         autowire="autodetect">
   </bean>

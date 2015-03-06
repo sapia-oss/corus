@@ -1,8 +1,11 @@
 package org.sapia.corus.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,4 +48,19 @@ public class TestFileSystemModule implements FileSystemModule{
   public List<File> listFiles(File baseDir) {
     return new ArrayList<File>();
   }
+  
+  @Override
+  public File getFileHandle(String path) {
+    return new File(path);
+  }
+  
+  @Override
+  public Reader getFileReader(File f) throws FileNotFoundException, IOException {
+    return new FileReader(f);
+  }
+  
+  @Override
+  public void renameDirectory(File from, File to) throws IOException {
+  }
+  
 }

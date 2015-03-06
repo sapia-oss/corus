@@ -7,13 +7,16 @@ import java.util.Set;
 import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.StringArg;
+import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
-import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.BackgroundTaskListener;
@@ -21,6 +24,7 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
+import org.sapia.ubik.util.Collects;
 
 /**
  * Implements the bulk of the behavior pertaining to the startup of execution
@@ -38,10 +42,22 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
   }
 
   @Override
-  public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
+  public Void execute(final TaskExecutionContext ctx, Void param) throws Throwable {
     ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
+    Deployer          deployer  = ctx.getServerContext().getServices().getDeployer();
 
     List<ExecConfig> configsToStart = getExecConfigsToStart(ctx);
+    
+    configsToStart = Collects.filterAsList(configsToStart, new org.sapia.ubik.util.Condition<ExecConfig>() {
+      @Override
+      public boolean apply(ExecConfig conf) {
+        if (!conf.isEnabled()) {
+          ctx.warn("Exec configuration is disabled, its processes will not be started: " + conf.getName());
+          return false;
+        }
+        return true;
+      }
+    });
 
     Set<Process> toStop = new HashSet<Process>();
     Set<ProcessDef> toStart = new HashSet<ProcessDef>();
@@ -57,13 +73,19 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
         if (pd.getProfile() == null) {
           pd.setProfile(ec.getProfile());
         }
+        Distribution dist = deployer.getDistribution(DistributionCriteria.builder().name(distName).version(version).build());
+        if (!canExecuteFor(ctx, dist)) {
+          continue;
+        }
+        
         ProcessCriteria criteria = ProcessCriteria.builder()
             .distribution(distName)
             .version(version)
             .name(processName)
             .profile(pd.getProfile())
-            .lifecycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING)
+            .lifecycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING)
             .build();
+        
         List<Process> activeProcesses = processes.getProcesses(criteria);
         if (activeProcesses.size() == 0) {
           ctx.debug("Process will be started: " + pd);
@@ -85,29 +107,31 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
         }
       }
     }
-
-    // no existing processes found
-    if (toStop.size() == 0) {
-      ctx.info("Did not find old processes");
-      if (toStart.size() > 0) {
-        ctx.info("Starting process(es)...");
-      } else {
-        ctx.info("Did not find any process to start");
+    
+    if (!configsToStart.isEmpty()) {
+      // no existing processes found
+      if (toStop.size() == 0) {
+        ctx.info("Did not find old processes");
+        if (toStart.size() > 0) {
+          ctx.info("Starting process(es)...");
+        } else {
+          ctx.info("Did not find any process to start");
+        }
+  
+        execNewProcesses(ctx.getTaskManager(), toStart);
       }
-
-      execNewProcesses(ctx.getTaskManager(), toStart);
-    }
-    // existing processes found, killing
-    else {
-      KillListener listener = new KillListener(ctx.getTaskManager(), toStop.size(), toStart);
-      for (Process p : toStop) {
-        ctx.warn("Found old processes; proceeding to kill");
-        ProcessorConfiguration conf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
-
-        KillTask kill = new KillTask(p.getMaxKillRetry());
-
-        ctx.getTaskManager().executeBackground(kill, TaskParams.createFor(p, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER),
-            BackgroundTaskConfig.create(listener).setExecDelay(0).setExecInterval(conf.getKillIntervalMillis()));
+      // existing processes found, killing
+      else {
+        KillListener listener = new KillListener(ctx.getTaskManager(), toStop.size(), toStart);
+        for (Process p : toStop) {
+          ctx.warn("Found old processes; proceeding to kill");
+          ProcessorConfiguration conf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
+  
+          KillTask kill = new KillTask(p.getMaxKillRetry());
+  
+          ctx.getTaskManager().executeBackground(kill, TaskParams.createFor(p, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER),
+              BackgroundTaskConfig.create(listener).setExecDelay(0).setExecInterval(conf.getKillIntervalMillis()));
+        }
       }
     }
     return null;
@@ -162,4 +186,7 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
 
   protected abstract List<ExecConfig> getExecConfigsToStart(TaskExecutionContext ctx) throws Exception;
 
+  protected boolean canExecuteFor(TaskExecutionContext ctx, Distribution d) {
+    return true;
+  }
 }

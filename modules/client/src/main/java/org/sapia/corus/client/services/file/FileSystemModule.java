@@ -1,8 +1,10 @@
 package org.sapia.corus.client.services.file;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.List;
 
 /**
@@ -105,4 +107,25 @@ public interface FileSystemModule {
    *         return files that correspond to subdirectories).
    */
   public List<File> listFiles(File baseDir);
+  
+  /**
+   * @param path the path of the {@link File} handle to return.
+   * @return a new {@link File} handle, for the given path.
+   */
+  public File getFileHandle(String path);
+  
+  /**
+   * @return a new {@link Reader} for the given file.
+   * 
+   * @throws FileNotFoundException if the given file does not exist.
+   * @throws IOException if a low-level I/O error occurred.
+   */
+  public Reader getFileReader(File f) throws FileNotFoundException, IOException;
+  
+  /**
+   * @param from the {@link File} corresponding to the directory to rename.
+   * @param to the {@link File} corresponding to the target directory.
+   * @throws IOException if an I/O error occurred while performing this operation.
+   */
+  public void renameDirectory(File from, File to) throws IOException;
 }

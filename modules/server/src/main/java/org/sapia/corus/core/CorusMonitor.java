@@ -91,8 +91,8 @@ public class CorusMonitor {
           msg = (ProgressMsg) msgs.get(i);
           buf.append("[").append(ProgressMsg.getLabelFor(msg.getStatus())).append("]");
 
-          if (msg.isError()) {
-            Throwable err = msg.getError();
+          if (msg.isError() && msg.isThrowable()) {
+            Throwable err = msg.getThrowable();
             buf.append(err.getMessage());
             System.out.println(buf.toString());
             err.printStackTrace(System.out);

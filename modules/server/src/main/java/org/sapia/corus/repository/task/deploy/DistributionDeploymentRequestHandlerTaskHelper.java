@@ -10,6 +10,7 @@ import java.util.Set;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.RepoDistribution;
@@ -43,7 +44,7 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
   public void addTo(CompositeTask toAddTo) {
     InternalDeployer deployer = context().getServerContext().lookup(InternalDeployer.class);
 
-    List<ExecConfig> execConfigs = context().getServerContext().getServices().getProcessor().getExecConfigs();
+    List<ExecConfig> execConfigs = context().getServerContext().getServices().getProcessor().getExecConfigs(ExecConfigCriteria.builder().all().build());
 
     Map<RepoDistribution, Set<Endpoint>> distributionTargets = getDistributionTargets(requests);
 

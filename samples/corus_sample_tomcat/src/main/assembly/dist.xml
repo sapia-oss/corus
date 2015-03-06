@@ -59,6 +59,14 @@
           <include>tomcat-launch.xml</include>
        </includes>
     </fileSet>
+    
+   <fileSet>
+       <outputDirectory>/META-INF/scripts</outputDirectory>
+       <directory>${basedir}/scripts</directory>
+       <includes>
+          <include>pre-deploy.corus</include>
+       </includes>
+    </fileSet>
 
   </fileSets>
   

@@ -1,7 +1,6 @@
 package org.sapia.corus.repository.task;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -15,6 +14,7 @@ import org.junit.Test;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.InternalServiceContext;
@@ -72,7 +72,7 @@ public class HandleExecConfigTaskTest extends AbstractRepoTaskTest {
     configsTask.execute(taskContext, null);
     verify(deployer, times(2)).getDistribution(any(DistributionCriteria.class));
     verify(processor, times(2)).addExecConfig(any(ExecConfig.class));
-    verify(processor, never()).execConfig(anyString());
+    verify(processor, never()).execConfig(any(ExecConfigCriteria.class));
   }
 
   @Test
@@ -80,7 +80,7 @@ public class HandleExecConfigTaskTest extends AbstractRepoTaskTest {
     startOnBootConfigTask.execute(taskContext, null);
     verify(deployer, times(1)).getDistribution(any(DistributionCriteria.class));
     verify(processor, times(1)).addExecConfig(any(ExecConfig.class));
-    verify(processor, times(1)).execConfig(anyString());
+    verify(processor, times(1)).execConfig(any(ExecConfigCriteria.class));
   }
   
   @Test
@@ -89,7 +89,7 @@ public class HandleExecConfigTaskTest extends AbstractRepoTaskTest {
     startOnBootConfigTask.execute(taskContext, null);
     verify(deployer, times(1)).getDistribution(any(DistributionCriteria.class));
     verify(processor, times(1)).addExecConfig(any(ExecConfig.class));
-    verify(processor, never()).execConfig(anyString());
+    verify(processor, never()).execConfig(any(ExecConfigCriteria.class));
   }  
 
 }

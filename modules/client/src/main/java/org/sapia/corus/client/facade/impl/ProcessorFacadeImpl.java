@@ -7,13 +7,13 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.ArgFactory;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
@@ -43,23 +43,30 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void undeployExecConfig(String fileName, ClusterInfo cluster) {
-    proxy.removeExecConfig(ArgFactory.parse(fileName));
+  public synchronized void undeployExecConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
+    proxy.removeExecConfig(criteria);
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized Results<List<ExecConfig>> getExecConfigs(ClusterInfo cluster) {
+  public synchronized Results<List<ExecConfig>> getExecConfigs(ExecConfigCriteria criteria, ClusterInfo cluster) {
     Results<List<ExecConfig>> results = new Results<List<ExecConfig>>();
-    proxy.getExecConfigs();
+    proxy.getExecConfigs(criteria);
     invoker.invokeLenient(results, cluster);
     return results;
   }
 
   @Override
-  public synchronized ProgressQueue execConfig(String configName, ClusterInfo cluster) {
-    proxy.execConfig(configName);
+  public synchronized ProgressQueue execConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
+    proxy.execConfig(criteria);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
+  }
+  
+  @Override
+  public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled,
+      ClusterInfo cluster) {
+    proxy.setExecConfigEnabled(criteria, enabled);
+    invoker.invokeLenient(void.class, cluster);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package org.sapia.corus.repository.task.deploy;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.RepoDistribution;
@@ -76,7 +78,7 @@ public class DistributionDeploymentRequestHandlerTaskHelperTest extends Abstract
     execConfigs.add(conf1);
     execConfigs.add(conf2);
     
-    when(processor.getExecConfigs()).thenReturn(execConfigs);
+    when(processor.getExecConfigs(any(ExecConfigCriteria.class))).thenReturn(execConfigs);
     when(serverContext.lookup(eq(InternalDeployer.class))).thenReturn(internalDeployer);
     when(internalDeployer.getDistributionFile(anyString(), anyString())).thenReturn(new File("test"));
   }

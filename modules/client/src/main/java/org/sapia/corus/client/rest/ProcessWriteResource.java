@@ -15,7 +15,7 @@ import org.sapia.corus.client.services.security.Permission;
  * @author yduchesne
  *
  */
-public class ProcessWriteResource {
+public class ProcessWriteResource extends ResourceSupport {
 
   // --------------------------------------------------------------------------
   // exec
@@ -28,7 +28,7 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void execProcessesForCluster(RequestContext context) throws TooManyProcessInstanceException {
+  public ProgressResult execProcessesForCluster(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
@@ -36,11 +36,11 @@ public class ProcessWriteResource {
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     int instances = context.getRequest().getValue("i", "1").asInt();
-    context.getConnector().getProcessorFacade().exec( 
+    return progress(context.getConnector().getProcessorFacade().exec( 
         criteria.build(), 
         instances,
         cluster
-    );
+    ));
   }
   
   @Path({
@@ -50,7 +50,7 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void execProcessesForHost(RequestContext context) throws TooManyProcessInstanceException {
+  public ProgressResult execProcessesForHost(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
@@ -58,11 +58,11 @@ public class ProcessWriteResource {
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     int instances = context.getRequest().getValue("i", "1").asInt();
-    context.getConnector().getProcessorFacade().exec( 
+    return progress(context.getConnector().getProcessorFacade().exec( 
         criteria.build(), 
         instances,
         cluster
-    );
+    ));
   }
   
   // --------------------------------------------------------------------------
@@ -204,17 +204,17 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void resumeProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult resumeProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
     criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
-    context.getConnector().getProcessorFacade().resume(
+    return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
         cluster
-    );
+    ));
   }
   
   @Path({
@@ -224,17 +224,17 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void resumeProcessesForHost(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult resumeProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
     criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
-    context.getConnector().getProcessorFacade().resume(
+    return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
         cluster
-    );
+    ));
   }
   
   @Path({
@@ -244,14 +244,14 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void resumeProcessForId(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult resumeProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
-    context.getConnector().getProcessorFacade().resume(
+    return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
         cluster
-    );
+    ));
   }
   
   // --------------------------------------------------------------------------
@@ -265,18 +265,18 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void restartProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult restartProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
     criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
-    context.getConnector().getProcessorFacade().restart(
+    return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
         KillPreferences.newInstance(),
         cluster
-    );
+    ));
   }
   
   @Path({
@@ -286,18 +286,18 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void restartProcessesForHost(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult restartProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
     criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
     criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
-    context.getConnector().getProcessorFacade().restart(
+    return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
         KillPreferences.newInstance(),
         cluster
-    );
+    ));
   }
   
   @Path({
@@ -307,15 +307,15 @@ public class ProcessWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.EXECUTE)
-  public void restartProcessForId(RequestContext context) throws ProcessNotFoundException {
+  public ProgressResult restartProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
     criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
-    context.getConnector().getProcessorFacade().restart(
+    return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
         KillPreferences.newInstance(),
         cluster
-    );
+    ));
   }
   
   // --------------------------------------------------------------------------

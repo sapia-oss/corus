@@ -6,8 +6,11 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
+import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -26,6 +29,8 @@ public interface DeployerFacade {
    * 
    * @param fileName
    *          the name of the distribution archive.
+   * @param prefs
+   *          the {@link DeployPreferences} to use.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    * @return a {@link ProgressQueue} instance.
@@ -40,7 +45,7 @@ public interface DeployerFacade {
    * @throws Exception
    *           if an undefined error occurs.
    */
-  public ProgressQueue deployDistribution(String fileName, ClusterInfo cluster) throws java.io.IOException, ConcurrentDeploymentException,
+  public ProgressQueue deployDistribution(String fileName, DeployPreferences prefs, ClusterInfo cluster) throws java.io.IOException, ConcurrentDeploymentException,
       DuplicateDistributionException, Exception;
 
   /**
@@ -107,5 +112,18 @@ public interface DeployerFacade {
    * @return a {@link Results} containing {@link Distribution} instance.
    */
   public Results<List<Distribution>> getDistributions(DistributionCriteria criteria, ClusterInfo cluster);
+  
+  
+  /**
+   * Triggers execution of the <tt>META-INF/scripts/rollback.corus</tt> script for a given distribution.
+   * 
+   * @param name the name of the distribution to roll back.
+   * @param version the version of the distribution to roll back.
+   * @param cluster a {@link ClusterInfo} instance.
+   * @return a {@link ProgressQueue}.
+   */
+  public ProgressQueue rollbackDistribution(String name, String version, ClusterInfo cluster) 
+      throws RollbackScriptNotFoundException, DistributionNotFoundException;
+  
 
 }

@@ -1,8 +1,13 @@
 package org.sapia.corus.deployer.task;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -10,46 +15,151 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.sapia.corus.TestServerContext;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.taskmanager.core.TaskParams;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DeployTaskTest {
   
   private static final String TEST_RESOURCE = "testCorus.xml";
   
   TestServerContext ctx;
+  
+  @Mock
+  FileSystemModule fs;
+  
+  @Mock
+  File preDeploy, postDeploy, rollback, scriptDir;
 
   @Before
   public void setUp() throws Exception {
     ctx = TestServerContext.create();
- 
+    
+    when(preDeploy.getName()).thenReturn("pre-deploy.corus");
+    when(postDeploy.getName()).thenReturn("post-deploy.corus");
+    when(rollback.getName()).thenReturn("rollback.corus");
+    
+    when(fs.exists(any(File.class))).thenReturn(Boolean.FALSE);
+    when(fs.openZipEntryStream(any(File.class), any(String.class)))
+      .thenReturn(getCorusXmlStream());
+
+    doAnswer(new Answer<File>() {
+      @Override
+      public File answer(InvocationOnMock invocation) throws Throwable {
+        String fName = (String) invocation.getArguments()[0];
+        if (fName.contains("pre-deploy.corus")) return preDeploy;
+        else if (fName.contains("post-deploy.corus")) return postDeploy;
+        else if (fName.contains("rollback.corus")) return rollback;
+        else {
+          File mockFile = mock(File.class);
+          when(mockFile.getAbsolutePath()).thenReturn("test");
+          when(mockFile.exists()).thenReturn(true);
+          return mockFile;
+        }
+      }
+    }).when(fs).getFileHandle(anyString());
+    
+    
+    doAnswer(new Answer<Reader>() {
+      
+      @Override
+      public Reader answer(InvocationOnMock invocation) throws Throwable {
+        File f = invocation.getArgumentAt(0, File.class);
+        if (f.getName().contains("pre-deploy.corus")) {
+          return new StringReader("echo \"running pre-deploy\"");
+        } else if (f.getName().contains("post-deploy.corus")) {
+          return new StringReader("echo \"running post-deploy\"");
+        } else {
+          return new StringReader("echo \"running rollback\"");
+        }
+      }
+      
+    }).when(fs).getFileReader(any(File.class));
+    
+    ctx.getServices().rebind(FileSystemModule.class, fs);
+    
   }
   
   @Test
   public void testExecute() throws Exception{
-    FileSystemModule fs = mock(FileSystemModule.class);
-    when(fs.exists(any(File.class))).thenReturn(Boolean.FALSE);
-    when(fs.openZipEntryStream(any(File.class), any(String.class)))
-      .thenReturn(getCorusXmlStream());
-    
-    ctx.getServices().rebind(FileSystemModule.class, fs);
     
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, "testFile.zip").get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
     
     verify(fs).openZipEntryStream(new File("tmpDir/testFile.zip"), "META-INF/corus.xml");
-    verify(fs).exists(any(File.class));
-    verify(fs, Mockito.times(2)).createDirectory(any(File.class));
+    verify(fs, times(2)).createDirectory(any(File.class));
     verify(fs).unzip(any(File.class), any(File.class));
     verify(fs).deleteFile(new File("tmpDir/testFile.zip"));
-    Mockito.verifyNoMoreInteractions(fs);
+  }
+  
+  @Test
+  public void testExecute_pre_deploy_script() throws Exception{
+    when(preDeploy.exists()).thenReturn(true);
+        
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+  }
+  
+  @Test
+  public void testExecute_pre_deploy_script_not_found() throws Exception{
+    when(preDeploy.exists()).thenReturn(false);
+        
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    assertFalse("Distribution was deployed but should not have been", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+ 
+    verify(fs, times(2)).deleteDirectory(any(File.class));
+  }
+  
+  @Test
+  public void testExecute_post_deploy_script() throws Exception{
+    when(preDeploy.exists()).thenReturn(true);
+    when(postDeploy.exists()).thenReturn(true);
+    
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    assertTrue("Distribution was not deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    
+    verify(postDeploy).exists();
+  }
+  
+  @Test
+  public void testExecute_rollback_script() throws Exception{
+    when(preDeploy.exists()).thenReturn(true);
+    when(rollback.exists()).thenReturn(true);
+    
+    
+    doThrow(new IOException("I/O error")).when(fs).unzip(any(File.class), any(File.class));
+    
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    assertFalse("Distribution should not have been deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    
+    verify(rollback).exists();
+    verify(fs, times(2)).deleteDirectory(any(File.class));
   }
   
   private InputStream getCorusXmlStream() throws IOException{

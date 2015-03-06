@@ -97,6 +97,7 @@ public class RestContainer {
       .resource(new PropertiesResource())
       .resource(new PropertiesWriteResource())
       .resource(new RoleResource())
+      .resource(new ScriptResource())
       .resource(new TagResource())
       .resource(new TagWriteResource())
       .resource(new MetadataResource());
@@ -119,7 +120,8 @@ public class RestContainer {
             }
             
             Assertions.isTrue(Modifier.isPublic(m.getModifiers()), "REST resource method must be be public: %s", m);
-            Assertions.isTrue(m.getReturnType().equals(void.class) || m.getReturnType().equals(String.class), "REST resource method must return String or void: %s", m);
+            Assertions.isTrue(m.getReturnType().equals(void.class) || m.getReturnType().equals(String.class) || m.getReturnType().equals(ProgressResult.class), 
+                "REST resource method must return String or void or ProgressResult: %s", m);
             Assertions.isTrue(m.getParameterTypes().length == 1, "REST resource method must have single parameter of type %s: %s", 
                 RequestContext.class.getName(), m);
             Assertions.isTrue(m.getParameterTypes()[0].equals(RequestContext.class), 
@@ -244,7 +246,7 @@ public class RestContainer {
    * @return the response payload to return.
    * @throws Throwable if an error occurs handling the request.
    */
-  public String invoke(RequestContext context, RestResponseFacade response)  throws FileNotFoundException, Throwable {
+  public Object invoke(RequestContext context, RestResponseFacade response)  throws FileNotFoundException, Throwable {
     String[] pathValues = StringUtils.split(context.getRequest().getPath(), "/");
     for (RestResourceMetadata r : resources) {
       Map<String, String> values = r.matches(context, pathValues);
@@ -257,7 +259,7 @@ public class RestContainer {
           if (!context.getSubject().hasPermissions(r.permissions)) {
             throw new CorusSecurityException("Subject does not have required permission(s)", Type.OPERATION_NOT_AUTHORIZED);
           }
-          String payload = (String) r.method.invoke(r.target, new Object[] { context });
+          Object payload = r.method.invoke(r.target, new Object[] { context });
           response.setContentType(r.outputContentType);
           return payload;
         } catch (InvocationTargetException e) {

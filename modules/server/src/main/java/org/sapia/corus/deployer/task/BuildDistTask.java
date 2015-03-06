@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.dist.Distribution.State;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -59,8 +60,10 @@ public class BuildDistTask extends Task<Void, Void> {
     if (corusXML.exists()) {
       try {
         Distribution dist = Distribution.newInstance(new FileInputStream(corusXML));
+        dist.setTimestamp(versionDir.lastModified());
         dist.setBaseDir(versionDir.getAbsolutePath());
         store.addDistribution(dist);
+        dist.setState(State.DEPLOYED);
         ctx.info("Adding distribution: " + dist.getName() + ", " + dist.getVersion());
       } catch (Exception e) {
         ctx.error(e);

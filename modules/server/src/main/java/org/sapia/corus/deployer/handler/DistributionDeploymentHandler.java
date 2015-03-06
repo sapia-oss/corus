@@ -13,9 +13,10 @@ import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata.Type;
 import org.sapia.corus.deployer.DeploymentHandler;
 import org.sapia.corus.deployer.task.DeployTask;
-import org.sapia.corus.taskmanager.core.TaskConfig;
+import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
+import org.sapia.corus.taskmanager.core.TaskParams;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -64,8 +65,11 @@ public class DistributionDeploymentHandler implements DeploymentHandler {
     ProgressQueue progress = new ProgressQueueImpl();
     progress.info("Distribution file uploaded, proceeding to deployment completion");
     try {
-      taskman.executeAndWait(new DeployTask(), file.getName(), TaskConfig.create(new TaskLogProgressQueue(progress))).get();
-
+      taskman.execute(
+          new DeployTask(), 
+          TaskParams.createFor(file.getName(), meta.getPreferences()), 
+          SequentialTaskConfig.create(new TaskLogProgressQueue(progress))
+      );
     } catch (Throwable e) {
       log.error("Could not deploy", e);
       progress.error(e);

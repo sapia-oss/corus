@@ -10,6 +10,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
@@ -23,34 +24,6 @@ import org.sapia.corus.client.services.processor.Processor;
  * 
  */
 public interface ProcessorFacade {
-
-  /**
-   * Deploys the execution configuration whose file is given.
-   * 
-   * @param file
-   *          the the {@link File} of the execution configuration to deploy.
-   * @param cluster
-   */
-  public void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception;
-
-  /**
-   * Undeploys the execution configurations matching the given name.
-   * 
-   * @param name
-   *          the name of the exec config to undeploy.
-   * @param cluster
-   */
-  public void undeployExecConfig(String name, ClusterInfo cluster);
-
-  /**
-   * Returns the {@link ExecConfig}s in the system.
-   * 
-   * @param cluster
-   *          a {@link ClusterInfo} instance.
-   * @return the {@link Results} containing the {@link ExecConfig}s in the
-   *         system.
-   */
-  public Results<List<ExecConfig>> getExecConfigs(ClusterInfo cluster);
 
   /**
    * Return the process whose identifier is given..
@@ -71,17 +44,60 @@ public interface ProcessorFacade {
    *         instances.
    */
   public Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster);
+  
+  
+  /**
+   * Deploys the execution configuration whose file is given.
+   * 
+   * @param file
+   *          the the {@link File} of the execution configuration to deploy.
+   * @param cluster
+   */
+  public void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception;
+
+  /**
+   * Undeploys the execution configurations matching the given criteria.
+   * 
+   * @param criteria the {@link ExecConfigCriteria} to use to match
+   *          desired configs for undeployment.
+   * @param cluster
+   */
+  public void undeployExecConfig(ExecConfigCriteria criteria, ClusterInfo cluster);
+
+  /**
+   * Returns the {@link ExecConfig}s in the system.
+   * 
+   * @param criteria the {@link ExecConfigCriteria} to use to match
+   *          the desired configs.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   * @return the {@link Results} containing the {@link ExecConfig}s in the
+   *         system.
+   */
+  public Results<List<ExecConfig>> getExecConfigs(ExecConfigCriteria criteria, ClusterInfo cluster);
+
 
   /**
    * Starts process(es) corresponding to an existing execution configuration.
    * 
-   * @param configName
-   *          the name of an execution configuration
+   * @param criteria the {@link ExecConfigCriteria} to use to match
+   *          the desired configs.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    * @return the {@link ProgressQueue} holding progress data.
    */
-  public ProgressQueue execConfig(String configName, ClusterInfo cluster);
+  public ProgressQueue execConfig(ExecConfigCriteria criteria, ClusterInfo cluster);
+  
+  /**
+   * @param criteria the {@link ExecConfigCriteria} to use to match
+   *          the desired configs.
+   * @param enabled
+   *          If <code>true</code> enables the corresponding exec configs. Disables 
+   *          them otherwise.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   */
+  public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled, ClusterInfo cluster);
 
   /**
    * Starts process(es) corresponding to the passed in parameters.

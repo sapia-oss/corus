@@ -3,11 +3,11 @@ package org.sapia.corus.processor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.Process;
@@ -35,9 +35,13 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public ProgressQueue execConfig(String execConfigName) {
+  public ProgressQueue execConfig(ExecConfigCriteria crit) {
     ProgressQueue q = new ProgressQueueImpl();
     return q;
+  }
+  
+  @Override
+  public void setExecConfigEnabled(ExecConfigCriteria crit, boolean enabled) {
   }
 
   @Override  
@@ -110,12 +114,12 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public List<ExecConfig> getExecConfigs() {
+  public List<ExecConfig> getExecConfigs(ExecConfigCriteria crit) {
     return new ArrayList<ExecConfig>();
   }
   
   @Override
-  public void removeExecConfig(Arg name) {
+  public void removeExecConfig(ExecConfigCriteria crit) {
   }
   
   @Override

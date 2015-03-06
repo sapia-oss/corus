@@ -2,6 +2,8 @@ package org.sapia.corus.processor.task;
 
 import java.util.List;
 
+import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.dist.Distribution.State;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -33,6 +35,18 @@ public class BootstrapExecConfigStartTask extends AbstractExecConfigStartTask {
   protected List<ExecConfig> getExecConfigsToStart(TaskExecutionContext ctx) {
     ExecConfigDatabase execConfigs = ctx.getServerContext().getServices().getExecConfigs();
     return execConfigs.getBootstrapConfigs();
+  }
+  
+  @Override
+  protected boolean canExecuteFor(TaskExecutionContext ctx, Distribution dist) {
+    if (dist.getState() == State.DEPLOYING) {
+      ctx.warn(
+          String.format("Distribution %s:%s is currently being deployed. Corresponding processes will not be started", 
+          dist.getName(), dist.getVersion())
+      );
+      return false;
+    }
+    return true;
   }
 
 }

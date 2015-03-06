@@ -24,6 +24,7 @@ import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
@@ -42,8 +43,8 @@ public class Ls extends CorusCliCommand {
       .createCol("processes", 23).createCol("profiles", 23);
   
   private TableDef EXE_TBL = TableDef.newInstance()
-      .createCol("name", 18).createCol("boot", 4).createCol("dist", 18)
-      .createCol("version", 8).createCol("process", 10).createCol("profile", 10);
+      .createCol("name", 17).createCol("on", 3).createCol("boot", 4).createCol("dist", 18)
+      .createCol("version", 8).createCol("process", 9).createCol("profile", 9);
   
   private TableDef SCRIPT_TBL = TableDef.newInstance()
       .createCol("alias", 25).createCol("file", 20).createCol("desc", 31);
@@ -96,7 +97,7 @@ public class Ls extends CorusCliCommand {
   private void doListExecConfigs(CliContext ctx) throws InputException {
     ClusterInfo cluster = getClusterInfo(ctx);
     try {
-      Results<List<ExecConfig>> res = ctx.getCorus().getProcessorFacade().getExecConfigs(cluster);
+      Results<List<ExecConfig>> res = ctx.getCorus().getProcessorFacade().getExecConfigs(ExecConfigCriteria.builder().all().build(), cluster);
       res = Sorting.sortList(res, ExecConfig.class, ctx.getSortSwitches());
       while (res.hasNext()) {
         Result<List<ExecConfig>> result = res.next();
@@ -204,6 +205,11 @@ public class Ls extends CorusCliCommand {
         } else {
           row.getCellAt(EXE_TBL.col("boot").index()).append("n");
         }
+        if (conf.isEnabled()) {
+          row.getCellAt(EXE_TBL.col("on").index()).append("y");
+        } else {
+          row.getCellAt(EXE_TBL.col("on").index()).append("n");
+        }
       } else {
         row.getCellAt(EXE_TBL.col("name").index()).append("");
         row.getCellAt(EXE_TBL.col("boot").index()).append("");
@@ -310,6 +316,7 @@ public class Ls extends CorusCliCommand {
 
     Row headers = headersTable.newRow();
     headers.getCellAt(EXE_TBL.col("name").index()).append("Name");
+    headers.getCellAt(EXE_TBL.col("on").index()).append("On");
     headers.getCellAt(EXE_TBL.col("boot").index()).append("Boot");
     headers.getCellAt(EXE_TBL.col("dist").index()).append("Distribution");
     headers.getCellAt(EXE_TBL.col("version").index()).append("Version");

@@ -2,8 +2,8 @@ package org.sapia.corus.processor;
 
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.services.processor.ExecConfig;
+import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 
 /**
  * Specifies methods for storing and retrieving {@link ExecConfig} instances.
@@ -24,20 +24,20 @@ public interface ExecConfigDatabase {
   public List<ExecConfig> getBootstrapConfigs();
 
   /**
-   * @param arg
-   *          an {@link Arg} instance.
+   * @param criteria
+   *          The {@link ExecConfigCriteria} to use.
    * @return the {@link List} of {@link ExecConfig}s that match the given
-   *         {@link Arg} instance.
+   *          criteria.
    */
-  public List<ExecConfig> getConfigsFor(Arg arg);
+  public List<ExecConfig> getConfigsFor(ExecConfigCriteria criteria);
 
   /**
-   * Removes the {@link ExecConfig}s that correspond to the given {@link Arg}.
+   * Removes the {@link ExecConfig}s that correspond to the given {@link ExecConfigCriteria}.
    * 
    * @param arg
-   *          an {@link Arg} instance.
+   *          an {@link ExecConfigCriteria} instance.
    */
-  public void removeConfigsFor(Arg arg);
+  public void removeConfigsFor(ExecConfigCriteria criteria);
 
   /**
    * @param name

@@ -170,12 +170,17 @@ public class TaskManagerImpl implements TaskManager {
     return new TaskExecutionContextImpl(task, wrapLogFor(task, config.getLog()), serverContext, this);
   }
 
-  private void throttle(ThrottleKey throttleKey, Runnable toRun) {
-    Throttle throttle = throttles.get(throttleKey);
+  private void throttle(ThrottleKey throttleKey, final Runnable toRun) {
+    final Throttle throttle = throttles.get(throttleKey);
     if (throttle == null) {
       throw new IllegalStateException(String.format("No throttle found for %s", throttleKey.getName()));
     }
-    throttle.execute(toRun);
+    threadpool.execute(new Runnable() {
+      @Override
+      public void run() {
+        throttle.execute(toRun);
+      }
+    });
   }
 
 }

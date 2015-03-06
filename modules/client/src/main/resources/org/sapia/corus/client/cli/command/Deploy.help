@@ -3,7 +3,7 @@
    <p>Deploys a distribution, an execution configuration, a shell script, or a file to a given Corus server.</p>
   </section>
   <section title="Syntax">
-    <p>deploy file [file2 [file3 [...]]] [-seq] [-cluster]</p>
+    <p>deploy file [file2 [file3 [...]]] [-seq] [r] [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>deploy -e &lt;exec_config_file&gt; [-cluster]</p>
@@ -38,12 +38,15 @@
     <p/>    
     <p>- seq: if the deployment is clustered, indicates that it should be done one host after the other from the client, sequentially (rather than through cascading deployment).</p>
     <p/>    
+    <p>- r: this option stands for "run scripts". It will trigger the execution of the distribution's packaged scripts (under META-INF/scripts) upon deployment.</p>
+    <p/>   
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
   </section>
   <section title="Examples">
     <p>deploy myDistribution.zip</p>
     <p>deploy myDistribution.zip -cluster</p>
     <p>deploy myDistribution.zip -seq -cluster</p>
+    <p>deploy myDistribution.zip -r</p>
     <p>deploy -e myExecConfig.xml</p>
     <p>deploy -f someArchive.tar</p>
     <p>deploy -f someArchive.tar -d /opt/archives -cluster</p>
