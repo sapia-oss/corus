@@ -129,6 +129,8 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       proc.getLock().release(lockOwner);
       if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
         proc.save();
+      } else {
+        proc.delete();
       }
     } catch (Throwable err) {
       // noop
