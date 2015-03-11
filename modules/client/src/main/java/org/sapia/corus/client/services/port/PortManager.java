@@ -13,11 +13,12 @@ package org.sapia.corus.client.services.port;
 import java.util.List;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
+import org.sapia.corus.client.services.database.RevId;
 
 /**
  * This interface specifies port management behavior.
@@ -67,7 +68,7 @@ public interface PortManager extends java.rmi.Remote, Module {
    *          removed even if this instance has corresponding ports flagged as
    *          active.
    */
-  public void removePortRange(Arg name, boolean force) throws PortActiveException;
+  public void removePortRange(ArgMatcher name, boolean force) throws PortActiveException;
 
   /**
    * Forces the release of all ports corresponding to the given name.
@@ -75,7 +76,7 @@ public interface PortManager extends java.rmi.Remote, Module {
    * @param name
    *          the name of a port range.
    */
-  public void releasePortRange(Arg name);
+  public void releasePortRange(ArgMatcher name);
 
   /**
    * @return the {@link List} of {@link PortRange}s that this instance holds.
@@ -96,5 +97,18 @@ public interface PortManager extends java.rmi.Remote, Module {
    *          a port that was acquired from this instance.
    */
   public void releasePort(String name, int port);
+  
+  /**
+   * Archives the currently set port ranges.
+   * 
+   * @param revId the revision ID to use.
+   */
+  public void archive(RevId revId);
 
+  /**
+   * Unarchives the port ranges corresponding to the given revision ID.
+   * 
+   * @param revId the revision ID to use.
+   */
+  public void unarchive(RevId revId);
 }

@@ -16,7 +16,7 @@ import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.log.LoggerTaskLog;
 import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.util.Time;
+import org.sapia.ubik.util.TimeValue;
 
 /**
  * This module implements the {@link CorusTaskManager} interface.
@@ -50,7 +50,7 @@ public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManag
 
   public void init() throws Exception {
     ThreadingConfiguration conf = ThreadingConfiguration.newInstance().setCorePoolSize(CORE_POOL_SIZE)
-        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS)).setMaxPoolSize(MAX_POOL_SIZE).setQueueSize(WORK_QUEUE_SIZE);
+        .setKeepAlive(TimeValue.createSeconds(KEEP_ALIVE_SECONDS)).setMaxPoolSize(MAX_POOL_SIZE).setQueueSize(WORK_QUEUE_SIZE);
 
     delegate = new TaskManagerImpl(new ServerTaskLog(queues, new LoggerTaskLog(log)), serverContext(), conf);
   }

@@ -4,8 +4,8 @@ import java.io.File;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.core.ModuleHelper;
 
 /**

@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
@@ -38,10 +38,10 @@ public class ResumeTaskTest extends TestBaseTask{
     ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, dist, conf)).get();
     proc.getLock().awaitRelease(10, TimeUnit.SECONDS);
     
-    ProcessCriteria suspCriteria = ProcessCriteria.builder().pid(ArgFactory.exact(proc.getProcessID())).lifecycles(LifeCycleStatus.SUSPENDED).build();
+    ProcessCriteria suspCriteria = ProcessCriteria.builder().pid(ArgMatchers.exact(proc.getProcessID())).lifecycles(LifeCycleStatus.SUSPENDED).build();
     assertTrue("Process should not be in suspended process list", ctx.getServices().getProcesses().getProcesses(suspCriteria).isEmpty());
     
-    ProcessCriteria actCriteria = ProcessCriteria.builder().pid(ArgFactory.exact(proc.getProcessID())).lifecycles(LifeCycleStatus.ACTIVE).build();
+    ProcessCriteria actCriteria = ProcessCriteria.builder().pid(ArgMatchers.exact(proc.getProcessID())).lifecycles(LifeCycleStatus.ACTIVE).build();
     assertFalse("Process should be in active process list", ctx.getServices().getProcesses().getProcesses(actCriteria).isEmpty());
   }
 

@@ -311,7 +311,7 @@ public class RepositoryImplTest {
     repo.onSyncEvent(event);
     
     verify(config).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
-    verify(config).addTags(anySet());
+    verify(config).addTags(anySet(), eq(false));
     
     verify(cluster).send(any(ExecConfigNotification.class));
   }
@@ -332,7 +332,7 @@ public class RepositoryImplTest {
     repo.onSyncEvent(event);
     
     verify(config).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
-    verify(config, never()).addTags(anySet());
+    verify(config, never()).addTags(anySet(), eq(false));
     
     verify(cluster).send(any(ExecConfigNotification.class));
   }
@@ -353,7 +353,7 @@ public class RepositoryImplTest {
     repo.onSyncEvent(event);
     
     verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
-    verify(config).addTags(anySet());
+    verify(config).addTags(anySet(), eq(false));
     
     verify(cluster).send(any(ExecConfigNotification.class));
   }  
@@ -373,7 +373,7 @@ public class RepositoryImplTest {
     repo.onSyncEvent(event);
     
     verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
-    verify(config, never()).addTags(anySet());
+    verify(config, never()).addTags(anySet(), eq(false));
     
     verify(cluster).send(any(ExecConfigNotification.class));
 

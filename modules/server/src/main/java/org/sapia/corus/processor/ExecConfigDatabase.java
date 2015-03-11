@@ -2,6 +2,8 @@ package org.sapia.corus.processor;
 
 import java.util.List;
 
+import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 
@@ -61,5 +63,23 @@ public interface ExecConfigDatabase {
    *          an {@link ExecConfig}.
    */
   public void addConfig(ExecConfig conf);
+  
+  /**
+   * Removes the process references from the exec configs, if such process references have a corresponding
+   * process definition in the given distribution.
+   * 
+   * @param dist a {@link Distribution}.
+   */
+  public void removeProcessesForDistribution(Distribution dist);
+  
+  /**
+   * @param revId the revision ID to use when archiving.
+   */
+  public void archiveExecConfigs(RevId revId);
+  
+  /**
+   * @param revId the revision ID for which to perform unarchiving.
+   */
+  public void unarchiveExecConfigs(RevId revId);
 
 }

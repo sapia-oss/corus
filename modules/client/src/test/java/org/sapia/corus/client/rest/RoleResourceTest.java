@@ -21,7 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
@@ -92,7 +92,7 @@ public class RoleResourceTest {
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
     when(request.getValue("n", "*")).thenReturn(new Value("n", "*"));
     when(connector.getSecurityManagementFacade()).thenReturn(facade);
-    when(facade.getRoleConfig(any(Arg.class), any(ClusterInfo.class)))
+    when(facade.getRoleConfig(any(ArgMatcher.class), any(ClusterInfo.class)))
       .thenReturn(results);
   }
   

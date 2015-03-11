@@ -22,7 +22,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ApplicationKeyManagementFacade;
@@ -91,7 +91,7 @@ public class ApplicationKeyResourceTest {
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
     when(request.getValue("a", "*")).thenReturn(new Value("a", "*"));
     when(connector.getApplicationKeyManagementFacade()).thenReturn(facade);
-    when(facade.getAppKeyInfos(any(Arg.class), any(ClusterInfo.class)))
+    when(facade.getAppKeyInfos(any(ArgMatcher.class), any(ClusterInfo.class)))
       .thenReturn(results);
   }
   
@@ -185,7 +185,7 @@ public class ApplicationKeyResourceTest {
 
     resource.deleteAppKeyForCluster(context);
     
-    verify(facade).removeAppKey(any(Arg.class), any(ClusterInfo.class));
+    verify(facade).removeAppKey(any(ArgMatcher.class), any(ClusterInfo.class));
   }
 
   @Test
@@ -194,7 +194,7 @@ public class ApplicationKeyResourceTest {
 
     resource.deleteAppKeyForHost(context);
     
-    verify(facade).removeAppKey(any(Arg.class), any(ClusterInfo.class));
+    verify(facade).removeAppKey(any(ArgMatcher.class), any(ClusterInfo.class));
   }
 
   private void doCheckApplicationKey(JSONObject dist, int i) {

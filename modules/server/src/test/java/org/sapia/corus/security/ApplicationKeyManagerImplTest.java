@@ -12,8 +12,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.ArgFactory;
-import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.Permission;
@@ -115,14 +115,14 @@ public class ApplicationKeyManagerImplTest {
 
   @Test
   public void testRemoveAppKey() {
-    manager.removeAppKey(ArgFactory.exact("test-app"));
+    manager.removeAppKey(ArgMatchers.exact("test-app"));
     
     verify(appKeys).remove("test-app");
   }
 
   @Test
   public void testRemoveAppKey_app_id_not_found() {
-    manager.removeAppKey(ArgFactory.exact("test-app2"));
+    manager.removeAppKey(ArgMatchers.exact("test-app2"));
     
     verify(appKeys, never()).remove("test-app");
   }

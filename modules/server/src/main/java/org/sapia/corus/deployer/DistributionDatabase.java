@@ -2,7 +2,7 @@ package org.sapia.corus.deployer;
 
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -45,7 +45,7 @@ public interface DistributionDatabase {
    * @param criteria
    *          a {@link DistributionCriteria}
    * @param version
-   *          an {@link Arg} corresponding to the version of a distribution.
+   *          an {@link ArgMatcher} corresponding to the version of a distribution.
    */
   public void removeDistribution(DistributionCriteria criteria);
 

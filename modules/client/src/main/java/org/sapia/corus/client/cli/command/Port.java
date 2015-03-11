@@ -19,11 +19,12 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
@@ -46,19 +47,23 @@ public class Port extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private static final String ADD = "add";
-  private static final String DELETE = "del";
-  private static final String RELEASE = "release";
-  private static final String LIST = "ls";
+  private static final String ADD       = "add";
+  private static final String DELETE    = "del";
+  private static final String RELEASE   = "release";
+  private static final String LIST      = "ls";
+  private static final String ARCHIVE   = "archive";
+  private static final String UNARCHIVE = "unarchive";
+  
   private static final OptionDef OPT_NAME  = new OptionDef("n", true);
   private static final OptionDef OPT_PROPS = new OptionDef("p", true);
   private static final OptionDef OPT_FORCE = new OptionDef("f", false);
   private static final OptionDef OPT_CLEAR = new OptionDef("clear", false);
+  private static final OptionDef OPT_REV   = new OptionDef("rev", false);
   private static final OptionDef OPT_MIN   = new OptionDef("min", true);
   private static final OptionDef OPT_MAX   = new OptionDef("max", true);
   
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_NAME, OPT_PROPS, OPT_FORCE, OPT_CLEAR, OPT_MIN, OPT_MAX, OPT_CLUSTER
+      OPT_NAME, OPT_PROPS, OPT_FORCE, OPT_CLEAR, OPT_MIN, OPT_MAX, OPT_REV, OPT_CLUSTER
   );
 
   // --------------------------------------------------------------------------
@@ -77,15 +82,29 @@ public class Port extends CorusCliCommand {
   @Override
   public void doExecute(CliContext ctx) throws InputException {
     CmdLine cmdLine = ctx.getCommandLine();
-    Arg arg = cmdLine.assertNextArg(new String[] { ADD, DELETE, LIST, RELEASE });
+    Arg arg = cmdLine.assertNextArg(new String[] { ADD, DELETE, LIST, RELEASE, ARCHIVE, UNARCHIVE });
     if (arg.toString().equals(ADD)) {
       doAdd(ctx, cmdLine);
-    } else if (arg.toString().equals(DELETE)) {
+    } else if (arg.getName().equals(DELETE)) {
       doDelete(ctx, cmdLine);
-    } else if (arg.toString().equals(RELEASE)) {
+    } else if (arg.getName().equals(RELEASE)) {
       doRelease(ctx, cmdLine);
-    } else {
+    } else if (arg.getName().equals(ARCHIVE)) {
+      String revId = ctx.getCommandLine().assertOption(OPT_REV.getName(), true).getValue();
+      ctx.getCorus().getPortManagementFacade().archive(
+          RevId.valueOf(revId), 
+          getClusterInfo(ctx)
+      );
+    } else if (arg.getName().equals(UNARCHIVE)) {
+      String revId = ctx.getCommandLine().assertOption(OPT_REV.getName(), true).getValue();
+      ctx.getCorus().getPortManagementFacade().unarchive(
+          RevId.valueOf(revId), 
+          getClusterInfo(ctx)
+      );
+    } else if (arg.getName().equals(LIST)) {
       doList(ctx, cmdLine);
+    } else {
+      throw new IllegalStateException("Unknown argument: " + arg.getName());
     }
   }
 
@@ -187,7 +206,7 @@ public class Port extends CorusCliCommand {
   private void displayResults(Results<List<PortRange>> res, CliContext ctx) throws InputException {
     String nameFilter = getOptValue(ctx, OPT_NAME.getName());
     if (nameFilter != null) {
-      final org.sapia.corus.client.common.Arg pattern = ArgFactory.parse(nameFilter);
+      final org.sapia.corus.client.common.ArgMatcher pattern = ArgMatchers.parse(nameFilter);
       res = res.filter(new Func<List<PortRange>, List<PortRange>>() {
         @Override
         public List<PortRange> call(List<PortRange> toFilter) {

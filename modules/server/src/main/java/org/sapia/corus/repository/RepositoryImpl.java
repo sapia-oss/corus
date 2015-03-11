@@ -469,7 +469,7 @@ public class RepositoryImpl extends ModuleHelper
       }
 
       if (repoConfig.isPullTagsEnabled()) {
-        configurator.addTags(notif.getTags());
+        configurator.addTags(notif.getTags(), false);
       } else {
         logger().info("Aborting adding tags: node does not support pull of tags");
       }

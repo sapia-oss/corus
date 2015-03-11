@@ -3,7 +3,7 @@ package org.sapia.corus.repository.task;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.client.services.repository.SecurityConfigNotification;
@@ -30,10 +30,10 @@ public class SendSecurityConfigNotificationTask extends RunnableTask {
   @Override
   public void run() {
     List<RoleConfig> roleConfigs = context()
-        .getServerContext().getServices().getSecurityModule().getRoleConfig(ArgFactory.any());
+        .getServerContext().getServices().getSecurityModule().getRoleConfig(ArgMatchers.any());
     
     List<AppKeyConfig> appKeyConfigs = context()
-        .getServerContext().getServices().getAppKeyManager().getAppKeyConfig(ArgFactory.any());
+        .getServerContext().getServices().getAppKeyManager().getAppKeyConfig(ArgMatchers.any());
     
     if (roleConfigs.isEmpty() && appKeyConfigs.isEmpty()) {
       context().debug("No security config to send to: " + targets);

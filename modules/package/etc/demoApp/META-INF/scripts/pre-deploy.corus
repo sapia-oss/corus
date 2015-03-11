@@ -1,6 +1,12 @@
 echo "killing current processes..."
 kill all -w
+
+echo "cleaning up current configs - and archiving for eventual rollback"
+archive -rev previous
+port del -n *
+conf del -p *
+conf del -t *
+
 echo "undeploying current distribution"
 undeploy all
-echo "cleaning up current config"
-port del -n * -f
+undeploy -e *

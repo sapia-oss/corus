@@ -4,7 +4,7 @@ import java.io.File;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.security.Permission;
@@ -75,8 +75,8 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
   public ProgressResult undeployDistributionForCluster(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.clustered();
     DistributionCriteria criteria = DistributionCriteria.builder()
-        .name(ArgFactory.parse(context.getRequest().getValue("d").asString()))
-        .version(ArgFactory.parse(context.getRequest().getValue("v").asString()))
+        .name(ArgMatchers.parse(context.getRequest().getValue("d").asString()))
+        .version(ArgMatchers.parse(context.getRequest().getValue("v").asString()))
         .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
     return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster));
@@ -92,8 +92,8 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
   public ProgressResult undeployDistributionForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     DistributionCriteria criteria = DistributionCriteria.builder()
-        .name(ArgFactory.parse(context.getRequest().getValue("d").asString()))
-        .version(ArgFactory.parse(context.getRequest().getValue("v").asString()))
+        .name(ArgMatchers.parse(context.getRequest().getValue("d").asString()))
+        .version(ArgMatchers.parse(context.getRequest().getValue("v").asString()))
         .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
     return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster));

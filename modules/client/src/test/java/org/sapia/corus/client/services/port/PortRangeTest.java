@@ -3,12 +3,11 @@ package org.sapia.corus.client.services.port;
 import java.util.List;
 
 import org.junit.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.client.services.db.persistence.NoSuchFieldException;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
 
 public class PortRangeTest {
 

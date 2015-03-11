@@ -11,8 +11,8 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.services.processor.DistributionInfo;
@@ -58,24 +58,24 @@ public class DistributionTest {
   @Test
   public void testMatchesAny() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    Arg name = ArgFactory.any();
-    Arg version = ArgFactory.any();
+    ArgMatcher name = ArgMatchers.any();
+    ArgMatcher version = ArgMatchers.any();
     Assert.assertTrue(dist1.matches(name, version));
   }
 
   @Test
   public void testMatchesAnyName() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    Arg name = ArgFactory.any();
-    Arg version = ArgFactory.exact("2.0");
+    ArgMatcher name = ArgMatchers.any();
+    ArgMatcher version = ArgMatchers.exact("2.0");
     Assert.assertTrue(dist1.matches(name, version));
   }
 
   @Test
   public void testMatchesAnyVersion() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    Arg name = ArgFactory.exact("dist");
-    Arg version = ArgFactory.any();
+    ArgMatcher name = ArgMatchers.exact("dist");
+    ArgMatcher version = ArgMatchers.any();
     Assert.assertTrue(dist1.matches(name, version));
   }
 
@@ -98,7 +98,7 @@ public class DistributionTest {
     dist.addProcess(new ProcessConfig("proc21"));
     dist.addProcess(new ProcessConfig("proc22"));
 
-    List<ProcessConfig> match = dist.getProcesses(ArgFactory.parse("proc2*"));
+    List<ProcessConfig> match = dist.getProcesses(ArgMatchers.parse("proc2*"));
     Assert.assertEquals(2, match.size());
   }
 

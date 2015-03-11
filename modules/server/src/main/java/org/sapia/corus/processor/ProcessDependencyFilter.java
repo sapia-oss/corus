@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
@@ -34,29 +34,29 @@ public class ProcessDependencyFilter {
 
     /**
      * @param name
-     *          an {@link Arg} corresponding to a distribution name.
+     *          an {@link ArgMatcher} corresponding to a distribution name.
      * @param version
-     *          an {@link Arg} corresponding to a distribution version.
+     *          an {@link ArgMatcher} corresponding to a distribution version.
      * @return the {@link Distribution} corresponding to the given name and
      *         version.
      * @throws DistributionNotFoundException
      *           if no distribution is found for the given name and version.
      */
-    public Distribution getDistribution(Arg name, Arg version) throws DistributionNotFoundException;
+    public Distribution getDistribution(ArgMatcher name, ArgMatcher version) throws DistributionNotFoundException;
 
     /**
      * @param name
-     *          an {@link Arg} corresponding to a distribution name.
+     *          an {@link ArgMatcher} corresponding to a distribution name.
      * @param version
-     *          an {@link Arg} corresponding to a distribution version.
+     *          an {@link ArgMatcher} corresponding to a distribution version.
      * @param profile
      *          a profile.
      * @param processName
-     *          an {@link Arg} corresponding to a process name.
+     *          an {@link ArgMatcher} corresponding to a process name.
      * @return the {@link List} of {@link Process} corresponding to the given
      *         parameters.
      */
-    public List<org.sapia.corus.client.services.processor.Process> getProcesses(Arg name, Arg version, String profile, Arg processName);
+    public List<org.sapia.corus.client.services.processor.Process> getProcesses(ArgMatcher name, ArgMatcher version, String profile, ArgMatcher processName);
 
   }
 
@@ -112,13 +112,13 @@ public class ProcessDependencyFilter {
     FilterCallback cb = new FilterCallback() {
 
       @Override
-      public List<org.sapia.corus.client.services.processor.Process> getProcesses(Arg distName, Arg version, String profile, Arg processName) {
+      public List<org.sapia.corus.client.services.processor.Process> getProcesses(ArgMatcher distName, ArgMatcher version, String profile, ArgMatcher processName) {
         ProcessCriteria criteria = ProcessCriteria.builder().distribution(distName).version(version).profile(profile).name(processName).build();
         return processor.getProcesses(criteria);
       }
 
       @Override
-      public Distribution getDistribution(Arg name, Arg version) throws DistributionNotFoundException {
+      public Distribution getDistribution(ArgMatcher name, ArgMatcher version) throws DistributionNotFoundException {
         return deployer.getDistribution(DistributionCriteria.builder().name(name).version(version).build());
       }
     };

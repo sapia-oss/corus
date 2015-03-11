@@ -5,9 +5,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.client.services.db.persistence.FieldDescriptor;
-import org.sapia.corus.client.services.db.persistence.NoSuchFieldException;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.FieldDescriptor;
+import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
 
 public class ClassDescriptorTest {
 

@@ -2,7 +2,7 @@ package org.sapia.corus.client.rest;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -31,9 +31,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult execProcessesForCluster(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     int instances = context.getRequest().getValue("i", "1").asInt();
     return progress(context.getConnector().getProcessorFacade().exec( 
@@ -53,9 +53,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult execProcessesForHost(RequestContext context) throws TooManyProcessInstanceException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     int instances = context.getRequest().getValue("i", "1").asInt();
     return progress(context.getConnector().getProcessorFacade().exec( 
@@ -79,9 +79,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public void killProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     context.getConnector().getProcessorFacade().kill(
         criteria.build(), 
@@ -100,9 +100,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public void killProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     context.getConnector().getProcessorFacade().kill(
         criteria.build(), 
@@ -121,7 +121,7 @@ public class ProcessWriteResource extends ResourceSupport {
   public void killProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
+    criteria.pid(ArgMatchers.parse(context.getRequest().getValue("corus:process_id").asString()));
     context.getConnector().getProcessorFacade().kill(
         criteria.build(), 
         KillPreferences.newInstance(),
@@ -143,9 +143,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public void suspendProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     context.getConnector().getProcessorFacade().suspend(
         criteria.build(), 
@@ -164,9 +164,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public void suspendProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     context.getConnector().getProcessorFacade().suspend(
         criteria.build(), 
@@ -185,7 +185,7 @@ public class ProcessWriteResource extends ResourceSupport {
   public void suspendProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
+    criteria.pid(ArgMatchers.parse(context.getRequest().getValue("corus:process_id").asString()));
     context.getConnector().getProcessorFacade().suspend(
         criteria.build(), 
         KillPreferences.newInstance().setSuspend(true),
@@ -207,9 +207,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult resumeProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
@@ -227,9 +227,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult resumeProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
@@ -247,7 +247,7 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult resumeProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
+    criteria.pid(ArgMatchers.parse(context.getRequest().getValue("corus:process_id").asString()));
     return progress(context.getConnector().getProcessorFacade().resume(
         criteria.build(), 
         cluster
@@ -268,9 +268,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult restartProcessesForCluster(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.clustered();
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
@@ -289,9 +289,9 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult restartProcessesForHost(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n").asString()));
     criteria.profile(context.getRequest().getValue("p").asString());
     return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
@@ -310,7 +310,7 @@ public class ProcessWriteResource extends ResourceSupport {
   public ProgressResult restartProcessForId(RequestContext context) throws ProcessNotFoundException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
+    criteria.pid(ArgMatchers.parse(context.getRequest().getValue("corus:process_id").asString()));
     return progress(context.getConnector().getProcessorFacade().restart(
         criteria.build(), 
         KillPreferences.newInstance(),
@@ -345,4 +345,5 @@ public class ProcessWriteResource extends ResourceSupport {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     context.getConnector().getProcessorFacade().clean(cluster);
   }
+
 }

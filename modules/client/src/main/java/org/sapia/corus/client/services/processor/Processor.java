@@ -6,6 +6,7 @@ import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.interop.Status;
 
 /**
@@ -170,6 +171,20 @@ public interface Processor extends java.rmi.Remote, Module {
    * @param execConfigEnable if <code>true</code>, enables the selected configs.
    */
   public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled);
+  
+  /**
+   * Archives all currently stored exec configs.
+   * 
+   * @param revId the revision ID to use.
+   */
+  public void archiveExecConfigs(RevId revId);
+  
+  /**
+   * Unarchives exec configs that have been archived using the given revision ID. 
+   * 
+   * @param revId the revision ID to use.
+   */
+  public void unarchiveExecConfigs(RevId revId);
 
   /**
    * @param the {@link ExecConfigCriteria} to use for selecting

@@ -4,8 +4,9 @@ import java.io.File;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.rest.Value;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.security.Permission;
 
@@ -69,7 +70,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
     Value backup = context.getRequest().getValue("backup", "0");
     ExecConfigCriteria crit = ExecConfigCriteria.builder()
         .backup(backup.asInt())
-        .name(ArgFactory.parse(config.asString()))
+        .name(ArgMatchers.parse(config.asString()))
         .build();
     context.getConnector().getProcessorFacade().undeployExecConfig(crit, cluster);
   }  
@@ -87,7 +88,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
     Value backup = context.getRequest().getValue("backup", "0");
     ExecConfigCriteria crit = ExecConfigCriteria.builder()
         .backup(backup.asInt())
-        .name(ArgFactory.parse(config.asString()))
+        .name(ArgMatchers.parse(config.asString()))
         .build();
     context.getConnector().getProcessorFacade().undeployExecConfig(crit, cluster);
   }  
@@ -106,7 +107,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public void enableExecConfigForCluster(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.clustered();
     Value config = context.getRequest().getValue("n").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
     context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, true, cluster);
   }  
   
@@ -120,7 +121,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public void enableExecConfigForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
     Value config = context.getRequest().getValue("n").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
     context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, true, cluster);
   }  
   
@@ -135,7 +136,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public void disableExecConfigForCluster(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.clustered();
     Value config = context.getRequest().getValue("n").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
     context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, false, cluster);
   }  
   
@@ -149,8 +150,65 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public void disableExecConfigForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
     Value config = context.getRequest().getValue("n").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
     context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, false, cluster);
+  }  
+  
+  // --------------------------------------------------------------------------
+  // archive/unarchive
+  
+  @Path({
+    "/clusters/{corus:cluster}/exec-configs/archive",
+    "/clusters/{corus:cluster}/hosts/exec-configs/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archiveExecConfigForCluster(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.clustered();
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().archiveExecConfigs(RevId.valueOf(revId.asString()), cluster);
+  }  
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/exec-configs/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archiveConfigForHost(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().archiveExecConfigs(RevId.valueOf(revId.asString()), cluster);
+  }  
+  
+  @Path({
+    "/clusters/{corus:cluster}/exec-configs/unarchive",
+    "/clusters/{corus:cluster}/hosts/exec-configs/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchiveExecConfigForCluster(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.clustered();
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().unarchiveExecConfigs(RevId.valueOf(revId.asString()), cluster);
+  }  
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/exec-configs/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchiveExecConfigForHost(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().unarchiveExecConfigs(RevId.valueOf(revId.asString()), cluster);
   }  
   
   // --------------------------------------------------------------------------
@@ -167,7 +225,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public ProgressResult execProcessConfigForCluster(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.clustered();
     Value config = context.getRequest().getValue("corus:name").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.exact(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.exact(config.asString())).build();
     return progress(context.getConnector().getProcessorFacade().execConfig(crit, cluster));
   }
   
@@ -181,7 +239,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   public ProgressResult execProcessConfigForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
     Value config = context.getRequest().getValue("corus:name").notNull();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.exact(config.asString())).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.exact(config.asString())).build();
     return progress(context.getConnector().getProcessorFacade().execConfig(crit, cluster));
   }
 }

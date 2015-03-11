@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
@@ -53,7 +53,7 @@ public class FileManagerImplTest {
     
     when(fileSystem.listFiles(any(File.class))).thenReturn(files);
     
-    manager.deleteFiles(FileCriteria.newInstance().setName(ArgFactory.parse("file1*")));
+    manager.deleteFiles(FileCriteria.newInstance().setName(ArgMatchers.parse("file1*")));
     
     verify(file1).delete();
   }
@@ -98,7 +98,7 @@ public class FileManagerImplTest {
     
     when(fileSystem.listFiles(any(File.class))).thenReturn(files);
     
-    List<FileInfo> fileInfos = manager.getFiles(FileCriteria.newInstance().setName(ArgFactory.parse("file1*")));
+    List<FileInfo> fileInfos = manager.getFiles(FileCriteria.newInstance().setName(ArgMatchers.parse("file1*")));
     
     assertEquals(1, fileInfos.size());
     

@@ -10,7 +10,7 @@ import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.Matcheable;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
 import org.sapia.corus.interop.Shutdown;
@@ -18,7 +18,7 @@ import org.sapia.ubik.util.Strings;
 
 /**
  * This class models an external process. An instance of this class actually
- * corresponds to a process started by a corus server.
+ * corresponds to a process started by a Corus server.
  * 
  * @author Yanick Duchesne
  */

@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.alert.AlertManager;
 import org.sapia.corus.client.services.deployer.event.DeploymentEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent;
 import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
@@ -26,6 +27,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
  * <li> {@link DeploymentEvent}
  * <li> {@link UndeploymentEvent}
  * <li> {@link ProcessKilledEvent}
+ * <li> {@link RollbackEvent}
  * </ul>
  * 
  * @author yduchesne
@@ -34,17 +36,17 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 @Bind(moduleInterface = AlertManager.class)
 public class AlertManagerImpl extends ModuleHelper implements AlertManager, Interceptor {
 
-  private static final int ALERT_SENDERS = 3;
-  private static final int DEFAULT_SMTP_PORT = 25;
+  private static final int    ALERT_SENDERS     = 3;
+  private static final int    DEFAULT_SMTP_PORT = 25;
   private static final String DEFAULT_SMTP_HOST = "localhost";
 
-  private String smtpHost = DEFAULT_SMTP_HOST;
-  private int smtpPort = DEFAULT_SMTP_PORT;
-  private String smtpPassword;
-  private List<String> recipientList;
-  private String sender;
-  private boolean enabled;
-  private MailSender mailSender;
+  private String        smtpHost = DEFAULT_SMTP_HOST;
+  private int           smtpPort = DEFAULT_SMTP_PORT;
+  private String        smtpPassword;
+  private List<String>  recipientList;
+  private String        sender;
+  private boolean       enabled;
+  private MailSender    mailSender;
 
   private ExecutorService alertSenders;
 
@@ -193,6 +195,24 @@ public class AlertManagerImpl extends ModuleHelper implements AlertManager, Inte
             subject(AlertLevel.INFO, "Distribution deployed"),
             AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.INFO).summary("Distribution deployed")
                 .field("Distribution", event.getDistribution().getName()).field("Version", event.getDistribution().getVersion()).build());
+      }
+    });
+  }
+  
+  public void onRollbackEvent(final RollbackEvent event) {
+    alertSenders.execute(new Runnable() {
+      @Override
+      public void run() {
+        sendAlert(
+            subject(AlertLevel.INFO, "Distribution rolled back"),
+            AlertBuilder.newInstance().serverContext(serverContext()).level(AlertLevel.INFO)
+                .summary("Distribution rolled back")
+                .field("Distribution", event.getDistribution().getName())
+                .field("Version", event.getDistribution().getVersion())
+                .field("Type", event.getType().name())
+                .field("Status", event.getStatus().name())
+                .build()
+        );
       }
     });
   }

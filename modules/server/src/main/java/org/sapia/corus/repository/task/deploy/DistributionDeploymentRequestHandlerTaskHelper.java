@@ -21,7 +21,7 @@ import org.sapia.corus.repository.task.SendExecConfigNotificationTask;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.CompositeTask;
 import org.sapia.corus.taskmanager.util.RunnableTask;
-import org.sapia.corus.util.CollectionUtil;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 
 /**
@@ -56,7 +56,7 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
         RunnableTask task = new DistributionRequestHandlerTask(deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()),
             new ArrayList<Endpoint>(entry.getValue()));
         toAddTo.add(task);
-        List<ExecConfig> execConfigsForDistribution = CollectionUtil.filterToArrayList(execConfigs, new Condition<ExecConfig>() {
+        List<ExecConfig> execConfigsForDistribution = Collects.filterToArrayList(execConfigs, new Condition<ExecConfig>() {
           @Override
           public boolean apply(ExecConfig item) {
             for (ProcessDef p : item.getProcesses()) {

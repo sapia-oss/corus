@@ -6,12 +6,13 @@ import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
+import org.sapia.corus.client.services.database.RevId;
 
 /**
  * This interface specifies a facade to the Corus {@link Configurator}
@@ -86,7 +87,7 @@ public interface ConfiguratorFacade {
    *          a {@link Set} of category matchers.
    * @return a {@link List} of {@link Property} instances.
    */
-  public Results<List<Property>> getAllProperties(PropertyScope scope, Set<Arg> categories, ClusterInfo cluster);
+  public Results<List<Property>> getAllProperties(PropertyScope scope, Set<ArgMatcher> categories, ClusterInfo cluster);
   
   /**
    * If the {@link PropertyScope#PROCESS} scope is specified, removes the specified process properties. If
@@ -98,12 +99,28 @@ public interface ConfiguratorFacade {
    * @param scope
    *          a {@link PropertyScope}
    * @param name
-   *          the {@link Arg} instance corresponding to the name(s) of the property or properties to remove.
+   *          the {@link ArgMatcher} instance corresponding to the name(s) of the property or properties to remove.
    * @param categories
-   *          a {@link Set} of {@link Arg} instances used for matching from which categories the property or
+   *          a {@link Set} of {@link ArgMatcher} instances used for matching from which categories the property or
    *          properties should be removed.
    */
-  public void removeProperty(PropertyScope scope, Arg name, Set<Arg> categories, ClusterInfo cluster);
+  public void removeProperty(PropertyScope scope, ArgMatcher name, Set<ArgMatcher> categories, ClusterInfo cluster);
+  
+  /**
+   * Archives the process properties.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void archiveProcessProperties(RevId revId, ClusterInfo cluster);
+  
+  /**
+   * Unarchives the process properties.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void unarchiveProcessProperties(RevId revId, ClusterInfo cluster);
 
   /**
    * Adds the given tag to the Corus server.
@@ -119,9 +136,11 @@ public interface ConfiguratorFacade {
    * 
    * @param tags
    *          a {@link Set} of tags.
+   * @param clearExisting 
+   *          if <code>true</code>, any existing tag in Corus will be deleted.
    * @param cluster
    */
-  public void addTags(Set<String> tags, ClusterInfo cluster);
+  public void addTags(Set<String> tags, boolean clearExisting, ClusterInfo cluster);
 
   /**
    * Removes the given tag from the Corus server.
@@ -145,5 +164,21 @@ public interface ConfiguratorFacade {
    * @return a {@link Results} holding tags.
    */
   public Results<Set<Tag>> getTags(ClusterInfo cluster);
+  
+  /**
+   * Archives the tags kept on the server-side.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void archiveTags(RevId revId, ClusterInfo cluster);
+  
+  /**
+   * Unarchives the tags corresponding to the given revision.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void unarchiveTags(RevId revId, ClusterInfo cluster);
 
 }

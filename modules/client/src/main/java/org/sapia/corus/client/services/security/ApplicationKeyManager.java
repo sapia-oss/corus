@@ -7,11 +7,11 @@ import java.io.ObjectOutput;
 import java.util.List;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -134,9 +134,9 @@ public interface ApplicationKeyManager extends java.rmi.Remote, Module {
   public static final String ROLE = ApplicationKeyManager.class.getName();
   
   /**
-   * @param appId an {@link Arg} instance corresponding to one or more application keys to remove.
+   * @param appId an {@link ArgMatcher} instance corresponding to one or more application keys to remove.
    */
-  public void removeAppKey(Arg appId);
+  public void removeAppKey(ArgMatcher appId);
 
   /**
    * @param appId an application ID to which to associate an application key.
@@ -156,11 +156,11 @@ public interface ApplicationKeyManager extends java.rmi.Remote, Module {
   public void addOrUpdateApplicationKey(String appId, String appKey, String role);
   
   /**
-   * @param appId an {@link Arg} instance corresponding to one or more application key information
+   * @param appId an {@link ArgMatcher} instance corresponding to one or more application key information
    * to remove.
    * @return a {@link List} of {@link AppKeyConfig}s matching the given criterion.
    */
-  public List<AppKeyConfig> getAppKeyConfig(Arg appId);
+  public List<AppKeyConfig> getAppKeyConfig(ArgMatcher appId);
 
   /**
    * Changes the application key associated to an existing application ID.

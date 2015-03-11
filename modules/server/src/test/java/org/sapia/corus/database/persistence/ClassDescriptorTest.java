@@ -3,8 +3,8 @@ package org.sapia.corus.database.persistence;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.client.services.db.persistence.NoSuchFieldException;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
 import org.sapia.corus.database.persistence.TestPersistentObject;
 
 public class ClassDescriptorTest {

@@ -17,10 +17,9 @@ import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.CollectionUtils;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -119,10 +118,10 @@ public class Http extends CorusCliCommand {
 
       Map<ServerAddress, Set<Tag>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
 
-      List<Arg> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT.getName(), new Func<Arg, String>() {
+      List<ArgMatcher> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT.getName(), new Func<ArgMatcher, String>() {
         @Override
-        public Arg call(String arg) {
-          return ArgFactory.parse(arg);
+        public ArgMatcher call(String arg) {
+          return ArgMatchers.parse(arg);
         }
       });
 
@@ -134,7 +133,7 @@ public class Http extends CorusCliCommand {
           List<PortRange> ranges = portRangesByNode.get(node);
           for (PortRange r : ranges) {
             if (isIncluded(portRangePatterns, r)
-                && hasProcessForRange(ctx, r, CollectionUtils.emptyIfNull(distsByNode.get(node)), CollectionUtils.emptyIfNull(tagsByNode.get(node)))) {
+                && hasProcessForRange(ctx, r, Collects.emptyIfNull(distsByNode.get(node)), Collects.emptyIfNull(tagsByNode.get(node)))) {
               HttpAddress address = (HttpAddress) node;
 
               for (Integer port : r.getActive()) {
@@ -234,11 +233,11 @@ public class Http extends CorusCliCommand {
     return false;
   }
 
-  static boolean isIncluded(List<Arg> portRangePatterns, PortRange r) {
+  static boolean isIncluded(List<ArgMatcher> portRangePatterns, PortRange r) {
     if (portRangePatterns.isEmpty()) {
       return true;
     } else {
-      for (Arg p : portRangePatterns) {
+      for (ArgMatcher p : portRangePatterns) {
         if (p.matches(r.getName())) {
           return true;
         }

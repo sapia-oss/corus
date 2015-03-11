@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.CorusSecurityException;
@@ -18,10 +18,10 @@ import org.sapia.corus.client.services.security.CorusSecurityException;
 public interface ApplicationKeyManagementFacade {
   
   /**
-   * @param appId an {@link Arg} instance corresponding to one or more application keys to remove.
+   * @param appId an {@link ArgMatcher} instance corresponding to one or more application keys to remove.
    * @param cluster a {@link ClusterInfo} indicating if this operation should be clustered.
    */
-  public void removeAppKey(Arg appId, ClusterInfo cluster);
+  public void removeAppKey(ArgMatcher appId, ClusterInfo cluster);
   
   /**
    * @param appId an application ID for which to create an application key.
@@ -34,12 +34,12 @@ public interface ApplicationKeyManagementFacade {
       throws CorusSecurityException;
 
   /**
-   * @param appId an {@link Arg} instance corresponding to one or more application key information
+   * @param appId an {@link ArgMatcher} instance corresponding to one or more application key information
    * to remove.
    * @param cluster a {@link ClusterInfo} indicating if this operation should be clustered.
    * @return a {@link List}s of {@link AppKeyConfig}s (one for each targeted hosts).
    */
-  public Results<List<AppKeyConfig>> getAppKeyInfos(Arg appId, ClusterInfo cluster);
+  public Results<List<AppKeyConfig>> getAppKeyInfos(ArgMatcher appId, ClusterInfo cluster);
   
   /**
    * Changes the application key associated to an existing application ID.

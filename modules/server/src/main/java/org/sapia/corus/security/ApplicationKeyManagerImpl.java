@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.security.AppSubject;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
 import org.sapia.corus.client.services.security.CorusSecurityException;
@@ -136,7 +136,7 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
   }
   
   @Override
-  public void removeAppKey(Arg appId) {
+  public void removeAppKey(ArgMatcher appId) {
     Set<String> toRemove = new HashSet<>();
     for(AppKeyConfig apk : appKeys) {
       if (appId.matches(apk.getKey())) {
@@ -149,7 +149,7 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
   }
  
   @Override
-  public List<AppKeyConfig> getAppKeyConfig(Arg appId) {
+  public List<AppKeyConfig> getAppKeyConfig(ArgMatcher appId) {
     List<AppKeyConfig> toReturn = new ArrayList<>();
     for(AppKeyConfig apk : appKeys) {
       if (appId.matches(apk.getKey())) {

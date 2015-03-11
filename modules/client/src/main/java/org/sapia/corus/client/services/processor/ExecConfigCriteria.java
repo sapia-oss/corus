@@ -4,8 +4,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 
 /**
  * A criteria implementation used to select {@link ExecConfig} instances.
@@ -19,16 +19,16 @@ public class ExecConfigCriteria implements Externalizable {
 
   public static final class Builder {
 
-    private Arg name;
+    private ArgMatcher name;
     private int backup = 0;
     
-    public Builder name(Arg name) {
+    public Builder name(ArgMatcher name) {
       this.name = name;
       return this;
     }
     
     public Builder name(String name) {
-      this.name = ArgFactory.exact(name);
+      this.name = ArgMatchers.exact(name);
       return this;
     }
     
@@ -38,13 +38,13 @@ public class ExecConfigCriteria implements Externalizable {
     }
     
     public Builder all() {
-      this.name = ArgFactory.any();
+      this.name = ArgMatchers.any();
       return this;
     }
     
     public ExecConfigCriteria build() {
       ExecConfigCriteria crit = new ExecConfigCriteria();
-      crit.name = ArgFactory.anyIfNull(name);
+      crit.name = ArgMatchers.anyIfNull(name);
       crit.backup = backup;
       return crit;
     }
@@ -53,14 +53,14 @@ public class ExecConfigCriteria implements Externalizable {
   
   // --------------------------------------------------------------------------
   
-  private Arg name;
+  private ArgMatcher name;
   private int backup;
   
-  public void setName(Arg name) {
+  public void setName(ArgMatcher name) {
     this.name = name;
   }
   
-  public Arg getName() {
+  public ArgMatcher getName() {
     return name;
   }
   
@@ -80,7 +80,7 @@ public class ExecConfigCriteria implements Externalizable {
   // Externalizable interface
   
   public void readExternal(java.io.ObjectInput in) throws java.io.IOException ,ClassNotFoundException {
-    name   = (Arg) in.readObject();
+    name   = (ArgMatcher) in.readObject();
     backup = in.readInt();
   }
   

@@ -14,14 +14,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
@@ -31,6 +32,8 @@ import org.sapia.corus.core.PropertyProvider;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -258,7 +261,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
   
   @Override
-  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories) {
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<ArgMatcher> categories) {
     if (scope == PropertyScope.PROCESS) {
       List<Property> propList = new ArrayList<>();
       if (categories.isEmpty()) {
@@ -268,7 +271,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
         }
       } else {
         for (String c : processPropertiesByCategory.keySet()) {
-          for (Arg matcher : categories) {
+          for (ArgMatcher matcher : categories) {
             if (matcher.matches(c)) {
                fillPropertyList(propList, store(c, false), c);
             }
@@ -284,12 +287,12 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
   
   @Override
-  public void removeProperty(PropertyScope scope, Arg pattern, Set<Arg> categories) {
+  public void removeProperty(PropertyScope scope, ArgMatcher pattern, Set<ArgMatcher> categories) {
     if (scope == PropertyScope.PROCESS) {
       if (categories.isEmpty()) {
         doRemoveProperties(scope, null, store(PropertyScope.PROCESS), pattern);
       } else {
-        for (Arg c : categories) {
+        for (ArgMatcher c : categories) {
           for (String k : processPropertiesByCategory.keySet()) {
             if (c.matches(k)) {
               PropertyStore store = processPropertiesByCategory.get(k);
@@ -302,6 +305,22 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
       }
     } else {
       doRemoveProperties(PropertyScope.SERVER, null, store(PropertyScope.SERVER), pattern);
+    }
+  }
+  
+  @Override
+  public void archiveProcessProperties(RevId revId) {
+    store(PropertyScope.PROCESS).archive(revId);
+    for (Map.Entry<String, PropertyStore> store : processPropertiesByCategory.entrySet()) {
+      store.getValue().archive(revId);
+    }
+  }
+  
+  @Override
+  public void unarchiveProcessProperties(RevId revId) {
+    store(PropertyScope.PROCESS).unarchive(revId);
+    for (Map.Entry<String, PropertyStore> store : processPropertiesByCategory.entrySet()) {
+      store.getValue().unarchive(revId);
     }
   }
   
@@ -335,7 +354,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
 
   @Override
-  public void removeTag(Arg tag) {
+  public void removeTag(ArgMatcher tag) {
     for (Tag t : getTags()) {
       if (tag.matches(t.getValue())) {
         removeTag(t.getValue());
@@ -344,7 +363,10 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
 
   @Override
-  public void addTags(Set<String> tags) {
+  public void addTags(Set<String> tags, boolean clearExisting) {
+    if (clearExisting) {
+      this.tags.clear();
+    }
     for (String t : tags) {
       if (t != null) {
         addTag(t);
@@ -360,6 +382,22 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
         addTag(t.getValue());
       }
     }
+  }
+  
+  @Override
+  public void archiveTags(RevId revId) {
+    tags.clearArchive(revId);
+    tags.archive(revId, Collects.convertAsSet(tags.values(), new Func<String, ConfigProperty>() {
+      @Override
+      public String call(ConfigProperty arg) {
+        return arg.getValue();
+      }
+    }));
+  }
+  
+  @Override
+  public void unarchiveTags(RevId revId) {
+    tags.unarchive(revId);
   }
 
   // --------------------------------------------------------------------------
@@ -411,7 +449,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     }
   }
   
-  private void doRemoveProperties(PropertyScope scope, String category, PropertyStore store, Arg pattern) {
+  private void doRemoveProperties(PropertyScope scope, String category, PropertyStore store, ArgMatcher pattern) {
     for (String name : store.propertyNames()) {
       if (pattern.matches(name)) {
         String value = store.getProperty(name);

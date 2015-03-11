@@ -6,9 +6,10 @@ import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.ArgFactory;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.database.HashDbMap;
+import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.database.InMemoryDbMap;
 
 public class PropertyStoreTest {
   
@@ -16,7 +17,7 @@ public class PropertyStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    store = new PropertyStore(new HashDbMap<String, ConfigProperty>(new ClassDescriptor<ConfigProperty>(ConfigProperty.class)));
+    store = new PropertyStore(new InMemoryDbMap<String, ConfigProperty>(new ClassDescriptor<ConfigProperty>(ConfigProperty.class)));
   }
 
   @Test
@@ -37,7 +38,7 @@ public class PropertyStoreTest {
     store.addProperty("test1", "value1");
     store.addProperty("test2", "value2");
     store.addProperty("foo", "value");
-    store.removeProperty(ArgFactory.parse("test*"));
+    store.removeProperty(ArgMatchers.parse("test*"));
     assertEquals(null, store.getProperty("test1"));
     assertEquals(null, store.getProperty("test2"));
     assertEquals("value", store.getProperty("foo"));
@@ -48,10 +49,36 @@ public class PropertyStoreTest {
     store.addProperty("test1", "value1");
     store.addProperty("test2", "value2");
     Properties props = store.getProperties();
-    assertEquals("value1", store.getProperty("test1"));
-    assertEquals("value2", store.getProperty("test2"));
-
+    assertEquals("value1", props.getProperty("test1"));
+    assertEquals("value2", props.getProperty("test2"));
+  }
+  
+  @Test
+  public void testArchive() {
+    store.addProperty("test1", "value1");
+    store.addProperty("test2", "value2");
     
+    store.archive(RevId.valueOf("rev"));
+    store.removeProperty(ArgMatchers.parse("*"));
+    assertEquals(0, store.getProperties().size());
+    
+    store.unarchive(RevId.valueOf("rev"));
+    assertEquals(2, store.getProperties().size());
   }
 
+  
+  @Test
+  public void testArchive_clear_previous_rev() {
+    store.addProperty("test1", "value1");
+    store.archive(RevId.valueOf("rev"));
+    store.removeProperty(ArgMatchers.parse("*"));
+    
+    store.addProperty("test2", "value2");
+    store.archive(RevId.valueOf("rev"));
+    store.unarchive(RevId.valueOf("rev"));
+    
+    assertEquals(1, store.getProperties().size());
+    assertEquals("value2", store.getProperty("test2"));
+
+  }
 }

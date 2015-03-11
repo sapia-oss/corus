@@ -19,6 +19,9 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent.Status;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent.Type;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -66,7 +69,9 @@ public class RollbackTask extends Task<Void, Distribution> implements Throttleab
     
     try {
       doRunScript(fs, scriptBaseDir, scriptFile, dist, ctx);
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.USER, Status.SUCCESS));
     } catch (Exception e) {
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.USER, Status.FAILURE));
       ctx.error("Error caught while executing rollback script", e);
     }
     

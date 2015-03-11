@@ -14,7 +14,7 @@ import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 
@@ -66,7 +66,7 @@ public class CorusCommandFactory extends ReflectCommandFactory {
    * 
    * @param aliasNamePattern the pattern to use for matching aliases that should be removed.
    */
-  public void removeAlias(final Arg aliasNamePattern) {
+  public void removeAlias(final ArgMatcher aliasNamePattern) {
     Collection<String> toRemove = Collects.filterAsList(this.aliases.keySet(), new Condition<String>() {
       @Override
       public boolean apply(String item) {

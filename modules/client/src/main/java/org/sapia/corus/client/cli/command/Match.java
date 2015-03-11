@@ -15,7 +15,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CorusConsoleOutput;
 import org.sapia.corus.client.cli.Interpreter;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.CompositePattern;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
@@ -69,7 +69,7 @@ public class Match extends NoOptionCommand {
     CompositePattern pattern = CompositePattern.newInstance();
     String[] patternValues   = StringUtils.split(patternArg.getName(), ",");
     for (String p : patternValues) {
-      pattern.add(new Matcheable.DefaultPattern(ArgFactory.parse(p)));
+      pattern.add(new Matcheable.DefaultPattern(ArgMatchers.parse(p)));
     }
     String  toExecute        = remaining.toString();
     

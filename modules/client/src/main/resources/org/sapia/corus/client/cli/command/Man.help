@@ -9,11 +9,14 @@
     <p>- If no command name is given, this help is displayed.</p>
   </section>
   <section title="Available Commands">
-    <p>Distribution Management:</p>
+    <p>Distributions/Deployment:</p>
     <p/>
     <p>- ls</p>    
     <p>- deploy</p>
     <p>- undeploy</p>    
+    <p>- rollback</p>    
+    <p>- archive</p>
+    <p>- unarchive</p>
     <p/>  
     <p>Process Management:</p>
     <p/>
@@ -59,12 +62,6 @@
     <p>- cmd</p>
     <p>- dir</p>
     <p>- env</p>
-    <p>- pwd</p>
-    <p/>
-    <p>Operating system:</p>
-    <p/>
-    <p>- cmd</p>
-    <p>- dir</p>
     <p>- pwd</p>
     <p/>
     <p>Misc:</p>

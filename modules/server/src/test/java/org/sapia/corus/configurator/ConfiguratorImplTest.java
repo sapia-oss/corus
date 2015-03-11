@@ -14,18 +14,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.Type;
-import org.sapia.corus.database.HashDbMap;
+import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -61,11 +61,11 @@ public class ConfiguratorImplTest {
       @Override
       public <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType,
           String name) {
-        return new HashDbMap<>(new ClassDescriptor<>(valueType));
+        return new InMemoryDbMap<>(new ClassDescriptor<>(valueType));
       }
     };
     
-    internalConfig = new HashDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    internalConfig = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
     
     configurator = new ConfiguratorImpl();
     configurator.setServerProperties(new PropertyStore(serverProperties));
@@ -183,7 +183,7 @@ public class ConfiguratorImplTest {
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
     
-    configurator.removeProperty(PropertyScope.PROCESS, ArgFactory.any(), new HashSet<Arg>());
+    configurator.removeProperty(PropertyScope.PROCESS, ArgMatchers.any(), new HashSet<ArgMatcher>());
     
     verify(processProperties).remove(eq("test1"));
     verify(processProperties).remove(eq("test2"));
@@ -197,7 +197,7 @@ public class ConfiguratorImplTest {
     configurator.store("cat2", true).addProperty("test", "value");
 
     assertEquals("value", configurator.store("cat2", false).getProperty("test"));
-    configurator.removeProperty(PropertyScope.PROCESS, ArgFactory.any(), Collects.arrayToSet(ArgFactory.parse("cat1")));
+    configurator.removeProperty(PropertyScope.PROCESS, ArgMatchers.any(), Collects.arrayToSet(ArgMatchers.parse("cat1")));
     assertEquals("value", configurator.store("cat2", false).getProperty("test"));
 
     verify(processProperties, never()).remove(eq("test"));
@@ -213,7 +213,7 @@ public class ConfiguratorImplTest {
     when(serverProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(serverProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
     
-    configurator.removeProperty(PropertyScope.SERVER, ArgFactory.any(), new HashSet<Arg>());
+    configurator.removeProperty(PropertyScope.SERVER, ArgMatchers.any(), new HashSet<ArgMatcher>());
     
     verify(serverProperties).remove(eq("test1"));
     verify(serverProperties).remove(eq("test2"));
@@ -354,7 +354,7 @@ public class ConfiguratorImplTest {
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
-    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, new HashSet<Arg>());
+    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>());
     
     assertTrue(props.contains(new Property("test1", "value1", null)));
     assertTrue(props.contains(new Property("test2", "value2", null)));
@@ -373,7 +373,7 @@ public class ConfiguratorImplTest {
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
-    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, Collects.arrayToSet(ArgFactory.parse("cat2")));
+    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, Collects.arrayToSet(ArgMatchers.parse("cat2")));
     
     assertFalse(props.contains(new Property("test1", "value1", null)));
     assertFalse(props.contains(new Property("test2", "value2", null)));
@@ -424,21 +424,33 @@ public class ConfiguratorImplTest {
   @Test
   public void testRemoveTagArg() {
     when(tagsProperties.keys()).thenReturn(Collects.arrayToList("test").iterator());
-    configurator.removeTag(ArgFactory.any());
+    configurator.removeTag(ArgMatchers.any());
     verify(tagsProperties).remove("test");
   }
 
   @Test
   public void testAddTags() {
-    configurator.addTags(Collects.arrayToSet("test1", "test2"));
+    configurator.addTags(Collects.arrayToSet("test1", "test2"), false);
     verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
     verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));
   }
   
   @Test
-  public void testReplaceTags() {
+  public void testAddTags_clear_existing() {
+    configurator.addTags(Collects.arrayToSet("test1", "test2"), false);
+    configurator.addTags(Collects.arrayToSet("test3", "test4"), true);
+
+    verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
+    verify(tagsProperties).put("test2", new ConfigProperty("test2", "test2"));
+    verify(tagsProperties).put("test3", new ConfigProperty("test3", "test3"));
+    verify(tagsProperties).put("test4", new ConfigProperty("test4", "test4"));
+    verify(tagsProperties).clear();
+  }
+  
+  @Test
+  public void testRenameTags() {
     when(tagsProperties.get("test1")).thenReturn(new ConfigProperty("test1", "test1"));
-    configurator.addTags(Collects.arrayToSet("test1"));
+    configurator.addTags(Collects.arrayToSet("test1"), false);
     configurator.renameTags(Collects.arrayToList(new NameValuePair("test1", "test2")));
     verify(tagsProperties).put("test1", new ConfigProperty("test1", "test1"));
     verify(tagsProperties).remove("test1");
