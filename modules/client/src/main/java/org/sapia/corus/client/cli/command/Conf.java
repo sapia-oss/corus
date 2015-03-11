@@ -251,7 +251,7 @@ public class Conf extends CorusCliCommand {
       }
     } else if (op == Op.MERGE) {
       Properties processProps = new Properties();
-      Results<List<Property>> propResults = ctx.getCorus().getConfigFacade().getAllProperties(PropertyScope.PROCESS, new ClusterInfo(false));
+      Results<List<Property>> propResults = ctx.getCorus().getConfigFacade().getAllProperties(PropertyScope.PROCESS, categoryArgSet(ctx), new ClusterInfo(false));
       for (Result<List<Property>> r : propResults) {
         for (Property p : r.getData()) {
           processProps.setProperty(p.getName(), p.getValue());
@@ -551,15 +551,6 @@ public class Conf extends CorusCliCommand {
     return new HashSet<>(0);
   }
   
-  private List<String> categoryList(CliContext ctx) {
-    if (ctx.getCommandLine().containsOption(OPT_CATEGORY.getName(), true)) {
-      return Collects.arrayToList(
-          StringUtils.split(ctx.getCommandLine().getOpt(OPT_CATEGORY.getName()).getValue(), ",")
-      );
-    }
-    return new ArrayList<String>(0);
-  }
-  
   private Results<List<Property>> doGetResults(CliContext ctx, PropertyScope scope) {
     if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
       CompositePattern pattern = CompositePattern.newInstance();
@@ -569,13 +560,13 @@ public class Conf extends CorusCliCommand {
       }
       ctx.getCorus().getContext().setResultFilter(pattern);
       try {
-        Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categoryList(ctx), getClusterInfo(ctx));
+        Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
         return Sorting.sortList(results, Property.class, ctx.getSortSwitches());
       } finally {
         ctx.getCorus().getContext().unsetResultFilter();
       }
     } else {
-      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getProperties(scope, categoryList(ctx), getClusterInfo(ctx));
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
       results = Sorting.sortList(results, Property.class, ctx.getSortSwitches());
       return results;
     }

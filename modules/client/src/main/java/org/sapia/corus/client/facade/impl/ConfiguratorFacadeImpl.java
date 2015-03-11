@@ -33,9 +33,9 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   
   @Override
   public Results<List<Property>> getAllProperties(PropertyScope scope,
-      ClusterInfo cluster) {
+      Set<Arg> categories, ClusterInfo cluster) {
     Results<List<Property>> results = new Results<List<Property>>();
-    proxy.getAllPropertiesList(scope);
+    proxy.getAllPropertiesList(scope, categories);
     invoker.invokeLenient(results, cluster);
     return results;
   }

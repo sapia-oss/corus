@@ -258,13 +258,24 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
   
   @Override
-  public List<Property> getAllPropertiesList(PropertyScope scope) {
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories) {
     if (scope == PropertyScope.PROCESS) {
       List<Property> propList = new ArrayList<>();
-      fillPropertyList(propList, store(PropertyScope.PROCESS), null);
-      for (String c : processPropertiesByCategory.keySet()) {
-        fillPropertyList(propList, store(c, false), c);
+      if (categories.isEmpty()) {
+        fillPropertyList(propList, store(PropertyScope.PROCESS), null);
+        for (String c : processPropertiesByCategory.keySet()) {
+          fillPropertyList(propList, store(c, false), c);
+        }
+      } else {
+        for (String c : processPropertiesByCategory.keySet()) {
+          for (Arg matcher : categories) {
+            if (matcher.matches(c)) {
+               fillPropertyList(propList, store(c, false), c);
+            }
+          }
+        }
       }
+   
       Collections.sort(propList);
       return propList;
     } else {

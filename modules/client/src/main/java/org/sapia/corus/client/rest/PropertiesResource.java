@@ -3,6 +3,7 @@ package org.sapia.corus.client.rest;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
@@ -13,6 +14,7 @@ import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 
 /**
@@ -73,19 +75,15 @@ public class PropertiesResource {
     
     final Arg propNameFilter = ArgFactory.parse(context.getRequest().getValue("p", "*").asString());
     final Arg catFilter      = category.isNull() ? ArgFactory.any() : ArgFactory.parse(category.asString()); 
-    
+    Set<Arg> catFilters = Collects.arrayToSet(catFilter);
     Results<List<Property>> results = context.getConnector()
-        .getConfigFacade().getAllProperties(scope, cluster);
+        .getConfigFacade().getAllProperties(scope, catFilters, cluster);
     results = results.filter(new Func<List<Property>, List<Property>>() {
       @Override
       public List<Property> call(List<Property> toFilter) {
         List<Property> toReturn = new ArrayList<>();
         for (Property p : toFilter) {
-          if (category.isSet()) {
-            if (propNameFilter.matches(p.getName()) && p.getCategory().isSet() && catFilter.matches(p.getCategory().get()))  {
-              toReturn.add(p);
-            }
-          } else if (propNameFilter.matches(p.getName())) {
+          if (propNameFilter.matches(p.getName())) {
             toReturn.add(p);
           }
         }

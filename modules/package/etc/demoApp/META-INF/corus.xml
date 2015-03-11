@@ -33,7 +33,7 @@
     </java>
   </process>
   
-  <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+  <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true"  propertyCategories="noop">
     <java mainClass="org.sapia.corus.examples.NoopApplication"
           profile="test" vmType="server">
       <xoption  name="ms" value="16M" />

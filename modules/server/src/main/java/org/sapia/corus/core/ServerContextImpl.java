@@ -128,11 +128,7 @@ public class ServerContextImpl implements ServerContext {
 
   @Override
   public Properties getProcessProperties(List<String> categories) throws IOException {
-    Properties processProps = new Properties();
-    // copying configurator props to process props
-    Properties configuratorProps = services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS, categories);
-    PropertiesUtil.copy(configuratorProps, processProps);
-    return processProps;
+    return services.lookup(Configurator.class).getProperties(PropertyScope.PROCESS, categories);
   }
 
   void setHostInfo(CorusHost hostInfo) {

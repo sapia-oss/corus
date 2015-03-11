@@ -67,6 +67,10 @@ public class ProcessCheckTask extends Task<Void, Void> {
               BackgroundTaskConfig.create().setExecDelay(processorConf.getKillIntervalMillis())
                   .setExecInterval(processorConf.getKillIntervalMillis()));
         }
+      } else {
+        ctx.debug(String.format("Process %s is alive. Last poll: %s", 
+            proc, new Date(proc.getLastAccess()))
+        );
       }
     }
 

@@ -130,11 +130,16 @@ public interface Configurator extends java.rmi.Remote, Module {
   public List<Property> getPropertiesList(PropertyScope scope, List<String> categories);
   
   /**
+   * This method returns all the properties, provided they're matched by the given category matchers 
+   * (this method does not do any form of override, as in the {@link #getPropertiesList(PropertyScope, List)}
+   * method.
+   * 
    * @param scope
    *          a {@link PropertyScope}.
-   * @return the {@link List} of all {@link Property} instances, regardless of category.
+   * @param categories the set of category matchers to use.
+   * @return the {@link List} of all {@link Property} instances, matched by the given category matchers.
    */
-  public List<Property> getAllPropertiesList(PropertyScope scope);
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories);
   
   /**
    * @param scope

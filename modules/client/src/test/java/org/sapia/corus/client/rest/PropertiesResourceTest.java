@@ -3,6 +3,7 @@ package org.sapia.corus.client.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
+import org.sapia.corus.client.common.Arg;
+
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
@@ -78,7 +81,7 @@ public class PropertiesResourceTest {
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getConfigFacade()).thenReturn(confs);
-    when(confs.getAllProperties(any(PropertyScope.class), any(ClusterInfo.class)))
+    when(confs.getAllProperties(any(PropertyScope.class), anySetOf(Arg.class), any(ClusterInfo.class)))
       .thenReturn(results);
     when(connector.getContext()).thenReturn(connection);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
@@ -99,18 +102,6 @@ public class PropertiesResourceTest {
       }
     }
   }
-  
-  @Test
-  public void testGetPropertiesForCluster_category() {
-    when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "cat-0"));
-    String response = resource.getPropertiesForCluster(new RequestContext(request, connector));
-    JSONArray json = JSONArray.fromObject(response);
-    for (int i = 0; i < json.size(); i++) {
-      JSONArray properties = json.getJSONObject(i).getJSONArray("data");
-      assertEquals(1, properties.size());
-      assertEquals("cat-0", properties.getJSONObject(0).getString("category"));
-    }
-  }
 
   @Test
   public void testGetPropertiesForHost() {
@@ -122,18 +113,6 @@ public class PropertiesResourceTest {
       for (int j = 0; j < properties.size(); j++) {
         doCheckProperty(properties.getJSONObject(j), count++);
       }
-    }
-  }
-  
-  @Test
-  public void testGetPropertiesForHost_category() {
-    when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "cat-0"));
-    String response = resource.getPropertiesForHost(new RequestContext(request, connector));
-    JSONArray json = JSONArray.fromObject(response);
-    for (int i = 0; i < json.size(); i++) {
-      JSONArray properties = json.getJSONObject(i).getJSONArray("data");
-      assertEquals(1, properties.size());
-      assertEquals("cat-0", properties.getJSONObject(0).getString("category"));
     }
   }
   

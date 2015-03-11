@@ -354,11 +354,30 @@ public class ConfiguratorImplTest {
     when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
     when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
 
-    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS);
+    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, new HashSet<Arg>());
     
     assertTrue(props.contains(new Property("test1", "value1", null)));
     assertTrue(props.contains(new Property("test2", "value2", null)));
     assertTrue(props.contains(new Property("test3", "value3", "cat1")));
+    assertTrue(props.contains(new Property("test4", "value4", "cat2")));
+
+  }
+  
+  @Test
+  public void testGetProcessAllPropertyList_for_categories() {
+    
+    configurator.store("cat1", true).addProperty("test3", "value3");
+    configurator.store("cat2", true).addProperty("test4", "value4");
+    
+    when(processProperties.keys()).thenReturn(Collects.arrayToList("test1", "test2").iterator());
+    when(processProperties.get("test1")).thenReturn(new ConfigProperty("test1", "value1"));
+    when(processProperties.get("test2")).thenReturn(new ConfigProperty("test2", "value2"));
+
+    List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, Collects.arrayToSet(ArgFactory.parse("cat2")));
+    
+    assertFalse(props.contains(new Property("test1", "value1", null)));
+    assertFalse(props.contains(new Property("test2", "value2", null)));
+    assertFalse(props.contains(new Property("test3", "value3", "cat1")));
     assertTrue(props.contains(new Property("test4", "value4", "cat2")));
 
   }

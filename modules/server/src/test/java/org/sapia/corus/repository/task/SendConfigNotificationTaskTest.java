@@ -1,6 +1,8 @@
 package org.sapia.corus.repository.task;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +13,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.Arg;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
@@ -36,7 +39,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   
   @Test
   public void testWithTagsAndProperties() throws Throwable {
-    when(configurator.getAllPropertiesList(PropertyScope.PROCESS)).thenReturn(propList);
+    when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(Arg.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
     verify(cluster).send(any(ClusterNotification.class));
@@ -46,7 +49,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   public void testWithEmptyTagsAndProperties() throws Throwable {
     propList.clear();
     tags.clear();
-    when(configurator.getAllPropertiesList(PropertyScope.PROCESS)).thenReturn(propList);
+    when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(Arg.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
     verify(cluster, never()).send(any(ClusterNotification.class));
@@ -55,7 +58,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   @Test
   public void testWithEmptyTags() throws Throwable {
     tags.clear();
-    when(configurator.getAllPropertiesList(PropertyScope.PROCESS)).thenReturn(propList);
+    when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(Arg.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
     verify(cluster).send(any(ClusterNotification.class));
@@ -64,7 +67,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   @Test
   public void testWithEmptyProperties() throws Throwable {
     propList.clear();
-    when(configurator.getAllPropertiesList(PropertyScope.PROCESS)).thenReturn(propList);
+    when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(Arg.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
     verify(cluster).send(any(ClusterNotification.class));

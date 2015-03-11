@@ -483,6 +483,13 @@ public class Process extends AbstractPersistent<String, Process>
   public void touch() {
     lastAccess = System.currentTimeMillis();
   }
+  
+  @Override
+  public void recycle() {
+    touch();
+    creationTime = System.currentTimeMillis();
+    super.recycle();
+  }
 
   /**
    * @return this instance's {@link LifeCycleStatus}.

@@ -1,6 +1,8 @@
 package org.sapia.corus.processor.task;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.os.OsModule;
@@ -179,13 +181,18 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
 
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
         if ((System.currentTimeMillis() - proc.getCreationTime()) > procConfig.getRestartIntervalMillis()) {
-          ctx.warn(String.format("Restarting process: %s", proc));
+          ctx.warn(String.format("Restarting process: %s. Created at %s - min running time (secs): %s", 
+              proc, new Date(proc.getCreationTime()), 
+              TimeUnit.SECONDS.convert(procConfig.getRestartIntervalMillis(), TimeUnit.MILLISECONDS))
+          );
           PerformProcessRestartTask restartProcess = new PerformProcessRestartTask();
           ctx.getTaskManager().executeAndWait(restartProcess, proc).get();
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, true));
         } else {
-          ctx.debug(String.format("Restart interval (millis): %s", procConfig.getRestartIntervalMillis()));
-          ctx.warn("Process will not be restarted; not enough time since last restart");
+          ctx.debug(String.format("Restart interval (secs): %s", 
+              TimeUnit.SECONDS.convert(procConfig.getRestartIntervalMillis(), TimeUnit.MILLISECONDS)));
+          ctx.warn(String.format("Process will not be restarted; not enough time since last restart at: %s", 
+              new Date(proc.getCreationTime())));
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
         }
       } else {

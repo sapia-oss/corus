@@ -5,7 +5,9 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import org.sapia.corus.client.common.Arg;
 import java.util.Properties;
 
 import org.sapia.corus.client.services.configurator.Configurator;
@@ -76,7 +78,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     responseStream.println("<html><title>Corus Configurator</title><head>" + HttpExtensionManager.STYLE_HEADER + "</head><body>");
 
     responseStream.println("<h3>Process Properties</h3>");
-    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.PROCESS), responseStream);
+    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.PROCESS, new HashSet<Arg>()), responseStream);
     responseStream.println("<br/>");
 
     responseStream.println("<h3>Server Properties</h3>");
@@ -84,7 +86,7 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     responseStream.println("<br/>");
     
     responseStream.println("<h3>Stored Server Properties</h3>");
-    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.SERVER), responseStream);
+    generatePropertiesTable(configurator.getAllPropertiesList(PropertyScope.SERVER, new HashSet<Arg>()), responseStream);
     responseStream.println("<br/>");
 
     responseStream.println("<h3>Tag Configuration</h3>");

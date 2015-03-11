@@ -82,9 +82,11 @@ public interface ConfiguratorFacade {
    * 
    * @param scope
    *          a {@link PropertyScope}
+   * @param categories
+   *          a {@link Set} of category matchers.
    * @return a {@link List} of {@link Property} instances.
    */
-  public Results<List<Property>> getAllProperties(PropertyScope scope, ClusterInfo cluster);
+  public Results<List<Property>> getAllProperties(PropertyScope scope, Set<Arg> categories, ClusterInfo cluster);
   
   /**
    * If the {@link PropertyScope#PROCESS} scope is specified, removes the specified process properties. If

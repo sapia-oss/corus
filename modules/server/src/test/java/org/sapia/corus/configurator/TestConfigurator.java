@@ -53,7 +53,7 @@ public class TestConfigurator implements Configurator {
   }
  
   @Override
-  public List<Property> getAllPropertiesList(PropertyScope scope) {
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories) {
     Properties props = props(scope);
     List<Property> pairs = new ArrayList<Property>();
     for (String n : props.stringPropertyNames()) {
