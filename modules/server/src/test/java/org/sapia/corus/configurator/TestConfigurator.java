@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
+import org.sapia.corus.client.services.database.RevId;
 
 public class TestConfigurator implements Configurator {
 
@@ -39,7 +40,7 @@ public class TestConfigurator implements Configurator {
   }
 
   @Override
-  public void addTags(Set<String> tags) {
+  public void addTags(Set<String> tags, boolean clearExisting) {
   }
 
   @Override
@@ -53,7 +54,7 @@ public class TestConfigurator implements Configurator {
   }
  
   @Override
-  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories) {
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<ArgMatcher> categories) {
     Properties props = props(scope);
     List<Property> pairs = new ArrayList<Property>();
     for (String n : props.stringPropertyNames()) {
@@ -88,11 +89,11 @@ public class TestConfigurator implements Configurator {
   }
   
   @Override
-  public void removeProperty(PropertyScope scope, Arg name, Set<Arg> categories) {
+  public void removeProperty(PropertyScope scope, ArgMatcher name, Set<ArgMatcher> categories) {
   }
 
   @Override
-  public void removeTag(Arg tag) {
+  public void removeTag(ArgMatcher tag) {
   }
 
   @Override
@@ -101,7 +102,22 @@ public class TestConfigurator implements Configurator {
   
   @Override
   public void renameTags(List<NameValuePair> tags) {
-
+  }
+  
+  @Override
+  public void archiveProcessProperties(RevId revId) {
+  }
+  
+  @Override
+  public void unarchiveProcessProperties(RevId revId) {
+  }
+  
+  @Override
+  public void archiveTags(RevId revId) {
+  }
+  
+  @Override
+  public void unarchiveTags(RevId revId) {
   }
   
   private Properties props(PropertyScope scope) {

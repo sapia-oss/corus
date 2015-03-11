@@ -6,8 +6,9 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.services.database.RevId;
 
 /**
  * This interface specifies configuration behavior: it supports managing
@@ -139,7 +140,7 @@ public interface Configurator extends java.rmi.Remote, Module {
    * @param categories the set of category matchers to use.
    * @return the {@link List} of all {@link Property} instances, matched by the given category matchers.
    */
-  public List<Property> getAllPropertiesList(PropertyScope scope, Set<Arg> categories);
+  public List<Property> getAllPropertiesList(PropertyScope scope, Set<ArgMatcher> categories);
   
   /**
    * @param scope
@@ -149,7 +150,21 @@ public interface Configurator extends java.rmi.Remote, Module {
    * @param categories 
    *          the {@link Set} of category matchers for which to remove the corresponding properties.
    */
-  public void removeProperty(PropertyScope scope, Arg name, Set<Arg> categories);
+  public void removeProperty(PropertyScope scope, ArgMatcher name, Set<ArgMatcher> categories);
+
+  /**
+   * Archives all process properties.
+   * 
+   * @param revID the revision ID to use when archiving.
+   */
+  public void archiveProcessProperties(RevId revId);
+  
+  /**
+   * Unarchives all process properties.
+   * 
+   * @param revId the ID of the revision to unarchive.
+   */
+  public void unarchiveProcessProperties(RevId revId);
   
   // --------------------------------------------------------------------------
 
@@ -166,8 +181,10 @@ public interface Configurator extends java.rmi.Remote, Module {
    * 
    * @param tags
    *          a {@link Set} of tags.
+   * @param clearExisting
+   *          <code>true</code> if the current tags should be deleted.
    */
-  public void addTags(Set<String> tags);
+  public void addTags(Set<String> tags, boolean clearExisting);
 
   /**
    * Replaces the tags corresponding to the names in the given name-value pairs
@@ -191,9 +208,9 @@ public interface Configurator extends java.rmi.Remote, Module {
    * Removes the tags matching the given argument from this instance.
    * 
    * @param tag
-   *          a {@link Arg} corresponding to the tags to remove.
+   *          a {@link ArgMatcher} corresponding to the tags to remove.
    */
-  public void removeTag(Arg tag);
+  public void removeTag(ArgMatcher tag);
 
   /**
    * @return a {@link Set} of {@link Tag}s corresponding to the tags held by
@@ -205,4 +222,18 @@ public interface Configurator extends java.rmi.Remote, Module {
    * Clears all the tags held by this instance.
    */
   public void clearTags();
+  
+  /**
+   * Archives all tags.
+   * 
+   * @param revID the revision ID to use when archiving.
+   */
+  public void archiveTags(RevId revId);
+  
+  /**
+   * Unarchives all tags.
+   * 
+   * @param revId the ID of the revision to unarchive.
+   */
+  public void unarchiveTags(RevId revId);
 }

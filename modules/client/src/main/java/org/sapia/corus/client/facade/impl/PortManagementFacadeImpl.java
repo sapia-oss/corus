@@ -4,12 +4,13 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.PortManagementFacade;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 
@@ -42,14 +43,25 @@ public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implemen
 
   @Override
   public void releasePortRange(String rangeName, ClusterInfo cluster) {
-    proxy.releasePortRange(ArgFactory.parse(rangeName));
+    proxy.releasePortRange(ArgMatchers.parse(rangeName));
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
   public void removePortRange(String name, boolean force, ClusterInfo cluster) throws PortActiveException {
-    proxy.removePortRange(ArgFactory.parse(name), force);
+    proxy.removePortRange(ArgMatchers.parse(name), force);
     invoker.invokeLenient(void.class, cluster);
   }
-
+  
+  @Override
+  public void archive(RevId revId, ClusterInfo cluster) {
+    proxy.archive(revId);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
+  public void unarchive(RevId revId, ClusterInfo cluster) {
+    proxy.unarchive(revId);
+    invoker.invokeLenient(void.class, cluster);
+  }
 }

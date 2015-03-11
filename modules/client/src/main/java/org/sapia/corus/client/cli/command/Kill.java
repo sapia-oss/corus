@@ -13,6 +13,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -27,7 +28,7 @@ public class Kill extends CorusCliCommand {
 
   private static final long RETRY_PAUSE = 2000;
   
-  protected boolean suspend;
+  protected KillPreferences prefs;
 
   public static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
   public static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
@@ -37,13 +38,14 @@ public class Kill extends CorusCliCommand {
       WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
   );
   
-  private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 60000;
+  private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 120000;
 
   protected Kill(boolean suspend) {
-    this.suspend = suspend;
+    this.prefs = KillPreferences.newInstance().setSuspend(true);
   }
 
   public Kill() {
+    this.prefs = KillPreferences.newInstance().setSuspend(false);
   }
   
   @Override
@@ -75,7 +77,7 @@ public class Kill extends CorusCliCommand {
       ProcessCriteria criteria = ProcessCriteria.builder().distribution(WILD_CARD).version(WILD_CARD).build();
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
       ClusterInfo cluster = getClusterInfo(ctx);
-      if (suspend) {
+      if (prefs.isSuspend()) {
         ctx.getCorus().getProcessorFacade().suspend(criteria, prefs, cluster);
       } else {
         ctx.getCorus().getProcessorFacade().kill(criteria, prefs, cluster);
@@ -142,7 +144,7 @@ public class Kill extends CorusCliCommand {
 
       ctx.getConsole().println("Proceeding to kill...");
       MatchCompletionHook completion = new MatchCompletionHook(criteria);
-      if (suspend) {
+      if (prefs.isSuspend()) {
         ctx.getCorus().getProcessorFacade().suspend(criteria, prefs, cluster);
       } else {
         ctx.getCorus().getProcessorFacade().kill(criteria, prefs, cluster);
@@ -196,9 +198,8 @@ public class Kill extends CorusCliCommand {
   }
 
   protected void killProcess(CliContext ctx, Process aProcess) throws InputException {
-    if (suspend) {
+    if (prefs.isSuspend()) {
       try {
-        KillPreferences prefs = KillPreferences.newInstance();
         prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
         ctx.getCorus().getProcessorFacade().suspend(aProcess.getProcessID(), prefs);
         ctx.getConsole().println("Suspending process " + aProcess.getProcessID() + "...");
@@ -207,7 +208,6 @@ public class Kill extends CorusCliCommand {
       }
     } else {
       try {
-        KillPreferences prefs = KillPreferences.newInstance();
         prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
         ctx.getCorus().getProcessorFacade().kill(aProcess.getProcessID(), prefs);
       } catch (ProcessNotFoundException e) {
@@ -271,6 +271,10 @@ public class Kill extends CorusCliCommand {
       for (String vmId : pids) {
         try {
           ctx.getCorus().getProcessorFacade().getProcess(vmId);
+          ctx.getCorus().getProcessorFacade().kill(vmId, prefs);
+          completed = false;
+        } catch (ProcessNotFoundException e) {
+          completed = true;
         } catch (Exception e) {
           completed = false;
         }
@@ -289,16 +293,20 @@ public class Kill extends CorusCliCommand {
 
     public boolean isCompleted(CliContext ctx) throws InputException {
       ClusterInfo cluster = getClusterInfo(ctx);
-      return isCompleted(ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster));
+      ProcessorFacade processor = ctx.getCorus().getProcessorFacade();
+      return isCompleted(processor, processor.getProcesses(criteria, cluster), cluster);
     }
 
-    private boolean isCompleted(Results<List<Process>> results) {
+    private boolean isCompleted(ProcessorFacade processor, Results<List<Process>> results, ClusterInfo cluster) {
       boolean completed = true;
       while (results.hasNext()) {
         Result<List<Process>> result = results.next();
         if (!result.getData().isEmpty()) {
           completed = false;
         }
+      }
+      if (!completed) {
+        processor.kill(criteria, prefs, cluster);
       }
       return completed;
     }

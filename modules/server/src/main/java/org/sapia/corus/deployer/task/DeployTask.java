@@ -21,6 +21,9 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Distribution.State;
 import org.sapia.corus.client.services.deployer.event.DeploymentEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent.Status;
+import org.sapia.corus.client.services.deployer.event.RollbackEvent.Type;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -164,7 +167,9 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
             File   actualBaseDir = tmpBaseDir.exists() ? tmpBaseDir : baseDir;
             String scriptBaseDir = FilePath.newInstance().addDir(actualBaseDir.getAbsolutePath()).addDir("common").createFilePath();
             doRunDeployScript(fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false, ctx);
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.SUCCESS));
           } catch (Exception e2) {
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.FAILURE));
             ctx.error("Error executing rollback.corus script", e2);
           }
         }

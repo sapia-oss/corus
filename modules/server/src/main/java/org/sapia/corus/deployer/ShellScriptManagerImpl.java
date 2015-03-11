@@ -7,11 +7,11 @@ import java.util.List;
 
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
@@ -151,7 +151,7 @@ public class ShellScriptManagerImpl extends ModuleHelper implements InternalShel
   @Override
   public synchronized ProgressQueue addScript(ShellScript script, File file) {
     ProgressQueue progress = new ProgressQueueImpl();
-    if (!database.getScripts(ShellScriptCriteria.newInstance().setAlias(ArgFactory.exact(script.getAlias()))).isEmpty()) {
+    if (!database.getScripts(ShellScriptCriteria.newInstance().setAlias(ArgMatchers.exact(script.getAlias()))).isEmpty()) {
       progress.info("Replacing existing script for alias: " + script.getAlias());
     }
     database.addScript(script);

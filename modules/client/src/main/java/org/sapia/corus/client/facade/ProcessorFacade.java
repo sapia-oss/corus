@@ -9,6 +9,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -76,7 +77,22 @@ public interface ProcessorFacade {
    */
   public Results<List<ExecConfig>> getExecConfigs(ExecConfigCriteria criteria, ClusterInfo cluster);
 
+  /**
+   * Archives the currently stored executing configurations.
+   * 
+   * @param revId the revision number to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void archiveExecConfigs(RevId revId, ClusterInfo cluster);
 
+  /**
+   * Unarchives the exec configs corresponding that were archived under the given revision.
+   * 
+   * @param revId the revision number to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void unarchiveExecConfigs(RevId revId, ClusterInfo cluster);
+  
   /**
    * Starts process(es) corresponding to an existing execution configuration.
    * 

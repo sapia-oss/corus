@@ -6,7 +6,7 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.processor.task.TestBaseTask;
@@ -28,7 +28,7 @@ public class UndeployTaskTest extends TestBaseTask{
     UndeployTask task = new UndeployTask();
     ctx.getTm().executeAndWait(
         task, 
-        TaskParams.createFor(DistributionCriteria.builder().name(ArgFactory.exact("test")).version(ArgFactory.exact("1.0")).build())
+        TaskParams.createFor(DistributionCriteria.builder().name(ArgMatchers.exact("test")).version(ArgMatchers.exact("1.0")).build())
     ).get();
     
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();

@@ -7,7 +7,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -61,7 +61,7 @@ public class Undeploy extends CorusCliCommand {
     if (ctx.getCommandLine().containsOption(OPT_BACKUP.getName(), false)) {
       backup = ctx.getCommandLine().assertOption(OPT_BACKUP.getName(), true).asInt();
     }
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().backup(backup).name(ArgFactory.parse(name)).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().backup(backup).name(ArgMatchers.parse(name)).build();
     ctx.getCorus().getProcessorFacade().undeployExecConfig(crit, getClusterInfo(ctx));
   }
 
@@ -104,14 +104,14 @@ public class Undeploy extends CorusCliCommand {
   private void doUndeployScript(CliContext ctx) throws InputException {
     String alias = ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue();
     ProgressQueue progress = ctx.getCorus().getScriptManagementFacade()
-        .removeScripts(ShellScriptCriteria.newInstance().setAlias(ArgFactory.parse(alias)), getClusterInfo(ctx));
+        .removeScripts(ShellScriptCriteria.newInstance().setAlias(ArgMatchers.parse(alias)), getClusterInfo(ctx));
     displayProgress(progress, ctx);
   }
 
   private void doUndeployFile(CliContext ctx) throws InputException {
     String name = ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue();
     ProgressQueue progress = ctx.getCorus().getFileManagementFacade()
-        .deleteFiles(FileCriteria.newInstance().setName(ArgFactory.parse(name)), getClusterInfo(ctx));
+        .deleteFiles(FileCriteria.newInstance().setName(ArgMatchers.parse(name)), getClusterInfo(ctx));
     displayProgress(progress, ctx);
   }
 

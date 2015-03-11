@@ -367,7 +367,7 @@ public class CorusServer {
 
       // Adding user data
       if (!userData.getServerTags().isEmpty()) {
-        context.getServices().getConfigurator().addTags(userData.getServerTags());
+        context.getServices().getConfigurator().addTags(userData.getServerTags(), false);
       }
       if (!userData.getProcessProperties().isEmpty()) {
         context.getServices().getConfigurator().addProperties(PropertyScope.PROCESS, userData.getProcessProperties(), new HashSet<String>(), false);

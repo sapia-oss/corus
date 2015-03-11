@@ -12,8 +12,8 @@ import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.ClientFileSystem;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
@@ -108,13 +108,13 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
 
     final ProgressQueueImpl queue = new ProgressQueueImpl();
 
-    if (ArgFactory.isPattern(fileName)) {
+    if (ArgMatchers.isPattern(fileName)) {
       Thread deployer = new Thread(new Runnable() {
         public void run() {
           try {
             Object[] baseDirAndFilePattern = split(context.getFileSystem(), fileName);
             File baseDir = (File) baseDirAndFilePattern[0];
-            Arg pattern = ArgFactory.parse((String) baseDirAndFilePattern[1]);
+            ArgMatcher pattern = ArgMatchers.parse((String) baseDirAndFilePattern[1]);
             File[] files = baseDir.listFiles();
             ProgressQueue tmp = null;
             int fileCount = 0;

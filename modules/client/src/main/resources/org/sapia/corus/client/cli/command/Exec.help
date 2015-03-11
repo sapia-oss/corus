@@ -17,6 +17,9 @@
     <p>OR:</p>
     <p>exec disable | enable -e &lt;exec_config_name&gt; [-cluster]</p>
     <p/>    
+     <p>OR:</p>
+    <p>exec archive | unarchive -rev &lt;rev_id&gt; [-cluster]</p>
+    <p/>   
     <p>Where:</p>
     <p/>
     <p>- d: the name (or name pattern) of the distribution for which to start processes.</p>
@@ -34,7 +37,9 @@
     <p>- s: the alias of the shell script to execute.</p>
     <p/>    
     <p>- w: the amount of time to wait for the requested processes to start up (defaults to 120).</p>
-    <p/>       
+    <p/>
+    <p>- rev: in the context of archive/unarchive: the revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
+    <p/>
     <p>- cluster: if specified, the execution will be performed cluster-wide.</p>
   </section>
   <section title="Notes">
@@ -57,6 +62,9 @@
     <p>exec disable -e myExec* </p>
     <p>exec enable -e myExec* </p>
     <p>exec -s restart-memcached</p>
-    <p/>        
+    <p>exec archive -rev v1.3</p>
+    <p>exec archive -rev previous -cluster</p>
+    <p>exec unarchive -rev previous -cluster</p>
+    <p/>      
   </section>  
 </help>

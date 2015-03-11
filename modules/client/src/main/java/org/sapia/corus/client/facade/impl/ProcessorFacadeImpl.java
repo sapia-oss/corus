@@ -12,6 +12,7 @@ import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -27,7 +28,7 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception {
+  public void deployExecConfig(File file, ClusterInfo cluster) throws IOException, Exception {
     FileInputStream fis = new FileInputStream(file);
     ExecConfig conf = ExecConfig.newInstance(fis);
     proxy.addExecConfig(conf);
@@ -43,13 +44,13 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void undeployExecConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
+  public void undeployExecConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
     proxy.removeExecConfig(criteria);
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized Results<List<ExecConfig>> getExecConfigs(ExecConfigCriteria criteria, ClusterInfo cluster) {
+  public Results<List<ExecConfig>> getExecConfigs(ExecConfigCriteria criteria, ClusterInfo cluster) {
     Results<List<ExecConfig>> results = new Results<List<ExecConfig>>();
     proxy.getExecConfigs(criteria);
     invoker.invokeLenient(results, cluster);
@@ -57,7 +58,7 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized ProgressQueue execConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
+  public ProgressQueue execConfig(ExecConfigCriteria criteria, ClusterInfo cluster) {
     proxy.execConfig(criteria);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
@@ -70,18 +71,18 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized ProgressQueue exec(ProcessCriteria criteria, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException {
+  public ProgressQueue exec(ProcessCriteria criteria, int instances, ClusterInfo cluster) throws TooManyProcessInstanceException {
     proxy.exec(criteria, instances);
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
 
   @Override
-  public synchronized Process getProcess(String pid) throws ProcessNotFoundException {
+  public Process getProcess(String pid) throws ProcessNotFoundException {
     return context.lookup(Processor.class).getProcess(pid);
   }
 
   @Override
-  public synchronized Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster) {
+  public Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster) {
     Results<List<Process>> results = new Results<List<Process>>();
     proxy.getProcesses(criteria);
     invoker.invokeLenient(results, cluster);
@@ -89,23 +90,23 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void kill(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+  public void kill(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
     proxy.kill(criteria, prefs.setSuspend(false));
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized void kill(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+  public void kill(String pid, KillPreferences prefs) throws ProcessNotFoundException {
     context.lookup(Processor.class).kill(pid, prefs.setSuspend(false));
   }
 
   @Override
-  public synchronized void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+  public void restart(String pid, KillPreferences prefs) throws ProcessNotFoundException {
     context.lookup(Processor.class).restart(pid, prefs.setSuspend(false));
   }
 
   @Override
-  public synchronized ProgressQueue restart(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+  public ProgressQueue restart(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
     proxy.restart(criteria, prefs.setSuspend(false));
     return invoker.invokeLenient(ProgressQueue.class, cluster);
   }
@@ -117,18 +118,18 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized void suspend(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
+  public void suspend(ProcessCriteria criteria, KillPreferences prefs, ClusterInfo cluster) {
     proxy.kill(criteria, prefs.setSuspend(true));
     invoker.invokeLenient(void.class, cluster);
   }
 
   @Override
-  public synchronized void suspend(String pid, KillPreferences prefs) throws ProcessNotFoundException {
+  public void suspend(String pid, KillPreferences prefs) throws ProcessNotFoundException {
     context.lookup(Processor.class).kill(pid, prefs.setSuspend(true));
   }
 
   @Override
-  public synchronized Results<List<ProcStatus>> getStatus(ProcessCriteria criteria, ClusterInfo cluster) {
+  public Results<List<ProcStatus>> getStatus(ProcessCriteria criteria, ClusterInfo cluster) {
     Results<List<ProcStatus>> results = new Results<List<ProcStatus>>();
     proxy.getStatus(criteria);
     invoker.invokeLenient(results, cluster);
@@ -136,14 +137,26 @@ public class ProcessorFacadeImpl extends FacadeHelper<Processor> implements Proc
   }
 
   @Override
-  public synchronized ProcStatus getStatusFor(String pid) throws ProcessNotFoundException {
+  public ProcStatus getStatusFor(String pid) throws ProcessNotFoundException {
     return context.lookup(Processor.class).getStatusFor(pid);
   }
   
   @Override
-  public synchronized void clean(ClusterInfo cluster) {
+  public void clean(ClusterInfo cluster) {
     proxy.clean();
     invoker.invokeLenient(void.class, cluster);  
+  }
+  
+  @Override
+  public void archiveExecConfigs(RevId revId, ClusterInfo cluster) {
+    proxy.archiveExecConfigs(revId);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
+  public void unarchiveExecConfigs(RevId revId, ClusterInfo cluster) {
+    proxy.unarchiveExecConfigs(revId);
+    invoker.invokeLenient(void.class, cluster);
   }
 
 }

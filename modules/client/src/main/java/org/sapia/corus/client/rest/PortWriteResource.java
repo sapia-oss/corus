@@ -5,6 +5,7 @@ import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.security.Permission;
 
 /**
@@ -101,25 +102,86 @@ public class PortWriteResource {
   }
   
   // --------------------------------------------------------------------------
+  // archive/unarchive 
+  
+  @Path({
+    "/clusters/{corus:cluster}/ports/ranges/archive",
+    "/clusters/{corus:cluster}/hosts/ports/ranges/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePortRangeForCluster(RequestContext context) {
+    doArchivePortRange(context, ClusterInfo.clustered());
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/ports/ranges/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePortRangeForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    doArchivePortRange(context, cluster);
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/ports/ranges/unarchive",
+    "/clusters/{corus:cluster}/hosts/ports/ranges/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePortRangeForCluster(RequestContext context) {
+    doUnarchivePortRange(context, ClusterInfo.clustered());
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/ports/ranges/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePortRangeForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    doUnarchivePortRange(context, cluster);
+  }
+  
+  // --------------------------------------------------------------------------
   // Restricted methods
   
   private void doAddPortRange(RequestContext context, ClusterInfo cluster) 
       throws PortRangeInvalidException, PortRangeConflictException {
-    String name = context.getRequest().getValue("corus:rangeName").asString();
-    int    min  = context.getRequest().getValue("min").asInt();
-    int    max  = context.getRequest().getValue("max").asInt();
+    String name = context.getRequest().getValue("corus:rangeName").notNull().asString();
+    int    min  = context.getRequest().getValue("min").notNull().asInt();
+    int    max  = context.getRequest().getValue("max").notNull().asInt();
     context.getConnector().getPortManagementFacade().addPortRange(name, min, max, cluster);
   }
   
   private void doDeletePortRange(RequestContext context, ClusterInfo cluster) 
       throws PortActiveException {
-    String name   = context.getRequest().getValue("corus:rangeName").asString();
+    String name   = context.getRequest().getValue("corus:rangeName").notNull().asString();
     boolean force = context.getRequest().getValue("force", "false").asBoolean();
     context.getConnector().getPortManagementFacade().removePortRange(name, force, cluster);
   }
   
   private void doReleasePortRange(RequestContext context, ClusterInfo cluster) {
-    String name   = context.getRequest().getValue("corus:rangeName").asString();
+    String name   = context.getRequest().getValue("corus:rangeName").notNull().asString();
     context.getConnector().getPortManagementFacade().releasePortRange(name, cluster);
+  }
+  
+  private void doArchivePortRange(RequestContext context, ClusterInfo cluster) {
+    String revId   = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().archive(RevId.valueOf(revId), cluster);
+  }
+  
+  private void doUnarchivePortRange(RequestContext context, ClusterInfo cluster) {
+    String revId   = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().unarchive(RevId.valueOf(revId), cluster);
   }
 }

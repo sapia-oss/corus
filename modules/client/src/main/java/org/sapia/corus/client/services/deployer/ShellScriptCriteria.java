@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 
 /**
  * Holds criteria to select shell scripts.
@@ -18,23 +18,23 @@ public class ShellScriptCriteria implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
-  private Arg alias = ArgFactory.any();
+  private ArgMatcher alias = ArgMatchers.any();
 
   /**
    * @param alias
-   *          the {@link Arg} instance corresponding to a script alias.
+   *          the {@link ArgMatcher} instance corresponding to a script alias.
    * @return this instance.
    */
-  public ShellScriptCriteria setAlias(Arg alias) {
+  public ShellScriptCriteria setAlias(ArgMatcher alias) {
     this.alias = alias;
     return this;
   }
 
   /**
-   * @return this instance's {@link Arg} instance corresponding to a script
+   * @return this instance's {@link ArgMatcher} instance corresponding to a script
    *         alias.
    */
-  public Arg getAlias() {
+  public ArgMatcher getAlias() {
     return alias;
   }
 
@@ -50,7 +50,7 @@ public class ShellScriptCriteria implements Externalizable {
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    this.alias = (Arg) in.readObject();
+    this.alias = (ArgMatcher) in.readObject();
   }
 
   @Override

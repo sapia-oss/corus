@@ -18,7 +18,7 @@ import org.sapia.console.table.Table;
 import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 import org.sapia.corus.client.sort.Sorting.SortSwitch;
@@ -88,8 +88,8 @@ public class Sort extends NoOptionCommand {
       ctx.setSortSwitches(switches.toArray(new SortSwitchInfo[switches.size()]));
       ctx.getCorus().getConfigFacade().removeProperty(
           PropertyScope.SERVER, 
-          ArgFactory.parse(CliPropertyKeys.SORT_SWITCHES),
-          new HashSet<org.sapia.corus.client.common.Arg>(),
+          ArgMatchers.parse(CliPropertyKeys.SORT_SWITCHES),
+          new HashSet<org.sapia.corus.client.common.ArgMatcher>(),
           getClusterInfo(ctx)
       );
       

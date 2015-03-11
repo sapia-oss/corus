@@ -6,7 +6,7 @@ import java.util.List;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.processor.Process;
@@ -55,7 +55,7 @@ public class ProcessResource {
   public String getProcess(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.pid(ArgFactory.parse(context.getRequest().getValue("corus:process_id").asString()));
+    criteria.pid(ArgMatchers.parse(context.getRequest().getValue("corus:process_id").asString()));
     Results<List<org.sapia.corus.client.services.processor.Process>> results = context.getConnector()
         .getProcessorFacade()
         .getProcesses(criteria.build(), cluster);
@@ -90,9 +90,9 @@ public class ProcessResource {
   
   private String doGetProcesses(RequestContext context, ClusterInfo cluster) {
     ProcessCriteria.Builder criteria = ProcessCriteria.builder();
-    criteria.distribution(ArgFactory.parse(context.getRequest().getValue("d", "*").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v", "*").asString()));
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("n", "*").asString()));
+    criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d", "*").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v", "*").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("n", "*").asString()));
     Value profile = context.getRequest().getValue("p");
     if (profile.isSet()) {
       criteria.profile(profile.asString());

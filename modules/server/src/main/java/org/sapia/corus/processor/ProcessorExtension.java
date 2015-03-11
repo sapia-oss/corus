@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
@@ -75,10 +75,10 @@ public class ProcessorExtension implements HttpExtension {
     outputProcesses(ctx, filterProcesses(ctx.getRequest()), true);
   }
 
-  private Arg arg(String name, HttpRequestFacade r) throws IOException, Exception {
+  private ArgMatcher arg(String name, HttpRequestFacade r) throws IOException, Exception {
     String value = r.getParameter(name);
     if (value != null) {
-      return ArgFactory.parse(value);
+      return ArgMatchers.parse(value);
     }
     return null;
   }
@@ -159,9 +159,9 @@ public class ProcessorExtension implements HttpExtension {
   }
 
   private List<Process> filterProcesses(HttpRequestFacade req) throws IOException, Exception {
-    Arg d = arg(PARAM_DIST, req);
-    Arg v = arg(PARAM_VERSION, req);
-    Arg n = arg(PARAM_PROC, req);
+    ArgMatcher d = arg(PARAM_DIST, req);
+    ArgMatcher v = arg(PARAM_VERSION, req);
+    ArgMatcher n = arg(PARAM_PROC, req);
     String i = req.getParameter(PARAM_ID);
     String p = req.getParameter(PARAM_PROFILE);
 

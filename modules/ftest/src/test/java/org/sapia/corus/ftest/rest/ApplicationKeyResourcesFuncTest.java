@@ -9,7 +9,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
@@ -34,7 +34,7 @@ public class ApplicationKeyResourcesFuncTest {
   @AfterSuite
   public void afterSuite() throws Exception {
     tearDown();
-    client.getConnector().getSecurityManagementFacade().removeRole(ArgFactory.parse("test.rol*"), ClusterInfo.clustered());
+    client.getConnector().getSecurityManagementFacade().removeRole(ArgMatchers.parse("test.rol*"), ClusterInfo.clustered());
     client.close();
   }
   
@@ -44,7 +44,7 @@ public class ApplicationKeyResourcesFuncTest {
   }
   
   private void tearDown() {
-    client.getConnector().getApplicationKeyManagementFacade().removeAppKey(ArgFactory.parse("test.*"), ClusterInfo.clustered());
+    client.getConnector().getApplicationKeyManagementFacade().removeAppKey(ArgMatchers.parse("test.*"), ClusterInfo.clustered());
   }
 
   // --------------------------------------------------------------------------

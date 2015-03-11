@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -53,11 +53,11 @@ public class DeployerExtension implements HttpExtension {
     outputDists(ctx, filterDists(ctx.getRequest()), false);
   }
 
-  private Arg arg(String name, HttpRequestFacade r) throws IOException {
+  private ArgMatcher arg(String name, HttpRequestFacade r) throws IOException {
     try {
       String value = r.getParameter(name);
       if (value != null) {
-        return ArgFactory.parse(value);
+        return ArgMatchers.parse(value);
       }
     } catch (Exception e) {
       // noop
@@ -114,8 +114,8 @@ public class DeployerExtension implements HttpExtension {
   }
 
   private List<Distribution> filterDists(HttpRequestFacade req) throws IOException {
-    Arg d = arg(PARAM_DIST, req);
-    Arg v = arg(PARAM_VERSION, req);
+    ArgMatcher d = arg(PARAM_DIST, req);
+    ArgMatcher v = arg(PARAM_VERSION, req);
 
     DistributionCriteria criteria = DistributionCriteria.builder().name(d).version(v).build();
     return deployer.getDistributions(criteria);

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
@@ -32,7 +32,7 @@ public class SendConfigNotificationTask extends RunnableTask {
   @Override
   public void run() {
     try {
-      List<Property> props = context().getServerContext().getServices().getConfigurator().getAllPropertiesList(PropertyScope.PROCESS, new HashSet<Arg>());
+      List<Property> props = context().getServerContext().getServices().getConfigurator().getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>());
       Set<Tag>       tags  = context().getServerContext().getServices().getConfigurator().getTags();
 
       if (props.isEmpty() && tags.isEmpty()) {

@@ -2,7 +2,7 @@ package org.sapia.corus.repository.task;
 
 import java.util.List;
 
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.ExecConfig;
@@ -58,7 +58,7 @@ public class HandleExecConfigTask extends RunnableTask {
       for (ExecConfig ec : execConfigs) {
         if (ec.isStartOnBoot() && repoConfig.isBootExecEnabled()) {
           context().debug(String.format("Triggering startup for exec config: %s, %s", ec.getName(), ec.getProfile()));
-          ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(ec.getName())).build();
+          ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(ec.getName())).build();
           context().getServerContext().getServices().getProcessor().execConfig(crit);
         }
       }

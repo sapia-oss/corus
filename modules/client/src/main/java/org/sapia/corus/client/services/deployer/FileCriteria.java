@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 
 /**
  * Holds criteria to select files.
@@ -18,22 +18,22 @@ public class FileCriteria implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
-  private Arg name = ArgFactory.any();
+  private ArgMatcher name = ArgMatchers.any();
 
   /**
    * @param alias
-   *          the {@link Arg} instance corresponding to a file name.
+   *          the {@link ArgMatcher} instance corresponding to a file name.
    * @return this instance.
    */
-  public FileCriteria setName(Arg alias) {
+  public FileCriteria setName(ArgMatcher alias) {
     this.name = alias;
     return this;
   }
 
   /**
-   * @return this instance's {@link Arg} instance corresponding to a file name.
+   * @return this instance's {@link ArgMatcher} instance corresponding to a file name.
    */
-  public Arg getName() {
+  public ArgMatcher getName() {
     return name;
   }
 
@@ -49,7 +49,7 @@ public class FileCriteria implements Externalizable {
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    this.name = (Arg) in.readObject();
+    this.name = (ArgMatcher) in.readObject();
   }
 
   @Override

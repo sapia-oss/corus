@@ -12,7 +12,7 @@ import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CorusCommandFactory.AliasCommand;
 import org.sapia.corus.client.cli.CorusConsole;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -47,7 +47,7 @@ public class Alias extends CorusCliCommand {
       if (cmd.getName().equals(ARG_DEL)) {
         String alias = ctx.getCommandLine()
             .assertOption(OPT_NAME.getName(), true).getValue();
-        ((CorusConsole) ctx.getConsole()).getCommands().removeAlias(ArgFactory.parse(alias));
+        ((CorusConsole) ctx.getConsole()).getCommands().removeAlias(ArgMatchers.parse(alias));
       } else {
         List<AliasCommand> aliases = new ArrayList<>(((CorusConsole) ctx.getConsole()).getCommands().getAliases().values());
         Collections.sort(aliases);

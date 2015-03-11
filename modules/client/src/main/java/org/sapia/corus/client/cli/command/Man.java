@@ -25,6 +25,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("alias", Alias.class);
     COMMANDS.put("ant", Ant.class);
     COMMANDS.put("appkey", Appkey.class);
+    COMMANDS.put("archive", Archive.class);
     COMMANDS.put("cd", Cd.class);
     COMMANDS.put("cluster", Cluster.class);
     COMMANDS.put("cmd", Cmd.class);
@@ -60,6 +61,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("sort", Sort.class);
     COMMANDS.put("status", Status.class);
     COMMANDS.put("suspend", Suspend.class);
+    COMMANDS.put("unarchive", Unarchive.class);
     COMMANDS.put("undeploy", Undeploy.class);
     COMMANDS.put("ver", Ver.class);
   }

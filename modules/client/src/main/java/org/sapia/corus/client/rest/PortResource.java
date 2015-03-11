@@ -7,8 +7,8 @@ import java.util.List;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.util.Func;
@@ -47,7 +47,7 @@ public class PortResource {
   // Restricted methods
   
   private String doGetPortRanges(RequestContext context, ClusterInfo cluster) {
-    final Arg filter = ArgFactory.parse(context.getRequest().getValue("n", "*").asString());
+    final ArgMatcher filter = ArgMatchers.parse(context.getRequest().getValue("n", "*").asString());
     Results<List<PortRange>> results = context.getConnector()
         .getPortManagementFacade()
         .getPortRanges(cluster).filter(new Func<List<PortRange>, List<PortRange>>() {

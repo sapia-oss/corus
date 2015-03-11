@@ -6,7 +6,7 @@ import java.util.List;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -48,8 +48,8 @@ public class DistributionResource {
   
   private String doGetDistributions(RequestContext context, ClusterInfo cluster) {
     DistributionCriteria.Builder criteria = DistributionCriteria.builder();
-    criteria.name(ArgFactory.parse(context.getRequest().getValue("d", "*").asString()));
-    criteria.version(ArgFactory.parse(context.getRequest().getValue("v", "*").asString()));
+    criteria.name(ArgMatchers.parse(context.getRequest().getValue("d", "*").asString()));
+    criteria.version(ArgMatchers.parse(context.getRequest().getValue("v", "*").asString()));
     
     Results<List<Distribution>> results = context.getConnector()
         .getDeployerFacade()

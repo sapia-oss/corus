@@ -1,15 +1,15 @@
 package org.sapia.corus.client.services.processor;
 
-import static org.sapia.corus.client.common.ArgFactory.any;
-import static org.sapia.corus.client.common.ArgFactory.anyIfNull;
-import static org.sapia.corus.client.common.ArgFactory.parse;
+import static org.sapia.corus.client.common.ArgMatchers.any;
+import static org.sapia.corus.client.common.ArgMatchers.anyIfNull;
+import static org.sapia.corus.client.common.ArgMatchers.parse;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.ubik.util.Collects;
@@ -26,12 +26,12 @@ public class ProcessCriteria implements Serializable {
   /**
    * Corresponds to the process name.
    */
-  private Arg name;
+  private ArgMatcher name;
 
   /**
    * Corresponds to the process id.
    */
-  private Arg pid;
+  private ArgMatcher pid;
 
   /**
    * Corresponds to the process profile.
@@ -41,7 +41,7 @@ public class ProcessCriteria implements Serializable {
   /**
    * Corresponds to the process distribution.
    */
-  private Arg distribution;
+  private ArgMatcher distribution;
   
   /**
    * Holds the {@link LifeCycleStatus}es to match.
@@ -51,13 +51,13 @@ public class ProcessCriteria implements Serializable {
   /**
    * Corresponds to the process version.
    */
-  private Arg version;
+  private ArgMatcher version;
 
-  public Arg getName() {
+  public ArgMatcher getName() {
     return name;
   }
 
-  public Arg getPid() {
+  public ArgMatcher getPid() {
     return pid;
   }
 
@@ -65,11 +65,11 @@ public class ProcessCriteria implements Serializable {
     return profile;
   }
 
-  public Arg getDistribution() {
+  public ArgMatcher getDistribution() {
     return distribution;
   }
 
-  public Arg getVersion() {
+  public ArgMatcher getVersion() {
     return version;
   }
   
@@ -102,14 +102,14 @@ public class ProcessCriteria implements Serializable {
 
   public static final class Builder {
     
-    private Arg name, distribution, version, pid;
+    private ArgMatcher name, distribution, version, pid;
     private String profile;
     private Set<LifeCycleStatus> lifeCycles;
 
     private Builder() {
     }
 
-    public Builder name(Arg name) {
+    public Builder name(ArgMatcher name) {
       this.name = name;
       return this;
     }
@@ -118,7 +118,7 @@ public class ProcessCriteria implements Serializable {
       return name(parse(name));
     }
 
-    public Builder pid(Arg pid) {
+    public Builder pid(ArgMatcher pid) {
       this.pid = pid;
       return this;
     }
@@ -128,7 +128,7 @@ public class ProcessCriteria implements Serializable {
       return this;
     }
 
-    public Builder distribution(Arg dist) {
+    public Builder distribution(ArgMatcher dist) {
       this.distribution = dist;
       return this;
     }
@@ -137,7 +137,7 @@ public class ProcessCriteria implements Serializable {
       return distribution(parse(dist));
     }
 
-    public Builder version(Arg version) {
+    public Builder version(ArgMatcher version) {
       this.version = version;
       return this;
     }

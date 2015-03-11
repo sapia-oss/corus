@@ -14,8 +14,8 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
@@ -65,11 +65,11 @@ public class Role extends CorusCliCommand {
   }
   
   private void doList(CliContext ctx) {
-    Arg filter;
+    ArgMatcher filter;
     if (ctx.getCommandLine().containsOption(OPT_NAME.getName(), true)) {
-      filter = ArgFactory.parse(ctx.getCommandLine().getOptNotNull(OPT_NAME.getName()).getValue());
+      filter = ArgMatchers.parse(ctx.getCommandLine().getOptNotNull(OPT_NAME.getName()).getValue());
     } else {
-      filter = ArgFactory.any();
+      filter = ArgMatchers.any();
     }
     Results<List<RoleConfig>> results = ctx.getCorus().getSecurityManagementFacade().getRoleConfig(filter, getClusterInfo(ctx));
     

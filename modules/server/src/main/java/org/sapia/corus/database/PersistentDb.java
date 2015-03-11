@@ -6,8 +6,9 @@ import java.util.concurrent.ConcurrentNavigableMap;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.persistence.Record;
+import org.sapia.corus.client.services.database.Archiver;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.persistence.Record;
 import org.sapia.corus.database.DbMapImpl.TxFacade;
 
 /**
@@ -17,7 +18,7 @@ import org.sapia.corus.database.DbMapImpl.TxFacade;
  */
 public class PersistentDb {
   
-  private static final int CACHE_SIZE = 1000;
+  private static final int CACHE_SIZE = 100;
   
   private DB db;
 
@@ -26,14 +27,15 @@ public class PersistentDb {
   }
 
   <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) throws IOException {
-    ConcurrentNavigableMap<K, Record<V>> treeMap = db.getTreeMap(name);
+    ConcurrentNavigableMap<K, Record<V>> treeMap  = db.getTreeMap(name);
+    Archiver<K, V>                       archiver = new ArchiverImpl<K, V>(name, db);
     TxFacade txFacade = new TxFacade() {
       @Override
       public void commit() {
         db.commit();
       }
     };
-    return new DbMapImpl<K, V>(keyType, valueType, txFacade, treeMap);
+    return new DbMapImpl<K, V>(keyType, valueType, txFacade, treeMap, archiver);
   }
 
   static PersistentDb open(String fName) throws IOException {

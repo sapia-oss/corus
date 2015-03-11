@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.SecurityManagementFacade;
 import org.sapia.corus.client.services.security.Permission;
@@ -39,7 +39,7 @@ public class SecurityManagementFacadeImpl extends FacadeHelper<SecurityModule> i
   }
   
   @Override
-  public Results<List<RoleConfig>> getRoleConfig(Arg role, ClusterInfo cluster) {
+  public Results<List<RoleConfig>> getRoleConfig(ArgMatcher role, ClusterInfo cluster) {
     Results<List<RoleConfig>> results = new Results<>();
     proxy.getRoleConfig(role);
     invoker.invokeLenient(results, cluster);
@@ -54,7 +54,7 @@ public class SecurityManagementFacadeImpl extends FacadeHelper<SecurityModule> i
   }
   
   @Override
-  public void removeRole(Arg role, ClusterInfo cluster) {
+  public void removeRole(ArgMatcher role, ClusterInfo cluster) {
     proxy.removeRole(role);
     invoker.invokeLenient(void.class, cluster);
   }

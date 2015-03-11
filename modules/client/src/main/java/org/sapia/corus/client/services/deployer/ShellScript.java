@@ -6,7 +6,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import org.sapia.corus.client.annotations.Transient;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.ubik.util.Strings;
 
 /**

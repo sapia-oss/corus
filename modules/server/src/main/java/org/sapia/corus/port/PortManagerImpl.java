@@ -7,14 +7,15 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.Service;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
@@ -43,7 +44,6 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
 
   private PortRangeStore store;
 
-  /** Creates a new instance of PortManagerImpl */
   public PortManagerImpl() {
   }
 
@@ -71,7 +71,13 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
 
   public void dispose() {
   }
+  
+  @Override
+  public String getRoleName() {
+    return ROLE;
+  }
 
+  @Override
   public synchronized int aquirePort(String name) throws PortUnavailableException {
     if (!store.containsRange(name)) {
       throw new PortUnavailableException("Port range does not exist for: " + name);
@@ -83,6 +89,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     return port;
   }
 
+  @Override
   public synchronized void releasePort(String name, int port) {
     if (!store.containsRange(name)) {
       return;
@@ -106,6 +113,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     }
   }
 
+  @Override
   public synchronized void addPortRange(String name, int min, int max) throws PortRangeInvalidException, PortRangeConflictException {
     addPortRange(new PortRange(name, min, max));
   }
@@ -145,7 +153,8 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     store.writeRange(range);
   }
 
-  public synchronized void removePortRange(Arg name, boolean force) throws PortActiveException {
+  @Override
+  public synchronized void removePortRange(ArgMatcher name, boolean force) throws PortActiveException {
     Collection<PortRange> ranges = store.readRange(name);
 
     for (PortRange range : ranges) {
@@ -160,7 +169,8 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     }
   }
 
-  public synchronized void releasePortRange(final Arg name) {
+  @Override
+  public synchronized void releasePortRange(final ArgMatcher name) {
     Collection<PortRange> ranges = store.readRange(name);
     for (PortRange range : ranges) {
       range.releaseAll();
@@ -168,6 +178,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     }
   }
 
+  @Override
   public synchronized List<PortRange> getPortRanges() {
     List<PortRange> lst = new ArrayList<PortRange>();
     Iterator<PortRange> ranges = store.getPortRanges();
@@ -178,8 +189,15 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     Collections.sort(lst);
     return lst;
   }
-
-  public String getRoleName() {
-    return ROLE;
+  
+  @Override
+  public synchronized void archive(RevId revId) {
+    store.archiveRanges(revId);
   }
+  
+  @Override
+  public synchronized void unarchive(RevId revId) {
+    store.unarchiveRanges(revId);
+  }
+
 }

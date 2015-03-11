@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
@@ -54,7 +54,7 @@ public class ShellScriptManagerImplTest {
   public void testGetScriptsWithCriteria() {
     List<ShellScript> scripts = mock(List.class);
     when(database.getScripts()).thenReturn(scripts);
-    manager.getScripts(ShellScriptCriteria.newInstance().setAlias(ArgFactory.parse("*")));
+    manager.getScripts(ShellScriptCriteria.newInstance().setAlias(ArgMatchers.parse("*")));
     verify(database).getScripts(any(ShellScriptCriteria.class));
   }
 
@@ -66,7 +66,7 @@ public class ShellScriptManagerImplTest {
     when(database.removeScript(any(ShellScriptCriteria.class))).thenReturn(existing);
     when(config.getScriptDir()).thenReturn("scriptDir");
 
-    manager.removeScripts(ShellScriptCriteria.newInstance().setAlias(ArgFactory.parse("test")));
+    manager.removeScripts(ShellScriptCriteria.newInstance().setAlias(ArgMatchers.parse("test")));
     
     verify(config).getScriptDir();
     verify(fileSystem).deleteFile(any(File.class));

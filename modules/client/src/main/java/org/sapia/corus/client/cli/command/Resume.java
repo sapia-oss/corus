@@ -5,7 +5,7 @@ import java.util.List;
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.util.Collects;
 
@@ -35,16 +35,16 @@ public class Resume extends CorusCliCommand {
     ProcessCriteria.Builder builder = ProcessCriteria.builder();
 
     if (ctx.getCommandLine().containsOption(OPT_DIST.getName(), true)) {
-      builder.distribution(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_DIST.getName(), true).getValue()));
+      builder.distribution(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_DIST.getName(), true).getValue()));
     }
     if (ctx.getCommandLine().containsOption(OPT_VERSION.getName(), true)) {
-      builder.version(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_VERSION.getName(), true).getValue()));
+      builder.version(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_VERSION.getName(), true).getValue()));
     }
     if (ctx.getCommandLine().containsOption(OPT_PROCESS_NAME.getName(), true)) {
-      builder.name(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_NAME.getName(), true).getValue()));
+      builder.name(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_NAME.getName(), true).getValue()));
     }
     if (ctx.getCommandLine().containsOption(OPT_PROCESS_ID.getName(), true)) {
-      builder.pid(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_ID.getName(), true).getValue()));
+      builder.pid(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_PROCESS_ID.getName(), true).getValue()));
     }
     if (ctx.getCommandLine().containsOption(OPT_PROFILE.getName(), true)) {
       builder.profile(ctx.getCommandLine().assertOption(OPT_PROFILE.getName(), true).getValue());

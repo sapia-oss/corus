@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -67,9 +67,9 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
 
     for (ExecConfig ec : configsToStart) {
       for (ProcessDef pd : ec.getProcesses()) {
-        Arg distName = new StringArg(pd.getDist());
-        Arg version = ArgFactory.any();
-        Arg processName = new StringArg(pd.getName());
+        ArgMatcher distName = new StringArg(pd.getDist());
+        ArgMatcher version = ArgMatchers.any();
+        ArgMatcher processName = new StringArg(pd.getName());
         if (pd.getProfile() == null) {
           pd.setProfile(ec.getProfile());
         }

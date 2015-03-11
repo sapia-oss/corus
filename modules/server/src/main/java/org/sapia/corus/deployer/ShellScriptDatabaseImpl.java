@@ -3,7 +3,7 @@ package org.sapia.corus.deployer;
 import java.util.Comparator;
 import java.util.List;
 
-import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;

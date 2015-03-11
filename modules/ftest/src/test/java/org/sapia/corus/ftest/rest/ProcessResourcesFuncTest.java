@@ -19,7 +19,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.Interpreter;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
@@ -113,7 +113,7 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
@@ -140,7 +140,7 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
@@ -181,14 +181,14 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
     waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
     
     Results<List<org.sapia.corus.client.services.processor.Process>> results = client.getConnector().getProcessorFacade().getProcesses(
-        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgFactory.parse("*")).profile("test").build(), 
+        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgMatchers.parse("*")).profile("test").build(), 
         ClusterInfo.clustered()
      );
     
@@ -266,7 +266,7 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
@@ -305,7 +305,7 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
@@ -345,14 +345,14 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
     waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
  
     Results<List<org.sapia.corus.client.services.processor.Process>> results = client.getConnector().getProcessorFacade().getProcesses(
-        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgFactory.parse("*")).profile("test").build(), 
+        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgMatchers.parse("*")).profile("test").build(), 
         ClusterInfo.notClustered()
      );
     
@@ -385,14 +385,14 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
     waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
     
     Results<List<org.sapia.corus.client.services.processor.Process>> results = client.getConnector().getProcessorFacade().getProcesses(
-        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgFactory.parse("*")).profile("test").build(), 
+        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgMatchers.parse("*")).profile("test").build(), 
         ClusterInfo.notClustered()
      );
     
@@ -422,14 +422,14 @@ public class ProcessResourcesFuncTest {
     client.getConnector().getProcessorFacade().exec(
         ProcessCriteria.builder()
           .distribution("demo")
-          .version(ArgFactory.any())
+          .version(ArgMatchers.any())
           .name("noopApp")
           .profile("test").build(), 1, ClusterInfo.clustered());
     
     waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
     
     Results<List<org.sapia.corus.client.services.processor.Process>> results = client.getConnector().getProcessorFacade().getProcesses(
-        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgFactory.parse("*")).profile("test").build(), 
+        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgMatchers.parse("*")).profile("test").build(), 
         ClusterInfo.notClustered()
      );
     

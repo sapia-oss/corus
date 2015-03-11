@@ -9,10 +9,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.RecordMatcher;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RecordMatcher;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.ubik.util.Collects;
 

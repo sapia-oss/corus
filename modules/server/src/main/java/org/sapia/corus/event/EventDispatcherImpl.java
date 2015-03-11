@@ -11,7 +11,7 @@ import org.sapia.ubik.concurrent.NamedThreadFactory;
 import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
-import org.sapia.ubik.util.Time;
+import org.sapia.ubik.util.TimeValue;
 
 /**
  * Implements the {@link EventDispatcher} interface.
@@ -37,7 +37,7 @@ public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher
   @Override
   public void init() throws Exception {
     ThreadingConfiguration conf = ThreadingConfiguration.newInstance().setCorePoolSize(CORE_POOL_SIZE).setMaxPoolSize(MAX_POOL_SIZE)
-        .setKeepAlive(Time.createSeconds(KEEP_ALIVE_SECONDS)).setQueueSize(WORK_QUEUE_SIZE);
+        .setKeepAlive(TimeValue.createSeconds(KEEP_ALIVE_SECONDS)).setQueueSize(WORK_QUEUE_SIZE);
 
     executor = new ConfigurableExecutor(conf, NamedThreadFactory.createWith("EventDispatcher").setDaemon(true));
   }
