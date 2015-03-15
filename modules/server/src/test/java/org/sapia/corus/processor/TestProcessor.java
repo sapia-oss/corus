@@ -6,6 +6,7 @@ import java.util.List;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -129,6 +130,15 @@ public class TestProcessor implements Processor{
 
   public ProcessRepository getProcessDB(){
     return db;
+  }
+  
+  @Override
+  public void archiveExecConfigs(RevId revId) {
+    
+  }
+  
+  @Override
+  public void unarchiveExecConfigs(RevId revId) {
   }
   
   @Override

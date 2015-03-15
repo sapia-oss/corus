@@ -3,14 +3,20 @@ package org.sapia.corus.database;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.RecordMatcher;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.client.services.db.persistence.Record;
-import org.sapia.corus.client.services.db.persistence.Template;
-import org.sapia.corus.client.services.db.persistence.TemplateMatcher;
+import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.services.database.Archiver;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RecordMatcher;
+import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.Record;
+import org.sapia.corus.client.services.database.persistence.Template;
+import org.sapia.corus.client.services.database.persistence.TemplateMatcher;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * A {@link DbMap} implementation on top of MapDB.
@@ -38,14 +44,16 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
 
   private TxFacade                             db;
   private ConcurrentNavigableMap<K, Record<V>> map;
+  private Archiver<K, V>                       archiver;
   private ClassDescriptor<V>                   classDescriptor;
 
   /**
    * Constructs a new instance of this class.
    */
-  DbMapImpl(Class<K> keyType, Class<V> valueType, TxFacade db, ConcurrentNavigableMap<K, Record<V>> map) {
+  DbMapImpl(Class<K> keyType, Class<V> valueType, TxFacade db, ConcurrentNavigableMap<K, Record<V>> map, Archiver<K, V> archiver) {
     this.db         = db;
     this.map        = map;
+    this.archiver   = archiver;
     classDescriptor = new ClassDescriptor<V>(valueType);
   }
 
@@ -107,7 +115,7 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
   }
 
   @Override
-  public org.sapia.corus.client.services.db.RecordMatcher<V> createMatcherFor(V template) {
+  public RecordMatcher<V> createMatcherFor(V template) {
     return new TemplateMatcher<V>(new Template<V>(classDescriptor, template));
   }
 
@@ -125,6 +133,49 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
   @Override
   public void clear() {
     map.clear();
+    db.commit();
+  }
+  
+  @Override
+  public void archive(RevId revId, K key) {
+    Record<V> rec = map.get(key);
+    if (rec != null) {
+      archiver.archive(revId, key, rec);
+    } 
+    db.commit();
+  }
+  
+  @Override
+  public void archive(RevId revId, Collection<K> keys) {
+    for (K k : keys) {
+      Record<V> rec = map.get(k);
+      if (rec != null) {
+        archiver.archive(revId, k, rec);
+      } 
+    }
+    if (!keys.isEmpty()) {
+      db.commit();
+    }
+  }
+  
+  @Override
+  public List<K> unarchive(RevId revId) {
+    List<PairTuple<K, Record<V>>> records = archiver.unarchive(revId, true);
+    try {
+      return Collects.convertAsList(records, new Func<K, PairTuple<K, Record<V>>>() {
+        public K call(PairTuple<K, Record<V>> arg) {
+          map.put(arg.getLeft(), arg.getRight());
+          return arg.getLeft();
+        }
+      });
+    } finally {
+      db.commit();
+    }
+  }
+  
+  @Override
+  public void clearArchive(RevId revId) {
+    archiver.clear(revId);
     db.commit();
   }
 

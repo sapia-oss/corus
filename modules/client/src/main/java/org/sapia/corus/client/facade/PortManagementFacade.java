@@ -7,6 +7,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
 
@@ -68,9 +69,24 @@ public interface PortManagementFacade {
    * Returns the {@link PortRange} instances that hold the pre-configured ports
    * of the specified Corus servers.
    * 
-   * @param cluster
-   *          a <code>ClusterInfo</code> instance.
+   * @param cluster a {@link ClusterInfo} instance.
    */
   public Results<List<PortRange>> getPortRanges(ClusterInfo cluster);
+  
+  /**
+   * Archives currently set port ranges.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void archive(RevId revId, ClusterInfo cluster);
+  
+  /**
+   * Unarchives currently set port ranges.
+   * 
+   * @param revId the revision ID to use.
+   * @param cluster a {@link ClusterInfo} instance.
+   */
+  public void unarchive(RevId revId, ClusterInfo cluster);
 
 }

@@ -5,12 +5,13 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.ArgFactory;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
+import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
-import org.sapia.corus.database.HashDbMap;
+import org.sapia.corus.database.InMemoryDbMap;
 
 public class ExecConfigDatabaseImplTest {
   
@@ -19,7 +20,7 @@ public class ExecConfigDatabaseImplTest {
   
   @Before
   public void setUp() throws Exception {
-    map = new HashDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class));
+    map = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class));
     db = new ExecConfigDatabaseImpl(map);
     for (int i = 0; i < 5; i++) {
       ExecConfig c = new ExecConfig();
@@ -43,20 +44,20 @@ public class ExecConfigDatabaseImplTest {
 
   @Test
   public void testGetConfigsFor() {
-    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgFactory.parse("test-0")).build();
+    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgMatchers.parse("test-0")).build();
     assertEquals(1, db.getConfigsFor(criteria).size());
   }
 
   @Test
   public void testRemoveConfigsFor() {
-    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgFactory.parse("test-0")).build();
+    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgMatchers.parse("test-0")).build();
     db.removeConfigsFor(criteria);
     assertEquals(4, db.getConfigs().size());
   }
   
   @Test
   public void testRemoveConfigsFor_backup() {
-    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgFactory.parse("test*")).backup(1).build();
+    ExecConfigCriteria criteria = ExecConfigCriteria.builder().name(ArgMatchers.parse("test*")).backup(1).build();
     db.removeConfigsFor(criteria);
     assertEquals(1, db.getConfigs().size());
     assertEquals("test-4", db.getConfigFor("test-4").getName());
@@ -71,6 +72,32 @@ public class ExecConfigDatabaseImplTest {
   public void testRemoveConfig() {
     db.removeConfig("test-0");
     assertNull(db.getConfigFor("test0-"));
+  }
+  
+  @Test
+  public void testArchive() {
+    db.archiveExecConfigs(RevId.valueOf("rev"));
+    db.removeConfigsFor(ExecConfigCriteria.builder().name(ArgMatchers.parse("*")).build());
+    assertEquals(0, db.getConfigs().size());
+    
+    db.unarchiveExecConfigs(RevId.valueOf("rev"));
+    assertEquals(5, db.getConfigs().size());
+  }
+  
+  @Test
+  public void testArchive_clear_previous_rev() {
+    db.archiveExecConfigs(RevId.valueOf("rev"));
+    db.removeConfigsFor(ExecConfigCriteria.builder().name(ArgMatchers.parse("*")).build());
+    
+    ExecConfig newConf = new ExecConfig();
+    newConf.setName("newConf");
+    db.addConfig(newConf);
+    db.archiveExecConfigs(RevId.valueOf("rev"));
+    db.removeConfigsFor(ExecConfigCriteria.builder().name(ArgMatchers.parse("*")).build());
+
+    db.unarchiveExecConfigs(RevId.valueOf("rev"));
+    assertEquals(1, db.getConfigs().size());
+    assertEquals("newConf", db.getConfigs().get(0).getName());
   }
 
 }

@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.PatternRecordMatcher;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.database.HashDbMap;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.PatternRecordMatcher;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.database.InMemoryDbMap;
 
 public class PatternRecordMatcherTest {
 
@@ -16,7 +16,7 @@ public class PatternRecordMatcherTest {
   
   @Before
   public void setUp() throws Exception {
-    map  = new HashDbMap<String, TestDbObject>(new ClassDescriptor<TestDbObject>(TestDbObject.class));
+    map  = new InMemoryDbMap<String, TestDbObject>(new ClassDescriptor<TestDbObject>(TestDbObject.class));
     for(int i = 0; i < 5; i++){
       TestDbObject dbo = new TestDbObject();
       dbo.setName("name"+i);

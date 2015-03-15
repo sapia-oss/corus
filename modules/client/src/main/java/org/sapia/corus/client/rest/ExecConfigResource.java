@@ -6,7 +6,7 @@ import java.util.List;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
@@ -29,7 +29,7 @@ public class ExecConfigResource {
   public String getExecConfigForCluster(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.clustered();
     String name = context.getRequest().getValue("n", "*").asString();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(name)).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(name)).build();
     return doProcessResults(context, context.getConnector().getProcessorFacade().getExecConfigs(crit, cluster));
   }
   
@@ -42,7 +42,7 @@ public class ExecConfigResource {
   public String getExecConfigsForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     String name = context.getRequest().getValue("n", "*").asString();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(name)).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(name)).build();
     return doProcessResults(context, context.getConnector().getProcessorFacade().getExecConfigs(crit, cluster));
   }
 

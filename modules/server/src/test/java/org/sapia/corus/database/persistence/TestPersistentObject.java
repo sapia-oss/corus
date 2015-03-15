@@ -1,8 +1,8 @@
 package org.sapia.corus.database.persistence;
 
 import org.sapia.corus.client.annotations.Transient;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.persistence.Persistent;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.persistence.Persistent;
 import org.sapia.corus.database.persistence.TestPersistentObject;
 
 public class TestPersistentObject implements Persistent<String, TestPersistentObject>{

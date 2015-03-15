@@ -4,11 +4,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * Provides {@link PortRange} persistience/retrieval logic around a
@@ -40,7 +43,7 @@ public class PortRangeStore {
     return ranges.get(name);
   }
 
-  public Collection<PortRange> readRange(final Arg name) {
+  public Collection<PortRange> readRange(final ArgMatcher name) {
     return new IteratorFilter<PortRange>(new Matcher<PortRange>() {
       @Override
       public boolean matches(PortRange range) {
@@ -57,6 +60,20 @@ public class PortRangeStore {
 
   public void deleteRange(String name) {
     ranges.remove(name);
+  }
+  
+  public void archiveRanges(RevId revId) {
+    ranges.clearArchive(revId);
+    ranges.archive(revId, Collects.convertAsList(ranges.iterator(), new Func<String, PortRange>() {
+      @Override
+      public String call(PortRange arg) {
+        return arg.getName();
+      }
+    }));
+  }
+  
+  public void unarchiveRanges(RevId revId) {
+    ranges.unarchive(revId);
   }
 
   public void clear() {

@@ -8,7 +8,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.Permission;
@@ -36,7 +36,7 @@ public class ApplicationKeyResource {
     return doProcessResults(
         context, 
         context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
-            ArgFactory.parse(context.getRequest().getValue("a", "*").asString()), 
+            ArgMatchers.parse(context.getRequest().getValue("a", "*").asString()), 
             ClusterInfo.clustered()
         )
     );
@@ -52,7 +52,7 @@ public class ApplicationKeyResource {
     return doProcessResults(
         context, 
         context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
-            ArgFactory.parse(context.getRequest().getValue("a", "*").asString()), 
+            ArgMatchers.parse(context.getRequest().getValue("a", "*").asString()), 
             cluster
         )
     );
@@ -174,7 +174,7 @@ public class ApplicationKeyResource {
   @Authorized(Permission.ADMIN)
   public void deleteAppKeyForCluster(RequestContext context) {
     context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
-        ArgFactory.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
+        ArgMatchers.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
         ClusterInfo.clustered()
     );
   }
@@ -187,7 +187,7 @@ public class ApplicationKeyResource {
   public void deleteAppKeyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
     context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
-        ArgFactory.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
+        ArgMatchers.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
         cluster
     );
   }

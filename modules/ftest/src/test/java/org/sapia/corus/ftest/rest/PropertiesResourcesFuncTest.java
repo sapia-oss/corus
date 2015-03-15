@@ -12,8 +12,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
@@ -46,15 +46,15 @@ public class PropertiesResourcesFuncTest {
   private void tearDown() {
     client.getConnector().getConfigFacade().removeProperty( 
         PropertyScope.PROCESS, 
-        ArgFactory.parse("test.prop.*"),
-        new HashSet<Arg>(),
+        ArgMatchers.parse("test.prop.*"),
+        new HashSet<ArgMatcher>(),
         ClusterInfo.clustered()
     );
     
     client.getConnector().getConfigFacade().removeProperty( 
         PropertyScope.PROCESS, 
-        ArgFactory.parse("test.prop.*"),
-        Collects.arrayToSet(ArgFactory.parse("test.*")),
+        ArgMatchers.parse("test.prop.*"),
+        Collects.arrayToSet(ArgMatchers.parse("test.*")),
         ClusterInfo.clustered()
     );
   }

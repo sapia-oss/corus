@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -215,10 +215,10 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
 
   /**
    * @param name
-   *          an {@link Arg} corresponding to the process name to match.
+   *          an {@link ArgMatcher} corresponding to the process name to match.
    * @return the {@link ProcessConfig}s whose name match the given argument.
    */
-  public List<ProcessConfig> getProcesses(Arg name) {
+  public List<ProcessConfig> getProcesses(ArgMatcher name) {
     List<ProcessConfig> toReturn = new ArrayList<ProcessConfig>();
 
     for (ProcessConfig pc : processConfigs) {
@@ -298,13 +298,13 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    * arguments.
    * 
    * @param name
-   *          an {@link Arg} to test against this instance's name.
+   *          an {@link ArgMatcher} to test against this instance's name.
    * @param version
-   *          an {@link Arg} to test against this instance's version.
+   *          an {@link ArgMatcher} to test against this instance's version.
    * @return <code>true</code> if this instance matches the given name and
    *         version.
    */
-  public boolean matches(Arg name, Arg version) {
+  public boolean matches(ArgMatcher name, ArgMatcher version) {
     if (name.matches(this.name)) {
       return version.matches(this.version);
     }

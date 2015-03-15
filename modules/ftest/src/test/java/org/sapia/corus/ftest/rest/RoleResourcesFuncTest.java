@@ -8,7 +8,7 @@ import javax.ws.rs.core.MediaType;
 import net.sf.json.JSONArray;
 
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
@@ -39,7 +39,7 @@ public class RoleResourcesFuncTest {
   }
   
   private void tearDown() {
-    client.getConnector().getSecurityManagementFacade().removeRole(ArgFactory.parse("test.role"), ClusterInfo.clustered());
+    client.getConnector().getSecurityManagementFacade().removeRole(ArgMatchers.parse("test.role"), ClusterInfo.clustered());
   }
 
   // --------------------------------------------------------------------------

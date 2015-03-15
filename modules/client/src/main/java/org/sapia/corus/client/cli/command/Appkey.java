@@ -11,8 +11,8 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.ubik.util.Collects;
@@ -61,11 +61,11 @@ public class Appkey extends CorusCliCommand {
   }
   
   private void doList(CliContext ctx) {
-    Arg filter;
+    ArgMatcher filter;
     if (ctx.getCommandLine().containsOption(OPT_APP.getName(), true)) {
-      filter = ArgFactory.parse(ctx.getCommandLine().getOptNotNull(OPT_APP.getName()).getValue());
+      filter = ArgMatchers.parse(ctx.getCommandLine().getOptNotNull(OPT_APP.getName()).getValue());
     } else {
-      filter = ArgFactory.any();
+      filter = ArgMatchers.any();
     }
     Results<List<AppKeyConfig>> results = ctx.getCorus().getApplicationKeyManagementFacade().getAppKeyInfos(filter, getClusterInfo(ctx));
     
@@ -88,7 +88,7 @@ public class Appkey extends CorusCliCommand {
   
   private void doDelete(CliContext ctx) throws InputException {
     String appId  = ctx.getCommandLine().assertOption(OPT_APP.getName(), true).getValue();
-    ctx.getCorus().getApplicationKeyManagementFacade().removeAppKey(ArgFactory.parse(appId), getClusterInfo(ctx));
+    ctx.getCorus().getApplicationKeyManagementFacade().removeAppKey(ArgMatchers.parse(appId), getClusterInfo(ctx));
   }
   
   private void displayHeader(CorusHost addr, CliContext ctx) {

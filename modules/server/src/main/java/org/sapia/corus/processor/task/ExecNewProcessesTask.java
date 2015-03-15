@@ -3,7 +3,7 @@ package org.sapia.corus.processor.task;
 import java.util.List;
 import java.util.Set;
 
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.StringArg;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -51,9 +51,9 @@ public class ExecNewProcessesTask extends Task<Void, Void> {
 
     for (ProcessDef pd : toStart) {
       Distribution dist = null;
-      Arg distName = new StringArg(pd.getDist());
-      Arg version = new StringArg(pd.getVersion());
-      Arg processName = new StringArg(pd.getName());
+      ArgMatcher distName = new StringArg(pd.getDist());
+      ArgMatcher version = new StringArg(pd.getVersion());
+      ArgMatcher processName = new StringArg(pd.getName());
 
       ProcessCriteria criteria = ProcessCriteria.builder()
           .distribution(distName)

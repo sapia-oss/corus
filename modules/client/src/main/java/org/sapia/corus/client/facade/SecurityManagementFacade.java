@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
@@ -19,11 +19,11 @@ import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 public interface SecurityManagementFacade {
 
   /**
-   * @param role an {@link Arg} instance specifying for which role(s) to return the associated data.
+   * @param role an {@link ArgMatcher} instance specifying for which role(s) to return the associated data.
    * @param cluster a {@link ClusterInfo} indicating if this operation should be clustered.
    * @return a {@link Results} containing a {@link List} of {@link RoleConfig} instances.
    */
-  public Results<List<RoleConfig>> getRoleConfig(Arg role, ClusterInfo cluster);
+  public Results<List<RoleConfig>> getRoleConfig(ArgMatcher role, ClusterInfo cluster);
 
   /**
    * Creates a new role, associating the given permissions to it.
@@ -66,8 +66,8 @@ public interface SecurityManagementFacade {
   /**
    * Removes the roles whose name matches the given pattern.
    * 
-   * @param role an {@link Arg} instance corresponding to the roles to remove.
+   * @param role an {@link ArgMatcher} instance corresponding to the roles to remove.
    * @param cluster a {@link ClusterInfo} indicating if this operation should be clustered.
    */
-  public void removeRole(Arg role, ClusterInfo cluster);
+  public void removeRole(ArgMatcher role, ClusterInfo cluster);
 }

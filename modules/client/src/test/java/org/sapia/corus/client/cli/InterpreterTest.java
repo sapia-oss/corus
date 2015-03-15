@@ -26,7 +26,7 @@ import org.mockito.stubbing.Answer;
 import org.sapia.console.AbortException;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.facade.ProcessorFacade;
@@ -51,9 +51,9 @@ public class InterpreterTest {
     when(connector.getProcessorFacade()).thenReturn(processor);
 
     ProcessCriteria expectedCriteria = ProcessCriteria.builder()
-        .distribution(ArgFactory.exact("test"))
-        .version(ArgFactory.exact("1.0"))
-        .name(ArgFactory.exact("proc"))
+        .distribution(ArgMatchers.exact("test"))
+        .version(ArgMatchers.exact("1.0"))
+        .name(ArgMatchers.exact("proc"))
         .profile("dev").build();
 
     final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();
@@ -98,9 +98,9 @@ public class InterpreterTest {
     when(connector.getProcessorFacade()).thenReturn(processor);
 
     ProcessCriteria expectedCriteria = ProcessCriteria.builder()
-        .distribution(ArgFactory.exact("test"))
-        .version(ArgFactory.exact("1.0"))
-        .name(ArgFactory.exact("proc"))
+        .distribution(ArgMatchers.exact("test"))
+        .version(ArgMatchers.exact("1.0"))
+        .name(ArgMatchers.exact("proc"))
         .profile("dev").build();
 
     final AtomicReference<ClusterInfo> inputClusterInfo = new AtomicReference<ClusterInfo>();

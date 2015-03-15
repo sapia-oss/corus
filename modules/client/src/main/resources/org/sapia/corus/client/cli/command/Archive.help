@@ -1,0 +1,17 @@
+<help>
+  <section title="Description">
+   <p>Unarchive process properties, tags, port ranges, and execution configurations.</p>
+  </section>
+  <section title="Syntax">
+    <p>unarchive -rev &lt;rev_id&gt; [-cluster]</p>
+    <p/>    
+    <p>Where:</p>
+    <p/>
+    <p>- rev: the revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
+  </section>
+  <section title="Examples">
+    <p>unarchive -rev v1.3</p>
+    <p>unarchive -rev previous -cluster</p>
+    <p/>
+  </section>
+</help>

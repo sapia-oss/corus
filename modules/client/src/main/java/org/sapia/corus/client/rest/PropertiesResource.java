@@ -8,8 +8,8 @@ import java.util.Set;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
@@ -73,9 +73,9 @@ public class PropertiesResource {
       throw new IllegalArgumentException(String.format("Invalid scope %s. Use one of the supported scopes: [process, server]", scopeValue));
     }
     
-    final Arg propNameFilter = ArgFactory.parse(context.getRequest().getValue("p", "*").asString());
-    final Arg catFilter      = category.isNull() ? ArgFactory.any() : ArgFactory.parse(category.asString()); 
-    Set<Arg> catFilters = Collects.arrayToSet(catFilter);
+    final ArgMatcher propNameFilter = ArgMatchers.parse(context.getRequest().getValue("p", "*").asString());
+    final ArgMatcher catFilter      = category.isNull() ? ArgMatchers.any() : ArgMatchers.parse(category.asString()); 
+    Set<ArgMatcher> catFilters = Collects.arrayToSet(catFilter);
     Results<List<Property>> results = context.getConnector()
         .getConfigFacade().getAllProperties(scope, catFilters, cluster);
     results = results.filter(new Func<List<Property>, List<Property>>() {

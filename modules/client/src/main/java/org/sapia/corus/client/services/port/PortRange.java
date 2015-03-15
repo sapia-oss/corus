@@ -15,13 +15,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
-
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 
 /**
  * @author yduchesne

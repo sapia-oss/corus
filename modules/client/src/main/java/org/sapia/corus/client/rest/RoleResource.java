@@ -7,7 +7,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
@@ -35,7 +35,7 @@ public class RoleResource {
     return doProcessResults(
         context, 
         context.getConnector().getSecurityManagementFacade().getRoleConfig(
-            ArgFactory.parse(context.getRequest().getValue("n", "*").asString()), 
+            ArgMatchers.parse(context.getRequest().getValue("n", "*").asString()), 
             ClusterInfo.clustered()
         )
     );
@@ -51,7 +51,7 @@ public class RoleResource {
     return doProcessResults(
         context, 
         context.getConnector().getSecurityManagementFacade().getRoleConfig(
-            ArgFactory.parse(context.getRequest().getValue("n", "*").asString()), 
+            ArgMatchers.parse(context.getRequest().getValue("n", "*").asString()), 
             cluster
         )
     );

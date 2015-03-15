@@ -10,8 +10,8 @@ import java.util.Set;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.ubik.util.Collects;
@@ -56,7 +56,7 @@ public class TagResource {
     Results<Set<Tag>> results = context.getConnector()
         .getConfigFacade().getTags(cluster);
     
-    final Arg filter = ArgFactory.parse(context.getRequest().getValue("t", "*").asString());
+    final ArgMatcher filter = ArgMatchers.parse(context.getRequest().getValue("t", "*").asString());
     
     results = results.filter(new Func<Set<Tag>, Set<Tag>>() {
       @Override

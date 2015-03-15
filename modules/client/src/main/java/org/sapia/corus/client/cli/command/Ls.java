@@ -14,7 +14,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.FileCriteria;
@@ -117,7 +117,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     ShellScriptCriteria criteria = ShellScriptCriteria.newInstance();
     if (ctx.getCommandLine().containsOption(OPT_SCRIPT.getName(), true)) {
-      criteria.setAlias(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue()));
+      criteria.setAlias(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_SCRIPT.getName(), true).getValue()));
     }
 
     try {
@@ -141,7 +141,7 @@ public class Ls extends CorusCliCommand {
     ClusterInfo cluster = getClusterInfo(ctx);
     FileCriteria criteria = FileCriteria.newInstance();
     if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
-      criteria.setName(ArgFactory.parse(ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue()));
+      criteria.setName(ArgMatchers.parse(ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue()));
     }
 
     try {

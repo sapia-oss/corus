@@ -14,8 +14,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
@@ -102,26 +102,26 @@ public class PropertiesWriteResourceTest {
   @Test
   public void testDeletePropertyForCluster() {
     resource.deletePropertyForCluster(context);
-    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgFactory.parse("test")), anySetOf(Arg.class), any(ClusterInfo.class));
+    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgMatchers.parse("test")), anySetOf(ArgMatcher.class), any(ClusterInfo.class));
   }
   
   @Test
   public void testDeletePropertyForCluster_category() {
     when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "test-cat"));
     resource.deletePropertyForCluster(context);
-    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgFactory.parse("test")), eq(Collects.arrayToSet(ArgFactory.parse("test-cat"))), any(ClusterInfo.class));
+    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgMatchers.parse("test")), eq(Collects.arrayToSet(ArgMatchers.parse("test-cat"))), any(ClusterInfo.class));
   }
 
   @Test
   public void testDeletePropertyForHost() {
     resource.deletePropertyForHost(context);
-    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgFactory.parse("test")), anySetOf(Arg.class), any(ClusterInfo.class));
+    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgMatchers.parse("test")), anySetOf(ArgMatcher.class), any(ClusterInfo.class));
   }
 
   @Test
   public void testDeletePropertyForHost_category() {
     when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "test-cat"));
     resource.deletePropertyForHost(context);
-    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgFactory.parse("test")), eq(Collects.arrayToSet(ArgFactory.parse("test-cat"))), any(ClusterInfo.class));
+    verify(confs).removeProperty(eq(PropertyScope.PROCESS), eq(ArgMatchers.parse("test")), eq(Collects.arrayToSet(ArgMatchers.parse("test-cat"))), any(ClusterInfo.class));
   }
 }

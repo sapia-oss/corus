@@ -177,7 +177,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     notif.addVisited(serverContext().getCorusHost().getEndpoint());
     if (notif.getTargets().isEmpty()) {
       logger().debug("No more target to send notification to: " + notif);
-      return new Response(0, null);
+      return new Response(channel.getUnicastAddress(), 0, null);
     } else {
       logger().debug("Got remaining targets: " + notif.getTargets());
       Endpoint target = notif.getTargets().iterator().next();

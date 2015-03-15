@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.sapia.corus.client.Module;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
-import org.sapia.corus.client.services.db.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 
 /**
  * @author Yanick Duchesne
@@ -145,11 +145,11 @@ public interface SecurityModule extends java.rmi.Remote, Module {
   public void updateRole(String role, Set<Permission> permissions) throws IllegalArgumentException;
   
   /**
-   * @param role an {@link Arg} instance corresponding to the role(s) to match.
+   * @param role an {@link ArgMatcher} instance corresponding to the role(s) to match.
    * @return the {@link List} of {@link RoleConfig} instances corresponding to the roles
    * currently configured.
    */
-  public List<RoleConfig> getRoleConfig(Arg role);
+  public List<RoleConfig> getRoleConfig(ArgMatcher role);
   
   /**
    * @param role the name of a role to remove.
@@ -158,7 +158,7 @@ public interface SecurityModule extends java.rmi.Remote, Module {
   public void removeRole(String role) throws IllegalArgumentException;
 
   /**
-   * @param rolePattern an {@link Arg} instance corresponding to the roles to remove.
+   * @param rolePattern an {@link ArgMatcher} instance corresponding to the roles to remove.
    */
-  public void removeRole(Arg rolePattern);
+  public void removeRole(ArgMatcher rolePattern);
 }

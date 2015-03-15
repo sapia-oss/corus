@@ -9,7 +9,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
-import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;

@@ -14,7 +14,8 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbModule;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -85,12 +86,34 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private OsModule os;
 
   private ProcessRepository processes;
-  private ExecConfigDatabaseImpl execConfigs;
-
+  private ExecConfigDatabase execConfigs;
+  
   public ProcessorConfiguration getConfiguration() {
     return configuration;
   }
+  
+  // --------------------------------------------------------------------------
+  // Visible for testing
+  
+  void setDb(DbModule db) {
+    this.db = db;
+  }
+  
+  void setDeployer(Deployer deployer) {
+    this.deployer = deployer;
+  }
+  
+  void setConfiguration(ProcessorConfiguration configuration) {
+    this.configuration = configuration;
+  }
+  
+  void setEvents(EventDispatcher events) {
+    this.events = events;
+  }
 
+  // --------------------------------------------------------------------------
+  // Lifecycle
+  
   public void init() throws Exception {
 
     services().getTaskManager().registerThrottle(ProcessorThrottleKeys.PROCESS_EXEC,
@@ -101,7 +124,6 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     services().bind(ExecConfigDatabase.class, execConfigs);
 
     ProcessDatabase processDb = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class, "processor.processes")));
-
     processes = new ProcessRepositoryImpl(processDb);
     services().bind(ProcessRepository.class, processes);
 
@@ -510,6 +532,16 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       processes.removeProcess(p.getProcessID());
       p.releasePorts(portManager);
     }
+  }
+  
+  @Override
+  public void archiveExecConfigs(RevId revId) {
+    execConfigs.archiveExecConfigs(revId);
+  }
+  
+  @Override
+  public void unarchiveExecConfigs(RevId revId) {
+    execConfigs.unarchiveExecConfigs(revId);
   }
 
   private List<Status> copyStatus(List<Process> processes) {

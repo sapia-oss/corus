@@ -18,6 +18,8 @@
     <p>OR:</p>
     <p>port release -n &lt;range_name&gt; [-cluster]</p>
     <p/> 
+    <p>port archive | unarchive -rev &lt;rev_id&gt; [-cluster]</p>
+    <p/> 
     <p>Where:</p>
     <p/>
     <p>- add: indicates that a port range is to be added.</p>
@@ -41,6 +43,8 @@
     <p>- f: indicates that the port range should be forcefully remove (i.e.: even if 
             corresponding ports are flagged as being active).</p>
     <p/>
+    <p>- rev: in the context of archive/unarchive: the revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
+    <p/>   
     <p>- cluster: specifies if the command should be executed cluster-wide.</p>
     <p/>        
   </section>
@@ -52,6 +56,9 @@
     <p>port ls -cluster</p>
     <p>port release -n http.server -cluster</p>
     <p>port release -n *</p>
+    <p>port archive -rev v1.3</p>
+    <p>port archive -rev previous -cluster</p>
+    <p>port unarchive -rev previous -cluster</p>
     <p/>
   </section>      
 </help>

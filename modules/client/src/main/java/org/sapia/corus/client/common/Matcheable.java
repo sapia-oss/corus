@@ -30,16 +30,16 @@ public interface Matcheable {
   }
   
   /**
-   * A default pattern implementation, wrapping an {@link Arg}.
+   * A default pattern implementation, wrapping an {@link ArgMatcher}.
    * 
    * @author yduchesne
    *
    */
   public static final class DefaultPattern implements Pattern {
     
-    private Arg arg;
+    private ArgMatcher arg;
     
-    public DefaultPattern(Arg arg) {
+    public DefaultPattern(ArgMatcher arg) {
       this.arg = arg;
     }
     
@@ -53,7 +53,7 @@ public interface Matcheable {
      * @return a new {@link Pattern}.
      */
     public static Pattern parse(String patternString) {
-      return new DefaultPattern(ArgFactory.parse(patternString));
+      return new DefaultPattern(ArgMatchers.parse(patternString));
     }
     
   }

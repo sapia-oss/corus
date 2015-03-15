@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.facade.ApplicationKeyManagementFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
@@ -45,13 +45,13 @@ public class ApplicationKeyManagementFacadeImpl extends FacadeHelper<Application
   }
   
   @Override
-  public void removeAppKey(Arg appId, ClusterInfo cluster) {
+  public void removeAppKey(ArgMatcher appId, ClusterInfo cluster) {
     proxy.removeAppKey(appId);
     invoker.invokeLenient(void.class, cluster); 
   }
   
   @Override
-  public Results<List<AppKeyConfig>> getAppKeyInfos(Arg appId, ClusterInfo cluster) {
+  public Results<List<AppKeyConfig>> getAppKeyInfos(ArgMatcher appId, ClusterInfo cluster) {
     Results<List<AppKeyConfig>> results = new Results<>();
     proxy.getAppKeyConfig(appId);
     invoker.invokeLenient(results, cluster);

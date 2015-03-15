@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.CorusSecurityException.Type;
 import org.sapia.corus.client.services.security.Permission;
@@ -138,7 +138,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   }
   
   @Override
-  public List<RoleConfig> getRoleConfig(Arg role) {
+  public List<RoleConfig> getRoleConfig(ArgMatcher role) {
     List<RoleConfig> roleInfos = new ArrayList<>();
     for (RoleConfig rc : roles) {
       if (role.matches(rc.getKey())) {
@@ -158,7 +158,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
   }
   
   @Override
-  public void removeRole(Arg rolePattern) {
+  public void removeRole(ArgMatcher rolePattern) {
     Iterator<String> roleNames = roles.keys();
     while (roleNames.hasNext()) {
       String roleName = roleNames.next();

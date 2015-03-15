@@ -24,8 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.ReverseComparator;
 import org.sapia.corus.client.common.StrLookups;
@@ -81,7 +81,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   private ServerContext context;
 
   private Map<String, String> symlinks;
-  private Set<Arg> hiddenFilePatterns = new HashSet<>();
+  private Set<ArgMatcher> hiddenFilePatterns = new HashSet<>();
 
   public FileSystemExtension(ServerContext context) {
     this.context = context;
@@ -182,7 +182,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   }
   
   boolean isAccessAllowed(File f) {
-    for (Arg pattern : hiddenFilePatterns) {
+    for (ArgMatcher pattern : hiddenFilePatterns) {
       if (pattern.matches(f.getAbsolutePath().toLowerCase())) {
         return false;
       }
@@ -200,9 +200,9 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       
       String[] patterns = StringUtils.split(thePatterns, ",");
       if (patterns.length > 0) {
-        Set<Arg> newPatterns = new HashSet<>();
+        Set<ArgMatcher> newPatterns = new HashSet<>();
         for (String p : patterns) {
-          newPatterns.add(ArgFactory.parse(p));
+          newPatterns.add(ArgMatchers.parse(p));
         }
         this.hiddenFilePatterns = newPatterns;
       }
@@ -345,9 +345,14 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         try {
           fis.close();
         } catch (IOException e) {
+          // noop
         }
-        if (os != null) {
-          os.close();
+        try {
+          if (os != null) {
+            os.close();
+          }
+        } catch (IOException e) {
+          // noop
         }
         log.info("Streaming of file " + file.getName() + " is completed");
       }

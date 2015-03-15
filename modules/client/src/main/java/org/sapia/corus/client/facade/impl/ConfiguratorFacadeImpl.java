@@ -6,8 +6,8 @@ import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
@@ -15,6 +15,7 @@ import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Tag;
+import org.sapia.corus.client.services.database.RevId;
 
 public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implements ConfiguratorFacade {
 
@@ -33,7 +34,7 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   
   @Override
   public Results<List<Property>> getAllProperties(PropertyScope scope,
-      Set<Arg> categories, ClusterInfo cluster) {
+      Set<ArgMatcher> categories, ClusterInfo cluster) {
     Results<List<Property>> results = new Results<List<Property>>();
     proxy.getAllPropertiesList(scope, categories);
     invoker.invokeLenient(results, cluster);
@@ -55,9 +56,21 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   }
   
   @Override
-  public void removeProperty(PropertyScope scope, Arg name,
-      Set<Arg> categories, ClusterInfo cluster) {
+  public void removeProperty(PropertyScope scope, ArgMatcher name,
+      Set<ArgMatcher> categories, ClusterInfo cluster) {
     proxy.removeProperty(scope, name, categories);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
+  public void archiveProcessProperties(RevId revId, ClusterInfo cluster) {
+    proxy.archiveProcessProperties(revId);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
+  public void unarchiveProcessProperties(RevId revId, ClusterInfo cluster) {
+    proxy.unarchiveProcessProperties(revId);
     invoker.invokeLenient(void.class, cluster);
   }
   
@@ -68,8 +81,8 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   }
 
   @Override
-  public void addTags(Set<String> tags, ClusterInfo cluster) {
-    proxy.addTags(tags);
+  public void addTags(Set<String> tags, boolean clearExisting, ClusterInfo cluster) {
+    proxy.addTags(tags, clearExisting);
     invoker.invokeLenient(void.class, cluster);
   }
   
@@ -83,7 +96,7 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
 
   @Override
   public void removeTag(String tag, ClusterInfo cluster) {
-    proxy.removeTag(ArgFactory.parse(tag));
+    proxy.removeTag(ArgMatchers.parse(tag));
     invoker.invokeLenient(void.class, cluster);
   }
 
@@ -91,5 +104,17 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   public void renameTags(List<NameValuePair> tags, ClusterInfo cluster) {
     proxy.renameTags(tags);
     invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
+  public void archiveTags(RevId revId, ClusterInfo cluster) {
+    proxy.archiveTags(revId);
+    invoker.invokeLenient(void.class, cluster);    
+  }
+  
+  @Override
+  public void unarchiveTags(RevId revId, ClusterInfo cluster) {
+    proxy.unarchiveTags(revId);
+    invoker.invokeLenient(void.class, cluster);        
   }
 }

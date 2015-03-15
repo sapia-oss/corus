@@ -5,10 +5,11 @@ import java.util.Properties;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.ubik.util.Collects;
@@ -23,6 +24,9 @@ public class PropertiesWriteResource {
 
   private static final String SCOPE_SERVER  = "server";
   private static final String SCOPE_PROCESS = "process";
+
+  // --------------------------------------------------------------------------
+  // add
   
   @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
@@ -38,8 +42,6 @@ public class PropertiesWriteResource {
     doAddProperties(context, ClusterInfo.clustered());
   }
   
-  // --------------------------------------------------------------------------
-  
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}",
     "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}/{corus:category}"
@@ -54,6 +56,7 @@ public class PropertiesWriteResource {
   }
   
   // --------------------------------------------------------------------------
+  // delete
 
   @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
@@ -69,8 +72,6 @@ public class PropertiesWriteResource {
     doDeleteProperty(context, ClusterInfo.clustered());
   }
   
-  // --------------------------------------------------------------------------
-  
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}",
     "/clusters/{corus:cluster}/hosts/{corus:host}/properties/{corus:scope}/{corus:category}"
@@ -82,6 +83,67 @@ public class PropertiesWriteResource {
   public void deletePropertyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doDeleteProperty(context, cluster);
+  }
+  
+  // --------------------------------------------------------------------------
+  // archive/unarchive
+  
+  @Path({
+    "/clusters/{corus:cluster}/properties/archive",
+    "/clusters/{corus:cluster}/hosts/properties/archive",
+    "/clusters/{corus:cluster}/properties/archive",
+    "/clusters/{corus:cluster}/hosts/properties/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePropertiesForCluster(RequestContext context) {
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().archive(RevId.valueOf(revId), ClusterInfo.clustered());
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/archive",
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePropertyForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().archive(RevId.valueOf(revId), cluster);
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/properties/unarchive",
+    "/clusters/{corus:cluster}/hosts/properties/unarchive",
+    "/clusters/{corus:cluster}/properties/unarchive",
+    "/clusters/{corus:cluster}/hosts/properties/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePropertiesForCluster(RequestContext context) {
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().unarchive(RevId.valueOf(revId), ClusterInfo.clustered());
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/unarchive",
+    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePropertyForHost(RequestContext context) {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getPortManagementFacade().unarchive(RevId.valueOf(revId), cluster);
   }
   
   // --------------------------------------------------------------------------
@@ -116,15 +178,15 @@ public class PropertiesWriteResource {
     if (category.isNull()) {
       context.getConnector().getConfigFacade().removeProperty(
           getScope(context), 
-          ArgFactory.parse(context.getRequest().getValue("p").asString()), 
-          new HashSet<Arg>(0),
+          ArgMatchers.parse(context.getRequest().getValue("p").asString()), 
+          new HashSet<ArgMatcher>(0),
           cluster
       );
     } else {
       context.getConnector().getConfigFacade().removeProperty(
           getScope(context), 
-          ArgFactory.parse(context.getRequest().getValue("p").asString()), 
-          Collects.arrayToSet(ArgFactory.parse(category.asString())),
+          ArgMatchers.parse(context.getRequest().getValue("p").asString()), 
+          Collects.arrayToSet(ArgMatchers.parse(category.asString())),
           cluster
       );      
     }

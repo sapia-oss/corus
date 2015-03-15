@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.rest.RestRequest;
@@ -81,7 +81,7 @@ public class PropertiesResourceTest {
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getConfigFacade()).thenReturn(confs);
-    when(confs.getAllProperties(any(PropertyScope.class), anySetOf(Arg.class), any(ClusterInfo.class)))
+    when(confs.getAllProperties(any(PropertyScope.class), anySetOf(ArgMatcher.class), any(ClusterInfo.class)))
       .thenReturn(results);
     when(connector.getContext()).thenReturn(connection);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));

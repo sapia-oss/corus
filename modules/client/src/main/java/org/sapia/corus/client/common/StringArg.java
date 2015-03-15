@@ -6,7 +6,7 @@ package org.sapia.corus.client.common;
  * @author yduchesne
  * 
  */
-public class StringArg implements Arg {
+public class StringArg implements ArgMatcher {
 
   public static final long serialVersionUID = 1L;
 

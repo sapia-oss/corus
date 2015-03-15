@@ -5,12 +5,11 @@
   <section title="Syntax">
     <p>The conf syntax takes a first argument that specifies what action perform (add, list, delete, export, merge):</p>
     <p/> 
-    <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
-    <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-cluster]</p>
+    <p>conf add -t tag-1[,tag-2[,tag-3...[,tag-n]]] [-clear] [-cluster]</p>
     <p>conf add [-s s | p] -p name-1=value-1[,name-2=value-2[,name-n=value-n]]] [-clear] [-c &lt;category&gt;] [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>conf add -t &lt;file&gt; [-cluster]</p>
+    <p>conf add -t -f &lt;file&gt; [-clear] [-cluster]</p>
     <p>conf add [-s s | p] -p &lt;file&gt;.properties [-clear] [-c &lt;category&gt;] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
@@ -35,27 +34,32 @@
     <p>OR:</p>    
     <p>conf load [-s s | p] [-p &lt;pattern&gt;][-c &lt;category&gt;] [-cluster]</p>
     <p/>
+    <p>OR:</p>    
+    <p>conf archive | unarchive -p | -t -rev &lt;rev_id&gt; [-cluster]</p>
+    <p/>
     <p>Where:</p>
     <p/>
-    <p>- t : indicates a tagging operation (if not specified, -p is assumed). Value can be a comma-delimited list of tags, or a path to a file containing 
+    <p>- t: indicates a tagging operation (if not specified, -p is assumed). Value can be a comma-delimited list of tags, or a path to a file containing 
         a comma-delimited lists of tags per line. May also indicate a comma-delimited list of tag renaming rules, used with the 'rename' operation.</p>
     <p/>
-    <p>- p : indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
+    <p>- p: indicates a property-related operation (if not specified, -p is assumed). Value can be a name=value pair, or a path to a Java properties file.</p>
     <p/>    
     <p>- clear: indicates that existing properties must be cleared (taken into account when -p corresponds to a properties file).</p>    
     <p/>
     <p>- c: corresponds to one or more categories (comma-delimited) to which the specified property should be associated. Accepts patterns in the context of 'ls' and 'del'.</p>    
     <p/>
-    <p>- s : if -p is specified, indicates the scope of the property-related operation; value may be s (for server) and p (for process) - defaults to p.</p>
+    <p>- s: if -p is specified, indicates the scope of the property-related operation; value may be s (for server) and p (for process) - defaults to p.</p>
     <p/>
-    <p>- b : the base properties file whose content is to be merged with Corus process properties.</p>
+    <p>- b: the base properties file whose content is to be merged with Corus process properties.</p>
     <p/>
-    <p>- f : in the context of an export, indicates to which the tags or properties should be exported. In the context of merge
+    <p>- f: in the context of add or export, indicates the file from/to which the tags or properties should be added/exported. In the context of merge
     indicates the file to which merged properties should be written</p>
     <p/>
-    <p>- r : in the context of merge: indicates that variable substitution should be performed (process properties will be used as variable values for base file).</p>
+    <p>- r: in the context of merge: indicates that variable substitution should be performed (process properties will be used as variable values for base file).</p>
     <p/>    
-    <p>- all : applies to the 'del' command, in the context of properties only: indicates that all process properties 
+    <p>- rev: in the context of archive/unarchive: the revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
+    <p/>    
+    <p>- all: applies to the 'del' command, in the context of properties only: indicates that all process properties 
     (the global ones, or the ones assigned to categories) should be deleted.</p>
     <p/>    
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
@@ -81,10 +85,10 @@
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
     <p>conf add -p myprop=myvalue</p>
     <p>conf add -p myprop=myvalue -c category1,category2</p>
-    <p>conf add -s s -p myServerProperties.properties</p>
-    <p>conf add myProcessProperties.properties</p>
+    <p>conf add -s s -p -f myServerProperties.properties</p>
+    <p>conf add -f myProcessProperties.properties</p>
     <p>conf add -t singletons</p>
-    <p>conf add -t /home/foo/mytags.txt</p>
+    <p>conf add -t -f /home/foo/mytags.txt</p>
     <p>conf export -p -f /home/foo/myProcessProperties.properties</p>
     <p>conf export -t -f /home/foo/mytags.txt</p>
     <p>conf ls -t</p>
@@ -105,6 +109,9 @@
     <p>conf load -cluster</p>
     <p>conf load -c test</p>
     <p>conf load -p com.acme*</p>
+    <p>conf archive -t -rev v1.3</p>
+    <p>conf archive -p -rev previous -cluster</p>
+    <p>conf unarchive -p -rev previous -cluster</p>
     <p/>
   </section>
 </help>

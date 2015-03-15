@@ -1,13 +1,13 @@
 package org.sapia.corus.client.services.deployer;
 
-import static org.sapia.corus.client.common.ArgFactory.any;
-import static org.sapia.corus.client.common.ArgFactory.anyIfNull;
+import static org.sapia.corus.client.common.ArgMatchers.any;
+import static org.sapia.corus.client.common.ArgMatchers.anyIfNull;
 
 import java.io.Serializable;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 
 /**
  * Holds criteria for selecting distributions.
@@ -18,34 +18,34 @@ public class DistributionCriteria implements Serializable {
 
   static final long serialVersionUID = 1L;
 
-  private Arg name, version;
+  private ArgMatcher name, version;
   private int     backup = 0;
 
   /**
    * @see {@link #name}
    */
-  public Arg getName() {
+  public ArgMatcher getName() {
     return name;
   }
 
   /**
    * @see {@link #name}
    */
-  public void setName(Arg name) {
+  public void setName(ArgMatcher name) {
     this.name = name;
   }
 
   /**
    * @see {@link #version}
    */
-  public Arg getVersion() {
+  public ArgMatcher getVersion() {
     return version;
   }
 
   /**
    * @see {@link #version}
    */
-  public void setVersion(Arg version) {
+  public void setVersion(ArgMatcher version) {
     this.version = version;
   }
  
@@ -75,28 +75,28 @@ public class DistributionCriteria implements Serializable {
 
   public static final class Builder {
 
-    private Arg name, version;
+    private ArgMatcher name, version;
     private int backup;
 
     private Builder() {
     }
 
-    public Builder name(Arg name) {
+    public Builder name(ArgMatcher name) {
       this.name = name;
       return this;
     }
 
     public Builder name(String name) {
-      return name(ArgFactory.parse(name));
+      return name(ArgMatchers.parse(name));
     }
 
-    public Builder version(Arg version) {
+    public Builder version(ArgMatcher version) {
       this.version = version;
       return this;
     }
 
     public Builder version(String version) {
-      return version(ArgFactory.parse(version));
+      return version(ArgMatchers.parse(version));
     }
     
     public Builder backup(int backup) {

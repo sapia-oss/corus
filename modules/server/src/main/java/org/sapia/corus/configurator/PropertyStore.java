@@ -4,8 +4,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.sapia.corus.client.common.Arg;
-import org.sapia.corus.client.services.db.DbMap;
+import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.util.IteratorFilter;
 import org.sapia.corus.util.Matcher;
 
@@ -74,10 +75,10 @@ public class PropertyStore {
    * Removes the properties matching the given pattern.
    * 
    * @param pattern
-   *          an {@link Arg} instance corresponding to a pattern to test against
+   *          an {@link ArgMatcher} instance corresponding to a pattern to test against
    *          property names. All matching properties are removed.
    */
-  public void removeProperty(final Arg pattern) {
+  public void removeProperty(final ArgMatcher pattern) {
     List<ConfigProperty> toRemove = new IteratorFilter<ConfigProperty>(new Matcher<ConfigProperty>() {
       @Override
       public boolean matches(ConfigProperty object) {
@@ -105,6 +106,27 @@ public class PropertyStore {
       }
     }
     return props;
+  }
+
+  /**
+   * Archives all the properties currently contained.
+   * 
+   * @param revId the revision ID to use when archiving.
+   */
+  public void archive(RevId revId) {
+    properties.clearArchive(revId);
+    Iterator<String> names = properties.keys();
+    while (names.hasNext()) {
+      String name = names.next();
+      properties.archive(revId, name);
+    }
+  }
+  
+  /**
+   * @param revId unarchives the properties corresponding to the given revision ID.
+   */
+  public void unarchive(RevId revId) {
+    properties.unarchive(revId);
   }
   
   @Override

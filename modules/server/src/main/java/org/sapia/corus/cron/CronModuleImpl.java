@@ -13,8 +13,8 @@ import org.sapia.corus.client.exceptions.processor.ProcessConfigurationNotFoundE
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.corus.client.services.cron.CronModule;
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.DbModule;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.core.ModuleHelper;

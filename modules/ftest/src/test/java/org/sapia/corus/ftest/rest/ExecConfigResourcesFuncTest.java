@@ -15,7 +15,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.Interpreter;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
@@ -58,7 +58,7 @@ public class ExecConfigResourcesFuncTest {
       throw new IllegalStateException("Could not kill processes", err);
     }
     
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse("ftest")).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse("ftest")).build();
     client.getConnector().getProcessorFacade().undeployExecConfig(crit, ClusterInfo.clustered());
     client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
   }
@@ -174,7 +174,7 @@ public class ExecConfigResourcesFuncTest {
   public void testEnableExec_cluster() throws Exception {
     File toDeploy = new File("etc/exec.xml");
     client.getConnector().getProcessorFacade().deployExecConfig(toDeploy, ClusterInfo.clustered());
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse("ftest")).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse("ftest")).build();
     client.getConnector().getProcessorFacade().setExecConfigEnabled(crit, false, ClusterInfo.notClustered());
    
     JSONValue response = client.resource("/clusters/ftest/hosts/exec-configs/enable")
@@ -353,7 +353,7 @@ public class ExecConfigResourcesFuncTest {
   public void testEnableExec_specific_host() throws Exception {
     File toDeploy = new File("etc/exec.xml");
     client.getConnector().getProcessorFacade().deployExecConfig(toDeploy, ClusterInfo.clustered());
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse("ftest")).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse("ftest")).build();
     client.getConnector().getProcessorFacade().setExecConfigEnabled(crit, false, ClusterInfo.notClustered());
    
     JSONValue response = client.resource("/clusters/ftest/hosts/" +  client.getHostLiteral() + "/exec-configs/enable")

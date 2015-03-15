@@ -11,7 +11,7 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.Arg;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
@@ -30,13 +30,13 @@ public class SendSecurityConfigNotificationTaskTest extends AbstractRepoTaskTest
 
     task = new SendSecurityConfigNotificationTask(repoConfig, endpoints);
     
-    when(security.getRoleConfig(any(Arg.class))).thenReturn(
+    when(security.getRoleConfig(any(ArgMatcher.class))).thenReturn(
         Collects.arrayToList(
             new SecurityModule.RoleConfig("admin", Collects.arrayToSet(Permission.values()))
         )
     );
     
-    when(appkeys.getAppKeyConfig(any(Arg.class))).thenReturn(
+    when(appkeys.getAppKeyConfig(any(ArgMatcher.class))).thenReturn(
         Collects.arrayToList(
             new ApplicationKeyManager.AppKeyConfig("test-app", "test-role", "test-key")
         )
@@ -53,8 +53,8 @@ public class SendSecurityConfigNotificationTaskTest extends AbstractRepoTaskTest
   
   @Test
   public void test_no_security_config() throws Throwable {
-    when(security.getRoleConfig(any(Arg.class))).thenReturn(new ArrayList<SecurityModule.RoleConfig>());
-    when(appkeys.getAppKeyConfig(any(Arg.class))).thenReturn(new ArrayList<ApplicationKeyManager.AppKeyConfig>());
+    when(security.getRoleConfig(any(ArgMatcher.class))).thenReturn(new ArrayList<SecurityModule.RoleConfig>());
+    when(appkeys.getAppKeyConfig(any(ArgMatcher.class))).thenReturn(new ArrayList<ApplicationKeyManager.AppKeyConfig>());
     
     task.execute(taskContext, null);
     

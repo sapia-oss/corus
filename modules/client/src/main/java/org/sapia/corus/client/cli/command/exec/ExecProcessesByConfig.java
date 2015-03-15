@@ -12,7 +12,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.AbstractExecCommand;
 import org.sapia.corus.client.cli.command.Exec;
-import org.sapia.corus.client.common.ArgFactory;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -50,7 +50,7 @@ public class ExecProcessesByConfig extends AbstractExecCommand {
 
     ClusterInfo cluster = getClusterInfo(ctx);
     String configName = ctx.getCommandLine().assertOption(Exec.OPT_EXEC_CONFIG.getName(), true).getValue();
-    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgFactory.parse(configName)).build();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(configName)).build();
     displayProgress(ctx.getCorus().getProcessorFacade().execConfig(crit, cluster), ctx);
 
     // determining which hosts may have the running processes: they must have

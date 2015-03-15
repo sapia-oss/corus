@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.sapia.corus.client.services.db.DbMap;
-import org.sapia.corus.client.services.db.RecordMatcher;
-import org.sapia.corus.client.services.db.persistence.ClassDescriptor;
-import org.sapia.corus.client.services.db.persistence.Persistent;
+import org.sapia.corus.client.services.database.DbMap;
+import org.sapia.corus.client.services.database.RecordMatcher;
+import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.Persistent;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -146,6 +148,33 @@ public class CachingDbMap<K, V> implements DbMap<K, V> {
       toReturn.add(substituteForCachedValue(val));
     }
     return toReturn;
+  }
+  
+  @Override
+  public void archive(RevId revId, K key) {
+    cache.remove(key);
+    delegate.archive(revId, key);
+  }
+  
+  @Override
+  public void archive(RevId revId, Collection<K> keys) {
+    for (K k : keys) {
+      cache.remove(k);
+    }
+    delegate.archive(revId, keys);
+  }
+  
+  public List<K> unarchive(RevId revId) {
+    List<K> results = delegate.unarchive(revId);
+    for (K k : results) {
+      cache.remove(k);
+    }
+    return results;
+  }
+  
+  @Override
+  public void clearArchive(RevId revId) {
+    delegate.clearArchive(revId);
   }
   
   Map<K, V> getInternalMap() {
