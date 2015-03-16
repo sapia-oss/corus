@@ -76,14 +76,21 @@ public interface FileSystemModule {
   /**
    * Zips a given directory.
    * 
-   * @param destFile
-   *          the zip {@link File} to generate.
-   * @param srcDir
-   *          the {@link File} corresponding to the directory to zip.
-   * @throws IOException
-   *           a problem occurs while generating the zip file.
+   * @param srcDir The {@link File} corresponding to the directory to zip.
+   * @param isRecursive Flag to include (or not) the content of sub-directories.
+   * @param destFile The zip {@link File} to generate.
+   * @throws IOException If a problem occurs while generating the zip file.
    */
-  public void zip(File destFile, File srcDir) throws IOException;
+  public void zipDirectory(File srcDir, boolean isRecursive, File destFile) throws IOException;
+
+  /**
+   * Zips a given file
+   * 
+   * @param srcFile The {@link File} corresponding to the file to zip.
+   * @param destFile The zip {@link File} to generate.
+   * @throws IOException If a problem occurs while generating the zip file.
+   */
+  public void zipFile(File srcFile, File destFile) throws IOException;
 
   /**
    * Opens a stream from a given zip file and returns it.

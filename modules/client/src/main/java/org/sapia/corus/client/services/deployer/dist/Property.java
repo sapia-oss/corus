@@ -49,6 +49,9 @@ public class Property implements Param, java.io.Serializable {
   public CmdElement convert() {
     if (value.indexOf(" ") == -1) {
       return new Option("D" + name + "=" + value);
+    } else if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
+      // Assume the value was properly enclosed into double quotes 
+      return new Option("D" + name + "=" + value);
     } else {
       return new Option("D" + name + "=\"" + value + "\"");
     }

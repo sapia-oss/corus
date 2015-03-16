@@ -63,7 +63,9 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
   private static final String PARAM_ACTION     = "action";
   private static final String ACTION_LIST      = "list";
-  private static final String ACTION_COMPRESS  = "compress";
+  private static final String ACTION_COMPRESS_FILE                 = "compress-file";
+  private static final String ACTION_COMPRESS_ALL_FILES            = "compress-files";
+  private static final String ACTION_COMPRESS_ALL_FILES_RECURSIVE  = "compress-files-recursive";
 
   private static final String PARAM_SORT_ORDER = "sortOrder";
   private static final String PARAM_SORT_BY    = "sortBy";
@@ -212,8 +214,14 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   private void output(File requested, HttpContext ctx) throws Exception {
     String action = ctx.getRequest().getParameter(PARAM_ACTION);
 
-    if (ACTION_COMPRESS.equals(action)) {
-      compressDirContent(requested, ctx);
+    if (ACTION_COMPRESS_FILE.equals(action)) {
+      compressFileContent(requested, ctx);
+      
+    } else if (ACTION_COMPRESS_ALL_FILES.equals(action)) {
+      compressDirContent(requested, false, ctx);
+      
+    } else if (ACTION_COMPRESS_ALL_FILES_RECURSIVE.equals(action)) {
+      compressDirContent(requested, true, ctx);
 
     } else {
       // ACTION_LIST: Default action
@@ -254,7 +262,8 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     ps.println("</h3>");
 
     ps.println("<b>Actions:</b>");
-    ps.println("<ul><li><a href=\"?action=" + ACTION_COMPRESS + "\">Zip files and sub directories</a></li></ul>");
+    ps.println("<ul><li><p><a href=\"?action=" + ACTION_COMPRESS_ALL_FILES + "\">Zip files of current directories</a></p></li>");
+    ps.println("<li><p><a href=\"?action=" + ACTION_COMPRESS_ALL_FILES_RECURSIVE + "\">Zip all files and sub directories</a></p></li></ul>");
 
     File[] fileElems = dir.listFiles();
     if (fileElems != null && fileElems.length > 0) {
@@ -298,9 +307,10 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
       ps.println("<p><b>Content:</b></p><ul>");
       ps.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\" width=\"80%\">");
-      ps.println("<th width=\"5%\"></th><th width=\"40%\"><a href=\"?sortBy=name&sortOrder=" + newSortOrder + "\">Name</a></th>" 
-          + "<th width=\"10%\"><a href=\"?sortBy=size&sortOrder=" + newSortOrder + "\">Size</a></th>"
-          + "<th width=\"15%\"><a href=\"?sortBy=date&sortOrder=" + newSortOrder + "\">Last Modified</a></th>");
+      ps.println("<th width=\"5%\" style=\"background: #f0f0f0;\"></th>"
+          + "<th width=\"40%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=name&sortOrder=" + newSortOrder + "\">Name</a></th>" 
+          + "<th width=\"10%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=size&sortOrder=" + newSortOrder + "\">Size</a></th>"
+          + "<th width=\"15%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=date&sortOrder=" + newSortOrder + "\">Last Modified</a></th>");
       
       for (int i = 0; i < dirs.size(); i++) {
         printFileInfo(dirs.get(i), ps, ctx);
@@ -376,7 +386,11 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     if (file.isLink() && !file.getFile().exists()) {
       ps.println(file.getName());
     } else {
-      ps.println("<a href=\"" + fName + "?action=" + ACTION_LIST + "\">" + file.getName() + "</a>");
+      ps.println("<p style=\"text-align:left;\" ><a href=\"" + fName + "?action=" + ACTION_LIST + "\">" + file.getName() + "</a>");
+      if (!file.isDirectory() && !file.isLink()) {
+        ps.println("<span style=\"float: right;\">[<a href=\"" + fName + "?action=" + ACTION_COMPRESS_FILE + "\">zip</a>]</span>");
+      }
+      ps.println("</p>");
     }
     ps.print("</td>");
 
@@ -391,27 +405,49 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     ps.print("</td>");
   }
 
-  private void compressDirContent(File file, HttpContext ctx) throws Exception {
-    String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+  private File doGetNewTemporaryZipFileFor(String aZipFileName) {
     String tmpDir = context.getServices().getDeployer().getConfiguration().getTempDir();
-    String hostName = context.getCorusHost().getHostName();
-    String dirName = file.getName();
-
+    
     int counter = 0;
-    File zipFile = new File(tmpDir, dirName + "-" + hostName + "@" + domainName + ".zip");
+    File zipFile = new File(tmpDir, aZipFileName);
     while (zipFile.exists()) {
       String suffix = String.valueOf(++counter);
       while (suffix.length() < 4) {
         suffix = "0" + suffix;
       }
 
-      zipFile = new File(tmpDir, dirName + "-" + hostName + "@" + domainName + "_" + suffix + ".zip");
+      zipFile = new File(tmpDir, aZipFileName);
     }
+    
+    return zipFile;
+  }
+  
+  private void compressFileContent(File file, HttpContext ctx) throws Exception {
+    String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+    String hostName = context.getCorusHost().getHostName();
 
+    File zipFile = doGetNewTemporaryZipFileFor(file.getName() + "-" + hostName + "@" + domainName + ".zip");
     FileSystemModule fsService = context.getServices().getFileSystem();
     try {
-      log.debug("Compressing content of directory " + file.getName() + " into file: " + zipFile);
-      fsService.zip(file, zipFile);
+      log.debug("Compressing content of file " + file.getName() + " into file: " + zipFile);
+      fsService.zipFile(file, zipFile);
+      streamFile(zipFile, false, ctx);
+    } finally {
+      fsService.deleteFile(zipFile);
+      log.debug("Deleted zip file: " + zipFile);
+    }
+
+  }
+
+  private void compressDirContent(File file, boolean isRecursive, HttpContext ctx) throws Exception {
+    String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
+    String hostName = context.getCorusHost().getHostName();
+    
+    File zipFile = doGetNewTemporaryZipFileFor(file.getName() + "-" + hostName + "@" + domainName + ".zip");
+    FileSystemModule fsService = context.getServices().getFileSystem();
+    try {
+      log.debug("Compressing content of directory " + file.getName() + " (recursive=" + isRecursive + ") into file: " + zipFile);
+      fsService.zipDirectory(file, isRecursive, zipFile);
       streamFile(zipFile, false, ctx);
     } finally {
       fsService.deleteFile(zipFile);
