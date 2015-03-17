@@ -1405,7 +1405,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>PUT
-- Permission.....: ADMIN
+- Permission.....: WRITE
 - Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
@@ -1439,7 +1439,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
           <sapia:code>DELETE
-- Permission.....: ADMIN
+- Permission.....: WRITE
 - Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
@@ -1463,6 +1463,60 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/se
         
         <p><b>Sample request</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?p=corp.acme.*</sapia:code>
+    
+        </sapia:sect4>
+           
+        <sapia:sect4 title="Archive properties">
+          <p>
+          This call is similar to the CLI's <tt>conf archive -p</tt> command. It is effective for process properties only.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/archive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/properties/archive?revId=revisionId
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+                  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/archive?revId=previous</sapia:code>
+    
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Unarchive properties">
+          <p>
+          This call is akin to the CLI's <tt>conf unarchive -p</tt> command. It is effective for process properties only.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/unarchive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/properties/unarchive?revId=revisionId
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+                  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/unarchive?revId=previous</sapia:code>
     
         </sapia:sect4>
            
@@ -1520,7 +1574,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags</sapia:c
           This call corresponds to the CLI's <tt>conf add -t</tt> command.
           </p>
           <sapia:code>PUT
-- Permission.....: ADMIN
+- Permission.....: WRITE
 - Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
@@ -1544,7 +1598,7 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
           This call corresponds to the CLI's <tt>conf del -t</tt> command.
           </p>
           <sapia:code>DELETE
-- Permission.....: ADMIN
+- Permission.....: WRITE
 - Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
@@ -1561,6 +1615,58 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
         <p><b>Sample requests</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Archive tags">
+          <p>
+          This call has an outcome identical to the CLI's <tt>conf archive -t</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/archive
+  /clusters/{clusterName}/hosts/{host}/tags/archive
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/archive?revId=previous</sapia:code>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Unarchive tags">
+          <p>
+          This resource is akin to the CLI's <tt>conf unarchive -t</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/unarchive
+  /clusters/{clusterName}/hosts/{host}/tags/unarchive
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/unarchive?revId=previous</sapia:code>
         </sapia:sect4>
            
       </sapia:sect3>

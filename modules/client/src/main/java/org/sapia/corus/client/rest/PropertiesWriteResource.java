@@ -100,7 +100,7 @@ public class PropertiesWriteResource {
   @Authorized(Permission.WRITE)
   public void archivePropertiesForCluster(RequestContext context) {
     String revId = context.getRequest().getValue("revId").notNull().asString();
-    context.getConnector().getPortManagementFacade().archive(RevId.valueOf(revId), ClusterInfo.clustered());
+    context.getConnector().getConfigFacade().archiveProcessProperties(RevId.valueOf(revId), ClusterInfo.clustered());
   }
   
   @Path({
@@ -114,7 +114,7 @@ public class PropertiesWriteResource {
   public void archivePropertyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     String revId = context.getRequest().getValue("revId").notNull().asString();
-    context.getConnector().getPortManagementFacade().archive(RevId.valueOf(revId), cluster);
+    context.getConnector().getConfigFacade().archiveProcessProperties(RevId.valueOf(revId), cluster);
   }
   
   @Path({
@@ -129,7 +129,7 @@ public class PropertiesWriteResource {
   @Authorized(Permission.WRITE)
   public void unarchivePropertiesForCluster(RequestContext context) {
     String revId = context.getRequest().getValue("revId").notNull().asString();
-    context.getConnector().getPortManagementFacade().unarchive(RevId.valueOf(revId), ClusterInfo.clustered());
+    context.getConnector().getConfigFacade().unarchiveProcessProperties(RevId.valueOf(revId), ClusterInfo.clustered());
   }
   
   @Path({
@@ -143,7 +143,7 @@ public class PropertiesWriteResource {
   public void unarchivePropertyForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     String revId = context.getRequest().getValue("revId").notNull().asString();
-    context.getConnector().getPortManagementFacade().unarchive(RevId.valueOf(revId), cluster);
+    context.getConnector().getConfigFacade().unarchiveProcessProperties(RevId.valueOf(revId), cluster);
   }
   
   // --------------------------------------------------------------------------

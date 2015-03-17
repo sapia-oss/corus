@@ -81,6 +81,9 @@ public class PathTemplate implements Comparable<PathTemplate> {
     
     @Override
     public int compareTo(URLTemplatePart other) {
+      if (other instanceof Variable) {
+        return 1;
+      }
       return value.compareTo(other.getValue());
     }
     
@@ -117,7 +120,7 @@ public class PathTemplate implements Comparable<PathTemplate> {
       if (other instanceof Variable) {
         return name.compareTo(((Variable) other).name);
       } else {
-        return 1;
+        return -1;
       }
     }
     

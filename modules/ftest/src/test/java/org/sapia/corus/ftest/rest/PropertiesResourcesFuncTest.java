@@ -156,6 +156,52 @@ public class PropertiesResourcesFuncTest {
     checkEmptyProperties(results);
   }
   
+  @Test
+  public void testArchiveProperties_clustered() throws Exception {
+    Properties props = new Properties();
+    props.setProperty("test.prop.1", "value1");
+    props.setProperty("test.prop.2", "value2");
+    
+    client.getConnector().getConfigFacade().addProperties(
+        PropertyScope.PROCESS, 
+        props, 
+        Collects.arrayToSet("test.category"), 
+        false, ClusterInfo.clustered()
+     );
+    
+    JSONValue response = client.resource("/clusters/ftest/properties/archive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    client.getConnector().getConfigFacade().removeProperty(
+        PropertyScope.PROCESS, 
+        ArgMatchers.any(), 
+        new HashSet<ArgMatcher>(), 
+        ClusterInfo.clustered()
+     );
+    
+    response = client.resource("/clusters/ftest/properties/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+  
+    JSONArray results = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+    
+    assertEquals(checkProperties(results, true), client.getHostCount());
+  }
+  
   // --------------------------------------------------------------------------
   // specific host
   
@@ -228,6 +274,54 @@ public class PropertiesResourcesFuncTest {
     assertEquals(results.size(), client.getHostCount());
     
     assertEquals(checkProperties(results, true), client.getHostCount() - 1);
+  }
+  
+  @Test
+  public void testArchiveProperties_specific_host() throws Exception {
+    Properties props = new Properties();
+    props.setProperty("test.prop.1", "value1");
+    props.setProperty("test.prop.2", "value2");
+    
+    client.getConnector().getConfigFacade().addProperties(
+        PropertyScope.PROCESS, 
+        props, 
+        Collects.arrayToSet("test.category"), 
+        false, ClusterInfo.clustered()
+     );
+    
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/archive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    response = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+  
+    JSONArray results = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+    
+    assertEquals(checkProperties(results, true), 1);
   }
  
   // --------------------------------------------------------------------------

@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.deployer.dist;
 
 import java.util.Objects;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.console.CmdElement;
 import org.sapia.console.Option;
 
@@ -47,9 +48,9 @@ public class Property implements Param, java.io.Serializable {
    * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
    */
   public CmdElement convert() {
-    if (value.indexOf(" ") == -1) {
+    if (value.indexOf(" ") == -1 || StringUtils.isBlank(value)) {
       return new Option("D" + name + "=" + value);
-    } else if (value.charAt(0) == '\"' && value.charAt(value.length()-1) == '\"') {
+    } else if (value.charAt(0) == '\"' && value.charAt(value.length() - 1) == '\"') {
       // Assume the value was properly enclosed into double quotes 
       return new Option("D" + name + "=" + value);
     } else {

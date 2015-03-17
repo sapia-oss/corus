@@ -39,7 +39,7 @@ public class RoleResourcesFuncTest {
   }
   
   private void tearDown() {
-    client.getConnector().getSecurityManagementFacade().removeRole(ArgMatchers.parse("test.role"), ClusterInfo.clustered());
+    client.getConnector().getSecurityManagementFacade().removeRole(ArgMatchers.parse("test.*"), ClusterInfo.clustered());
   }
 
   // --------------------------------------------------------------------------
