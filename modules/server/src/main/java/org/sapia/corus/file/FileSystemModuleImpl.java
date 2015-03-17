@@ -16,6 +16,10 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Expand;
 import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.types.EnumeratedAttribute;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.selectors.TypeSelector;
+import org.apache.tools.ant.types.selectors.TypeSelector.FileType;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ZipUtils;
 import org.sapia.corus.client.services.file.FileSystemModule;
@@ -100,12 +104,45 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
   }
 
   @Override
-  public void zip(File srcDir, File destFile) throws IOException {
+  public void zipDirectory(File srcDir, boolean isRecursive, File destFile) throws IOException {
     Assert.isTrue(srcDir.isDirectory(), "Directory to zip is not a directory: " + srcDir.getAbsolutePath());
 
     Zip zip = new Zip();
-    zip.setBasedir(srcDir);
     zip.setDestFile(destFile);
+    
+    if (isRecursive) {
+      zip.setBasedir(srcDir);
+    } else {
+      TypeSelector fileSelector = new TypeSelector();
+      fileSelector.setType((FileType) EnumeratedAttribute.getInstance(FileType.class, FileType.FILE));
+
+      FileSet fs = new FileSet();
+      fs.setDir(srcDir);
+      fs.setIncludes("*");
+      fs.addType(fileSelector);
+      
+      zip.addFileset(fs);
+    }
+    
+    zip.setProject(new Project());
+    try {
+      zip.execute();
+    } catch (BuildException e) {
+      throw new IOException(e.getMessage(), e);
+    }
+  }
+  
+  @Override
+  public void zipFile(File srcFile, File destFile) throws IOException {
+    Assert.isTrue(srcFile.isFile(), "File to zip is not a file: " + srcFile.getAbsolutePath());
+
+    Zip zip = new Zip();
+    zip.setDestFile(destFile);
+    FileSet fs = new FileSet();
+    fs.setDir(srcFile.getParentFile());
+    fs.setIncludes(srcFile.getName());
+    zip.addFileset(fs);
+    
     zip.setProject(new Project());
     try {
       zip.execute();

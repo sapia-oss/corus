@@ -77,6 +77,51 @@ public class TagResourcesFuncTest {
   }
   
   @Test
+  public void testArchiveUnarchiveTags_clustered() throws Exception {
+    
+    client.getConnector().getConfigFacade().addTag("test.tag", ClusterInfo.clustered());
+    
+    JSONValue response = client.resource("/clusters/ftest/tags/archive")
+      .queryParam("revId", "test")
+      .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    client.getConnector().getConfigFacade().removeTag("test.tag", ClusterInfo.clustered());
+
+    response = client.resource("/clusters/ftest/tags/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+      assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray results = client.resource("/clusters/ftest/tags")
+        .queryParam("t", "test.*")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(results.size(), client.getHostCount());
+    
+    List<String> tagList = new ArrayList<>();
+    for (int i = 0; i < results.size(); i++) {
+      JSONObject result = results.getJSONObject(i);
+      JSONArray tags = result.getJSONArray("data");
+      for (int j = 0; j < tags.size(); j++) {
+        tagList.add(tags.getString(j));
+      }
+    }
+    assertEquals(tagList.size(), client.getHostCount());
+    assertTrue(tagList.containsAll(Collects.arrayToList("test.tag")));
+  }
+  
+  @Test
   public void testDeleteTag_clustered() throws Exception {
         
     JSONValue response = client.resource("/clusters/ftest/tags/test.tag")
@@ -167,7 +212,52 @@ public class TagResourcesFuncTest {
         tagList.add(tags.getString(j));
       }
     }
-    assertEquals(client.getHostCount() - 1, 1);
+    assertEquals(tagList.size(), 1);
+  }
+  
+  @Test
+  public void testArchiveUnarchiveTags_specific_host() throws Exception {
+    
+    client.getConnector().getConfigFacade().addTag("test.tag", ClusterInfo.clustered());
+    
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/tags/archive")
+      .queryParam("revId", "test")
+      .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON) 
+        .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    client.getConnector().getConfigFacade().removeTag("test.tag", ClusterInfo.clustered());
+
+    response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/tags/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+      assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray results = client.resource("/clusters/ftest/tags")
+        .queryParam("t", "test.*")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(results.size(), client.getHostCount());
+    
+    List<String> tagList = new ArrayList<>();
+    for (int i = 0; i < results.size(); i++) {
+      JSONObject result = results.getJSONObject(i);
+      JSONArray tags = result.getJSONArray("data");
+      for (int j = 0; j < tags.size(); j++) {
+        tagList.add(tags.getString(j));
+      }
+    }
+    assertEquals(tagList.size(), 1);
+    assertTrue(tagList.containsAll(Collects.arrayToList("test.tag")));
   }
   
   // --------------------------------------------------------------------------

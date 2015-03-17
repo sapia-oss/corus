@@ -74,7 +74,7 @@ public class TagWriteResource {
     "/clusters/{corus:cluster}/tags/archive",
     "/clusters/{corus:cluster}/hosts/tags/archive"
   })
-  @HttpMethod(HttpMethod.DELETE)
+  @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
@@ -85,7 +85,7 @@ public class TagWriteResource {
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/tags/archive"
   })
-  @HttpMethod(HttpMethod.DELETE)
+  @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
@@ -98,7 +98,7 @@ public class TagWriteResource {
     "/clusters/{corus:cluster}/tags/unarchive",
     "/clusters/{corus:cluster}/hosts/tags/unarchive"
   })
-  @HttpMethod(HttpMethod.DELETE)
+  @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
@@ -109,7 +109,7 @@ public class TagWriteResource {
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/tags/unarchive"
   })
-  @HttpMethod(HttpMethod.DELETE)
+  @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)

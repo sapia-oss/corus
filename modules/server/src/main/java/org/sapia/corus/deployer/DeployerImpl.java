@@ -290,7 +290,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       File distDir = FilePath.newInstance().addDir(getConfiguration().getDeployDir()).addDir(name).addDir(version).addDir("common").createFile();
       if (distDir.exists()) {
         try {
-          serverContext().getServices().getFileSystem().zip(distDir, distFile);
+          serverContext().getServices().getFileSystem().zipDirectory(distDir, true, distFile);
           return distFile;
         } catch (IOException e) {
           throw new IORuntimeException(String.format("Could generate zip file for distribution %s, %s"), e);

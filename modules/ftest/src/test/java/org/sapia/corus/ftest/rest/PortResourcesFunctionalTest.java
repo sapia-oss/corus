@@ -91,7 +91,7 @@ public class PortResourcesFunctionalTest {
   }
   
   @Test
-  public void testReleaseortRange_clustered() throws Exception {
+  public void testReleasePortRange_clustered() throws Exception {
     
     JSONValue response = client.resource("/clusters/ftest/ports/ranges/test.port")
         .queryParam("min", "100")
@@ -102,6 +102,42 @@ public class PortResourcesFunctionalTest {
           .accept(MediaType.APPLICATION_JSON) 
           .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
+  }
+  
+  @Test
+  public void testArchivePortRange_cluster() throws Exception {
+    
+    client.getConnector().getPortManagementFacade().addPortRange("test.port", 100, 105, ClusterInfo.clustered());
+
+    JSONValue response = client.resource("/clusters/ftest/ports/ranges/archive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    client.getConnector().getPortManagementFacade().removePortRange("test.port", false, ClusterInfo.clustered());
+    
+    response = client.resource("/clusters/ftest/ports/ranges/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray ranges = client.resource("/clusters/ftest/ports/ranges")
+        .queryParam("n", "test.*")
+        .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    assertEquals(ranges.size(), client.getHostCount());
+    
   }
   
   // --------------------------------------------------------------------------
@@ -156,7 +192,7 @@ public class PortResourcesFunctionalTest {
   }
   
   @Test
-  public void testReleaseortRange_specific_host() throws Exception {
+  public void testReleasePortRange_specific_host() throws Exception {
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/ports/ranges/test.port")
         .queryParam("min", "100")
@@ -167,5 +203,41 @@ public class PortResourcesFunctionalTest {
           .accept(MediaType.APPLICATION_JSON) 
           .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
+  }
+  
+  @Test
+  public void testArchivePortRange_specific_host() throws Exception {
+    
+    client.getConnector().getPortManagementFacade().addPortRange("test.port", 100, 105, ClusterInfo.clustered());
+
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/ports/ranges/archive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    client.getConnector().getPortManagementFacade().removePortRange("test.port", false, ClusterInfo.clustered());
+    
+    response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/ports/ranges/unarchive")
+        .queryParam("revId", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray ranges = client.resource("/clusters/ftest/ports/ranges")
+        .queryParam("n", "test.*")
+        .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    assertEquals(ranges.size(), 1);
+    
   }
 }

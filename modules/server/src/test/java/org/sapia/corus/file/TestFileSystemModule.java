@@ -41,7 +41,11 @@ public class TestFileSystemModule implements FileSystemModule{
   }
   
   @Override
-  public void zip(File destFile, File srcDir) throws IOException {
+  public void zipDirectory(File destFile, boolean isRecursive, File srcDir) throws IOException {
+  }
+  
+  @Override
+  public void zipFile(File srcFile, File destFile) throws IOException {
   }
   
   @Override
