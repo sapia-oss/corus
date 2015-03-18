@@ -2,6 +2,10 @@ package org.sapia.corus.client.cli.command;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,6 +23,7 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.CompositePattern;
 import org.sapia.corus.client.facade.FacadeInvocationContext;
+import org.sapia.corus.client.services.cluster.CorusHost;
 
 /**
  * Displays the count of items in the result of a command.
@@ -28,7 +33,8 @@ import org.sapia.corus.client.facade.FacadeInvocationContext;
  */
 public class Match extends NoOptionCommand {
   
-  private static final String APPLY = "apply";
+  private static final String APPLY   = "apply";
+  private static final String COMMAND = "command";
   
   @Override
   protected void doInit(CliContext context) {
@@ -43,29 +49,72 @@ public class Match extends NoOptionCommand {
       throw new InputException("Expected 'apply <script_file_name>' or <pattern>, followed by <command>");
     }
     Arg    arg        = cmd.assertNextArg();
-    String scriptName = null;
     Arg    patternArg;
+    Reader script     = null;
     if (arg.getName().equals(APPLY)) {
       if (!cmd.hasNext() || !cmd.isNextArg()) {
         throw new InputException("<script_file_name> expected after 'apply'");
       }
-      scriptName = cmd.assertNextArg().getName();
+      String scriptName = cmd.assertNextArg().getName();
       if (!cmd.hasNext() || !cmd.isNextArg()) {
         throw new InputException("<pattern> expected after 'apply'");
       }
       patternArg = cmd.assertNextArg();
+      
+      File scriptFile  = ctx.getFileSystem().getFile(scriptName);
+      if (!scriptFile.exists()) {
+        throw new InputException("Script not found: " + scriptName);
+      }
+      
+      try {
+        script = new FileReader(scriptFile);
+      } catch (IOException e) {
+        throw new AbortException("Error occured trying to open script: " + scriptName, e);
+      }
+      
+    } else if (arg.getName().equals(COMMAND)) {
+      if (!cmd.hasNext() || !cmd.isNextArg()) {
+        throw new InputException("\"<command_line>\" expected after 'apply'");
+      }
+      String command = cmd.assertNextArg().getName();
+      if (!cmd.hasNext() || !cmd.isNextArg()) {
+        throw new InputException("<pattern> expected after 'apply'");
+      }
+      patternArg = cmd.assertNextArg();
+
+      script = new StringReader(command.replace("'", "\""));
     } else {
       patternArg = arg;
     }
-    CmdLine remaining = new CmdLine();
-    while (cmd.hasNext()) {
-      remaining.addElement(cmd.next());
-    }
- 
-    if (remaining.size() == 0) {
-      throw new InputException("Invalid input. Expected: 'apply <script_file_name>' or <pattern>, followed by <command> (<command> is missing), got: " + patternArg.getName());
-    }
     
+    try {
+      CmdLine remaining = new CmdLine();
+      while (cmd.hasNext()) {
+        remaining.addElement(cmd.next());
+      }
+   
+      if (remaining.size() == 0) {
+        throw new InputException("Invalid input. Expected: 'apply <script_file_name>' or 'command \"<command_line>\"' or <pattern>, followed by <command> (<command> is missing), got: " + patternArg.getName());
+      }
+      
+      try {
+        doExecute(ctx, script, patternArg, remaining);
+      } catch (IOException e) {
+        throw new AbortException("I/O error executing command", e);
+      }
+      
+    } finally {
+      try {
+        if (script != null) {
+          script.close();
+        }
+      } catch (IOException e) {
+        // noop
+      }
+    }
+  }
+  
+  public void doExecute(CliContext ctx, Reader script, Arg patternArg, CmdLine remaining) throws IOException, AbortException, InputException {
     CompositePattern pattern = CompositePattern.newInstance();
     String[] patternValues   = StringUtils.split(patternArg.getName(), ",");
     for (String p : patternValues) {
@@ -73,7 +122,7 @@ public class Match extends NoOptionCommand {
     }
     String  toExecute        = remaining.toString();
     
-    if (scriptName != null) {
+    if (script != null) {
       turnOffOutput(ctx);
     }
     try {
@@ -88,26 +137,28 @@ public class Match extends NoOptionCommand {
       throw new AbortException("Could not execute command: " + toExecute, e);
     } finally {
       ctx.getCorus().getContext().unsetResultFilter();
-      if (scriptName != null) {
+      
+      if (script != null) {
         turnOnOutput(ctx);
       }
     }
     
-    if (scriptName != null && FacadeInvocationContext.get() != null && FacadeInvocationContext.get() instanceof List) {
+    if (script != null && FacadeInvocationContext.get() != null && FacadeInvocationContext.get() instanceof List) {
       List<?> results = (List<?>) FacadeInvocationContext.get();
       if (!results.isEmpty()) {
         ClusterInfo info = new ClusterInfo(true);
+        List<CorusHost> selectedHosts = new ArrayList<CorusHost>();
         for (Object r: results) {
           if (r instanceof Result) {
             info.addTarget(((Result<?>) r).getOrigin().getEndpoint().getServerAddress()); 
+            selectedHosts.add(((Result<?>) r).getOrigin());
           }
-        }
-        
-        File        scriptFile  = ctx.getFileSystem().getFile(scriptName);
+        } 
+        ctx.getCorus().getContext().getSelectedHosts().push(selectedHosts);
         Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
         interpreter.setAutoCluster(info);
         try {
-          interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
+          interpreter.interpret(script, ctx.getVars());
         } catch (AbortException e) {
           throw e;
         } catch (CommandNotFoundException e) {
@@ -115,7 +166,9 @@ public class Match extends NoOptionCommand {
         } catch (InputException e) {
           throw e;
         } catch (Throwable e) {
-          throw new AbortException("Error executing script: " + scriptName, e);
+          throw new AbortException("Error executing script", e);
+        } finally {
+          ctx.getCorus().getContext().getSelectedHosts().pop();
         }
       }
     }

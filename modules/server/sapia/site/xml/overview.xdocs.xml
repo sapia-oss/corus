@@ -4,6 +4,7 @@
     <sapia:vsection name="Corus Home" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
  	  <sapia:vsection name="REST API" href="rest.html"/>    
+    <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
   </sapia:vmenu>
 
   <sapia:sect1 title="Corus in 2 Minutes">

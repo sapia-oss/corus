@@ -1,0 +1,2 @@
+echo "performing restart"
+ripple -c "restart all -cluster" -b 2 -m 2

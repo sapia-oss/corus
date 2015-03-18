@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
-import org.sapia.corus.client.common.StringArg;
+import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -67,14 +67,21 @@ public abstract class AbstractExecConfigStartTask extends Task<Void, Void> {
 
     for (ExecConfig ec : configsToStart) {
       for (ProcessDef pd : ec.getProcesses()) {
-        ArgMatcher distName = new StringArg(pd.getDist());
-        ArgMatcher version = ArgMatchers.any();
-        ArgMatcher processName = new StringArg(pd.getName());
+        ArgMatcher distName    = ArgMatchers.exact(pd.getDist());
+        ArgMatcher version     = ArgMatchers.exact(pd.getVersion());
+        ArgMatcher processName = ArgMatchers.exact(pd.getName());
         if (pd.getProfile() == null) {
           pd.setProfile(ec.getProfile());
         }
-        Distribution dist = deployer.getDistribution(DistributionCriteria.builder().name(distName).version(version).build());
-        if (!canExecuteFor(ctx, dist)) {
+        Distribution dist = null;
+        
+        try {
+          dist = deployer.getDistribution(DistributionCriteria.builder().name(distName).version(version).build());
+          if (!canExecuteFor(ctx, dist)) {
+            continue;
+          }
+        } catch (DistributionNotFoundException e) {
+          ctx.warn("Could not find distribution for exec config: " + ec.getName() + ". Process will not be executed: " + pd);
           continue;
         }
         

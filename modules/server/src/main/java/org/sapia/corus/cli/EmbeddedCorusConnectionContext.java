@@ -17,6 +17,8 @@ import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.facade.CorusConnectionContext;
+import org.sapia.corus.client.facade.HostSelectionContext;
+import org.sapia.corus.client.facade.HostSelectionContextImpl;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.ServerAddress;
 
@@ -30,9 +32,10 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
 
   private static final Stack<ServerAddress> EMPTY_HISTORY = new Stack<ServerAddress>();
 
-  private Corus            corus;
-  private ClientFileSystem fileSys;
-  private Stack<Pattern>   resultFilter = new Stack<Matcheable.Pattern>();
+  private Corus                corus;
+  private ClientFileSystem     fileSys;
+  private Stack<Pattern>       resultFilter  = new Stack<Matcheable.Pattern>();
+  private HostSelectionContext hostSelection = new HostSelectionContextImpl();
   
   {
     resultFilter.push(Matcheable.AnyPattern.newInstance()); 
@@ -84,6 +87,11 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   @Override
   public Collection<CorusHost> getOtherHosts() {
     return Collections.emptyList();
+  }
+  
+  @Override
+  public HostSelectionContext getSelectedHosts() {
+    return hostSelection;
   }
 
   @Override
