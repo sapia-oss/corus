@@ -25,6 +25,8 @@ import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.facade.CorusConnectionContext;
+import org.sapia.corus.client.facade.HostSelectionContext;
+import org.sapia.corus.client.facade.HostSelectionContextImpl;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -52,7 +54,9 @@ public class RestConnectionContext implements CorusConnectionContext {
   private ExecutorService               executor;
   private ClientSideClusterInterceptor  interceptor;
   private ClientFileSystem              fileSys;
-  private Stack<Pattern>                resultFilter = new Stack<Matcheable.Pattern>();
+  private Stack<Pattern>                resultFilter  = new Stack<Matcheable.Pattern>();
+  private HostSelectionContext          hostSelection = new HostSelectionContextImpl();
+
   
   {
     resultFilter.push(Matcheable.AnyPattern.newInstance()); 
@@ -190,6 +194,11 @@ public class RestConnectionContext implements CorusConnectionContext {
   @Override
   public void disconnect() {
     executor.shutdownNow();
+  }
+  
+  @Override
+  public HostSelectionContext getSelectedHosts() {
+    return hostSelection;
   }
 
   @Override

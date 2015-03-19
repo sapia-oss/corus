@@ -3,16 +3,18 @@
    <p>The match command returns output matching a given pattern. It also allows executing a script against hosts for which matching occurred.</p>
   </section>
   <section title="Syntax">
-    <p>match [apply &lt;script_path&gt;] &lt;pattern&gt; &lt;command&gt;</p>
+    <p>match [apply &lt;script_path&gt;] [command &lt;command1&gt;] &lt;pattern&gt; &lt;command2&gt;</p>
     <p/>
     <p/>
     <p>Where:</p>
     <p/>    
     <p>- &lt;script_name&gt;: the path to the script to execute.</p>
     <p/>
+    <p>- &lt;command1&gt;: a command to execute, using the hosts (if -cluster is specified) for which a match occurred with the result of &lt;command2&gt;.</p>
+    <p/>
     <p>- &lt;pattern&gt;: the pattern to use for matching (note: this is note a regex. Only the '*' character is used as an atom).</p>
     <p/>
-    <p>- &lt;command&gt;: the command to execute.</p>
+    <p>- &lt;command2&gt;: the command to execute, and one whose result matching will be attempted - using the provided pattern.</p>
     <p/>
   </section>
   <section title="Notes">
@@ -21,13 +23,13 @@
     </p>
   </section>
   <section title="Examples">
-    <p>Outputs stale processes in the cluster:</p>
-    <p/>
+    <p>-Outputs stale processes in the cluster:</p>
     <p>match stal* ps -cluster</p>
     <p/>
-    <p>Executes the commands in the given script against each host for which the match occurred (in this case, for each host having a stale processes):</p>
+    <p>-Executes the commands in the given script against each host for which the match occurred (in this case, for each host having a stale processes):</p>
+    <p>match apply restart_stale.corus stal* ps -cluster</p>
     <p/>
-    <p>match apply restart_stale.txt stal* ps -cluster</p>
-    <p/>    
+    <p>-Executes the ripple command using the hosts matched by the match command as a base, rather than all the hosts in the cluster:</p>  
+    <p>match command "ripple -c 'rollback -d myapp -v 2.0' -b 2 -m 2" 2.0* ls -cluster</p>
   </section>    
 </help>

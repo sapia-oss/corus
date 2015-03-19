@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -15,6 +16,7 @@ import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.Interpreter;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
@@ -78,9 +80,14 @@ public class Ripple extends CorusCliCommand {
     }
   
     List<CorusHost> allHosts = new ArrayList<CorusHost>();
-    allHosts.add(ctx.getCorus().getContext().getServerHost());
-    allHosts.addAll(ctx.getCorus().getContext().getOtherHosts());
-
+    OptionalValue<Collection<CorusHost>> selectedHosts = ctx.getCorus().getContext().getSelectedHosts().peek();
+    if (!selectedHosts.isNull()) {
+      allHosts.addAll(selectedHosts.get());
+    } else {
+      allHosts.add(ctx.getCorus().getContext().getServerHost());
+      allHosts.addAll(ctx.getCorus().getContext().getOtherHosts());
+    }
+      
     List<List<CorusHost>> hostBatches = new ArrayList<List<CorusHost>>();
 
     int batchSize;
@@ -165,7 +172,7 @@ public class Ripple extends CorusCliCommand {
       cluster.addTarget(h.getEndpoint().getServerAddress());
     }
     interpreter.setAutoCluster(cluster);
-    ctx.getConsole().println(String.format("Rippling command to %s: %s", cluster.toString(), cmdLine));
+    ctx.getConsole().println(String.format("Rippling command to %s: %s", cluster.toLiteralForm(), cmdLine));
     interpreter.eval(cmdLine, ctx.getVars());
   }
 

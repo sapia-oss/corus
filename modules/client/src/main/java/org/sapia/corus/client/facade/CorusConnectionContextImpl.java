@@ -60,6 +60,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   private ClientSideClusterInterceptor  interceptor;
   private ClientFileSystem              fileSys;
   private Stack<Pattern>                resultFilter      = new Stack<Matcheable.Pattern>();
+  private HostSelectionContext          hostSelection     = new HostSelectionContextImpl();
   
   {
     resultFilter.push(Matcheable.AnyPattern.newInstance()); 
@@ -282,16 +283,13 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       for (ServerAddress t : cluster.getTargets()) {
         if (serverHost.getEndpoint().getServerAddress().equals(t)) {
           hostList.add(serverHost);
-          break;
         } else {
           for (CorusHost o : otherHosts.values()) {
             if (o.getEndpoint().getServerAddress().equals(t)) {
               hostList.add(o);
-              break;
             }
           }
         }
-        
       }
     }
 
@@ -343,6 +341,11 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
     for (Runnable invoker : invokers) {
       executor.execute(invoker);
     }
+  }
+  
+  @Override
+  public HostSelectionContext getSelectedHosts() {
+    return hostSelection;
   }
 
   @Override

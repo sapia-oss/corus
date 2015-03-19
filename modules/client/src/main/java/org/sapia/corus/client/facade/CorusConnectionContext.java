@@ -165,4 +165,8 @@ public interface CorusConnectionContext {
    */
   public void unsetResultFilter();
 
+  /**
+   * @return the {@link HostSelectionContext}.
+   */
+  public HostSelectionContext getSelectedHosts();
 }

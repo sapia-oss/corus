@@ -1,0 +1,124 @@
+<sapia:page title="Corus vs Chef" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="In 2 minutes" href="overview.html"/> 
+    <sapia:vsection name="REST API" href="rest.html"/>    
+     
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Corus vs Chef">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="home.html" />
+      <sapia:path name="corus vs chef" />
+    </sapia:section>
+    <sapia:sect-desc>
+      <p>
+        At a high level, the differences between Corus and Chef (or Ansible, or any solution of the sort) might not be self-evident.
+        This page aims at explaining such differences.
+      </p>
+      <p>
+        Comparing Chef (and other such solutions) with Corus is like comparing potatoes with <a href="https://www.google.com/search?q=poutine+food&amp;source=lnms&amp;tbm=isch&amp;sa=X&amp;ei=HOsJVYGTD8_MoATq2oLACg&amp;ved=0CAgQ_AUoAg&amp;biw=2097&amp;bih=1017">poutine</a>.
+      </p>
+      <p>Chef and the likes are distributed installers. Corus is a distributed application manager. You install Corus with Chef. You deploy and manage your apps with Corus.</p>
+      <sapia:note>  
+      Corus' philosophy is about:
+      <ul>
+        <li>Favoring rapid intervention in production when issues appear;</li>
+        <li>avoiding redeployments when application configuration changes are required across instances;</li>
+        <li>acting in a fine-grained manner on live processes;</li>
+        <li>controlling application lifecycle in a non-intrusive way, from deployment to undeployment through execution, and potentially rollback;</li>
+        <li>etc., you get the deal.</li>
+      </ul> 
+      </sapia:note>
+      
+    </sapia:sect-desc>         
+    <sapia:sect2 title="Corus manages runtime">
+      <p>
+      Corus has built-in support not only for deployment (and undeployment), but also for all the stages in between:
+      executing processes, restarting (i.e.: bouncing) processes, killing processes, etc. Corus also supports auto-restarting
+      unresponsive processes. 
+      </p>
+      <p>
+      The above functionality requires <b>NO special scripting</b> on the part of developers and system administrators. 
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Corus deploys fast">
+      <p>
+      Corus' deployment protocol is designed to be fast and minimize rollout time: upon deployment, Corus nodes implement a replication
+      chain whereby bits are streamed from one node to the next, in a multithreaded way. There is no significant difference between deploying
+      on 2 nodes vs 50. 
+      </p>
+    </sapia:sect2> 
+    <sapia:sect2 title="Corus has built-in support for controlled degradation when deploying">
+      <p>
+      Say you have 10 instances of a given application per Corus cluster in production. Upon deploying a new version, you want to maintain capacity while
+      deployment is on-going. One solution is to use the <tt>ripple</tt> command, in conjunction with <tt>http check</tt>. The following command will deploy
+      over a cluster, 2 nodes at a time, making sure the application's HTTP endpoint is returning a <tt>HTTP</tt> 200 before moving on to deploying on the next
+      2 nodes:
+      </p>
+     <sapia:code>ripple -c "deploy myapp.zip -r -cluster | http check -c /myapp -p myapp.http -m 6 -t 10 -cluster" -b 2</sapia:code>      
+     
+    </sapia:sect2>
+    <sapia:sect2 title="Corus has built-in support for rollbacks">
+      <p>
+      Corus has support for archiving it's current state upon deployment, so that rollbacks do not require redeploying the bits of the previous
+      version. Rollbacks can litterally take seconds: just invoke the <tt>rollback</tt> command in the CLI, or use the corresponding
+      call from Corus' REST API.
+      </p>
+      <p>As an example, the following command-line will perform rollback on a cluster, 2 nodes at a time, on all nodes whose current version is 2.0. In addition,
+      the command-line forces a check on the nodes where rollback occured, insuring that the "previous" version is up and running prior to moving on to the next 2 nodes:</p>
+      
+      <sapia:code>match command "ripple -c 'rollback -d myapp -v 2.0 -cluster | http check -c /myapp -p myapp.http -m 6 -t 10 -cluster' -b 2 -m 2" 2.0* ls -cluster</sapia:code>
+    </sapia:sect2> 
+    
+    <sapia:sect2 title="Corus allows for live configuration changes at scale">
+      <p>
+      Well-designed server-side apps should have provisions for high-risk features and conditions, allowing for the enablement/disablement of certain functionality 
+      though predefined configuration flags. In addition, well-designed apps should allow for parametrization by using variables as placeholders 
+      for configuration values.
+      </p>
+      <p>
+      Corus is in complete harmony with the approach above: it allows storing so-called properties that are passed to JVMs in the form of System properties. Performing
+      live config changes can be as simple as the following 2 commands (and spare a redeployment simply for the sake of changing a few configuration parameters): 
+      </p>
+      <sapia:code>conf add -p guiding.system.enabled=false -cluster
+ripple -c "restart all -cluster | http check -c /myapp -p myapp.http -m 6 -t 10 -cluster" -b 2</sapia:code>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Corus has built-in port management">
+      <p>
+      Corus supports the notion of port ranges: it allocates ports to processes and deallocates them upon process termination. This is done dynamically, and to Corus
+      there is no difference between running 1 or 5 instances of an application on the same host
+      </p>
+      
+    </sapia:sect2>
+    
+ 
+    <sapia:sect2 title="Corus has a rich command-line interface allowing for granular live ops intervention">
+      <p>
+      In situations where fine-grained control is required, Corus' command-line interface provides a rich set of commands allowing for rapidly visualizing and acting
+      on application processes and application packages, across a cluster, from a simple terminal:
+      </p>
+      <sapia:code>ps -cluster 
+count ps -cluster
+match act* ps -cluster
+count match act* ps -cluster 
+count hosts 
+ripple -c "restart all -cluster | http check -c /myapp -p myapp.http -m 6 -t 10 -cluster" -b 2
+conf add -p guiding.systems.enabled=false -cluster</sapia:code>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Corus has an exhaustive REST API">
+      <p>
+      Corus has a rich <a href="rest.html">REST API</a>, allowing for full automation and customization. All primitives are there that allow integrating
+      Corus functionality into very specific deployment procedures.
+      </p>
+    </sapia:sect2>
+    
+    
+  </sapia:sect1>
+</sapia:page>
