@@ -1324,6 +1324,60 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/
         
         </sapia:sect4>
         
+        <sapia:sect4 title="Archive execution configurations">
+          <p>
+          This call is similar to the CLI's <tt>exec archive -e</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/archive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/exec-configs/archive?revId=revisionId
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+                  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000//exec-configs/archive?revId=previous</sapia:code>
+    
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Unarchive execution configurations">
+          <p>
+          This call is identical to the CLI's <tt>exec unarchive -e</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/unarchive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/exec-configs/unarchive?revId=revisionId
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host:......: a host literal (taking the form: ip_address:port)
+                  
+- Parameters:
+  - revId: a revision identifier</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/unarchive?revId=previous</sapia:code>
+    
+        </sapia:sect4>
+        
       </sapia:sect3>
       
       <!-- ====================== PROPERTIES ====================== -->
