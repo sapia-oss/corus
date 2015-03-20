@@ -14,6 +14,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log4j.Level;
+import org.sapia.console.CmdElement;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandConsole;
 import org.sapia.console.Console;
@@ -24,6 +25,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.console.TerminalFacade;
 import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.ClusterInfo;
@@ -41,7 +43,7 @@ import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.sort.SortSwitchInfo;
-import org.sapia.ubik.rmi.Consts;
+import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Localhost;
 
 /**
@@ -140,6 +142,8 @@ public class CorusCli extends CommandConsole implements CorusConsole {
   }
 
   public static void main(String[] args) {
+    
+    System.setProperty(HttpConsts.HTTP_CLIENT_JDK, "true");
 
     // disabling log4j output
     org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
@@ -149,8 +153,14 @@ public class CorusCli extends CommandConsole implements CorusConsole {
 
     try {
       CmdLine main = CmdLine.parse(args);
-      if (main.containsOption(UBIK_OPT, true)) {
-        System.setProperty(Consts.LOG_LEVEL, main.getOptNotNull(UBIK_OPT).getValueNotNull());
+      for (int i = 0; i < main.size(); i++) {
+        CmdElement c = main.get(i);
+        if (c instanceof Option) {
+          Option o = (Option) c;
+          if (o.getValue() != null && o.getValue().startsWith("ubik")) {
+            System.setProperty(o.getName(), o.getValue());
+          }
+        }
       }
       
       CmdLine sub = CliUtils.fromOption(COMMAND_OPT, main);
@@ -183,7 +193,10 @@ public class CorusCli extends CommandConsole implements CorusConsole {
         // -c option
           
         if (sub.size() > 0) {
- 
+
+          Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+          loadProfile(console);
+          
           String command = sub.toString().trim();
           command        = command.substring(("-" + COMMAND_OPT).length());
           CmdLine toRun  = CmdLine.parse(command);
@@ -194,7 +207,6 @@ public class CorusCli extends CommandConsole implements CorusConsole {
           vars.add(StrLookup.mapLookup(System.getenv()));
           
           try {
-            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
             console.eval(toRun.toString(), vars);
             System.exit(0);
           } catch (Throwable err) {
@@ -206,11 +218,15 @@ public class CorusCli extends CommandConsole implements CorusConsole {
         // -s option
           
         } else if (main.containsOption(SCRIPT_OPT, false)) {
+          
+          Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+          loadProfile(console);
+          
           String path = main.assertOption(SCRIPT_OPT, true).getValue();
 
           Reader input = null;
           try {
-            input = new FileReader(new File(path));
+            input = new FileReader(console.getCorus().getContext().getFileSystem().getFile(path));
           } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -223,16 +239,18 @@ public class CorusCli extends CommandConsole implements CorusConsole {
             .add(StrLookup.mapLookup(System.getenv()));
           
           try {
-            Interpreter console = new Interpreter(DefaultConsoleOutput.newInstance(), connector);
+ 
             if (main.containsOption(WIDTH_OPT, true)) {
               console.setWidth(main.getOptNotNull(WIDTH_OPT).asInt());
             }
             console.interpret(input, vars);
+            input.close();
             System.exit(0);
           } catch (Throwable err) {
+            input.close();
             err.printStackTrace();
             System.exit(1);
-          }
+          } 
 
         // -------------------------------------------------------------------- 
         // default behavior
@@ -255,34 +273,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
               } 
             }
             
-            File userCommands = FilePath.newInstance()
-                .addCorusUserDir()
-                .setRelativeFile(CORUSCLI_SCRIPT)
-                .createFile();
-            
-            if (userCommands.exists()) {
-              Interpreter interp = new Interpreter(cli, connector);
-              interp.setCommandFactory(cli.getCommands());
-              FileReader reader = new FileReader(userCommands);
-              
-              try {
-                interp.interpret(reader, 
-                    CompositeStrLookup.newInstance()
-                      .add(StrLookup.systemPropertiesLookup())
-                      .add(StrLookup.mapLookup(System.getenv()))
-                );
-              } catch (Throwable e) {
-                cli.println("Could not execute user script: " + userCommands.getAbsolutePath());
-                e.printStackTrace();
-                return;
-              } finally {
-                try {
-                  reader.close();
-                } catch (IOException e) {
-                  // noop
-                }
-              }
-            }
+            loadProfile(cli, connector);
             
             cli.start();
           } catch (NullPointerException e) {
@@ -305,7 +296,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
 
   // ==========================================================================
   // Restricted methods
-
+  
   /**
    * @see org.sapia.console.CommandConsole#newContext()
    */
@@ -313,6 +304,63 @@ public class CorusCli extends CommandConsole implements CorusConsole {
     CliContextImpl context = new CliContextImpl(corus, errors, vars, sortSwitches);
     context.setAbortOnError(abortOnError);
     return context;
+  }
+  
+  private static void loadProfile(CorusCli cli, CorusConnector connector) throws IOException, IllegalStateException {
+    File userCommands = FilePath.newInstance()
+        .addCorusUserDir()
+        .setRelativeFile(CORUSCLI_SCRIPT)
+        .createFile();
+    
+    if (userCommands.exists()) {
+      Interpreter interp = new Interpreter(cli, connector);
+      interp.setCommandFactory(cli.getCommands());
+
+      FileReader reader = new FileReader(userCommands);
+      
+      try {
+        interp.interpret(reader, 
+            CompositeStrLookup.newInstance()
+              .add(StrLookup.systemPropertiesLookup())
+              .add(StrLookup.mapLookup(System.getenv()))
+        );
+      } catch (Throwable e) {
+        throw new IllegalStateException("Could not execute user script: " + userCommands.getAbsolutePath(), e);
+      } finally {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          // noop
+        }
+      }
+    }
+  }
+  
+  private static void loadProfile(Interpreter interp) throws IOException {
+    File userCommands = FilePath.newInstance()
+        .addCorusUserDir()
+        .setRelativeFile(CORUSCLI_SCRIPT)
+        .createFile();
+    
+    if (userCommands.exists()) {
+      FileReader reader = new FileReader(userCommands);
+      
+      try {
+        interp.interpret(reader, 
+            CompositeStrLookup.newInstance()
+              .add(StrLookup.systemPropertiesLookup())
+              .add(StrLookup.mapLookup(System.getenv()))
+        );
+      } catch (Throwable e) {
+        throw new IllegalStateException("Could not execute user script: " + userCommands.getAbsolutePath(), e);
+      } finally {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          // noop
+        }
+      }
+    }
   }
 
   private static void help() {

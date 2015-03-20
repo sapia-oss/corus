@@ -44,6 +44,7 @@ import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Conf;
 
 /**
@@ -69,6 +70,8 @@ public class CorusServer {
 
   @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
+    
+    System.setProperty(HttpConsts.HTTP_CLIENT_JDK, "true");
     
     System.setOut(new CorusTimestampOutputStream(System.out));
     System.setErr(new CorusTimestampOutputStream(System.err));
