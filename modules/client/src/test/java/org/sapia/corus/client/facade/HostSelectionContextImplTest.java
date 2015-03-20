@@ -32,13 +32,13 @@ public class HostSelectionContextImplTest {
   
   @Test
   public void testPeek() {
-    assertFalse(context.pop().isNull());
+    assertFalse(context.peek().isNull());
   }
   
   @Test
   public void testPeek_null() {
     context.pop();
-    assertTrue(context.pop().isNull());
+    assertTrue(context.peek().isNull());
   }
 
 

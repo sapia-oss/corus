@@ -26,7 +26,11 @@ public class HostSelectionContextImpl implements HostSelectionContext {
   
   @Override
   public OptionalValue<Collection<CorusHost>> peek() {
-    return new OptionalValue<Collection<CorusHost>>(hosts.peek());
+    if (hosts.isEmpty()) {
+      return new OptionalValue<Collection<CorusHost>>(null);
+    } else {
+      return new OptionalValue<Collection<CorusHost>>(hosts.peek());
+    }
   }
   
   @Override

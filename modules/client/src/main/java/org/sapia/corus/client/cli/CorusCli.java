@@ -41,6 +41,7 @@ import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.sort.SortSwitchInfo;
+import org.sapia.ubik.rmi.Consts;
 import org.sapia.ubik.util.Localhost;
 
 /**
@@ -57,6 +58,8 @@ public class CorusCli extends CommandConsole implements CorusConsole {
   public static final String SCRIPT_OPT        = "s";
   public static final String COMMAND_OPT       = "c";
   public static final String WIDTH_OPT         = "w";
+  public static final String UBIK_OPT          = "ubik";
+
   public static final int    MAX_ERROR_HISTORY = 20;
   public static final String CORUSCLI_SCRIPT   = ".profile.corus";
 
@@ -146,6 +149,10 @@ public class CorusCli extends CommandConsole implements CorusConsole {
 
     try {
       CmdLine main = CmdLine.parse(args);
+      if (main.containsOption(UBIK_OPT, true)) {
+        System.setProperty(Consts.LOG_LEVEL, main.getOptNotNull(UBIK_OPT).getValueNotNull());
+      }
+      
       CmdLine sub = CliUtils.fromOption(COMMAND_OPT, main);
       if (sub.size() > 0) {
         main = CliUtils.toOption(COMMAND_OPT, main);
