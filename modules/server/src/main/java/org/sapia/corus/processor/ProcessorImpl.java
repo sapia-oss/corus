@@ -261,7 +261,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
                   + dist.getVersion() + ")" + ", requested: " + instances + ", currently active: " + activeCount + ", maximum permitted: "
                   + config.getMaxInstances());
             }
-            filter.addRootProcess(dist, config, criteria.getProfile(), instances);
+            filter.addRootProcess(dist, config, criteria.getProfile().get(), instances);
           }
         }
       }
@@ -361,7 +361,6 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
       process.confirmKilled();
       process.save();
-      logger().debug("Kill confirmed: " + processes);
     }
   }
 

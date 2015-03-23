@@ -3,7 +3,10 @@ package org.sapia.corus.client.services.deployer;
 import static org.sapia.corus.client.common.ArgMatchers.any;
 import static org.sapia.corus.client.common.ArgMatchers.anyIfNull;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.sapia.corus.client.common.ArgMatcher;
@@ -14,25 +17,24 @@ import org.sapia.corus.client.common.ArgMatchers;
  * 
  * @author yduchesne
  */
-public class DistributionCriteria implements Serializable {
+public class DistributionCriteria implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
   private ArgMatcher name, version;
-  private int     backup = 0;
+  private int        backup = 0;
 
+  /**
+   * Meant for externalization only.
+   */
+  public DistributionCriteria() {
+  }
+  
   /**
    * @see {@link #name}
    */
   public ArgMatcher getName() {
     return name;
-  }
-
-  /**
-   * @see {@link #name}
-   */
-  public void setName(ArgMatcher name) {
-    this.name = name;
   }
 
   /**
@@ -43,36 +45,44 @@ public class DistributionCriteria implements Serializable {
   }
 
   /**
-   * @see {@link #version}
-   */
-  public void setVersion(ArgMatcher version) {
-    this.version = version;
-  }
- 
-  /**
    * @return the number of backup distributions to keep upon undeploy.
    */
   public int getBackup() {
     return backup;
   }
   
-  /**
-   * @see #getBackup()
-   */
-  public void setBackup(int backup) {
-    this.backup = backup;
-  }
-  
   public static Builder builder() {
     return new Builder();
   }
+  
+  // --------------------------------------------------------------------------
+  // Externalizables
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    name    = (ArgMatcher) in.readObject();
+    version = (ArgMatcher) in.readObject();
+    backup  = in.readInt();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(name);
+    out.writeObject(version);
+    out.writeInt(backup);
+  }
+  
+  // --------------------------------------------------------------------------
+  // Object overrides
 
   public String toString() {
     return new ToStringBuilder(this).append("name", name).append("version", version).toString();
   }
 
-  // //////////// Builder class
-
+  // ==========================================================================
+  // Builder class
+  
   public static final class Builder {
 
     private ArgMatcher name, version;
@@ -104,15 +114,22 @@ public class DistributionCriteria implements Serializable {
       return this;
     }
     
+    public Builder copy(DistributionCriteria other) {
+      name    = other.name;
+      version = other.version;
+      backup  = other.backup;
+      return this;
+    }
+    
     public DistributionCriteria all() {
       return name(any()).version(any()).build();
     }
 
     public DistributionCriteria build() {
       DistributionCriteria criteria = new DistributionCriteria();
-      criteria.setName(anyIfNull(name));
-      criteria.setVersion(anyIfNull(version));
-      criteria.setBackup(backup);
+      criteria.name    = anyIfNull(name);
+      criteria.version = anyIfNull(version);
+      criteria.backup  = backup;
       return criteria;
     }
   }

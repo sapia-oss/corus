@@ -88,6 +88,7 @@ public class ProcessResourceTest {
     when(connector.getContext()).thenReturn(connection);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
     when(request.getValue("p")).thenReturn(new Value("p", "test-profile"));
+    when(request.getValue("pr")).thenReturn(new Value("pr", "*:*"));
     when(request.getValue(anyString(), anyString())).thenReturn(new Value("test", "*"));
   }
 

@@ -56,12 +56,16 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
     OsModule      os                = ctx.getServerContext().getServices().getOS();
 
-    if (conf.getMaxKillRetry() >= 0) {
+    if (conf.getMaxKillRetry() > 0) {
       process.setMaxKillRetry(conf.getMaxKillRetry());
     }
 
-    if (conf.getShutdownTimeout() >= 0) {
+    if (conf.getShutdownTimeout() > 0) {
       process.setShutdownTimeout(conf.getShutdownTimeout());
+    }
+    
+    if (conf.getPollTimeout() > 0) {
+      process.setPollTimeout(conf.getPollTimeout());
     }
 
     File processDir = makeProcessDir(ctx, info);
@@ -72,7 +76,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     process.setProcessDir(processDir.getAbsolutePath());
     process.setDeleteOnKill(conf.isDeleteOnKill());
-
+  
     EnvImpl env = null;
 
     try {

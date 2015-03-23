@@ -63,7 +63,13 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
       if (!dir.isDirectory()) {
         throw new IllegalArgumentException(String.format("Not a directory: %s", dir.getAbsolutePath()));
       }
-      FileUtils.deleteDirectory(dir);
+      try {
+        FileUtils.deleteDirectory(dir);
+      } catch (IOException e) {
+        if (dir.exists()) {
+          throw e;
+        } 
+      }
     }
   }
 

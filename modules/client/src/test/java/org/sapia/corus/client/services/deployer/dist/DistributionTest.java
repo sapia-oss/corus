@@ -1,5 +1,6 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -7,16 +8,12 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
-import org.sapia.corus.client.services.processor.DistributionInfo;
-import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 
 public class DistributionTest {
 
@@ -49,34 +46,31 @@ public class DistributionTest {
 
     Collections.sort(dists);
 
-    Assert.assertEquals(dist2, dists.get(0));
-    Assert.assertEquals(dist3, dists.get(1));
-    Assert.assertEquals(dist1, dists.get(2));
+    assertEquals(dist2, dists.get(0));
+    assertEquals(dist3, dists.get(1));
+    assertEquals(dist1, dists.get(2));
 
   }
 
   @Test
   public void testMatchesAny() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    ArgMatcher name = ArgMatchers.any();
-    ArgMatcher version = ArgMatchers.any();
-    Assert.assertTrue(dist1.matches(name, version));
+    DistributionCriteria c = DistributionCriteria.builder().all();
+    assertTrue(dist1.matches(c));
   }
 
   @Test
   public void testMatchesAnyName() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    ArgMatcher name = ArgMatchers.any();
-    ArgMatcher version = ArgMatchers.exact("2.0");
-    Assert.assertTrue(dist1.matches(name, version));
+    DistributionCriteria c = DistributionCriteria.builder().version(ArgMatchers.exact("2.0")).build();
+    assertTrue(dist1.matches(c));
   }
 
   @Test
   public void testMatchesAnyVersion() {
     Distribution dist1 = new Distribution("dist", "2.0");
-    ArgMatcher name = ArgMatchers.exact("dist");
-    ArgMatcher version = ArgMatchers.any();
-    Assert.assertTrue(dist1.matches(name, version));
+    DistributionCriteria c = DistributionCriteria.builder().name(ArgMatchers.exact("dist")).build();
+    assertTrue(dist1.matches(c));
   }
 
   @Test
@@ -88,7 +82,7 @@ public class DistributionTest {
       dist.addProcess(pc);
     }
     ProcessConfig proc = dist.getProcess("proc_2");
-    Assert.assertEquals("proc_2", proc.getName());
+    assertEquals("proc_2", proc.getName());
   }
 
   @Test
@@ -99,29 +93,29 @@ public class DistributionTest {
     dist.addProcess(new ProcessConfig("proc22"));
 
     List<ProcessConfig> match = dist.getProcesses(ArgMatchers.parse("proc2*"));
-    Assert.assertEquals(2, match.size());
+    assertEquals(2, match.size());
   }
 
   @Test
   public void testContainsProcess() {
     Distribution dist = new Distribution("dist", "2.0");
     dist.addProcess(new ProcessConfig("proc"));
-    Assert.assertTrue(dist.containsProcess("proc"));
+    assertTrue(dist.containsProcess("proc"));
   }
 
   @Test
   public void testGetDistributionFileName() {
     Distribution dist = new Distribution("dist", "2.0");
-    Assert.assertEquals("dist-2.0.zip", dist.getDistributionFileName());
+    assertEquals("dist-2.0.zip", dist.getDistributionFileName());
   }
 
   @Test
   public void testTags() {
     Distribution dist = new Distribution("dist", "2.0");
     dist.setTags("tag1, tag2, tag3");
-    Assert.assertTrue(dist.getTagSet().contains("tag1"));
-    Assert.assertTrue(dist.getTagSet().contains("tag2"));
-    Assert.assertTrue(dist.getTagSet().contains("tag3"));
+    assertTrue(dist.getTagSet().contains("tag1"));
+    assertTrue(dist.getTagSet().contains("tag2"));
+    assertTrue(dist.getTagSet().contains("tag3"));
   }
   
   

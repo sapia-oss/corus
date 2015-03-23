@@ -1,5 +1,9 @@
 package org.sapia.corus.client.services.processor;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -7,6 +11,7 @@ import java.util.List;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.Matcheable;
@@ -23,7 +28,7 @@ import org.sapia.ubik.util.Strings;
  * @author Yanick Duchesne
  */
 public class Process extends AbstractPersistent<String, Process> 
-  implements java.io.Serializable, Comparable<Process>, JsonStreamable, Matcheable {
+  implements Externalizable, Comparable<Process>, JsonStreamable, Matcheable {
 
   static final long serialVersionUID = 1L;
   
@@ -151,6 +156,7 @@ public class Process extends AbstractPersistent<String, Process>
   private long                                     creationTime    = System.currentTimeMillis();
   private long                                     lastAccess      = System.currentTimeMillis();
   private int                                      shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT_SECS;
+  private int                                      pollTimeout     = -1;
   private int                                      maxKillRetry    = DEFAULT_KILL_RETRY;
   private LifeCycleStatus                          status          = LifeCycleStatus.ACTIVE;
   private transient List<AbstractCommand>          commands        = new ArrayList<AbstractCommand>();
@@ -158,8 +164,12 @@ public class Process extends AbstractPersistent<String, Process>
   private List<ActivePort>                         activePorts     = new ArrayList<ActivePort>();
   private transient org.sapia.corus.interop.Status processStatus;
 
-  Process() {
+  /**
+   * Meant for externalization only.
+   */
+  public Process() {
   }
+  
 
   /**
    * Creates an instance of this class.
@@ -303,6 +313,26 @@ public class Process extends AbstractPersistent<String, Process>
   public void setShutdownTimeout(int timeout) {
     shutdownTimeout = timeout;
   }
+  
+  /**
+   * @param pollTimeout 
+   *          the amount of time (in seconds) that the Corus server should give to a process to poll,
+   *          beyond which the process should be deemed irresponsive.
+   */
+  public void setPollTimeout(int pollTimeout) {
+    this.pollTimeout = pollTimeout;
+  }
+  
+  /**
+   * Returns a polling timeout. If it timeout <= 0, the value configured on the server side
+   * should be used.
+   * 
+   * @return the amount of time (in seconds) that the Corus server should give to a process to poll,
+   *          beyond which the process should be deemed irresponsive.
+   */
+  public int getPollTimeout() {
+    return pollTimeout;
+  }  
 
   /**
    * @return the <code>List</code> of <code>ActivePort</code>s that this
@@ -609,6 +639,44 @@ public class Process extends AbstractPersistent<String, Process>
         pattern.matches(status.name().toLowerCase()) ||
         pattern.matches(status.abbreviation());
   }
+  
+  public boolean matches(ProcessCriteria criteria) {
+    return criteria.getDistribution().matches(distributionInfo.getName())
+        && criteria.getVersion().matches(distributionInfo.getVersion())
+        && criteria.getName().matches(distributionInfo.getProcessName())
+        && criteria.getPid().matches(processID)
+        && (criteria.getLifeCycles().isEmpty() || criteria.getLifeCycles().contains(status))
+        && (criteria.getProfile().isNull() || criteria.getProfile().get().equals(distributionInfo.getProfile()))
+        && matches(criteria.getPortCriteria());
+  }
+  
+  private boolean matches(OptionalValue<PortCriteria> criteria) {
+    if (criteria.isSet()) {
+      for (ActivePort p : activePorts) {
+        if (p.matches(criteria.get())) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+ 
+
+  // --------------------------------------------------------------------------
+  // Comparable
+  
+  @Override
+  public int compareTo(Process other) {
+    int c = distributionInfo.compareTo(other.getDistributionInfo());
+    if (c == 0) {
+      c = processID.compareTo(other.getProcessID());
+    }
+    return c;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Object overrides
 
   @Override
   public String toString() {
@@ -635,13 +703,44 @@ public class Process extends AbstractPersistent<String, Process>
     return processID.hashCode();
   }
 
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @SuppressWarnings("unchecked")
   @Override
-  public int compareTo(Process other) {
-    int c = distributionInfo.compareTo(other.getDistributionInfo());
-    if (c == 0) {
-      c = processID.compareTo(other.getProcessID());
-    }
-    return c;
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    distributionInfo = (DistributionInfo) in.readObject();
+    processID        = in.readUTF();
+    processDir       = in.readUTF();
+    pid              = in.readUTF();
+    deleteOnKill     = in.readBoolean();
+    lock             = new ProcessLock();
+    creationTime     = in.readLong();
+    lastAccess       = in.readLong();
+    shutdownTimeout  = in.readInt();
+    pollTimeout      = in.readInt();
+    maxKillRetry     = in.readInt();
+    status           = (LifeCycleStatus) in.readObject();
+    commands         = (List<AbstractCommand>) in.readObject();
+    activePorts      = (List<ActivePort>) in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(distributionInfo);
+    out.writeUTF(processID);
+    out.writeUTF(processDir);
+    out.writeUTF(pid);
+    out.writeBoolean(deleteOnKill);
+    out.writeLong(creationTime);
+    out.writeLong(lastAccess);
+    out.writeInt(shutdownTimeout);
+    out.writeInt(pollTimeout);
+    out.writeInt(maxKillRetry);
+    out.writeObject(status);
+    out.writeObject(commands);
+    out.writeObject(activePorts);
   }
 
 }

@@ -13,6 +13,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.processor.PortCriteria;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.sort.Sorting;
@@ -43,7 +44,7 @@ public class Ps extends CorusCliCommand {
   
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE,
-      OPT_PORTS, OPT_CLEAN, OPT_CLUSTER
+      OPT_PORTS, OPT_CLEAN, OPT_PORT_RANGE, OPT_CLUSTER
   );
   
   // --------------------------------------------------------------------------
@@ -61,11 +62,12 @@ public class Ps extends CorusCliCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    String dist = null;
-    String version = null;
-    String profile = null;
-    String vmName = null;
-    String pid = null;
+    String  dist         = null;
+    String  version      = null;
+    String  profile      = null;
+    String  vmName       = null;
+    String  pid          = null;
+    String  portRange    = null;
     boolean displayPorts = false;
 
     CmdLine cmd = ctx.getCommandLine();
@@ -95,6 +97,10 @@ public class Ps extends CorusCliCommand {
     if (cmd.containsOption(OPT_PROCESS_ID.getName(), true)) {
       pid = cmd.assertOption(OPT_PROCESS_ID.getName(), true).getValue();
     }
+    
+    if (cmd.containsOption(OPT_PORT_RANGE.getName(), true)) {
+      portRange = cmd.assertOption(OPT_PORT_RANGE.getName(), true).getValue();
+    }
 
     displayPorts = cmd.containsOption(OPT_PORTS.getName(), false);
 
@@ -111,8 +117,11 @@ public class Ps extends CorusCliCommand {
         ctx.getConsole().println(e.getMessage());
       }
     } else {
-      ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile).build();
-      res = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
+      ProcessCriteria.Builder builder = ProcessCriteria.builder().name(vmName).distribution(dist).version(version).profile(profile);
+      if (portRange != null) {
+        builder.ports(PortCriteria.fromLiteral(portRange));
+      }
+      res = ctx.getCorus().getProcessorFacade().getProcesses(builder.build(), cluster);
       res = Sorting.sortList(res, Process.class, ctx.getSortSwitches());
       displayResults(res, ctx, displayPorts);
     }

@@ -3,19 +3,20 @@ package org.sapia.corus.client.services.processor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
@@ -27,25 +28,20 @@ public class ProcessTest {
   public void setUp() throws Exception {
   }
 
-  @Test
+  @Test(expected = ProcessLockException.class)
   public void testAcquireLock() throws Exception {
     Process proc = new Process(new DistributionInfo("dist", "1.0", "prod", "app"));
     LockOwner lockOwner = LockOwner.createInstance();
     proc.getLock().acquire(lockOwner);
     LockOwner lockOwner2 = LockOwner.createInstance();
-    try {
-      proc.getLock().acquire(lockOwner2);
-      Assert.fail("Process lock should not have been acquired");
-    } catch (ProcessLockException e) {
-      // ok
-    }
+    proc.getLock().acquire(lockOwner2);
   }
 
   @Test
   public void testIsLocked() throws Exception {
     Process proc = new Process(new DistributionInfo("dist", "1.0", "prod", "app"));
     proc.getLock().acquire(LockOwner.createInstance());
-    Assert.assertTrue("Process should be locked", proc.getLock().isLocked());
+    assertTrue("Process should be locked", proc.getLock().isLocked());
   }
 
   @Test
@@ -63,11 +59,10 @@ public class ProcessTest {
 
     Collections.sort(procs);
 
-    Assert.assertEquals(proc1, procs.get(0));
-    Assert.assertEquals(proc4, procs.get(1));
-    Assert.assertEquals(proc3, procs.get(2));
-    Assert.assertEquals(proc2, procs.get(3));
-
+    assertEquals(proc1, procs.get(0));
+    assertEquals(proc4, procs.get(1));
+    assertEquals(proc3, procs.get(2));
+    assertEquals(proc2, procs.get(3));
   }
   
   @Test
@@ -152,5 +147,102 @@ public class ProcessTest {
     Process proc = new Process(new DistributionInfo("dist", "1.0", "prod", "app"));
     Pattern pattern = Matcheable.DefaultPattern.parse(proc.getProcessID());
     assertTrue(proc.matches(pattern));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_exact_dist_name_and_version() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app"));
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "prod", "app"));
+
+    ProcessCriteria c = ProcessCriteria.builder().distribution("dist1").version("1.0").build();
+    
+    assertTrue(proc1.matches(c));
+    assertFalse(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_any_dist_name_version() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app"));
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "prod", "app"));
+
+    ProcessCriteria c = ProcessCriteria.builder().all();
+    
+    assertTrue(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_profile() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app"));
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app"));
+
+    ProcessCriteria c = ProcessCriteria.builder().profile("dev").build();
+    
+    assertFalse(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_process() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app1"));
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app2"));
+
+    ProcessCriteria c = ProcessCriteria.builder().name(ArgMatchers.exact("app2")).build();
+    
+    assertFalse(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_status() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app1"));
+    proc1.setStatus(LifeCycleStatus.ACTIVE);
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app2"));
+    proc2.setStatus(LifeCycleStatus.STALE);
+
+    ProcessCriteria c = ProcessCriteria.builder().lifecycles(LifeCycleStatus.STALE).build();
+    
+    assertFalse(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_port() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app1"));
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app2"));
+    proc2.addActivePort(new ActivePort("test", 8080));
+
+    ProcessCriteria c = ProcessCriteria.builder().ports(PortCriteria.builder().range("test").port(8080).build()).build();
+    
+    assertFalse(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_port_multiple_processes() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app1"));
+    proc1.addActivePort(new ActivePort("test1", 8080));
+
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app2"));
+    proc2.addActivePort(new ActivePort("test2", 8080));
+
+    ProcessCriteria c = ProcessCriteria.builder().ports(PortCriteria.builder().range("test2").port(8080).build()).build();
+    
+    assertFalse(proc1.matches(c));
+    assertTrue(proc2.matches(c));
+  }
+  
+  @Test
+  public void testMatchesProcessCriteria_any_port_multiple_processes() {
+    Process proc1 = new Process(new DistributionInfo("dist1", "1.0", "prod", "app1"));
+    proc1.addActivePort(new ActivePort("test", 8100));
+
+    Process proc2 = new Process(new DistributionInfo("dist2", "2.0", "dev", "app2"));
+    proc2.addActivePort(new ActivePort("test", 8101));
+
+    ProcessCriteria c = ProcessCriteria.builder().ports(PortCriteria.builder().range("test").port(ArgMatchers.any()).build()).build();
+    
+    assertTrue(proc1.matches(c));
+    assertTrue(proc2.matches(c));
   }
 }

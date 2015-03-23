@@ -18,78 +18,46 @@ import org.sapia.ubik.util.Strings;
  */
 public class ProcessDatabaseImpl implements ProcessDatabase {
 
-  private DbMap<String, Process> _processes;
+  private DbMap<String, Process> processes;
 
   public ProcessDatabaseImpl(DbMap<String, Process> map) {
-    _processes = map;
+    processes = map;
   }
 
   @Override
   public synchronized void addProcess(Process process) {
-    _processes.put(process.getProcessID(), process);
+    processes.put(process.getProcessID(), process);
   }
 
   @Override
   public synchronized boolean containsProcess(String corusPid) {
-    return _processes.get(corusPid) != null;
+    return processes.get(corusPid) != null;
   }
 
   @Override
   public synchronized void removeProcesses(ProcessCriteria criteria) {
     List<Process> toRemove = getProcesses(criteria);
     for (int i = 0; i < toRemove.size(); i++) {
-      _processes.remove(((Process) toRemove.get(i)).getProcessID());
+      processes.remove(((Process) toRemove.get(i)).getProcessID());
     }
   }
 
   @Override
   public synchronized List<Process> getProcesses(final ProcessCriteria criteria) {
     Matcher<Process> matcher = new CompositeMatcher<Process>().add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        return criteria.getDistribution().matches(object.getDistributionInfo().getName());
+      public boolean matches(Process p) {
+        return p.matches(criteria);
       }
-    }).add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        return criteria.getVersion().matches(object.getDistributionInfo().getVersion());
-      }
-    }).add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        return criteria.getName().matches(object.getDistributionInfo().getProcessName());
-      }
-    }).add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        if (criteria.getProfile() == null)
-          return true;
-        return criteria.getProfile().equals(object.getDistributionInfo().getProfile());
-      }
-    }).add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        return criteria.getPid().matches(object.getProcessID());
-      }
-    }).add(new Matcher<Process>() {
-      public boolean matches(Process object) {
-        return true;
-      }
-    }).add(new Matcher<Process>() {
-      @Override
-      public boolean matches(Process object) {
-        if (criteria.getLifeCycles().isEmpty()) {
-          return true;
-        }
-        return criteria.getLifeCycles().contains(object.getStatus());
-      }
-      
     });
-
-    return new IteratorFilter<Process>(matcher).filter(_processes.values()).sort(new ProcessComparator()).get();
+    return new IteratorFilter<Process>(matcher).filter(processes.values()).sort(new ProcessComparator()).get();
   }
 
   public synchronized void removeProcess(String corusPid) {
-    _processes.remove(corusPid);
+    processes.remove(corusPid);
   }
 
   public synchronized Process getProcess(String corusPid) throws ProcessNotFoundException {
-    Process current = (Process) _processes.get(corusPid);
+    Process current = (Process) processes.get(corusPid);
 
     if (current == null) {
       throw new ProcessNotFoundException("No process for ID: " + corusPid);
@@ -100,6 +68,6 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
   
   @Override
   public String toString() {
-    return Strings.toString("processes", _processes);
+    return Strings.toString("processes", processes);
   }
 }

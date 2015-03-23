@@ -4,12 +4,16 @@ import static org.sapia.corus.client.common.ArgMatchers.any;
 import static org.sapia.corus.client.common.ArgMatchers.anyIfNull;
 import static org.sapia.corus.client.common.ArgMatchers.parse;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.ubik.util.Collects;
@@ -19,7 +23,7 @@ import org.sapia.ubik.util.Collects;
  * 
  * @author yduchesne
  */
-public class ProcessCriteria implements Serializable {
+public class ProcessCriteria implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
@@ -36,7 +40,7 @@ public class ProcessCriteria implements Serializable {
   /**
    * Corresponds to the process profile.
    */
-  private String profile;
+  private OptionalValue<String> profile;
 
   /**
    * Corresponds to the process distribution.
@@ -47,12 +51,20 @@ public class ProcessCriteria implements Serializable {
    * Holds the {@link LifeCycleStatus}es to match.
    */
   private Set<Process.LifeCycleStatus> lifeCycles = new HashSet<Process.LifeCycleStatus>();
+  
+  private OptionalValue<PortCriteria> portCriteria = OptionalValue.of(null);
 
   /**
    * Corresponds to the process version.
    */
   private ArgMatcher version;
-
+  
+  /**
+   * Do not use: meant for externalization only.
+   */
+  public ProcessCriteria() {
+  }
+  
   public ArgMatcher getName() {
     return name;
   }
@@ -61,7 +73,7 @@ public class ProcessCriteria implements Serializable {
     return pid;
   }
 
-  public String getProfile() {
+  public OptionalValue<String> getProfile() {
     return profile;
   }
 
@@ -76,6 +88,10 @@ public class ProcessCriteria implements Serializable {
   public Set<Process.LifeCycleStatus> getLifeCycles() {
     return lifeCycles;
   }
+  
+  public OptionalValue<PortCriteria> getPortCriteria() {
+    return portCriteria;
+  }
 
   /**
    * @return a {@link DistributionCriteria} encapsulating this instance's
@@ -89,6 +105,9 @@ public class ProcessCriteria implements Serializable {
     return new Builder();
   }
 
+  // --------------------------------------------------------------------------
+  // Object override
+  
   public String toString() {
     return new ToStringBuilder(this)
         .append("distribution", distribution)
@@ -97,14 +116,48 @@ public class ProcessCriteria implements Serializable {
         .append("profile", profile)
         .toString();
   }
-
-  // //////////// Builder class
-
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    name         = (ArgMatcher) in.readObject();
+    pid          = (ArgMatcher) in.readObject();
+    profile      = (OptionalValue<String>) in.readObject();
+    distribution = (ArgMatcher) in.readObject();
+    lifeCycles   = (Set<Process.LifeCycleStatus>) in.readObject();
+    version      = (ArgMatcher) in.readObject();
+    portCriteria = (OptionalValue<PortCriteria>) in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(name);
+    out.writeObject(pid);
+    out.writeObject(profile);
+    out.writeObject(distribution);
+    out.writeObject(lifeCycles);
+    out.writeObject(version);
+    out.writeObject(portCriteria);
+  }
+  
+  // ==========================================================================
+  
+  /**
+   * Builder class.
+   * 
+   * @author yduchesne
+   *
+   */
   public static final class Builder {
     
     private ArgMatcher name, distribution, version, pid;
-    private String profile;
-    private Set<LifeCycleStatus> lifeCycles;
+    private OptionalValue<String>       profile = OptionalValue.none();
+    private OptionalValue<PortCriteria> ports   = OptionalValue.none();
+    private Set<LifeCycleStatus>        lifeCycles;
 
     private Builder() {
     }
@@ -124,7 +177,7 @@ public class ProcessCriteria implements Serializable {
     }
 
     public Builder profile(String profile) {
-      this.profile = profile;
+      this.profile = OptionalValue.of(profile);
       return this;
     }
 
@@ -151,6 +204,11 @@ public class ProcessCriteria implements Serializable {
       return this;
     }
     
+    public Builder ports(PortCriteria ports) {
+      this.ports = OptionalValue.of(ports);
+      return this;
+    }
+    
     public Builder copy(ProcessCriteria c) {
       this.distribution = c.distribution;
       this.lifeCycles   = c.lifeCycles;
@@ -158,6 +216,7 @@ public class ProcessCriteria implements Serializable {
       this.pid          = c.pid;
       this.profile      = c.profile;
       this.version      = c.version;
+      this.ports         = c.portCriteria;
       return this;
     }
 
@@ -167,6 +226,8 @@ public class ProcessCriteria implements Serializable {
       criteria.name         = any();
       criteria.version      = any();
       criteria.pid          = any();
+      criteria.profile      = OptionalValue.none();
+      criteria.portCriteria = OptionalValue.none();
       return criteria;
     }
 
@@ -181,6 +242,9 @@ public class ProcessCriteria implements Serializable {
       criteria.pid     = anyIfNull(pid);
       if (lifeCycles != null) {
         criteria.lifeCycles = lifeCycles;
+      }
+      if (ports != null) {
+        criteria.portCriteria = ports;
       }
       return criteria;
     }

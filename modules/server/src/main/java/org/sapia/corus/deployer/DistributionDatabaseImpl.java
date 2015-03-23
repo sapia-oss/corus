@@ -95,8 +95,8 @@ public class DistributionDatabaseImpl implements DistributionDatabase {
         Iterator<String> versions = distsByVersion.keySet().iterator();
         while (versions.hasNext()) {
           String version = (String) versions.next();
-          if (criteria.getVersion() == null || criteria.getVersion().matches(version)) {
-            Distribution dist = (Distribution) distsByVersion.get(version);
+          Distribution dist = (Distribution) distsByVersion.get(version);
+          if (dist.matches(criteria)) {
             dists.add(dist);
           }
         }

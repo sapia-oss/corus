@@ -51,10 +51,16 @@ public class ProcessWriteResourceTest {
     when(request.getValue("d")).thenReturn(new Value("d", "test-dist"));
     when(request.getValue("v")).thenReturn(new Value("v", "test-version"));
     when(request.getValue("n")).thenReturn(new Value("n", "test-name"));
+    
+    when(request.getValue("p", "*")).thenReturn(new Value("p", "*"));
+    when(request.getValue("d", "*")).thenReturn(new Value("d", "*"));
+    when(request.getValue("v", "*")).thenReturn(new Value("v", "*"));
+    when(request.getValue("n", "*")).thenReturn(new Value("n", "*"));
+    
     when(request.getValue("e")).thenReturn(new Value("e", null));
     when(request.getValue("i", "1")).thenReturn(new Value("i", "1"));
     when(request.getValue("corus:process_id")).thenReturn(new Value("corus:process_id", "1234"));
-  
+    when(request.getValue("pr")).thenReturn(new Value("pr", "*:*"));
   }
 
   @Test

@@ -1,10 +1,14 @@
 package org.sapia.corus.ftest.rest;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.client.Entity;
@@ -12,9 +16,14 @@ import javax.ws.rs.core.MediaType;
 
 import net.sf.json.JSONArray;
 
+import org.apache.commons.lang.text.StrLookup;
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.Results;
+import org.sapia.corus.client.cli.Interpreter;
+import org.sapia.corus.client.common.Delay;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.ftest.JSONValue;
 import org.sapia.corus.ftest.FtestClient;
 import org.testng.annotations.AfterSuite;
@@ -23,6 +32,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 public class DistributionResourcesFuncTest {
+  
+  static final long DEPLOY_TIMEOUT        = 10000;
+  static final long DEPLOY_CHECK_INTERVAL = 2000;
   
   private FtestClient client;
   
@@ -43,6 +55,13 @@ public class DistributionResourcesFuncTest {
   }
   
   private void tearDown() throws Exception {
+    Interpreter interp = new Interpreter(client.getConnector());
+    try {
+      interp.eval("kill -d demo -v * -n noopApp -w 60 -cluster", StrLookup.noneLookup());
+    } catch (Throwable err) {
+      throw new IllegalStateException("Could not kill processes", err);
+    }
+    
     client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
   }
   
@@ -70,6 +89,8 @@ public class DistributionResourcesFuncTest {
           .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
       assertEquals(200, response.asObject().getInt("status"));
     }
+ 
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     
     JSONArray dists = client.resource("/clusters/ftest/distributions")
         .request()
@@ -77,6 +98,7 @@ public class DistributionResourcesFuncTest {
           .get(JSONValue.class)
           .asArray();
     assertEquals(client.getHostCount(), dists.size());
+    
   }
   
   @Test
@@ -100,6 +122,8 @@ public class DistributionResourcesFuncTest {
           .accept(MediaType.APPLICATION_JSON) 
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 0);
     
     JSONArray dists = client.resource("/clusters/ftest/distributions")
         .request()
@@ -134,6 +158,8 @@ public class DistributionResourcesFuncTest {
       assertEquals(200, response.asObject().getInt("status"));
     }
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 1);
+    
     JSONArray dists = client.resource("/clusters/ftest/distributions")
         .request()
           .accept(MediaType.APPLICATION_JSON)
@@ -153,7 +179,7 @@ public class DistributionResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.notClustered());
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions")
         .queryParam("d", "*").queryParam("v", "*")
@@ -163,6 +189,8 @@ public class DistributionResourcesFuncTest {
           .accept(MediaType.APPLICATION_JSON) 
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
     
     JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
         .request()
@@ -198,6 +226,8 @@ public class DistributionResourcesFuncTest {
       assertEquals(200, response.asObject().getInt("status"));
     }
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 1);
+    
     JSONArray dists = client.resource("/clusters/ftest/distributions")
         .request()
           .accept(MediaType.APPLICATION_JSON)
@@ -228,6 +258,8 @@ public class DistributionResourcesFuncTest {
           .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
       assertEquals(200, response.asObject().getInt("status"));
     }
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     
     JSONArray dists = client.resource("/clusters/ftest/distributions")
         .request()
@@ -261,6 +293,8 @@ public class DistributionResourcesFuncTest {
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
+    
     JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
         .request()
           .accept(MediaType.APPLICATION_JSON)
@@ -280,7 +314,7 @@ public class DistributionResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.notClustered());
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions/demo/1.0/rollback")
         .request()
@@ -342,5 +376,44 @@ public class DistributionResourcesFuncTest {
           .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
     }
   }
+  
+  private void waitDeployed(long timeout, long pollInterval, int expectedCount)  throws InterruptedException {
+    Delay delay = new Delay(timeout, TimeUnit.MILLISECONDS);
+    List<Distribution> dists = new ArrayList<Distribution>();
+    while (delay.isNotOver() && dists.size() < expectedCount) {
+      dists.clear();
+      Results<List<Distribution>> results = client.getConnector().getDeployerFacade().getDistributions(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+      while (results.hasNext()) {
+        List<Distribution> r = results.next().getData();
+        dists.addAll(r);
+      }
+      
+      if (dists.size() >= expectedCount) {
+        break;
+      }
+      Thread.sleep(pollInterval);
+    }
+   
+    assertTrue(dists.size() >= expectedCount, "Expected distribution on " + expectedCount + " hosts. Got: " + dists.size());
+  }
  
+  private void waitUndeployed(long timeout, long pollInterval, int expectedCount)  throws InterruptedException {
+    Delay delay = new Delay(timeout, TimeUnit.MILLISECONDS);
+    List<Distribution> dists = new ArrayList<Distribution>();
+    while (delay.isNotOver() && dists.size() > expectedCount) {
+      dists.clear();
+      Results<List<Distribution>> results = client.getConnector().getDeployerFacade().getDistributions(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+      while (results.hasNext()) {
+        List<Distribution> r = results.next().getData();
+        dists.addAll(r);
+      }
+      
+      if (dists.size() <= expectedCount) {
+        break;
+      }
+      Thread.sleep(pollInterval);
+    }
+   
+    assertTrue(dists.size() <= expectedCount, "Expected distribution on " + expectedCount + " hosts. Got: " + dists.size());
+  }
 }
