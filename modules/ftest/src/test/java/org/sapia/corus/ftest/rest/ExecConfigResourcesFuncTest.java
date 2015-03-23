@@ -53,7 +53,7 @@ public class ExecConfigResourcesFuncTest {
   private void tearDown() throws Exception {
     Interpreter interp = new Interpreter(client.getConnector());
     try {
-      interp.eval("kill -d demo -v * -n noopApp -w 30 -cluster", StrLookup.noneLookup());
+      interp.eval("kill -d demo -v * -n noopApp -w 60 -cluster", StrLookup.noneLookup());
     } catch (Throwable err) {
       throw new IllegalStateException("Could not kill processes", err);
     }

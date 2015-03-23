@@ -158,25 +158,30 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentEvent(dist));
       
     } catch (Exception e) {
-      ctx.error("Error occurred", e);
       if (tmpBaseDir != null) {
         if (prefs.isExecuteDeployScripts()) {
-          ctx.info("Will execute rollback.corus script if it is provided in the distribution");
+          ctx.info("Error occured while deploying. Will execute rollback.corus script if it is provided in the distribution");
           try {
             // tmpBaseDir might or might not have been renamed to point to baseDir at this point
             File   actualBaseDir = tmpBaseDir.exists() ? tmpBaseDir : baseDir;
             String scriptBaseDir = FilePath.newInstance().addDir(actualBaseDir.getAbsolutePath()).addDir("common").createFilePath();
             doRunDeployScript(fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false, ctx);
             ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.SUCCESS));
+            ctx.error("Rollback completed. Was automatically performed due to error:", e);
           } catch (Exception e2) {
             ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.FAILURE));
             ctx.error("Error executing rollback.corus script", e2);
+            ctx.error("Original error that caused rollback was:", e);
           }
+        } else {
+          ctx.error("Deployment error occurred", e);
         }
         if (!(e instanceof DuplicateDistributionException) && baseDir != null && baseDir.exists()) {
           dists.removeDistribution(DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build());
           fs.deleteDirectory(baseDir);
         }
+      } else {
+        ctx.error("Deployment error occurred", e);
       }
     } finally {
       fs.deleteFile(src);

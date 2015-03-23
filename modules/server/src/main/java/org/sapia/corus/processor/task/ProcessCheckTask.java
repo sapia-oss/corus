@@ -2,11 +2,13 @@ package org.sapia.corus.processor.task;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
@@ -36,7 +38,8 @@ public class ProcessCheckTask extends Task<Void, Void> {
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     ctx.debug("Checking for stale processes...");
 
-    ProcessorConfiguration processorConf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
+    Processor processor = ctx.getServerContext().getServices().getProcessor();
+    ProcessorConfiguration processorConf = processor.getConfiguration();
     List<Process> processes = ctx.getServerContext().getServices().getProcesses().getProcesses(
         ProcessCriteria.builder().lifecycles(LifeCycleStatus.ACTIVE).build()
     );
@@ -45,11 +48,18 @@ public class ProcessCheckTask extends Task<Void, Void> {
 
     for (int i = 0; i < processes.size(); i++) {
       proc = processes.get(i);
-      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) && proc.isTimedOut(processorConf.getProcessTimeoutMillis())) {
+      
+      long configuredTimeout = proc.getPollTimeout() > 0 ? 
+          TimeUnit.MILLISECONDS.convert(proc.getPollTimeout(), TimeUnit.SECONDS) : 
+          processor.getConfiguration().getProcessTimeoutMillis();
+          
+      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) && proc.isTimedOut(configuredTimeout)) {
         proc.incrementStaleDetectionCount();
         if (!processorConf.autoRestartStaleProcesses()) {
-          ctx.warn(String.format("Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s", proc, new Date(
-              proc.getLastAccess())));
+          ctx.warn(String.format("Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s." 
+              + " Timeout set to %s millis", 
+              proc, new Date(proc.getLastAccess()), configuredTimeout)
+          );
           proc.setStatus(LifeCycleStatus.STALE);
           proc.save();
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessStaleEvent(proc));
@@ -59,8 +69,10 @@ public class ProcessCheckTask extends Task<Void, Void> {
           proc.setStatus(Process.LifeCycleStatus.KILL_REQUESTED);
           proc.save();
 
-          ctx.warn(String.format("Process timed out - ordering kill: %s. Will retry %s time(s). Last poll: %s", proc, proc.getMaxKillRetry(),
-              new Date(proc.getLastAccess())));
+          ctx.warn(String.format("Process timed out - ordering kill: %s. Will retry %s time(s). Last poll: %s. Timeout set to %s millis", 
+              proc, proc.getMaxKillRetry(),
+              new Date(proc.getLastAccess()), configuredTimeout)
+          );
           ctx.getTaskManager().executeBackground(
               new KillTask(proc.getMaxKillRetry()),
               TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER),

@@ -14,6 +14,7 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
@@ -40,16 +41,16 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   }
 
   private static final String DEPLOYMENT_DESCRIPTOR = "META-INF/corus.xml";
-  private String   name;
-  private String   version;
-  private String   baseDir;
-  private String   commonDir;
-  private String   processesDir;
-  private String[] tags;
-  private String[] categories;
+  private String              name;
+  private String              version;
+  private String              baseDir;
+  private String              commonDir;
+  private String              processesDir;
+  private String[]            tags;
+  private String[]            categories;
   private List<ProcessConfig> processConfigs = new ArrayList<ProcessConfig>();
-  private long     timestamp = System.currentTimeMillis();
-  private volatile State state = State.DEPLOYING;
+  private long                timestamp      = System.currentTimeMillis();
+  private volatile State      state          = State.DEPLOYING;
 
   public Distribution() {
   }
@@ -294,21 +295,11 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   }
 
   /**
-   * Tests if this distribution's name and version match the given corresponding
-   * arguments.
-   * 
-   * @param name
-   *          an {@link ArgMatcher} to test against this instance's name.
-   * @param version
-   *          an {@link ArgMatcher} to test against this instance's version.
-   * @return <code>true</code> if this instance matches the given name and
-   *         version.
+   * @param criteria the {@link DistributionCriteria} to use for matching against this instance.
+   * @return <code>true</code> if this instance matches the given criteria.
    */
-  public boolean matches(ArgMatcher name, ArgMatcher version) {
-    if (name.matches(this.name)) {
-      return version.matches(this.version);
-    }
-    return false;
+  public boolean matches(DistributionCriteria criteria) {
+    return criteria.getName().matches(name) && criteria.getVersion().matches(version);
   }
   
   @Override

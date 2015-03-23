@@ -1,13 +1,16 @@
 package org.sapia.corus.client.services.processor;
 
-import java.io.Serializable;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
  * Keeps information pertaining to the distribution a process "comes" from.
  * 
  * @author Yanick Duchesne
  */
-public class DistributionInfo implements Serializable, Comparable<DistributionInfo> {
+public class DistributionInfo implements Externalizable, Comparable<DistributionInfo> {
 
   static final long serialVersionUID = 1L;
 
@@ -17,7 +20,13 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
   private String version;
   private String profile;
   private String processName;
-
+  
+  /**
+   * Meant for externalization only.
+   */
+  public DistributionInfo() {
+  }
+  
   /**
    * Creates a new instance of this class with the given params.
    * 
@@ -74,6 +83,8 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
     return version;
   }
 
+  // --------------------------------------------------------------------------
+  // Comparable
   @Override
   public int compareTo(DistributionInfo other) {
     int c = name.compareTo(other.getName());
@@ -88,6 +99,9 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
     }
     return c;
   }
+  
+  // --------------------------------------------------------------------------
+  // Object overrides
 
   @Override
   public int hashCode() {
@@ -105,7 +119,7 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
     }
     return false;
   }
-
+  
   /**
    * Return this instance's string representation.
    * 
@@ -113,5 +127,25 @@ public class DistributionInfo implements Serializable, Comparable<DistributionIn
    */
   public String toString() {
     return "[ dist=" + name + ", version=" + version + ", profile=" + profile + ", process name=" + processName + " ]";
+  }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    name        = in.readUTF();
+    version     = in.readUTF();
+    profile     = in.readUTF();
+    processName = in.readUTF();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeUTF(name);
+    out.writeUTF(version);
+    out.writeUTF(profile);
+    out.writeUTF(processName);
   }
 }

@@ -1,4 +1,4 @@
-<distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.0.xsd">
+<distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.6.xsd">
 
   <process name="httpServer" maxKillRetry="3" shutdownTimeout="30000" invoke="true" tags="http-server">
     <port name="http.server" />
@@ -33,7 +33,7 @@
     </java>
   </process>
   
-  <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" invoke="true"  propertyCategories="noop">
+  <process name="noopApp" maxKillRetry="3" shutdownTimeout="30000" pollInterval="60" pollTimeout="75" invoke="true"  propertyCategories="noop">
     <java mainClass="org.sapia.corus.examples.NoopApplication"
           profile="test" vmType="server">
       <xoption  name="ms" value="16M" />

@@ -17,6 +17,44 @@ public class ExecConfigCriteria implements Externalizable {
   
   static final long serialVersionUID = 1L;
 
+  private ArgMatcher name;
+  private int backup;
+
+  /**
+   * Meant for externalization only.
+   */
+  public ExecConfigCriteria() {
+  }
+  
+  public ArgMatcher getName() {
+    return name;
+  }
+  
+  public int getBackup() {
+    return backup;
+  }
+  
+  public static final Builder builder() {
+    return new Builder();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable interface
+  
+  public void readExternal(java.io.ObjectInput in) throws java.io.IOException ,ClassNotFoundException {
+    name   = (ArgMatcher) in.readObject();
+    backup = in.readInt();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(name);
+    out.writeInt(backup);
+  }
+  
+  // ==========================================================================
+  // Builder class
+  
   public static final class Builder {
 
     private ArgMatcher name;
@@ -42,6 +80,12 @@ public class ExecConfigCriteria implements Externalizable {
       return this;
     }
     
+    public Builder copy(ExecConfigCriteria other) {
+      this.name = other.name;
+      this.backup = other.backup;
+      return this;
+    }
+    
     public ExecConfigCriteria build() {
       ExecConfigCriteria crit = new ExecConfigCriteria();
       crit.name = ArgMatchers.anyIfNull(name);
@@ -49,44 +93,5 @@ public class ExecConfigCriteria implements Externalizable {
       return crit;
     }
     
-  }
-  
-  // --------------------------------------------------------------------------
-  
-  private ArgMatcher name;
-  private int backup;
-  
-  public void setName(ArgMatcher name) {
-    this.name = name;
-  }
-  
-  public ArgMatcher getName() {
-    return name;
-  }
-  
-  public void setBackup(int backup) {
-    this.backup = backup;
-  }
-  
-  public int getBackup() {
-    return backup;
-  }
-  
-  public static final Builder builder() {
-    return new Builder();
-  }
-  
-  // --------------------------------------------------------------------------
-  // Externalizable interface
-  
-  public void readExternal(java.io.ObjectInput in) throws java.io.IOException ,ClassNotFoundException {
-    name   = (ArgMatcher) in.readObject();
-    backup = in.readInt();
-  }
-  
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeObject(name);
-    out.writeInt(backup);
   }
 }

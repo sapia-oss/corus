@@ -900,10 +900,11 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   - process_id.: the Corus-generated process identifier of a given process 
                  (which will then restrict the response to that process) 
 - Parameters:
-  - d (optional): a distribution name    (pattern matching supported)
-  - v (optional): a distribution version (pattern matching supported)
-  - n (optional): a process name         (pattern matching supported)
-  - p (optional): a profile name</sapia:code>
+  - d (optional).: a distribution name    (pattern matching supported)
+  - v (optional).: a distribution version (pattern matching supported)
+  - n (optional).: a process name         (pattern matching supported)
+  - p (optional).: a profile name
+  - pr (optional): a port range pattern</sapia:code>
           
           <p>
           As the URI templates above illustrate, use of the <tt>process_id</tt> path variable is only supported when targeting a specific host.
@@ -913,7 +914,9 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           <sapia:code>http://saturn:33000/rest/clusters/app-01/processes
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes 
 http://saturn:33000/rest/clusters/app-01/processes?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod    
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143294992920</sapia:code>
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143294992920
+http://saturn:33000/rest/clusters/app-01/processes?pr=http:* 
+http://saturn:33000/rest/clusters/app-01/processes?pr=http:8080</sapia:code>
         
         <p><b>Sample response</b></p>
         <sapia:code>[
@@ -991,15 +994,19 @@ http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=htt
                  (which will then restrict the response to that process) 
 
 - Parameters
-  - d: a distribution name    (pattern matching supported)
-  - v: a distribution version (pattern matching supported)
-  - n: a process name         (pattern matching supported)
-  - p: a profile name</sapia:code>
+  - d............: a distribution name    (pattern matching supported)
+  - v............: a distribution version (pattern matching supported)
+  - n............: a process name         (pattern matching supported)
+  - p............: a profile name
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified)</sapia:code>
           
           <p><b>Sample requests</b></p>
           <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/kill</sapia:code>
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/kill
+http://saturn:33000/rest/clusters/app-01/processes/kill?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/kill?pr=tomcat.http:8100</sapia:code>
         </sapia:sect4>
         
         <sapia:sect4 title="Suspend processes">
@@ -1023,15 +1030,19 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
                  (which will then restrict the response to that process) 
 
 - Parameters
-  - d: a distribution name    (pattern matching supported)
-  - v: a distribution version (pattern matching supported)
-  - n: a process name         (pattern matching supported)
-  - p: a profile name</sapia:code>
+  - d............: a distribution name    (pattern matching supported)
+  - v............: a distribution version (pattern matching supported)
+  - n............: a process name         (pattern matching supported)
+  - p............: a profile name
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified)</sapia:code>
           
           <p><b>Sample requests</b></p>
           <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/suspend</sapia:code>
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/suspend
+http://saturn:33000/rest/clusters/app-01/processes/suspend?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/suspend?pr=tomcat.http:8100</sapia:code>
         </sapia:sect4>
         
         <sapia:sect4 title="Resume processes">
@@ -1087,15 +1098,20 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/148
                  (which will then restrict the response to that process) 
 
 - Parameters
-  - d: a distribution name    (pattern matching supported)
-  - v: a distribution version (pattern matching supported)
-  - n: a process name         (pattern matching supported)
-  - p: a profile name</sapia:code>
-          
+  - d............: a distribution name    (pattern matching supported)
+  - v............: a distribution version (pattern matching supported)
+  - n............: a process name         (pattern matching supported)
+  - p............: a profile name
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified)</sapia:code>
+                             
           <p><b>Sample requests</b></p>
           <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
-http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/restart</sapia:code>
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/restart
+http://saturn:33000/rest/clusters/app-01/processes/restart?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/restart?pr=tomcat.http:8100</sapia:code>
+
         </sapia:sect4>
         
          <sapia:sect4 title="Clean processes">

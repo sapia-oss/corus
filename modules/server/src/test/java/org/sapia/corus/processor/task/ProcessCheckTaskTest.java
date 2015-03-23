@@ -1,16 +1,18 @@
 package org.sapia.corus.processor.task;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventDispatcher;
@@ -26,7 +28,7 @@ import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
  */
 public class ProcessCheckTaskTest extends TestBaseTask {
 
-  private Process  proc;
+  private Process       proc;
   
   @Before
   public void setUp() throws Exception {
@@ -64,8 +66,6 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   
   @Test
   public void testStaleVmCheckNoAutoRestart() throws Exception {
-    final CountDownLatch latch = new CountDownLatch(1);
-    
     OsModule os = mock(OsModule.class);
     EventDispatcher dispatcher = mock(EventDispatcher.class);
     ctx.getServices().rebind(OsModule.class, os);
@@ -73,6 +73,34 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     
     super.processorConf.setAutoRestart(false);
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
+    ctx.getProc().getConfigurationImpl().setKillInterval(1);
+
+    Thread.sleep(1100);
+    ProcessCheckTask task = new ProcessCheckTask();
+    ctx.getTm().executeAndWait(task, null).get();
+    
+    assertTrue(
+        "Process should not have been removed from active process list", 
+        ctx.getServices().getProcesses().containsProcess(proc.getProcessID())
+    );
+    
+    verify(dispatcher).dispatch(any(ProcessStaleEvent.class));
+    verify(os, never()).killProcess(any(LogCallback.class), eq(KillSignal.SIGKILL), anyString());
+    
+  }  
+  
+  @Test
+  public void testStaleVmCheckNoAutoRestart_specific_proc_timeout() throws Exception {
+    
+    proc.setPollTimeout(1);
+    
+    OsModule os = mock(OsModule.class);
+    EventDispatcher dispatcher = mock(EventDispatcher.class);
+    ctx.getServices().rebind(OsModule.class, os);
+    ctx.getServices().rebind(EventDispatcher.class, dispatcher);
+    
+    super.processorConf.setAutoRestart(false);
+    ctx.getProc().getConfigurationImpl().setProcessTimeout(2);
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
 
     Thread.sleep(1100);

@@ -1,12 +1,15 @@
 package org.sapia.corus.ftest.rest;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -20,8 +23,10 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.Delay;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.ftest.FtestClient;
@@ -35,8 +40,11 @@ import org.testng.annotations.Test;
 
 public class ProcessResourcesFuncTest {
   
+  private static final long DEPLOY_TIMEOUT        = 10000;
+  private static final long DEPLOY_CHECK_INTERVAL = 2000;
+  
  private static final int MAX_ATTEMPTS      = 10;
- private static final int INTERVAL_SECONDS  = 3;
+ private static final int INTERVAL_SECONDS  = 6;
 
  private FtestClient client;
   
@@ -60,7 +68,7 @@ public class ProcessResourcesFuncTest {
     
     // deploy demo dist
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
-    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
   }
   
   @AfterSuite
@@ -69,6 +77,7 @@ public class ProcessResourcesFuncTest {
     Thread.sleep(INTERVAL_SECONDS);
     tearDown();
     client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 0);
     client.close();
   }
   
@@ -80,7 +89,7 @@ public class ProcessResourcesFuncTest {
   private void tearDown() {
     Interpreter interp = new Interpreter(client.getConnector());
     try {
-      interp.eval("kill -d demo -v * -n noopApp -w 30 -cluster", StrLookup.noneLookup());
+      interp.eval("kill -d demo -v * -n noopApp -w 60 -cluster", StrLookup.noneLookup());
     } catch (Throwable err) {
       throw new IllegalStateException("Could not kill processes", err);
     }
@@ -567,4 +576,43 @@ public class ProcessResourcesFuncTest {
     }
   }
   
+  private void waitDeployed(long timeout, long pollInterval, int expectedCount)  throws InterruptedException {
+    Delay delay = new Delay(timeout, TimeUnit.MILLISECONDS);
+    List<Distribution> dists = new ArrayList<Distribution>();
+    while (delay.isNotOver() && dists.size() < expectedCount) {
+      dists.clear();
+      Results<List<Distribution>> results = client.getConnector().getDeployerFacade().getDistributions(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+      while (results.hasNext()) {
+        List<Distribution> r = results.next().getData();
+        dists.addAll(r);
+      }
+      
+      if (dists.size() >= expectedCount) {
+        break;
+      }
+      Thread.sleep(pollInterval);
+    }
+   
+    assertTrue(dists.size() >= expectedCount, "Expected distribution on " + expectedCount + " hosts. Got: " + dists.size());
+  }
+ 
+  private void waitUndeployed(long timeout, long pollInterval, int expectedCount)  throws InterruptedException {
+    Delay delay = new Delay(timeout, TimeUnit.MILLISECONDS);
+    List<Distribution> dists = new ArrayList<Distribution>();
+    while (delay.isNotOver() && dists.size() > expectedCount) {
+      dists.clear();
+      Results<List<Distribution>> results = client.getConnector().getDeployerFacade().getDistributions(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+      while (results.hasNext()) {
+        List<Distribution> r = results.next().getData();
+        dists.addAll(r);
+      }
+      
+      if (dists.size() <= expectedCount) {
+        break;
+      }
+      Thread.sleep(pollInterval);
+    }
+   
+    assertTrue(dists.size() <= expectedCount, "Expected distribution on " + expectedCount + " hosts. Got: " + dists.size());
+  }
 }

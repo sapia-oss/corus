@@ -3,10 +3,10 @@
    <p>Lists the processes that are currently running.</p>
   </section>
   <section title="Syntax">
-    <p>ps [-d &lt;distribution_name&gt;][-v &lt;version&gt;][-n &lt;process_name&gt;][-p &lt;profile&gt;][-ports][-cluster]</p>
+    <p>ps [-d &lt;distribution_name&gt;] [-v &lt;version&gt;] [-n &lt;process_name&gt;] [-pr &lt;port_range_pattern&gt;] [-p &lt;profile&gt;] [-ports] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>ps [-i &lt;process_identifier&gt;][-ports]</p>
+    <p>ps [-i &lt;process_identifier&gt;] [-ports]</p>
     <p/>
     <p>OR:</p>
     <p>ps -clean [-cluster]</p>
@@ -21,6 +21,8 @@
     <p/>
     <p>- n: the name (or name pattern) of the process configurations for which processes should be displayed.</p>
     <p/>
+    <p>- pr: the port range pattern to use for selecting the processes to kill (see notes below about format).</p>
+    <p/>
     <p>- i: the Corus-specific identifier of the process to display.</p>
     <p/>    
     <p>- clean: indicates that processes in "stale" status must have their corresponding entry deleted from Corus.
@@ -32,6 +34,13 @@
   <section title="Notes">
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
     <p/>
+    <p>- A port-range pattern (as accept by -pr), must have the following format: &lt;range_atom&gt;:&lt;port_atom2&gt;, as in the following examples:</p>
+    <p>  - *:8100</p>
+    <p>  - http:*</p>
+    <p>  - server.*:*</p>
+    <p>  - *:*</p>
+    <p>  - etc.</p>
+    <p/>
     <p>- When used with the -i option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
   </section>  
   <section title="Examples">
@@ -39,6 +48,8 @@
     <p>ps -d myapp -v 1.* -n * -p qa</p>
     <p>ps -d * -v * -n * -p qa</p>
     <p>ps -clean -cluster</p>
+    <p>ps -pr http:* -cluster</p>
+    <p>ps -pr http:8080 -cluster</p>
     <p/>    
   </section>      
 </help>

@@ -9,6 +9,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
+import org.sapia.corus.client.services.processor.PortCriteria;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -93,6 +94,12 @@ public class ProcessResource {
     criteria.distribution(ArgMatchers.parse(context.getRequest().getValue("d", "*").asString()));
     criteria.version(ArgMatchers.parse(context.getRequest().getValue("v", "*").asString()));
     criteria.name(ArgMatchers.parse(context.getRequest().getValue("n", "*").asString()));
+    
+    Value portRangePattern = context.getRequest().getValue("pr");
+    if (portRangePattern.isSet()) {
+      criteria.ports(PortCriteria.fromLiteral(portRangePattern.asString()));
+    }
+    
     Value profile = context.getRequest().getValue("p");
     if (profile.isSet()) {
       criteria.profile(profile.asString());

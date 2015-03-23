@@ -8,6 +8,9 @@
     <p>kill [-w [&lt;seconds&gt;]] -d &lt;distribution_name&gt; -v &lt;version&gt; [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-hard] [-cluster]</p> 
     <p/>
     <p>OR:</p>
+    <p>kill [-w [&lt;seconds&gt;]] [-d &lt;distribution_name&gt;] [-v &lt;version&gt;] [-pr &lt;port_range_pattern&gt;] [-p &lt;profile&gt;] [-n &lt;process_name&gt;] [-hard] [-cluster]</p> 
+    <p/>
+    <p>OR:</p>
     <p>kill all [-w [&lt;seconds&gt;]] [-cluster]</p>
     <p/>
     <p>OR:</p>
@@ -28,6 +31,8 @@
     <p/>
     <p>- n: the name of the process configurations for which processes should be terminated.</p>
     <p/>
+    <p>- pr: the port range pattern to use for selecting the processes to kill (see notes below about format).</p>
+    <p/>
     <p>- i: the Corus specific identifier of the process to terminate.</p>
     <p/>
     <p>- op: the Operating System specific identifier of the process to terminate.</p>
@@ -38,6 +43,15 @@
   </section>
   <section title="Notes">
     <p>- The -n option corresponds to the "name" attribute of the "process" element in a corus.xml configuration.</p>
+    <p/>
+    <p>- When the -pr option is specified, -d and -v are optional.</p>
+    <p/>
+    <p>- A port-range pattern (as accept by -pr), must have the following format: &lt;range_atom&gt;:&lt;port_atom2&gt;, as in the following examples:</p>
+    <p>  - *:8100</p>
+    <p>  - http:*</p>
+    <p>  - server.*:*</p>
+    <p>  - *:*</p>
+    <p>  - etc.</p>
     <p/>
     <p>- When used with the -i or -op option, this operation will not be clustered - and will thus exclusively be performed on the Corus server to which the client console is connected.</p>
   </section>
@@ -51,6 +65,8 @@
     <p>kill all</p>
     <p>kill -i 2029090920909 2029090920910 2029090920911</p>
     <p>kill -op 22989 23101 23116</p>
+    <p>kill -pr http:* -cluster</p>
+    <p>kill -pr http:8080 -cluster</p>
     <p/>    
   </section>    
 </help>

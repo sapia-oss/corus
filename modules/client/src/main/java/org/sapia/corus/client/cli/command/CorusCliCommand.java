@@ -99,6 +99,7 @@ public abstract class CorusCliCommand implements Command {
   public static final OptionDef OPT_PROCESS_NAME      = new OptionDef("n", true);
   public static final OptionDef OPT_PROCESS_ID        = new OptionDef("i", true);
   public static final OptionDef OPT_PROCESS_INSTANCES = new OptionDef("i", true);
+  public static final OptionDef OPT_PORT_RANGE        = new OptionDef("pr", true);
   public static final OptionDef OPT_OS_PID            = new OptionDef("op", true);
   
   public static final String ARG_ALL   = "all";

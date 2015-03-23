@@ -1,5 +1,9 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +28,7 @@ import org.sapia.util.xml.confix.ObjectHandlerIF;
  * 
  * @author Yanick Duchesne
  */
-public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Matcheable {
+public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheable {
 
   static final long serialVersionUID = 1L;
 
@@ -32,21 +36,25 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
   public static final int DEFAULT_STATUS_INTERVAL      = 30;
   public static final int DEFAULT_INTERPOLATION_PASSES = 2;
 
-  private boolean       invoke   = true;
-  private List<Starter> starters = new ArrayList<Starter>();
-  private List<Port>    ports    = new ArrayList<Port>();
-  private int           maxKillRetry = -1;
-  private int      shutDownTimeout   = -1;
+  private boolean       invoke         = true;
+  private List<Starter> starters       = new ArrayList<Starter>();
+  private List<Port>    ports          = new ArrayList<Port>();
+  private int           maxKillRetry   = -1;
+  private int      shutDownTimeout     = -1;
   private int      maxInstances;
   private String   name;
   private int      statusInterval      = DEFAULT_STATUS_INTERVAL;
   private int      pollInterval        = DEFAULT_POLL_INTERVAL;
+  private int      pollTimeout         = -1;
   private boolean  deleteOnKill        = false;
   private String[] tags;
   private String[] categories;
   private int      interpolationPasses = DEFAULT_INTERPOLATION_PASSES;
   private PreExec  preExec; 
-
+  
+  /**
+   * Meant for externalization only.
+   */
   public ProcessConfig() {
   }
 
@@ -179,6 +187,26 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
    */
   public int getPollInterval() {
     return pollInterval;
+  }
+ 
+  /**
+   * @param pollTimeout 
+   *          the amount of time (in seconds) that the Corus server should give to a process to poll,
+   *          beyond which the process should be deemed irresponsive.
+   */
+  public void setPollTimeout(int pollTimeout) {
+    this.pollTimeout = pollTimeout;
+  }
+  
+  /**
+   * Returns a polling timeout. If it timeout <= 0, the value configured on the server side
+   * should be used.
+   * 
+   * @return the amount of time (in seconds) that the Corus server should give to a process to poll,
+   *          beyond which the process should be deemed irresponsive.
+   */
+  public int getPollTimeout() {
+    return pollTimeout;
   }
 
   /**
@@ -393,20 +421,17 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
     starters.add(starter);
   }
   
+  // --------------------------------------------------------------------------
+  // Matcheable
+  
   @Override
   public boolean matches(Pattern pattern) {
     return pattern.matches(name) || matchesProfile(pattern);
   }
-  
-  private boolean matchesProfile(Pattern pattern) {
-    for (String p : this.getProfiles()) {
-      if (pattern.matches(p)) {
-        return true;
-      }
-    }
-    return false;
-  }  
 
+  // --------------------------------------------------------------------------
+  // ObjectHandlerIF
+  
   public void handleObject(String elementName, Object starter) throws ConfigurationException {
     if (starter instanceof Starter) {
       addStarter((Starter) starter);
@@ -414,6 +439,9 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
       throw new ConfigurationException(starter.getClass().getName() + " does not implement the " + Starter.class.getName() + " interface");
     }
   }
+  
+  // --------------------------------------------------------------------------
+  // Object overriddes
 
   public String toString() {
     return "[ name=" + name + ", maxKillRetry=" + maxKillRetry + ", shutDownTimeout=" + shutDownTimeout + " java=" + starters + ", deleteOnKill="
@@ -431,6 +459,52 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
       return false;
     }
   }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    invoke              = in.readBoolean();
+    starters            = (List<Starter>) in.readObject();
+    ports               = (List<Port>) in.readObject();
+    maxKillRetry        = in.readInt();
+    shutDownTimeout     = in.readInt();
+    maxInstances        = in.readInt();
+    name                = in.readUTF();
+    statusInterval      = in.readInt();
+    pollInterval        = in.readInt();
+    pollTimeout         = in.readInt();
+    deleteOnKill        = in.readBoolean();
+    tags                = (String[]) in.readObject();
+    categories          = (String[]) in.readObject();
+    interpolationPasses = in.readInt();
+    preExec             = (PreExec) in.readObject();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeBoolean(invoke);
+    out.writeObject(starters);
+    out.writeObject(ports);
+    out.writeInt(maxKillRetry);
+    out.writeInt(shutDownTimeout);
+    out.writeInt(maxInstances);
+    out.writeUTF(name);
+    out.writeInt(statusInterval);
+    out.writeInt(pollInterval);
+    out.writeInt(pollTimeout);
+    out.writeBoolean(deleteOnKill);
+    out.writeObject(tags);
+    out.writeObject(categories);
+    out.writeInt(interpolationPasses);
+    out.writeObject(preExec);
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted methods
 
   void init(String distName, String version) {
     for (Starter st : starters) {
@@ -462,5 +536,14 @@ public class ProcessConfig implements java.io.Serializable, ObjectHandlerIF, Mat
 
     return toReturn;
   }
+  
+  private boolean matchesProfile(Pattern pattern) {
+    for (String p : this.getProfiles()) {
+      if (pattern.matches(p)) {
+        return true;
+      }
+    }
+    return false;
+  }  
 
 }

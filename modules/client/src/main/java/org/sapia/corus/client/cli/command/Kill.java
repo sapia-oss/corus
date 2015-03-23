@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.facade.ProcessorFacade;
 import org.sapia.corus.client.services.processor.KillPreferences;
+import org.sapia.corus.client.services.processor.PortCriteria;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.util.Collects;
@@ -26,7 +27,7 @@ import org.sapia.ubik.util.Collects;
  */
 public class Kill extends CorusCliCommand {
 
-  private static final long RETRY_PAUSE = 2000;
+  private static final long RETRY_PAUSE = 5000;
   
   protected KillPreferences prefs;
 
@@ -35,7 +36,7 @@ public class Kill extends CorusCliCommand {
 
   protected static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
-      WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
+      OPT_PORT_RANGE, WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
   );
   
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 120000;
@@ -59,12 +60,13 @@ public class Kill extends CorusCliCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-    String dist = null;
-    String version = null;
-    String profile = null;
-    String vmName = null;
-    String pid = null;
-    String osPid = null;
+    String  dist         = null;
+    String  version      = null;
+    String  profile      = null;
+    String  vmName       = null;
+    String  pid          = null;
+    String  portRange    = null;
+    String  osPid        = null;
 
     CmdLine cmd = ctx.getCommandLine();
     
@@ -126,9 +128,21 @@ public class Kill extends CorusCliCommand {
       // KILL BY DISTRIBUTION ATTIRBUTES
     } else {
 
-      dist = cmd.assertOption(OPT_DIST.getName(), true).getValue();
-
-      version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
+      if (cmd.containsOption(OPT_PORT_RANGE.getName(), true)) {
+        portRange = cmd.assertOption(OPT_PORT_RANGE.getName(), true).getValue();
+      }
+      
+      if (portRange == null) {
+        dist    = cmd.assertOption(OPT_DIST.getName(), true).getValue();
+        version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
+      } else {
+        if (cmd.containsOption(OPT_DIST.getName(), true)) {
+          dist  = cmd.assertOption(OPT_DIST.getName(), true).getValue();
+        }
+        if (cmd.containsOption(OPT_VERSION.getName(), true)) {
+          version  = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
+        }
+      }
 
       if (cmd.containsOption(OPT_PROFILE.getName(), true)) {
         profile = cmd.assertOption(OPT_PROFILE.getName(), true).getValue();
@@ -137,17 +151,20 @@ public class Kill extends CorusCliCommand {
       if (cmd.containsOption(OPT_PROCESS_NAME.getName(), true)) {
         vmName = cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue();
       }
-
-      ProcessCriteria criteria = ProcessCriteria.builder().name(vmName).profile(profile).distribution(dist).version(version).build();
+      
+      ProcessCriteria.Builder builder = ProcessCriteria.builder().name(vmName).profile(profile).distribution(dist).version(version);
+      if (portRange != null) {
+        builder.ports(PortCriteria.fromLiteral(portRange));
+      }
 
       ClusterInfo cluster = getClusterInfo(ctx);
 
       ctx.getConsole().println("Proceeding to kill...");
-      MatchCompletionHook completion = new MatchCompletionHook(criteria);
+      MatchCompletionHook completion = new MatchCompletionHook(builder.build());
       if (prefs.isSuspend()) {
-        ctx.getCorus().getProcessorFacade().suspend(criteria, prefs, cluster);
+        ctx.getCorus().getProcessorFacade().suspend(builder.build(), prefs, cluster);
       } else {
-        ctx.getCorus().getProcessorFacade().kill(criteria, prefs, cluster);
+        ctx.getCorus().getProcessorFacade().kill(builder.build(), prefs, cluster);
       }
 
       waitForKillCompletion(ctx, completion);
