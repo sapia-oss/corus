@@ -1,7 +1,17 @@
 package org.sapia.corus.configurator;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,7 +22,9 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
@@ -24,17 +36,17 @@ import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.event.EventDispatcher;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConfiguratorImplTest {
   
-  @Mock
+  private DbMap<String, ConfigProperty> serverPropertyDb;
   private DbMap<String, ConfigProperty> serverProperties;
   
-  @Mock
+  private DbMap<String, ConfigProperty> processPropertyDb;
   private DbMap<String, ConfigProperty> processProperties;
   
   @Mock
@@ -59,14 +71,18 @@ public class ConfiguratorImplTest {
       }
       
       @Override
-      public <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType,
-          String name) {
+      public <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) {
         return new InMemoryDbMap<>(new ClassDescriptor<>(valueType));
       }
     };
     
     internalConfig = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
     
+    serverPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    serverProperties = Mockito.spy(serverPropertyDb);
+    processPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    processProperties = Mockito.spy(processPropertyDb);
+        
     configurator = new ConfiguratorImpl();
     configurator.setServerProperties(new PropertyStore(serverProperties));
     configurator.setProcessProperties(new PropertyStore(processProperties));
@@ -76,6 +92,13 @@ public class ConfiguratorImplTest {
     configurator.setDb(db);
   }
 
+  protected void assertPropertyChangeEvent(EventType eType, PropertyScope eScope, Property[] eProperties, PropertyChangeEvent actual) {
+    assertThat(actual.getEventType()).isEqualTo(eType);
+    assertThat(actual.getScope()).isEqualTo(eScope);
+    assertThat(actual.getProperties()).containsOnly(eProperties);
+  }
+  
+  
   @Test
   public void testAddProcessProperty() {
     configurator.addProperty(PropertyScope.PROCESS, "test", "testValue", new HashSet<String>());
@@ -83,7 +106,7 @@ public class ConfiguratorImplTest {
     verify(processProperties).put(eq("test"), eq(new ConfigProperty("test", "testValue")));
     verify(dispatcher).dispatch(any(PropertyChangeEvent.class));
     
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test", "testValue", PropertyScope.PROCESS, Type.ADD)));
+    verify(dispatcher).dispatch(eq(new PropertyChangeEvent(EventType.ADD, "test", "testValue", PropertyScope.PROCESS)));
   }
   
   @Test
@@ -95,8 +118,12 @@ public class ConfiguratorImplTest {
 
     
     verify(processProperties, never()).put(eq("test"), eq(new ConfigProperty("test", "testValue")));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test", "testValue", "cat1", PropertyScope.PROCESS, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test", "testValue", "cat2", PropertyScope.PROCESS, Type.ADD)));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] { new Property("test", "testValue", "cat1"), new Property("test", "testValue", "cat2") },
+        captor.getValue());
   }
   
   @Test
@@ -110,8 +137,82 @@ public class ConfiguratorImplTest {
     verify(processProperties, never()).remove(any(String.class));
     verify(processProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
     verify(processProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", PropertyScope.PROCESS, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", PropertyScope.PROCESS, Type.ADD)));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddProcessProperties_clearExisting_nothingToClear() {
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, new HashSet<String>(), true);
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(processProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddProcessProperties_clearExisting_differentProperties() {
+    processPropertyDb.put("test8", new ConfigProperty("test8", "oldValue8"));
+    processPropertyDb.put("test9", new ConfigProperty("test9", "oldValue9"));
+
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, new HashSet<String>(), true);
+    
+    verify(processProperties).remove(eq("test8"));
+    verify(processProperties).remove(eq("test9"));
+    verify(processProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(processProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(2)).dispatch(captor.capture());
+
+    assertThat(captor.getAllValues()).hasSize(2);
+    assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.PROCESS,
+        new Property[] { new Property("test8", "oldValue8", null), new Property("test9", "oldValue9", null) },
+        captor.getAllValues().get(0));
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getAllValues().get(1));
+  }
+  
+  @Test
+  public void testAddProcessProperties_clearExisting_sameProperties() {
+    processPropertyDb.put("test1", new ConfigProperty("test1", "oldValue8"));
+    processPropertyDb.put("test2", new ConfigProperty("test2", "oldValue9"));
+
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, new HashSet<String>(), true);
+    
+    verify(processProperties).remove(eq("test1"));
+    verify(processProperties).remove(eq("test2"));
+    verify(processProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(processProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(1)).dispatch(captor.capture());
+
+    assertThat(captor.getAllValues()).hasSize(1);
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getAllValues().get(0));
   }
   
   @Test
@@ -127,11 +228,120 @@ public class ConfiguratorImplTest {
     
     verify(processProperties, never()).remove(any(String.class));
     verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
     
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", "cat1", PropertyScope.PROCESS, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", "cat2", PropertyScope.PROCESS, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", "cat1", PropertyScope.PROCESS, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", "cat2", PropertyScope.PROCESS, Type.ADD)));
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", "cat1"), new Property("test2", "value2", "cat1"),
+            new Property("test1", "value1", "cat2"), new Property("test2", "value2", "cat2") },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddProcessProperties_categories_clearExisting_nothingToClear() {
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, Collects.arrayToSet("cat1", "cat2"), true);
+
+    assertEquals("value1", configurator.getProcessPropertiesByCategory().get("cat1").getProperty("test1"));
+    assertEquals("value2", configurator.getProcessPropertiesByCategory().get("cat2").getProperty("test2"));
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", "cat1"), new Property("test2", "value2", "cat1"),
+            new Property("test1", "value1", "cat2"), new Property("test2", "value2", "cat2") },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddProcessProperties_categories_clearExisting_differentCategories() {
+    configurator.store("cat9", true).addProperty("test9", "value9");
+    
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, Collects.arrayToSet("cat1", "cat2"), true);
+
+    assertEquals("value1", configurator.getProcessPropertiesByCategory().get("cat1").getProperty("test1"));
+    assertEquals("value2", configurator.getProcessPropertiesByCategory().get("cat2").getProperty("test2"));
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", "cat1"), new Property("test2", "value2", "cat1"),
+            new Property("test1", "value1", "cat2"), new Property("test2", "value2", "cat2") },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddProcessProperties_categories_clearExisting_sameCategoriesDifferentProps() {
+    configurator.store("cat1", true).addProperty("test9", "value9");
+    
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, Collects.arrayToSet("cat1", "cat2"), true);
+
+    assertEquals("value1", configurator.getProcessPropertiesByCategory().get("cat1").getProperty("test1"));
+    assertEquals("value2", configurator.getProcessPropertiesByCategory().get("cat2").getProperty("test2"));
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(2)).dispatch(captor.capture());
+
+    assertThat(captor.getAllValues()).hasSize(2);
+    assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.PROCESS,
+        new Property[] { new Property("test9", "value9", "cat1") },
+        captor.getAllValues().get(0));
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", "cat1"), new Property("test2", "value2", "cat1"),
+            new Property("test1", "value1", "cat2"), new Property("test2", "value2", "cat2") },
+        captor.getAllValues().get(1));
+  }
+  
+  @Test
+  public void testAddProcessProperties_categories_clearExisting_sameCategoriesSameProps() {
+    configurator.store("cat1", true).addProperty("test1", "oldValue1");
+    configurator.store("cat1", true).addProperty("test2", "oldValue2");
+    configurator.store("cat2", true).addProperty("test1", "oldValue1");
+    configurator.store("cat2", true).addProperty("test2", "oldValue2");
+    
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, Collects.arrayToSet("cat1", "cat2"), true);
+
+    assertEquals("value1", configurator.getProcessPropertiesByCategory().get("cat1").getProperty("test1"));
+    assertEquals("value2", configurator.getProcessPropertiesByCategory().get("cat2").getProperty("test2"));
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(1)).dispatch(captor.capture());
+
+    assertThat(captor.getAllValues()).hasSize(1);
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", "cat1"), new Property("test2", "value2", "cat1"),
+            new Property("test1", "value1", "cat2"), new Property("test2", "value2", "cat2") },
+        captor.getAllValues().get(0));
   }
 
   @Test
@@ -139,7 +349,7 @@ public class ConfiguratorImplTest {
     configurator.addProperty(PropertyScope.SERVER, "test", "testValue", new HashSet<String>());
     
     verify(serverProperties).put(eq("test"), eq(new ConfigProperty("test", "testValue")));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test", "testValue", PropertyScope.SERVER, Type.ADD)));
+    verify(dispatcher).dispatch(eq(new PropertyChangeEvent(EventType.ADD, "test", "testValue", PropertyScope.SERVER)));
   }
   
   @Test
@@ -154,9 +364,83 @@ public class ConfiguratorImplTest {
     verify(serverProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
     verify(serverProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
     
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", PropertyScope.SERVER, Type.ADD)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", PropertyScope.SERVER, Type.ADD)));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddServerProperties_clearExisting_nothingToClear() {
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.SERVER, props, new HashSet<String>(), true);
+    
+    verify(serverProperties, never()).remove(any(String.class));
+    verify(serverProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(serverProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
+  }
+  
+  @Test
+  public void testAddServerProperties_clearExisting_differentProperties() {
+    serverPropertyDb.put("test9", new ConfigProperty("test9", "value9"));
+    
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.SERVER, props, new HashSet<String>(), true);
+    
+    verify(serverProperties).remove(eq("test9"));
+    verify(serverProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(serverProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(2)).dispatch(captor.capture());
 
+    assertThat(captor.getAllValues()).hasSize(2);
+    assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.SERVER,
+        new Property[] { new Property("test9", "value9", null) },
+        captor.getAllValues().get(0));
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getAllValues().get(1));
+  }
+  
+  @Test
+  public void testAddServerProperties_clearExisting_sameProperties() {
+    serverPropertyDb.put("test1", new ConfigProperty("test1", "oldValue1"));
+    serverPropertyDb.put("test2", new ConfigProperty("test2", "oldValue2"));
+    
+    Properties props = new Properties();
+    props.setProperty("test1", "value1");
+    props.setProperty("test2", "value2");
+    
+    configurator.addProperties(PropertyScope.SERVER, props, new HashSet<String>(), true);
+    
+    verify(serverProperties).remove(eq("test1"));
+    verify(serverProperties).remove(eq("test2"));
+    verify(serverProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(serverProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(1)).dispatch(captor.capture());
+
+    assertThat(captor.getAllValues()).hasSize(1);
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getAllValues().get(0));
   }
   
   @Test
@@ -187,8 +471,13 @@ public class ConfiguratorImplTest {
     
     verify(processProperties).remove(eq("test1"));
     verify(processProperties).remove(eq("test2"));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", PropertyScope.PROCESS, Type.REMOVE)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", PropertyScope.PROCESS, Type.REMOVE)));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.PROCESS, 
+        new Property[] {
+            new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
   }
   
   @Test
@@ -203,8 +492,8 @@ public class ConfiguratorImplTest {
     verify(processProperties, never()).remove(eq("test"));
     assertNull(configurator.store("cat1", false).getProperty("test"));
     assertEquals("value", configurator.store("cat2", false).getProperty("test"));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test", "value", "cat1", PropertyScope.PROCESS, Type.REMOVE)));
-    verify(dispatcher, never()).dispatch(eq(new PropertyChangeEvent("test", "value", "cat2", PropertyScope.PROCESS, Type.REMOVE)));
+    verify(dispatcher).dispatch(eq(new PropertyChangeEvent(EventType.REMOVE, "test", "value", "cat1", PropertyScope.PROCESS)));
+    verify(dispatcher, never()).dispatch(eq(new PropertyChangeEvent(EventType.REMOVE, "test", "value", "cat2", PropertyScope.PROCESS)));
   }
 
   @Test
@@ -217,8 +506,12 @@ public class ConfiguratorImplTest {
     
     verify(serverProperties).remove(eq("test1"));
     verify(serverProperties).remove(eq("test2"));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test1", "value1", PropertyScope.SERVER, Type.REMOVE)));
-    verify(dispatcher).dispatch(eq(new PropertyChangeEvent("test2", "value2", PropertyScope.SERVER, Type.REMOVE)));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.SERVER,
+        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        captor.getValue());
   }
   
   @Test

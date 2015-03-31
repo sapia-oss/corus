@@ -69,6 +69,11 @@ public interface CorusConsts {
    * Indicates if authentication should be required for all REST calls - including <code>GET</code> ones.
    */
   public static final String PROPERTY_CORUS_REST_AUTH_REQUIRED       = "corus.server.api.auth.required";
+  
+  /**
+   * Indicates if configuration changes are dynamically updated to running processes (hot config). 
+   */
+  public static final String PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED = "corus.server.process.config-update.enabled"; 
 
   /**
    * Indicates if publishing to Consul is enabled.

@@ -30,13 +30,14 @@ import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.ReverseComparator;
 import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.configurator.PropertyChangeEvent;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
@@ -126,21 +127,24 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
    */
   public void onPropertyChangeEvent(PropertyChangeEvent event) {
     if (event.getScope() == PropertyScope.SERVER) {
-      if (event.getName().startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
-        String linkName = event.getName().substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length());
-        if (event.getType() == Type.ADD) {
-          log.debug("Adding new symbolic link " + linkName);
-          symlinks.put(linkName, event.getValue());
-        } else {
-          log.debug("Removing symbolic link " + linkName);
-          symlinks.remove(linkName);
-        }
-      } else if (event.getName().equals(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS)) {
-        if (event.getType() == Type.ADD) {
-          processHiddenFilePatterns(event.getValue());
-        } else  {
-          log.debug("Resetting hidden file patterns");
-          processHiddenFilePatterns(context.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS));
+      for (Property property: event.getProperties()) {
+        if (property.getName().startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
+          String linkName = property.getName().substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length());
+          if (EventType.ADD == event.getEventType()) {
+            log.debug("Adding new symbolic link " + linkName);
+            symlinks.put(linkName, property.getValue());
+          } else if (EventType.REMOVE == event.getEventType()) {
+            log.debug("Removing symbolic link " + linkName);
+            symlinks.remove(linkName);
+          }
+
+        } else if (property.getName().equals(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS)) {
+          if (EventType.ADD == event.getEventType()) {
+            processHiddenFilePatterns(property.getValue());
+          } else if (EventType.REMOVE == event.getEventType()) {
+            log.debug("Resetting hidden file patterns");
+            processHiddenFilePatterns(context.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS));
+          }
         }
       }
     }

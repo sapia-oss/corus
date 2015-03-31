@@ -5,19 +5,23 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
-import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
+import org.sapia.corus.interop.ConfigurationEvent;
+import org.sapia.corus.interop.ConfigurationEvent.ConfigurationEventBuilder;
 import org.sapia.corus.interop.Shutdown;
 import org.sapia.ubik.util.Strings;
 
@@ -475,6 +479,46 @@ public class Process extends AbstractPersistent<String, Process>
     return processStatus;
   }
 
+  /**
+   * Creates a configuration event of updated configuration properties to be published
+   * to the managed process the next time it polls back the server.
+   * 
+   * @param updatedProperties The collection of updated properties.
+   */
+  public synchronized void configurationUpdated(Collection<Property> updatedProperties) {
+    // Propagation of config change on appropriate process statuses
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
+      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+          .commandId(CyclicIdGenerator.newCommandId())
+          .type(ConfigurationEvent.TYPE_UPDATE);
+      for (Property property: updatedProperties) {
+        builder.param(property.getName(), property.getValue());
+      }
+      
+      getCommands().add(builder.build());
+    }
+  }
+
+  /**
+   * Creates a configuration event of deleted configuration properties to be published
+   * to the managed process the next time it polls back the server.
+   * 
+   * @param deletedProperties The collection of the deleted properties
+   */
+  public synchronized void configurationDeleted(Collection<Property> deletedProperties) {
+    // Propagation of config change on appropriate process statuses
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
+      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+          .commandId(CyclicIdGenerator.newCommandId())
+          .type(ConfigurationEvent.TYPE_DELETE);
+      for (Property property: deletedProperties) {
+        builder.param(property.getName(), "");
+      }
+      
+      getCommands().add(builder.build());
+    }
+  }
+  
   /**
    * Asks that this instance notifies its process that it should terminate.
    */

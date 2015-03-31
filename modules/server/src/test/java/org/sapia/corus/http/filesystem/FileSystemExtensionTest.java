@@ -1,6 +1,7 @@
 package org.sapia.corus.http.filesystem;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -16,7 +17,7 @@ import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.InternalServiceContext;
 import org.sapia.corus.core.ServerContext;
@@ -54,7 +55,7 @@ public class FileSystemExtensionTest {
 
   @Test
   public void testOnPropertyChangeEvent_hidden_file_pattern_added() {
-    PropertyChangeEvent event = new PropertyChangeEvent(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS, "test", PropertyScope.SERVER, Type.ADD);
+    PropertyChangeEvent event = new PropertyChangeEvent(EventType.ADD, CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS, "test", PropertyScope.SERVER);
     ext.onPropertyChangeEvent(event);
     
     assertFalse(ext.isAccessAllowed(file));
@@ -62,7 +63,7 @@ public class FileSystemExtensionTest {
   
   @Test
   public void testOnPropertyChangeEvent_hidden_file_pattern_removed() {
-    PropertyChangeEvent event = new PropertyChangeEvent(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS, "", PropertyScope.SERVER, Type.REMOVE);
+    PropertyChangeEvent event = new PropertyChangeEvent(EventType.REMOVE, CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS, "", PropertyScope.SERVER);
     ext.onPropertyChangeEvent(event);
     
     assertTrue(ext.isAccessAllowed(file));
