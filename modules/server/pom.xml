@@ -114,6 +114,32 @@
     </dependency>
 
     <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_avis</artifactId>
+    </dependency>      
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_amqp</artifactId>
+    </dependency>  
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_camel</artifactId>
+    </dependency>        
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_netty</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-rabbitmq</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.syslog4j</groupId>
       <artifactId>syslog4j</artifactId>
     </dependency>

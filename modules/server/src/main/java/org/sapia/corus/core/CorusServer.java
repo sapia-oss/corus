@@ -104,12 +104,18 @@ public class CorusServer {
       }
 
       CorusUserData userData;
+      Exception userDataFetchError = null;
       if (cmd.containsOption(USER_DATA, false)) {
-        Option userDataOpt = cmd.assertOption(USER_DATA, false);
-        if (userDataOpt.getValue() != null) {
-          userData = CorusUserDataFactory.fetchUserData(URI.create(userDataOpt.getValue()));
-        } else {
-          userData = CorusUserDataFactory.fetchUserData();
+        try {
+          Option userDataOpt = cmd.assertOption(USER_DATA, false);
+          if (userDataOpt.getValue() != null) {
+            userData = CorusUserDataFactory.fetchUserData(URI.create(userDataOpt.getValue()));
+          } else {
+            userData = CorusUserDataFactory.fetchUserData();
+          }
+        } catch (Exception e) {
+          userDataFetchError = e;
+          userData = new CorusUserData();
         }
       } else {
         userData = new CorusUserData();
@@ -207,8 +213,15 @@ public class CorusServer {
       // -----------------------------------------------------------------------
       // Overridding config properties with user-data properties
 
-      PropertiesUtil.copy(userData.getServerProperties(), corusProps);
-
+      Properties userDataProperties = userData.getServerProperties();
+      // Rendering server properties passed in user-data with self
+      userDataProperties = PropertiesUtil.replaceVars(userDataProperties, PropertiesStrLookup.getInstance(userDataProperties));
+      
+      // Rendering Corus props, given server properties passed in user data
+      corusProps = PropertiesUtil.replaceVars(corusProps, PropertiesStrLookup.getInstance(userDataProperties));
+      // overwriting with user-data properties
+      PropertiesUtil.copy(userDataProperties, corusProps);
+      
       // ----------------------------------------------------------------------
       // Determining port: if a port other than the default was passed at the
       // command-line, we're using it. Otherwise, we're using the configured
@@ -310,6 +323,10 @@ public class CorusServer {
       h.setDefaultLogTarget(logTarget);
 
       Logger serverLog = h.getLoggerFor(CorusServer.class.getName());
+      
+      if (userDataFetchError != null) {
+        serverLog.warn("Error occurred while attempting to fetch user data. Proceeding with default config. Error was: ", userDataFetchError);
+      }
 
       if (propFile.exists()) {
         serverLog.info("Initialized server with properties: " + propFile.getAbsolutePath());
@@ -361,7 +378,7 @@ public class CorusServer {
       IOUtil.createLockFile(lockFile);
 
       // Initialize Corus, export it and start it
-      EventChannel channel = new EventChannel(domain, new Conf().addSystemProperties());
+      EventChannel channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
       channel.start();
 
       CorusImpl corus = new CorusImpl(corusProps, domain, transport.getServerAddress(), channel, transport, corusHome);

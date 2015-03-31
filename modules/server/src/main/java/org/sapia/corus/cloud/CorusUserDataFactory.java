@@ -32,12 +32,16 @@ public class CorusUserDataFactory {
    */
   public static CorusUserData fetchUserData() throws IOException {
 
+    IOException userDataError = null;
     for (CorusUserDataProvider p : PROVIDERS) {
       try {
         return p.fetchUserData();
       } catch (IOException e) {
-        // keep going
+        userDataError = e;
       }
+    }
+    if (userDataError != null) {
+      throw userDataError;
     }
     throw new IOException("Could not fetch user data");
   }
