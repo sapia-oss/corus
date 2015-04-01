@@ -1,17 +1,20 @@
 package org.sapia.corus.deployer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
 import org.sapia.corus.database.InMemoryDbMap;
+import org.sapia.ubik.util.Func;
 
 public class ShellScriptDatabaseImplTest {
   
@@ -19,7 +22,11 @@ public class ShellScriptDatabaseImplTest {
   
   @Before
   public void setUp() {
-    db = new ShellScriptDatabaseImpl(new InMemoryDbMap<String, ShellScript>(new ClassDescriptor<ShellScript>(ShellScript.class)));
+    db = new ShellScriptDatabaseImpl(new InMemoryDbMap<String, ShellScript>(new ClassDescriptor<ShellScript>(ShellScript.class), new Func<ShellScript, JsonInput>() {
+      public ShellScript call(JsonInput arg0) {
+        throw new UnsupportedOperationException();
+      }
+    }));
   }
 
   @Test

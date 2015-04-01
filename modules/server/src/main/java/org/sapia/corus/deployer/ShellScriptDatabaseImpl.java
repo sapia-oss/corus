@@ -3,6 +3,8 @@ package org.sapia.corus.deployer;
 import java.util.Comparator;
 import java.util.List;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
@@ -79,6 +81,17 @@ public class ShellScriptDatabaseImpl implements ShellScriptDatabase {
     }
     return script;
   }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    scripts.dump(stream);
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    scripts.load(dump);
+  }
+  
 
   // ==========================================================================
   // Inner classes

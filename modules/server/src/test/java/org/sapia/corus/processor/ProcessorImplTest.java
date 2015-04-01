@@ -24,6 +24,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.database.RevId;
@@ -49,6 +50,7 @@ import org.sapia.corus.interop.Status;
 import org.sapia.corus.processor.task.PublishConfigurationChangeTask;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
+import org.sapia.ubik.util.Func;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessorImplTest {
@@ -94,9 +96,17 @@ public class ProcessorImplTest {
     processor.setHttpModule(httpModule);
     processor.setServerContext(serverContext);
     
-    execConfigs = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class));
-    processes   = new InMemoryDbMap<String, Process>(new ClassDescriptor<Process>(Process.class));
     corusServerProperties = new Properties();
+    execConfigs = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class), new Func<ExecConfig, JsonInput>() {
+      public ExecConfig call(JsonInput arg0) {
+        throw new UnsupportedOperationException();
+      }
+    });
+    processes   = new InMemoryDbMap<String, Process>(new ClassDescriptor<Process>(Process.class), new Func<Process, JsonInput>() {
+      public Process call(JsonInput arg0) {
+        throw new UnsupportedOperationException();
+      }
+    });
     
     when(db.getDbMap(eq(String.class), eq(ExecConfig.class), anyString())).thenReturn(execConfigs);
     when(db.getDbMap(eq(String.class), eq(Process.class), anyString())).thenReturn(processes);

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.port.PortRange;
@@ -20,7 +21,11 @@ public class PortRangeStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    store = new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class)));
+    store = new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class), new Func<PortRange, JsonInput>() {
+      public PortRange call(JsonInput arg0) {
+        throw new UnsupportedOperationException();
+      }
+    }));
   }
 
   @Test

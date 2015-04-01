@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -84,7 +86,7 @@ public class ProcessRepositoryImpl implements ProcessRepository {
   }
   
   @Override
-  public  synchronized void removeProcess(String corusPid) {
+  public synchronized void removeProcess(String corusPid) {
     processDb.removeProcess(corusPid);
   }
   
@@ -96,6 +98,16 @@ public class ProcessRepositoryImpl implements ProcessRepository {
   @Override
   public synchronized boolean containsProcess(String corusPid) {
     return processDb.containsProcess(corusPid);
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    processDb.dump(stream);
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    processDb.load(dump);
   }
   
   @Override

@@ -4,20 +4,26 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 
 /**
  * @author Yanick Duchesne
  */
-public interface SecurityModule extends java.rmi.Remote, Module {
+public interface SecurityModule extends java.rmi.Remote, Module, Dumpable {
 
   /**
    * Encapsulates a role-to-permission association.
@@ -26,9 +32,14 @@ public interface SecurityModule extends java.rmi.Remote, Module {
    *
    */
   public static class RoleConfig extends AbstractPersistent<String, RoleConfig> 
-    implements Externalizable, Comparable<RoleConfig>, Matcheable, JsonStreamable {
+    implements Externalizable, Comparable<RoleConfig>, Matcheable, JsonStreamable, Mappable {
     
     static final long serialVersionUID = 1L;
+
+    static final int VERSION_1       = 1;
+    static final int CURRENT_VERSION = VERSION_1;
+    
+    private int             classVersion = CURRENT_VERSION;
     
     private String          role;
     private Set<Permission> permissions;
@@ -80,12 +91,22 @@ public interface SecurityModule extends java.rmi.Remote, Module {
     @Override
     public void readExternal(ObjectInput in) throws IOException,
         ClassNotFoundException {
-      role = in.readUTF();
-      permissions = (Set<Permission>) in.readObject();
+      
+      int inputVersion = in.readInt();
+      if (inputVersion == VERSION_1) {
+        role = in.readUTF();
+        permissions = (Set<Permission>) in.readObject();
+      } else {
+        throw new IllegalStateException("Version not handled: " + inputVersion);
+      }
+      classVersion = CURRENT_VERSION;
     }
     
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+      
+      out.writeInt(classVersion);
+      
       out.writeUTF(role);
       out.writeObject(permissions);
     }
@@ -96,6 +117,7 @@ public interface SecurityModule extends java.rmi.Remote, Module {
     @Override
     public void toJson(JsonStream stream) {
       stream.beginObject()
+        .field("classVersion").value(classVersion)
         .field("name").value(role)
         .field("permissions");
       
@@ -109,6 +131,32 @@ public interface SecurityModule extends java.rmi.Remote, Module {
       stream.endArray();
       
       stream.endObject();
+    }
+    
+    public static RoleConfig fromJson(JsonInput in) {
+      int classVersion = in.getInt("classVersion");
+      if (classVersion == VERSION_1) {
+        Set<Permission> permissions = new HashSet<>();
+        for (JsonInput jsonPerm : in.iterate("permissions")) {
+          permissions.add(Permission.forAbbreviation(jsonPerm.getString("abbreviation").charAt(0)));
+        }
+        
+        RoleConfig conf = new RoleConfig(
+            in.getString("name"),
+            permissions
+        );
+        return conf;
+      } else {
+        throw new IllegalStateException("Version not handled: " + classVersion);
+      }
+    }
+    
+    @Override
+    public Map<String, Object> asMap() {
+      Map<String, Object> toReturn = new HashMap<>();
+      toReturn.put("role.name", role);
+      toReturn.put("role.permissions", permissions);
+      return toReturn;
     }
   }
   

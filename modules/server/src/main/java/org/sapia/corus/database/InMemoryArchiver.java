@@ -2,9 +2,13 @@ package org.sapia.corus.database;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.sapia.corus.client.services.database.Archiver;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.Revision;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * Implements an in-memory {@link Archiver}.
@@ -30,6 +34,16 @@ public class InMemoryArchiver<K, V> extends ArchiverSupport<K, V> {
       revisions.put(revId, records);
     }
     return records;
+  }
+  
+  @Override
+  protected Set<RevId> revisionIds() {
+    return Collects.convertAsSet(revisions.keySet(), new Func<RevId, String>() {
+      @Override
+      public RevId call(String revId) {
+        return RevId.valueOf(revId);
+      }
+    });
   }
 }
   

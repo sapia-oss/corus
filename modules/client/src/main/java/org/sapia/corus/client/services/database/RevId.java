@@ -15,8 +15,12 @@ import org.sapia.ubik.util.Assertions;
  */
 public class RevId implements Externalizable {
 
-  private static final long serialVersionUID = 1L;
+  static final long serialVersionUID = 1L;
+
+  static final int VERSION_1       = 1;
+  static final int CURRENT_VERSION = VERSION_1;
   
+  private int    classVersion = CURRENT_VERSION;  
   private String value;
   
   /**
@@ -85,11 +89,18 @@ public class RevId implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {
-    value = in.readUTF();
+    int inputVersion = in.readInt();
+    if (inputVersion == VERSION_1) {
+      value = in.readUTF();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    classVersion = CURRENT_VERSION;
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeInt(classVersion);
     out.writeUTF(value);
   }
   

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfig;
@@ -143,5 +145,13 @@ public class TestProcessor implements Processor{
   
   @Override
   public void clean() {
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
   }
 }

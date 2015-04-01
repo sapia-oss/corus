@@ -1,10 +1,17 @@
 package org.sapia.corus.client.services.port;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.StringWriter;
 import java.util.List;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.json.JsonObjectInput;
+import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
@@ -68,6 +75,37 @@ public class PortRangeTest {
       port = available.get(i - 1);
       Assert.assertEquals(i, port);
     }
+  }
+  
+  @Test
+  public void testJson() throws Exception {
+    StringWriter     writer = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(writer);
+    range.acquire();
+    range.acquire();
+    range.toJson(stream);
+    PortRange copy = PortRange.fromJson(JsonObjectInput.newInstance(writer.toString()));
+    
+    assertEquals(range.getName(), copy.getName());
+    assertEquals(range.getAvailable().size(), copy.getAvailable().size());
+    assertTrue(range.getAvailable().containsAll(copy.getAvailable()));
+    assertEquals(range.getActive().size(), copy.getActive().size());
+    assertTrue(range.getActive().containsAll(copy.getActive()));
+    assertEquals(range.getMin(), copy.getMin());
+    assertEquals(range.getMax(), copy.getMax());
+  }
+  
+  @Test
+  public void testSerialization() {
+    PortRange copy = (PortRange) SerializationUtils.deserialize(SerializationUtils.serialize(range));
+
+    assertEquals(range.getName(), copy.getName());
+    assertEquals(range.getAvailable().size(), copy.getAvailable().size());
+    assertTrue(range.getAvailable().containsAll(copy.getAvailable()));
+    assertEquals(range.getActive().size(), copy.getActive().size());
+    assertTrue(range.getActive().containsAll(copy.getActive()));
+    assertEquals(range.getMin(), copy.getMin());
+    assertEquals(range.getMax(), copy.getMax());
   }
 
 }

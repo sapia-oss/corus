@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
@@ -77,21 +79,22 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Autowired
   private ProcessorConfiguration configuration;
   @Autowired
-  DbModule db;
+  DbModule                db;
   @Autowired
-  private Deployer deployer;
+  private Deployer        deployer;
   @Autowired
-  private TaskManager taskman;
+  private TaskManager     taskman;
   @Autowired
   private EventDispatcher events;
   @Autowired
-  private HttpModule http;
+  private HttpModule      http;
   @Autowired
-  private PortManager portManager;
+  private PortManager     portManager;
   @Autowired
-  private OsModule os;
+  private OsModule        os;
 
   private ProcessRepository processes;
+  
   private ExecConfigDatabase execConfigs;
   
   private boolean isPublishProcessConfigurationChangeEnabled = false;
@@ -565,6 +568,23 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Override
   public void unarchiveExecConfigs(RevId revId) {
     execConfigs.unarchiveExecConfigs(revId);
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.beginObject().field("processes").beginObject();
+    processes.dump(stream);
+    stream.endObject();
+    
+    stream.beginObject().field("execConfigs").beginObject();
+    execConfigs.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    processes.load(dump.getObject("processes"));
+    execConfigs.load(dump.getObject("execConfigs"));
   }
 
   private List<Status> copyStatus(List<Process> processes) {

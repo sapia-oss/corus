@@ -108,6 +108,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     moduleContext.setConfigLocation("org/sapia/corus/modules.xml");
     moduleContext.refresh();
     manager.addApplicationContext(moduleContext);
+    
 
     lifeCycle = manager;
 

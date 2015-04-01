@@ -4,7 +4,6 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
 
 /**
  * A {@link ProcessDef} is held within an {@link ExecConfig}.
@@ -18,6 +17,11 @@ public class ProcessDef implements Externalizable {
 
   static final long serialVersionUID = 1L;
 
+  static final int VERSION_1 = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+
+  private int classVersion = CURRENT_VERSION;
+  
   private String dist, process, version, profile;
   private int instances;
   
@@ -66,28 +70,7 @@ public class ProcessDef implements Externalizable {
       instances = 1;
     }
     return instances;
-  }
-  
-  // --------------------------------------------------------------------------
-  
-  @Override
-  public void readExternal(ObjectInput in) throws IOException,
-      ClassNotFoundException {
-    dist      = in.readUTF();
-    process   = in.readUTF();
-    version   = in.readUTF();
-    profile   = in.readUTF();
-    instances = in.readInt();
-  }
-  
-  @Override
-  public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeUTF(dist);
-    out.writeUTF(process);
-    out.writeUTF(version);
-    out.writeUTF(profile);
-    out.writeInt(instances);
-  }
+  }  
 
   // --------------------------------------------------------------------------
   
@@ -113,6 +96,35 @@ public class ProcessDef implements Externalizable {
   public String toString() {
     return new StringBuilder("[").append("dist=").append(dist).append(", ").append("version=").append(version).append(", ").append("name=")
         .append(process).append(", ").append("profile=").append(profile).append("instances=").append(instances).append("]").toString();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    
+    classVersion = in.readInt();
+    
+    dist = in.readUTF();
+    process = in.readUTF();
+    version = in.readUTF();
+    profile = (String) in.readObject();
+    instances = in.readInt();
+    
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    
+    out.writeInt(classVersion);
+    
+    out.writeUTF(dist);
+    out.writeUTF(process);
+    out.writeUTF(version);
+    out.writeObject(profile);
+    out.writeInt(instances);
   }
 
 }

@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.DbMap;
@@ -179,6 +181,18 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     }
     rc.setPermissions(permissions);
     rc.save();
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field("roles").beginObject();
+    roles.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    roles.load(dump.getObject("roles"));
   }
   
   // --------------------------------------------------------------------------

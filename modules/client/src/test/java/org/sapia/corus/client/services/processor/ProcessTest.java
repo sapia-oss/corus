@@ -15,6 +15,7 @@ import net.sf.json.JSONObject;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
@@ -103,6 +104,45 @@ public class ProcessTest {
       JSONObject ap = activePorts.getJSONObject(i);
       assertEquals(i, ap.getInt("port"));
       assertEquals("port" + i, ap.getString("name"));
+    }
+  }
+  
+  @Test
+  public void testFromJson() throws Exception {
+    StringWriter     writer = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(writer);
+    
+    Process p = new Process(new DistributionInfo("test-dist", "1.0", "test-profile", "test-process"), "test-id");
+    p.setDeleteOnKill(true);
+    p.setMaxKillRetry(5);
+    p.setOsPid("test-os-pid");
+    p.setProcessDir("test-dir");
+    p.setShutdownTimeout(5);
+    p.setStatus(LifeCycleStatus.KILL_CONFIRMED);
+    p.addActivePort(new ActivePort("port0", 0));
+    p.addActivePort(new ActivePort("port1", 1));
+    p.incrementStaleDetectionCount();
+    p.toJson(stream);
+    
+    Process copy = Process.fromJson(JsonObjectInput.newInstance(writer.toString()));
+    
+    assertEquals(p.isDeleteOnKill(), copy.isDeleteOnKill());
+    assertEquals(p.getMaxKillRetry(), copy.getMaxKillRetry());
+    assertEquals(p.getProcessID(), copy.getProcessID());
+    assertEquals(p.getOsPid(), copy.getOsPid());
+    assertEquals(p.getProcessDir(), copy.getProcessDir());
+    assertEquals(p.getDistributionInfo().getProcessName(), copy.getDistributionInfo().getProcessName());
+    assertEquals(p.getDistributionInfo().getName(), copy.getDistributionInfo().getName());
+    assertEquals(p.getDistributionInfo().getVersion(), copy.getDistributionInfo().getVersion());
+    assertEquals(p.getDistributionInfo().getProfile(), copy.getDistributionInfo().getProfile());
+    assertEquals(p.getShutdownTimeout(), copy.getShutdownTimeout());
+    assertEquals(p.getStatus(), copy.getStatus());
+    assertEquals(p.getStaleDetectionCount(), copy.getStaleDetectionCount());
+ 
+    assertEquals(p.getActivePorts().size(), copy.getActivePorts().size());
+    for (int i = 0; i < p.getActivePorts().size(); i++) {
+      assertEquals(p.getActivePorts().get(i).getName(), copy.getActivePorts().get(i).getName());
+      assertEquals(p.getActivePorts().get(i).getPort(), copy.getActivePorts().get(i).getPort());
     }
   }
   

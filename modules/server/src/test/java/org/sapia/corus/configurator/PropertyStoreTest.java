@@ -7,9 +7,11 @@ import java.util.Properties;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.database.InMemoryDbMap;
+import org.sapia.ubik.util.Func;
 
 public class PropertyStoreTest {
   
@@ -17,7 +19,12 @@ public class PropertyStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    store = new PropertyStore(new InMemoryDbMap<String, ConfigProperty>(new ClassDescriptor<ConfigProperty>(ConfigProperty.class)));
+    store = new PropertyStore(new InMemoryDbMap<String, ConfigProperty>(new ClassDescriptor<ConfigProperty>(ConfigProperty.class), new Func<ConfigProperty, JsonInput>() {
+      @Override
+      public ConfigProperty call(JsonInput in) {
+        throw new UnsupportedOperationException();
+      }
+    }));
   }
 
   @Test

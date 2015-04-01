@@ -8,6 +8,7 @@ import java.util.Set;
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.RevId;
 
 /**
@@ -27,7 +28,7 @@ import org.sapia.corus.client.services.database.RevId;
  * @author yduchesne
  * 
  */
-public interface Configurator extends java.rmi.Remote, Module {
+public interface Configurator extends java.rmi.Remote, Module, Dumpable {
 
   String ROLE = Configurator.class.getName();
 

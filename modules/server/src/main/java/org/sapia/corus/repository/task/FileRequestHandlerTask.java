@@ -30,7 +30,7 @@ public class FileRequestHandlerTask extends ArtifactRequestHandlerTaskSupport {
     super(file, targets, new Func<DeploymentMetadata, Boolean>() {
       @Override
       public DeploymentMetadata call(Boolean clustered) {
-        return new FileDeploymentMetadata(file.getName(), file.length(), null, new ClusterInfo(clustered).addTargets(targets));
+        return new FileDeploymentMetadata(file.getName(), file.length(), null, new ClusterInfo(clustered).addTargetEndpoints(targets));
       }
     });
   }

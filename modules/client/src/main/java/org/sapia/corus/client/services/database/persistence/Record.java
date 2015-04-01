@@ -21,7 +21,7 @@ public class Record<V> implements Externalizable {
   public static final Long NULL_VERSION = 0L;
 
   static final long serialVersionUID = 1L;
-
+  
   Object[] values;
 
   public Record() {

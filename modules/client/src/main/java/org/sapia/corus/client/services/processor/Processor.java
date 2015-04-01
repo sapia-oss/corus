@@ -6,6 +6,7 @@ import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.interop.Status;
 
@@ -15,7 +16,7 @@ import org.sapia.corus.interop.Status;
  * @author Yanick Duchesne
  */
 
-public interface Processor extends java.rmi.Remote, Module {
+public interface Processor extends java.rmi.Remote, Module, Dumpable {
   String ROLE = Processor.class.getName();
 
   /**
@@ -201,4 +202,5 @@ public interface Processor extends java.rmi.Remote, Module {
    * @return this instance's {@link ProcessorConfiguration}
    */
   public ProcessorConfiguration getConfiguration();
+  
 }

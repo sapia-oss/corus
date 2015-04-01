@@ -4,7 +4,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannel.Role;
 
@@ -14,21 +17,21 @@ import org.sapia.ubik.mcast.EventChannel.Role;
  * @author yduchesne
  * 
  */
-public class ClusterStatus implements Externalizable {
+public class ClusterStatus implements Externalizable, Mappable {
 
   static final long serialVersionUID = 1L;
 
   private Role role;
   private CorusHost host;
   private int nodeCount;
-
+  
   /** DO NOT USE: meant for externalization only. */
   public ClusterStatus() {
   }
 
   public ClusterStatus(Role role, CorusHost host, int nodeCount) {
-    this.role = role;
-    this.host = host;
+    this.role      = role;
+    this.host      = host;
     this.nodeCount = nodeCount;
   }
 
@@ -51,6 +54,20 @@ public class ClusterStatus implements Externalizable {
    */
   public int getNodeCount() {
     return nodeCount;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Mappable interface
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("host.role", role.name());
+    toReturn.put("host.formattedAddress", host.getFormattedAddress());
+    toReturn.put("host.address", host.getEndpoint().getServerTcpAddress().getHost());
+    toReturn.put("host.port", host.getEndpoint().getServerTcpAddress().getPort());
+    toReturn.put("host.nodeCount", nodeCount);
+    return toReturn;
   }
 
   // --------------------------------------------------------------------------

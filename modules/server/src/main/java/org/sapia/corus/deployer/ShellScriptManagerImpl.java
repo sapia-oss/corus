@@ -11,6 +11,8 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
@@ -143,6 +145,18 @@ public class ShellScriptManagerImpl extends ModuleHelper implements InternalShel
     }, scriptDir, CmdLine.parse(scriptFile.getAbsolutePath()));
     progress.close();
     return progress;
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    stream.field("shellScripts").beginObject();
+    database.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    database.load(dump.getObject("shellScripts"));
   }
 
   // --------------------------------------------------------------------------

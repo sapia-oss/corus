@@ -4,12 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
@@ -31,7 +34,7 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  * @author Yanick Duchesne
  */
 
-public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>, JsonStreamable, Matcheable {
+public class Distribution implements java.io.Serializable, ObjectCreationCallback, Comparable<Distribution>, JsonStreamable, Mappable, Matcheable {
 
   static final long serialVersionUID = 1L;
   
@@ -54,7 +57,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
 
   public Distribution() {
   }
-
+  
   public Distribution(String name, String version) {
     this.name = name;
     this.version = version;
@@ -360,6 +363,26 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   }
   
   // --------------------------------------------------------------------------
+  // Mappeable
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("dist.name", name);
+    toReturn.put("dist.version", version);
+    toReturn.put("dist.baseDir", baseDir);
+    toReturn.put("dist.commonDir", commonDir);
+    toReturn.put("dist.processesDir", processesDir);
+    toReturn.put("dist.tags", tags);
+    toReturn.put("dist.categories", categories);
+    toReturn.put("dist.processConfigs", processConfigs);
+    toReturn.put("dist.timestamp", timestamp);
+    toReturn.put("dist.state", state);
+    return toReturn;
+  }
+  
+  // --------------------------------------------------------------------------
+  // JsonStreameable
   
   @Override
   public void toJson(JsonStream stream) {

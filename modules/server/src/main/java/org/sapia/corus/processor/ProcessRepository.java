@@ -3,6 +3,7 @@ package org.sapia.corus.processor;
 import java.util.List;
 
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -12,7 +13,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  * @author yduchesne
  * 
  */
-public interface ProcessRepository {
+public interface ProcessRepository extends Dumpable {
 
   /**
    * @return the {@link ProcessDatabase} that holds suspended processes.
@@ -78,7 +79,6 @@ public interface ProcessRepository {
    * @param proc a {@link Process} to add to this instance.
    */
   public void addProcess(Process proc);
-
   
   /**
    * @param corusPid a Corus process ID.

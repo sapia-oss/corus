@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -21,6 +22,8 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.ObjectUtils;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
@@ -458,7 +461,62 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
 
   // --------------------------------------------------------------------------
-  // Restricted methods (visbible for testing)
+  // Dumpable interface
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.beginObject().field("properties"); // begin properties
+    stream.beginObject().field("server"); // begin server
+    for (Property p : getAllPropertiesList(PropertyScope.SERVER, new HashSet<ArgMatcher>())) {
+      p.toJson(stream);
+    }
+    stream.endObject(); // end server
+    
+    stream.beginObject().field("process"); // begin process
+    for (Property p : getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>())) {
+      p.toJson(stream);
+    }
+    stream.endObject(); // end process
+    stream.endObject(); // end properties
+    
+    // begin tags
+    stream.beginObject().field("tags").strings(Collects.convertAsList(getTags(), new Func<String, Tag>() {
+      @Override
+      public String call(Tag t) {
+        return t.getValue();
+      }
+    }));
+    // end tags
+    stream.endObject();
+    
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    for (JsonInput props : dump.iterate("properties")) {
+      Set<String> emptyCategories = new HashSet<String>();
+      for (JsonInput prop : props.iterate("server")) {
+        String name  = prop.getString("name");
+        String value = prop.getString("value");
+        addProperty(PropertyScope.SERVER, name, value, emptyCategories);
+      }
+      
+      for (JsonInput prop : props.iterate("process")) {
+        String name  = prop.getString("name");
+        String value = prop.getString("value");
+        String cat   = prop.getString("category");
+        if (cat.equals("N/A")) {
+          addProperty(PropertyScope.PROCESS, name, value, emptyCategories);
+        } else {
+          addProperty(PropertyScope.PROCESS, name, value, Collects.arrayToSet(cat));
+        }
+      }
+    }
+    addTags(Collects.arrayToSet(dump.getStringArray("tags")), false);
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted methods (visible for testing)
 
   PropertyStore store(PropertyScope scope) {
     if (scope == PropertyScope.SERVER) {

@@ -45,6 +45,7 @@
     <module>modules/thirdparty</module>
     <module>modules/server</module>
     <module>modules/package</module>
+    <module>modules/cloud</module>
     <module>samples</module>
   </modules>
 

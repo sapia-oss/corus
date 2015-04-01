@@ -5,7 +5,6 @@ package org.sapia.corus.util;
  * 
  * @author yduchesne
  * 
- * @param <T>
  */
 public interface Matcher<T> {
 

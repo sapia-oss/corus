@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 
 /**
@@ -126,4 +128,14 @@ public interface DbMap<K, V> extends Iterable<V> {
    */
   public List<K> unarchive(RevId revId);
   
+  /**
+   * The {@link JsonStream} to dump to.
+   * @param stream
+   */
+  public void dump(JsonStream stream);
+  
+  /**
+   * @param input the {@link JsonInput} to load from.
+   */
+  public void load(JsonInput input);
 }

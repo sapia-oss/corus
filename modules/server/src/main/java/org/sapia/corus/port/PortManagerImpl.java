@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -198,6 +200,18 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   @Override
   public synchronized void unarchive(RevId revId) {
     store.unarchiveRanges(revId);
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    stream.field("portRanges").beginObject();
+    store.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    store.load(dump.getObject("portRanges"));
   }
 
 }

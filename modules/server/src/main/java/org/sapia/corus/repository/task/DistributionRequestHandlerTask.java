@@ -35,7 +35,7 @@ public class DistributionRequestHandlerTask extends ArtifactRequestHandlerTaskSu
             distFile.getName(), 
             distFile.length(), 
             DeployPreferences.newInstance(),
-            new ClusterInfo(clustered).addTargets(targets)
+            new ClusterInfo(clustered).addTargetEndpoints(targets)
         );
       }
     });

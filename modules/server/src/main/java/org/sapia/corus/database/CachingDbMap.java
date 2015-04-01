@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RecordMatcher;
 import org.sapia.corus.client.services.database.RevId;
@@ -175,6 +177,16 @@ public class CachingDbMap<K, V> implements DbMap<K, V> {
   @Override
   public void clearArchive(RevId revId) {
     delegate.clearArchive(revId);
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    delegate.dump(stream);
+  }
+  
+  @Override
+  public void load(JsonInput input) {
+    delegate.load(input);
   }
   
   Map<K, V> getInternalMap() {

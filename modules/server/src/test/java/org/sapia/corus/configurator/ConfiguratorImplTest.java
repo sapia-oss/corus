@@ -29,6 +29,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
@@ -39,6 +40,7 @@ import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConfiguratorImplTest {
@@ -71,12 +73,23 @@ public class ConfiguratorImplTest {
       }
       
       @Override
-      public <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) {
-        return new InMemoryDbMap<>(new ClassDescriptor<>(valueType));
+      public <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType,
+          String name) {
+        return new InMemoryDbMap<>(new ClassDescriptor<>(valueType), new Func<V, JsonInput>() {
+          @Override
+          public V call(JsonInput in) {
+            throw new UnsupportedOperationException();
+          }
+        });
       }
     };
     
-    internalConfig = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    internalConfig = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class), new Func<ConfigProperty, JsonInput>() {
+      @Override
+      public ConfigProperty call(JsonInput in) {
+        throw new UnsupportedOperationException();
+      }
+    });
     
     serverPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
     serverProperties = Mockito.spy(serverPropertyDb);

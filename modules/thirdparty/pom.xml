@@ -26,6 +26,7 @@
   <modules>
     <module>tomcat</module>
     <module>maven</module>
+    <module>chef</module>
   </modules>
 
 </project>

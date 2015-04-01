@@ -82,7 +82,7 @@ public class Ripple extends CorusCliCommand {
   
     List<CorusHost> allHosts = new ArrayList<CorusHost>();
     OptionalValue<Collection<CorusHost>> selectedHosts = ctx.getCorus().getContext().getSelectedHosts().peek();
-    if (!selectedHosts.isNull()) {
+    if (selectedHosts.isSet()) {
       allHosts.addAll(selectedHosts.get());
     } else {
       allHosts.add(ctx.getCorus().getContext().getServerHost());

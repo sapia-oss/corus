@@ -2,6 +2,7 @@ package org.sapia.corus.processor;
 
 import java.util.List;
 
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
@@ -13,7 +14,7 @@ import org.sapia.corus.client.services.processor.ExecConfigCriteria;
  * @author yduchesne
  * 
  */
-public interface ExecConfigDatabase {
+public interface ExecConfigDatabase extends Dumpable {
 
   /**
    * @return this instance's {@link List} of {@link ExecConfig}s.

@@ -1,0 +1,52 @@
+<topology application="test-app">
+  <env-template name="common-env">
+  
+  </env-template>
+  
+  <machine-template name="common-machine">
+  </machine-template>
+
+  <env name="uat" templateRef="common-env">
+    <region name="us-west">
+	    <zone>us-west-1a</zone>
+	    <zone>us-west-1b</zone>
+	  </region>
+    
+    <cluster name="" instances="">
+        <machine name="" serverTags="" imageId="" templateRef="common-machine">
+          <param name="" value="" />
+          <serverTag></serverTag>
+          <serverProperties>
+            <property name="" value="" />
+            <property name="" value="" />              
+          </serverProperties>
+          <processProperties>
+            <property name="" value="" />
+            <property name="" value="" />              
+          </processProperties>
+        </machine>
+    </cluster>
+  </env>
+  
+  <env name="prod" templateRef="common-env">
+    <region name="us-west">
+      <zone>us-west-1a</zone>
+      <zone>us-west-1b</zone>
+    </region>
+    
+    <cluster name="" instances="">
+        <machine name="" serverTags="" imageId="" templateRef="common-machine">
+          <serverTag></serverTag>
+          <serverProperties>
+            <property name="" value="" />
+            <property name="" value="" />              
+          </serverProperties>
+          <processProperties>
+            <property name="" value="" />
+            <property name="" value="" />              
+          </processProperties>
+        </machine>
+    </cluster>
+  </env>
+
+</topology>

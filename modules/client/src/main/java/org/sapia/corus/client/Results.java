@@ -1,6 +1,7 @@
 package org.sapia.corus.client;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -131,6 +132,25 @@ public class Results<T> implements Iterable<Result<T>> {
       invocationFinished = true;
       notifyAll();
     }
+  }
+  
+  /**
+   * @return flattens the element in each result into a single list.
+   */
+  @SuppressWarnings("rawtypes")
+  public List<Object> flatten() {
+    List<Object> toReturn = new ArrayList<>();
+    while (hasNext()) {
+      Result<T> result = next();
+      if (result.getData() instanceof Collection) {
+        for (Object o : ((Collection) result.getData())) {
+          toReturn.add(o);
+        }
+      } else  {
+        toReturn.add(result.getData());
+      }
+    }
+    return toReturn;
   }
 
   @Override

@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
@@ -118,6 +120,14 @@ public class TestConfigurator implements Configurator {
   
   @Override
   public void unarchiveTags(RevId revId) {
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
   }
   
   private Properties props(PropertyScope scope) {

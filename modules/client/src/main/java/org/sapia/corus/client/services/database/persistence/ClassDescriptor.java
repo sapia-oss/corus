@@ -27,12 +27,12 @@ import org.sapia.corus.client.annotations.Version;
 public class ClassDescriptor<T> {
 
   private static final String GET_PREFIX = "get";
-  private static final String IS_PREFIX = "is";
+  private static final String IS_PREFIX  = "is";
 
-  private Class<T> type;
-  private Constructor<T> constructor;
-  private Map<String, FieldDescriptor> fieldsByName = new HashMap<String, FieldDescriptor>();
-  private List<FieldDescriptor> fieldsByIndex = new ArrayList<FieldDescriptor>();
+  private Class<T>                     type;
+  private Constructor<T>               constructor;
+  private Map<String, FieldDescriptor> fieldsByName  = new HashMap<String, FieldDescriptor>();
+  private List<FieldDescriptor>        fieldsByIndex = new ArrayList<FieldDescriptor>();
 
   /**
    * Creates an instance of this class.

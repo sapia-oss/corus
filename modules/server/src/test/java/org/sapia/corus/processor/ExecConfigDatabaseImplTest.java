@@ -6,12 +6,14 @@ import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.database.InMemoryDbMap;
+import org.sapia.ubik.util.Func;
 
 public class ExecConfigDatabaseImplTest {
   
@@ -20,7 +22,11 @@ public class ExecConfigDatabaseImplTest {
   
   @Before
   public void setUp() throws Exception {
-    map = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class));
+    map = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class), new Func<ExecConfig, JsonInput>() {
+      public ExecConfig call(JsonInput arg0) {
+        throw new UnsupportedOperationException();
+      }
+    });
     db = new ExecConfigDatabaseImpl(map);
     for (int i = 0; i < 5; i++) {
       ExecConfig c = new ExecConfig();

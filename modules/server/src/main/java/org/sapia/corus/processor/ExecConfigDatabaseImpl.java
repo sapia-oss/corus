@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -140,6 +142,16 @@ public class ExecConfigDatabaseImpl implements ExecConfigDatabase {
   @Override
   public synchronized void unarchiveExecConfigs(RevId revId) {
     configs.unarchive(revId);
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    configs.dump(stream);
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    configs.load(dump);
   }
   
 }

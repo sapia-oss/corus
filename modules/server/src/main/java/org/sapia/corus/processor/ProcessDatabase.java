@@ -3,6 +3,7 @@ package org.sapia.corus.processor;
 import java.util.List;
 
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -12,7 +13,7 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  * @author yduchesne
  * 
  */
-public interface ProcessDatabase {
+public interface ProcessDatabase extends Dumpable {
 
   /**
    * @param process

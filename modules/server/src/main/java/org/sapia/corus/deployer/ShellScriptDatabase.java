@@ -2,6 +2,7 @@ package org.sapia.corus.deployer;
 
 import java.util.List;
 
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.deployer.ScriptNotFoundException;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
@@ -12,7 +13,7 @@ import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
  * @author yduchesne
  * 
  */
-public interface ShellScriptDatabase {
+public interface ShellScriptDatabase extends Dumpable {
 
   /**
    * @param script

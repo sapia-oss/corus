@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
@@ -66,9 +67,22 @@ public class ClusterInfo implements Serializable {
    * 
    * @return this instance.
    */
-  public ClusterInfo addTargets(Collection<Endpoint> endpoints) {
+  public ClusterInfo addTargetEndpoints(Collection<Endpoint> endpoints) {
     for (Endpoint ep : endpoints) {
       this.targets.add(ep.getServerAddress());
+    }
+    return this;
+  }
+  
+  /**
+   * @param hosts a Collection of {@link CorusHost}s whose addresses
+   * correspond to targeted Corus servers.
+   * 
+   * @return this instance.
+   */
+  public ClusterInfo addTargetHosts(Collection<CorusHost> hosts) {
+    for (CorusHost h : hosts) {
+      this.targets.add(h.getEndpoint().getServerAddress());
     }
     return this;
   }

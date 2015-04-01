@@ -4,9 +4,12 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
 
 /**
@@ -15,7 +18,7 @@ import org.sapia.corus.client.common.Matcheable;
  * @author yduchesne
  *
  */
-public class Tag implements Comparable<Tag>, Matcheable, Externalizable {
+public class Tag implements Comparable<Tag>, Matcheable, Externalizable, Mappable {
   
   static final long serialVersionUID = 1L;
   
@@ -41,10 +44,19 @@ public class Tag implements Comparable<Tag>, Matcheable, Externalizable {
   // --------------------------------------------------------------------------
   // Matcheable interface
   
-  
   @Override
   public boolean matches(Pattern pattern) {
     return pattern.matches(value);
+  }
+
+  // --------------------------------------------------------------------------
+  // Mappable interface
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("tag.value", value);
+    return toReturn;
   }
   
   // --------------------------------------------------------------------------

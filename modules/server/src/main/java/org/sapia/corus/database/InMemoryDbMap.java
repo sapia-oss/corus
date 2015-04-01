@@ -8,11 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RecordMatcher;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.Persistent;
 import org.sapia.corus.client.services.database.persistence.Record;
 import org.sapia.corus.client.services.database.persistence.Template;
 import org.sapia.corus.client.services.database.persistence.TemplateMatcher;
@@ -29,14 +33,16 @@ public class InMemoryDbMap<K, V> implements DbMap<K, V> {
   private Map<K, Record<V>>  map      = new HashMap<K, Record<V>>();
   private ClassDescriptor<V> classDescriptor;
   private Archiver<K, V>     archiver = new InMemoryArchiver<K, V>();
+  private Func<V, JsonInput> fromJsonFunc;
 
-  public InMemoryDbMap(ClassDescriptor<V> cd) {
-    classDescriptor = cd;
+  public InMemoryDbMap(ClassDescriptor<V> cd, Func<V, JsonInput> fromJsonFunc) {
+    this(cd, new NullArchiver<K, V>(), fromJsonFunc);
   }
   
-  public InMemoryDbMap(ClassDescriptor<V> cd, Archiver<K, V> archiver) {
+  public InMemoryDbMap(ClassDescriptor<V> cd, Archiver<K, V> archiver, Func<V, JsonInput> fromJsonFunc) {
     this.classDescriptor = cd;
     this.archiver        = archiver;
+    this.fromJsonFunc    = fromJsonFunc;
   }
 
   @Override
@@ -149,6 +155,34 @@ public class InMemoryDbMap<K, V> implements DbMap<K, V> {
   @Override
   public void clearArchive(RevId revId) {
     archiver.clear(revId);
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field(classDescriptor.getType().getName()).beginArray();
+    Iterator<K> keys = keys();
+    while (keys.hasNext()) {
+      V value = get(keys.next());
+      if (value instanceof JsonStreamable) {
+        ((JsonStreamable) value).toJson(stream);
+      }
+    }
+    stream.endArray();
+    
+    archiver.dump(stream, classDescriptor);
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void load(JsonInput input) {
+    if (JsonStreamable.class.isAssignableFrom(classDescriptor.getType())) {
+      for (JsonInput in : input.iterate(classDescriptor.getType().getName())) {
+        V value = fromJsonFunc.call(in);
+        map.put(((Persistent<K, V>) value).getKey(), Record.createFor(classDescriptor, value));
+      }
+      
+      archiver.load(input, classDescriptor, fromJsonFunc);
+    }
   }
   
   @Override

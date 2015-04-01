@@ -7,13 +7,14 @@ import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cron.DuplicateScheduleException;
 import org.sapia.corus.client.exceptions.cron.InvalidTimeException;
 import org.sapia.corus.client.exceptions.processor.ProcessConfigurationNotFoundException;
+import org.sapia.corus.client.services.Dumpable;
 
 /**
  * Specifies the behavior of the Cron module, which schedules processes.
  * 
  * @author Yanick Duchesne
  */
-public interface CronModule extends java.rmi.Remote, Module {
+public interface CronModule extends java.rmi.Remote, Module, Dumpable {
 
   public static final String ROLE = CronModule.class.getName();
 

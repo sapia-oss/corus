@@ -1,0 +1,72 @@
+#!/bin/sh
+
+set -e
+
+daemon=0
+avis_opts=""
+
+# find avis-router.jar in either lib or libexec/avis
+base_dir=`dirname "$0"`
+avisd_jar="$base_dir/../lib/avis-router.jar"
+
+if [ ! -f "$avisd_jar" ]; then
+  avisd_jar="$base_dir/../libexec/avis/avis-router.jar"
+fi
+
+if [ ! -f "$avisd_jar" ]; then
+  echo "Cannot find avis-router.jar"
+  exit 1
+fi
+
+usage ()
+{
+  local NL=$'\x0a'
+  local help="\
+  Usage: $0 [-h] [-v] [-vv] [-p port] [-c file] $NL\
+            [-daemon] [-pidfile file] [-logfile file] $NL\
+
+     -h               : This text$NL\
+     -v and -vv       : Increase verbosity$NL\
+     -p port          : Set port to listen on$NL\
+     -c file          : Load config from file$NL\
+     -daemon          : Run as daemon$NL\
+     -pidfile file    : Output process ID to file$NL\
+     -logfile file    : Log output to file (only with -daemon)$NL"
+ 
+  echo "$help" >&2
+}
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    -pidfile) pidfile=$2; shift 2;;
+    -daemon)  daemon=1; shift;;
+    -logfile) logfile=$2; shift 2;;
+    -v|-vv)   avis_opts="$avis_opts $1"; shift;;
+    -p|-c)    avis_opts="$avis_opts $1 $2"; shift;
+  	      if [ ! -z $1 ]; then shift; fi;;
+    *)        usage; exit 1;;
+  esac
+done
+
+java_options="-server -Xms<%=@xms%> -Xmx<%=@xmx%> -Xverify:none -XX:+<%=@gc%>"
+
+command="java $java_options -jar $avisd_jar $avis_opts"
+
+if [ $daemon -eq 1 ]; then
+
+  if [ -z $logfile ]; then
+    logfile=/dev/null
+  fi
+  
+  ( exec $command < /dev/null >> $logfile 2>&1 ) &
+  
+  if [ "x$pidfile" != "x" ]; then echo $! > "$pidfile"; fi
+else
+  if [ "x$pidfile" != "x" ]; then echo $$ > "$pidfile"; fi
+  
+  if [ -z "$logfile" ]; then
+    exec $command
+  else
+    exec $command >> $logfile 2>&1
+  fi
+fi
