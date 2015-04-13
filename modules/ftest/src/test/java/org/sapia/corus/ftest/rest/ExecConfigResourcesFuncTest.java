@@ -18,6 +18,7 @@ import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
@@ -60,7 +61,7 @@ public class ExecConfigResourcesFuncTest {
     
     ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse("ftest")).build();
     client.getConnector().getProcessorFacade().undeployExecConfig(crit, ClusterInfo.clustered());
-    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), UndeployPreferences.newInstance(), ClusterInfo.clustered());
   }
   
   // --------------------------------------------------------------------------

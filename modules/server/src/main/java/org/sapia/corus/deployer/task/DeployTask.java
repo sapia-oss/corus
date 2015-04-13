@@ -62,7 +62,7 @@ import org.sapia.corus.util.IOUtil;
  * 
  * @author Yanick Duchesne
  */
-public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences, Void, Void>> implements Throttleable {
+public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, Void, Void>> implements Throttleable {
 
   @Override
   public ThrottleKey getThrottleKey() {
@@ -70,16 +70,14 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
   }
 
   @Override
-  public Void execute(TaskExecutionContext ctx, TaskParams<String, DeployPreferences, Void, Void> params) throws Throwable {
+  public Void execute(TaskExecutionContext ctx, TaskParams<File, DeployPreferences, Void, Void> params) throws Throwable {
 
-    String            distFileName = params.getParam1();
+    File              srcZip       = params.getParam1();
+    String            distFileName = srcZip.getName();
     DeployPreferences prefs        = params.getParam2();
     DistributionDatabase dists     = ctx.getServerContext().lookup(DistributionDatabase.class);
     Deployer             deployer  = ctx.getServerContext().getServices().getDeployer();
     FileSystemModule     fs        = ctx.getServerContext().getServices().getFileSystem();
-    File src = FilePath.newInstance()
-          .addDir(deployer.getConfiguration().getTempDir())
-          .setRelativeFile(distFileName).createFile();
     
     String tmpBaseDirName = null;
     String baseDirName    = null;
@@ -90,9 +88,9 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
     // extracting corus.xml from archive and checking if already exists...
     Distribution dist = null; 
     try {
-      dist = Distribution.newInstance(src, fs);
+      dist = Distribution.newInstance(srcZip, fs);
     } catch (DeploymentException e) {
-      fs.deleteFile(src);
+      fs.deleteFile(srcZip);
       throw e;
     }
 
@@ -138,7 +136,7 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
         ctx.error(String.format("Could not make directory: %s", processDir.getAbsolutePath()));
       }
       
-      fs.unzip(src, commonDir);
+      fs.unzip(srcZip, commonDir);
 
       if (prefs.isExecuteDeployScripts()) {
         doRunDeployScript(fs, dist, commonDir, "pre-deploy.corus", true, ctx);
@@ -184,7 +182,7 @@ public class DeployTask extends Task<Void, TaskParams<String, DeployPreferences,
         ctx.error("Deployment error occurred", e);
       }
     } finally {
-      fs.deleteFile(src);
+      fs.deleteFile(srcZip);
       if (tmpBaseDirName != null) {
         // using handle at this point, since tmpBaseDir (File instance) has been renamed to point to baseDir.
         fs.deleteDirectory(fs.getFileHandle(tmpBaseDirName));

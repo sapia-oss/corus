@@ -17,9 +17,8 @@ import org.sapia.ubik.util.Collects;
  */
 public class Unarchive extends CorusCliCommand {
   
-  private static final OptionDef OPT_REV = new OptionDef("rev", true);
   
-  private static final List<OptionDef> AVAILABLE_OPTIONS = Collects.arrayToList(OPT_REV, OPT_CLUSTER);
+  private static final List<OptionDef> AVAILABLE_OPTIONS = Collects.arrayToList(OPT_CLUSTER);
   
   @Override
   protected void doInit(CliContext context) {
@@ -34,7 +33,11 @@ public class Unarchive extends CorusCliCommand {
   protected void doExecute(CliContext ctx) throws AbortException,
       InputException {
     
-    RevId  rev = RevId.valueOf(ctx.getCommandLine().getOptNotNull(OPT_REV.getName()).getValueNotNull());
+    if (!ctx.getCommandLine().isNextArg()) {
+      throw new InputException("Revision not specified");
+    }
+    
+    RevId  rev = RevId.valueOf(ctx.getCommandLine().assertNextArg().getName());
     ClusterInfo cluster = getClusterInfo(ctx);
     
     ctx.getConsole().println("Unarchiving...");

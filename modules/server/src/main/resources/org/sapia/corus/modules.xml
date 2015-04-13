@@ -32,13 +32,20 @@
     
   <!-- ============ DEPLOYER ============ -->
 
-  <bean name="deployer.configuration" class="org.sapia.corus.deployer.DeployerConfigurationImpl">
+  <bean name="deployer.configuration" 
+        scope="singleton" 
+        class="org.sapia.corus.deployer.DeployerConfigurationImpl">
     <property name="tempDir"    value="${corus.server.tmp.dir}" />
     <property name="deployDir"  value="${corus.server.deploy.dir}" />
     <property name="uploadDir"  value="${corus.server.uploads.dir}" />    
     <property name="scriptDir"  value="${corus.server.scripts.dir}" />
     <property name="repoDir"    value="${corus.server.repo.dir}" />
   </bean>
+  
+  <bean name="org.sapia.corus.deployer.archiver.DistributionArchiver"
+        scope="singleton" 
+        class="org.sapia.corus.deployer.archiver.DistributionArchiverImpl" 
+        autowire="autodetect" />
   
   <bean name="deployer.shellScriptManager" 
         class="org.sapia.corus.deployer.ShellScriptManagerImpl" 

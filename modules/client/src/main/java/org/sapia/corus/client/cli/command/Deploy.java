@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
@@ -47,8 +48,14 @@ public class Deploy extends CorusCliCommand {
     
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
+    if (ctx.getCommandLine().isNextArg() && ctx.getCommandLine().assertNextArg().getName().startsWith("rev")) {
+      if (ctx.getCommandLine().isNextArg()) {
+        RevId revId = RevId.valueOf(ctx.getCommandLine().assertNextArg().getName());
+        displayProgress(ctx.getCorus().getDeployerFacade().unarchiveDistributions(revId, getClusterInfo(ctx)), ctx);
+      } else {
+        throw new InputException("Expected revision ID");
+      }
+    } else if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
       deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF.getName(), true).getValue());
     } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
       deployFile(ctx, ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue());

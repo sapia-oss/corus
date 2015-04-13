@@ -10,9 +10,11 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 /**
@@ -98,11 +100,13 @@ public interface DeployerFacade {
    * 
    * @param criteria
    *          a {@link DistributionCriteria}.
+   * @param prefs
+   *          the {@link UndeployPreferences} to use.
    * @param cluster
    *          a {@link ClusterInfo}.
    * @return a {@link ProgressQueue}.
    */
-  public ProgressQueue undeployDistribution(DistributionCriteria criteria, ClusterInfo cluster) throws RunningProcessesException;
+  public ProgressQueue undeployDistribution(DistributionCriteria criteria, UndeployPreferences prefs, ClusterInfo cluster) throws RunningProcessesException;
 
   /**
    * Returns the list of distributions matching the given criteria.
@@ -124,6 +128,12 @@ public interface DeployerFacade {
    */
   public ProgressQueue rollbackDistribution(String name, String version, ClusterInfo cluster) 
       throws RollbackScriptNotFoundException, DistributionNotFoundException;
-  
+
+  /**
+   * @param revId the {@link RevId} corresponding to the revision for which distributions should be unarchived.
+   * @param cluster a {@link ClusterInfo} instance.
+   * @return a {@link ProgressQueue}.
+   */
+  public ProgressQueue unarchiveDistributions(RevId revId, ClusterInfo cluster);
 
 }

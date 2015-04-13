@@ -21,8 +21,10 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.Delay;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.ftest.JSONValue;
 import org.sapia.corus.ftest.FtestClient;
@@ -61,8 +63,9 @@ public class DistributionResourcesFuncTest {
     } catch (Throwable err) {
       throw new IllegalStateException("Could not kill processes", err);
     }
-    
-    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+
+    client.getConnector().getDeployerFacade().unarchiveDistributions(RevId.valueOf("previous"), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), UndeployPreferences.newInstance(), ClusterInfo.clustered());
   }
   
   // --------------------------------------------------------------------------
@@ -114,6 +117,8 @@ public class DistributionResourcesFuncTest {
     assertEquals(1, matches.length, "Could not match");
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
     JSONValue response = client.resource("/clusters/ftest/distributions")
         .queryParam("d", "*").queryParam("v", "*")
         .request()
@@ -131,6 +136,55 @@ public class DistributionResourcesFuncTest {
           .get(JSONValue.class)
           .asArray();
     assertEquals(0, dists.size());
+  }
+  
+  @Test
+  public void testArchiveUnarchiveDist_clustered() throws Exception {
+    File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
+        new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith("demo.zip");
+          }
+        }
+    );
+    assertEquals(1, matches.length, "Could not match");
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
+    JSONValue response = client.resource("/clusters/ftest/hosts/distributions")
+        .queryParam("d", "*").queryParam("v", "*")
+        .queryParam("rev", "previous")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 0);
+    
+    JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(dists.size(), 0);
+    
+    response = client.resource("/clusters/ftest/hosts/distributions/revisions/previous")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    
+    dists = client.resource("/clusters/ftest/hosts/distributions")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(dists.size(), client.getHostCount());
   }
   
   // --------------------------------------------------------------------------
@@ -181,6 +235,8 @@ public class DistributionResourcesFuncTest {
     assertEquals(1, matches.length, "Could not match");
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions")
         .queryParam("d", "*").queryParam("v", "*")
         .request()
@@ -198,6 +254,57 @@ public class DistributionResourcesFuncTest {
           .get(JSONValue.class)
           .asArray();
     assertEquals(dists.size(), client.getHostCount() - 1);
+  }
+  
+  @Test
+  public void testArchiveUnarchiveDist_specific_host() throws Exception {
+    File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
+        new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith("demo.zip");
+          }
+        }
+    );
+    assertEquals(1, matches.length, "Could not match");
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions")
+        .queryParam("d", "*").queryParam("v", "*")
+        .queryParam("rev", "previous")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
+    
+    JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(dists.size(), client.getHostCount() - 1);
+    
+    response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions/revisions/previous")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
+    dists = client.resource("/clusters/ftest/hosts/distributions")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(dists.size(), client.getHostCount());
   }
   
   // --------------------------------------------------------------------------
@@ -285,6 +392,8 @@ public class DistributionResourcesFuncTest {
     assertEquals(1, matches.length, "Could not match");
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
     JSONValue response = client.resource("/clusters/ftest/hosts/distributions/demo/1.0/rollback")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
@@ -293,7 +402,7 @@ public class DistributionResourcesFuncTest {
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
     
-    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 0);
     
     JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
         .request()
@@ -316,6 +425,8 @@ public class DistributionResourcesFuncTest {
     assertEquals(1, matches.length, "Could not match");
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
     
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/distributions/demo/1.0/rollback")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
@@ -323,6 +434,8 @@ public class DistributionResourcesFuncTest {
           .accept(MediaType.APPLICATION_JSON) 
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
     
     JSONArray dists = client.resource("/clusters/ftest/hosts/distributions")
         .request()

@@ -8,6 +8,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 /**
@@ -37,9 +38,11 @@ public interface Deployer extends java.rmi.Remote, Module {
    * 
    * @param criteria
    *          a {@link DistributionCriteria}
+   * @param prefs
+   *          the {@link UndeployPreferences} to use.
    * @return a {@link ProgressQueue}.
    */
-  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException;
+  public ProgressQueue undeploy(DistributionCriteria criteria, UndeployPreferences prefs) throws RunningProcessesException;
 
   /**
    * Returns the list of distributions with the given name.
@@ -61,7 +64,6 @@ public interface Deployer extends java.rmi.Remote, Module {
    */
   public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException;
   
-  
   /**
    * Triggers execution of the <tt>META-INF/scripts/rollback.corus</tt> script for a given distribution.
    * 
@@ -71,5 +73,10 @@ public interface Deployer extends java.rmi.Remote, Module {
    * @return a {@link ProgressQueue}.
    */
   public ProgressQueue rollbackDistribution(String name, String version) throws RollbackScriptNotFoundException, DistributionNotFoundException;
-
+  
+  /**
+   * @param revId the {@link RevId} corresponding to the revision to unarchive.
+   * @return a {@link ProgressQueue}.
+   */
+  public ProgressQueue unarchiveDistributions(RevId revId);
 }

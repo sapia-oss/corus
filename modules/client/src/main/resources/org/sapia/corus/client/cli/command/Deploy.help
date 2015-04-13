@@ -3,7 +3,7 @@
    <p>Deploys a distribution, an execution configuration, a shell script, or a file to a given Corus server.</p>
   </section>
   <section title="Syntax">
-    <p>deploy file [file2 [file3 [...]]] [-seq] [r] [-cluster]</p>
+    <p>deploy &lt;file&gt; [&lt;file2&gt; [&lt;file3&gt; [...]]] [-seq] [r] [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>deploy -e &lt;exec_config_file&gt; [-cluster]</p>
@@ -14,9 +14,12 @@
     <p>OR:</p>    
     <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-cluster]</p>
     <p/>    
+    <p>OR:</p>    
+    <p>deploy rev &lt;revId&gt; [-cluster]</p>
+    <p/>    
     <p>Where:</p>
     <p/>
-    <p>- file [file2 [file3 [...]]]: a single file, or a space-delimited list of files to deploy. 
+    <p>- &lt;file&gt; [&lt;file2&gt; [&lt;file3&gt; [...]]]: a single file, or a space-delimited list of files to deploy. 
     If a file ends with the .xml extension, an execution configuration file is presumed - 
     otherwise it is treated as a distribution archive. The files may consist of absolute paths 
     or paths relative to the directory from which the command-line console was started.</p>
@@ -34,11 +37,14 @@
     <p>- d: in the context of the -f option, interpreted as the directory on the remote Corus note to which to upload the file.
     In the context of the -s option, the -d option is rather interpreted as the description to assign to the shell script being deployed.</p>
     <p/>
-    <p>- a: the alias of the shell script being deployed, which will be used in conjonction with the exec and undeploy commands to refer to the shell script.</p>
+    <p>- a: the alias of the shell script being deployed, which will be used in conjunction with the exec and undeploy commands to refer to the shell script.</p>
     <p/>    
     <p>- seq: if the deployment is clustered, indicates that it should be done one host after the other from the client, sequentially (rather than through cascading deployment).</p>
     <p/>    
     <p>- r: this option stands for "run scripts". It will trigger the execution of the distribution's packaged scripts (under META-INF/scripts) upon deployment.</p>
+    <p/>   
+    <p>- &lt;revId&gt;: this argument specifies a revision under which given distributions have been archived. Through 'deploy', such archived distributions
+    can be redeployed.</p>
     <p/>   
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
   </section>
@@ -51,6 +57,8 @@
     <p>deploy -f someArchive.tar</p>
     <p>deploy -f someArchive.tar -d /opt/archives -cluster</p>
     <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
+    <p>deploy rev previous</p>
+    <p>deploy rev previous -cluster</p>
     <p/>    
   </section>
 </help>

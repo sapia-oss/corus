@@ -4,6 +4,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -42,8 +43,8 @@ public class DeployTaskTest {
   FileSystemModule fs;
   
   @Mock
-  File preDeploy, postDeploy, rollback, scriptDir;
-
+  File preDeploy, postDeploy, rollback, scriptDir, distZip;
+  
   @Before
   public void setUp() throws Exception {
     ctx = TestServerContext.create();
@@ -51,7 +52,8 @@ public class DeployTaskTest {
     when(preDeploy.getName()).thenReturn("pre-deploy.corus");
     when(postDeploy.getName()).thenReturn("post-deploy.corus");
     when(rollback.getName()).thenReturn("rollback.corus");
-    
+    when(distZip.getName()).thenReturn("testFile.zip");
+    when(distZip.getAbsolutePath()).thenReturn("tmp/testFile.zip");
     when(fs.exists(any(File.class))).thenReturn(Boolean.FALSE);
     when(fs.openZipEntryStream(any(File.class), any(String.class)))
       .thenReturn(getCorusXmlStream());
@@ -97,14 +99,14 @@ public class DeployTaskTest {
   public void testExecute() throws Exception{
     
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance())).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
     
-    verify(fs).openZipEntryStream(new File("tmpDir/testFile.zip"), "META-INF/corus.xml");
+    verify(fs).openZipEntryStream(any(File.class), eq("META-INF/corus.xml"));
     verify(fs, times(2)).createDirectory(any(File.class));
     verify(fs).unzip(any(File.class), any(File.class));
-    verify(fs).deleteFile(new File("tmpDir/testFile.zip"));
+    verify(fs).deleteFile(any(File.class));
   }
   
   @Test
@@ -112,7 +114,7 @@ public class DeployTaskTest {
     when(preDeploy.exists()).thenReturn(true);
         
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
   }
@@ -122,7 +124,7 @@ public class DeployTaskTest {
     when(preDeploy.exists()).thenReturn(false);
         
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertFalse("Distribution was deployed but should not have been", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
@@ -136,7 +138,7 @@ public class DeployTaskTest {
     when(postDeploy.exists()).thenReturn(true);
     
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertTrue("Distribution was not deployed", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
@@ -153,7 +155,7 @@ public class DeployTaskTest {
     doThrow(new IOException("I/O error")).when(fs).unzip(any(File.class), any(File.class));
     
     DeployTask task = new DeployTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor("testFile.zip", DeployPreferences.newInstance().executeDeployScripts())).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
     assertFalse("Distribution should not have been deployed", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
