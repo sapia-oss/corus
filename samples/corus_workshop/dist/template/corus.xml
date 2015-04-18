@@ -7,7 +7,7 @@
             invoke="true"
             propertyCategories="workshop">
             
-    <port name="http" />
+    <port name="http"/>
             
     <java mainClass="org.sapia.corus.sample.workshop.EmbeddedServer"
           profile="std" vmType="server">

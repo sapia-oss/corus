@@ -69,7 +69,7 @@ Managing processes
   => resuming processes
   resume -d * -v *
   => killing processes
-  kill all
+  kill all -w
  
 Process properties
   => adding process properties
