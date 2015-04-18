@@ -5,7 +5,9 @@ import java.util.Map;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.sort.SortSwitchInfo;
 
@@ -111,4 +113,22 @@ public interface CliContext {
    * @param unternally unsets the sort switches.
    */
   public void unsetSortSwitches();
+
+  /**
+   * Sets the {@link ClusterInfo} info to use by commands supportering clustering (used by commands
+   * such as <code>ripple</code>).
+   * 
+   * @param a {@link ClusterInfo}.
+   */
+  public void setAutoClusterInfo(ClusterInfo info);
+  
+  /**
+   * @return the {@link ClusterInfo} used for auto-clustering, if it has been set.
+   */
+  public OptionalValue<ClusterInfo> getAutoClusterInfo();
+  
+  /**
+   * Reverses the effect of {@link #setAutoClusterInfo(ClusterInfo)}.
+   */
+  public void unsetAutoClusterInfo();
 }

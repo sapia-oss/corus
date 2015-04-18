@@ -616,7 +616,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       if (EventType.REMOVE == event.getEventType()) {
         deletedProps.addAll(event.getProperties());
       }
-      
+     
       taskman.execute(new PublishConfigurationChangeTask(),
           TaskParams.createFor(updatedProps, deletedProps));
     }

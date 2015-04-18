@@ -123,7 +123,7 @@ public class RollbackTask extends Task<Void, Distribution> implements Throttleab
     });
     
     // commands executed in this context must not be clustered.
-    interpreter.setAutoCluster(ClusterInfo.notClustered());
+    interpreter.setAutoClusterInfo(ClusterInfo.notClustered());
     Reader              scriptReader = null;
     try {
       scriptReader = fs.getFileReader(scriptFile);

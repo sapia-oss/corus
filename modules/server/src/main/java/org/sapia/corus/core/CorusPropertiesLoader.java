@@ -50,6 +50,11 @@ class CorusPropertiesLoader {
       public InputStream get() {
         return defaults;
       }
+      
+      @Override
+      public String toString() {
+        return "resource:/org/sapia/corus/default.properties";
+      }
     });
 
     for (final File f : corusConfigFiles) {
@@ -61,6 +66,11 @@ class CorusPropertiesLoader {
           } catch (IOException e) {
             throw new IllegalStateException("Could not access properties " + f.getAbsolutePath(), e);
           }
+        }
+        
+        @Override
+        public String toString() {
+          return f.getAbsolutePath();
         }
       });
     }
@@ -74,7 +84,9 @@ class CorusPropertiesLoader {
     for (Supplier<InputStream> s : propertySuppliers) {
       InputStream supplied = s.get();
       InputStream tmp = IOUtil.replaceVars(new PropertiesStrLookup(corusProps), s.get());
-      corusProps.load(tmp);
+      Properties loaded = new Properties();
+      loaded.load(tmp);
+      PropertiesUtil.copy(loaded, corusProps);
       supplied.close();
       tmp.close();
     }

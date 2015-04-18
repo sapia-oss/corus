@@ -1,0 +1,13 @@
+echo "=> Killing processes..."
+kill all -w
+echo "removing config"
+port del -n *
+conf del -p *
+undeploy -e *
+
+echo "=> Unarchiving previous state"
+unarchive previous
+deploy -rev previous
+
+echo "=> Starting process(es)"
+exec -e servers

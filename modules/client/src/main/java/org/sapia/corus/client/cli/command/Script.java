@@ -64,6 +64,9 @@ public class Script extends CorusCliCommand {
   public void processScript(File scriptFile, String scriptEngineName, CliContext ctx) throws IOException, CommandNotFoundException, Throwable {
     if (scriptFile.exists()) {
       Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
+      if (ctx.getAutoClusterInfo().isSet()) {
+        interpreter.setAutoClusterInfo(ctx.getAutoClusterInfo().get());
+      }
       if (scriptEngineName == null) {
         interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
       } else {

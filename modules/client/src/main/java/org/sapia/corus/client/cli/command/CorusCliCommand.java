@@ -185,7 +185,7 @@ public abstract class CorusCliCommand implements Command {
   protected ClusterInfo getClusterInfo(CliContext ctx) throws InputException {
     if (ctx.getCommandLine().containsOption(OPT_CLUSTER.getName(), false)) {
       Option opt = ctx.getCommandLine().assertOption(OPT_CLUSTER.getName(), false);
-      if (opt.getValue() != null) {
+      if (opt.getValue() != null && !opt.getValue().isEmpty()) {
         ClusterInfo info = new ClusterInfo(true);
         info.addTargets(CliUtils.parseServerAddresses(opt.getValue()));
         return info;

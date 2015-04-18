@@ -1,0 +1,20 @@
+echo "=> Killing current processes..."
+kill all -w -cluster
+
+echo "=> Cleaning up current configs - and archiving for eventual rollback"
+archive previous -cluster
+port del -n * -cluster
+conf del -p * -cluster
+
+echo "=> Undeploying current distribution (archiving previous distribution for eventual rollback)"
+undeploy all -rev previous -cluster
+undeploy -e * -cluster
+
+echo "=> Deploying config"
+port add -n http -min 8100 -max 8105 -cluster
+conf add -p app.xms=32m -cluster
+conf add -p app.xmx=128m -cluster
+conf add -p app.xms=64m -c taggedServer -cluster
+conf add -p app.xmx=256m -c taggedServer -cluster
+conf add -p app.gc.log.type=PrintGCDetails -cluster
+conf add -p app.gc.log.file=${corus.process.dir}/gc.log -cluster

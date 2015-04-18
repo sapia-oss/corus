@@ -44,6 +44,7 @@ import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
+import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -86,7 +87,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   private DeployerConfiguration configuration;
 
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
-
+  
   private DeploymentProcessor processor;
   private DistributionDatabase store;
 
@@ -332,14 +333,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     Distribution dist = getDistributionStore().getDistribution(DistributionCriteria.builder().name(name).version(version).build());
     
     ProgressQueueImpl progress = new ProgressQueueImpl();
-    try {
-      TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      taskman.executeAndWait(new RollbackTask(), dist, cfg).get();
-    } catch (InvocationTargetException e) {
-      progress.error(e.getCause());
-    } catch (Exception e) {
-      progress.error(e);
-    }
+    SequentialTaskConfig cfg = SequentialTaskConfig.create(new TaskLogProgressQueue(progress));
+    taskman.execute(new RollbackTask(), dist, cfg);
+    
     return progress;    
   }
  

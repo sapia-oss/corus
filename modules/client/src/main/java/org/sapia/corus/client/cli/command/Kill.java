@@ -29,8 +29,6 @@ public class Kill extends CorusCliCommand {
 
   private static final long RETRY_PAUSE = 5000;
   
-  protected KillPreferences prefs;
-
   public static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
   public static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
 
@@ -41,12 +39,14 @@ public class Kill extends CorusCliCommand {
   
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 120000;
 
+  private boolean suspend = false;
+  private KillPreferences prefs;
+  
   protected Kill(boolean suspend) {
-    this.prefs = KillPreferences.newInstance().setSuspend(true);
+    this.suspend = suspend;
   }
 
   public Kill() {
-    this.prefs = KillPreferences.newInstance().setSuspend(false);
   }
   
   @Override
@@ -60,6 +60,8 @@ public class Kill extends CorusCliCommand {
 
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
+    prefs = KillPreferences.newInstance();
+
     String  dist         = null;
     String  version      = null;
     String  profile      = null;
@@ -70,7 +72,7 @@ public class Kill extends CorusCliCommand {
 
     CmdLine cmd = ctx.getCommandLine();
     
-    KillPreferences prefs = KillPreferences.newInstance();
+    prefs.setSuspend(suspend);
     prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
 
     // Kill ALL

@@ -1,0 +1,69 @@
+<distribution name="corus-workshop" version="@VERSION@"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+  
+  <process  name="server" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true"
+            propertyCategories="workshop">
+            
+    <port name="http" />
+            
+    <java mainClass="org.sapia.corus.sample.workshop.EmbeddedServer"
+          profile="std" vmType="server">
+      <arg value="-XX:-UseParNewGC" />
+      <arg value="-XX:-UseConcMarkSweepGC" />
+      <arg value="-Xms${app.xms}" />
+      <arg value="-Xmx${app.xms}" />      
+      <property name="corus.client.configuration.synchronizeSystemProperties" value="true" />
+    </java>
+    
+    <java mainClass="org.sapia.corus.sample.workshop.EmbeddedServer"
+          profile="gc" vmType="server">
+      <arg value="-XX:-UseParNewGC" />
+      <arg value="-XX:-UseConcMarkSweepGC" />
+      <arg value="-Xms${app.xms}" />
+      <arg value="-Xmx${app.xms}" />    
+       
+      <!-- Can be either PrintGC or PrintGCDetails -->
+      <arg value="-XX:+${app.gc.log.type}" />
+      <arg value="-XX:+PrintGCDateStamps" />
+      <arg value="-Xloggc:${app.gc.log.file}" />
+      <property name="corus.client.configuration.synchronizeSystemProperties" value="true" />
+    </java>
+  </process> 
+  
+  <process  name="taggedServer" 
+            maxKillRetry="3" 
+            shutdownTimeout="30000" 
+            invoke="true"
+            propertyCategories="workshop,taggedServer" 
+            tags="runTaggedServer">
+            
+    <port name="http" />
+            
+    <java mainClass="org.sapia.corus.sample.workshop.EmbeddedServer"
+          profile="std" vmType="server">
+      <arg value="-XX:-UseParNewGC" />
+      <arg value="-XX:-UseConcMarkSweepGC" />
+      <arg value="-Xms${app.xms}" />
+      <arg value="-Xmx${app.xms}" />   
+      <property name="corus.client.configuration.synchronizeSystemProperties" value="true" />   
+    </java>
+    
+    <java mainClass="org.sapia.corus.sample.workshop.EmbeddedServer"
+          profile="gc" vmType="server">
+      <arg value="-XX:-UseParNewGC" />
+      <arg value="-XX:-UseConcMarkSweepGC" />
+      <arg value="-Xms${app.xms}" />
+      <arg value="-Xmx${app.xms}" />    
+       
+      <!-- Can be either PrintGC or PrintGCDetails -->
+      <arg value="-XX:+${app.gc.log.type}" />
+      <arg value="-XX:+PrintGCDateStamps" />
+      <arg value="-Xloggc:${app.gc.log.file}" />
+      <property name="corus.client.configuration.synchronizeSystemProperties" value="true" />
+    </java>
+  </process> 
+  
+</distribution>

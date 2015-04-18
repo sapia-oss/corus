@@ -73,7 +73,7 @@ public class Interpreter extends Console implements CorusConsole {
   /**
    * @param info the {@link ClusterInfo} instance to use.
    */
-  public void setAutoCluster(ClusterInfo info) {
+  public void setAutoClusterInfo(ClusterInfo info) {
     this.clusterInfo = info;
   }
   
@@ -241,6 +241,9 @@ public class Interpreter extends Console implements CorusConsole {
         AtomicReference<SortSwitchInfo[]> switches = new AtomicReference<SortSwitchInfo[]>();
         switches.set(new SortSwitchInfo[]{});
         CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), vars, switches);
+        if (clusterInfo != null) {
+          ctx.setAutoClusterInfo(clusterInfo);
+        }
         ctx.setUp(this, preprocess(cmd, cmdLine));
         ctx.setAbortOnError(true);
         try {

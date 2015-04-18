@@ -15,7 +15,7 @@
     <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
-    <p>deploy rev &lt;revId&gt; [-cluster]</p>
+    <p>deploy -rev &lt;revId&gt; [-cluster]</p>
     <p/>    
     <p>Where:</p>
     <p/>
@@ -43,7 +43,7 @@
     <p/>    
     <p>- r: this option stands for "run scripts". It will trigger the execution of the distribution's packaged scripts (under META-INF/scripts) upon deployment.</p>
     <p/>   
-    <p>- &lt;revId&gt;: this argument specifies a revision under which given distributions have been archived. Through 'deploy', such archived distributions
+    <p>- rev: this option specifies a revision under which given distributions have been archived. Through 'deploy', such archived distributions
     can be redeployed.</p>
     <p/>   
     <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
@@ -57,8 +57,8 @@
     <p>deploy -f someArchive.tar</p>
     <p>deploy -f someArchive.tar -d /opt/archives -cluster</p>
     <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
-    <p>deploy rev previous</p>
-    <p>deploy rev previous -cluster</p>
+    <p>deploy -rev previous</p>
+    <p>deploy -rev previous -cluster</p>
     <p/>    
   </section>
 </help>

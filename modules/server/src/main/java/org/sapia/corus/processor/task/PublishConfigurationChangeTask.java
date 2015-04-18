@@ -14,15 +14,12 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.processor.ProcessRepository;
-import org.sapia.corus.processor.ProcessorThrottleKeys;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
-import org.sapia.corus.taskmanager.core.ThrottleKey;
-import org.sapia.corus.taskmanager.core.Throttleable;
 
 /**
  * This task pushes out to the manage processes any configuration update/deletion
@@ -31,12 +28,7 @@ import org.sapia.corus.taskmanager.core.Throttleable;
  * 
  * @author jcdesrochers
  */
-public class PublishConfigurationChangeTask extends Task<Void, TaskParams<List<Property>, List<Property>, Void, Void>> implements Throttleable {
-
-  @Override
-  public ThrottleKey getThrottleKey() {
-    return ProcessorThrottleKeys.PROCESS_EXEC;
-  }
+public class PublishConfigurationChangeTask extends Task<Void, TaskParams<List<Property>, List<Property>, Void, Void>> {
 
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<List<Property>, List<Property>, Void, Void> params) throws Throwable {
@@ -55,7 +47,7 @@ public class PublishConfigurationChangeTask extends Task<Void, TaskParams<List<P
 
     // 1. Query for active processes
     ProcessCriteria criteria = ProcessCriteria.builder()
-        .lifecycles(LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE)
+        .lifecycles(LifeCycleStatus.ACTIVE)
         .build();
     List<Process> toNotify = processRepo.getProcesses(criteria);
 

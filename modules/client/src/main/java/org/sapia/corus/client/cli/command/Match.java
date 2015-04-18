@@ -128,6 +128,9 @@ public class Match extends NoOptionCommand {
     try {
       ctx.getCorus().getContext().setResultFilter(pattern);
       Interpreter intp = new Interpreter(ctx.getConsole(), ctx.getCorus());
+      if (ctx.getAutoClusterInfo().isSet()) {
+        intp.setAutoClusterInfo(ctx.getAutoClusterInfo().get());
+      }
       intp.eval(toExecute, ctx.getVars());
     } catch (CommandNotFoundException e) {
       throw new InputException("Command not found: " + e.getMessage());
@@ -156,7 +159,7 @@ public class Match extends NoOptionCommand {
         } 
         ctx.getCorus().getContext().getSelectedHosts().push(selectedHosts);
         Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
-        interpreter.setAutoCluster(info);
+        interpreter.setAutoClusterInfo(info);
         try {
           interpreter.interpret(script, ctx.getVars());
         } catch (AbortException e) {

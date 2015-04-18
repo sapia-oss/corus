@@ -46,6 +46,7 @@
   </build>
 
   <modules>
+    <module>corus_workshop</module>
     <module>corus_sample_grails_app</module>
     <module>corus_sample_jetty</module>
     <module>corus_sample_magnet</module>

@@ -234,7 +234,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     });
     
     // commands executed in this context must not be clustered.
-    interpreter.setAutoCluster(ClusterInfo.notClustered());
+    interpreter.setAutoClusterInfo(ClusterInfo.notClustered());
     Reader scriptReader = null;
     try {
       scriptReader = fs.getFileReader(deployScript);

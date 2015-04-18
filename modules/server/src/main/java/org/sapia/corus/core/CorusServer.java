@@ -44,6 +44,7 @@ import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Conf;
 
@@ -381,6 +382,11 @@ public class CorusServer {
       EventChannel channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
       channel.start();
 
+      TCPAddress corusAddr = (TCPAddress) transport.getServerAddress();
+      corusProps.setProperty("corus.server.host", corusAddr.getHost());
+      corusProps.setProperty("corus.server.port", "" + corusAddr.getPort());
+      corusProps.setProperty("corus.server.domain", domain);
+      corusProps.setProperty("corus.home", domain);
       CorusImpl corus = new CorusImpl(corusProps, domain, transport.getServerAddress(), channel, transport, corusHome);
 
       ServerContext context = corus.getServerContext();

@@ -1,0 +1,12 @@
+echo "=> Deploying config"
+port add -n http -min 8100 -max 8105
+conf add -p app.xms=32m
+conf add -p app.xmx=128m
+conf add -p app.xms=64m -c taggedServer
+conf add -p app.xmx=256m -c taggedServer
+conf add -p app.gc.log.type=PrintGCDetails
+conf add -p app.gc.log.file=${corus.process.dir}/gc.log
+deploy -e exec.xml
+exec -e servers
+echo "=> Proceeding to sanity check"
+http check -p http -m 10 -t 6 -c / -cluster ${corus.server.host}:${corus.server.port}

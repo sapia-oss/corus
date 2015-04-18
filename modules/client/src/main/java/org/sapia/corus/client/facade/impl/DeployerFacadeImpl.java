@@ -118,6 +118,9 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
             File baseDir = (File) baseDirAndFilePattern[0];
             ArgMatcher pattern = ArgMatchers.parse((String) baseDirAndFilePattern[1]);
             File[] files = baseDir.listFiles();
+            if (files == null) {
+              files = new File[]{};
+            }
             ProgressQueue tmp = null;
             int fileCount = 0;
             for (int i = 0; i < files.length; i++) {
