@@ -227,6 +227,12 @@ public class RestExtension implements HttpExtension, Interceptor {
     BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream());
     byte[] content = payload.getBytes("UTF-8");
     try {
+      
+      ctx.getResponse().setHeader("Access-Control-Allow-Origin", "*");
+      ctx.getResponse().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+      ctx.getResponse().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+      ctx.getResponse().setHeader("Allow", "GET, POST, PUT, DELETE, OPTIONS");
+      
       ctx.getResponse().setStatusCode(statusCode);
       if (statusMsg != null) {
         ctx.getResponse().setStatusMessage(statusMsg);
