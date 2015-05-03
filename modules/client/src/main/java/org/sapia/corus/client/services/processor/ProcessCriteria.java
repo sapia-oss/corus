@@ -242,6 +242,7 @@ public class ProcessCriteria implements Externalizable {
       criteria.name         = any();
       criteria.version      = any();
       criteria.pid          = any();
+      criteria.osPid        = any();
       criteria.profile      = OptionalValue.none();
       criteria.portCriteria = OptionalValue.none();
       return criteria;

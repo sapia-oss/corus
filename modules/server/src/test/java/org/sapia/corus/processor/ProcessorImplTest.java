@@ -45,6 +45,7 @@ import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.InternalServiceContext;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.database.InMemoryArchiver;
 import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.corus.interop.Status;
 import org.sapia.corus.processor.task.PublishConfigurationChangeTask;
@@ -97,14 +98,14 @@ public class ProcessorImplTest {
     processor.setServerContext(serverContext);
     
     corusServerProperties = new Properties();
-    execConfigs = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class), new Func<ExecConfig, JsonInput>() {
+    execConfigs = new InMemoryDbMap<String, ExecConfig>(new ClassDescriptor<ExecConfig>(ExecConfig.class), new InMemoryArchiver<String, ExecConfig>(), new Func<ExecConfig, JsonInput>() {
       public ExecConfig call(JsonInput arg0) {
-        throw new UnsupportedOperationException();
+        return ExecConfig.fromJson(arg0);
       }
     });
-    processes   = new InMemoryDbMap<String, Process>(new ClassDescriptor<Process>(Process.class), new Func<Process, JsonInput>() {
+    processes   = new InMemoryDbMap<String, Process>(new ClassDescriptor<Process>(Process.class), new InMemoryArchiver<String, Process>(),  new Func<Process, JsonInput>() {
       public Process call(JsonInput arg0) {
-        throw new UnsupportedOperationException();
+        return Process.fromJson(arg0);
       }
     });
     

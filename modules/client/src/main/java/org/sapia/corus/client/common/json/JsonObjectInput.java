@@ -111,8 +111,13 @@ public class JsonObjectInput implements JsonInput {
           public JsonInput next() {
             return new JsonObjectInput(array.getJSONObject(index++));
           }
+          @Override
           public boolean hasNext() {
             return index < array.size();
+          }
+          @Override
+          public void remove() {
+            throw new UnsupportedOperationException();
           }
         };
       }

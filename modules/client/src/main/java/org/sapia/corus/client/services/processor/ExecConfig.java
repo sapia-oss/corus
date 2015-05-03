@@ -276,7 +276,7 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     if (inputVersion == VERSION_1) {
       processes   = (List<ProcessDef>) in.readObject();
       name        = in.readUTF();
-      profile     = in.readUTF();
+      profile     = (String) in.readObject();
       startOnBoot = in.readBoolean();
       enabled     = in.readBoolean();
       id          = in.readInt();
@@ -293,7 +293,7 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     
     out.writeObject(processes);
     out.writeUTF(name);
-    out.writeUTF(profile);
+    out.writeObject(profile);
     out.writeBoolean(startOnBoot);
     out.writeBoolean(enabled);
     out.writeInt(id);

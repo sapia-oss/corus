@@ -146,7 +146,7 @@ public class Foreach extends NoOptionCommand {
       ctx.getCorus().getContext().setResultFilter(pattern);
       Interpreter intp = new Interpreter(ctx.getConsole(), ctx.getCorus());
       if (ctx.getCorus().getContext().getSelectedHosts().peek().isSet()) {
-        intp.setAutoCluster(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
+        intp.setAutoClusterInfo(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
       }
       intp.eval(toExecute, ctx.getVars());
     } catch (CommandNotFoundException e) {
@@ -194,7 +194,7 @@ public class Foreach extends NoOptionCommand {
           for (Object r : flattenedResult) {
             Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
             if (ctx.getCorus().getContext().getSelectedHosts().peek().isSet()) {
-              interpreter.setAutoCluster(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
+              interpreter.setAutoClusterInfo(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
             }
             
             StrLookupState state;

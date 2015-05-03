@@ -753,7 +753,7 @@ public class Process extends AbstractPersistent<String, Process>
         && criteria.getVersion().matches(distributionInfo.getVersion())
         && criteria.getName().matches(distributionInfo.getProcessName())
         && criteria.getPid().matches(processID)
-        && criteria.getOsPid().matches(pid)
+        && (pid == null ? criteria.getOsPid().matches("null") : criteria.getOsPid().matches(pid))
         && (criteria.getLifeCycles().isEmpty() || criteria.getLifeCycles().contains(status))
         && (criteria.getProfile().isNull() || criteria.getProfile().get().equals(distributionInfo.getProfile()))
         && matches(criteria.getPortCriteria());

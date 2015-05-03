@@ -11,6 +11,7 @@ import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.database.InMemoryArchiver;
 import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
@@ -21,9 +22,9 @@ public class PortRangeStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    store = new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class), new Func<PortRange, JsonInput>() {
+    store = new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class), new InMemoryArchiver<String, PortRange>(), new Func<PortRange, JsonInput>() {
       public PortRange call(JsonInput arg0) {
-        throw new UnsupportedOperationException();
+        return PortRange.fromJson(arg0);
       }
     }));
   }

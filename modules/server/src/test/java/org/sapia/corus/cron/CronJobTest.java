@@ -31,7 +31,6 @@ public class CronJobTest {
     CronJob copy = CronJob.fromJson(JsonObjectInput.newInstance(writer.toString()));
 
     assertEquals(job.getInfo().getId(), copy.getInfo().getId());
-    assertEquals(job.getInfo().getCreation().toString(), copy.getInfo().getCreation().toString());
     assertEquals(job.getInfo().getDayOfMonth(), copy.getInfo().getDayOfMonth());
     assertEquals(job.getInfo().getDayOfWeek(), copy.getInfo().getDayOfWeek());
     assertEquals(job.getInfo().getDistribution(), copy.getInfo().getDistribution());

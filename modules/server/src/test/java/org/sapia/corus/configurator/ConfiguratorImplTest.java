@@ -38,6 +38,7 @@ import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
+import org.sapia.corus.database.InMemoryArchiver;
 import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
@@ -91,9 +92,19 @@ public class ConfiguratorImplTest {
       }
     });
     
-    serverPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    serverPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class), new InMemoryArchiver<String, ConfigProperty>(), new Func<ConfigProperty, JsonInput>() {
+      @Override
+      public ConfigProperty call(JsonInput arg0) {
+        return ConfigProperty.fromJson(arg0);
+      }
+    });
     serverProperties = Mockito.spy(serverPropertyDb);
-    processPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class));
+    processPropertyDb = new InMemoryDbMap<>(new ClassDescriptor<>(ConfigProperty.class), new InMemoryArchiver<String, ConfigProperty>(), new Func<ConfigProperty, JsonInput>() {
+      @Override
+      public ConfigProperty call(JsonInput arg0) {
+        return ConfigProperty.fromJson(arg0);
+      }
+    });
     processProperties = Mockito.spy(processPropertyDb);
         
     configurator = new ConfiguratorImpl();
