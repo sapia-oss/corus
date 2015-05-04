@@ -212,6 +212,7 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
       stream.beginObject()
         .field("distribution").value(d.getDist())
         .field("version").value(d.getVersion())
+        .field("process").value(d.getName())
         .field("profile").value(d.getProfile() == null ? (profile == null ? "N/A" : profile) : d.getProfile())
         .field("instances").value(d.getInstances())
       .endObject();
@@ -235,6 +236,7 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
         ProcessDef def = new ProcessDef();
         def.setDist(jsonProcessDef.getString("distribution"));
         def.setVersion(jsonProcessDef.getString("version"));
+        def.setName(jsonProcessDef.getString("process"));
         def.setProfile(jsonProcessDef.getString("profile"));
         if (def.getProfile().equals("N/A")) {
           def.setProfile(null);

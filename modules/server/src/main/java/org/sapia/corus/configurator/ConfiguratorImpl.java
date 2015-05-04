@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -465,54 +464,48 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public void dump(JsonStream stream) {
-    stream.beginObject().field("properties"); // begin properties
-    stream.beginObject().field("server"); // begin server
-    for (Property p : getAllPropertiesList(PropertyScope.SERVER, new HashSet<ArgMatcher>())) {
-      p.toJson(stream);
-    }
-    stream.endObject(); // end server
+    stream.field("properties").beginObject();
+
+    stream.field("server").beginObject();
+    serverProperties.dump(stream);
+    stream.endObject();
     
-    stream.beginObject().field("process"); // begin process
-    for (Property p : getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>())) {
-      p.toJson(stream);
-    }
-    stream.endObject(); // end process
-    stream.endObject(); // end properties
+    stream.field("process").beginObject();
+    processProperties.dump(stream);
+    stream.endObject();
     
-    // begin tags
-    stream.beginObject().field("tags").strings(Collects.convertAsList(getTags(), new Func<String, Tag>() {
-      @Override
-      public String call(Tag t) {
-        return t.getValue();
-      }
-    }));
-    // end tags
+    stream.field("categories").beginArray();
+    for (String c : processPropertiesByCategory.keySet()) {
+      stream.beginObject().field("category").value(c);
+      PropertyStore store = processPropertiesByCategory.get(c);
+      store.dump(stream);
+      stream.endObject();
+    }
+    stream.endArray();
+    
+    stream.endObject();
+    
+    stream.field("tags").beginObject();
+    tags.dump(stream);
     stream.endObject();
     
   }
   
   @Override
   public void load(JsonInput dump) {
-    for (JsonInput props : dump.iterate("properties")) {
-      Set<String> emptyCategories = new HashSet<String>();
-      for (JsonInput prop : props.iterate("server")) {
-        String name  = prop.getString("name");
-        String value = prop.getString("value");
-        addProperty(PropertyScope.SERVER, name, value, emptyCategories);
-      }
-      
-      for (JsonInput prop : props.iterate("process")) {
-        String name  = prop.getString("name");
-        String value = prop.getString("value");
-        String cat   = prop.getString("category");
-        if (cat.equals("N/A")) {
-          addProperty(PropertyScope.PROCESS, name, value, emptyCategories);
-        } else {
-          addProperty(PropertyScope.PROCESS, name, value, Collects.arrayToSet(cat));
-        }
-      }
+    JsonInput props = dump.getObject("properties");
+    JsonInput serverProps = props.getObject("server");
+    serverProperties.load(serverProps);
+    JsonInput processProps = props.getObject("process");
+    processProperties.load(processProps);
+    
+    for (JsonInput categoryProps : props.iterate("categories")) {
+      String category = categoryProps.getString("category");
+      PropertyStore store = store(category, true);
+      store.load(categoryProps);
     }
-    addTags(Collects.arrayToSet(dump.getStringArray("tags")), false);
+ 
+    tags.load(dump.getObject("tags"));
   }
   
   // --------------------------------------------------------------------------
@@ -666,8 +659,6 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
       return value;
     }
   }
-  
-  
   
   public static class NameCategoryKey {
     public String name;

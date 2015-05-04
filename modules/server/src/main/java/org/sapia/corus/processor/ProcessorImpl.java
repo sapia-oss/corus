@@ -572,11 +572,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   
   @Override
   public void dump(JsonStream stream) {
-    stream.beginObject().field("processes").beginObject();
+    stream.field("processes").beginObject();
     processes.dump(stream);
     stream.endObject();
     
-    stream.beginObject().field("execConfigs").beginObject();
+    stream.field("execConfigs").beginObject();
     execConfigs.dump(stream);
     stream.endObject();
   }
@@ -585,6 +585,12 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public void load(JsonInput dump) {
     processes.load(dump.getObject("processes"));
     execConfigs.load(dump.getObject("execConfigs"));
+    
+    // touching the processes to that they're not deemed timed out in between 
+    // the dump/load operations
+    for (Process p : processes.getProcesses(ProcessCriteria.builder().all())) {
+      p.touch();
+    }
   }
 
   private List<Status> copyStatus(List<Process> processes) {

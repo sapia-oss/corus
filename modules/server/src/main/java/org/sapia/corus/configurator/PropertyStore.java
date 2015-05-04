@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Properties;
 
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.util.IteratorFilter;
@@ -17,7 +20,7 @@ import org.sapia.corus.util.Matcher;
  * @author yduchesne
  * 
  */
-public class PropertyStore {
+public class PropertyStore implements Dumpable {
 
   private DbMap<String, ConfigProperty> properties;
 
@@ -133,5 +136,14 @@ public class PropertyStore {
   public String toString() {
     return properties.toString();
   }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    properties.dump(stream);
+  }
 
+  @Override
+  public void load(JsonInput dump) {
+    properties.load(dump);
+  }
 }

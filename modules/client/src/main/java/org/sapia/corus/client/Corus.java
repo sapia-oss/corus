@@ -36,4 +36,10 @@ public interface Corus extends java.rmi.Remote {
    */
   public Object lookup(String moduleName) throws ServiceNotFoundException;
 
+  /**
+   * @return a JSON dump of this instance's internal state.
+   */
+  public String dump();
+
+
 }

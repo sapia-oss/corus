@@ -1,0 +1,33 @@
+<help>
+  <section title="Description">
+   <p>The foreach command allows looping over results obtained from another command that is piped to it. The command exports each item 
+   in the result in property form, so that their field can be referred to using variable interpolation.</p>
+  </section>
+  <section title="Syntax">
+    <p>foreach [apply &lt;script_path&gt;] [command &lt;command1&gt;] &lt;pattern&gt; &lt;command2&gt;</p>
+    <p/>
+    <p/>
+    <p>Where:</p>
+    <p/>    
+    <p>- &lt;script_name&gt;: the path to the script to execute.</p>
+    <p/>
+    <p>- &lt;command1&gt;: a command to execute.</p>
+    <p/>
+    <p>- &lt;pattern&gt;: the pattern to use for matching (note: this is note a regex. Only the '*' character is used as an atom).</p>
+    <p/>
+    <p>- &lt;command2&gt;: the command to execute, and one whose result matching will be attempted - using the provided pattern.</p>
+    <p/>
+  </section>
+  <section title="Notes">
+    <p>If the piped command is clustered, the results returned from each host will be flattened in a single list.</p>
+    </p>
+  </section>
+  <section title="Examples">
+    <p>- Performs a consecutive restart of the processes on the current host:</p>
+    <p>foreach command "restart ${process.id} -w" * ps</p>
+    <p/>
+    <p>- Performs a consecutive restart of the processes across the cluster (note that match is used to loop over each host. 
+    The -cluster switch of the foreach command will have each consecutive host as a target):</p>
+    <p>match command "foreach command 'restart ${process.id} -w -cluster' * ps -cluster" * ps -cluster</p>
+  </section>    
+</help>
