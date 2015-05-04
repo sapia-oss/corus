@@ -37,7 +37,6 @@
     <p/>
     <p>A resync is done somewhat as a last resort when observing desynchronization between nodes in the cluster (when some nodes have 
     disappeared from the cluster view of other nodes).</p>
-    <p/>    
   </section>  
   <section title="Examples">
     <p>cluster status -cluster</p>

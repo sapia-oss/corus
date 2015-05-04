@@ -11,14 +11,13 @@
     <p>Where:</p>
     <p/>    
     <p>- &lt;path_to_file&gt;: corresponds to the path of the file to dump to.</p>
-    <p/>
   </section>
   <section title="Notes">
     <p>Keep in mind that a dump file will be automatically processed by Corus at startup only if it is present under CORUS_HOME.</p>
     <p>The name of the dump file shall be: corus-dump.json</p>
-    </p>
   </section>
   <section title="Examples">
     <p>dump /opt/app/corus/4.7/corus-dump.json</p>
+    <p/>
   </section>    
 </help>
