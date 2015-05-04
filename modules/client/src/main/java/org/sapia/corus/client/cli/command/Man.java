@@ -35,10 +35,12 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("cron", Cron.class);
     COMMANDS.put("deploy", Deploy.class);
     COMMANDS.put("dir", Dir.class);
+    COMMANDS.put("dump", Dump.class);
     COMMANDS.put("err", Err.class);
     COMMANDS.put("exec", Exec.class);
     COMMANDS.put("exit", Exit.class);
-    COMMANDS.put("env", Exit.class);
+    COMMANDS.put("env", Env.class);
+    COMMANDS.put("foreach", Foreach.class);
     COMMANDS.put("host", Host.class);
     COMMANDS.put("hosts", Hosts.class);
     COMMANDS.put("http", Http.class);

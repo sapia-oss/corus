@@ -12,6 +12,7 @@ package org.sapia.corus.client.common;
 public class ArgMatchers {
 
   public static final String PATTERN = "*";
+  public static final String NOT     = "!";
 
   /**
    * @param token
@@ -50,7 +51,7 @@ public class ArgMatchers {
    * @return <code>true</code> of the given token corresponds to a pattern.
    */
   public static boolean isPattern(String token) {
-    return (token.indexOf(PATTERN) >= 0);
+    return token.indexOf(PATTERN) >= 0 || token.startsWith(NOT);
   }
 
   /**
