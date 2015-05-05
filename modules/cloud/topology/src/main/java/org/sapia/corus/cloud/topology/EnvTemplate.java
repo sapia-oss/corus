@@ -9,7 +9,7 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class EnvTemplate {
+public class EnvTemplate extends ParamContainer {
 
   private String       name;
   private Set<Region>  regions  = new HashSet<>();
@@ -46,6 +46,7 @@ public class EnvTemplate {
   public void copyFrom(EnvTemplate other) {
     regions.addAll(other.regions);
     clusters.addAll(other.clusters);
+    addParams(other.getParams());
   }
   
   // --------------------------------------------------------------------------

@@ -9,7 +9,7 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class RegionTemplate {
+public class RegionTemplate extends ParamContainer {
 
   private String    name;
   private Set<Zone> zones = new HashSet<>();
@@ -34,6 +34,7 @@ public class RegionTemplate {
   
   public void copyFrom(RegionTemplate other) {
     zones.addAll(other.getZones());
+    addParams(other.getParams());
   }
   
   // --------------------------------------------------------------------------

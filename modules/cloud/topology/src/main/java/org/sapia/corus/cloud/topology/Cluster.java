@@ -23,6 +23,7 @@ public class Cluster extends ClusterTemplate implements TopologyElement, XmlStre
     if (templateRef != null) {
       ClusterTemplate template = context.resolveClusterTemplate(templateRef);
       copyFrom(template);
+      addParams(template.getParams());
     }
   }
   

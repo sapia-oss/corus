@@ -13,7 +13,7 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class Topology implements XmlStreamable, Validateable {
+public class Topology extends ParamContainer implements XmlStreamable, Validateable {
   
   private String application;
   

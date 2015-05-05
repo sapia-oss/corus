@@ -47,3 +47,6 @@ corus.server.pub.consul.interval=<%=@consul_interval%>
 corus.server.pub.consul.ttl=<%=@consul_ttl%>
 <% end %>
 
+<% for property in @server_properties do %>
+<%=@property%>
+<% end %>

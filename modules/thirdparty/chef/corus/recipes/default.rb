@@ -8,6 +8,16 @@
 #
 include_recipe "java"
 
+do_upgrade = CorusHelper.corus_started(node["hostname"], node['corus']['port']) && node['corus']['live_upgrade'] && !Dir.exists?(node['corus']['extract_dir'] + "/" + node['corus']['version'])
+
+if do_upgrade then
+  execute "coruscli-dump" do
+    Chef::Log.info('Generating dump from existing instance')
+    command node['corus']['current_sym_link'] + "/bin/coruscli -c dump #{node['corus']['dump_directory']}/corus-dump.json"
+    environment ({'CORUS_HOME' => node['corus']['current_sym_link'], 'JAVA_HOME' => node['corus']['java_home']})
+  end
+end
+
 service "corus" do
 	action :stop
 end
@@ -29,17 +39,33 @@ directory  "/home/" + node['corus']['user'] do
 end
 
 directory node['corus']['extract_dir'] + "/" + node['corus']['version'] do
-	owner node['corus']['user']
-	group node['corus']['group']
-	recursive true
+  owner node['corus']['user']
+  group node['corus']['group']
+  recursive true
 end
 
 tar_extract node['corus']['archive_download_url']  do
 	target_dir node['corus']['extract_dir'] + "/" + node['corus']['version']
 	user node['corus']['user']
 	group node['corus']['group']
-        creates node['corus']['extract_dir'] + "/" + node['corus']['version'] + "/.chef"
+  creates node['corus']['extract_dir'] + "/" + node['corus']['version'] + "/.chef"
 	tar_flags ['-P', '--strip-components 1']
+end
+
+if do_upgrade then
+  bash "copy_old_version_state" do
+    Chef::Log.info('Copying directories (deploy, archive, files) from old instance, and copying dump file to new CORUS_HOME')
+    code <<-EOL
+    mkdir -p #{node['corus']['extract_dir']}/#{node['corus']['version']}/deploy
+    mkdir -p #{node['corus']['extract_dir']}/#{node['corus']['version']}/archive
+    mkdir -p #{node['corus']['extract_dir']}/#{node['corus']['version']}/file
+    cp -Rf #{node['corus']['current_sym_link']}/deploy #{node['corus']['extract_dir']}/#{node['corus']['version']}
+    cp -Rf #{node['corus']['current_sym_link']}/archive #{node['corus']['extract_dir']}/#{node['corus']['version']}
+    cp -Rf #{node['corus']['current_sym_link']}/files #{node['corus']['extract_dir']}/#{node['corus']['version']}
+    cp #{node['corus']['dump_directory']}/corus-dump.json #{node['corus']['extract_dir']}/#{node['corus']['version']}
+    chown -Rf #{node['corus']['user']}:#{node['corus']['group']} #{node['corus']['extract_dir']}/#{node['corus']['version']}
+    EOL
+  end
 end
 
 link node['corus']['current_sym_link'] do
@@ -66,9 +92,9 @@ template "/etc/init.d/corus" do
 		:port => node['corus']['port'],
 		:log_dir => node['corus']['log_dir'],
 		:log_level => node['corus']['log_level'],
-                :xms => node['corus']['xms'],
-                :xmx => node['corus']['xmx'],
-                :gc  => node['corus']['gc'])
+    :xms => node['corus']['xms'],
+    :xmx => node['corus']['xmx'],
+    :gc  => node['corus']['gc'])
 end
 
 template "/etc/profile.d/corus.sh" do
@@ -103,7 +129,8 @@ template node['corus']['current_sym_link'] + "/config/corus_" + (node['corus']['
 		:server_address_pattern => node['corus']['server_address_pattern'],
 		:consul_url => node['corus']['consul_url'],
 		:consul_interval => node['corus']['consul_interval'],
-		:consul_ttl => node['corus']['consul_ttl'])
+		:consul_ttl => node['corus']['consul_ttl'],
+		:server_properties => node['corus']['server_properties'])
 end
 
 ##### CREATING KEYSTORE (FOR REST AUTHENTICATION)
@@ -163,14 +190,11 @@ end
 
 ##### ADDING PROCESS PROPERTIES (if defined)
 
-if node['corus']['process_properties'] != "UNDEFINED" then
-	nameValues = node['corus']['process_properties'].split(',')
-	for nv in nameValues do
-	        execute "coruscli-add-process-properties" do
-        	        command node['corus']['current_sym_link'] + "/bin/coruscli -c conf add -p " + nv
-          	     	environment ({'CORUS_HOME' => node['corus']['current_sym_link'], 'JAVA_HOME' => node['corus']['java_home']})
-        	end
-	end
+for property in node['corus']['process_properties'] do
+        execute "coruscli-add-property" do
+                command node['corus']['current_sym_link'] + "/bin/coruscli -c conf add -p " + property
+                environment ({'CORUS_HOME' => node['corus']['current_sym_link'], 'JAVA_HOME' => node['corus']['java_home']})                
+        end
 end
 
 ##### INITIALIZING REST AUTHENTICATION

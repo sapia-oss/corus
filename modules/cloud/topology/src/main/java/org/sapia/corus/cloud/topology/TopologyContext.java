@@ -18,9 +18,6 @@ public class TopologyContext {
   private Map<String, ClusterTemplate> clusterTemplates = new HashMap<>();
   private Map<String, RegionTemplate>  regionTemplates  = new HashMap<>();
   
-  public TopologyContext() {
-  }
-  
   public TopologyContext addEnvTemplates(Collection<EnvTemplate> envTemplates) {
     for (EnvTemplate t : envTemplates) {
       addEnvTemplate(t);

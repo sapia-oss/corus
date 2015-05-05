@@ -2,8 +2,9 @@ default["java"]["install_flavor"] = "oracle"
 default["java"]["jdk_version"] = "7"
 default["java"]["oracle"]["accept_oracle_download_terms"] = true
 
-default['corus']['version'] = '4.6.4'
-default['corus']['archive_download_url'] = 'http://www.mediafire.com/download/g4i33lmdnrhe4lv/sapia_corus_server_package-4.6.4-linux64.tar.gz'
+default['corus']['live_upgrade'] = false
+default['corus']['version'] = '4.7'
+default['corus']['archive_download_url'] = 'http://www.mediafire.com/download/g4i33lmdnrhe4lv/sapia_corus_server_package-4.7-linux64.tar.gz'
 default['corus']['extract_dir'] = '/opt/corus'
 default['corus']['current_sym_link'] = '/opt/corus/current' 
 default['corus']['user'] = 'corus'
@@ -24,8 +25,6 @@ default["corus"]["server_address_pattern"]="UNDEFINED"
 
 # if defined, takes form: tag-0,tag-1[,...,tag-N]
 default["corus"]["tags"] = "UNDEFINED"
-# if defined, takes form: name-0=value-0,name-1=value-1[,...,name-N=value-N]
-default["corus"]["process_properties"] = "UNDEFINED"
 # if defined, takes a logical name (e.g.: var_log)
 default["corus"]["log_sym_link_name"]="UNDEFINED"
 default["corus"]["log_sym_link_path"]="/var/log/apps"
@@ -73,4 +72,16 @@ default["corus"]["rabbitmq_password"]="UNDEFINED"
 default["corus"]["consul_url"]="UNDEFINED"
 default["corus"]["consul_interval"]=30
 default["corus"]["consul_ttl"]=45
+
+default['corus']['dump_directory'] = "/tmp"
+  
+# define ad-hoc server properties to push to CORUS_HOME/config/corus_33000.properties  
+default["corus"]["server_properties"] = [
+  #"some.server.property=some.value"
+]
+  
+# define ad-hoc process properties to push to Corus  
+default["corus"]["process_properties"] = [
+  #"some.process.property=some.value"
+]
 

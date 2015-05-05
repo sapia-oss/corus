@@ -9,7 +9,7 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class MachineTemplate {
+public class MachineTemplate extends ParamContainer {
   
   private String name, imageId;
   
@@ -109,6 +109,7 @@ public class MachineTemplate {
     if (imageId == null) {
       this.imageId = other.imageId;
     }
+    addParams(other.getParams());
   }
   
   // --------------------------------------------------------------------------

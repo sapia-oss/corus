@@ -9,7 +9,7 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class ClusterTemplate {
+public class ClusterTemplate extends ParamContainer {
 
   private String       name;
   private int          instances = -1;
@@ -46,6 +46,7 @@ public class ClusterTemplate {
       instances = other.instances;
     }
     machines.addAll(other.getMachines());
+    addParams(other.getParams());
   }
   
   // --------------------------------------------------------------------------
