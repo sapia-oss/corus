@@ -1,7 +1,3 @@
-default["java"]["install_flavor"] = "oracle"
-default["java"]["jdk_version"] = "7"
-default["java"]["oracle"]["accept_oracle_download_terms"] = true
-
 default['corus']['live_upgrade'] = false
 default['corus']['version'] = '4.7'
 default['corus']['archive_download_url'] = 'http://www.mediafire.com/download/g4i33lmdnrhe4lv/sapia_corus_server_package-4.7-linux64.tar.gz'
