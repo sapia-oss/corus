@@ -41,8 +41,6 @@
   </section>      
   
   <section title="Examples">
-    <p>port ls -cluster</p>
-    <p>port ls -n *admin* -cluster</p>
     <p>role add -n guest -p r -cluster</p>
     <p>role add -n admin -p rwxd -cluster</p>
     <p>role del -n guest -cluster</p>

@@ -6,7 +6,6 @@
 #
 # Redistribute at will
 #
-include_recipe "java"
 
 do_upgrade = CorusHelper.corus_started(node["hostname"], node['corus']['port']) && node['corus']['live_upgrade'] && !Dir.exists?(node['corus']['extract_dir'] + "/" + node['corus']['version'])
 
