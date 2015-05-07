@@ -8,8 +8,11 @@ This cookbook provides the following recipes:
 Notes
 -----
 
-- The cookbook installs the Linux package.
+- The cookbook is meant to be run on Linux. It installs the Linux-64 package by default.
+- Java is presumed to have previously been installed. Do not forget to state your Java home (see the `java_home` attribute further below)
 - Typically, you would install Avis or RabbitMQ on separate hosts, and modify the Avis/RabbitMQ connection URLs accordingly at the Corus level.
+- For Corus: live upgrade is disabled by default (it consists in upgrading Corus transparently if it is currently running, without stopping the
+  processes controlled by it).
 
 Requirements
 ------------
@@ -29,22 +32,12 @@ Attributes
     <th>Default</th>
   </tr>
   <tr>
-    <td><tt>['java']['install_flavor']</tt></td>
-    <td>String</td>
-    <td>Indicates which flavor of the JDK to install/use (used by the <tt>java</tt> cookbook)</td>
-    <td><tt>oracle</tt></td>
-  </tr>
-  <tr>
-    <td><tt>['java']['jdk_version']</tt></td>
-    <td>String</td>
-    <td>Specifies the version of the JDK to install/use</td>
-    <td><tt>7</tt></td>
-  </tr>  
-  <tr>
-    <td><tt>['java']['oracle']['accept_oracle_download_terms']</tt></td>
+    <td><tt>['corus']['live_upgrade']</tt></td>
     <td>Boolean</td>
-    <td>When configuring for Oracle's JDK: indicates if the download terms should be accepted automatically</td>
-    <td><tt>true</tt></td>
+    <td>Indicates if live upgrade should be performed: if yes (true), the recipe will check for a Corus instance currently running; if it's the case, that instance's state
+    will be saved, in order to be restored into the new version. <b>NOTE</b>: this should be set to true only if the currently running version corresponds to 4.7 or
+    above.</td>
+    <td><tt>false</tt></td>
   </tr> 
   <tr>
     <td><tt>['corus']['extract_dir']</tt></td>
