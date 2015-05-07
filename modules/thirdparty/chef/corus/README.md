@@ -12,7 +12,7 @@ Notes
 - Java is presumed to have previously been installed. Do not forget to state your Java home (see the `java_home` attribute further below)
 - Typically, you would install Avis or RabbitMQ on separate hosts, and modify the Avis/RabbitMQ connection URLs accordingly at the Corus level.
 - For Corus: live upgrade is disabled by default (it consists in upgrading Corus transparently if it is currently running, without stopping the
-  processes controlled by it).
+  processes controlled by it). See the `live_upgrade` attribute further below for more info.
 
 Requirements
 ------------
