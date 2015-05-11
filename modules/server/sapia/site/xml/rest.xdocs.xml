@@ -824,11 +824,12 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
           This call is similar to the CLI's <tt>deploy</tt> command.
           </p>
           <sapia:code>PUT
-- Permission.....: DEPLOY
-- Behavior.......: SYNC
+- Permission......: DEPLOY
+- Behavior........: SYNC
 - Request headers:
-  - Accept......: application/json
-  - Content-type: application/octet-stream
+  - Accept........: application/json
+  - Content-Type..: application/octet-stream
+  - Content-Length: &lt;payload_size_in_bytes&gt;
 
 - Resources:
   /clusters/{clusterName}/distributions
@@ -840,6 +841,25 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
+        <sapia:sect4 title="Deploy archived distributions">
+          <p>
+          This call is similar to the CLI's <tt>deploy rev &lt;revId&gt;</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+- Resources:
+  /clusters/{clusterName}/distributions/revisions/{revId}
+  /clusters/{clusterName}/hosts/{host}/distributions/revisions/{revId}
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
+  - revId......: the revision ID for which archived distributions should be unarchived and deployed.</sapia:code>
+        </sapia:sect4>
+        
         <sapia:sect4 title="Undeploy distributions">
           <p>
           This call is similar to the CLI's <tt>undeploy</tt> command.
@@ -861,11 +881,11 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
 - Parameters:
   - d (optional).....: a distribution name    (pattern matching supported)
   - v (optional).....: a distribution version (pattern matching supported)
+  - rev (optional)...: indicates the revision ID under which to archive the undeployed distribution(s) (same as the CLI's -rev 
+                       option)
   - backup (optional): indicates how many distributions should be kept on the 
                        Corus server as backup (same as the CLI's -backup 
                        option)</sapia:code>
-        
-        <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
       </sapia:sect3>
       

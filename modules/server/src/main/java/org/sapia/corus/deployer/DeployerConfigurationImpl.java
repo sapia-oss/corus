@@ -14,6 +14,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   private String repoDir;
   private String scriptDir;
   private String uploadDir;
+  private String archiveDir;
   private long fileLockTimeout = DEFAULT_FILELOCK_TIMEOUT;
 
   @Override
@@ -53,6 +54,15 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   }
 
   @Override
+  public String getArchiveDir() {
+    return archiveDir;
+  }
+  
+  public void setArchiveDir(String archiveDir) {
+    this.archiveDir = archiveDir;
+  }
+  
+  @Override
   public String getScriptDir() {
     return scriptDir;
   }
@@ -78,11 +88,18 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
     this.scriptDir = other.getScriptDir();
     this.tempDir = other.getTempDir();
     this.uploadDir = other.getUploadDir();
+    this.archiveDir = other.getArchiveDir();
   }
 
   @Override
   public String toString() {
-    return Strings.toStringFor(this, "deployDir", deployDir, "repoDir", repoDir, "scriptDir", scriptDir, "tempDir", tempDir);
+    return Strings.toStringFor(this, 
+        "deployDir", deployDir, 
+        "repoDir", repoDir, 
+        "scriptDir", scriptDir, 
+        "tempDir", tempDir, 
+        "archiveDir", archiveDir
+    );
   }
 
 }

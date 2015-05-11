@@ -26,6 +26,7 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Delay;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -64,7 +65,7 @@ public class ProcessResourcesFuncTest {
     
     // undeploy demo dist if already deployed.
     tearDown();
-    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), UndeployPreferences.newInstance(), ClusterInfo.clustered());
     
     // deploy demo dist
     client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
@@ -76,7 +77,7 @@ public class ProcessResourcesFuncTest {
     // sleeping for given time to process state to be saved after an asynchronous operation
     Thread.sleep(INTERVAL_SECONDS);
     tearDown();
-    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().undeployDistribution(DistributionCriteria.builder().all(), UndeployPreferences.newInstance(), ClusterInfo.clustered());
     waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 0);
     client.close();
   }

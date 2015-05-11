@@ -10,9 +10,12 @@
 
 package org.sapia.corus.port;
 
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.database.InMemoryArchiver;
 import org.sapia.corus.database.InMemoryDbMap;
+import org.sapia.ubik.util.Func;
 
 /**
  *
@@ -21,7 +24,13 @@ import org.sapia.corus.database.InMemoryDbMap;
 public class TestPortManager extends PortManagerImpl{
   
   public TestPortManager() {
-    super(new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class))));
+    super(new PortRangeStore(new InMemoryDbMap<String, PortRange>(new ClassDescriptor<PortRange>(PortRange.class),
+      new InMemoryArchiver<String, PortRange>(),
+      new Func<PortRange, JsonInput>() {
+        public PortRange call(JsonInput arg0) {
+          throw new UnsupportedOperationException();
+        }
+    })));
   }
 
 }

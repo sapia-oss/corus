@@ -1,0 +1,3 @@
+script etc/deploy-common.corus
+deploy target/*v1*.zip -cluster
+exec -d corus-workshop -v 1.0 -n server -p std -cluster

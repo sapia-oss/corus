@@ -1,5 +1,8 @@
 package org.sapia.corus.database;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -7,14 +10,19 @@ import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 
 import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RecordMatcher;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.Persistent;
 import org.sapia.corus.client.services.database.persistence.Record;
 import org.sapia.corus.client.services.database.persistence.Template;
 import org.sapia.corus.client.services.database.persistence.TemplateMatcher;
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 
@@ -46,17 +54,31 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
   private ConcurrentNavigableMap<K, Record<V>> map;
   private Archiver<K, V>                       archiver;
   private ClassDescriptor<V>                   classDescriptor;
+  private Func<V, JsonInput>                   fromJsonFunc;
 
-  /**
-   * Constructs a new instance of this class.
-   */
-  DbMapImpl(Class<K> keyType, Class<V> valueType, TxFacade db, ConcurrentNavigableMap<K, Record<V>> map, Archiver<K, V> archiver) {
-    this.db         = db;
-    this.map        = map;
-    this.archiver   = archiver;
-    classDescriptor = new ClassDescriptor<V>(valueType);
+  DbMapImpl(
+      Class<K>           keyType, 
+      Class<V>           valueType, 
+      TxFacade           db, 
+      ConcurrentNavigableMap<K, Record<V>> map, 
+      Archiver<K, V>     archiver,
+      Func<V, JsonInput> fromJsonFunc) {
+    this.db              = db;
+    this.map             = map;
+    this.archiver        = archiver;
+    this.fromJsonFunc    = fromJsonFunc;
+    this.classDescriptor = new ClassDescriptor<V>(valueType);
   }
-
+  
+  DbMapImpl(
+      Class<K>       keyType, 
+      Class<V>       valueType, 
+      TxFacade       db, 
+      ConcurrentNavigableMap<K, Record<V>> map, 
+      Archiver<K, V> archiver) {
+    this(keyType, valueType, db, map, archiver, fromJsonFunc(valueType));
+  }
+  
   @Override
   public ClassDescriptor<V> getClassDescriptor() {
     return classDescriptor;
@@ -178,7 +200,59 @@ public class DbMapImpl<K, V> implements DbMap<K, V> {
     archiver.clear(revId);
     db.commit();
   }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field(classDescriptor.getType().getName()).beginArray();
+    Iterator<K> keys = keys();
+    while (keys.hasNext()) {
+      V value = get(keys.next());
+      if (value instanceof JsonStreamable) {
+        ((JsonStreamable) value).toJson(stream);
+      }
+    }
+    stream.endArray();
+    
+    archiver.dump(stream, classDescriptor);
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void load(JsonInput input) {
+    if (JsonStreamable.class.isAssignableFrom(classDescriptor.getType())) {
+      for (JsonInput in : input.iterate(classDescriptor.getType().getName())) {
+        V value = fromJsonFunc.call(in);
+        map.put(((Persistent<K, V>) value).getKey(), Record.createFor(classDescriptor, value));
+      }
+      
+      archiver.load(input, classDescriptor, fromJsonFunc);
+    }
+  }
 
+  private static <V> Func<V, JsonInput> fromJsonFunc(final Class<V> valueType) {
+    try {
+      final Method m  = valueType.getMethod("fromJson", new Class<?>[] { JsonInput.class });
+      
+      Assertions.illegalState(!Modifier.isStatic(m.getModifiers()), "Expected static fromJson() method for: " + valueType);
+      Assertions.illegalState(!valueType.equals(m.getReturnType()), "Expected " + valueType.getName() + " for return type of method: " + m);
+      
+      return new Func<V, JsonInput>() {
+        @Override
+        public V call(JsonInput in) {
+          try {
+            return valueType.cast(m.invoke(null, new Object[] {in}));
+          } catch (InvocationTargetException e) {
+            throw new IllegalStateException("Could not invoke method: " + m, e.getTargetException());
+          } catch (Exception e) {
+            throw new IllegalStateException("Could not invoke method: " + m, e);
+          }
+        }
+      };
+    } catch (Exception e) {
+      throw new IllegalStateException("Error trying to introspect fromJson(JsonInput) method on class: " + valueType.getName());
+    }
+  }
+  
   // --------------------------------------------------------------------------
   // inner classes
   

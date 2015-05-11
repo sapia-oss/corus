@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.cron.DuplicateScheduleException;
 import org.sapia.corus.client.exceptions.cron.InvalidTimeException;
@@ -137,6 +139,19 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
     }
 
     return infos;
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    stream.field("cronJobs").beginObject();
+    jobs.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    jobs.load(dump.getObject("cronJobs"));
+    initAlarms();
   }
 
   private synchronized void initAlarms() {

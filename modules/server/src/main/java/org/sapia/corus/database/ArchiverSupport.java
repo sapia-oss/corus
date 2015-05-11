@@ -3,13 +3,20 @@ package org.sapia.corus.database;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.database.ArchiveStatus;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.Revision;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
+import org.sapia.corus.client.services.database.persistence.Persistent;
 import org.sapia.corus.client.services.database.persistence.Record;
+import org.sapia.ubik.util.Func;
 
 /**
  * Provides basic behavior for implementing {@link Archiver}.
@@ -48,6 +55,42 @@ public abstract class ArchiverSupport<K, V> implements Archiver<K, V> {
     revisions(revId.get()).clear();
   }
   
+  @Override
+  public void dump(JsonStream stream, ClassDescriptor<V> descriptor) {
+    if (JsonStreamable.class.isAssignableFrom(descriptor.getType())) {
+      stream.field(descriptor.getType().getName() + "-revisions").beginArray();
+      for (RevId r : revisionIds()) {
+        Map<K, Revision<K, V>> revisions = revisions(r.get());
+        stream.beginObject();
+        stream.field("revisionId").value(r.get());
+        stream.field("values").beginArray();
+        for (Map.Entry<K, Revision<K, V>> entry : revisions.entrySet()) {
+          V value = entry.getValue().getRecord().toObject(descriptor);
+          ((JsonStreamable) value).toJson(stream);
+        }
+        stream.endArray();
+        stream.endObject();
+      }
+      stream.endArray();
+    }
+  }
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void load(JsonInput input, ClassDescriptor<V> descriptor,
+      Func<V, JsonInput> fromJsonFunction) {
+    for (JsonInput in : input.iterate(descriptor.getType().getName() + "-revisions")) {
+      RevId id = RevId.valueOf(in.getString("revisionId"));
+      Map<K, Revision<K, V>> records = revisions(id.get());
+
+      for (JsonInput jsonValue : in.iterate("values")) {
+        V value = fromJsonFunction.call(jsonValue);
+        K key = ((Persistent<K, V>) value).getKey();
+        records.put(key, new Revision<K, V>(id.get(), key, Record.createFor(descriptor, value)));
+      }
+    }
+  }
+  
   /**
    * Template method to be overridden by inheriting classes.
    * 
@@ -55,5 +98,12 @@ public abstract class ArchiverSupport<K, V> implements Archiver<K, V> {
    * @return the {@link Map} to return for the given revision ID.
    */
   protected abstract Map<K, Revision<K, V>> revisions(String revId);
+  
+  /**
+   * Template method to be overridden by inheriting classes.
+   * 
+   * @return the {@link Set} of {@link RevId}s held by this instance.
+   */
+  protected abstract Set<RevId> revisionIds();
 
 }

@@ -21,6 +21,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 
 /**
  * This command executes a script against the Corus instances in the cluster, a
@@ -81,7 +82,7 @@ public class Ripple extends CorusCliCommand {
   
     List<CorusHost> allHosts = new ArrayList<CorusHost>();
     OptionalValue<Collection<CorusHost>> selectedHosts = ctx.getCorus().getContext().getSelectedHosts().peek();
-    if (!selectedHosts.isNull()) {
+    if (selectedHosts.isSet()) {
       allHosts.addAll(selectedHosts.get());
     } else {
       allHosts.add(ctx.getCorus().getContext().getServerHost());
@@ -114,6 +115,19 @@ public class Ripple extends CorusCliCommand {
     hostBatches = Collects.splitAsLists(allHosts, batchSize);
     for (List<CorusHost> batch : hostBatches) {
       try {
+        ctx.getConsole().println("Targeting batch: " + new Func<String, List<CorusHost>>() {
+          @Override
+          public String call(List<CorusHost> batch) {
+            StringBuilder s = new StringBuilder();
+            for (int i = 0; i < batch.size(); i++) {
+              if (i > 0) {
+                s.append(",");
+              }
+              s.append(batch.get(i).getFormattedAddress());
+            }
+            return s.toString();
+          }
+        }.call(batch));
         if (ctx.getCommandLine().containsOption(OPT_COMMAND.getName(), true)) {
           StringTokenizer tk = new StringTokenizer(ctx.getCommandLine().assertOption(OPT_COMMAND.getName(), true).getValue().trim(), PIPE);
           while (tk.hasMoreTokens()) {
@@ -158,8 +172,13 @@ public class Ripple extends CorusCliCommand {
       for (CorusHost h : batch) {
         cluster.addTarget(h.getEndpoint().getServerAddress());
       }
-      interpreter.setAutoCluster(cluster);
-      interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
+      ctx.setAutoClusterInfo(cluster);
+      try {
+        interpreter.setAutoClusterInfo(cluster);
+        interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
+      } finally {
+        ctx.unsetAutoClusterInfo();
+      }
     } else {
       throw new FileNotFoundException("File not found: " + scriptFile.getAbsolutePath());
     }
@@ -171,9 +190,14 @@ public class Ripple extends CorusCliCommand {
     for (CorusHost h : batch) {
       cluster.addTarget(h.getEndpoint().getServerAddress());
     }
-    interpreter.setAutoCluster(cluster);
-    ctx.getConsole().println(String.format("Rippling command to %s: %s", cluster.toLiteralForm(), cmdLine));
-    interpreter.eval(cmdLine, ctx.getVars());
+    interpreter.setAutoClusterInfo(cluster);
+    ctx.setAutoClusterInfo(cluster);
+    try {
+      ctx.getConsole().println(String.format("Rippling command to %s: %s", cluster.toLiteralForm(), cmdLine));
+      interpreter.eval(cmdLine, ctx.getVars());
+    } finally {
+      ctx.unsetAutoClusterInfo();
+    }
   }
 
 }

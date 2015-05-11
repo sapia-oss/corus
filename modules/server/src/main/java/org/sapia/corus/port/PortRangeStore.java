@@ -5,6 +5,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortRange;
@@ -19,7 +22,7 @@ import org.sapia.ubik.util.Func;
  * 
  * @author yduchesne
  */
-public class PortRangeStore {
+public class PortRangeStore implements Dumpable {
 
   private DbMap<String, PortRange> ranges;
 
@@ -78,5 +81,15 @@ public class PortRangeStore {
 
   public void clear() {
     ranges.clear();
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    ranges.dump(stream);
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    ranges.load(dump);
   }
 }

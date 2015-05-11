@@ -34,7 +34,7 @@ import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.Subject;
 import org.sapia.corus.configurator.PropertyChangeEvent;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
@@ -227,6 +227,12 @@ public class RestExtension implements HttpExtension, Interceptor {
     BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream());
     byte[] content = payload.getBytes("UTF-8");
     try {
+      
+      ctx.getResponse().setHeader("Access-Control-Allow-Origin", "*");
+      ctx.getResponse().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+      ctx.getResponse().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+      ctx.getResponse().setHeader("Allow", "GET, POST, PUT, DELETE, OPTIONS");
+      
       ctx.getResponse().setStatusCode(statusCode);
       if (statusMsg != null) {
         ctx.getResponse().setStatusMessage(statusMsg);
@@ -245,21 +251,13 @@ public class RestExtension implements HttpExtension, Interceptor {
    */
   public void onPropertyChangeEvent(PropertyChangeEvent event) {
     if (event.getScope() == PropertyScope.SERVER) {
-      if (event.getName().equals(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED)) {
-        if (event.getType() == Type.ADD) {
-          String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
-          if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
-            container.setAuthRequired(true);
-          } else {
-            container.setAuthRequired(false);
-          }
-        } else  {
-          String authRequired = serverContext.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
-          if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
-            container.setAuthRequired(true);
-          } else {
-            container.setAuthRequired(false);
-          }
+      if (event.containsProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED)) {
+        if (EventType.ADD == event.getEventType()) {
+          String authRequiredValue = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
+          container.setAuthRequired(Boolean.parseBoolean(authRequiredValue));
+        } else if (EventType.REMOVE == event.getEventType()) {
+          String authRequiredValue = serverContext.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
+          container.setAuthRequired(Boolean.parseBoolean(authRequiredValue));
         }
       }
     }

@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>4.6.4</version>
+    <version>4.7-RC1</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -111,6 +111,32 @@
     <dependency>
       <groupId>org.sapia</groupId>
       <artifactId>sapia_magnet</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_avis</artifactId>
+    </dependency>      
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_amqp</artifactId>
+    </dependency>  
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_camel</artifactId>
+    </dependency>        
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_ubik_netty</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-rabbitmq</artifactId>
     </dependency>
 
     <dependency>

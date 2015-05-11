@@ -1,14 +1,24 @@
 package org.sapia.corus.core;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonObjectInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.util.IOUtil;
 import org.sapia.ubik.mcast.EventChannel;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
@@ -30,10 +40,13 @@ import org.springframework.context.ApplicationContext;
  * 
  */
 class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
+  
+  public static final String CORUS_DUMP_FILE_NAME = "corus-dump.json";
 
+  private Logger                   logger   = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   private List<ApplicationContext> contexts = new ArrayList<ApplicationContext>();
-  private ServerContextImpl delegate;
-  private PropertyContainer properties;
+  private ServerContextImpl        delegate;
+  private PropertyContainer        properties;
 
   ModuleLifeCycleManager(ServerContextImpl serverContext, PropertyContainer properties) {
     this.delegate = serverContext;
@@ -135,9 +148,44 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   }
 
   void startServices() throws Exception {
+    File dumpFile    = new File(new File(delegate.getHomeDir()), CORUS_DUMP_FILE_NAME);
+    try {
+      doStartServices(dumpFile);
+    } finally {
+      if (dumpFile.exists()) {
+        logger.warn(String.format("Deleting dump file: %s", dumpFile.getAbsolutePath()));
+        dumpFile.delete();
+      }
+    }
+  }
+  
+  void dump(JsonStream stream) {
+    stream.beginObject();
+    for (ApplicationContext context : contexts) {
+      Map<String, Dumpable> dumpable = context.getBeansOfType(Dumpable.class);
+      for (Dumpable d : dumpable.values()) {
+        d.dump(stream);
+      }
+    }
+    stream.endObject();
+  }
+  
+  private void doStartServices(File dumpFile) throws Exception {
+    JsonInput dumpContent = null;
+    if (dumpFile.exists()) {
+      logger.warn(String.format("Found dump file: %s. Will load content", dumpFile.getAbsolutePath()));
+      dumpContent = JsonObjectInput.newInstance(IOUtil.textStreamToString(new FileInputStream(dumpFile)));
+    }
+    
     for (ApplicationContext context : contexts) {
       for (String name : context.getBeanDefinitionNames()) {
         Object bean = context.getBean(name);
+        if (bean instanceof Dumpable && dumpContent != null) {
+          logger.warn(String.format("Component %s will process dump file: %s", bean.getClass().getName(), dumpFile.getAbsolutePath()));
+          Dumpable dumpable = (Dumpable) bean;
+          dumpable.load(dumpContent);
+        }
+        
         if (bean instanceof Service) {
           try {
             Service service = (Service) bean;
@@ -148,6 +196,5 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
         }
       }
     }
-
   }
 }

@@ -10,9 +10,11 @@ import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.ShellScriptCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.ubik.util.Collects;
 
@@ -27,10 +29,11 @@ public class Undeploy extends CorusCliCommand {
   private static final OptionDef OPT_SCRIPT      = new OptionDef("s", true);
   private static final OptionDef OPT_FILE        = new OptionDef("f", true);
   private static final OptionDef OPT_BACKUP      = new OptionDef("backup", true);
+  private static final OptionDef OPT_REV         = new OptionDef("rev", true);
 
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
-      OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_BACKUP, OPT_CLUSTER
+      OPT_EXEC_CONFIG, OPT_SCRIPT, OPT_FILE, OPT_DIST, OPT_VERSION, OPT_BACKUP, OPT_REV, OPT_CLUSTER
   );
   
   @Override
@@ -84,12 +87,18 @@ public class Undeploy extends CorusCliCommand {
       if (ctx.getCommandLine().containsOption(OPT_BACKUP.getName(), false)) {
         backup = ctx.getCommandLine().assertOption(OPT_BACKUP.getName(), true).asInt();
       }
+    
+      UndeployPreferences prefs = UndeployPreferences.newInstance();
+      if (ctx.getCommandLine().containsOption(OPT_REV.getName(), false)) {
+        prefs.revId(RevId.valueOf(ctx.getCommandLine().getOptNotNull(OPT_REV.getName()).getValueNotNull()));
+      }
 
       super.displayProgress(
           ctx.getCorus().getDeployerFacade().undeployDistribution(
                DistributionCriteria.builder()
                  .name(dist).version(version)
                  .backup(backup).build(), 
+               prefs,
                getClusterInfo(ctx)
           ), 
           ctx

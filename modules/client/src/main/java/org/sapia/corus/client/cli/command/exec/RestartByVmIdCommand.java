@@ -6,11 +6,11 @@ import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
-import org.sapia.corus.client.Result;
-import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.cli.command.AbstractExecCommand;
+import org.sapia.corus.client.cli.command.Restart;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -22,7 +22,7 @@ import org.sapia.ubik.util.Collects;
  * @author yduchesne
  * 
  */
-public class RestartByVmIdCommand extends AbstractExecCommand {
+public class RestartByVmIdCommand extends RestartAndWaitCommandSupport {
 
   private static final long PAUSE = 1000;
   
@@ -37,7 +37,7 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
   
   @Override
   public List<OptionDef> getAvailableOptions() {
-    return Collects.arrayToList(OPT_PROCESS_ID, OPT_HARD_KILL);
+    return Collects.arrayToList(OPT_PROCESS_ID, OPT_HARD_KILL, OPT_WAIT, OPT_CLUSTER);
   }
 
   @Override
@@ -59,6 +59,21 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
   }
 
   private void restartProcessByVmId(CliContext ctx, String pid) throws InputException {
+    
+    ClusterInfo     cluster  = getClusterInfo(ctx);
+    ProcessCriteria criteria = ProcessCriteria.builder().pid(ArgMatchers.exact(pid)).build();
+    Option          wait     = getWaitOption(ctx);
+    KillPreferences prefs    = KillPreferences.newInstance().setHard(isHardKillOption(ctx));
+
+    if (wait != null) {
+      ctx.getConsole().println("Waiting for process restart, please stand by...");
+      doRestartAndWait(ctx, cluster, criteria, prefs, wait.getValue() == null ? Restart.DEFAULT_RESTART_WAIT_TIME_SECONDS : wait.asInt());
+
+    } else {
+      ctx.getConsole().println("Triggering process restart...");
+      ctx.getCorus().getProcessorFacade().restart(criteria, prefs, cluster);
+    }
+    /*
     Process processToRestart = null;
     Results<List<Process>> results = ctx.getCorus().getProcessorFacade().getProcesses(ProcessCriteria.builder().all(), new ClusterInfo(false));
     while (results.hasNext() && processToRestart == null) {
@@ -74,9 +89,10 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
       restartProcess(ctx, processToRestart);
     } else {
       throw new InputException("Could not restart process, no active process found for the process ID " + pid);
-    }
+    }*/
   }
 
+  /*
   private void restartProcess(CliContext ctx, Process aProcess) throws InputException {
     try {
       KillPreferences prefs = KillPreferences.newInstance().setHard(isHardKillOption(ctx));
@@ -85,6 +101,6 @@ public class RestartByVmIdCommand extends AbstractExecCommand {
       throw new InputException(e.getMessage());
     }
     ctx.getConsole().println("Proceeding to restart of process " + aProcess.getProcessID() + "...");
-  }
+  }*/
 
 }

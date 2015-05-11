@@ -33,21 +33,30 @@ public class PatternArgMatcher implements ArgMatcher {
 
   private int[]  pattern;
   private String token;
+  private boolean and = true;
+ 
 
   PatternArgMatcher(String token) {
-    this.pattern = compilePattern(token);
-    this.token   = token;
+    if (token.startsWith("!")) {
+      this.token = token.substring(1);
+      this.pattern = compilePattern(this.token);
+      and = false;
+    } else {
+      this.pattern = compilePattern(token);
+      this.token   = token;
+    }
   }
 
   @SuppressWarnings("rawtypes")
   public boolean matches(String str) {
-    return match(new HashMap(5), str, pattern);
+    return and && match(new HashMap(5), str, pattern);
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof PatternArgMatcher) {
-      return token.equals(((PatternArgMatcher) obj).token);
+      PatternArgMatcher other = (PatternArgMatcher) obj;
+      return and == other.and && token.equals(other.token);
     }
     return false;
   }

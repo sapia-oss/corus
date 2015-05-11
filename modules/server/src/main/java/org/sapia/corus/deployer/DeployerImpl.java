@@ -20,9 +20,11 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.Service;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
@@ -36,10 +38,13 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.task.BuildDistTask;
 import org.sapia.corus.deployer.task.RollbackTask;
+import org.sapia.corus.deployer.task.UnarchiveAndDeployTask;
+import org.sapia.corus.deployer.task.UndeployAndArchiveTask;
 import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
+import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -82,7 +87,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   private DeployerConfiguration configuration;
 
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
-
+  
   private DeploymentProcessor processor;
   private DistributionDatabase store;
 
@@ -117,7 +122,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
         ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
     services().getTaskManager().registerThrottle(DeployerThrottleKeys.ROLLBACK_DISTRIBUTION, 
         ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
-
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.UNARCHIVE_DISTRIBUTION, 
+        ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
+    services().getTaskManager().registerThrottle(DeployerThrottleKeys.DEPLOY_UNARCHIVED_DISTRIBUTION, 
+        ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
+    
     String defaultDeployDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("deploy").createFilePath();
 
     String defaultRepoDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("repo").createFilePath();
@@ -127,6 +136,8 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     String defaultScriptDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("scripts").createFilePath();
 
     String defaultUploadDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("files").addDir("uploads").createFilePath();
+    
+    String defaultArchiveDir = FilePath.newInstance().addDir(serverContext().getHomeDir()).addDir("archive").createFilePath();
 
     String pattern = serverContext().getNodeSubdirName();
 
@@ -161,6 +172,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       config.setUploadDir(FilePath.newInstance().addDir(configuration.getUploadDir()).addDir(pattern).createFilePath());
     } else {
       config.setUploadDir(FilePath.newInstance().addDir(defaultUploadDir).addDir(pattern).createFilePath());
+    }
+    
+    if (configuration.getArchiveDir() != null) {
+      config.setArchiveDir(FilePath.newInstance().addDir(configuration.getArchiveDir()).addDir(pattern).createFilePath());
+    } else {
+      config.setArchiveDir(FilePath.newInstance().addDir(defaultArchiveDir).addDir(pattern).createFilePath());
     }
 
     configuration.copyFrom(config);
@@ -197,6 +214,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     assertFile(f);
     log.debug(String.format("Upload dir: %s", f.getAbsolutePath()));
 
+    f = new File(configuration.getArchiveDir());
+    f.mkdirs();
+    assertFile(f);
+    log.debug(String.format("Archive dir: %s", f.getAbsolutePath()));
+    
     log.info("Initializing: rebuilding distribution objects");
 
     taskman.executeAndWait(new BuildDistTask(configuration.getDeployDir(), getDistributionStore()), null);
@@ -265,7 +287,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
 
   @Override
-  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException {
+  public ProgressQueue undeploy(DistributionCriteria criteria, UndeployPreferences prefs) throws RunningProcessesException {
     ProcessCriteria processCriteria = ProcessCriteria.builder().distribution(criteria.getName()).version(criteria.getVersion()).build();
     if (lookup(Processor.class).getProcesses(processCriteria).size() > 0) {
       throw new RunningProcessesException("Processes for selected configuration are currently running; kill them prior to undeploying");
@@ -273,7 +295,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria), cfg).get();
+      if (prefs.getRevId().isSet()) {
+        taskman.executeAndWait(new UndeployAndArchiveTask(), TaskParams.createFor(criteria, prefs.getRevId().get()), cfg).get();
+      } else {
+        taskman.executeAndWait(new UndeployTask(), TaskParams.createFor(criteria), cfg).get();
+      }
     } catch (Throwable e) {
       progress.error(e);
     }
@@ -307,17 +333,26 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     Distribution dist = getDistributionStore().getDistribution(DistributionCriteria.builder().name(name).version(version).build());
     
     ProgressQueueImpl progress = new ProgressQueueImpl();
+    SequentialTaskConfig cfg = SequentialTaskConfig.create(new TaskLogProgressQueue(progress));
+    taskman.execute(new RollbackTask(), dist, cfg);
+    
+    return progress;    
+  }
+ 
+  @Override
+  public ProgressQueue unarchiveDistributions(RevId revId) {
+    ProgressQueueImpl progress = new ProgressQueueImpl();
     try {
       TaskConfig cfg = TaskConfig.create(new TaskLogProgressQueue(progress));
-      taskman.executeAndWait(new RollbackTask(), dist, cfg).get();
+      taskman.executeAndWait(new UnarchiveAndDeployTask(), TaskParams.createFor(revId) , cfg).get();
     } catch (InvocationTargetException e) {
       progress.error(e.getCause());
     } catch (Exception e) {
       progress.error(e);
     }
-    return progress;    
+    return progress;        
   }
-
+  
   /**
    * @return this instance's <code>DistributionStore</code>.
    */

@@ -46,7 +46,7 @@ public class ScriptResource {
     String      encoding          = ctx.getRequest().getValue("encoding", "UTF-8").asString();
     Interpreter interpreter       = new Interpreter(ctx.getConnector());
     if (!clusteringEnabled) {
-      interpreter.setAutoCluster(ClusterInfo.notClustered());
+      interpreter.setAutoClusterInfo(ClusterInfo.notClustered());
     }
     
     final List<String> messages = new ArrayList<String>();

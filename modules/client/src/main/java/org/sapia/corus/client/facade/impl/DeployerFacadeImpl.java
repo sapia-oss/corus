@@ -24,9 +24,11 @@ import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundExceptio
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.DeployerFacade;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeployOsAdapter;
@@ -116,6 +118,9 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
             File baseDir = (File) baseDirAndFilePattern[0];
             ArgMatcher pattern = ArgMatchers.parse((String) baseDirAndFilePattern[1]);
             File[] files = baseDir.listFiles();
+            if (files == null) {
+              files = new File[]{};
+            }
             ProgressQueue tmp = null;
             int fileCount = 0;
             for (int i = 0; i < files.length; i++) {
@@ -202,8 +207,8 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
 
   @Override
-  public synchronized ProgressQueue undeployDistribution(DistributionCriteria criteria, ClusterInfo cluster) throws RunningProcessesException {
-    proxy.undeploy(criteria);
+  public synchronized ProgressQueue undeployDistribution(DistributionCriteria criteria, UndeployPreferences prefs, ClusterInfo cluster) throws RunningProcessesException {
+    proxy.undeploy(criteria, prefs);
     try {
       return invoker.invoke(ProgressQueue.class, cluster);
     } catch (RunningProcessesException e) {
@@ -216,7 +221,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
   }
   
   @Override
-  public ProgressQueue rollbackDistribution(String name, String version,
+  public synchronized ProgressQueue rollbackDistribution(String name, String version,
       ClusterInfo cluster) throws RollbackScriptNotFoundException,
       DistributionNotFoundException {
     proxy.rollbackDistribution(name, version);
@@ -226,6 +231,16 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       throw e;
     } catch (RuntimeException e) {
       throw e;
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  @Override
+  public synchronized ProgressQueue unarchiveDistributions(RevId revId, ClusterInfo cluster) {
+    proxy.unarchiveDistributions(revId);
+    try {
+      return invoker.invoke(ProgressQueue.class, cluster);
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }

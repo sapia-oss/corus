@@ -49,7 +49,7 @@ public class HttpCorusTransport extends AbstractTransport {
   protected Object initExport(Object anObject) throws RemoteException {
     Properties props = new Properties();
     props.setProperty(HttpTransportProvider.HTTP_PORT_KEY, Integer.toString(address.getPort()));
-    props.setProperty(Consts.TRANSPORT_TYPE, HttpTransportProvider.HTTP_TRANSPORT_TYPE);
+    props.setProperty(Consts.TRANSPORT_TYPE, HttpTransportProvider.TRANSPORT_TYPE);
     return Hub.exportObject(anObject, props);
   }
 
@@ -58,6 +58,6 @@ public class HttpCorusTransport extends AbstractTransport {
    *         implementation.
    */
   public TransportProvider getTransportProvider() {
-    return Hub.getModules().getTransportManager().getProviderFor(HttpTransportProvider.HTTP_TRANSPORT_TYPE);
+    return Hub.getModules().getTransportManager().getProviderFor(HttpTransportProvider.TRANSPORT_TYPE);
   }
 }

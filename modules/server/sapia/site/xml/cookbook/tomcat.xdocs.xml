@@ -19,7 +19,7 @@
     <sapia:sect-desc>
       <p>
 		  This recipe explains how to run Tomcat with Corus. A sample module which demonstrates how to package a Corus-enabled Tomcat app
-		  with Maven is <a href="https://github.com/sapia-oss/corus/tree/feature/tomcat-sample/samples/corus_sample_tomcat/" target="tomcat_sample_github">available on Github</a>. 
+		  with Maven is <a href="https://github.com/sapia-oss/corus/tree/develop/samples/corus_sample_tomcat/" target="tomcat_sample_github">available on Github</a>. 
 		  The content of this recipe is based on that work.
       </p>
       <p>
@@ -59,7 +59,7 @@
 		    Corus, all sharing the same base installation. 
 		    </p>
 	    </sapia:sect3>
-	    <sapia:sect3 title="Logging">
+	    <sapia:sect3 title="Logging Directory">
 	    	<p>
 	    	  One of the aspects we have to address is the directory where Tomcat logs should be kept, on a per-instance basis. We've chosen to keep Tomcat logs under <tt>/var/log/tomcat</tt>,
 	    	  and an instance-specific directory will be kept underneath that directory, for each instance we might want to run on the same host (the instance-specific directory will
@@ -320,14 +320,14 @@ sudo chown corus /var/log/tomcat</sapia:code>
         <sapia:code>1catalina.org.apache.juli.FileHandler.directory = ${tomcat.log.dir}</sapia:code>
         
         <p>
-          We're also removing from that file all mentions of the <tt>ConsoleHandler</tt>, meaning that instead of this line:
+          We're also removing from that file all mentions of the <tt>ConsoleHandler</tt>, meaning that instead of this line for example:
         </p>
         <sapia:code>.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler</sapia:code>
         
         <p>
           We should have this line:
         </p>
-        <sapia:code>.handlers = 1catalina.org.apache.juli.FileHandler, java.util.logging.ConsoleHandler</sapia:code>
+        <sapia:code>.handlers = 1catalina.org.apache.juli.FileHandler</sapia:code>
       </sapia:sect3>
       
       <sapia:sect3 title="server.xml">

@@ -1,0 +1,25 @@
+<assembly>
+  <id>package</id>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <includeBaseDirectory>false</includeBaseDirectory>
+ 
+  <fileSets>
+    <fileSet>
+       <outputDirectory>target</outputDirectory>
+       <directory>${basedir}/target</directory>
+       <includes>
+          <include>*v1.0.zip</include>
+          <include>*v2.0.zip</include>
+       </includes>
+    </fileSet>
+    <fileSet>
+       <outputDirectory>etc</outputDirectory>    
+       <directory>${basedir}/etc</directory>
+       <includes>
+          <include>*.corus</include>
+       </includes>
+    </fileSet>  
+  </fileSets>
+</assembly>

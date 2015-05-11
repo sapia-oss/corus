@@ -14,6 +14,8 @@ import java.net.URLConnection;
  * 
  */
 public abstract class CorusUserDataProviderSupport implements CorusUserDataProvider {
+  
+  private static final int TIMEOUT = 5000;
 
   private URI userDataUrl;
 
@@ -31,6 +33,7 @@ public abstract class CorusUserDataProviderSupport implements CorusUserDataProvi
     connection.setDoInput(true);
     connection.setDoOutput(false);
     connection.setUseCaches(false);
+    connection.setConnectTimeout(TIMEOUT);
 
     InputStream is = connection.getInputStream();
 

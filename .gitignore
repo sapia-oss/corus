@@ -46,6 +46,7 @@ pom.xml.versionsBackup
 target/
 lib/
 extra-lib/
+archive/
 deploy/
 files/
 db/

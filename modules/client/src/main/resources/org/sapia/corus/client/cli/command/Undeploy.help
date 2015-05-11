@@ -5,10 +5,10 @@
    <p>- If remote processes corresponding to the given distribution are currently running, undeployment fails.</p>
   </section>
   <section title="Syntax">
-    <p>undeploy -d &lt;distribution_name&gt; -v &lt;version&gt; [-cluster]</p>
+    <p>undeploy -d &lt;distribution_name&gt; -v &lt;version&gt; [-backup &lt;num_backups&gt;] [-rev &lt;rev_id&gt;] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>undeploy all [-cluster]</p>
+    <p>undeploy all [-backup &lt;num_backups&gt;] [-archive &lt;rev_id&gt;] [-cluster]</p>
     <p/>
     <p>OR:</p>    
     <p>undeploy -e &lt;exec_config_name&gt; [-cluster]</p>
@@ -33,16 +33,29 @@
     <p/>    
     <p>all: corresponds to the following options: -d * -v *.</p>
     <p/>    
+    <p>- backup: specifies the number of distributions to leave on the server as backup 
+    (it is preferrable to use the -rev option, which relies on the archival functionality).</p>
+    <p/>    
+    <p>- rev: indicates the identifier of the revision under which to archive the distributions 
+    that match the given selection. Archived distributions are kept on the server and can
+    be redeployed using the 'deploy rev &lt;rev_id&gt;' command.</p>
+    <p/>    
     <p>- cluster: if specified, the given distribution will be undeployed cluster-wide.</p>
   </section>
   <section title="Examples">
     <p>undeploy -d * -v *</p>
     <p>undeploy all</p>
-    <p>undeploy -d myDistribution -v 1.*</p>
-    <p>undeploy -d myDistribution -v 1.*</p>
+    <p>undeploy -d myDistribution -v 1.0 </p>
+    <p>undeploy -d myDistribution -v 1.* -cluster</p>
     <p>undeploy -e myConf</p>
+    <p>undeploy -e myConf -cluster</p>
     <p>undeploy -s restart-memcached</p>
+    <p>undeploy -s restart-memcached -cluster</p>
     <p>undeploy -f static-content.tar</p>
+    <p>undeploy -f static-content.tar -cluster</p>
+    <p>undeploy all -backup 1</p>
+    <p>undeploy all -backup 1 -cluster</p>
+    <p>undeploy all -rev previous -cluster</p>
     <p/>    
   </section>
 </help>

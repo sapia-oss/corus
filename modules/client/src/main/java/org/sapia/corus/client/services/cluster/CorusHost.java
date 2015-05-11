@@ -6,7 +6,10 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.net.UnknownHostException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
@@ -19,7 +22,7 @@ import org.sapia.ubik.util.Strings;
  * @author J-C Desrochers
  * @author yduchesne
  */
-public class CorusHost implements Externalizable, JsonStreamable, Matcheable {
+public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Mappable {
 
   /**
    * Indicates the role of the Corus node corresponding to this instance.
@@ -208,6 +211,20 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable {
         pattern.matches(osInfo) ||
         pattern.matches(role.name().toLowerCase()) ||
         pattern.matches(this.endpoint.getChannelAddress().toString());
+  }
+  
+  // --------------------------------------------------------------------------
+  // Mappable
+  
+  public java.util.Map<String,Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("host.name", hostName);
+    toReturn.put("host.jvmInfo", javaVmInfo);
+    toReturn.put("host.osInfo", osInfo);
+    toReturn.put("host.address", endpoint.getServerTcpAddress().getHost());
+    toReturn.put("host.port", endpoint.getServerTcpAddress().getPort());
+    toReturn.put("host.repoRole", role.name());
+    return toReturn;
   }
 
   // --------------------------------------------------------------------------

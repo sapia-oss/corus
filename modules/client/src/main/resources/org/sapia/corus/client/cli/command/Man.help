@@ -55,6 +55,7 @@
     <p>- alias</p>
     <p>- count</p>
     <p>- match</p>
+    <p>- foreach</p>
     <p/>
     <p>File system, OS:</p>
     <p/>
@@ -67,6 +68,7 @@
     <p>Misc:</p>
     <p/>
     <p>- ant</p>
+    <p>- dump</p>
     <p>- err</p>
     <p>- exit</p>    
     <p>- man</p>

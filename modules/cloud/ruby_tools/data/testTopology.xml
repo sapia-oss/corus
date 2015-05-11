@@ -1,0 +1,60 @@
+<topology application="test-app">
+
+  <env-template name="common-env">
+    <region name="us-west">
+      <zone>us-west-1a</zone>
+      <zone>us-west-1b</zone>
+    </region>  
+  </env-template>
+
+  <region-template name="us-east-template">
+    <zone>us-east-1a</zone>
+    <zone>us-east-1b</zone>
+  </region-template>
+
+  <cluster-template name="common-cluster" instances="2">
+    <machine name="machine-2" minInstances="5" maxInstances="20" imageId="machine-2-image">
+      <param name="mp1" value="mpv1" />
+      <serverTag>tag1</serverTag>
+      <serverTag>tag2</serverTag>
+      <serverProperties>
+        <property name="s1" value="sv1" />
+        <property name="s2" value="sv2" />              
+      </serverProperties>
+      <processProperties>
+        <property name="p1" value="pv1" />
+        <property name="p2" value="pv2" />              
+      </processProperties>
+    </machine>
+  </cluster-template>
+  
+  <machine-template 
+    name="common-machine" 
+    minInstances="1" 
+    maxInstances="5" 
+    serverTags="common-tag"
+    imageId="common-image" />
+
+  <env name="uat" templateRef="common-env">
+    <region name="us-east" templateRef="us-east-template" />
+    
+    <cluster name="service1" instances="5">
+      <machine name="machine-1" templateRef="common-machine">
+        <param name="mp1" value="mpv1" />
+        <serverTag>tag1</serverTag>
+        <serverTag>tag2</serverTag>
+
+        <serverProperties>
+          <property name="s1" value="sv1" />
+          <property name="s2" value="sv2" />              
+        </serverProperties>
+        <processProperties>
+          <property name="p1" value="pv1" />
+          <property name="p2" value="pv2" />              
+        </processProperties>
+      </machine>
+    </cluster>
+    <cluster name="service2" instances="5" templateRef="common-cluster" />
+  </env>
+
+</topology>

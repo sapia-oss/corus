@@ -1,0 +1,4 @@
+<exec name="servers" startOnBoot="true" xmlns="http://www.sapia-oss.org/xsd/corus/exec-2.0.xsd">
+	<process dist="corus-workshop" version="@VERSION@" name="server"       profile="std" /> 
+	<process dist="corus-workshop" version="@VERSION@" name="taggedServer" profile="std" /> 
+</exec>

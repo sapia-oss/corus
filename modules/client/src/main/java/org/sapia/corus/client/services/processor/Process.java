@@ -5,19 +5,27 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
-import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
+import org.sapia.corus.interop.ConfigurationEvent;
+import org.sapia.corus.interop.ConfigurationEvent.ConfigurationEventBuilder;
 import org.sapia.corus.interop.Shutdown;
 import org.sapia.ubik.util.Strings;
 
@@ -28,7 +36,7 @@ import org.sapia.ubik.util.Strings;
  * @author Yanick Duchesne
  */
 public class Process extends AbstractPersistent<String, Process> 
-  implements Externalizable, Comparable<Process>, JsonStreamable, Matcheable {
+  implements Externalizable, Comparable<Process>, JsonStreamable, Matcheable, Mappable {
 
   static final long serialVersionUID = 1L;
   
@@ -144,9 +152,13 @@ public class Process extends AbstractPersistent<String, Process>
   
   // --------------------------------------------------------------------------
 
+  static final int VERSION_1       = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+  
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int DEFAULT_KILL_RETRY            = 3;
   
+  private int                                      classVersion    = CURRENT_VERSION;
   private DistributionInfo                         distributionInfo;
   private String                                   processID       = IDGenerator.makeIdFromDate();
   private String                                   processDir;
@@ -170,7 +182,6 @@ public class Process extends AbstractPersistent<String, Process>
   public Process() {
   }
   
-
   /**
    * Creates an instance of this class.
    * 
@@ -476,6 +487,46 @@ public class Process extends AbstractPersistent<String, Process>
   }
 
   /**
+   * Creates a configuration event of updated configuration properties to be published
+   * to the managed process the next time it polls back the server.
+   * 
+   * @param updatedProperties The collection of updated properties.
+   */
+  public synchronized void configurationUpdated(Collection<Property> updatedProperties) {
+    // Propagation of config change on appropriate process statuses
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
+      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+          .commandId(CyclicIdGenerator.newCommandId())
+          .type(ConfigurationEvent.TYPE_UPDATE);
+      for (Property property: updatedProperties) {
+        builder.param(property.getName(), property.getValue());
+      }
+      
+      getCommands().add(builder.build());
+    }
+  }
+
+  /**
+   * Creates a configuration event of deleted configuration properties to be published
+   * to the managed process the next time it polls back the server.
+   * 
+   * @param deletedProperties The collection of the deleted properties
+   */
+  public synchronized void configurationDeleted(Collection<Property> deletedProperties) {
+    // Propagation of config change on appropriate process statuses
+    if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
+      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+          .commandId(CyclicIdGenerator.newCommandId())
+          .type(ConfigurationEvent.TYPE_DELETE);
+      for (Property property: deletedProperties) {
+        builder.param(property.getName(), "");
+      }
+      
+      getCommands().add(builder.build());
+    }
+  }
+  
+  /**
    * Asks that this instance notifies its process that it should terminate.
    */
   public synchronized void kill(ProcessTerminationRequestor requestor) {
@@ -595,13 +646,31 @@ public class Process extends AbstractPersistent<String, Process>
     if (commands != null)
       commands.clear();
     creationTime = System.currentTimeMillis();
-    lastAccess = System.currentTimeMillis();
-    status = LifeCycleStatus.ACTIVE;
+    lastAccess   = System.currentTimeMillis();
+    status       = LifeCycleStatus.ACTIVE;
+  }
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<String, Object>();
+    toReturn.put("process.distribution.name", distributionInfo.getName());
+    toReturn.put("process.distribution.version", distributionInfo.getVersion());
+    toReturn.put("process.name", distributionInfo.getProcessName());
+    toReturn.put("process.id", processID);
+    toReturn.put("process.pid", pid);
+    toReturn.put("process.deleteOnKill", deleteOnKill);
+    toReturn.put("process.creationTime", creationTime);
+    toReturn.put("process.lastAccessTime", lastAccess);
+    toReturn.put("process.shutdownTimeout", shutdownTimeout);
+    toReturn.put("process.pollTimeout", pollTimeout);
+    toReturn.put("process.maxKillRetry", maxKillRetry);
+    return toReturn;
   }
   
   @Override
   public void toJson(JsonStream stream) {
     stream.beginObject()
+      .field("classVersion").value(classVersion)
       .field("id").value(processID)
       .field("name").value(distributionInfo.getProcessName())
       .field("pid").value(pid)
@@ -615,8 +684,10 @@ public class Process extends AbstractPersistent<String, Process>
       .field("status").value(status.name())
       .field("maxKillRetry").value(maxKillRetry)
       .field("deleteOnKill").value(deleteOnKill)
+      .field("pollTimeout").value(pollTimeout)
       .field("shutdownTimeout").value(shutdownTimeout)
       .field("staleDetectionCount").value(staleDeleteCount)
+      .field("processDir").value(processDir)
       .field("activePorts").beginArray();
     for (ActivePort p : activePorts) {
       stream.beginObject()
@@ -626,6 +697,43 @@ public class Process extends AbstractPersistent<String, Process>
     }
     stream.endArray();
     stream.endObject();
+  }
+  
+  public static Process fromJson(JsonInput input) {
+    Process p = new Process();
+    int inputVersion = input.getInt("classVersion");
+    if (inputVersion == VERSION_1) {
+      p.lock = new ProcessLock();
+      p.processID = input.getString("id");
+      p.pid       = input.getString("pid");
+      p.distributionInfo = new DistributionInfo(
+          input.getString("distribution"),
+          input.getString("version"),
+          input.getString("profile"),
+          input.getString("name")
+      );
+      p.creationTime     = input.getLong("creationTimeMillis");
+      p.lastAccess       = input.getLong("lastAccessTimeMillis");
+      p.status           = LifeCycleStatus.valueOf(input.getString("status"));
+      p.maxKillRetry     = input.getInt("maxKillRetry");
+      p.deleteOnKill     = input.getBoolean("deleteOnKill");
+      p.pollTimeout      = input.getInt("pollTimeout");
+      p.shutdownTimeout  = input.getInt("shutdownTimeout");
+      p.staleDeleteCount = input.getInt("staleDetectionCount");
+      p.processDir       = input.getString("processDir");
+      for (JsonInput in : input.iterate("activePorts")) {
+        ActivePort port = new ActivePort(
+            in.getString("name"),
+            in.getInt("port")
+        );
+        p.addActivePort(port);
+      }
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    p.classVersion = CURRENT_VERSION;
+    
+    return p;
   }
   
   @Override
@@ -645,6 +753,7 @@ public class Process extends AbstractPersistent<String, Process>
         && criteria.getVersion().matches(distributionInfo.getVersion())
         && criteria.getName().matches(distributionInfo.getProcessName())
         && criteria.getPid().matches(processID)
+        && (pid == null ? criteria.getOsPid().matches("null") : criteria.getOsPid().matches(pid))
         && (criteria.getLifeCycles().isEmpty() || criteria.getLifeCycles().contains(status))
         && (criteria.getProfile().isNull() || criteria.getProfile().get().equals(distributionInfo.getProfile()))
         && matches(criteria.getPortCriteria());
@@ -710,24 +819,34 @@ public class Process extends AbstractPersistent<String, Process>
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {
-    distributionInfo = (DistributionInfo) in.readObject();
-    processID        = in.readUTF();
-    processDir       = in.readUTF();
-    pid              = in.readUTF();
-    deleteOnKill     = in.readBoolean();
-    lock             = new ProcessLock();
-    creationTime     = in.readLong();
-    lastAccess       = in.readLong();
-    shutdownTimeout  = in.readInt();
-    pollTimeout      = in.readInt();
-    maxKillRetry     = in.readInt();
-    status           = (LifeCycleStatus) in.readObject();
-    commands         = (List<AbstractCommand>) in.readObject();
-    activePorts      = (List<ActivePort>) in.readObject();
+    
+    int inputVersion = in.readInt();
+    if (inputVersion == VERSION_1) {
+      distributionInfo = (DistributionInfo) in.readObject();
+      processID        = in.readUTF();
+      processDir       = in.readUTF();
+      pid              = in.readUTF();
+      deleteOnKill     = in.readBoolean();
+      lock             = new ProcessLock();
+      creationTime     = in.readLong();
+      lastAccess       = in.readLong();
+      shutdownTimeout  = in.readInt();
+      pollTimeout      = in.readInt();
+      maxKillRetry     = in.readInt();
+      status           = (LifeCycleStatus) in.readObject();
+      commands         = (List<AbstractCommand>) in.readObject();
+      activePorts      = (List<ActivePort>) in.readObject();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    classVersion = CURRENT_VERSION;
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
+    
+    out.writeInt(classVersion);
+    
     out.writeObject(distributionInfo);
     out.writeUTF(processID);
     out.writeUTF(processDir);
@@ -742,5 +861,5 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeObject(commands);
     out.writeObject(activePorts);
   }
-
+  
 }

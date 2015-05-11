@@ -1,6 +1,7 @@
 package org.sapia.corus.processor.task;
 
 import org.junit.Before;
+import org.mockito.Mockito;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.client.common.Env;
@@ -67,6 +68,7 @@ public class TestBaseTask{
     Process proc = new Process(info);
     proc.setProcessDir("processdir");
     proc.setOsPid(Integer.toString(Integer.MAX_VALUE));
+    proc = Mockito.spy(proc);
     ctx.getProc().getProcessDB().addProcess(proc);
     return proc;
   }

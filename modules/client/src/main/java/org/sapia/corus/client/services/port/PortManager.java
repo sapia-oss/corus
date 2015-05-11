@@ -18,6 +18,7 @@ import org.sapia.corus.client.exceptions.port.PortActiveException;
 import org.sapia.corus.client.exceptions.port.PortRangeConflictException;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
+import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.database.RevId;
 
 /**
@@ -25,7 +26,7 @@ import org.sapia.corus.client.services.database.RevId;
  * 
  * @author yduchesne
  */
-public interface PortManager extends java.rmi.Remote, Module {
+public interface PortManager extends java.rmi.Remote, Module, Dumpable {
 
   public static final String ROLE = PortManager.class.getName();
 
@@ -111,4 +112,5 @@ public interface PortManager extends java.rmi.Remote, Module {
    * @param revId the revision ID to use.
    */
   public void unarchive(RevId revId);
+  
 }

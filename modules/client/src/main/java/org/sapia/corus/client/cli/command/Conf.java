@@ -246,20 +246,20 @@ public class Conf extends CorusCliCommand {
       }
     }
     if (op == Op.ADD) {
-      Option pair = ctx.getCommandLine().assertOption(OPT_PROPERTY.getName(), false);
-      if ((pair.getValue() != null && !pair.getValue().contains("=")) || ctx.getCommandLine().containsOption(OPT_FILE.getName(), false)) {
+      Option propOption = ctx.getCommandLine().assertOption(OPT_PROPERTY.getName(), false);
+      if ((propOption.getValue() != null && !propOption.getValue().contains("=")) || ctx.getCommandLine().containsOption(OPT_FILE.getName(), false)) {
         File propFile = null;
         
         if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), false)) {
           propFile = ctx.getFileSystem().getFile(ctx.getCommandLine().getOptNotNull(OPT_FILE.getName()).getValueNotNull());
         } else {
-          propFile = ctx.getFileSystem().getFile(pair.getValueNotNull());
+          propFile = ctx.getFileSystem().getFile(propOption.getValueNotNull());
         }
         if (!propFile.exists()) {
-          throw new InputException("File does not exist: " + pair);
+          throw new InputException("File does not exist: " + propOption);
         }
         if (propFile.isDirectory()) {
-          throw new InputException("File is a directory: " + pair);
+          throw new InputException("File is a directory: " + propOption);
         }
 
         Properties props = new Properties();
@@ -279,13 +279,16 @@ public class Conf extends CorusCliCommand {
           }
         }
       } else {
-        int index = pair.getValueNotNull().indexOf('=');
-        if (index > 0) {
-          String name = pair.getValueNotNull().substring(0, index);
-          String value = pair.getValueNotNull().substring(1 + index);
-          ctx.getCorus().getConfigFacade().addProperty(scope, name, value, categorySet(ctx), getClusterInfo(ctx));
-        } else {
-          throw new InputException("Invalid property format; expected: <name>=<value>");
+        String[] nameValuePairs = StringUtils.split(propOption.getValue(), ",");
+        for (String nvp : nameValuePairs) {
+          int index = nvp.indexOf('=');
+          if (index > 0) {
+            String name = propOption.getValueNotNull().substring(0, index);
+            String value = propOption.getValueNotNull().substring(1 + index);
+            ctx.getCorus().getConfigFacade().addProperty(scope, name, value, categorySet(ctx), getClusterInfo(ctx));
+          } else {
+            throw new InputException("Invalid property format; expected: <name>=<value>");
+          }
         }
       }
     } else if (op == Op.MERGE) {

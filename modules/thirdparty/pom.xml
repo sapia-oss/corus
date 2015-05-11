@@ -10,7 +10,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>4.6.4</version>
+    <version>4.7-RC1</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -26,6 +26,7 @@
   <modules>
     <module>tomcat</module>
     <module>maven</module>
+    <module>chef</module>
   </modules>
 
 </project>

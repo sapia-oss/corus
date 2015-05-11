@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<name>Sapia Corus Chef Cookbook</name>
+	<description>The Corus Chef Cookbook</description>
+	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
+	<artifactId>sapia_corus_chef</artifactId>
+
+	<parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_thirdparty</artifactId>
+    <version>4.7-RC1</version>
+    <relativePath>..</relativePath>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<packaging>jar</packaging>
+
+</project>

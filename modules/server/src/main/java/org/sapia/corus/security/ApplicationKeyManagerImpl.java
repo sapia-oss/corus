@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.security.AppSubject;
@@ -157,5 +159,17 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
       }
     }
     return toReturn;
+  }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field("appKeys").beginObject();
+    appKeys.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    appKeys.load(dump.getObject("appKeys"));
   }
 }

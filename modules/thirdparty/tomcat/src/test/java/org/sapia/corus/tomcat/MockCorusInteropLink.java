@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.api.ConfigurationChangeListener;
 import org.sapia.corus.interop.api.Implementation;
+import org.sapia.corus.interop.api.ProcessEventListener;
 import org.sapia.corus.interop.api.ShutdownListener;
 import org.sapia.corus.interop.api.StatusRequestListener;
 
 public class MockCorusInteropLink implements Implementation {
 
-	private List<ShutdownListener> _shutdownListeners = new ArrayList<ShutdownListener>();
-	private List<StatusRequestListener> _statusListeners = new ArrayList<StatusRequestListener>();
+	private List<ShutdownListener> _shutdownListeners = new ArrayList<>();
+	private List<StatusRequestListener> _statusListeners = new ArrayList<>();
 	
 	@Override
 	public void addShutdownListener(ShutdownListener aListener) {
@@ -19,11 +21,19 @@ public class MockCorusInteropLink implements Implementation {
 	}
 
 	@Override
-	public void addStatusRequestListener(StatusRequestListener arg0) {
-		_statusListeners.add(arg0);
+	public void addStatusRequestListener(StatusRequestListener listener) {
+		_statusListeners.add(listener);
 	}
 
 	@Override
+  public void addProcessEventListener(ProcessEventListener listener) {
+  }
+
+  @Override
+  public void addConfigurationChangeListener(ConfigurationChangeListener listener) {
+  }
+
+  @Override
 	public String getCorusHost() {
 		throw new RuntimeException("Not implemented");
 	}

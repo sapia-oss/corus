@@ -11,7 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.security.CorusSecurityException;
@@ -19,6 +22,7 @@ import org.sapia.corus.client.services.security.CorusSecurityException.Type;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.configurator.PropertyChangeEvent;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.util.UriPattern;
 import org.sapia.ubik.net.TCPAddress;
@@ -179,6 +183,18 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     rc.save();
   }
   
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field("roles").beginObject();
+    roles.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    roles.load(dump.getObject("roles"));
+  }
+  
   // --------------------------------------------------------------------------
   // Config
 
@@ -190,7 +206,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    *          The pattern list of allowed hosts.
    */
   public void setAllowedHostPatterns(String patternList) {
-    doSetAllowedPatterns(patternList, PropertyChangeEvent.Type.ADD);
+    doSetAllowedPatterns(patternList, EventType.ADD);
   }
 
   /**
@@ -201,7 +217,7 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    *          The pattern list of denied hosts.
    */
   public void setDeniedHostPatterns(String patternList) {
-    doSetDeniedPatterns(patternList, PropertyChangeEvent.Type.ADD);
+    doSetDeniedPatterns(patternList, EventType.ADD);
   }
   
   // --------------------------------------------------------------------------
@@ -212,13 +228,16 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
    *          a {@link PropertyChangeEvent}.
    */
   public void onPropertyChangeEvent(PropertyChangeEvent event) {
-    if (event.getScope() == PropertyScope.SERVER) {
-      if (event.getName().equals(PROPERTY_ALLOW)) {
-        logger().debug("Got property change notification: " + PROPERTY_ALLOW);
-        doSetAllowedPatterns(event.getValue(), event.getType());
-      } else if (event.getName().equals(PROPERTY_DENY)) {
-        logger().debug("Got property change notification: " + PROPERTY_DENY);
-        doSetDeniedPatterns(event.getValue(), event.getType());
+    if (PropertyScope.SERVER == event.getScope()) {
+      for (Property property: event.getProperties()) {
+        if (PROPERTY_ALLOW.equals(property.getName())) {
+          logger().debug("Got property change notification: " + PROPERTY_ALLOW);
+          doSetAllowedPatterns(property.getValue(), event.getEventType());
+          
+        } else if (PROPERTY_DENY.equals(property.getName())) {
+          logger().debug("Got property change notification: " + PROPERTY_DENY);
+          doSetDeniedPatterns(property.getValue(), event.getEventType());
+        }
       }
     }
   }
@@ -267,24 +286,24 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     return isMatching;
   }
   
-  private void doSetAllowedPatterns(String patternList, PropertyChangeEvent.Type eventType) {
+  private void doSetAllowedPatterns(String patternList, PropertyChangeEvent.EventType eventType) {
     if (!Strings.isBlank(patternList)) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
         String pattern = patterns[i].trim();
         if (pattern.equals("localhost")) {
-          if (eventType == PropertyChangeEvent.Type.ADD) {
+          if (EventType.ADD == eventType) {
             log.debug("Adding ALLOW pattern: " + pattern);
             allowedPatterns.put(pattern, UriPattern.parse(LOCALHOST));
-          } else {
+          } else if (EventType.REMOVE == eventType) {
             log.debug("Removing ALLOW pattern: " + pattern);
             allowedPatterns.remove(pattern);
           }
         } else {
-          if (eventType == PropertyChangeEvent.Type.ADD) {
+          if (EventType.ADD == eventType) {
             log.debug("Adding ALLOW pattern: " + pattern);
             allowedPatterns.put(pattern, UriPattern.parse(pattern));
-          } else {
+          } else if (EventType.REMOVE == eventType) {
             log.debug("Removing ALLOW pattern: " + pattern);
             allowedPatterns.remove(pattern);
           }
@@ -294,24 +313,24 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
     }    
   }
   
-  private void doSetDeniedPatterns(String patternList, PropertyChangeEvent.Type eventType) {
+  private void doSetDeniedPatterns(String patternList, PropertyChangeEvent.EventType eventType) {
     if (!Strings.isBlank(patternList)) {
       String[] patterns = StringUtils.split(patternList, ',');
       for (int i = 0; i < patterns.length; i++) {
         String pattern = patterns[i].trim();
         if (pattern.equals("localhost")) {
-          if (eventType == PropertyChangeEvent.Type.ADD) {
+          if (EventType.ADD == eventType) {
             log.debug("Adding DENY pattern: " + pattern);
             deniedPatterns.put(pattern, UriPattern.parse(LOCALHOST));
-          } else {
+          } else if (EventType.REMOVE == eventType) {
             log.debug("Removing DENY pattern: " + pattern);
             deniedPatterns.remove(pattern);
           }
         } else {
-          if (eventType == PropertyChangeEvent.Type.ADD) {
+          if (EventType.ADD == eventType) {
             log.debug("Adding DENY pattern: " + pattern);
             deniedPatterns.put(pattern, UriPattern.parse(pattern));
-          } else {
+          } else if (EventType.REMOVE == eventType) {
             log.debug("Removing DENY pattern: " + pattern);
             deniedPatterns.remove(pattern);
           }

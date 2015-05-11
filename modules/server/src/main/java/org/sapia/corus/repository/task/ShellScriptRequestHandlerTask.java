@@ -34,7 +34,7 @@ public class ShellScriptRequestHandlerTask extends ArtifactRequestHandlerTaskSup
       @Override
       public DeploymentMetadata call(Boolean clustered) {
         return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(),
-            new ClusterInfo(clustered).addTargets(targets));
+            new ClusterInfo(clustered).addTargetEndpoints(targets));
       }
     });
   }

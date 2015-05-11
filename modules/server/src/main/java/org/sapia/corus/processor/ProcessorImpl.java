@@ -10,10 +10,14 @@ import java.util.concurrent.TimeUnit;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -36,6 +40,9 @@ import org.sapia.corus.client.services.processor.Process.ProcessTerminationReque
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
+import org.sapia.corus.configurator.PropertyChangeEvent;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
+import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -46,6 +53,7 @@ import org.sapia.corus.processor.task.KillTask;
 import org.sapia.corus.processor.task.MultiExecTask;
 import org.sapia.corus.processor.task.ProcessAutoshutDownConfirmTask;
 import org.sapia.corus.processor.task.ProcessCheckTask;
+import org.sapia.corus.processor.task.PublishConfigurationChangeTask;
 import org.sapia.corus.processor.task.RestartTask;
 import org.sapia.corus.processor.task.ResumeTask;
 import org.sapia.corus.processor.task.SuspendTask;
@@ -71,22 +79,25 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Autowired
   private ProcessorConfiguration configuration;
   @Autowired
-  DbModule db;
+  DbModule                db;
   @Autowired
-  private Deployer deployer;
+  private Deployer        deployer;
   @Autowired
-  private TaskManager taskman;
+  private TaskManager     taskman;
   @Autowired
   private EventDispatcher events;
   @Autowired
-  private HttpModule http;
+  private HttpModule      http;
   @Autowired
-  private PortManager portManager;
+  private PortManager     portManager;
   @Autowired
-  private OsModule os;
+  private OsModule        os;
 
   private ProcessRepository processes;
+  
   private ExecConfigDatabase execConfigs;
+  
+  private boolean isPublishProcessConfigurationChangeEnabled = false;
   
   public ProcessorConfiguration getConfiguration() {
     return configuration;
@@ -95,20 +106,32 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   // --------------------------------------------------------------------------
   // Visible for testing
   
-  void setDb(DbModule db) {
+  protected void setDb(DbModule db) {
     this.db = db;
   }
   
-  void setDeployer(Deployer deployer) {
+  protected void setDeployer(Deployer deployer) {
     this.deployer = deployer;
   }
   
-  void setConfiguration(ProcessorConfiguration configuration) {
+  protected void setTaskManager(TaskManager taskman) {
+    this.taskman = taskman;
+  }
+  
+  protected void setConfiguration(ProcessorConfiguration configuration) {
     this.configuration = configuration;
   }
   
-  void setEvents(EventDispatcher events) {
+  protected void setEvents(EventDispatcher events) {
     this.events = events;
+  }
+  
+  protected void setHttpModule(HttpModule http) {
+    this.http = http;
+  }
+  
+  protected boolean isPublishProcessConfigurationChangeEnabled() {
+    return this.isPublishProcessConfigurationChangeEnabled;
   }
 
   // --------------------------------------------------------------------------
@@ -157,7 +180,6 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     if (!configuration.autoRestartStaleProcesses()) {
       log.warn("Process auto-restart is disabled. Stale processes will not automatically be restarted");
     }
-
   }
 
   public void start() throws Exception {
@@ -178,6 +200,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getProcessCheckIntervalMillis()));
 
     events.addInterceptor(UndeploymentEvent.class, new ProcessorInterceptor());
+    
+    // Waiting for this service to be running before activating the process update feature (to avoid any startup mixed-up)
+    isPublishProcessConfigurationChangeEnabled = Boolean.parseBoolean(
+        serverContext().getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED, "false"));
+    events.addInterceptor(PropertyChangeEvent.class, new PropertyChangeInterceptor()); 
   }
 
   public void dispose() {
@@ -542,6 +569,29 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public void unarchiveExecConfigs(RevId revId) {
     execConfigs.unarchiveExecConfigs(revId);
   }
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field("processes").beginObject();
+    processes.dump(stream);
+    stream.endObject();
+    
+    stream.field("execConfigs").beginObject();
+    execConfigs.dump(stream);
+    stream.endObject();
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    processes.load(dump.getObject("processes"));
+    execConfigs.load(dump.getObject("execConfigs"));
+    
+    // touching the processes to that they're not deemed timed out in between 
+    // the dump/load operations
+    for (Process p : processes.getProcesses(ProcessCriteria.builder().all())) {
+      p.touch();
+    }
+  }
 
   private List<Status> copyStatus(List<Process> processes) {
     List<Status> stat = new ArrayList<Status>(processes.size());
@@ -558,11 +608,56 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private ProcStatus copyStatus(Process p) {
     return new ProcStatus(p);
   }
+  
+  /**
+   * Internal method that handles property change events.
+   * 
+   * @param event The property change event to process.
+   */
+  protected void doHandlePropertyChangeEvent(PropertyChangeEvent event) {
+    // Handle any server related property change
+    if (PropertyScope.SERVER == event.getScope()) {
+      if (event.containsProperty(CorusConsts.PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED)) {
+        Property property = event.getFirstPropertyFor(CorusConsts.PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED);
+        if (EventType.ADD == event.getEventType()) {
+          log.debug("Changing process configuration update to value: " + property.getValue());
+          isPublishProcessConfigurationChangeEnabled = Boolean.parseBoolean(property.getValue());
+        } else if (EventType.REMOVE == event.getEventType()) {
+          log.debug("Reverting process configuration update to base value (corus.properties file)");
+          isPublishProcessConfigurationChangeEnabled = Boolean.parseBoolean(
+              serverContext().getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED, "false"));
+        }
+        log.info("Process configuration update functionality is now " + (isPublishProcessConfigurationChangeEnabled? "activated": "disabled"));
+      }
+    }
+    
+    // Publication of configuration changes to processes (if enabled)
+    if (PropertyScope.PROCESS == event.getScope() && isPublishProcessConfigurationChangeEnabled) {
+      List<Property> updatedProps = new ArrayList<>();
+      if (EventType.ADD == event.getEventType()) {
+        updatedProps.addAll(event.getProperties());
+      }
+      
+      List<Property> deletedProps = new ArrayList<>();
+      if (EventType.REMOVE == event.getEventType()) {
+        deletedProps.addAll(event.getProperties());
+      }
+     
+      taskman.execute(new PublishConfigurationChangeTask(),
+          TaskParams.createFor(updatedProps, deletedProps));
+    }
+  }
 
   public class ProcessorInterceptor implements Interceptor {
-
     public void onUndeploymentEvent(UndeploymentEvent evt) {
       execConfigs.removeProcessesForDistribution(evt.getDistribution());
     }
   }
+  
+  public class PropertyChangeInterceptor implements Interceptor {
+    public void onPropertyChangeEvent(PropertyChangeEvent event) {
+      doHandlePropertyChangeEvent(event);
+    }
+  }
+  
 }

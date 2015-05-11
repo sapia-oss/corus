@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -15,8 +17,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
+import org.sapia.corus.client.common.ObjectUtils;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
@@ -25,7 +31,7 @@ import org.sapia.corus.client.services.database.DbModule;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
@@ -169,41 +175,86 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   // Property operations
 
   @Override
-  public void addProperty(final PropertyScope scope, final String name, final String value, Set<String> categories) {
-    if (scope == PropertyScope.PROCESS) {
+  public void addProperty(final PropertyScope scope, String name, String value, Set<String> categories) {
+    PropertyChangeEvent event = new PropertyChangeEvent(EventType.ADD, scope);
+    
+    if (PropertyScope.PROCESS == scope) {
       if (categories.isEmpty()) {
         store(PropertyScope.PROCESS).addProperty(name, value);
-        dispatcher.dispatch(new PropertyChangeEvent(name, value, null, scope, Type.ADD));
+        event.addProperty(new Property(name, value, null));
       } else {
         for (String c : categories) {
           String category = c.trim();
           if (category.length() > 0) {
             store(category, true).addProperty(name, value);
-            dispatcher.dispatch(new PropertyChangeEvent(name, value, category, scope, Type.ADD));
+            event.addProperty(new Property(name, value, category));
           }
         }
       }
-    } else{
+    } else if (PropertyScope.SERVER == scope) {
       store(PropertyScope.SERVER).addProperty(name, value);
-      dispatcher.dispatch(new PropertyChangeEvent(name, value, null, scope, Type.ADD));
+      event.addProperty(new Property(name, value, null));
+    }
+    
+    if (event.getProperties().size() > 0) {
+      dispatcher.dispatch(event);
     }
   }
 
   @Override
   public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting) {
-    if (scope == PropertyScope.PROCESS) {
+    Set<Property> deletedProperties = new LinkedHashSet<>();
+    Set<Property> addedProperties = new LinkedHashSet<>();
+
+    // 1. Process property changes
+    if (PropertyScope.PROCESS == scope) {
       if (categories.isEmpty()) {
-        doAddProperties(PropertyScope.PROCESS, props, null, store(PropertyScope.PROCESS), clearExisting);
+        PropertyStore store = store(PropertyScope.PROCESS);
+        if (clearExisting) {
+          doRemoveProperties(scope, null, store, ArgMatchers.any(), deletedProperties);
+        }
+        doAddProperties(scope, props, null, store, addedProperties);
       } else {
         for (String c : categories) {
           String category = c.trim();
           if (category.length() > 0) {
-            doAddProperties(PropertyScope.PROCESS, props, category, store(category, true), clearExisting);
+            PropertyStore store = store(category, true);
+            if (clearExisting) {
+              doRemoveProperties(scope, category, store, ArgMatchers.any(), deletedProperties);
+            }
+            doAddProperties(scope, props, category, store, addedProperties);
           }
         }
       }
-    } else {
-      doAddProperties(PropertyScope.SERVER, props, null, store(PropertyScope.SERVER), clearExisting);
+    } else if (PropertyScope.SERVER == scope) {
+      PropertyStore store = store(PropertyScope.SERVER);
+      if (clearExisting) {
+        doRemoveProperties(scope, null, store, ArgMatchers.any(), deletedProperties);
+      }
+      doAddProperties(scope, props, null, store, addedProperties);
+    }
+
+    // 2. Consolidate deleted and added properties
+    Map<NameCategoryKey, Property> deletedPropertyMap = new LinkedHashMap<>();
+    for (Property prop: deletedProperties) {
+      deletedPropertyMap.put(
+          new NameCategoryKey(prop.getName(), prop.getCategory().isSet()? prop.getCategory().get(): null), prop);
+    }
+    
+    for (Property prop: addedProperties) {
+      Property toDel = deletedPropertyMap.get(
+          new NameCategoryKey(prop.getName(), prop.getCategory().isSet()? prop.getCategory().get(): null));
+      if (toDel != null) {
+        deletedProperties.remove(toDel);
+      }
+    }
+    
+    // 3. Fire events
+    if (deletedProperties.size() > 0) {
+      dispatcher.dispatch(new PropertyChangeEvent(EventType.REMOVE, scope, deletedProperties));
+    }
+    if (addedProperties.size() > 0) {
+      dispatcher.dispatch(new PropertyChangeEvent(EventType.ADD, scope, addedProperties));
     }
   }
   
@@ -218,7 +269,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public Properties getProperties(PropertyScope scope, List<String> categories) {
-    if (scope == PropertyScope.PROCESS) {
+    if (PropertyScope.PROCESS == scope) {
       return doGetProcessProperties(categories, new PropertyAccumulator<Properties>() {
         private Properties result = new Properties();
         @Override
@@ -237,7 +288,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public List<Property> getPropertiesList(PropertyScope scope, List<String> categories) {
-    if (scope == PropertyScope.PROCESS) {
+    if (PropertyScope.PROCESS == scope) {
       return doGetProcessProperties(categories, new PropertyAccumulator<List<Property>>() {
         private List<Property> properties = new ArrayList<>();
         @Override
@@ -250,6 +301,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
           return properties;
         }
       });
+      
     } else {
       List<Property> propList = new ArrayList<>();
       Properties props = store(PropertyScope.SERVER).getProperties();
@@ -262,7 +314,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public List<Property> getAllPropertiesList(PropertyScope scope, Set<ArgMatcher> categories) {
-    if (scope == PropertyScope.PROCESS) {
+    if (PropertyScope.PROCESS == scope) {
       List<Property> propList = new ArrayList<>();
       if (categories.isEmpty()) {
         fillPropertyList(propList, store(PropertyScope.PROCESS), null);
@@ -281,6 +333,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
    
       Collections.sort(propList);
       return propList;
+      
     } else {
       return getPropertiesList(PropertyScope.SERVER, new ArrayList<String>(0));
     }
@@ -288,23 +341,29 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   
   @Override
   public void removeProperty(PropertyScope scope, ArgMatcher pattern, Set<ArgMatcher> categories) {
-    if (scope == PropertyScope.PROCESS) {
+    Set<Property> deletedProperties = new LinkedHashSet<>();
+    
+    if (PropertyScope.PROCESS == scope) {
       if (categories.isEmpty()) {
-        doRemoveProperties(scope, null, store(PropertyScope.PROCESS), pattern);
+        doRemoveProperties(scope, null, store(PropertyScope.PROCESS), pattern, deletedProperties);
       } else {
         for (ArgMatcher c : categories) {
           for (String k : processPropertiesByCategory.keySet()) {
             if (c.matches(k)) {
               PropertyStore store = processPropertiesByCategory.get(k);
               if (store != null) {
-                doRemoveProperties(scope, k, store, pattern);
+                doRemoveProperties(scope, k, store, pattern, deletedProperties);
               }
             }
           }
         }
       }
     } else {
-      doRemoveProperties(PropertyScope.SERVER, null, store(PropertyScope.SERVER), pattern);
+      doRemoveProperties(PropertyScope.SERVER, null, store(PropertyScope.SERVER), pattern, deletedProperties);
+    }
+    
+    if (deletedProperties.size() > 0) {
+      dispatcher.dispatch(new PropertyChangeEvent(EventType.REMOVE, scope, deletedProperties));
     }
   }
   
@@ -401,7 +460,56 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   }
 
   // --------------------------------------------------------------------------
-  // Restricted methods (visbible for testing)
+  // Dumpable interface
+  
+  @Override
+  public void dump(JsonStream stream) {
+    stream.field("properties").beginObject();
+
+    stream.field("server").beginObject();
+    serverProperties.dump(stream);
+    stream.endObject();
+    
+    stream.field("process").beginObject();
+    processProperties.dump(stream);
+    stream.endObject();
+    
+    stream.field("categories").beginArray();
+    for (String c : processPropertiesByCategory.keySet()) {
+      stream.beginObject().field("category").value(c);
+      PropertyStore store = processPropertiesByCategory.get(c);
+      store.dump(stream);
+      stream.endObject();
+    }
+    stream.endArray();
+    
+    stream.endObject();
+    
+    stream.field("tags").beginObject();
+    tags.dump(stream);
+    stream.endObject();
+    
+  }
+  
+  @Override
+  public void load(JsonInput dump) {
+    JsonInput props = dump.getObject("properties");
+    JsonInput serverProps = props.getObject("server");
+    serverProperties.load(serverProps);
+    JsonInput processProps = props.getObject("process");
+    processProperties.load(processProps);
+    
+    for (JsonInput categoryProps : props.iterate("categories")) {
+      String category = categoryProps.getString("category");
+      PropertyStore store = store(category, true);
+      store.load(categoryProps);
+    }
+ 
+    tags.load(dump.getObject("tags"));
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted methods (visible for testing)
 
   PropertyStore store(PropertyScope scope) {
     if (scope == PropertyScope.SERVER) {
@@ -431,30 +539,29 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     return new PropertyStore(db.getDbMap(String.class, ConfigProperty.class, "configurator.properties.process." + category));
   }
   
-  private void doAddProperties(PropertyScope scope, Properties props, String category, PropertyStore store, boolean clearExisting) {
-    if (clearExisting) {
-      Properties stored = store.getProperties();
-      for (String name : stored.stringPropertyNames()) {
-        String value = stored.getProperty(name);
-        store.removeProperty(name);
-        dispatcher.dispatch(new PropertyChangeEvent(name, value, category, scope, Type.REMOVE));
-      }
-    }
+  private void doAddProperties(PropertyScope scope, Properties props, String category, PropertyStore store, Set<Property> addedProperties) {
     for (String name : props.stringPropertyNames()) {
       String value = props.getProperty(name);
       if (value != null) {
         store.addProperty(name, value);
-        dispatcher.dispatch(new PropertyChangeEvent(name, value, category, scope, Type.ADD));
+        Property added = new Property(name, value, category);
+        addedProperties.add(added);
       }
     }
   }
   
-  private void doRemoveProperties(PropertyScope scope, String category, PropertyStore store, ArgMatcher pattern) {
-    for (String name : store.propertyNames()) {
+  private void doRemoveProperties(PropertyScope scope, String category, PropertyStore store, ArgMatcher pattern, Set<Property> deletedProperties) {
+    // Copy names to avoid concurrent modifications
+    List<String> propertyNames = new ArrayList<>();
+    for (String name: store.propertyNames()) {
+      propertyNames.add(name);
+    }
+    
+    for (String name : propertyNames) {
       if (pattern.matches(name)) {
         String value = store.getProperty(name);
         store.removeProperty(name);
-        dispatcher.dispatch(new PropertyChangeEvent(name, value, category, scope, Type.REMOVE));
+        deletedProperties.add(new Property(name, value, category));
       }
     } 
   }
@@ -511,20 +618,22 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     }
 
     public void onPropertyChangeEvent(PropertyChangeEvent event) {
-      if (event.getName().equals(propertyName)) {
+      if (event.containsProperty(propertyName)) {
         if (log.isDebugEnabled()) {
           log.debug("Property change detected for " + propertyName);
         }
-        
+        Property property = event.getFirstPropertyFor(propertyName);
+
         // if the operation is a removal, we want to reset to the default value.
-        if (event.getType() == Type.REMOVE) {
-          String defaultProp = defaultServerProperties.getProperty(event.getValue());
+        String updatedValue = property.getValue();
+        if (EventType.REMOVE == event.getEventType()) {
+          String defaultProp = defaultServerProperties.getProperty(propertyName);
           if (defaultProp != null) {
-            event = new PropertyChangeEvent(event.getName(), defaultProp, PropertyScope.SERVER, Type.ADD);
+            updatedValue = defaultProp;
           }
         }
-        dynProperty.setValue(converter.convertIfNecessary(event.getValue(), dynProperty.getType()));
-      }       
+        dynProperty.setValue(converter.convertIfNecessary(updatedValue, dynProperty.getType()));
+      }
     }
   }
 
@@ -548,6 +657,31 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
         value = nested.getProperty(name);
       }
       return value;
+    }
+  }
+  
+  public static class NameCategoryKey {
+    public String name;
+    public String category;
+    public NameCategoryKey(String aName, String aCategory) {
+      name = aName;
+      category = aCategory;
+    }
+    
+    @Override
+    public int hashCode() {
+      return ObjectUtils.safeHashCode(name, category);
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+      if (other instanceof NameCategoryKey) {
+        return ObjectUtils.safeEquals(name, ((NameCategoryKey) other).name) 
+            && ObjectUtils.safeEquals(category, ((NameCategoryKey) other).category);
+        
+      } else {
+        return false;
+      }
     }
   }
 

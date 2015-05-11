@@ -1,13 +1,19 @@
 package org.sapia.corus.client.services.processor;
 
+import java.io.Externalizable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
@@ -29,22 +35,32 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  * @author yduchesne
  * 
  */
-public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Serializable, Comparable<ExecConfig>, JsonStreamable {
-
+public class ExecConfig extends AbstractPersistent<String, ExecConfig> implements Externalizable, Comparable<ExecConfig>, JsonStreamable, Mappable {
   static final long serialVersionUID = 1L;
 
+  static final int VERSION_1 = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+
+  private int classVersion = CURRENT_VERSION;
+  
   private List<ProcessDef> processes = new ArrayList<ProcessDef>();
   private String  name, profile;
   private boolean startOnBoot;
   private boolean enabled = true;
   private int     id;
   
+  /**
+   * Meant for externalization only.
+   */ 
+  public ExecConfig() {
+  }
+  
   @Override
   @Transient
   public String getKey() {
     return name;
   }
-
+  
   /**
    * @return the name of the process to start.
    * @see ProcessConfig#getName()
@@ -165,10 +181,28 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
     toKeep.removeAll(toRemove);
     processes = toKeep;
   }
+
+  // --------------------------------------------------------------------------
+  // Mappeable
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("exec.name", name);
+    toReturn.put("exec.profile", profile);
+    toReturn.put("exec.startOnBoot", startOnBoot);
+    toReturn.put("exec.enabled", enabled);
+    toReturn.put("exec.processes", processes);
+    return toReturn;
+  }
+  
+  // --------------------------------------------------------------------------
+  // JsonStreamable
   
   @Override
   public void toJson(JsonStream stream) {
     stream.beginObject()
+      .field("classVersion").value(classVersion)
       .field("name").value(name)
       .field("profile").value(profile == null ? "N/A" : profile)
       .field("enabled").value(enabled)
@@ -178,23 +212,97 @@ public class ExecConfig extends AbstractPersistent<String, ExecConfig> implement
       stream.beginObject()
         .field("distribution").value(d.getDist())
         .field("version").value(d.getVersion())
-        .field("profile").value(d.getProfile())
+        .field("process").value(d.getName())
+        .field("profile").value(d.getProfile() == null ? (profile == null ? "N/A" : profile) : d.getProfile())
         .field("instances").value(d.getInstances())
       .endObject();
     }
     stream.endArray();
     stream.endObject();
   }
+  
+  public static ExecConfig fromJson(JsonInput in) {
+    int inputVersion = in.getInt("classVersion");
+    if (inputVersion == VERSION_1) {
+      ExecConfig c = new ExecConfig();
+      c.name = in.getString("name");
+      c.profile = in.getString("profile");
+      if (c.profile.equals("N/A")) {
+        c.profile = null;
+      }
+      c.enabled = in.getBoolean("enabled");
+      c.startOnBoot = in.getBoolean("startOnBoot");
+      for (JsonInput jsonProcessDef : in.iterate("processes")) {
+        ProcessDef def = new ProcessDef();
+        def.setDist(jsonProcessDef.getString("distribution"));
+        def.setVersion(jsonProcessDef.getString("version"));
+        def.setName(jsonProcessDef.getString("process"));
+        def.setProfile(jsonProcessDef.getString("profile"));
+        if (def.getProfile().equals("N/A")) {
+          def.setProfile(null);
+        }
+        def.setInstances(jsonProcessDef.getInt("instances"));
+        c.processes.add(def);
+      }
+      return c;
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Comparable
 
   @Override
   public int compareTo(ExecConfig other) {
     return name.compareTo(other.getName());
   }
+  
+  // --------------------------------------------------------------------------
+  // Object overrides
 
   public String toString() {
     return new StringBuilder("[").append("name=").append(name).append(", ").append("profile=").append(profile).append(", ").append("startOnBoot=")
         .append(startOnBoot).append(", ").append("processes=").append(processes).append(", ").append("]").toString();
   }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    
+    int inputVersion = in.readInt();
+    if (inputVersion == VERSION_1) {
+      processes   = (List<ProcessDef>) in.readObject();
+      name        = in.readUTF();
+      profile     = (String) in.readObject();
+      startOnBoot = in.readBoolean();
+      enabled     = in.readBoolean();
+      id          = in.readInt();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    classVersion = CURRENT_VERSION;
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    
+    out.writeInt(classVersion);
+    
+    out.writeObject(processes);
+    out.writeUTF(name);
+    out.writeObject(profile);
+    out.writeBoolean(startOnBoot);
+    out.writeBoolean(enabled);
+    out.writeInt(id);
+  }
+  
+  // ==========================================================================
+  // Inner classes
 
   public static final class RootElement {
 

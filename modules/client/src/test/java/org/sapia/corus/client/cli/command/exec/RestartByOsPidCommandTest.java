@@ -14,7 +14,7 @@ public class RestartByOsPidCommandTest {
     restart = new RestartByOsPidCommand();
   }
   
-  @Test(expected = InputException.class)
+  @Test
   public void testValidationOption_cluster() {
     restart.validate(CmdLine.parse("-cluster"));
   }

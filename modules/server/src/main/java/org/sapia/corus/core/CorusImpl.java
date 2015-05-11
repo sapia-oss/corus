@@ -1,11 +1,13 @@
 package org.sapia.corus.core;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.rmi.RemoteException;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
+import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.naming.JndiModule;
@@ -108,6 +110,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     moduleContext.setConfigLocation("org/sapia/corus/modules.xml");
     moduleContext.refresh();
     manager.addApplicationContext(moduleContext);
+    
 
     lifeCycle = manager;
 
@@ -124,5 +127,13 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
       throw new ServiceNotFoundException(String.format("No module found for: %s", module));
     }
     return toReturn;
+  }
+  
+  @Override
+  public String dump() {
+    StringWriter writer = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(writer);
+    lifeCycle.dump(stream);
+    return writer.toString();
   }
 }

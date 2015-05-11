@@ -1,10 +1,11 @@
 echo "killing processes..."
-kill -d ${corus.distribution.name} -v ${corus.distribution.version} -w
+kill all -w
 echo "removing config"
 port del -n *
 conf del -p *
 conf del -t *
 undeploy -e test
 
-echo "unarchiving previous configs"
-unarchive -rev previous
+echo "unarchiving previous state"
+unarchive previous
+deploy rev previous

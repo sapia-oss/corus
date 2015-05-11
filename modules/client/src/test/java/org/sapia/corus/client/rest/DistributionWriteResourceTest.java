@@ -22,6 +22,7 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.DeployerFacade;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DistributionWriteResourceTest {
@@ -62,7 +63,7 @@ public class DistributionWriteResourceTest {
     when(request.getValue("runScripts", "false")).thenReturn(new Value("backup", "0"));
     when(request.getValue("name")).thenReturn(new Value("name", "dist"));
     when(request.getValue("version")).thenReturn(new Value("version", "1.0"));
-
+    when(request.getValue("rev")).thenReturn(new Value("rev", "previous"));
   }
   
   @Test
@@ -80,13 +81,13 @@ public class DistributionWriteResourceTest {
   @Test
   public void testUndeployDistributionForCluster() throws Exception {
     resource.undeployDistributionForCluster(context);
-    verify(deployer).undeployDistribution(any(DistributionCriteria.class), any(ClusterInfo.class));
+    verify(deployer).undeployDistribution(any(DistributionCriteria.class), any(UndeployPreferences.class), any(ClusterInfo.class));
   }
 
   @Test
   public void testUndeployDistributionForHost() throws Exception {
     resource.undeployDistributionForCluster(context);
-    verify(deployer).undeployDistribution(any(DistributionCriteria.class), any(ClusterInfo.class));
+    verify(deployer).undeployDistribution(any(DistributionCriteria.class), any(UndeployPreferences.class), any(ClusterInfo.class));
   }
 
   

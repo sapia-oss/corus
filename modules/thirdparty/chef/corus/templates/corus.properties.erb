@@ -1,0 +1,52 @@
+corus.server.domain=<%=@domain%>
+corus.server.repository.node.type=<%=@repo_type%>
+
+<% if @log_sym_link_name != "UNDEFINED" %>
+corus.server.file.link.<%=log_sym_link_name%>.<%=@log_sym_link_path%>
+<% end %>
+
+corus.server.api.auth.required=<%=@api_auth_always%>
+corus.server.ssl.enabled=<%=@ssl_enabled%>
+corus.server.ssl.port=<%=@ssl_port%>
+corus.server.ssl.keystore.file=<%=@keystore_path%>
+corus.server.ssl.keystore.password=<%=@keystore_storepass%>
+corus.server.ssl.key.password=<%=@keystore_keypass%>
+
+<% if @broadcast_provider == "rabbitmq" %>
+ubik.rmi.naming.broadcast.camel.endpoint.uri=<%=@rabbitmq_url%>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.threadPoolSize=5
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.vhost=<%=@rabbitmq_vhost%>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.automaticRecoveryEnabled=true
+<% if @rabbitmq_addresses != "UNDEFINED" %>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.addresses=<%=@rabbitmq_addresses%>
+<% end %>
+<%if @rabbitmq_username != "UNDEFINED" %>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.username=<%=@rabbitmq_username%>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.password=<%=@rabbitmq_password%>
+<%end %>
+ubik.rmi.naming.broadcast.provider=camel
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.exchangeType=topic
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoDelete=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.durable=false
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.routingKey=corus.cluster.${corus.server.domain}
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoAck=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.header.rabbitmq.ROUTING_KEY=corus.cluster.${corus.server.domain}
+<% else %>
+ubik.rmi.naming.broadcast.provider=avis
+ubik.rmi.naming.broadcast.avis.url=<%=@avis_url%>
+<% end %>
+
+<% if @server_address_pattern != "UNDEFINED" %>
+ubik.rmi.address-pattern=<%=@server_address_pattern%>
+<% end %>
+
+<% if @consul_url != "UNDEFINED" %>
+corus.server.pub.consul.enabled=true
+corus.server.pub.consul.agent-url=<%=@consul_url%>
+corus.server.pub.consul.interval=<%=@consul_interval%>
+corus.server.pub.consul.ttl=<%=@consul_ttl%>
+<% end %>
+
+<% for property in @server_properties do %>
+<%=@property%>
+<% end %>

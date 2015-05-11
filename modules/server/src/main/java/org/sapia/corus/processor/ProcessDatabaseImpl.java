@@ -2,6 +2,8 @@ package org.sapia.corus.processor;
 
 import java.util.List;
 
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.processor.Process;
@@ -64,6 +66,16 @@ public class ProcessDatabaseImpl implements ProcessDatabase {
     }
 
     return current;
+  }
+  
+  @Override
+  public synchronized void dump(JsonStream stream) {
+    processes.dump(stream);
+  }
+  
+  @Override
+  public synchronized void load(JsonInput dump) {
+    processes.load(dump);
   }
   
   @Override

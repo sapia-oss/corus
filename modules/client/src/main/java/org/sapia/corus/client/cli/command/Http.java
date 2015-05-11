@@ -1,6 +1,7 @@
 package org.sapia.corus.client.cli.command;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,8 @@ import org.apache.http.util.EntityUtils;
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.Result;
+import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
@@ -26,6 +29,7 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 import org.sapia.ubik.util.Collects;
@@ -49,23 +53,25 @@ public class Http extends CorusCliCommand {
   private static final String CHECK_ARG = "check";
   private static final String POST_ARG  = "post";
   
-  private static final OptionDef URL_OPT          = new OptionDef("u", true);
-  private static final OptionDef MAX_ATTEMPTS_OPT = new OptionDef("m", true);
-  private static final OptionDef INTERVAL_OPT     = new OptionDef("t", true);
-  private static final OptionDef STATUS_OPT       = new OptionDef("s", true);
-  private static final OptionDef PORT_RANGE_OPT   = new OptionDef("p", true);
-  private static final OptionDef CONTEXT_PATH_OPT = new OptionDef("c", true);
-  private static final OptionDef PREFIX_OPT       = new OptionDef("x", true);
+  private static final OptionDef URL_OPT            = new OptionDef("u", true);
+  private static final OptionDef MAX_ATTEMPTS_OPT   = new OptionDef("m", true);
+  private static final OptionDef INTERVAL_OPT       = new OptionDef("t", true);
+  private static final OptionDef STATUS_OPT         = new OptionDef("s", true);
+  private static final OptionDef PORT_RANGE_OPT     = new OptionDef("p", true);
+  private static final OptionDef CONTEXT_PATH_OPT   = new OptionDef("c", true);
+  private static final OptionDef PREFIX_OPT         = new OptionDef("x", true);
+  private static final OptionDef EXPECTED_INSTANCES = new OptionDef("i", true);
   
   private static final List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
       URL_OPT, MAX_ATTEMPTS_OPT, INTERVAL_OPT, STATUS_OPT, 
-      PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT,
+      PORT_RANGE_OPT, CONTEXT_PATH_OPT, PREFIX_OPT, EXPECTED_INSTANCES,
       OPT_CLUSTER
   );
 
-  private static final int DEFAULT_STATUS       = 200;
-  private static final int DEFAULT_MAX_ATTEMPTS = 3;
-  private static final int DEFAULT_INTERVAL     = 30;
+  private static final int DEFAULT_STATUS             = 200;
+  private static final int DEFAULT_MAX_ATTEMPTS       = 12;
+  private static final int DEFAULT_INTERVAL           = 5;
+  private static final int DEFAULT_EXPECTED_INSTANCES = 1;
 
   @Override
   protected void doInit(CliContext context) {
@@ -101,6 +107,7 @@ public class Http extends CorusCliCommand {
     int maxAttempts = getOpt(ctx, MAX_ATTEMPTS_OPT.getName(), "" + DEFAULT_MAX_ATTEMPTS).asInt();
     int interval = getOpt(ctx, INTERVAL_OPT.getName(), "" + DEFAULT_INTERVAL).asInt();
     int expected = getOpt(ctx, STATUS_OPT.getName(), "" + DEFAULT_STATUS).asInt();
+    int instances = getOpt(ctx, EXPECTED_INSTANCES.getName(), "" + DEFAULT_EXPECTED_INSTANCES).asInt();
 
     if (ctx.getCommandLine().containsOption(URL_OPT.getName(), true)) {
       String url = ctx.getCommandLine().assertOption(URL_OPT.getName(), true).getValue();
@@ -108,7 +115,14 @@ public class Http extends CorusCliCommand {
     } else if (ctx.getCommandLine().containsOption(PORT_RANGE_OPT.getName(), false)) {
       String contextPath = getOptValue(ctx, CONTEXT_PATH_OPT.getName());
 
-      ClusterInfo cluster = getClusterInfo(ctx);
+      ClusterInfo cluster;
+      
+      if (!ctx.getCommandLine().containsOption(OPT_CLUSTER.getName(), false)) {
+        cluster = new ClusterInfo(true);
+        cluster.addTarget(ctx.getCorus().getContext().getServerHost().getEndpoint().getServerTcpAddress());
+      } else {
+        cluster = getClusterInfo(ctx);
+      }
 
       Map<ServerAddress, List<PortRange>> portRangesByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getPortManagementFacade()
           .getPortRanges(cluster));
@@ -132,15 +146,22 @@ public class Http extends CorusCliCommand {
         for (ServerAddress node : portRangesByNode.keySet()) {
           List<PortRange> ranges = portRangesByNode.get(node);
           for (PortRange r : ranges) {
-            if (isIncluded(portRangePatterns, r)
-                && hasProcessForRange(ctx, r, Collects.emptyIfNull(distsByNode.get(node)), Collects.emptyIfNull(tagsByNode.get(node)))) {
-              HttpAddress address = (HttpAddress) node;
-
-              for (Integer port : r.getActive()) {
-                String url = "http://" + address.getHost() + ":" + (portPrefix != null ? portPrefix + port : port);
-                url = FileUtils.append(url, contextPath);
-                doCheck(ctx, url, maxAttempts, expected, interval);
+            if (isIncluded(portRangePatterns, r)) {
+              List<ProcessCriteria> processSelectors = getProcessConfigsForRange(ctx, r, Collects.emptyIfNull(distsByNode.get(node)), Collects.emptyIfNull(tagsByNode.get(node)));
+              if (!processSelectors.isEmpty()) {
+                for (ProcessCriteria s : processSelectors) {
+                  ctx.getConsole().println("Will check processes running using port range: " + r.getName());
+                  waitForRunningProcesses(ctx, node, s, TimeUnit.MILLISECONDS.convert(interval, TimeUnit.SECONDS), maxAttempts, instances);
+                  HttpAddress address = (HttpAddress) node;
+                  for (Integer port : r.getActive()) {
+                    String url = "http://" + address.getHost() + ":" + (portPrefix != null ? portPrefix + port : port);
+                    url = FileUtils.append(url, contextPath);
+                    doCheck(ctx, url, maxAttempts, expected, interval);
+                  }
+                } 
               }
+            } else {
+              ctx.getConsole().println("Found not port ranges that apply: bypassing HTTP check");
             }
           }
         }
@@ -149,7 +170,7 @@ public class Http extends CorusCliCommand {
       throw new InputException("-u or -p option must be specified");
     }
   }
-
+  
   static void doPost(CliContext ctx) throws InputException {
     String url = ctx.getCommandLine().assertOption(URL_OPT.getName(), true).getValue();
     int expected = -1;
@@ -208,8 +229,9 @@ public class Http extends CorusCliCommand {
       sleep(TimeUnit.MILLISECONDS.convert(interval, TimeUnit.SECONDS));
     }
   }
-
-  static boolean hasProcessForRange(CliContext ctx, PortRange r, List<Distribution> nodeDists, Set<Tag> nodeTags) {
+  
+  static List<ProcessCriteria> getProcessConfigsForRange(CliContext ctx, PortRange r, List<Distribution> nodeDists, Set<Tag> nodeTags) {
+    List<ProcessCriteria> configs = new ArrayList<>();
     Set<Tag> corusTags = new HashSet<Tag>();
     if (nodeTags != null) {
       corusTags.addAll(nodeTags);
@@ -223,14 +245,52 @@ public class Http extends CorusCliCommand {
               Set<Tag> processTags = new HashSet<Tag>();
               processTags.addAll(Tag.asTags(d.getTagSet()));
               processTags.addAll(Tag.asTags(p.getTagSet()));
-              return processTags.isEmpty() || corusTags.containsAll(processTags);
+              if(processTags.isEmpty() || corusTags.containsAll(processTags)) {
+                ProcessCriteria criteria = ProcessCriteria.builder()
+                    .distribution(d.getName())
+                    .version(d.getVersion())
+                    .name(p.getName())
+                    .build();
+                configs.add(criteria);
+              }
             }
           }
         }
       }
     }
 
-    return false;
+    return configs;
+  }
+  
+  static void waitForRunningProcesses(
+      CliContext      ctx, 
+      ServerAddress   currentHost, 
+      ProcessCriteria criteria, 
+      long intervalMillis, int maxAttempts, int numberOfExpectedProcesses) {
+    
+    int         attempts = 0;
+    ClusterInfo cluster  = new ClusterInfo(true);
+    cluster.addTarget(currentHost);
+    
+    Set<org.sapia.corus.client.services.processor.Process> running = new HashSet<>();
+    
+    if (numberOfExpectedProcesses > 0) {
+      ctx.getConsole().println("HTTP check waiting for " + numberOfExpectedProcesses + " process(es) to start");
+    }
+    
+    while (attempts < maxAttempts && running.size() < numberOfExpectedProcesses) {
+      Results<List<org.sapia.corus.client.services.processor.Process>> tmp = ctx.getCorus().getProcessorFacade().getProcesses(criteria, cluster);
+      for (Result<List<org.sapia.corus.client.services.processor.Process>> d : tmp) {
+        running.addAll(d.getData());
+      }
+      sleep(intervalMillis);
+      attempts++;
+    }
+    
+    if (running.size() < numberOfExpectedProcesses) {
+      throw new AbortException(String.format("Number of expected running processes not respected for: %s:%s:%s. Expected %s processes, got %s", 
+          criteria.getDistribution(), criteria.getVersion(), criteria.getName(), numberOfExpectedProcesses, running.size()));
+    }
   }
 
   static boolean isIncluded(List<ArgMatcher> portRangePatterns, PortRange r) {

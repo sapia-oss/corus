@@ -3,7 +3,11 @@ package org.sapia.corus.client.services.database;
 import java.util.List;
 
 import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.Record;
+import org.sapia.ubik.util.Func;
 
 /**
  * Specifies the behavior for archiving/unarchiving {@link Revision}s.
@@ -35,4 +39,18 @@ public interface Archiver<K, V> {
    */
   public void clear(RevId revId);
   
+  /**
+   * @param stream the {@link JsonStream} to dump to.
+   * @param descriptor the {@link ClassDescriptor} corresponding to the type of value
+   * that this instance stores.
+   */
+  public void dump(JsonStream stream, ClassDescriptor<V> descriptor);
+  
+  /**
+   * @param input the {@link JsonInput} to load from.
+   * @param descriptor the {@link ClassDescriptor} corresponding to the type of value
+   * that this instance stores.
+   * @param the {@link Func}tion to use to convert json input.
+   */
+  public void load(JsonInput input,  ClassDescriptor<V> descriptor, Func<V, JsonInput> fromJsonFunction);  
 }

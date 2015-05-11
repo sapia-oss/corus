@@ -7,9 +7,11 @@ import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
 /**
@@ -38,7 +40,14 @@ public class BaseDeployer implements Deployer {
   }
 
   @Override
-  public ProgressQueue undeploy(DistributionCriteria criteria) throws RunningProcessesException {
+  public ProgressQueue undeploy(DistributionCriteria criteria, UndeployPreferences prefs) throws RunningProcessesException {
+    ProgressQueue q = new ProgressQueueImpl();
+    q.close();
+    return q;
+  }
+  
+  @Override
+  public ProgressQueue unarchiveDistributions(RevId revId) {
     ProgressQueue q = new ProgressQueueImpl();
     q.close();
     return q;

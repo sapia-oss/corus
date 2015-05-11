@@ -7,8 +7,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.net.InetAddress;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +18,7 @@ import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 import org.sapia.corus.configurator.PropertyChangeEvent;
-import org.sapia.corus.configurator.PropertyChangeEvent.Type;
+import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.util.UriPattern;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Localhost;
@@ -129,7 +127,7 @@ public class SecurityModuleImplTest {
 
   @Test
   public void testOnPropertyChangeEvent_allow_add() {
-    PropertyChangeEvent evt = new PropertyChangeEvent(SecurityModuleImpl.PROPERTY_ALLOW, "192.168.0.101", PropertyScope.SERVER, Type.ADD);
+    PropertyChangeEvent evt = new PropertyChangeEvent(EventType.ADD, SecurityModuleImpl.PROPERTY_ALLOW, "192.168.0.101", PropertyScope.SERVER);
     mod.onPropertyChangeEvent(evt);
     
     assertEquals(1, mod.getAllowedPatterns().size());
@@ -138,7 +136,7 @@ public class SecurityModuleImplTest {
   @Test
   public void testOnPropertyChangeEvent_allow_remove() {
     mod.getAllowedPatterns().put("192.168.0.101", UriPattern.parse("192.168.0.101"));
-    PropertyChangeEvent evt = new PropertyChangeEvent(SecurityModuleImpl.PROPERTY_ALLOW, "192.168.0.101", PropertyScope.SERVER, Type.REMOVE);
+    PropertyChangeEvent evt = new PropertyChangeEvent(EventType.REMOVE, SecurityModuleImpl.PROPERTY_ALLOW, "192.168.0.101", PropertyScope.SERVER);
     mod.onPropertyChangeEvent(evt);
     
     assertEquals(0, mod.getAllowedPatterns().size());
@@ -146,7 +144,7 @@ public class SecurityModuleImplTest {
   
   @Test
   public void testOnPropertyChangeEvent_deny_add() {
-    PropertyChangeEvent evt = new PropertyChangeEvent(SecurityModuleImpl.PROPERTY_DENY, "192.168.0.101", PropertyScope.SERVER, Type.ADD);
+    PropertyChangeEvent evt = new PropertyChangeEvent(EventType.ADD, SecurityModuleImpl.PROPERTY_DENY, "192.168.0.101", PropertyScope.SERVER);
     mod.onPropertyChangeEvent(evt);
     
     assertEquals(1, mod.getDeniedPatterns().size());
@@ -155,7 +153,7 @@ public class SecurityModuleImplTest {
   @Test
   public void testOnPropertyChangeEvent_deny_remove() {
     mod.getAllowedPatterns().put("192.168.0.101", UriPattern.parse("192.168.0.101"));
-    PropertyChangeEvent evt = new PropertyChangeEvent(SecurityModuleImpl.PROPERTY_DENY, "192.168.0.101", PropertyScope.SERVER, Type.REMOVE);
+    PropertyChangeEvent evt = new PropertyChangeEvent(EventType.REMOVE, SecurityModuleImpl.PROPERTY_DENY, "192.168.0.101", PropertyScope.SERVER);
     mod.onPropertyChangeEvent(evt);
     
     assertEquals(0, mod.getDeniedPatterns().size());

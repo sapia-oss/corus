@@ -88,7 +88,6 @@ abstract class RestartAndWaitCommandSupport extends AbstractExecCommand {
 
       }
     }
-    ctx.getConsole().println("Process restart completed on all nodes");
   }
 
 }

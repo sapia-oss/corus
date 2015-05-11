@@ -64,10 +64,15 @@ public class DistributionDeploymentHandler implements DeploymentHandler {
     log.info("Finished uploading " + meta.getFileName());
     ProgressQueue progress = new ProgressQueueImpl();
     progress.info("Distribution file uploaded, proceeding to deployment completion");
+    
+    File srcZip = FilePath.newInstance()
+        .addDir(configuration.getTempDir())
+        .setRelativeFile(file.getName()).createFile();
+    
     try {
       taskman.execute(
           new DeployTask(), 
-          TaskParams.createFor(file.getName(), meta.getPreferences()), 
+          TaskParams.createFor(srcZip, meta.getPreferences()), 
           SequentialTaskConfig.create(new TaskLogProgressQueue(progress))
       );
     } catch (Throwable e) {

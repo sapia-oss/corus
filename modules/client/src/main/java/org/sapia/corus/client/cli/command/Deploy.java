@@ -15,6 +15,7 @@ import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
@@ -33,13 +34,19 @@ public class Deploy extends CorusCliCommand {
   private static final OptionDef OPT_DESC_OR_DIR    = new OptionDef("d", true);
   private static final OptionDef OPT_ALIAS          = new OptionDef("a", true);
   private static final OptionDef OPT_DEPLOY_SCRIPTS = new OptionDef("r", false);
+  private static final OptionDef OPT_DEPLOY_REV     = new OptionDef("rev", true);
   private static final OptionDef OPT_SEQ            = new OptionDef("seq", false);
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
     OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, 
-    OPT_DEPLOY_SCRIPTS, OPT_SEQ,
+    OPT_DEPLOY_SCRIPTS, OPT_DEPLOY_REV, OPT_SEQ,
     OPT_CLUSTER
   );
+  
+  @Override
+  public List<OptionDef> getAvailableOptions() {
+    return AVAIL_OPTIONS;
+  }
   
   @Override
   protected void doInit(CliContext context) {
@@ -47,8 +54,10 @@ public class Deploy extends CorusCliCommand {
     
   @Override
   protected void doExecute(CliContext ctx) throws AbortException, InputException {
-
-    if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
+    if (ctx.getCommandLine().containsOption(OPT_DEPLOY_REV.getName(), false)) {
+      RevId revId = RevId.valueOf(ctx.getCommandLine().assertOption(OPT_DEPLOY_REV.getName(), true).getValue());
+      displayProgress(ctx.getCorus().getDeployerFacade().unarchiveDistributions(revId, getClusterInfo(ctx)), ctx);
+    } else if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
       deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF.getName(), true).getValue());
     } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
       deployFile(ctx, ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue());
@@ -71,11 +80,6 @@ public class Deploy extends CorusCliCommand {
     }
   }
   
-  @Override
-  public List<OptionDef> getAvailableOptions() {
-    return AVAIL_OPTIONS;
-  }
-
   private void deployDistribution(final CliContext ctx, final String fileName, final DeployPreferences prefs) throws AbortException, InputException {
     if (fileName.endsWith("xml")) {
       deployExec(ctx, fileName);

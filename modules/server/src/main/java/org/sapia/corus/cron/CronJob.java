@@ -1,8 +1,16 @@
 package org.sapia.corus.cron;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import org.apache.log.Hierarchy;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -18,17 +26,25 @@ import fr.dyade.jdring.AlarmListener;
  * 
  * @author Yanick Duchesne
  */
-public class CronJob extends AbstractPersistent<String, CronJob> implements java.io.Serializable, AlarmListener {
+public class CronJob extends AbstractPersistent<String, CronJob> implements Externalizable, AlarmListener, JsonStreamable {
 
   static final long serialVersionUID = 1L;
 
   private static final org.apache.log.Logger LOG = Hierarchy.getDefaultHierarchy().getLoggerFor(CronJob.class.getName());
 
+  static final int VERSION_1 = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+
+  private int classVersion = CURRENT_VERSION;
+  
   private transient CronModuleImpl owner;
   private transient ServerContext serverContext;
   private CronJobInfo info;
 
-  CronJob() {
+  /**
+   * Meant for externalization only.
+   */
+  public CronJob() {
   }
 
   CronJob(CronJobInfo info) {
@@ -84,5 +100,34 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements java
       entry.isRepetitive = false;
       owner.removeCronJob(info.getId());
     }
+  }
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    info.toJson(stream);
+  }
+  
+  public static CronJob fromJson(JsonInput in) {
+    CronJobInfo info = CronJobInfo.fromJson(in);
+    return new CronJob(info);
+  }
+  
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    int inputVersion = in.readInt();
+    if (inputVersion == VERSION_1) {
+      info = (CronJobInfo) in.readObject();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    classVersion = CURRENT_VERSION;
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    
+    out.writeInt(classVersion);
+    out.writeObject(info);
   }
 }

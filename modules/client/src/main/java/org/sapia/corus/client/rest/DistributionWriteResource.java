@@ -5,8 +5,11 @@ import java.io.File;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.rest.Value;
+import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.security.Permission;
 
 /**
@@ -40,6 +43,20 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
       file.delete();
     }
   }
+  
+  @Path({
+    "/clusters/{corus:cluster}/distributions",
+    "/clusters/{corus:cluster}/hosts/distributions/revisions/{corus:revId}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.DEPLOY)
+  public ProgressResult unarchiveDistributionsForCluster(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.clustered();
+    RevId       revId   = RevId.valueOf(context.getRequest().getValue("corus:revId").notNull().asString());
+    return progress(context.getConnector().getDeployerFacade().unarchiveDistributions(revId, cluster));
+  }
 
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/distributions"
@@ -61,6 +78,20 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
     }
   }
   
+  @Path({
+    "/clusters/{corus:cluster}/hosts/{corus:host}/distributions/revisions/{corus:revId}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.DEPLOY)
+  public ProgressResult unarchiveDistributionsForHost(RequestContext context) throws Exception {
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    RevId       revId   = RevId.valueOf(context.getRequest().getValue("corus:revId").notNull().asString());
+    return progress(context.getConnector().getDeployerFacade().unarchiveDistributions(revId, cluster));
+  }
+
+  
   // --------------------------------------------------------------------------
   // undeploy
 
@@ -79,7 +110,13 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
         .version(ArgMatchers.parse(context.getRequest().getValue("v").asString()))
         .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
-    return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster));
+    
+    Value               revId = context.getRequest().getValue("rev");
+    UndeployPreferences prefs = UndeployPreferences.newInstance();
+    if (revId.isSet()) {
+      prefs.revId(RevId.valueOf(revId.asString()));
+    }
+    return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, prefs, cluster));
   }  
   
   @Path({
@@ -96,7 +133,12 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
         .version(ArgMatchers.parse(context.getRequest().getValue("v").asString()))
         .backup(context.getRequest().getValue("backup", "0").asInt())
         .build();
-    return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, cluster));
+    Value               revId = context.getRequest().getValue("rev");
+    UndeployPreferences prefs = UndeployPreferences.newInstance();
+    if (revId.isSet()) {
+      prefs.revId(RevId.valueOf(revId.asString()));
+    }
+    return progress(context.getConnector().getDeployerFacade().undeployDistribution(criteria, prefs, cluster));
   }  
   
   // --------------------------------------------------------------------------

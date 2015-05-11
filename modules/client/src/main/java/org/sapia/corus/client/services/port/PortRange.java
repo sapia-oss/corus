@@ -10,12 +10,21 @@
 
 package org.sapia.corus.client.services.port;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.sapia.corus.client.annotations.Transient;
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
@@ -26,18 +35,26 @@ import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
  * @author yduchesne
  */
 public class PortRange extends AbstractPersistent<String, PortRange> 
-  implements java.io.Serializable, Comparable<PortRange>, JsonStreamable, Matcheable {
+  implements Externalizable, Comparable<PortRange>, JsonStreamable, Matcheable, Mappable {
 
   static final long serialVersionUID = 1L;
 
+  static final int VERSION_1 = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+
+  private int classVersion = CURRENT_VERSION;
+  
   private String name;
   private int min, max;
   private List<Integer> available = new ArrayList<Integer>();
   private List<Integer> active    = new ArrayList<Integer>();
-
-  PortRange() {
+  
+  /**
+   * Meant for externalization only.
+   */
+  public PortRange() {
   }
-
+  
   @Override
   @Transient
   public String getKey() {
@@ -146,6 +163,7 @@ public class PortRange extends AbstractPersistent<String, PortRange>
   @Override
   public synchronized void toJson(JsonStream stream) {
     stream.beginObject()
+      .field("classVersion").value(CURRENT_VERSION)
       .field("name").value(name)
       .field("min").value(min)
       .field("max").value(max)
@@ -153,12 +171,45 @@ public class PortRange extends AbstractPersistent<String, PortRange>
       .field("activePorts").numbers(active)
     .endObject();
   }
+  
+  public static PortRange fromJson(JsonInput in) {
+    try {
+
+      int inputVersion = in.getInt("classVersion");
+      if (inputVersion == VERSION_1) {
+        PortRange pr = new PortRange(
+            in.getString("name"),
+            in.getInt("min"),
+            in.getInt("max")
+        );
+        pr.available.clear();
+        pr.available.addAll(Arrays.asList(in.getIntObjectArray("availablePorts")));
+        pr.active.addAll(Arrays.asList(in.getIntObjectArray("activePorts")));
+        return pr;
+      } else {
+        throw new IllegalStateException("Unhandled version: " + inputVersion);
+      }
+    } catch (PortRangeInvalidException e) {
+      throw new IllegalStateException("Could not read PortRange from JSON", e);
+    }
+  }
 
   @Override
   public boolean matches(Pattern pattern) {
     return pattern.matches(name) || 
         pattern.matches(Integer.toString(min)) || 
         pattern.matches(Integer.toString(max));
+  }
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("range.name", name);
+    toReturn.put("range.min", min);
+    toReturn.put("range.max", max);
+    toReturn.put("range.available", available);
+    toReturn.put("range.active", active);
+    return toReturn;
   }
   
   @Override
@@ -175,4 +226,30 @@ public class PortRange extends AbstractPersistent<String, PortRange>
         .toString();
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public void readExternal(ObjectInput in) throws IOException,
+      ClassNotFoundException {
+    int inputVersion = in.readInt();
+    if (inputVersion == VERSION_1) {
+      name = in.readUTF();
+      min  = in.readInt();
+      max  = in.readInt();
+      available = (List<Integer>) in.readObject();
+      active    = (List<Integer>) in.readObject();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
+    classVersion = CURRENT_VERSION;
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeInt(classVersion);
+    out.writeUTF(name);
+    out.writeInt(min);
+    out.writeInt(max);
+    out.writeObject(available);
+    out.writeObject(active);
+  }
 }

@@ -46,7 +46,6 @@ public interface ProcessorFacade {
    */
   public Results<List<Process>> getProcesses(ProcessCriteria criteria, ClusterInfo cluster);
   
-  
   /**
    * Deploys the execution configuration whose file is given.
    * 

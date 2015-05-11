@@ -36,7 +36,12 @@ public class ProcessCriteria implements Externalizable {
    * Corresponds to the process id.
    */
   private ArgMatcher pid;
-
+  
+  /**
+   * Corresponds to the process OS pid.
+   */
+  private ArgMatcher osPid;
+  
   /**
    * Corresponds to the process profile.
    */
@@ -71,6 +76,10 @@ public class ProcessCriteria implements Externalizable {
 
   public ArgMatcher getPid() {
     return pid;
+  }
+  
+  public ArgMatcher getOsPid() {
+    return osPid;
   }
 
   public OptionalValue<String> getProfile() {
@@ -126,6 +135,7 @@ public class ProcessCriteria implements Externalizable {
       ClassNotFoundException {
     name         = (ArgMatcher) in.readObject();
     pid          = (ArgMatcher) in.readObject();
+    osPid        = (ArgMatcher) in.readObject();
     profile      = (OptionalValue<String>) in.readObject();
     distribution = (ArgMatcher) in.readObject();
     lifeCycles   = (Set<Process.LifeCycleStatus>) in.readObject();
@@ -137,6 +147,7 @@ public class ProcessCriteria implements Externalizable {
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(name);
     out.writeObject(pid);
+    out.writeObject(osPid);
     out.writeObject(profile);
     out.writeObject(distribution);
     out.writeObject(lifeCycles);
@@ -154,7 +165,7 @@ public class ProcessCriteria implements Externalizable {
    */
   public static final class Builder {
     
-    private ArgMatcher name, distribution, version, pid;
+    private ArgMatcher name, distribution, version, pid, osPid;
     private OptionalValue<String>       profile = OptionalValue.none();
     private OptionalValue<PortCriteria> ports   = OptionalValue.none();
     private Set<LifeCycleStatus>        lifeCycles;
@@ -173,6 +184,11 @@ public class ProcessCriteria implements Externalizable {
 
     public Builder pid(ArgMatcher pid) {
       this.pid = pid;
+      return this;
+    }
+    
+    public Builder osPid(ArgMatcher osPid) {
+      this.osPid = osPid;
       return this;
     }
 
@@ -226,6 +242,7 @@ public class ProcessCriteria implements Externalizable {
       criteria.name         = any();
       criteria.version      = any();
       criteria.pid          = any();
+      criteria.osPid        = any();
       criteria.profile      = OptionalValue.none();
       criteria.portCriteria = OptionalValue.none();
       return criteria;
@@ -240,6 +257,7 @@ public class ProcessCriteria implements Externalizable {
       }
       criteria.version = anyIfNull(version);
       criteria.pid     = anyIfNull(pid);
+      criteria.osPid   = anyIfNull(osPid);
       if (lifeCycles != null) {
         criteria.lifeCycles = lifeCycles;
       }

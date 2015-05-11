@@ -4,10 +4,16 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.ObjectUtils;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.json.JsonInput;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -16,10 +22,17 @@ import org.sapia.ubik.util.Strings;
  * @author yduchesne
  *
  */
-public class Property implements Externalizable, Comparable<Property>, Matcheable {
+public class Property implements Externalizable, Comparable<Property>, Matcheable, JsonStreamable, Mappable {
   
+  static final long serialVersionUID = 1L;
+ 
   private String name, value, category;
 
+  static final int VERSION_1       = 1;
+  static final int CURRENT_VERSION = VERSION_1;
+
+  private int classVersion = CURRENT_VERSION;
+  
   /**
    * DO NOT INVOKE: meant for externalization only.
    */
@@ -54,6 +67,18 @@ public class Property implements Externalizable, Comparable<Property>, Matcheabl
   }
   
   // --------------------------------------------------------------------------
+  // Mappable interface
+  
+  @Override
+  public Map<String, Object> asMap() {
+    Map<String, Object> toReturn = new HashMap<>();
+    toReturn.put("prop.name", name);
+    toReturn.put("prop.value", value);
+    toReturn.put("category", category == null ? "N/A" : category);
+    return toReturn;
+  }
+  
+  // --------------------------------------------------------------------------
   // Comparable interface
 
   @Override
@@ -81,6 +106,35 @@ public class Property implements Externalizable, Comparable<Property>, Matcheabl
     return value == null ? 
       pattern.matches(name) : 
       (pattern.matches(value) || pattern.matches(name));
+  }
+  
+  // --------------------------------------------------------------------------
+  // JsonStreamable interface
+
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("classVersion").value(classVersion)
+      .field("name").value(name)
+      .field("value").value(value)
+      .field("category").value(category == null ? "N/A" : category)
+    .endObject();
+  }
+  
+  public static Property fromJson(JsonInput input) {
+    int inputVersion = input.getInt("classVersion");
+    if (inputVersion == VERSION_1) {
+      Property p = new Property(
+          input.getString("name") , input.getString("value"), input.getString("category")
+      );
+      if (p.getCategory().equals("N/A")) {
+        p.category = null;
+      }
+      return p;
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
   }
   
   // --------------------------------------------------------------------------

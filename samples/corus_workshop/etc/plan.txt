@@ -1,0 +1,184 @@
+Overview
+  Topology
+    Cluster/domain
+    Discovery (IP multicast vs TCP group communication, cluster formation)
+  Concepts
+    Distributions
+    Processes
+    Corus Agent
+ 
+Installation
+  0) Install Java and set JAVA_HOME
+  sudo mkdir -p /etc/profile.d
+  echo "JAVA_HOME=$JAVA_HOME" > java_home.sh
+  echo "export PATH=$JAVA_HOME/bin:$PATH" >> java_home.sh
+  sudo mv java_home.sh /etc/profile.d/
+
+  1) Install Corus
+  source /etc/profile.d/java_home.sh
+  wget http://www.mediafire.com/download/ob6z82fq83u03x9/sapia_corus_server_package-develop-SNAPSHOT-linux64.tar.gz
+  mkdir -p $HOME/corus_workshop
+  tar --directory=./corus_workshop -xvf sapia_corus_server_package-develop-SNAPSHOT-linux64.tar.gz
+  rm sapia_corus_server_package-develop-SNAPSHOT-linux64.tar.gz
+  export CORUS_HOME=$PWD/corus_workshop/sapia_corus_server_package-develop-SNAPSHOT
+  echo "export CORUS_HOME=$CORUS_HOME" > corus_home.sh
+  echo "export PATH=$CORUS_HOME/bin:$PATH" >> corus_home.sh
+  sudo mv corus_home.sh /etc/profile.d/
+  echo "corus.server.domain=$USER" > $CORUS_HOME/config/corus_33000.properties
+  echo "corus.server.repository.node.type=client" >> $CORUS_HOME/config/corus_33000.properties
+  echo "ubik.rmi.naming.broadcast.provider=ubik.rmi.naming.broadcast.avis" >> $CORUS_HOME/config/corus_33000.properties
+  echo "ubik.rmi.naming.broadcast.avis.url=elvin://localhost" >> $CORUS_HOME/config/corus_33000.properties
+  corus
+  
+  2) Download the workshop files (* execute the following in a new terminal *)  
+  source /etc/profile.d/java_home.sh
+  source /etc/profile.d/corus_home.sh
+  cd $HOME/corus_workshop
+  wget http://www.mediafire.com/download/661mxjd9wsjhf4d/corus_sample_workshop-develop-SNAPSHOT-package.zip
+  unzip corus_sample_workshop-develop-SNAPSHOT-package.zip
+  rm corus_sample_workshop-develop-SNAPSHOT-package.zip
+  
+  3) Start the CLI
+  coruscli
+ 
+CLI
+  Control over a cluster
+  Online help
+  => man
+  Help for a single command
+  => man deploy
+ 
+Deployment
+  => deploy a distribution
+  deploy target/*v1.0.zip
+  => view the currently deployed distribution
+  ls
+  => undeploying
+  undeploy -d * -v *
+  
+Managing processes
+  => redeploy (examine the deploy script)
+  script etc/deploy-v1.corus
+  => view processes
+  ps
+  => restarting processes
+  restart -d * -v *
+  restart all
+  => suspending processes
+  suspend -d * -v *
+  => resuming processes
+  resume -d * -v *
+  => killing processes
+  kill all -w
+ 
+Process properties
+  => adding process properties
+  conf add -p test.property=test.value
+  => viewing process properties
+  conf ls
+  => check process stdout to see config change event output
+  => and hit process home page to view system properties modified with new property
+  => start process to show property
+  exec -d * -v 1.0 -n server -p std
+  => deleting process properties
+  conf del -p test.*
+  => check process stdout to see config change event output
+  => and hit process home page to view system properties purged from the removed properties
+  
+Port ranges
+  => what are port ranges?
+  => explain 'port add' command seen previously
+  => viewing port ranges
+  port ls
+  ps -ports
+  => explain port release, -f switch
+  => kill everything
+  kill all -w
+  => deleting port ranges
+  port del -n *
+  port ls
+  => adding port ranges
+  port add -n http -min 8100 -max 8105
+  port ls
+    
+Cluster management
+  => set up second Corus instance
+  => start second Corus instance
+  => view corus hosts
+  hosts
+  count hosts
+  => view cluster status
+  cluster status -cluster
+  => stop second Corus instance
+  
+Corus scripts
+  => overview
+  => explain scripts under deploy directory
+  => run deploy-v1.corus
+  script etc/deploy-v1.corus
+  => Equivalent: coruscli -s deploy/deploy-v1.corus
+  => kill processes, undeploy all, and show packaged scripts (explain notion of rollback)
+  kill all -w
+  undeploy all
+  => deploy with -r
+  deploy target/*v1.0.zip -r
+  => Equivalent: coruscli -c deploy target/*v1.0.zip -r
+  => check that processes are up
+  => deploy next version
+  deploy target/*v2.0.zip -r
+  => check that processes are up
+  => do ls/ps to show current version
+  ls
+  ps
+  => rollback
+  rollback -d corus-workshop -v 2.0
+  => do ls/ps to show that previous version is running
+  ls
+  ps
+  => review packaged scripts, explain 'archive' and 'deploy -rev', 'undeploy -rev' commands
+ 
+Tagging 
+  => explain tagging
+  => kill everything (start anew)
+  kill all -w
+  => tag one of the Corus instances
+  conf add -t runTaggedServer
+  conf ls -t
+  => explain execution configurations. Show exec.xml file. Start processes
+  exec -e *
+  => check that the tagged process is running
+  => delete the tags
+  conf del -t * 
+  conf ls -t
+  
+Repository
+  => kill everything (start anew) and undeploy
+  kill all -w
+  undeploy all
+  => Have everyone stop Corus: configure to point to same Avis, and change domain
+  cluster domain workshop
+  => The coach should stop his/her Corus instance. 
+  => Have everyone change their repo role
+  cluster repo client
+  => Ensure that all the nodes appear in the cluster
+  count hosts
+  cluster status -cluster
+  => Have everyone stop their Corus instance(s)
+  => The coach should configure the repo role of his/her Corus instance to 'server'
+  => The coach should start his/her Corus instance, and deploy to it
+  script etc/deploy-v1.corus
+  => Have everyone start a Corus instance
+  => Check that every repo client node receives the deployment and configs
+  => Check that the process is started across all the nodes
+  count ls -cluster
+  count ps -cluster
+  
+Ripple
+  => kill everything (start anew) and undeploy
+  kill all -w -cluster
+  undeploy all -cluster
+  => execute ripple (* adjust the batch size according to the number of participants *)
+  ripple -c "deploy target/*v1*.zip -r -cluster" -b 1
+  ripple -c "deploy target/*v2*.zip -r -cluster" -b 1
+  ripple -c "rollback -d corus-workshop -v 2.0 -cluster" -b 1
+    

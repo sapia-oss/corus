@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.services.Dumpable;
 
 /**
  * Specifies the interface of the module managing shell scripts.
@@ -13,7 +14,7 @@ import org.sapia.corus.client.common.ProgressQueue;
  * @author yduchesne
  * 
  */
-public interface ShellScriptManager extends Remote, Module {
+public interface ShellScriptManager extends Remote, Module, Dumpable {
 
   String ROLE = ShellScriptManager.class.getName();
 
