@@ -8,10 +8,10 @@
 	<artifactId>sapia_corus_chef</artifactId>
 
 	<parent>
-		<groupId>org.sapia</groupId>
-		<artifactId>sapia_corus_parent</artifactId>
-		<version>4.7-RC1</version>
-		<relativePath>..</relativePath>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_thirdparty</artifactId>
+    <version>4.7-RC1</version>
+    <relativePath>..</relativePath>
 	</parent>
 
 	<licenses>
