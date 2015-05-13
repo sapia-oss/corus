@@ -61,8 +61,10 @@ public class DistributionWriteResourceTest {
     when(request.getValue("v")).thenReturn(new Value("v", "version"));
     when(request.getValue("backup", "0")).thenReturn(new Value("backup", "0"));
     when(request.getValue("runScripts", "false")).thenReturn(new Value("backup", "0"));
-    when(request.getValue("name")).thenReturn(new Value("name", "dist"));
-    when(request.getValue("version")).thenReturn(new Value("version", "1.0"));
+    when(request.getValue("batchSize")).thenReturn(new Value("batchSize", null));
+    when(request.getValue("minHosts", "1")).thenReturn(new Value("minHosts", "1"));
+    when(request.getValue("corus:name")).thenReturn(new Value("corus:name", "dist"));
+    when(request.getValue("corus:version")).thenReturn(new Value("corus:version", "1.0"));
     when(request.getValue("rev")).thenReturn(new Value("rev", "previous"));
   }
   
