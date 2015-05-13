@@ -3,7 +3,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="index.html"/>
     <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
- 	  <sapia:vsection name="In 2 minutes" href="overview.html"/>    
+    <sapia:vsection name="In 2 minutes" href="overview.html"/>    
     <sapia:vsection name="Interop Spec" href="CorusInterop.pdf"/>  
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
   </sapia:vmenu>
@@ -243,35 +243,35 @@ corus.server.ssl.enabled=true</sapia:code>
           <p>
           All <tt>GET</tt> resources described further below return a JSON response for which a sample provided in the documentation.
           </p>
-		      <p>
-		        For other resources, they always return a JSON payload, consisting of the following in non-error situations:
-		      </p>
-		      <sapia:code>{
+          <p>
+            For other resources, they always return a JSON payload, consisting of the following in non-error situations:
+          </p>
+          <sapia:code>{
   "status": 200
 }</sapia:code>
-		      <p>
-		        When an error occurs, the following JSON response is returned:
-		      </p>
-		      <sapia:code>{
+          <p>
+            When an error occurs, the following JSON response is returned:
+          </p>
+          <sapia:code>{
   "status": &lt;error_code&gt;
   "stackTrace": "&lt;stack_trace&gt;"
 }</sapia:code>
 
-		      <p>
-		      The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
-		      relevant HTTP error code, given the error that occurred.
-		      </p>
-		      <sapia:note>Note that the <tt>stackTrace</tt> field is <tt>optional</tt>: a response may result in an error even if it is not the result
-		      of an exception being thrown. The <tt>status</tt> field is indicative of an error, even <tt>stackTrace</tt> field is absent.</sapia:note>
-		      
-		      <p>Of course, the HTTP status response header is always available. The status message, though, may or may not be present - consider it optional, 
-		      from Corus' standpoint.</p>
-		     
-		      <p>
-		        Some resources may return feedback (which are progress messages emitted by Corus). Such a feedback, if any, is provided by the <tt>feeback</tt>
-		        field, which holds an array of progress messages:
-		      </p>
-		      <sapia:code>{
+          <p>
+          The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
+          relevant HTTP error code, given the error that occurred.
+          </p>
+          <sapia:note>Note that the <tt>stackTrace</tt> field is <tt>optional</tt>: a response may result in an error even if it is not the result
+          of an exception being thrown. The <tt>status</tt> field is indicative of an error, even <tt>stackTrace</tt> field is absent.</sapia:note>
+          
+          <p>Of course, the HTTP status response header is always available. The status message, though, may or may not be present - consider it optional, 
+          from Corus' standpoint.</p>
+         
+          <p>
+            Some resources may return feedback (which are progress messages emitted by Corus). Such a feedback, if any, is provided by the <tt>feeback</tt>
+            field, which holds an array of progress messages:
+          </p>
+          <sapia:code>{
   "status": 200
   "feeback": [
     "&lt;message_1&gt;",
@@ -279,19 +279,19 @@ corus.server.ssl.enabled=true</sapia:code>
     "&lt;message_N&gt;"
   ]
 }</sapia:code>
-		      <sapia:note>
-		        If the backend did not provide such progress messages, then the <tt>feedback</tt> field will be present, with an empty array as its value.
-		        It may occur that a response results in an error, has not HTTP status message set, and has no stack trace. It will in such a case 
-		        have feedback.
-		      </sapia:note>
-		        
-		      <p>
-		        Last but not least, some resources have an asynchronous behavior: upon being invoked, they trigger an asynchronous task on the server side. At
-		        that point, a resource may return status <tt>OK</tt>, but the background task's outcome may eventually be an error. This API documents the behavior
-		        of the resources from that standpoint. Asynchronous behavior will by identified by <tt>ASYNC</tt> in the doc, whilst synchronous behavior will
-		        be labeled <tt>SYNC</tt>.
-		      </p>
-		      <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>.</sapia:note>
+          <sapia:note>
+            If the backend did not provide such progress messages, then the <tt>feedback</tt> field will be present, with an empty array as its value.
+            It may occur that a response results in an error, has not HTTP status message set, and has no stack trace. It will in such a case 
+            have feedback.
+          </sapia:note>
+            
+          <p>
+            Last but not least, some resources have an asynchronous behavior: upon being invoked, they trigger an asynchronous task on the server side. At
+            that point, a resource may return status <tt>OK</tt>, but the background task's outcome may eventually be an error. This API documents the behavior
+            of the resources from that standpoint. Asynchronous behavior will by identified by <tt>ASYNC</tt> in the doc, whilst synchronous behavior will
+            be labeled <tt>SYNC</tt>.
+          </p>
+          <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>.</sapia:note>
       
       </sapia:sect3>
 
@@ -369,7 +369,7 @@ corus.server.ssl.enabled=true</sapia:code>
     "name": "app-02"
   }
 ]</sapia:code>
-        </sapia:sect4>	      
+        </sapia:sect4>        
         
         <sapia:sect4 title="Get hosts">
           <p>
@@ -837,7 +837,20 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
 
 - Path variables:
   - clusterName: the name of the cluster to access
-  - host.......: a host literal (taking the form: ip_address:port)</sapia:code>
+  - host.......: a host literal (taking the form: ip_address:port)
+  
+- Parameters:
+  - runScripts (optional).: Executes the packaged scripts (as in the CLI's <tt>deploy -r</tt> command)
+  - batchSize (optional)..: If specified, indicates that graceful deployment should be performed. More 
+                            precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional)...: Used in the context of graceful deployment (see previous param): indicates
+                            at least how many hosts should be present in the cluster for the given
+                            batch size to apply. If that minimum is not observed, the batch size internally
+                            used will then be 1 (meaning deployment will be done to one host at a time).
+  - rev (optional)........: indicates the revision ID under which to archive the undeployed distribution(s) 
+                            (same as the CLI's -rev option)</sapia:code>
+
+
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
@@ -859,6 +872,35 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   - clusterName: the name of the cluster to access
   - host.......: a host literal (taking the form: ip_address:port)
   - revId......: the revision ID for which archived distributions should be unarchived and deployed.</sapia:code>
+        </sapia:sect4>
+
+        <sapia:sect4 title="Roll back distributions">
+          <p>
+          This call is similar to the CLI's <tt>rollback</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{corus:cluster}/distributions/{name}/{version}/rollback
+  /clusters/{corus:cluster}/hosts/{host}/distributions/{name}/{version}/rollback
+  
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
+  - name.......: the name of the distribution to rollback
+  - version....: the version of the distribution to rollback
+  
+- Parameters
+  - batchSize (optional)..: If specified, indicates that graceful rollback should be performed. More 
+                            precisely: tells at how many hosts at a time rollback should be done.
+  - minHosts (optional)...: Used in the context of graceful rollback (see previous param): indicates
+                            at least how many hosts should be present in the cluster for the given
+                            batch size to apply. If that minimum is not observed, the batch size internally
+                            used will then be 1 (meaning deployment will be done to one host at a time).</sapia:code>
         </sapia:sect4>
         
         <sapia:sect4 title="Undeploy distributions">

@@ -105,6 +105,39 @@ public class DistributionResourcesFuncTest {
   }
   
   @Test
+  public void testDeployDist_clustered_rippled() throws Exception {
+    File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
+        new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith("demo.zip");
+          }
+        }
+    );
+    assertEquals(1, matches.length, "Could not match");
+    
+    try(FileInputStream fis = new FileInputStream(matches[0])) {
+      JSONValue response = client.resource("/clusters/ftest/distributions")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
+      assertEquals(200, response.asObject().getInt("status"));
+    }
+ 
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
+    JSONArray dists = client.resource("/clusters/ftest/distributions")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(client.getHostCount(), dists.size());
+    
+  }
+  
+  @Test
   public void testUndeployDist_clustered() throws Exception {
     File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
         new FilenameFilter() {
