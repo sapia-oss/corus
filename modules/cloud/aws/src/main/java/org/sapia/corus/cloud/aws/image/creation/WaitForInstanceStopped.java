@@ -1,6 +1,6 @@
 package org.sapia.corus.cloud.aws.image.creation;
 
-import org.sapia.corus.cloud.aws.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
 
 /**
  * Extends the {@link InstanceStatusCheckSupport} to wait for a just lunched instance
@@ -12,7 +12,7 @@ import org.sapia.corus.cloud.aws.util.RetryCriteria;
 public class WaitForInstanceStopped extends InstanceStatusCheckSupport {
   
   public WaitForInstanceStopped() {
-    super("Pausing until instance has stopped", InstanceStatusCode.STOPPED);
+    super("pausing until instance has stopped", InstanceStatusCode.STOPPED);
   }
   
   @Override

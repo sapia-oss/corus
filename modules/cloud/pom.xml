@@ -24,9 +24,10 @@
 	<packaging>pom</packaging>
 
 	<modules>
-                <module>platform</module>
+		<module>platform</module>
 		<module>topology</module>
 		<module>aws</module>
+		<module>tools</module>
 	</modules>
 
 	<properties>
@@ -35,6 +36,23 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.sapia</groupId>
+				<artifactId>sapia_corus_cloud_platform</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sapia</groupId>
+				<artifactId>sapia_corus_cloud_topo</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_cloud_aws</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    
+      <!-- 
 			<dependency>
 				<groupId>org.apache.jclouds</groupId>
 				<artifactId>jclouds-all</artifactId>
@@ -70,11 +88,12 @@
 				<artifactId>jclouds-enterprise</artifactId>
 				<version>${jclouds.version}</version>
 			</dependency>
-	    <dependency>
-	      <groupId>org.apache.jclouds.provider</groupId>
-	      <artifactId>aws-ec2</artifactId>
-        <version>${jclouds.version}</version>
-	    </dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.provider</groupId>
+				<artifactId>aws-ec2</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			-->
 		</dependencies>
 	</dependencyManagement>
 </project>

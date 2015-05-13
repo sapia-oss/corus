@@ -16,7 +16,7 @@ import com.amazonaws.services.ec2.model.CreateImageResult;
  */
 public class InvokeCreateImage implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Creating image from instance";
+  private static final String DESC = "requesting creation of image";
   
   @Override
   public String getDescription() {

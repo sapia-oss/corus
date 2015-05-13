@@ -14,7 +14,7 @@ import com.amazonaws.services.ec2.model.DomainType;
  */
 public class AllocatePublicIp implements WorkflowStep<ImageCreationContext> {
 
-  private static final String DESC = "Allocating elastic IP";
+  private static final String DESC = "requesting allocation of Elastic IP to instance used for image creation";
   
   @Override
   public String getDescription() {

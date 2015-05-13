@@ -2,6 +2,7 @@ package org.sapia.corus.cloud.aws.image.userdata;
 
 /**
  * Installs Chef Solo under <code>/opt/chef/solo</code>.
+ * 
  * @author yduchesne
  *
  */

@@ -17,7 +17,7 @@ import com.google.common.base.Preconditions;
  */
 public class InvokeRunInstance implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Starting instance from which image will be created";
+  private static final String DESC = "requesting startup of instance used for image creation";
   
   @Override
   public String getDescription() {

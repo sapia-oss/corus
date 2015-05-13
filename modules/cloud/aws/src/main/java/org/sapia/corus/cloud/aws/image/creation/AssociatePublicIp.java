@@ -12,7 +12,7 @@ import com.amazonaws.services.ec2.model.AssociateAddressRequest;
  */
 public class AssociatePublicIp implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Associating elastic IP to instance";
+  private static final String DESC = "associating allocated Elastic IP to instance used for image creation";
   
   @Override
   public String getDescription() {

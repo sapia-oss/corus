@@ -17,7 +17,7 @@ import com.amazonaws.services.ec2.model.ReleaseAddressRequest;
  */
 public class DeallocatePublicIp implements WorkflowStep<ImageCreationContext>, GuardedExecutionCapable {
   
-  private static final String DESC = "Deallocating elastic IP used to connect to instance";
+  private static final String DESC = "deallocating elastic IP associated to instance used for image creation";
   private static final Set<Class<?>> PRE_REQS = new HashSet<Class<?>>();
   {
     PRE_REQS.add(AllocatePublicIp.class);

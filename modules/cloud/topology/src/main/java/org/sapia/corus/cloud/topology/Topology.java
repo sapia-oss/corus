@@ -7,6 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,8 +23,10 @@ import org.sapia.util.xml.confix.ReflectionFactory;
  *
  */
 public class Topology extends ParamContainer implements XmlStreamable, Validateable {
+ 
   
   private String org, application;
+  private String version = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
   
   private Set<EnvTemplate>     envTemplates     = new HashSet<>();
   private Set<MachineTemplate> machineTemplates = new HashSet<>();
@@ -46,6 +50,14 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
   
   public String getApplication() {
     return application;
+  }
+  
+  public void setVersion(String version) {
+    this.version = version;
+  }
+  
+  public String getVersion() {
+    return version;
   }
   
   public void addRegionTemplate(RegionTemplate regionTemplate) {
@@ -215,6 +227,9 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     if (environments.isEmpty()) {
       throw new IllegalArgumentException("No <env> child element(s) defined for <topology> element " + getApplication());
     }
+    if (version == null) {
+      throw new IllegalArgumentException("'version' attribute not set on <topology> element");
+    }
     for (Env env : environments) {
       env.validate();
     }
@@ -228,6 +243,7 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     stream.beginRootElement("topology");
     stream.attribute("org", org);
     stream.attribute("application", application);
+    stream.attribute("version", version);
     for (Param p : getParams()) {
       p.output(stream);
     }

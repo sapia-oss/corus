@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.corus.cloud.aws.image.userdata.UserDataPopulatorChain;
-import org.sapia.corus.cloud.aws.util.RetryCriteria;
-import org.sapia.corus.cloud.aws.util.TimeMeasure;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.TimeMeasure;
 import org.sapia.corus.cloud.platform.workflow.DefaultWorkflowLog;
 import org.sapia.corus.cloud.platform.workflow.WorkflowLog;
 
@@ -40,6 +40,7 @@ public class EC2ImageConf {
   String           iamRole;
   String           chefVersion           = DEFAULT_CHEF_VERSION;
   boolean          isYumUpdate           = true;
+  boolean          isAwsCliInstall       = true;
   int              corusPort             = DEFAULT_CORUS_PORT;
   String           corusImageNamePrefix  = DEFAULT_IMAGE_PREFIX;
   WorkflowLog      log                   = DefaultWorkflowLog.getDefault();
@@ -104,6 +105,10 @@ public class EC2ImageConf {
     return isYumUpdate;
   }
   
+  public boolean isAwsCliInstall(){
+    return isAwsCliInstall;
+  }
+  
   public UserDataPopulatorChain getUserDataPopulators() {
     return userDataPopulators;
   }
@@ -141,9 +146,13 @@ public class EC2ImageConf {
   }
 
   public void validate() {
-    Preconditions.checkNotNull(keypair, "Name of keypair must be provided");
-    Preconditions.checkNotNull(imageId, "Image ID must be provided");
-    Preconditions.checkNotNull(region, "Region must be specified");
+    Preconditions.checkState(awsCredentials != null, "AWS credentials not set");
+    Preconditions.checkState(keypair != null, "Name of keypair not set");
+    Preconditions.checkState(recipeAttributes != null, "Recipe attributes not set");
+    Preconditions.checkState(imageId != null, "Image ID not set");
+    Preconditions.checkState(region != null, "Region not set");
+    Preconditions.checkState(subnetId != null, "Subnet ID not set");
+    Preconditions.checkState(iamRole != null, "IAM role not set");
   }
   
 }

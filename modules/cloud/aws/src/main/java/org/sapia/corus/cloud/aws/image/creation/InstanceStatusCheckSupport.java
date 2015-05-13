@@ -1,7 +1,7 @@
 package org.sapia.corus.cloud.aws.image.creation;
 
-import org.sapia.corus.cloud.aws.util.RetryCriteria;
-import org.sapia.corus.cloud.aws.util.RetryLatch;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
 import com.amazonaws.AmazonServiceException;
@@ -72,7 +72,7 @@ public abstract class InstanceStatusCheckSupport implements WorkflowStep<ImageCr
         state                  = instance.getState();
         statusCode             = state.getCode();
         if (state.getCode() != expectedCode.value) {
-         context.getLog().info("Current instance state is: %s. Expected: %s", state.getName().toUpperCase(), expectedCode.name());
+         context.getLog().verbose("Current instance state is: %s. Expected: %s", state.getName().toUpperCase(), expectedCode.name());
         }
         
       } catch (AmazonServiceException e) {

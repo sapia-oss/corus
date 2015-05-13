@@ -1,15 +1,20 @@
 package org.sapia.corus.cloud.aws;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import net.sf.json.JSONObject;
 
 import org.sapia.corus.cloud.topology.Topology;
 
@@ -23,7 +28,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 
-import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.TemplateLoader;
@@ -40,6 +44,41 @@ import freemarker.template.TemplateException;
  */
 public class CloudFormationGenerator {
   
+  static class ClasspathTemplateLoader implements TemplateLoader {
+   
+    private String basePath;
+    
+    ClasspathTemplateLoader(String aBasePath) {
+      this.basePath = aBasePath;
+      if (!basePath.endsWith("/")) {
+        basePath = basePath + "/";
+      }
+    }
+    
+    @Override
+    public void closeTemplateSource(Object templateSource) throws IOException {
+    }
+    
+    @Override
+    public Object findTemplateSource(String name) throws IOException {
+      return getClass().getClassLoader().getResource(basePath + name);
+    }
+    
+    @Override
+    public long getLastModified(Object templateSource) {
+      return 0;
+    }
+    
+    @Override
+    public Reader getReader(Object templateSource, String encoding)
+        throws IOException {
+      return new BufferedReader(new InputStreamReader(((URL) templateSource).openStream(), encoding));
+    }
+    
+  }
+  
+  // ==========================================================================
+  
   /**
    * A builder of {@link CloudFormationGenerator}s.
    * 
@@ -54,7 +93,10 @@ public class CloudFormationGenerator {
     private Charset              charset    = Charsets.UTF_8;
     
     {
-      loaders.add(new ClassTemplateLoader(CloudFormationGenerator.class, "/template"));
+      loaders.add(new ClasspathTemplateLoader("org/sapia/corus/cloud/aws/template"));
+    }
+    
+    private Builder() {
     }
     
     /**
@@ -106,9 +148,18 @@ public class CloudFormationGenerator {
       gen.charset = charset;
       return gen;
     }
+    
+    /**
+     * @return a new instance of this class.
+     */
+    public static Builder newInstance() {
+      return new Builder();
+    }
   }
 
   // ==========================================================================
+  
+  private static final int INDENTATION = 2;
   
   private Configuration        templates  = new Configuration(Configuration.VERSION_2_3_22);
   private Map<String, String>  globalTags = new HashMap<String, String>();
@@ -139,10 +190,26 @@ public class CloudFormationGenerator {
     StringWriter writer = new StringWriter();
     template.process(model, writer);
     String nonFormatted = writer.toString();
-    return nonFormatted;
+    JSONObject parsed = JSONObject.fromObject(nonFormatted);
+    return parsed.toString(INDENTATION);
   }
   
   /**
+   * Generates a Cloud Formation file based on a default Freemarker template.
+   * 
+   * @param topo the {@link Topology} to process.
+   * @param env the name of the environment for which to generate a Cloud Formation.
+   * @return a cloud formation, as a JSON document.
+   * @throws IOException if an I/O error occurs.
+   * @throws TemplateException if a template processing problem occurs.
+   */
+  public void generateFile(Topology topo, String env, File output) throws IOException, TemplateException {
+    generateFile(topo, env, "cloudformation/cloud_formation.ftl", output);
+  }
+  
+  /**
+   * Generates a Cloud Formation file based on a Freemarker template whose path is specified.
+   * 
    * @param topo the {@link Topology} to process.
    * @param env the name of the environment for which to generate a Cloud Formation.
    * @param templatePath the path to the cloud formation template to use.
@@ -157,7 +224,7 @@ public class CloudFormationGenerator {
   public static void main(String[] args) throws Exception {
     File templateOut = new File("target/basic_topology.json");
     CloudFormationGenerator gen = new CloudFormationGenerator.Builder().build();
-    gen.generateFile(Topology.newInstance(new File("etc/basic_topology.xml")), "dev", "/aws/cloud_formation.ftl", templateOut);
+    gen.generateFile(Topology.newInstance(new File("etc/basic_topology.xml")), "dev", templateOut);
     
     CreateStackRequest req = new CreateStackRequest();
     req.setStackName("Corus-test");

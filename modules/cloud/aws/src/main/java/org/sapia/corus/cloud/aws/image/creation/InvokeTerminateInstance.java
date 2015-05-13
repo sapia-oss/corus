@@ -18,7 +18,7 @@ import com.google.common.collect.Lists;
  */
 public class InvokeTerminateInstance implements WorkflowStep<ImageCreationContext>, GuardedExecutionCapable {
   
-  private static final String DESC = "Terminating instance from which an image was created";
+  private static final String DESC = "invoking termination of instance used for image creation";
   
   private static final Set<Class<?>> PRE_REQS = new HashSet<Class<?>>();
   {

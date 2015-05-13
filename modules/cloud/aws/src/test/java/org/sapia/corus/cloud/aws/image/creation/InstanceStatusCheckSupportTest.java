@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.cloud.aws.image.creation.InstanceStatusCheckSupport.InstanceStatusCode;
-import org.sapia.corus.cloud.aws.util.RetryCriteria;
-import org.sapia.corus.cloud.aws.util.TimeMeasure;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.TimeMeasure;
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;

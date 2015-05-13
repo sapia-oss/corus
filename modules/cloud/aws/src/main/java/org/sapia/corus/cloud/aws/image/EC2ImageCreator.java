@@ -8,8 +8,8 @@ import java.util.Arrays;
 import org.apache.log4j.BasicConfigurator;
 import org.sapia.corus.cloud.aws.image.creation.ImageCreationContext;
 import org.sapia.corus.cloud.aws.image.creation.ImageCreationWorkflowFactory;
-import org.sapia.corus.cloud.aws.util.RetryCriteria;
-import org.sapia.corus.cloud.aws.util.TimeMeasure;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.TimeMeasure;
 import org.sapia.corus.cloud.platform.workflow.DefaultWorkflowLog;
 import org.sapia.corus.cloud.platform.workflow.Workflow;
 import org.sapia.corus.cloud.platform.workflow.WorkflowDiagnosticsHelper;
@@ -130,6 +130,15 @@ public class EC2ImageCreator {
      */
     public Builder withYumUpdate(boolean isYumUpdate) {
       this.conf.isYumUpdate = isYumUpdate;
+      return this;
+    }
+    
+    /**
+     * @param isAwsCliInstall if <code>true</code>, indicates that the <code>awscli</code> executable should be installed on the machine
+     * @return
+     */
+    public Builder withAwsCli(boolean isAwsCliInstall) {
+      this.conf.isAwsCliInstall = isAwsCliInstall;
       return this;
     }
     

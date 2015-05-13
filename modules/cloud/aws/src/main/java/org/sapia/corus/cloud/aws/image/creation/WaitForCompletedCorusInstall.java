@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.apache.http.HttpStatus;
-import org.sapia.corus.cloud.aws.util.RetryLatch;
+import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
 import com.google.common.io.CharStreams;
@@ -21,7 +21,7 @@ import com.google.common.io.CharStreams;
  */
 public class WaitForCompletedCorusInstall implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Waiting for completion of Corus installation";
+  private static final String DESC = "waiting for completion of Corus installation (this might take a few minutes)";
   
   @Override
   public String getDescription() {
@@ -42,7 +42,7 @@ public class WaitForCompletedCorusInstall implements WorkflowStep<ImageCreationC
           break;
         }
       } catch (IOException e) {
-        context.getLog().warning("I/O error caught while trying to connect to Corus: %s. Installation might not be finished, will retry", 
+        context.getLog().verbose("I/O error caught while trying to connect to Corus: %s. Installation might not be finished, will retry", 
             e.getMessage());
       } 
     } while (latch.incrementAndPause().shouldContinue());
@@ -57,7 +57,7 @@ public class WaitForCompletedCorusInstall implements WorkflowStep<ImageCreationC
     InputStream is = corusConn.getInputStream();
     try {
       String response = CharStreams.toString(new InputStreamReader(is));
-      context.getLog().info("Got response from Corus: %s", response);
+      context.getLog().verbose("Got response from Corus: %s", response);
       if (corusConn.getResponseCode() != HttpStatus.SC_OK) {
         throw new IllegalStateException("Could not get installation status from Corus. HTTP response status: " + corusConn.getResponseCode());
       }

@@ -46,8 +46,9 @@ public class UserDataPopulatorChain implements UserDataPopulator {
 
   public static UserDataPopulatorChain getDefaultInstance() {
     UserDataPopulatorChain chain = new UserDataPopulatorChain();
-    
-    //userDataPopulators.add(new YumUpdate());
+
+    chain.append(new InstallAwsCli());
+    chain.append(new YumUpdate());
     chain.append(new YumInstallGit());
     chain.append(new InstallChefSolo());
     chain.append(new InstallCookbooks());
@@ -55,6 +56,7 @@ public class UserDataPopulatorChain implements UserDataPopulator {
     chain.append(new RunChefSolo());
     chain.append(new SetEnv());
     chain.append(new AddCorusInstallStatusProperty());
+    
     return chain;
     
   }

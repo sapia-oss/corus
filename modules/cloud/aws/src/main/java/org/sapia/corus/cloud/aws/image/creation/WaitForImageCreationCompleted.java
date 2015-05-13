@@ -2,7 +2,7 @@ package org.sapia.corus.cloud.aws.image.creation;
 
 import java.util.Set;
 
-import org.sapia.corus.cloud.aws.util.RetryLatch;
+import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
@@ -12,7 +12,7 @@ import com.google.common.collect.Sets;
 
 public class WaitForImageCreationCompleted implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Waiting for completion of image creation";
+  private static final String DESC = "waiting for completion of image creation";
   
   private static final Set<String> FAILURE_STATES = Sets.newHashSet("invalid", "failed", "error");
   

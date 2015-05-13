@@ -20,7 +20,7 @@ import com.google.common.collect.Collections2;
  */
 public class ValidateRegion implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Validating specified region";
+  private static final String DESC = "validating specified region";
   
   @Override
   public String getDescription() {

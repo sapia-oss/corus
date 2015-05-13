@@ -12,7 +12,7 @@ import com.amazonaws.services.ec2.model.StopInstancesRequest;
  */
 public class InvokeStopInstance implements WorkflowStep<ImageCreationContext> {
   
-  private static final String DESC = "Stopping instance used for image creation";
+  private static final String DESC = "requesting stoppage of instance used for image creation";
   
   @Override
   public String getDescription() {
@@ -21,6 +21,6 @@ public class InvokeStopInstance implements WorkflowStep<ImageCreationContext> {
   
   @Override
   public void execute(ImageCreationContext context) throws Exception {
-    context.getEc2Client().stopInstances(new StopInstancesRequest().withInstanceIds(context.getAllocatedPublicIp()));
+    context.getEc2Client().stopInstances(new StopInstancesRequest().withInstanceIds(context.getStartedInstanceId()));
   }
 }
