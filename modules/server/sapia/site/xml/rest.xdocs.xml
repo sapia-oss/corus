@@ -850,6 +850,7 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
 - Behavior.......: SYNC
 - Request headers:
   - Accept......: application/json
+  
 - Resources:
   /clusters/{clusterName}/distributions/revisions/{revId}
   /clusters/{clusterName}/hosts/{host}/distributions/revisions/{revId}
