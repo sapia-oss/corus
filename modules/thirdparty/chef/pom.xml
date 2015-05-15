@@ -7,12 +7,12 @@
 	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
 	<artifactId>sapia_corus_chef</artifactId>
 
-	<parent>
-		<groupId>org.sapia</groupId>
-		<artifactId>sapia_corus_parent</artifactId>
-		<version>develop-SNAPSHOT</version>
-		<relativePath>..</relativePath>
-	</parent>
+        <parent>
+                <groupId>org.sapia</groupId>
+                <artifactId>sapia_corus_thirdparty</artifactId>
+                <version>develop-SNASHOT</version>
+                <relativePath>..</relativePath>
+        </parent>
 
 	<licenses>
 		<license>
