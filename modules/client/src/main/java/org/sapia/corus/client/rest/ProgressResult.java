@@ -35,6 +35,13 @@ public class ProgressResult implements JsonStreamable {
     this.isError = true;
     return this;
   }
+
+  /**
+   * @return <code>true</code> if the operation to which this instance corresponds resulted in an error.
+   */
+  public boolean isError() {
+    return isError;
+  }
   
   /**
    * @return the HTTP status that should be returned in the response headers of the HTTP response.
@@ -45,6 +52,17 @@ public class ProgressResult implements JsonStreamable {
     }
     
     return HttpResponseFacade.STATUS_SERVER_ERROR;
+  }
+  
+  /**
+   * @param result a {@link ProgressResult}.
+   */
+  public void add(ProgressResult result) {
+    for (String m : result.messages) {
+      messages.add(m);
+    }
+    error = result.error;
+    isError = result.isError;
   }
   
   @Override
@@ -68,10 +86,6 @@ public class ProgressResult implements JsonStreamable {
   
   List<String> getMessages() {
     return messages;
-  }
-  
-  boolean isError() {
-    return isError;
   }
   
 }

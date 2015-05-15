@@ -9,7 +9,6 @@ import org.sapia.corus.interop.api.ShutdownListener;
 public class ShutdownApplication {
 
   public static void main(String[] args) {
-    StdoutInit.init();
 
     System.out.println("Starting restart application...");
 

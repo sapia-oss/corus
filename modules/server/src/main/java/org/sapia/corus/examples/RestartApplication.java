@@ -22,7 +22,6 @@ import org.sapia.corus.interop.api.ShutdownListener;
  */
 public class RestartApplication {
   public static void main(String[] args) {
-    StdoutInit.init();
 
     System.out.println("Starting restart application...");
 

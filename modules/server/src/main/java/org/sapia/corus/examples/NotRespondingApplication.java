@@ -26,7 +26,6 @@ public class NotRespondingApplication {
   private static ArrayList _objects = new ArrayList();
 
   public static void main(String[] args) {
-    StdoutInit.init();
 
     System.out.println("Starting not responding application...");
 
