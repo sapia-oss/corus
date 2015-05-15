@@ -22,7 +22,6 @@ import org.sapia.corus.interop.api.ShutdownListener;
  */
 public class NoopApplication {
   public static void main(String[] args) {
-    StdoutInit.init();
 
     System.out.println("Starting noop application...");
 
