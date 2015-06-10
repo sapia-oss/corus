@@ -2,6 +2,7 @@ package org.sapia.corus.client.rest;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -25,8 +26,8 @@ import org.sapia.ubik.util.Func;
  */
 public class PropertiesResource {
   
-  private static final String SCOPE_SERVER  = "server";
-  private static final String SCOPE_PROCESS = "process";
+  private static final String SCOPE_SERVER    = "server";
+  private static final String SCOPE_PROCESS   = "process";
   
   private static final String PASSWORD_SUBSTR = "password";
   private static final String OBFUSCATION     = "********";
@@ -74,8 +75,8 @@ public class PropertiesResource {
     }
     
     final ArgMatcher propNameFilter = ArgMatchers.parse(context.getRequest().getValue("p", "*").asString());
-    final ArgMatcher catFilter      = category.isNull() ? ArgMatchers.any() : ArgMatchers.parse(category.asString()); 
-    Set<ArgMatcher> catFilters = Collects.arrayToSet(catFilter);
+    final ArgMatcher catFilter      = category.isNull() ? null : ArgMatchers.parse(category.asString()); 
+    Set<ArgMatcher>  catFilters     = catFilter == null ? new HashSet<ArgMatcher>() : Collects.arrayToSet(catFilter);
     Results<List<Property>> results = context.getConnector()
         .getConfigFacade().getAllProperties(scope, catFilters, cluster);
     results = results.filter(new Func<List<Property>, List<Property>>() {

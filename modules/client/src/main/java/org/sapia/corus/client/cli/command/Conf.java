@@ -283,8 +283,8 @@ public class Conf extends CorusCliCommand {
         for (String nvp : nameValuePairs) {
           int index = nvp.indexOf('=');
           if (index > 0) {
-            String name = propOption.getValueNotNull().substring(0, index);
-            String value = propOption.getValueNotNull().substring(1 + index);
+            String name  = nvp.substring(0, index);
+            String value = nvp.substring(1 + index);
             ctx.getCorus().getConfigFacade().addProperty(scope, name, value, categorySet(ctx), getClusterInfo(ctx));
           } else {
             throw new InputException("Invalid property format; expected: <name>=<value>");
