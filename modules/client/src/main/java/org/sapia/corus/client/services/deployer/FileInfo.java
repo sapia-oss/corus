@@ -6,6 +6,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Date;
 
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -14,13 +16,13 @@ import org.sapia.ubik.util.Strings;
  * @author yduchesne
  * 
  */
-public class FileInfo implements Externalizable {
+public class FileInfo implements Externalizable, JsonStreamable {
 
   static final long serialVersionUID = 1L;
 
   private String fileName;
-  private long length;
-  private Date lastModified;
+  private long   length;
+  private Date   lastModified;
 
   /**
    * Do not call: meant for externalization only.
@@ -73,6 +75,19 @@ public class FileInfo implements Externalizable {
     return Strings.toStringFor(this, "fileName", fileName);
   }
 
+  // --------------------------------------------------------------------------
+  // JsonStreamable
+  
+  @Override
+  public void toJson(JsonStream stream) {
+    stream.beginObject()
+      .field("name").value(fileName)
+      .field("lastModifiedTimeMillis").value(lastModified.getTime())
+      .field("lastModifiedTimestamp").value(lastModified)
+      .field("length").value(length)
+    .endObject();
+  }
+  
   // --------------------------------------------------------------------------
   // Externalizable
 
