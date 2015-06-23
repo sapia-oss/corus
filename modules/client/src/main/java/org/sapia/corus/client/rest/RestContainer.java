@@ -70,6 +70,8 @@ public class RestContainer {
      *  <li> {@link DistributionWriteResource}
      *  <li> {@link ExecConfigResource}
      *  <li> {@link ExecConfigWriteResource}
+     *  <li> {@link FileResource}
+     *  <li> {@link FileWriteResource}
      *  <li> {@link PortResource}
      *  <li> {@link PortWriteResource}
      *  <li> {@link ProcessResource}
@@ -90,6 +92,8 @@ public class RestContainer {
       .resource(new DistributionWriteResource())
       .resource(new ExecConfigResource())
       .resource(new ExecConfigWriteResource())
+      .resource(new FileResource())
+      .resource(new FileWriteResource())
       .resource(new PortResource())
       .resource(new PortWriteResource())
       .resource(new ProcessResource())

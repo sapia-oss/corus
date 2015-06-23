@@ -751,7 +751,6 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-
         
       </sapia:sect3>
       
-      
       <!-- ====================== DISTRIBUTIONS ====================== -->
       
       <sapia:sect3 title="Distributions">
@@ -841,10 +840,12 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   
 - Parameters:
   - runScripts (optional).: Executes the packaged scripts (as in the CLI's <tt>deploy -r</tt> command)
+    (version 4.7+)
   - batchSize (optional)..: If specified, indicates that graceful deployment should be performed. More 
-                            precisely: tells to how many hosts at a time deployment should be done.
+    (version 4.7+)          precisely: tells to how many hosts at a time deployment should be done.
+                    
   - minHosts (optional)...: Used in the context of graceful deployment (see previous param): indicates
-                            at least how many hosts should be present in the cluster for the given
+    (version 4.7+)          at least how many hosts should be present in the cluster for the given
                             batch size to apply. If that minimum is not observed, the batch size internally
                             used will then be 1 (meaning deployment will be done to one host at a time).
   - rev (optional)........: indicates the revision ID under which to archive the undeployed distribution(s) 
@@ -854,7 +855,7 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
         
         <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
         </sapia:sect4>
-        <sapia:sect4 title="Deploy archived distributions">
+        <sapia:sect4 title="Deploy archived distributions (version 4.7+)">
           <p>
           This call is similar to the CLI's <tt>deploy rev &lt;revId&gt;</tt> command.
           </p>
@@ -896,9 +897,9 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
   
 - Parameters
   - batchSize (optional)..: If specified, indicates that graceful rollback should be performed. More 
-                            precisely: tells at how many hosts at a time rollback should be done.
+    (version 4.7+)          precisely: tells at how many hosts at a time rollback should be done.
   - minHosts (optional)...: Used in the context of graceful rollback (see previous param): indicates
-                            at least how many hosts should be present in the cluster for the given
+    (version 4.7+)          at least how many hosts should be present in the cluster for the given
                             batch size to apply. If that minimum is not observed, the batch size internally
                             used will then be 1 (meaning deployment will be done to one host at a time).</sapia:code>
         </sapia:sect4>
@@ -924,8 +925,8 @@ http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*</sapia:cod
 - Parameters:
   - d (optional).....: a distribution name    (pattern matching supported)
   - v (optional).....: a distribution version (pattern matching supported)
-  - rev (optional)...: indicates the revision ID under which to archive the undeployed distribution(s) (same as the CLI's -rev 
-                       option)
+  - rev (optional)...: indicates the revision ID under which to archive the 
+    (version 4.7+)     undeployed distribution(s) (same as the CLI's -rev option)
   - backup (optional): indicates how many distributions should be kept on the 
                        Corus server as backup (same as the CLI's -backup 
                        option)</sapia:code>
@@ -1803,6 +1804,97 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/archive?
 http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/unarchive?revId=previous</sapia:code>
         </sapia:sect4>
            
+      </sapia:sect3>
+      
+      <!-- ====================== Files ====================== -->
+      
+      <sapia:sect3 title="Files (version 4.7+)">
+        <p>
+        The sub-sections below explain how the REST API can be used to deploy/undeploy files. These are saved under the
+        <tt>$CORUS_HOME/files/uploads</tt> directory by default - this can be overridden at upload time.
+        </p>
+        <sapia:sect4 title="Get files">
+          <p>
+            
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/{fileName}
+
+- Path variables:
+  - fileName...: the name of the file information to return (pattern matching supported)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)</sapia:code>
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/files/*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/files/*.txt</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "name": "content.txt",
+      "lastModifiedTimeMillis": 1416796872842,
+      "lastModifiedTimestamp": "2014-11-24T02:41:12:012Z",
+      "length": "290360"
+    }
+  }
+]</sapia:code>      
+        </sapia:sect4>
+        <sapia:sect4 title="Deploy files">
+          <p>
+          This call is similar to the CLI's <tt>deploy -f</tt> command.
+          </p>
+          <sapia:code>PUT
+- Permission......: DEPLOY
+- Behavior........: SYNC
+- Request headers:
+  - Accept........: application/json
+  - Content-Type..: application/octet-stream
+  - Content-Length: &lt;payload_size_in_bytes&gt;
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/{fileName}
+
+- Path variables:
+  - fileName...: the name of the file being uploaded
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
+  
+- Parameters:
+  - d (optional).: the directory on the Corus node(s) to which the file should be uploaded.</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the file being uploaded</p>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Undeploy files">
+          <p>
+          This call is similar to the CLI's <tt>undeploy -f</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/files/{fileName}
+
+- Path variables:
+  - fileName...: the name of the file(s) being deleted (pattern matching supported)
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)</sapia:code>
+        </sapia:sect4>
       </sapia:sect3>
     
     </sapia:sect2>
