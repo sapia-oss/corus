@@ -10,7 +10,7 @@
         <parent>
                 <groupId>org.sapia</groupId>
                 <artifactId>sapia_corus_thirdparty</artifactId>
-                <version>develop-SNASHOT</version>
+                <version>4.7-RC5</version>
                 <relativePath>..</relativePath>
         </parent>
 
