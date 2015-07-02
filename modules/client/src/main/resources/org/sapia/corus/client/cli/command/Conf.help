@@ -85,6 +85,7 @@
     <p>conf add -s s -p corus.process.timeout=25,corus.process.kill-interval=30</p>
     <p>conf add -p myprop=myvalue</p>
     <p>conf add -p myprop=myvalue -c category1,category2</p>
+    <p>conf add -p prop0=value00\\,value01,prop1=value1 -c category1,category2</p>
     <p>conf add -s s -p -f myServerProperties.properties</p>
     <p>conf add -f myProcessProperties.properties</p>
     <p>conf add -t singletons</p>

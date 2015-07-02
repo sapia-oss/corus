@@ -37,6 +37,7 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.CompositePattern;
 import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.common.PropertiesTokenizer;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
@@ -279,17 +280,8 @@ public class Conf extends CorusCliCommand {
           }
         }
       } else {
-        String[] nameValuePairs = StringUtils.split(propOption.getValue(), ",");
-        for (String nvp : nameValuePairs) {
-          int index = nvp.indexOf('=');
-          if (index > 0) {
-            String name  = nvp.substring(0, index);
-            String value = nvp.substring(1 + index);
-            ctx.getCorus().getConfigFacade().addProperty(scope, name, value, categorySet(ctx), getClusterInfo(ctx));
-          } else {
-            throw new InputException("Invalid property format; expected: <name>=<value>");
-          }
-        }
+        PropertiesTokenizer tk = new PropertiesTokenizer(propOption.getValue());
+        ctx.getCorus().getConfigFacade().addProperties(scope, tk.asProperties(), categorySet(ctx), false, getClusterInfo(ctx));
       }
     } else if (op == Op.MERGE) {
       Properties processProps = new Properties();
