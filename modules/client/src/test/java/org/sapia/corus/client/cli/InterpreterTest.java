@@ -16,11 +16,13 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.sapia.console.AbortException;
@@ -84,7 +86,11 @@ public class InterpreterTest {
 
     console.eval("conf add -p name=value\\=123", StrLookup.systemPropertiesLookup());
 
-    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("name"), eq("value\\=123"), anySetOf(String.class), any(ClusterInfo.class));
+    ArgumentCaptor<Properties> propsArg = ArgumentCaptor.forClass(Properties.class);
+    
+    verify(config).addProperties(eq(PropertyScope.PROCESS), propsArg.capture(), anySetOf(String.class), eq(false), any(ClusterInfo.class));
+    Properties props = propsArg.getValue();
+    assertEquals(props.getProperty("name"), "value=123");
   }
 
   @Test(expected = AbortException.class)
