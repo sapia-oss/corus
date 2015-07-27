@@ -25,7 +25,7 @@ public class FileUtils {
    * @return
    */
   public static boolean isAbsolute(String path) {
-    return path.startsWith("/") || isWindowsDrive(path);
+    return path.startsWith("/") || path.startsWith("\\") || isWindowsDrive(path);
   }
 
   /**
@@ -55,23 +55,37 @@ public class FileUtils {
    */
   public static FileInfo getFileInfo(String path) {
     String trimmedPath = path.trim();
-    int separatorIndex = trimmedPath.lastIndexOf("/");
-    FileInfo info = new FileInfo();
-    if (trimmedPath.endsWith("/")) {
-      info.directory = path;
-      info.isClasses = true;
-    } else if (separatorIndex > 1) {
-      String fileName = path.substring(separatorIndex + 1);
-      if (fileName.contains(".")) {
-        info.directory = path.substring(0, separatorIndex);
-        info.fileName = fileName;
+    if (trimmedPath.length() > 0) {
+      if (isPathSeparator(trimmedPath.charAt(trimmedPath.length() -1 ))) {
+        FileInfo fi = new FileInfo();
+        fi.directory = path;
+        fi.isClasses = true;
+        return fi;
       } else {
-        info.directory = path;
+        FileInfo fi = new FileInfo();
+        int separatorIndex = trimmedPath.lastIndexOf("/");
+        if (separatorIndex < 0) {
+          separatorIndex = trimmedPath.lastIndexOf("\\");
+        }
+        if (separatorIndex > 1) {
+          String fileName = path.substring(separatorIndex + 1);
+          if (fileName.contains(".")) {
+            fi.directory = path.substring(0, separatorIndex);
+            fi.fileName = fileName;
+          } else {
+            fi.directory = path;
+          }
+        } else {
+          fi.directory = path;
+        }
+        return fi;
       }
     } else {
-      info.directory = path;
+      FileInfo fi = new FileInfo();
+      fi.directory = path;
+      fi.isClasses = false;
+      return fi;
     }
-    return info;
   }
   
   /**
@@ -163,7 +177,7 @@ public class FileUtils {
     if (toConcat != null) {
       for (int i = 0; i < toConcat.length; i++) {
         if (i > 0) {
-          sb.append("/");
+          sb.append(File.separator);
         }
         sb.append(toConcat[i]);
       }

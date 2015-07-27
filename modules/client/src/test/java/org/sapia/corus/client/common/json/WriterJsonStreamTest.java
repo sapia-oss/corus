@@ -101,7 +101,7 @@ public class WriterJsonStreamTest {
   @Test
   public void testEndObject() {
     stream.endObject();
-    assertEquals("}\n", delegate.getBuffer().toString());
+    assertEquals("}", delegate.getBuffer().toString().trim());
   }
 
 }

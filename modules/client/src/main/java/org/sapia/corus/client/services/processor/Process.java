@@ -825,7 +825,7 @@ public class Process extends AbstractPersistent<String, Process>
       distributionInfo = (DistributionInfo) in.readObject();
       processID        = in.readUTF();
       processDir       = in.readUTF();
-      pid              = in.readUTF();
+      pid              = (String) in.readObject();
       deleteOnKill     = in.readBoolean();
       lock             = new ProcessLock();
       creationTime     = in.readLong();
@@ -850,7 +850,7 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeObject(distributionInfo);
     out.writeUTF(processID);
     out.writeUTF(processDir);
-    out.writeUTF(pid);
+    out.writeObject(pid);
     out.writeBoolean(deleteOnKill);
     out.writeLong(creationTime);
     out.writeLong(lastAccess);
