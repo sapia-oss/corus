@@ -71,17 +71,17 @@ public class FileUtilsTest {
   
   @Test
   public void testAppendWithSeparatorInPathAndSubPath() {
-    assertEquals("path" + File.separator + "subPath", FileUtils.append("path/", "/subPath"));
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path" + File.separator, File.separator + "subPath"));
   }
 
   @Test
   public void testAppendWithSeparatorInPath() {
-    assertEquals("path" + File.separator + "subPath", FileUtils.append("path/", "subPath"));
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path" + File.separator, "subPath"));
   }
 
   @Test
   public void testAppendWithSeparatorInSubPath() {
-    assertEquals("path" + File.separator + "subPath", FileUtils.append("path", "/subPath"));
+    assertEquals("path" + File.separator + "subPath", FileUtils.append("path", File.separator +  "subPath"));
   }
 
   @Test

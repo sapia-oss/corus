@@ -16,6 +16,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.os.OsModule.LogCallback;
@@ -183,8 +184,6 @@ public class WindowsProcess implements NativeProcess {
   private static final int  COMMAND_TIME_OUT  = 5000;
   private static final int  KILL_SIG          = 9;
 
-  private static String pvPath;
-
   /**
    * Utility method that returns a new CmdLine object with the path to the
    * process viewer tool.
@@ -194,22 +193,36 @@ public class WindowsProcess implements NativeProcess {
    *           If the process viewer tool is not found
    */
   private synchronized CmdLine createPVCmdLine() throws IOException {
-    if (pvPath == null) {
-      // Generate the command line to the process viewer tool
-      StringBuffer aCommand = new StringBuffer();
-      aCommand.append(System.getProperty("corus.home"))
-          .append(File.separator).append("bin").append(File.separator).append("win")
-          .append(File.separator).append("pv.exe");
-
-      // Validate the presence and accessibility of the process viewer tool
-      if (new File(aCommand.toString()).exists()) {
-        pvPath = aCommand.toString();
-      } else {
-        throw new IOException("Unable to find the process viewer tool under path " + aCommand.toString());
-      }
-    }
-
-    return new CmdLine().addArg(pvPath);
+    // Generate the command line to the process viewer tool
+    File winPath = FilePath.newInstance()
+        .addDir(System.getProperty("corus.home"))
+        .addDir("bin")
+        .addDir("win")
+        .addDir("pv.exe").createFile();
+    
+    File win32Path = FilePath.newInstance()
+        .addDir(System.getProperty("corus.home"))
+        .addDir("bin")
+        .addDir("win32")
+        .addDir("pv.exe").createFile();
+    
+    File win64Path = FilePath.newInstance()
+        .addDir(System.getProperty("corus.home"))
+        .addDir("bin")
+        .addDir("win64")
+        .addDir("pv.exe").createFile();      
+  
+    // Validate the presence and accessibility of the process viewer tool
+    if (winPath.exists()) {
+      return new CmdLine().addArg(winPath.getAbsolutePath());
+    } if (win32Path.exists()) {
+      return new CmdLine().addArg(win32Path.getAbsolutePath());
+    } if (win64Path.exists()) {
+      return new CmdLine().addArg(win64Path.getAbsolutePath());
+    } else {
+      throw new IOException(String.format("Unable to find process viewer executable at either %s, %s or %s", 
+          winPath.getAbsolutePath(), win32Path.getAbsolutePath(), win64Path.getAbsolutePath()));
+    }      
   }
 
   /**

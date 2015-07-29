@@ -101,10 +101,10 @@ public class BaseJavaStarterTest {
   public void testGetOptionalCp_classes_relative_dir() {
     when(env.getCommonDir()).thenReturn("test-common-dir");
     
-    String libDirs = "${relative.dir}/classes/";
+    String libDirs = "${relative.dir}" + File.separator + "classes" + File.separator;
     String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("relative.dir", "test-relative-dir"), env);
     
-    assertEquals("test-common-dir/test-relative-dir/classes/", cp);
+    assertEquals("test-common-dir" + File.separator + "test-relative-dir" + File.separator + "classes" + File.separator, cp);
   }
   
   @Test
@@ -122,7 +122,7 @@ public class BaseJavaStarterTest {
     when(env.getCommonDir()).thenReturn("test-common-dir");
     when(pathFilter.filter()).thenReturn(new String[] { "test-jar0.jar", "test-jar1.jar"});
 
-    String libDirs = "${relative.dir}/test-lib";
+    String libDirs = "${relative.dir}" + File.separator + "test-lib";
     String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("relative.dir", "test-relative-dir"), env);
     
     String p1 = FilePath.newInstance()
@@ -147,21 +147,21 @@ public class BaseJavaStarterTest {
     when(env.getCommonDir()).thenReturn("test-common-dir");
     when(pathFilter.filter()).thenReturn(new String[] { "test-jar0.jar", "test-jar1.jar"});
     
-    String libDirs = "${absolute.dir}/test-lib";
-    String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("absolute.dir", "/test-absolute-dir"), env);
+    String libDirs = "${absolute.dir}" + File.separator + "test-lib";
+    String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("absolute.dir", File.separator + "test-absolute-dir"), env);
     
-    String p1 = "/" + FilePath.newInstance()
+    String p1 = File.separator + FilePath.newInstance()
         .addDir("test-absolute-dir")
         .addDir("test-lib")
         .setRelativeFile("test-jar0.jar")
         .createFilePath();
     
-    String p2 = "/" + FilePath.newInstance()
+    String p2 = File.separator + FilePath.newInstance()
         .addDir("test-absolute-dir")
         .addDir("test-lib")
         .setRelativeFile("test-jar1.jar")
         .createFilePath();
-    
+
     assertEquals(FileUtils.mergeFilePaths(p1, p2), cp);
   }
   
@@ -170,21 +170,21 @@ public class BaseJavaStarterTest {
     when(env.getCommonDir()).thenReturn("test-common-dir");
     when(pathFilter.filter()).thenReturn(new String[] { "test-jar0.jar", "test-jar1.jar"});
     
-    String libDirs = "${absolute.dir}/classes/;${relative.dir}/classes/:${absolute.dir}/test-lib;${relative.dir}/test-lib" ;
+    String libDirs = "${absolute.dir}/classes/;${relative.dir}/classes/:${absolute.dir}/test-lib;${relative.dir}/test-lib".replace("/", File.separator);
 
-    String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("relative.dir", "test-relative-dir", "absolute.dir", "/test-absolute-dir"), env);
+    String cp = starter.getOptionalCp(libDirs, StrLookups.forKeyValues("relative.dir", "test-relative-dir", "absolute.dir", File.separator + "test-absolute-dir"), env);
 
     String p1 = "/test-absolute-dir/classes/".replace("/", File.separator);
 
     String p2 = "test-common-dir/test-relative-dir/classes/".replace("/", File.separator);
 
-    String p3 = "/" + FilePath.newInstance()
+    String p3 = File.separator + FilePath.newInstance()
         .addDir("test-absolute-dir")
         .addDir("test-lib")
         .setRelativeFile("test-jar0.jar")
         .createFilePath();
 
-    String p4 = "/" + FilePath.newInstance()
+    String p4 = File.separator + FilePath.newInstance()
         .addDir("test-absolute-dir")
         .addDir("test-lib")
         .setRelativeFile("test-jar1.jar")
@@ -217,7 +217,8 @@ public class BaseJavaStarterTest {
     starter.setJavaHome("test-java-home");
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
-    assertEquals("test-path/bin/java -Dtest.property=test.property.value", result.command.toString());
+    String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
+    assertEquals(path + " -Dtest.property=test.property.value", result.command.toString());
   }
   
   @Test
@@ -229,7 +230,8 @@ public class BaseJavaStarterTest {
     starter.setVmType("server");
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
-    assertEquals("test-path/bin/java -server -Dtest.property=test.property.value", result.command.toString());
+    String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
+    assertEquals(path + " -server -Dtest.property=test.property.value", result.command.toString());
   }
   
   @Test
@@ -249,11 +251,11 @@ public class BaseJavaStarterTest {
     VmArg arg1 = new VmArg();
     arg1.setValue("${test.arg1}");
     starter.addArg(arg1);
-
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
     System.out.println(result.command.toString());
-    assertEquals("test-path/bin/java -XXarg0 -XXarg1 -Dtest.arg0=-XXarg0 -Dtest.arg1=-XXarg1 -Dtest.property=test.property.value", result.command.toString());
+    String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
+    assertEquals(path + " -XXarg0 -XXarg1 -Dtest.arg0=-XXarg0 -Dtest.arg1=-XXarg1 -Dtest.property=test.property.value", result.command.toString());
   }
   
   @Test
@@ -277,7 +279,8 @@ public class BaseJavaStarterTest {
     starter.addXoption(opt1);
 
     CmdLineBuildResult result = starter.buildCommandLine(env);
-    assertEquals("test-path/bin/java -Xmx5g -Xms1g -Dtest.xmx=5g -Dtest.xms=1g -Dtest.property=test.property.value", result.command.toString());
+    String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
+    assertEquals(path + " -Xmx5g -Xms1g -Dtest.xmx=5g -Dtest.xms=1g -Dtest.property=test.property.value", result.command.toString());
   }
   
   @Test
@@ -301,7 +304,8 @@ public class BaseJavaStarterTest {
     starter.addOption(opt1);
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
-    assertEquals("test-path/bin/java -o0 o0-value -o1 o1-value -Dtest.opt0=o0-value -Dtest.opt1=o1-value -Dtest.property=test.property.value", result.command.toString());
+    String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
+    assertEquals(path + " -o0 o0-value -o1 o1-value -Dtest.opt0=o0-value -Dtest.opt1=o1-value -Dtest.property=test.property.value", result.command.toString());
   }
 
   static class TestJavaStarter extends BaseJavaStarter {

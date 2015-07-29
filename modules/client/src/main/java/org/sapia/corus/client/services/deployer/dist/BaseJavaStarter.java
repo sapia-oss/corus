@@ -249,13 +249,13 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (libDirs == null) {
       return "";
     } else {
-      baseDirs = FileUtils.splitFilePaths(libDirs);
+      baseDirs = FileUtils.splitFilePaths(render(envVars, libDirs));
     }
 
     StringBuffer buf = new StringBuffer();
 
     for (int dirIndex = 0; dirIndex < baseDirs.length; dirIndex++) {
-      String baseDir = render(envVars, baseDirs[dirIndex]);
+      String baseDir = baseDirs[dirIndex];
       String currentDir;
       if (FileUtils.isAbsolute(baseDir)) {
         currentDir = baseDir;
