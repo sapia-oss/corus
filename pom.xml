@@ -6,7 +6,7 @@
   <description>Corus is a generic application process manager</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>develop-SNAPSHOT</version>
+  <version>4.7-RC7</version>
 
   <properties>
     <corus-iop.version>2.8.1</corus-iop.version>
