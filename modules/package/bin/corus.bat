@@ -21,14 +21,20 @@ goto end
 
 :okJavaHome
 
-if "%CORUS_SIGAR_ARCH%"=="" (
-  if /I "%processor_architecture%" == "amd64" (
-    set CORUS_SIGAR_ARCH=win-amd64
-  ) else (
-    set CORUS_SIGAR_ARCH=win-x86
-  ) 
-)
+SET LOCALCLASSPATH=
 
-"%JAVA_HOME%/bin/java" -Dcorus.home="%CORUS_HOME%" -Djava.library.path="%CORUS_HOME%/extra-lib/sigar/%CORUS_SIGAR_ARCH%" -cp "%CORUS_HOME%\lib\server\*" org.sapia.corus.core.CorusServer %1 %2 %3 %4 %5 %6 %7 %8 %9
+if "%LOCALCLASSPATH_DEFINED%"=="true" goto okLcp
+
+for %%i in (%CORUS_HOME%\lib\server\*.jar) do call %CORUS_HOME%\bin\lcp.bat %%i
+
+set LOCALCLASSPATH_DEFINED=true
+
+:okLcp
+
+rem echo %LOCALCLASSPATH%
+
+set CLASSPATH=%CLASSPATH%;%LOCALCLASSPATH%
+
+"%JAVA_HOME%/bin/java" -Dcorus.home="%CORUS_HOME%" org.sapia.corus.core.CorusServer %1 %2 %3 %4 %5 %6 %7 %8 %9
 
 :end
