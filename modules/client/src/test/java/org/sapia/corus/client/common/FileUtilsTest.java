@@ -70,6 +70,34 @@ public class FileUtilsTest {
   }
   
   @Test
+  public void testSplitFilePaths_with_single_windows_path() {
+    Set<String> paths = Collects.arrayToSet(FileUtils.splitFilePaths("E:\\path\\bar"));
+    assertEquals(1, paths.size());
+  }
+  
+  @Test
+  public void testSplitFilePaths_with_windows_path() {
+    String[] paths = FileUtils.splitFilePaths("path0:path1;path2;E:\\path3");
+  
+    assertEquals(4, paths.length);
+    assertEquals("path0", paths[0]);
+    assertEquals("path1", paths[1]);
+    assertEquals("path2", paths[2]);
+    assertEquals("E:\\path3", paths[3]);
+  }
+  
+  @Test
+  public void testSplitFilePaths_with_multiple_windows_paths() {
+    String[] paths = FileUtils.splitFilePaths("path0:path1:C:\\path2;E:\\path3");
+  
+    assertEquals(4, paths.length);
+    assertEquals("path0", paths[0]);
+    assertEquals("path1", paths[1]);
+    assertEquals("C:\\path2", paths[2]);
+    assertEquals("E:\\path3", paths[3]);
+  }
+  
+  @Test
   public void testAppendWithSeparatorInPathAndSubPath() {
     assertEquals("path" + File.separator + "subPath", FileUtils.append("path" + File.separator, File.separator + "subPath"));
   }
