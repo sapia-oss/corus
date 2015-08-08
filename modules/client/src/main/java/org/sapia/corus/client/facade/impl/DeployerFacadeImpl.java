@@ -4,9 +4,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
@@ -66,7 +68,7 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
 
   // --------------------------------------------------------------------------
 
-  private static final int BUFSZ = 2048;
+  private static final int BUFSZ = 8192;
   private ClientDebug log = ClientDebug.get(getClass());
 
   public DeployerFacadeImpl(CorusConnectionContext context) {
@@ -79,28 +81,28 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     return doDeployArtifact(fileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster) {
-        return new DistributionDeploymentMetadata(fileName, fileLen, prefs, cluster);
+        return new DistributionDeploymentMetadata(fileName, fileLen, prefs.getCopy(), cluster);
       }
     });
   }
 
   @Override
-  public ProgressQueue deployFile(String fileName, final String destinationDir, ClusterInfo cluster) throws IOException, Exception {
+  public ProgressQueue deployFile(String fileName, final String destinationDir, final DeployPreferences prefs, ClusterInfo cluster) throws IOException, Exception {
     return doDeployArtifact(fileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster) {
-        return new FileDeploymentMetadata(fileName, fileLen, destinationDir, cluster);
+        return new FileDeploymentMetadata(fileName, fileLen, destinationDir, prefs.getCopy(), cluster);
       }
     });
   }
 
   @Override
-  public ProgressQueue deployScript(String scriptFileName, final String alias, final String description, final ClusterInfo cluster)
+  public ProgressQueue deployScript(String scriptFileName, final String alias, final String description, final DeployPreferences prefs, final ClusterInfo cluster)
       throws IOException, Exception {
     return doDeployArtifact(scriptFileName, cluster, new MetadataFactory() {
       @Override
       public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster) {
-        return new ShellScriptDeploymentMetadata(fileName, fileLen, alias, description, cluster);
+        return new ShellScriptDeploymentMetadata(fileName, fileLen, alias, description, prefs.getCopy(), cluster);
       }
     });
   }
@@ -166,6 +168,8 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
     OutputStream os = null;
     BufferedInputStream bis = null;
     DeployOutputStream dos = null;
+    
+    assignCheckSum(meta.getPreferences(), toDeploy);
     try {
       if (!toDeploy.exists()) {
         throw new IOException(toDeploy.getAbsolutePath() + " does not exist");
@@ -273,6 +277,19 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       theFileName = fileName.substring(idx + 1);      
     }
     return new Object[] { fileSys.getFile(baseDirName), theFileName };
+  }
+  
+  private void assignCheckSum(DeployPreferences prefs, File file) {
+    if (prefs.getChecksum().isSet()) {
+      if (prefs.getChecksum().get().getClientChecksum().isNull()) {
+        try (InputStream is = new BufferedInputStream(new FileInputStream(file), BUFSZ)) {
+          String md5 = DigestUtils.md5Hex(is);
+          prefs.getChecksum().get().assignClientChecksum(md5);
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not compute MD5 checksum on for file: " + file.getAbsolutePath(), e);
+        }
+      }
+    }
   }
 
 }

@@ -3,16 +3,16 @@
    <p>Deploys a distribution, an execution configuration, a shell script, or a file to a given Corus server.</p>
   </section>
   <section title="Syntax">
-    <p>deploy &lt;file&gt; [&lt;file2&gt; [&lt;file3&gt; [...]]] [-seq] [r] [-cluster]</p>
+    <p>deploy &lt;file&gt; [&lt;file2&gt; [&lt;file3&gt; [...]]] [-seq] [-chkmd5 [&lt;value&gt;]] [r] [-cluster]</p>
     <p/>
     <p>OR:</p>
     <p>deploy -e &lt;exec_config_file&gt; [-cluster]</p>
     <p/>
     <p>OR:</p>    
-    <p>deploy -f &lt;arbitrary_file&gt; [-d &lt;remote_dir&gt;] [-cluster]</p>
+    <p>deploy -f &lt;arbitrary_file&gt; [-d &lt;remote_dir&gt;] [-chkmd5 [&lt;value&gt;]] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
-    <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-cluster]</p>
+    <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-chkmd5 [&lt;value&gt;]] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
     <p>deploy -rev &lt;revId&gt; [-cluster]</p>
@@ -41,6 +41,9 @@
     <p/>    
     <p>- seq: if the deployment is clustered, indicates that it should be done one host after the other from the client, sequentially (rather than through cascading deployment).</p>
     <p/>    
+    <p>- chkmd5: indicates if MD5 checksum validation of the deployed artifact should be done. If a checksum value is provided, that values is used to perform the validation.
+     Otherwise, a checksum is computed by this client.</p>
+    <p/>
     <p>- r: this option stands for "run scripts". It will trigger the execution of the distribution's packaged scripts (under META-INF/scripts) upon deployment.</p>
     <p/>   
     <p>- rev: this option specifies a revision under which given distributions have been archived. Through 'deploy', such archived distributions

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
@@ -34,7 +35,7 @@ public class ShellScriptRequestHandlerTask extends ArtifactRequestHandlerTaskSup
       @Override
       public DeploymentMetadata call(Boolean clustered) {
         return new ShellScriptDeploymentMetadata(script.getFileName(), scriptFile.length(), script.getAlias(), script.getDescription(),
-            new ClusterInfo(clustered).addTargetEndpoints(targets));
+            DeployPreferences.newInstance(), new ClusterInfo(clustered).addTargetEndpoints(targets));
       }
     });
   }

@@ -20,6 +20,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Delay;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.ftest.FtestClient;
@@ -103,7 +104,7 @@ public class FileResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployFile(matches[0].getAbsolutePath(), null, ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().deployFile(matches[0].getAbsolutePath(), null, DeployPreferences.newInstance(), ClusterInfo.clustered());
     
     waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     
@@ -171,7 +172,7 @@ public class FileResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployFile(matches[0].getAbsolutePath(), null, ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().deployFile(matches[0].getAbsolutePath(), null, DeployPreferences.newInstance(), ClusterInfo.clustered());
     
     waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     

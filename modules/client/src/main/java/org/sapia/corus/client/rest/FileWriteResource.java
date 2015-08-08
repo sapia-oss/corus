@@ -9,6 +9,8 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.rest.Value;
+import org.sapia.corus.client.services.deployer.ChecksumPreference;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.security.Permission;
 
@@ -35,9 +37,14 @@ public class FileWriteResource extends ResourceSupport {
   @Authorized(Permission.DEPLOY)
   public ProgressResult deployFileForCluster(RequestContext context) throws Exception {
     String fileName = context.getRequest().getValue("corus:name").asString();
+    Value checksum = context.getRequest().getValue("checksum-md5");
+    DeployPreferences prefs = DeployPreferences.newInstance();
+    if (checksum.isSet()) {
+      prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
+    }
     File file = transfer(context, fileName);
     try {
-      return doDeployFile(context, file, ClusterInfo.clustered());
+      return doDeployFile(context, file, prefs, ClusterInfo.clustered());
     } finally {
       file.delete();
     }
@@ -54,8 +61,13 @@ public class FileWriteResource extends ResourceSupport {
     String fileName = context.getRequest().getValue("corus:name").asString();
     File file = transfer(context, fileName);
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+    Value checksum = context.getRequest().getValue("checksum-md5");
+    DeployPreferences prefs = DeployPreferences.newInstance();
+    if (checksum.isSet()) {
+      prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
+    }
     try {
-      return doDeployFile(context, file, cluster);
+      return doDeployFile(context, file, prefs, cluster);
     } finally {
       file.delete();
     }
@@ -91,9 +103,9 @@ public class FileWriteResource extends ResourceSupport {
   // --------------------------------------------------------------------------
   // restricted
   
-  private ProgressResult doDeployFile(RequestContext context, File toDeploy, ClusterInfo cluster) throws Exception {
+  private ProgressResult doDeployFile(RequestContext context, File toDeploy, DeployPreferences prefs, ClusterInfo cluster) throws Exception {
     Value destDir = context.getRequest().getValue("d");
-    return progress(context.getConnector().getDeployerFacade().deployFile(toDeploy.getAbsolutePath(), destDir.isSet() ? destDir.asString() : null, cluster));
+    return progress(context.getConnector().getDeployerFacade().deployFile(toDeploy.getAbsolutePath(), destDir.isSet() ? destDir.asString() : null, prefs, cluster));
   }
 
   private ProgressResult doUndeployFile(RequestContext context, ClusterInfo cluster) throws Exception {

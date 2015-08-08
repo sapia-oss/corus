@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
@@ -35,27 +36,27 @@ public class FileDeploymentHandlerTest {
 
   @Test
   public void testAccepts() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", DeployPreferences.newInstance(), new ClusterInfo(true));
     assertTrue(handler.accepts(meta));
   }
 
   @Test
   public void testGetDestFileWithDestDir() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", DeployPreferences.newInstance(), new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("destDir" + File.separator + "test"));
   }
   
   @Test
   public void testGetDestFileWithoutDestDir() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, null, new ClusterInfo(true));
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, null, DeployPreferences.newInstance(), new ClusterInfo(true));
     File destFile = handler.getDestFile(meta);
     assertTrue(destFile.getAbsolutePath().contains("uploadDir" + File.separator + "test"));
   }  
 
   @Test
   public void testCompleteDeployment() {
-    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", new ClusterInfo(true));
+    DeploymentMetadata meta = new FileDeploymentMetadata("test", 100, "destDir", DeployPreferences.newInstance(), new ClusterInfo(true));
     ProgressQueue q = handler.completeDeployment(meta, new File("test"));
     assertNotNull(q);
   }

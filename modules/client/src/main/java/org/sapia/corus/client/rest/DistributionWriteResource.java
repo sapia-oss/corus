@@ -10,6 +10,7 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.deployer.ChecksumPreference;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.UndeployPreferences;
@@ -50,6 +51,11 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
     DeployPreferences prefs = DeployPreferences.newInstance().setExecDeployScripts(
         context.getRequest().getValue("runScripts", "false").asBoolean()
     );
+    
+    Value checksum = context.getRequest().getValue("checksum-md5");
+    if (checksum.isSet()) {
+      prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
+    }
     
     Value batchSize = context.getRequest().getValue("batchSize");
     Value minHosts  = context.getRequest().getValue("minHosts", "1");
@@ -118,6 +124,10 @@ public class DistributionWriteResource extends DeploymentResourceSupport {
     DeployPreferences prefs = DeployPreferences.newInstance().setExecDeployScripts(
         context.getRequest().getValue("runScripts", "false").asBoolean()
     );
+    Value checksum = context.getRequest().getValue("checksum-md5");
+    if (checksum.isSet()) {
+      prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
+    }
     try {
       return progress(context.getConnector().getDeployerFacade().deployDistribution(file.getAbsolutePath(), prefs, cluster));
     } finally {

@@ -15,8 +15,8 @@ public class FileDeploymentMetadata extends DeploymentMetadata {
 
   private String dirName;
 
-  public FileDeploymentMetadata(String fileName, long contentLen, String dirName, ClusterInfo cluster) {
-    super(fileName, contentLen, cluster, DeploymentMetadata.Type.FILE, DeployPreferences.newInstance());
+  public FileDeploymentMetadata(String fileName, long contentLen, String dirName, DeployPreferences prefs, ClusterInfo cluster) {
+    super(fileName, contentLen, cluster, DeploymentMetadata.Type.FILE, prefs);
     this.dirName = dirName;
   }
 

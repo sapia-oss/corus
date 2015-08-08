@@ -8,10 +8,10 @@ import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.services.deployer.ChecksumPreference;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata.Type;
-import org.sapia.corus.deployer.DeploymentHandler;
 import org.sapia.corus.deployer.task.DeployTask;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yduchesne
  * 
  */
-public class DistributionDeploymentHandler implements DeploymentHandler {
+public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
 
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
 
@@ -68,6 +68,14 @@ public class DistributionDeploymentHandler implements DeploymentHandler {
     File srcZip = FilePath.newInstance()
         .addDir(configuration.getTempDir())
         .setRelativeFile(file.getName()).createFile();
+    
+    if (meta.getPreferences().getChecksum().isSet()) {
+      ChecksumPreference cs = meta.getPreferences().getChecksum().get();
+      if (!computeChecksum(progress, cs, srcZip)) {
+        srcZip.delete();
+        return progress;
+      }
+    }
     
     try {
       taskman.execute(

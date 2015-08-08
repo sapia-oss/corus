@@ -60,6 +60,7 @@ public class DistributionWriteResourceTest {
     when(request.getValue("d")).thenReturn(new Value("d", "dist"));
     when(request.getValue("v")).thenReturn(new Value("v", "version"));
     when(request.getValue("backup", "0")).thenReturn(new Value("backup", "0"));
+    when(request.getValue("checksum-md5")).thenReturn(new Value("checksum-md5", "test-checksum"));
     when(request.getValue("runScripts", "false")).thenReturn(new Value("backup", "0"));
     when(request.getValue("batchSize")).thenReturn(new Value("batchSize", null));
     when(request.getValue("minHosts", "1")).thenReturn(new Value("minHosts", "1"));

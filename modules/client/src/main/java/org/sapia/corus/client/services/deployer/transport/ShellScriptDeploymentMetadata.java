@@ -17,8 +17,8 @@ public class ShellScriptDeploymentMetadata extends DeploymentMetadata {
   private String alias;
   private String description;
 
-  public ShellScriptDeploymentMetadata(String fileName, long contentLen, String alias, String description, ClusterInfo cluster) {
-    super(fileName, contentLen, cluster, DeploymentMetadata.Type.SCRIPT, DeployPreferences.newInstance());
+  public ShellScriptDeploymentMetadata(String fileName, long contentLen, String alias, String description, DeployPreferences prefs, ClusterInfo cluster) {
+    super(fileName, contentLen, cluster, DeploymentMetadata.Type.SCRIPT, prefs);
     this.alias = alias;
     this.description = description;
   }
