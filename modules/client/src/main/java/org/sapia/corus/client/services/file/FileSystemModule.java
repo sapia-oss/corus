@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.util.List;
 
@@ -105,7 +106,7 @@ public interface FileSystemModule {
    *           if a problem occurs attempting to open the entry stream.
    */
   public InputStream openZipEntryStream(File zipFile, String entryName) throws IOException;
-
+ 
   /**
    * @param baseDir
    *          the {@link File} corresponding to the directory from which to get
@@ -122,12 +123,20 @@ public interface FileSystemModule {
   public File getFileHandle(String path);
   
   /**
+   * @param a {@link File} for which to return a reader.
    * @return a new {@link Reader} for the given file.
    * 
    * @throws FileNotFoundException if the given file does not exist.
    * @throws IOException if a low-level I/O error occurred.
    */
   public Reader getFileReader(File f) throws FileNotFoundException, IOException;
+  
+  /**
+   * @param f a {@link File} for which to return an {@link OutputStream}.
+   * @return a new {@link OutputStream} allowing to write to the given file.
+   * @throws IOException if an I/O error occurs while trying to open the stream.
+   */
+  public OutputStream getFileOutputStream(File f) throws IOException;
   
   /**
    * @param from the {@link File} corresponding to the directory to rename.

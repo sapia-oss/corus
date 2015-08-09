@@ -64,6 +64,11 @@ public interface CorusConsts {
    * Defines the patterns that will determine which resources should be hidden.
    */
   public static final String PROPERTY_CORUS_FILE_HIDE_PATTERNS       = "corus.server.file.hide.patterns";
+
+  /**
+   * Defines the patterns that will determine which properties should be hidden.
+   */
+  public static final String PROPERTY_CORUS_PROPERTY_HIDE_PATTERNS   = "corus.server.property.hide.patterns";
   
   /**
    * Indicates if authentication should be required for all REST calls - including <code>GET</code> ones.

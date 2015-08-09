@@ -304,7 +304,7 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
@@ -325,7 +325,7 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
@@ -346,7 +346,7 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
@@ -366,7 +366,7 @@ public class RepositoryImplTest {
     
     Properties props = new Properties();
     props.setProperty("test", "val");
-    notif.addProperties(Collects.arrayToList(new Property("test", "val", null)));
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
     notif.addTags(Collects.arrayToSet("tag1", "tag2"));
     
     RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);

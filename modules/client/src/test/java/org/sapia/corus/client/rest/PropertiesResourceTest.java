@@ -20,9 +20,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
-import org.sapia.corus.client.common.ArgMatcher;
-
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
@@ -33,6 +32,7 @@ import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 
@@ -77,12 +77,14 @@ public class PropertiesResourceTest {
       Result<List<Property>> result = new Result<List<Property>>(host, props, Result.Type.COLLECTION);
       results.addResult(result);
     }
+
     
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getConfigFacade()).thenReturn(confs);
     when(confs.getAllProperties(any(PropertyScope.class), anySetOf(ArgMatcher.class), any(ClusterInfo.class)))
       .thenReturn(results);
+    when(confs.getPropertyMasker()).thenReturn(PropertyMasker.newDefaultInstance());
     when(connector.getContext()).thenReturn(connection);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
     when(request.getValue("corus:scope")).thenReturn(new Value("corus:scope", "process"));

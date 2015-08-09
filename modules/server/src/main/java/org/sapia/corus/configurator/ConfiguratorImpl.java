@@ -25,6 +25,7 @@ import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.DbModule;
@@ -32,6 +33,7 @@ import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
+import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
@@ -40,6 +42,7 @@ import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
+import org.sapia.ubik.util.Strings;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Configurator.class })
 @Remote(interfaces = Configurator.class)
-public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator {
+public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator, Interceptor {
 
   public static final String PROP_SERVER_NAME   = "corus.server.name";
 
@@ -69,14 +72,14 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
 
   @Autowired
   private HttpModule httpModule;
-
+  
   private DbMap<String, ConfigProperty> internalConfig;
   private PropertyStore                 processProperties, serverProperties;
   private Properties                    defaultServerProperties;
   private DbMap<String, ConfigProperty> tags;
   private Map<String, PropertyStore>    processPropertiesByCategory  = new ConcurrentHashMap<>();
   private SimpleTypeConverter           converter                    = new SimpleTypeConverter();
-
+  private volatile PropertyMasker       masker                       = PropertyMasker.newDefaultInstance();
   
   // --------------------------------------------------------------------------
   // Visible for testing
@@ -147,6 +150,37 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
         processPropertiesByCategory.put(c.trim(), storeForCategory(c));
       }
     }
+    
+    String hidePattern = serverProperties.getProperty(CorusConsts.PROPERTY_CORUS_PROPERTY_HIDE_PATTERNS);
+    
+    if (!Strings.isBlank(hidePattern)) {
+      masker = new PropertyMasker().addMatcher(StringUtils.split(hidePattern, ","));
+    }
+    
+    dispatcher.addInterceptor(PropertyChangeEvent.class, this);
+    
+  }
+  
+  public void onPropertyChangeEvent(PropertyChangeEvent event) {
+    if (event.getScope() == PropertyScope.SERVER) {
+      Property property = event.getFirstPropertyFor(CorusConsts.PROPERTY_CORUS_PROPERTY_HIDE_PATTERNS);
+      if (property != null) {
+        if (event.getEventType() == EventType.REMOVE) { 
+          log.debug("Resetting property mask configuration to default");
+          masker = PropertyMasker.newDefaultInstance();
+          serverProperties.removeProperty(CorusConsts.PROPERTY_CORUS_PROPERTY_HIDE_PATTERNS);
+        } else {
+          String value = property.getValue();
+          if (Strings.isBlank(value)) {
+            log.debug("Resetting property mask configuration to default");
+            masker = PropertyMasker.newDefaultInstance();
+          } else {
+            log.debug("Updating property mask configuration");
+            masker = new PropertyMasker().addMatcher(StringUtils.split(value, ','));
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -175,13 +209,18 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   // Property operations
 
   @Override
+  public PropertyMasker getPropertyMasker() {
+    return masker;
+  }
+  
+  @Override
   public void addProperty(final PropertyScope scope, String name, String value, Set<String> categories) {
     PropertyChangeEvent event = new PropertyChangeEvent(EventType.ADD, scope);
     
     if (PropertyScope.PROCESS == scope) {
       if (categories.isEmpty()) {
         store(PropertyScope.PROCESS).addProperty(name, value);
-        event.addProperty(new Property(name, value, null));
+        event.addProperty(new Property(name, value));
       } else {
         for (String c : categories) {
           String category = c.trim();
@@ -193,7 +232,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
       }
     } else if (PropertyScope.SERVER == scope) {
       store(PropertyScope.SERVER).addProperty(name, value);
-      event.addProperty(new Property(name, value, null));
+      event.addProperty(new Property(name, value));
     }
     
     if (event.getProperties().size() > 0) {
@@ -306,7 +345,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
       List<Property> propList = new ArrayList<>();
       Properties props = store(PropertyScope.SERVER).getProperties();
       for (String n : props.stringPropertyNames()) {
-        propList.add(new Property(n, props.getProperty(n), null));
+        propList.add(new Property(n, props.getProperty(n)));
       }
       return propList;
     }
@@ -618,7 +657,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     }
 
     public void onPropertyChangeEvent(PropertyChangeEvent event) {
-      if (event.containsProperty(propertyName)) {
+      if (event.containsProperty(propertyName) && event.getScope() == PropertyScope.SERVER) {
         if (log.isDebugEnabled()) {
           log.debug("Property change detected for " + propertyName);
         }

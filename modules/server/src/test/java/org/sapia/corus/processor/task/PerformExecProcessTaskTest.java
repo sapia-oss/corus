@@ -12,6 +12,8 @@ import org.junit.Test;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.Property;
@@ -39,6 +41,7 @@ public class PerformExecProcessTaskTest extends TestBaseTask {
       taskContext = mock(TaskExecutionContext.class);
       ServerContext serverContext = mock(ServerContext.class);
       InternalServiceContext serviceContext = mock(InternalServiceContext.class);
+      Configurator configurator = mock(Configurator.class);
       PortManager portManager = mock(PortManager.class);
 
       CorusHost node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test");
@@ -49,7 +52,8 @@ public class PerformExecProcessTaskTest extends TestBaseTask {
       when(serverContext.getCorusHost()).thenReturn(node);
       when(serverContext.getHomeDir()).thenReturn("~/.");
       when(serviceContext.lookup(any(Class.class))).thenReturn(portManager);
-      
+      when(serviceContext.getConfigurator()).thenReturn(configurator);
+      when(configurator.getPropertyMasker()).thenReturn(PropertyMasker.newDefaultInstance());
       task = new PerformExecProcessTask();
     }
     

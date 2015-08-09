@@ -13,6 +13,7 @@ import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
+import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.ubik.util.Collects;
@@ -29,9 +30,6 @@ public class PropertiesResource {
   private static final String SCOPE_SERVER    = "server";
   private static final String SCOPE_PROCESS   = "process";
   
-  private static final String PASSWORD_SUBSTR = "password";
-  private static final String OBFUSCATION     = "********";
-
   @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
     "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:category}",
@@ -112,7 +110,7 @@ public class PropertiesResource {
       for (Property np : result.getData()) {
         stream.beginObject()
           .field("name").value(np.getName())
-          .field("value").value(obfuscate(np.getName(), np.getValue()));
+          .field("value").value(obfuscate(np.getName(), np.getValue(), context));
         if (np.getCategory().isSet()) {
           stream.field("category").value(np.getCategory().get());
         }  
@@ -124,11 +122,8 @@ public class PropertiesResource {
     return output.toString();    
   }
   
-  private String obfuscate(String propertyName, String propertyValue) {
-    if (propertyName.toLowerCase().contains(PASSWORD_SUBSTR)) {
-      return OBFUSCATION;
-    } else {
-      return propertyValue;
-    }
+  private String obfuscate(String propertyName, String propertyValue, RequestContext context) {
+    ConfiguratorFacade cfg = context.getConnector().getConfigFacade();
+    return cfg.getPropertyMasker().getMaskedValue(propertyName, propertyValue);
   }
 } 

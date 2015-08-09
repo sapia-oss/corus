@@ -9,10 +9,10 @@
   <version>develop-SNAPSHOT</version>
 
   <properties>
-    <corus-iop.version>2.8.1</corus-iop.version>
+    <sapia-corus-iop.version>2.8.2</sapia-corus-iop.version>
     <springframework.version>4.1.3.RELEASE</springframework.version>
     <camel.version>2.15.0</camel.version>
-    <ubik.version>4.3</ubik.version>
+    <sapia-ubik.version>4.3</sapia-ubik.version>
   </properties>
 
   <parent>
@@ -179,13 +179,13 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_iop</artifactId>
-        <version>${corus-iop.version}</version>
+        <version>${sapia-corus-iop.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_corus_iop_api</artifactId>
-        <version>${corus-iop.version}</version>
+        <version>${sapia-corus-iop.version}</version>
       </dependency>
 
 
@@ -217,32 +217,32 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik_http</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik_avis</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>      
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik_amqp</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>  
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik_camel</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>        
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_ubik_netty</artifactId>
-        <version>${ubik.version}</version>
+        <version>${sapia-ubik.version}</version>
       </dependency>
 
       <!-- http client -->

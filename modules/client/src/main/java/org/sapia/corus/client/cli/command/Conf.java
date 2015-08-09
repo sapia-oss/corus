@@ -41,6 +41,7 @@ import org.sapia.corus.client.common.PropertiesTokenizer;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.sort.Sorting;
@@ -53,9 +54,6 @@ import org.sapia.ubik.util.Func;
  * 
  */
 public class Conf extends CorusCliCommand {
-
-  private static final String PASSWORD_PATTERN = "password";
-  private static final String PASSWORD_OBFUSCATION = "********";
 
   private final TableDef PROPS_TBL = TableDef.newInstance().createCol("name", 31).createCol("val", 31).createCol("cat", 10);
 
@@ -101,6 +99,8 @@ public class Conf extends CorusCliCommand {
   }
 
   // --------------------------------------------------------------------------
+  
+  private static final PropertyMasker MASKER = new PropertyMasker().addMatcher("*password*");
   
   @Override
   protected void doInit(CliContext context) {
@@ -559,16 +559,12 @@ public class Conf extends CorusCliCommand {
 
   private void displayProperties(Property prop, CliContext ctx) {
     Table propsTable = PROPS_TBL.createTable(ctx.getConsole().out());
-
+        
     propsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = propsTable.newRow();
     row.getCellAt(PROPS_TBL.col("name").index()).append(prop.getName());
-    if (prop.getName().contains(PASSWORD_PATTERN)) {
-      row.getCellAt(PROPS_TBL.col("val").index()).append(PASSWORD_OBFUSCATION);
-    } else {
-      row.getCellAt(PROPS_TBL.col("val").index()).append(prop.getValue());
-    }
+    row.getCellAt(PROPS_TBL.col("val").index()).append(MASKER.getMaskedValue(prop.getName(), prop.getValue()));
     row.getCellAt(PROPS_TBL.col("cat").index()).append(prop.getCategory().isNull() ? "N/A" : prop.getCategory().get());
     row.flush();
   }
