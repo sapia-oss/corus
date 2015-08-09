@@ -16,4 +16,5 @@ public interface InternalConfigurator extends Configurator {
    * @param dynProperty the {@link DynamicProperty} to update if a change is detected.
    */
   public <T> void registerForPropertyChange(String propertyName, DynamicProperty<T> dynProperty);
+
 }

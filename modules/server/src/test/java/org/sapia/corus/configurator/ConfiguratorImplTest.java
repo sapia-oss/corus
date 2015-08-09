@@ -165,7 +165,7 @@ public class ConfiguratorImplTest {
     verify(dispatcher).dispatch(captor.capture());
     
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -184,7 +184,7 @@ public class ConfiguratorImplTest {
     verify(dispatcher).dispatch(captor.capture());
     
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -208,10 +208,10 @@ public class ConfiguratorImplTest {
 
     assertThat(captor.getAllValues()).hasSize(2);
     assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.PROCESS,
-        new Property[] { new Property("test8", "oldValue8", null), new Property("test9", "oldValue9", null) },
+        new Property[] { new Property("test8", "oldValue8"), new Property("test9", "oldValue9") },
         captor.getAllValues().get(0));
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getAllValues().get(1));
   }
   
@@ -235,7 +235,7 @@ public class ConfiguratorImplTest {
 
     assertThat(captor.getAllValues()).hasSize(1);
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getAllValues().get(0));
   }
   
@@ -392,7 +392,7 @@ public class ConfiguratorImplTest {
     verify(dispatcher).dispatch(captor.capture());
     
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -412,7 +412,7 @@ public class ConfiguratorImplTest {
     verify(dispatcher).dispatch(captor.capture());
     
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -435,10 +435,10 @@ public class ConfiguratorImplTest {
 
     assertThat(captor.getAllValues()).hasSize(2);
     assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.SERVER,
-        new Property[] { new Property("test9", "value9", null) },
+        new Property[] { new Property("test9", "value9") },
         captor.getAllValues().get(0));
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getAllValues().get(1));
   }
   
@@ -463,7 +463,7 @@ public class ConfiguratorImplTest {
 
     assertThat(captor.getAllValues()).hasSize(1);
     assertPropertyChangeEvent(EventType.ADD, PropertyScope.SERVER,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getAllValues().get(0));
   }
   
@@ -500,7 +500,7 @@ public class ConfiguratorImplTest {
     
     assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.PROCESS, 
         new Property[] {
-            new Property("test1", "value1", null), new Property("test2", "value2", null) },
+            new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -534,7 +534,7 @@ public class ConfiguratorImplTest {
     verify(dispatcher).dispatch(captor.capture());
     
     assertPropertyChangeEvent(EventType.REMOVE, PropertyScope.SERVER,
-        new Property[] { new Property("test1", "value1", null), new Property("test2", "value2", null) },
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
         captor.getValue());
   }
   
@@ -609,8 +609,8 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getPropertiesList(PropertyScope.PROCESS, new ArrayList<String>());
     
-    assertTrue(props.contains(new Property("test1", "value1", null)));
-    assertTrue(props.contains(new Property("test2", "value2", null)));
+    assertTrue(props.contains(new Property("test1", "value1")));
+    assertTrue(props.contains(new Property("test2", "value2")));
   }
   
   @Test
@@ -624,7 +624,7 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getPropertiesList(PropertyScope.PROCESS, Collects.arrayToList("cat1", "cat2"));
     
-    assertTrue(props.contains(new Property("test", "value", null)));
+    assertTrue(props.contains(new Property("test", "value")));
     assertTrue(props.contains(new Property("test1", "value1", "cat1")));
     assertTrue(props.contains(new Property("test2", "value2", "cat2")));
   }
@@ -640,7 +640,7 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getPropertiesList(PropertyScope.PROCESS, Collects.arrayToList("cat3", "cat4"));
     
-    assertTrue(props.contains(new Property("test", "value", null)));
+    assertTrue(props.contains(new Property("test", "value")));
     assertFalse(props.contains(new Property("test1", "value1", "cat1")));
     assertFalse(props.contains(new Property("test2", "value2", "cat2")));
   }
@@ -656,7 +656,7 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getPropertiesList(PropertyScope.PROCESS, Collects.arrayToList("cat1", "cat2"));
     
-    assertFalse(props.contains(new Property("test", "value", null)));
+    assertFalse(props.contains(new Property("test", "value")));
     assertTrue(props.contains(new Property("test1", "value1", "cat1")));
     assertTrue(props.contains(new Property("test", "value3", "cat2")));
   }
@@ -673,8 +673,8 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>());
     
-    assertTrue(props.contains(new Property("test1", "value1", null)));
-    assertTrue(props.contains(new Property("test2", "value2", null)));
+    assertTrue(props.contains(new Property("test1", "value1")));
+    assertTrue(props.contains(new Property("test2", "value2")));
     assertTrue(props.contains(new Property("test3", "value3", "cat1")));
     assertTrue(props.contains(new Property("test4", "value4", "cat2")));
 
@@ -692,8 +692,8 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getAllPropertiesList(PropertyScope.PROCESS, Collects.arrayToSet(ArgMatchers.parse("cat2")));
     
-    assertFalse(props.contains(new Property("test1", "value1", null)));
-    assertFalse(props.contains(new Property("test2", "value2", null)));
+    assertFalse(props.contains(new Property("test1", "value1")));
+    assertFalse(props.contains(new Property("test2", "value2")));
     assertFalse(props.contains(new Property("test3", "value3", "cat1")));
     assertTrue(props.contains(new Property("test4", "value4", "cat2")));
 
@@ -707,8 +707,8 @@ public class ConfiguratorImplTest {
 
     List<Property> props = configurator.getPropertiesList(PropertyScope.SERVER, new ArrayList<String>());
     
-    assertTrue(props.contains(new Property("test1", "value1", null)));
-    assertTrue(props.contains(new Property("test2", "value2", null)));
+    assertTrue(props.contains(new Property("test1", "value1")));
+    assertTrue(props.contains(new Property("test2", "value2")));
   }
 
   @Test

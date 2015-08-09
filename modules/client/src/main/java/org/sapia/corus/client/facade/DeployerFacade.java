@@ -59,6 +59,8 @@ public interface DeployerFacade {
    *          the path to the directory where the file should be uploaded (if
    *          <code>null</code>, the default upload directory on the remote
    *          Corus node will be used).
+   * @param prefs
+   *          the {@link DeployPreferences} to use.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    * @return a {@link ProgressQueue} instance.
@@ -67,7 +69,7 @@ public interface DeployerFacade {
    * @throws Exception
    *           if an undefined error occurs.
    */
-  public ProgressQueue deployFile(String fileName, String destinationDir, ClusterInfo cluster) throws java.io.IOException, Exception;
+  public ProgressQueue deployFile(String fileName, String destinationDir, DeployPreferences prefs, ClusterInfo cluster) throws java.io.IOException, Exception;
 
   /**
    * Proceeds to the deployment of the script whose name and description are
@@ -79,6 +81,8 @@ public interface DeployerFacade {
    *          the alias of the script (acts as the script's identifier).
    * @param the
    *          script's description.
+   * @param prefs
+   *          the {@link DeployPreferences} to use.
    * @param cluster
    *          a {@link ClusterInfo} instance.
    * @return a {@link ProgressQueue} instance.
@@ -87,7 +91,7 @@ public interface DeployerFacade {
    * @throws Exception
    *           if an undefined error occurs.
    */
-  public ProgressQueue deployScript(String fileName, String alias, String description, ClusterInfo cluster) throws java.io.IOException, Exception;
+  public ProgressQueue deployScript(String fileName, String alias, String description, DeployPreferences prefs, ClusterInfo cluster) throws java.io.IOException, Exception;
 
   /**
    * Undeploys the distribution(s) corresponding to the given criteria. It is

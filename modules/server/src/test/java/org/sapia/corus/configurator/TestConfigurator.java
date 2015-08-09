@@ -12,6 +12,7 @@ import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.RevId;
 
@@ -60,7 +61,7 @@ public class TestConfigurator implements Configurator {
     Properties props = props(scope);
     List<Property> pairs = new ArrayList<Property>();
     for (String n : props.stringPropertyNames()) {
-      pairs.add(new Property(n, props.getProperty(n), null));
+      pairs.add(new Property(n, props.getProperty(n)));
     }
     return pairs;
   }
@@ -71,7 +72,7 @@ public class TestConfigurator implements Configurator {
     Properties props = props(scope);
     List<Property> pairs = new ArrayList<Property>();
     for (String n : props.stringPropertyNames()) {
-      pairs.add(new Property(n, props.getProperty(n), null));
+      pairs.add(new Property(n, props.getProperty(n)));
     }
     return pairs;
   }
@@ -88,6 +89,11 @@ public class TestConfigurator implements Configurator {
   @Override
   public Set<Tag> getTags() {
     return new HashSet<Tag>();
+  }
+  
+  @Override
+  public PropertyMasker getPropertyMasker() {
+    return PropertyMasker.newDefaultInstance();
   }
   
   @Override

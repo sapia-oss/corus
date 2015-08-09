@@ -3,9 +3,11 @@ package org.sapia.corus.file;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,6 +183,11 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
   @Override
   public Reader getFileReader(File f) throws FileNotFoundException, IOException {
     return new FileReader(f);
+  }
+  
+  @Override
+  public OutputStream getFileOutputStream(File f) throws IOException {
+    return new FileOutputStream(f);
   }
   
   @Override

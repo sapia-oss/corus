@@ -7,19 +7,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import org.sapia.corus.client.common.ArgMatcher;
 import java.util.Properties;
 
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
-import org.sapia.corus.util.PropertiesUtil;
 
 /**
  * implements an http extension to provide read access to the internal
@@ -115,10 +115,11 @@ public class ConfiguratorHttpExtension implements HttpExtension {
       keys.add(n);
     }
     Collections.sort(keys);
+    PropertyMasker masker = configurator.getPropertyMasker();
     for (String k : keys) {
       String value = someProps.getProperty(k);
       output.println("<tr valign=\"top\"><td>" + k + "</td><td>" 
-      + PropertiesUtil.hideIfPassword(k, value) + "</td></tr>");
+      + masker.getMaskedValue(k, value) + "</td></tr>");
     }
     
     output.println("</table>");
@@ -135,9 +136,10 @@ public class ConfiguratorHttpExtension implements HttpExtension {
   protected void generatePropertiesTable(List<Property> someProps, PrintStream output) {
     output.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"3\" width=\"75%\">");
     output.println("<th width=\"60%\">Name</th><th width=\"30%\">Value</th><th width=\"10%\">Category</th>");
+    PropertyMasker masker = configurator.getPropertyMasker();
     for (Property p : someProps) {
       output.println("<tr valign=\"top\"><td>" + p.getName() + "</td><td>" 
-      + PropertiesUtil.hideIfPassword(p.getName(), p.getValue()) + "</td>"
+      + masker.getMaskedValue(p.getName(), p.getValue()) + "</td>"
       + "<td>" + (p.getCategory().isNull() ? "N/A" : p.getCategory().get()) + "</tr>");
     }
     

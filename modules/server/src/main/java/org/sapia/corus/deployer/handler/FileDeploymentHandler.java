@@ -5,6 +5,7 @@ import java.io.File;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.services.deployer.ChecksumPreference;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata.Type;
@@ -18,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yduchesne
  * 
  */
-public class FileDeploymentHandler implements DeploymentHandler {
+public class FileDeploymentHandler extends DeploymentHandlerSupport {
 
   @Autowired
   private DeployerConfiguration configuration;
@@ -41,6 +42,15 @@ public class FileDeploymentHandler implements DeploymentHandler {
   @Override
   public ProgressQueue completeDeployment(DeploymentMetadata meta, File uploadedFile) {
     ProgressQueue progress = new ProgressQueueImpl();
+    
+    if (meta.getPreferences().getChecksum().isSet()) {
+      ChecksumPreference cs = meta.getPreferences().getChecksum().get();
+      if (!computeChecksum(progress, cs, uploadedFile)) {
+        uploadedFile.delete();
+        return progress;
+      }
+    }
+    
     progress.debug("Completed uploading file to: " + uploadedFile);
     progress.close();
     return progress;

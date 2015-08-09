@@ -3,7 +3,6 @@ package org.sapia.corus.client.common;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 /**
  * Hold various file-related utility methods.
@@ -96,9 +95,50 @@ public class FileUtils {
    */
   public static String[] splitFilePaths(String paths) {
     List<String> toReturn = new ArrayList<>();
-    StringTokenizer tk = new StringTokenizer(paths, ":;");
-    while (tk.hasMoreTokens()) {
-      toReturn.add(tk.nextToken());
+    
+    StringBuilder token = new StringBuilder();
+    for (int i = 0; i < paths.length(); i++) {
+      char c = paths.charAt(i);
+      if (c == ';') {
+        toReturn.add(token.toString());
+        token.delete(0, token.length());
+      } else if (c == ':') {
+        // might be a path separator, or might correspond to a Windows drive letter.
+        // 
+        
+        if (i >= 2) {
+          char previous = paths.charAt(i - 1);
+          if (Character.isAlphabetic(previous)) {
+            char beforePrevious = paths.charAt(i - 2);
+            // we have <path_separator><letter><path_separator>
+            // assuming drive letter
+            if (i + 1 < paths.length() 
+                && (beforePrevious == ';' || beforePrevious == ':') 
+                && (paths.charAt(i + 1) == '\\' || paths.charAt(i + 1) == '/')) {
+              token.append(c);
+            } else {
+              toReturn.add(token.toString());
+              token.delete(0, token.length());
+            }
+          } else {
+            toReturn.add(token.toString());
+            token.delete(0, token.length());
+          }
+        } else if (i == 1){
+          // only one character before the ':', assuming drive letter
+          token.append(c);
+        } else {
+          // i == 0: ignoring
+          token.delete(0, token.length());
+        }
+        
+      } else {
+        token.append(c);
+      }
+    }
+    
+    if (token.length() > 0) {
+      toReturn.add(token.toString());
     }
     return toReturn.toArray(new String[toReturn.size()]);
   }

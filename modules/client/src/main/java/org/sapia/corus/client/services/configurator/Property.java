@@ -45,6 +45,15 @@ public class Property implements Externalizable, Comparable<Property>, Matcheabl
     this.category = category;
   }
   
+  public Property(String name, String value) {
+    this.name     = name;
+    this.value    = value;
+  }
+  
+  public Property(String name, String value, OptionalValue<String> category) {
+    this(name, value, category.isSet() ? category.get() : null);
+  }
+  
   /**
    * @return this instance's name.
    */

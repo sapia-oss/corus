@@ -2,13 +2,15 @@ package org.sapia.corus.file;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.sapia.corus.client.services.file.FileSystemModule;
 
 public class TestFileSystemModule implements FileSystemModule{
@@ -60,7 +62,12 @@ public class TestFileSystemModule implements FileSystemModule{
   
   @Override
   public Reader getFileReader(File f) throws FileNotFoundException, IOException {
-    return new FileReader(f);
+    return new StringReader("test");
+  }
+  
+  @Override
+  public OutputStream getFileOutputStream(File f) throws IOException {
+    return new ByteArrayOutputStream();
   }
   
   @Override

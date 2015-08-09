@@ -86,10 +86,11 @@ public class DynamicProperty<T> {
   /**
    * @param listener a {@link DynamicPropertyListener} to add.
    */
-  public void addListener(DynamicPropertyListener<T> listener) {
+  public DynamicProperty<T> addListener(DynamicPropertyListener<T> listener) {
     synchronized (listeners) {
       listeners.add(listener);
     }
+    return this;
   }
   
   /**

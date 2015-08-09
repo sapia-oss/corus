@@ -237,4 +237,9 @@ public interface Configurator extends java.rmi.Remote, Module, Dumpable {
    * @param revId the ID of the revision to unarchive.
    */
   public void unarchiveTags(RevId revId);
+  
+  /**
+   * @return this instance's {@link PropertyMasker}.
+   */
+  public PropertyMasker getPropertyMasker();
 }

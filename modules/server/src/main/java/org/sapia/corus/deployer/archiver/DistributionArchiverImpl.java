@@ -106,7 +106,7 @@ public class DistributionArchiverImpl extends ModuleHelper implements Distributi
   
   @Override
   public List<DistributionArchive> unarchive(RevId revId) throws IOException {
-    log.debug("Unarchiving distributions for rev: " + revId);
+    log.debug("Unarchiving distributions for revision: " + revId);
 
     final File revDir = fileSystem.getFileHandle(
         FilePath.newInstance()
@@ -115,6 +115,11 @@ public class DistributionArchiverImpl extends ModuleHelper implements Distributi
     );
     
     List<DistributionArchive> toReturn = new ArrayList<>();
+    
+    if (!fileSystem.exists(revDir)) {
+      return toReturn;
+    } 
+
     
     for (final File zip : revDir.listFiles(new FileFilter() {
       @Override

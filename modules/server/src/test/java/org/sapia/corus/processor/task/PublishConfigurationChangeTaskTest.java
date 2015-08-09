@@ -72,7 +72,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
   public void testExecute_noActiveProcess() throws Throwable {
     List<Property> updatedProperties = new ArrayList<>();
     List<Property> deletedProperties = new ArrayList<>();
-    updatedProperties.add(new Property("nothing", "runs", null));
+    updatedProperties.add(new Property("nothing", "runs"));
     
     tm.executeAndWait(task, TaskParams.createFor(updatedProperties, deletedProperties))
         .get(10000L);
@@ -98,7 +98,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
   public void testExecute_singleProcess_addedProperty_noCategory() throws Throwable {
     List<Property> updatedProperties = new ArrayList<>();
     List<Property> deletedProperties = new ArrayList<>();
-    updatedProperties.add(new Property("sna", "foo", null));
+    updatedProperties.add(new Property("sna", "foo"));
     
     Distribution distA = super.createDistribution("distA", "1.0");
     ProcessConfig serverProcess = super.createProcessConfig(distA, "server", "base");
@@ -107,7 +107,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
     tm.executeAndWait(task, TaskParams.createFor(updatedProperties, deletedProperties))
         .get(10000L);
     
-    assertProcessConfigurationUpdated(process, new Property("sna", "foo", null));
+    assertProcessConfigurationUpdated(process, new Property("sna", "foo"));
     assertProcessConfigurationDeleted(process);
   }
 
@@ -172,9 +172,9 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
   public void testExecute_singleProcess_addedProperties_noCategory() throws Throwable {
     List<Property> updatedProperties = new ArrayList<>();
     List<Property> deletedProperties = new ArrayList<>();
-    updatedProperties.add(new Property("sna1", "foo1", null));
-    updatedProperties.add(new Property("sna2", "foo2", null));
-    updatedProperties.add(new Property("sna3", "foo3", null));
+    updatedProperties.add(new Property("sna1", "foo1"));
+    updatedProperties.add(new Property("sna2", "foo2"));
+    updatedProperties.add(new Property("sna3", "foo3"));
     
     Distribution distA = super.createDistribution("distA", "1.0");
     ProcessConfig serverProcess = super.createProcessConfig(distA, "server", "base");
@@ -183,7 +183,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
     tm.executeAndWait(task, TaskParams.createFor(updatedProperties, deletedProperties))
         .get(10000L);
     
-    assertProcessConfigurationUpdated(process, new Property("sna1", "foo1", null), new Property("sna2", "foo2", null), new Property("sna3", "foo3", null));
+    assertProcessConfigurationUpdated(process, new Property("sna1", "foo1"), new Property("sna2", "foo2"), new Property("sna3", "foo3"));
     assertProcessConfigurationDeleted(process);
   }
 
@@ -231,7 +231,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
   public void testExecute_singleProcess_deletedProperty() throws Throwable {
     List<Property> updatedProperties = new ArrayList<>();
     List<Property> deletedProperties = new ArrayList<>();
-    deletedProperties.add(new Property("foo", "old", null));
+    deletedProperties.add(new Property("foo", "old"));
     
     Distribution distA = super.createDistribution("distA", "1.0");
     ProcessConfig serverProcess = super.createProcessConfig(distA, "server", "base");
@@ -241,7 +241,7 @@ public class PublishConfigurationChangeTaskTest extends TestBaseTask {
         .get(10000L);
     
     assertProcessConfigurationUpdated(process);
-    assertProcessConfigurationDeleted(process, new Property("foo", "old", null));
+    assertProcessConfigurationDeleted(process, new Property("foo", "old"));
   }
   
 }

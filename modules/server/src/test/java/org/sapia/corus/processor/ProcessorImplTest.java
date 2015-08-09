@@ -297,7 +297,7 @@ public class ProcessorImplTest {
     processor.doHandlePropertyChangeEvent(event);
     
     assertThat(processor.isPublishProcessConfigurationChangeEnabled()).isTrue();
-    assertTaskManagerExecutedConfigurationChangeTask(new Property[] { new Property("client.custom.param1", "val1", null) }, new Property[0]);
+    assertTaskManagerExecutedConfigurationChangeTask(new Property[] { new Property("client.custom.param1", "val1") }, new Property[0]);
   }
   
   @Test

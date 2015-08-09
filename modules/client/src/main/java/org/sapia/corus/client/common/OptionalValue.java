@@ -99,7 +99,7 @@ public class OptionalValue<T> implements Externalizable {
     if (obj instanceof OptionalValue) {
       OptionalValue<?> other = OptionalValue.class.cast(obj);
       if (value == null || other.value == null) {
-        return false;
+        return true;
       } else {
         return value.equals(other.value);
       }

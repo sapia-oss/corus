@@ -8,4 +8,4 @@ undeploy -e test
 
 echo "unarchiving previous state"
 unarchive previous
-deploy rev previous
+deploy -rev previous

@@ -1,6 +1,9 @@
 package org.sapia.corus.client.common;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
@@ -54,7 +57,7 @@ public class OptionalValueTest {
 
   @Test
   public void testEquals_null() {
-    assertNotEquals(val1, nullVal);
+    assertEquals(val1, nullVal);
   } 
   
   @Test

@@ -2,6 +2,7 @@ package org.sapia.corus.processor.task;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Interpolation;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -33,7 +35,6 @@ import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
-import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.rmi.naming.remote.RemoteInitialContextFactory;
 import org.sapia.ubik.util.Localhost;
 
@@ -107,6 +108,30 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       ctx.warn(String.format("No executable found for profile: %s", env.getProfile()));
       process.releasePorts(ports);
       return false;
+    }
+    
+    // ------------------------------------------------------------------------
+    // At this point, only non-hidden properties are passed to the process using -D options.
+    // The remaining properties are passed though a .corus-process.hidden.properties file, written
+    // to the process directory.
+    File           hiddenPropertiesFile = new File(processDir, ".corus-process.hidden.properties");
+    Properties     hiddenProperties     = new Properties();
+    PropertyMasker masker               = ctx.getServerContext().getServices().getConfigurator().getPropertyMasker(); 
+    for (String n : processProperties.stringPropertyNames()) {
+      String v = processProperties.getProperty(n);
+      if (masker.isHidden(n)) {
+        hiddenProperties.setProperty(n, v);
+      }
+    }
+    OutputStream hiddenPropertiesOutput = ctx.getServerContext().getServices().getFileSystem().getFileOutputStream(hiddenPropertiesFile);
+    try {
+      hiddenProperties.store(hiddenPropertiesOutput, "Written by Corus");
+    } finally {
+      try {
+        hiddenPropertiesOutput.close();
+      } catch (IOException e) {
+        // noop
+      }
     }
     
     ctx.info(String.format("Running pre-exec script"));
@@ -236,9 +261,11 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
               value = "\"" + value + "\"";
           }
         }
-        
-        ctx.info("Passing process property: " + name + "=" + PropertiesUtil.hideIfPassword(name, value));
-        props.add(new Property(name, value));
+        PropertyMasker masker = ctx.getServerContext().getServices().getConfigurator().getPropertyMasker();
+        if (!masker.isHidden(name)) {
+          ctx.info("Passing process property: " + name + "=" + value);
+          props.add(new Property(name, value));
+        }
       }
     }
 

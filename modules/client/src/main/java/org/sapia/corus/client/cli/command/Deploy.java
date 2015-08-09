@@ -9,6 +9,7 @@ import java.util.Map;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.Option;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
@@ -16,6 +17,7 @@ import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.deployer.ChecksumPreference;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
@@ -36,10 +38,12 @@ public class Deploy extends CorusCliCommand {
   private static final OptionDef OPT_DEPLOY_SCRIPTS = new OptionDef("r", false);
   private static final OptionDef OPT_DEPLOY_REV     = new OptionDef("rev", true);
   private static final OptionDef OPT_SEQ            = new OptionDef("seq", false);
+  private static final OptionDef OPT_CHECKSUM_MD5   = new OptionDef("chkmd5", false);
+
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
     OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, 
-    OPT_DEPLOY_SCRIPTS, OPT_DEPLOY_REV, OPT_SEQ,
+    OPT_DEPLOY_SCRIPTS, OPT_DEPLOY_REV, OPT_SEQ, OPT_CHECKSUM_MD5,
     OPT_CLUSTER
   );
   
@@ -80,6 +84,9 @@ public class Deploy extends CorusCliCommand {
     }
   }
   
+  // --------------------------------------------------------------------------
+  // Distribution deployment
+  
   private void deployDistribution(final CliContext ctx, final String fileName, final DeployPreferences prefs) throws AbortException, InputException {
     if (fileName.endsWith("xml")) {
       deployExec(ctx, fileName);
@@ -89,7 +96,7 @@ public class Deploy extends CorusCliCommand {
         public Void call(CorusHost target) {
           ClusterInfo info = new ClusterInfo(false);
           try {
-            displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, prefs, info), ctx);
+            displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, assignChecksumPreference(prefs.getCopy(), ctx), info), ctx);
           } catch (Exception e) {
             throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
           }
@@ -98,7 +105,7 @@ public class Deploy extends CorusCliCommand {
       });
     } else {
       try {
-        displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, prefs, getClusterInfo(ctx)), ctx);
+        displayProgress(ctx.getCorus().getDeployerFacade().deployDistribution(fileName, assignChecksumPreference(prefs.getCopy(), ctx), getClusterInfo(ctx)), ctx);
       } catch (ConcurrentDeploymentException e) {
         CliError err = ctx.createAndAddErrorFor(this, "Distribution file already being deployed", e);
         ctx.getConsole().println(err.getSimpleMessage());
@@ -109,6 +116,9 @@ public class Deploy extends CorusCliCommand {
     }
   }
 
+  // --------------------------------------------------------------------------
+  // Script deployment
+  
   private void deployScript(final CliContext ctx, final String fileName, final String alias) throws AbortException, InputException {
     final String desc;
     if (ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR.getName(), true)) {
@@ -123,7 +133,8 @@ public class Deploy extends CorusCliCommand {
         public Void call(CorusHost target) {
           ClusterInfo info = new ClusterInfo(false);
           try {
-            displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, info), ctx);
+            DeployPreferences prefs = DeployPreferences.newInstance();
+            displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, assignChecksumPreference(prefs, ctx), info), ctx);
           } catch (Exception e) {
             throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
           }
@@ -132,13 +143,17 @@ public class Deploy extends CorusCliCommand {
       });
     } else {
       try {
-        displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, getClusterInfo(ctx)), ctx);
+        DeployPreferences prefs = DeployPreferences.newInstance();
+        displayProgress(ctx.getCorus().getDeployerFacade().deployScript(fileName, alias, desc, assignChecksumPreference(prefs, ctx), getClusterInfo(ctx)), ctx);
       } catch (Exception e) {
         CliError err = ctx.createAndAddErrorFor(this, "Problem deploying script", e);
         ctx.getConsole().println(err.getSimpleMessage());
       }
     }
   }
+  
+  // --------------------------------------------------------------------------
+  // File deployment
 
   private void deployFile(final CliContext ctx, final String fileName) throws AbortException, InputException {
     final String destDir = ctx.getCommandLine().containsOption(OPT_DESC_OR_DIR.getName(), true) ?
@@ -150,7 +165,8 @@ public class Deploy extends CorusCliCommand {
         public Void call(CorusHost target) {
           ClusterInfo info = new ClusterInfo(false);
           try {
-            displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, info), ctx);
+            DeployPreferences prefs = DeployPreferences.newInstance();
+            displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, assignChecksumPreference(prefs, ctx), info), ctx);
           } catch (Exception e) {
             throw new AbortException("Error caught performing distribution deployment: " + e.getMessage(), e);
           }
@@ -159,7 +175,9 @@ public class Deploy extends CorusCliCommand {
       });
     } else {    
       try {
-        displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, getClusterInfo(ctx)), ctx);
+        DeployPreferences prefs = DeployPreferences.newInstance();
+        assignChecksumPreference(prefs, ctx);
+        displayProgress(ctx.getCorus().getDeployerFacade().deployFile(fileName, destDir, assignChecksumPreference(prefs, ctx), getClusterInfo(ctx)), ctx);
       } catch (Exception e) {
         CliError err = ctx.createAndAddErrorFor(this, "Problem deploying file", e);
         ctx.getConsole().println(err.getSimpleMessage());
@@ -167,8 +185,13 @@ public class Deploy extends CorusCliCommand {
     }
   }
 
+  
+  // --------------------------------------------------------------------------
+  // Exec config deployment
+  
   private void deployExec(final CliContext ctx, String fileName) throws AbortException, InputException {
     final File file = ctx.getFileSystem().getFile(fileName);
+    
     if (!file.exists()) {
       CliError err = ctx.createAndAddErrorFor(this, new DeploymentException("File not found: " + fileName));
       ctx.getConsole().println(err.getSimpleMessage());
@@ -246,6 +269,18 @@ public class Deploy extends CorusCliCommand {
       );
     }
   
+  }
+  
+  private DeployPreferences assignChecksumPreference(DeployPreferences prefs, CliContext ctx) {
+    if (ctx.getCommandLine().containsOption(OPT_CHECKSUM_MD5.getName(), false)) {
+      Option checksumOpt = ctx.getCommandLine().getOpt(OPT_CHECKSUM_MD5.getName());
+      if (checksumOpt.getValue() == null) {
+        prefs.setChecksum(ChecksumPreference.forMd5());
+      } else {
+        prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksumOpt.getValue()));
+      }
+    }
+    return prefs;
   }
 
 }

@@ -6,12 +6,8 @@
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_samples_parent</artifactId>
-<<<<<<< HEAD
-		<version>4.7-RC6</version>
-=======
-		<version>4.7-RC7</version>
->>>>>>> release/4.7-RC7
-		<relativePath>..</relativePath>
+		<version>4.7</version>
+        <relativePath>..</relativePath>
 	</parent>
 
 	<name>Corus Grails App Sample</name>

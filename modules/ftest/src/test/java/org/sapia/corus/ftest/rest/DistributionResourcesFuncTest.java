@@ -423,7 +423,7 @@ public class DistributionResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance().executeDeployScripts(), ClusterInfo.clustered());
     
     waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     
@@ -456,7 +456,7 @@ public class DistributionResourcesFuncTest {
         }
     );
     assertEquals(1, matches.length, "Could not match");
-    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance(), ClusterInfo.clustered());
+    client.getConnector().getDeployerFacade().deployDistribution(matches[0].getAbsolutePath(), DeployPreferences.newInstance().executeDeployScripts(), ClusterInfo.clustered());
     
     waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     

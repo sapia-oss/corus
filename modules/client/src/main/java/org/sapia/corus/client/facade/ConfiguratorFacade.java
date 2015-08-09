@@ -11,6 +11,7 @@ import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.RevId;
 
@@ -180,5 +181,10 @@ public interface ConfiguratorFacade {
    * @param cluster a {@link ClusterInfo} instance.
    */
   public void unarchiveTags(RevId revId, ClusterInfo cluster);
+  
+  /**
+   * @return the {@link PropertyMasker}.
+   */
+  public PropertyMasker getPropertyMasker();
 
 }
