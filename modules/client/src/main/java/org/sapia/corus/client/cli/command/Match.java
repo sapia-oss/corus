@@ -14,6 +14,7 @@ import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.cli.CliContext;
@@ -159,7 +160,7 @@ public class Match extends NoOptionCommand {
         } 
         ctx.getCorus().getContext().getSelectedHosts().push(selectedHosts);
         Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
-        interpreter.setAutoClusterInfo(info);
+        interpreter.setAutoClusterInfo(AutoClusterFlag.forExplicit(info));
         try {
           interpreter.interpret(script, ctx.getVars());
         } catch (AbortException e) {

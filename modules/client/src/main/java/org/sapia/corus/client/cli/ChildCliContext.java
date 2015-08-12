@@ -8,7 +8,7 @@ import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Console;
 import org.sapia.console.Context;
-import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.OptionalValue;
@@ -24,16 +24,16 @@ import org.sapia.corus.client.sort.SortSwitchInfo;
  */
 public class ChildCliContext extends Context implements CliContext {
 
-  private CliContext         parent;
-  private CmdLine            childCmd;
-  private boolean            abortOnError;
-  private StrLookupState     vars;
-  private Stack<ClusterInfo> autoCluster = new Stack<>();
+  private CliContext             parent;
+  private CmdLine                childCmd;
+  private boolean                abortOnError;
+  private StrLookupState         vars;
+  private Stack<AutoClusterFlag> autoCluster = new Stack<>();
 
   public ChildCliContext(CliContext parent, CmdLine childCmd, StrLookupState vars) {
-    this.parent = parent;
+    this.parent   = parent;
     this.childCmd = childCmd;
-    this.vars = vars;
+    this.vars     = vars;
   }
 
   @Override
@@ -114,13 +114,13 @@ public class ChildCliContext extends Context implements CliContext {
   }
   
   @Override
-  public void setAutoClusterInfo(ClusterInfo info) {
-    autoCluster.push(info);
+  public void setAutoClusterInfo(AutoClusterFlag flag) {
+    autoCluster.push(flag);
   }
   
   @Override
-  public OptionalValue<ClusterInfo> getAutoClusterInfo() {
-    OptionalValue<ClusterInfo> toReturn = null;
+  public OptionalValue<AutoClusterFlag> getAutoClusterInfo() {
+    OptionalValue<AutoClusterFlag> toReturn = null;
     
     if (autoCluster.isEmpty()) {
       toReturn = OptionalValue.of(null);

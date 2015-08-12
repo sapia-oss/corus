@@ -21,8 +21,8 @@ import org.sapia.console.ConsoleOutput.DefaultConsoleOutput;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.console.TerminalFacade;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.ClientDebug;
-import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.cli.command.CorusCliCommand.OptionDef;
 import org.sapia.corus.client.facade.CorusConnector;
@@ -42,7 +42,7 @@ public class Interpreter extends Console implements CorusConsole {
 
   private CorusCommandFactory commandFactory = new CorusCommandFactory();
   private CorusConnector      corus;
-  private ClusterInfo         clusterInfo;
+  private AutoClusterFlag     autoCluster;
 
   /**
    * Creates an instance of this class that sends command output to the console.
@@ -71,10 +71,10 @@ public class Interpreter extends Console implements CorusConsole {
   }
   
   /**
-   * @param info the {@link ClusterInfo} instance to use.
+   * @param autoCluster the {@link AutoClusterFlag} instance to use.
    */
-  public void setAutoClusterInfo(ClusterInfo info) {
-    this.clusterInfo = info;
+  public void setAutoClusterInfo(AutoClusterFlag autoCluster) {
+    this.autoCluster = autoCluster;
   }
   
   
@@ -241,8 +241,8 @@ public class Interpreter extends Console implements CorusConsole {
         AtomicReference<SortSwitchInfo[]> switches = new AtomicReference<SortSwitchInfo[]>();
         switches.set(new SortSwitchInfo[]{});
         CliContextImpl ctx = new CliContextImpl(corus, new AutoFlushedBoundedList<CliError>(10), vars, switches);
-        if (clusterInfo != null) {
-          ctx.setAutoClusterInfo(clusterInfo);
+        if (autoCluster != null) {
+          ctx.setAutoClusterInfo(autoCluster);
         }
         ctx.setUp(this, preprocess(cmd, cmdLine));
         ctx.setAbortOnError(true);
@@ -275,19 +275,29 @@ public class Interpreter extends Console implements CorusConsole {
   }
   
   private CmdLine preprocess(Command command, CmdLine cmd) {
-    if (command instanceof CorusCliCommand && clusterInfo != null) {
+    if (command instanceof CorusCliCommand && autoCluster != null) {
       CorusCliCommand cliCmd = (CorusCliCommand) command;
       CmdLine newCmd = cmd;
-      for (OptionDef def : cliCmd.getAvailableOptions()) {
-        if (def.equals(CorusCliCommand.OPT_CLUSTER)) {
-          newCmd = new CmdLine();
-          for (int i = 0; i < cmd.size(); i++) {
-            CmdElement cmdElem = cmd.get(i);
-            if (cmdElem instanceof Option && ((Option) cmdElem).getName().equals(CorusCliCommand.OPT_CLUSTER.getName())) {
-              Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), clusterInfo.toLiteralForm());
-              newCmd.addElement(newOpt);
-            } else {
-              newCmd.addElement(cmdElem);
+      if (!cmd.containsOption(CorusCliCommand.OPT_CLUSTER.getName(), false) && autoCluster.isAll()) {
+        newCmd = new CmdLine();
+        for (int i = 0; i < cmd.size(); i++) {
+          CmdElement cmdElem = cmd.get(i);
+          newCmd.addElement(cmdElem);
+        }
+        Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), autoCluster.getClusterInfo().toLiteralForm());
+        newCmd.addElement(newOpt);
+      } else {
+        for (OptionDef def : cliCmd.getAvailableOptions()) {
+          if (def.equals(CorusCliCommand.OPT_CLUSTER)) {
+            newCmd = new CmdLine();
+            for (int i = 0; i < cmd.size(); i++) {
+              CmdElement cmdElem = cmd.get(i);
+              if (cmdElem instanceof Option && ((Option) cmdElem).getName().equals(CorusCliCommand.OPT_CLUSTER.getName())) {
+                Option newOpt = new Option(CorusCliCommand.OPT_CLUSTER.getName(), autoCluster.getClusterInfo().toLiteralForm());
+                newCmd.addElement(newOpt);
+              } else {
+                newCmd.addElement(cmdElem);
+              }
             }
           }
         }

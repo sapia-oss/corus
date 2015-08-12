@@ -41,6 +41,7 @@ public class ClusterInfo implements Serializable {
   public boolean isClustered() {
     return cluster;
   }
+  
 
   /**
    * @param target
