@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.ConsoleOutput;
-import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.StrLookups;
@@ -46,7 +46,7 @@ public class ScriptResource {
     String      encoding          = ctx.getRequest().getValue("encoding", "UTF-8").asString();
     Interpreter interpreter       = new Interpreter(ctx.getConnector());
     if (!clusteringEnabled) {
-      interpreter.setAutoClusterInfo(ClusterInfo.notClustered());
+      interpreter.setAutoClusterInfo(AutoClusterFlag.notClustered());
     }
     
     final List<String> messages = new ArrayList<String>();

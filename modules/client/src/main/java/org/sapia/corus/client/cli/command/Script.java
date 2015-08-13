@@ -11,6 +11,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
 import org.sapia.corus.client.cli.CorusScript;
@@ -66,6 +67,8 @@ public class Script extends CorusCliCommand {
       Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
       if (ctx.getAutoClusterInfo().isSet()) {
         interpreter.setAutoClusterInfo(ctx.getAutoClusterInfo().get());
+      } else if (ctx.getCommandLine().containsOption(OPT_CLUSTER.getName(), false)) {
+        interpreter.setAutoClusterInfo(AutoClusterFlag.forAll(getClusterInfo(ctx)));
       }
       if (scriptEngineName == null) {
         interpreter.interpret(new FileReader(scriptFile), ctx.getVars());

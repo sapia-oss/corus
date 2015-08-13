@@ -16,6 +16,7 @@ import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
@@ -146,7 +147,12 @@ public class Foreach extends NoOptionCommand {
       ctx.getCorus().getContext().setResultFilter(pattern);
       Interpreter intp = new Interpreter(ctx.getConsole(), ctx.getCorus());
       if (ctx.getCorus().getContext().getSelectedHosts().peek().isSet()) {
-        intp.setAutoClusterInfo(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
+        intp.setAutoClusterInfo(
+            AutoClusterFlag.forExplicit(
+                ClusterInfo.clustered()
+                  .addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get())
+            )
+        );
       }
       intp.eval(toExecute, ctx.getVars());
     } catch (CommandNotFoundException e) {
@@ -194,7 +200,12 @@ public class Foreach extends NoOptionCommand {
           for (Object r : flattenedResult) {
             Interpreter interpreter = new Interpreter(ctx.getConsole(), ctx.getCorus());
             if (ctx.getCorus().getContext().getSelectedHosts().peek().isSet()) {
-              interpreter.setAutoClusterInfo(ClusterInfo.clustered().addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()));
+              interpreter.setAutoClusterInfo(
+                  AutoClusterFlag.forExplicit(
+                      ClusterInfo.clustered()
+                        .addTargetHosts(ctx.getCorus().getContext().getSelectedHosts().peek().get()) 
+                  )
+              );
             }
             
             StrLookupState state;

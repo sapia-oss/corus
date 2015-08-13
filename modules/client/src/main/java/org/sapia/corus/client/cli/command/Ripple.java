@@ -13,6 +13,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.Interpreter;
@@ -172,9 +173,9 @@ public class Ripple extends CorusCliCommand {
       for (CorusHost h : batch) {
         cluster.addTarget(h.getEndpoint().getServerAddress());
       }
-      ctx.setAutoClusterInfo(cluster);
+      ctx.setAutoClusterInfo(AutoClusterFlag.forExplicit(cluster));
       try {
-        interpreter.setAutoClusterInfo(cluster);
+        interpreter.setAutoClusterInfo(AutoClusterFlag.forExplicit(cluster));
         interpreter.interpret(new FileReader(scriptFile), ctx.getVars());
       } finally {
         ctx.unsetAutoClusterInfo();
@@ -190,8 +191,8 @@ public class Ripple extends CorusCliCommand {
     for (CorusHost h : batch) {
       cluster.addTarget(h.getEndpoint().getServerAddress());
     }
-    interpreter.setAutoClusterInfo(cluster);
-    ctx.setAutoClusterInfo(cluster);
+    interpreter.setAutoClusterInfo(AutoClusterFlag.forExplicit(cluster));
+    ctx.setAutoClusterInfo(AutoClusterFlag.forExplicit(cluster));
     try {
       ctx.getConsole().println(String.format("Rippling command to %s: %s", cluster.toLiteralForm(), cmdLine));
       interpreter.eval(cmdLine, ctx.getVars());

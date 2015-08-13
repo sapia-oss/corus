@@ -9,6 +9,7 @@ import java.io.StringReader;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
+import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
@@ -234,7 +235,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     });
     
     // commands executed in this context must not be clustered.
-    interpreter.setAutoClusterInfo(ClusterInfo.notClustered());
+    interpreter.setAutoClusterInfo(AutoClusterFlag.notClustered());
     Reader scriptReader = null;
     try {
       scriptReader = fs.getFileReader(deployScript);
