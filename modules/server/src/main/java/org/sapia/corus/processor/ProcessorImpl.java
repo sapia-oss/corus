@@ -12,10 +12,13 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.reference.AutoResetReference;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.DbModule;
@@ -24,7 +27,7 @@ import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
-import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
+import org.sapia.corus.client.services.deployer.event.UndeploymentCompletedEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.os.OsModule;
@@ -65,6 +68,7 @@ import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -76,6 +80,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = Processor.class)
 public class ProcessorImpl extends ModuleHelper implements Processor {
 
+  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
+  
   @Autowired
   private ProcessorConfiguration configuration;
   @Autowired
@@ -93,6 +99,8 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   @Autowired
   private OsModule        os;
 
+  private ProcessorStateManager stateManager;
+  
   private ProcessRepository processes;
   
   private ExecConfigDatabase execConfigs;
@@ -137,6 +145,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   // --------------------------------------------------------------------------
   // Lifecycle
   
+  @Override
   public void init() throws Exception {
 
     services().getTaskManager().registerThrottle(ProcessorThrottleKeys.PROCESS_EXEC,
@@ -146,9 +155,19 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     execConfigs = new ExecConfigDatabaseImpl(db.getDbMap(String.class, ExecConfig.class, "processor.execConfigs"));
     services().bind(ExecConfigDatabase.class, execConfigs);
 
-    ProcessDatabase processDb = new ProcessDatabaseImpl(new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class, "processor.processes")));
+    ProcessDatabase processDb = new ProcessDatabaseImpl(
+        new CachingDbMap<String, Process>(db.getDbMap(String.class, Process.class, "processor.processes"))
+    );
     processes = new ProcessRepositoryImpl(processDb);
     services().bind(ProcessRepository.class, processes);
+    
+    stateManager = new ProcessorStateManager(
+        new AutoResetReference<ModuleState>(
+            ModuleState.IDLE, 
+            TimeValue.createSeconds(DEFAULT_STATE_IDLE_DELAY_SECONDS)
+        ), 
+        events
+    );
 
     // here we "touch" the process objects to prevent their automatic
     // termination (the Corus server might have been down for a period
@@ -182,6 +201,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     }
   }
 
+  @Override
   public void start() throws Exception {
     ProcessorExtension ext = new ProcessorExtension(this, serverContext());
     http.addHttpExtension(ext);
@@ -199,7 +219,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     taskman.executeBackground(check, null,
         BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getProcessCheckIntervalMillis()));
 
-    events.addInterceptor(UndeploymentEvent.class, new ProcessorInterceptor());
+    events.addInterceptor(UndeploymentCompletedEvent.class, new ProcessorInterceptor());
     
     // Waiting for this service to be running before activating the process update feature (to avoid any startup mixed-up)
     isPublishProcessConfigurationChangeEnabled = Boolean.parseBoolean(
@@ -207,28 +227,26 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     events.addInterceptor(PropertyChangeEvent.class, new PropertyChangeInterceptor()); 
   }
 
+  @Override
   public void dispose() {
   }
 
-  /*
-   * //////////////////////////////////////////////////////////////////// Module
-   * INTERFACE METHODS
-   * ////////////////////////////////////////////////////////////////////
-   */
-
-  /**
-   * @see org.sapia.corus.client.Module#getRoleName()
-   */
+  // --------------------------------------------------------------------------
+  // Module interface
+  
+  @Override
   public String getRoleName() {
     return Processor.ROLE;
   }
 
-  /*
-   * ////////////////////////////////////////////////////////////////////
-   * Processor INTERFACE METHODS
-   * ////////////////////////////////////////////////////////////////////
-   */
+  // --------------------------------------------------------------------------
+  // Processor interface
 
+  @Override
+  public Reference<ModuleState> getState() {
+    return stateManager.getState();
+  }
+  
   @Override
   public ProgressQueue execConfig(ExecConfigCriteria criteria) {
     ProgressQueue progress = new ProgressQueueImpl();
@@ -649,7 +667,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   public class ProcessorInterceptor implements Interceptor {
-    public void onUndeploymentEvent(UndeploymentEvent evt) {
+    public void onUndeploymentCompletedEvent(UndeploymentCompletedEvent evt) {
       execConfigs.removeProcessesForDistribution(evt.getDistribution());
     }
   }

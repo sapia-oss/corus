@@ -25,7 +25,6 @@ public class ConfigProperty extends AbstractPersistent<String, ConfigProperty> i
   static final int VERSION_1       = 1;
   static final int CURRENT_VERSION = VERSION_1;
 
-  private int classVersion = CURRENT_VERSION;
   private String name, value;
 
   ConfigProperty() {
@@ -81,9 +80,9 @@ public class ConfigProperty extends AbstractPersistent<String, ConfigProperty> i
 
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
-      .field("classVersion").value(classVersion)
+      .field("classVersion").value(CURRENT_VERSION)
       .field("name").value(name)
       .field("value").value(value)
     .endObject();
@@ -122,7 +121,7 @@ public class ConfigProperty extends AbstractPersistent<String, ConfigProperty> i
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeInt(classVersion);
+    out.writeInt(CURRENT_VERSION);
     out.writeUTF(name);
     out.writeUTF(value);
   }

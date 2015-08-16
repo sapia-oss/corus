@@ -8,6 +8,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
@@ -19,6 +20,22 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
  */
 public class DistributionResource {
 
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/distributions"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getDistributionsForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetDistributions(context, targets);
+  }  
+  
+  // --------------------------------------------------------------------------
+  
   @Path({
     "/clusters/{corus:cluster}/distributions",
     "/clusters/{corus:cluster}/hosts/distributions"
@@ -71,8 +88,9 @@ public class DistributionResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("distribution")
           .field("data");
-        d.toJson(stream);
+        d.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }      
     }

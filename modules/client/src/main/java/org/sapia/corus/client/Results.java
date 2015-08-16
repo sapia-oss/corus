@@ -44,6 +44,15 @@ public class Results<T> implements Iterable<Result<T>> {
   }
 
   /**
+   * @param results a new {@link Collection} of {@link Result}s.
+   */
+  public synchronized void addResults(Collection<Result<T>> results) {
+    for (Result<T> r : results) {
+      addResult(r);
+    }
+  }
+  
+  /**
    * @param result
    *          a {@link Result}.
    */

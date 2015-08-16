@@ -14,6 +14,7 @@ import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -86,8 +87,12 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<Process, ProcessTerminationRequestor, Void, Void> params) throws Throwable {
 
-    proc = params.getParam1();
+    proc      = params.getParam1();
     requestor = params.getParam2();
+    
+    if (super.getExecutionCount() == 0) {
+       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKillPendingEvent(requestor, proc));
+    }
 
     ctx.debug(String.format("Killing %s", proc));
 
@@ -101,8 +106,8 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
       proc.getLock().acquire(lockOwner);
       proc.save();
     } catch (ProcessLockException e) {
-      ctx.error(String.format("Could not acquire lock on process: %s", proc));
-      ctx.error(e);
+      ctx.warn(String.format("Could not acquire lock on process: %s", proc));
+      ctx.warn("Details:", e);
       abort(ctx);
       return null;
     }
@@ -196,6 +201,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
           ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
         }
       } else {
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
         ctx.warn(String.format("Process %s terminated", proc));
       }
     } finally {

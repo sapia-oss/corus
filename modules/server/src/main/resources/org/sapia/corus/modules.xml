@@ -149,12 +149,13 @@
         class="org.sapia.corus.alert.AlertManagerImpl" 
         scope="singleton"
         autowire="autodetect">
-    <property name="smtpHost"   	 value="${corus.server.alert.smtp.host}" />
+    <property name="smtpHost"   	   value="${corus.server.alert.smtp.host}" />
     <property name="smtpPort"        value="${corus.server.alert.smtp.port}" />
     <property name="smtpPassword"    value="${corus.server.alert.smtp.password}" />
     <property name="fromEmail"       value="${corus.server.alert.sender}" />    
     <property name="recipientEmails" value="${corus.server.alert.recipients}" />
     <property name="enabled"   	     value="${corus.server.alert.enabled}" />
+    <property name="alertLevel"      value="${corus.server.alert.level}" />
   </bean> 
 
   <!-- ============ CONSUL ============ -->
@@ -168,5 +169,15 @@
     <property name="publishIntervalSeconds" value="${corus.server.pub.consul.interval}" />
     <property name="publishTtlSeconds"      value="${corus.server.pub.consul.ttl}" />
   </bean> 
+  
+  
+  <!-- ============ DIAGNOSTICS ============ -->
+
+  <bean name="org.sapia.corus.client.services.diagnostic.DiagnosticModule"
+      class="org.sapia.corus.diagnostic.DiagnosticModuleImpl"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="processStartupGracePeriodDuration" value="${corus.server.diagnostic.grace-period.duration}" />
+  </bean>   
    
 </beans>

@@ -32,7 +32,7 @@ public class TestDbObject extends AbstractPersistent<String, TestDbObject> imple
   }
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
       .field("name").value(name)
       .field("description").value(description)

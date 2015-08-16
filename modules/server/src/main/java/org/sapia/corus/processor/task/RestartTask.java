@@ -11,6 +11,7 @@ import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -69,6 +70,7 @@ public class RestartTask extends KillTask {
             proc.setStatus(LifeCycleStatus.ACTIVE);
             proc.clear();
             proc.save();
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessRestartedEvent(dist, conf, proc));
           } else {
             proc.delete();
           }

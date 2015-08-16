@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -23,6 +24,15 @@ public class RestContainerTest {
   
   @Mock
   private CorusConnector connector;
+  
+  @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   private RestContainer container;
   private TestResource resource;
@@ -38,11 +48,11 @@ public class RestContainerTest {
   @Test
   public void testInvoke() throws Throwable {
     when(request.getPath()).thenReturn("/test/method1");
-    container.invoke(new RequestContext(request, connector), response);
+    container.invoke(new RequestContext(request, connector, async, partitions, connectors), response);
     assertTrue(resource.method1Invoked);
     
     when(request.getPath()).thenReturn("/test/method2");
-    container.invoke(new RequestContext(request, connector), response);
+    container.invoke(new RequestContext(request, connector, async, partitions, connectors), response);
     assertTrue(resource.method2Invoked);
   }
 

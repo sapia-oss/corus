@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 
 public class ShellScriptTest {
 
@@ -23,7 +24,7 @@ public class ShellScriptTest {
   public void testJson() {
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    script.toJson(stream);
+    script.toJson(stream, ContentLevel.DETAIL);
     ShellScript copy = ShellScript.fromJson(JsonObjectInput.newInstance(writer.toString()));
     
     assertEquals(script.getAlias(), copy.getAlias());

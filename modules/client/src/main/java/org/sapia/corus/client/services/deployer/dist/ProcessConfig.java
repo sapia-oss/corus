@@ -16,6 +16,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Collects;
@@ -303,6 +304,20 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
    */
   public List<Port> getPorts() {
     return ports;
+  }
+  
+  /**
+   * @param portRangeName the name of the port range.
+   * @return the {@link OptionalValue} holding the {@link Port} range corresponding
+   * to the given name, or {@link OptionalValue#none()} is no such port range is found.
+   */
+  public OptionalValue<Port> getPortByName(String portRangeName) {
+    for (Port p : ports) {
+      if (p.getName().equals(portRangeName)) {
+        return OptionalValue.of(p);
+      }
+    }
+    return OptionalValue.none();
   }
 
   /**

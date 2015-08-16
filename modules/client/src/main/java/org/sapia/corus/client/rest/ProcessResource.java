@@ -7,6 +7,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.services.processor.PortCriteria;
@@ -21,6 +22,22 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
  */
 public class ProcessResource {
 
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/processes"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getProcessesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetProcesses(context, targets);
+  }
+  
+  // --------------------------------------------------------------------------
+  
   @Path({
     "/clusters/{corus:cluster}/processes",
     "/clusters/{corus:cluster}/hosts/processes"
@@ -76,8 +93,9 @@ public class ProcessResource {
               r.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               r.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("process")
           .field("data");  
-        p.toJson(stream);
+        p.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();  
         return output.toString();    
       }
@@ -125,8 +143,9 @@ public class ProcessResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("process")
           .field("data");  
-        p.toJson(stream);
+        p.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();  
       }
     }

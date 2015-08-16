@@ -17,6 +17,7 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.services.processor.ProcessStartupInfo;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 public class ExecTaskTest extends TestBaseTask{
@@ -34,7 +35,7 @@ public class ExecTaskTest extends TestBaseTask{
   @Test
   public void testExecuteProcess() throws Exception{
     ExecTask task = new ExecTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile")).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile", ProcessStartupInfo.forSingleProcess())).get();
     assertEquals(1, ctx.getProc().getProcesses(ProcessCriteria.builder().all()).size());
   }
   
@@ -46,7 +47,7 @@ public class ExecTaskTest extends TestBaseTask{
     port.setName("test");
 
     ExecTask task = new ExecTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile")).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile", ProcessStartupInfo.forSingleProcess())).get();
     assertEquals(1, ctx.getProc().getProcesses(ProcessCriteria.builder().all()).size());
     range = ctx.getPorts().getPortRanges().get(0);
     assertEquals(1, range.getActive().size());
@@ -66,7 +67,7 @@ public class ExecTaskTest extends TestBaseTask{
     port.setName("test");
 
     ExecTask task = new ExecTask();
-    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile")).get();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(dist, conf, "testProfile", ProcessStartupInfo.forSingleProcess())).get();
     assertEquals(0, ctx.getProc().getProcesses(ProcessCriteria.builder().all()).size());
     range = ctx.getPorts().getPortRanges().get(0);
     assertEquals(0, range.getActive().size());

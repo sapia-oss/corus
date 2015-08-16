@@ -12,6 +12,7 @@ public class ProgressQueueImpl implements ProgressQueue {
   private List<ProgressMsg> msgs = new ArrayList<ProgressMsg>();
   private boolean over;
 
+  @Override
   public synchronized boolean hasNext() {
     while ((msgs.size() == 0) && !over) {
       try {
@@ -24,6 +25,7 @@ public class ProgressQueueImpl implements ProgressQueue {
     return msgs.size() > 0;
   }
 
+  @Override
   public synchronized List<ProgressMsg> next() {
     List<ProgressMsg> toReturn = new ArrayList<ProgressMsg>(msgs);
     msgs.clear();
@@ -31,6 +33,7 @@ public class ProgressQueueImpl implements ProgressQueue {
     return toReturn;
   }
 
+  @Override
   public List<ProgressMsg> fetchNext() {
     if (hasNext()) {
       return next();
@@ -38,6 +41,7 @@ public class ProgressQueueImpl implements ProgressQueue {
     return new ArrayList<ProgressMsg>(0);
   }
 
+  @Override
   public synchronized void addMsg(ProgressMsg msg) {
     if (!over || msg.isError()) {
       msgs.add(msg);
@@ -46,31 +50,38 @@ public class ProgressQueueImpl implements ProgressQueue {
     }
   }
 
+  @Override
   public synchronized void close() {
     over = true;
     notify();
   }
 
+  @Override
   public boolean isClosed() {
     return over;
   }
-
+  
+  @Override
   public synchronized void debug(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.DEBUG));
   }
 
+  @Override
   public synchronized void verbose(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.VERBOSE));
   }
 
+  @Override
   public synchronized void info(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.INFO));
   }
-
+  
+  @Override
   public synchronized void error(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.ERROR));
   }
 
+  @Override
   public synchronized void warning(Object msg) {
     addMsg(new ProgressMsg(msg, ProgressMsg.WARNING));
   }

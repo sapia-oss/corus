@@ -1,13 +1,16 @@
 package org.sapia.corus.deployer.task;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,6 +25,7 @@ import java.io.StringReader;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -29,6 +33,13 @@ import org.mockito.stubbing.Answer;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.event.DeploymentCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentFailedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentStartingEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentUnzippedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
@@ -37,16 +48,20 @@ public class DeployTaskTest {
   
   private static final String TEST_RESOURCE = "testCorus.xml";
   
-  TestServerContext ctx;
+  private TestServerContext ctx;
   
   @Mock
-  FileSystemModule fs;
+  private FileSystemModule fs;
   
   @Mock
-  File preDeploy, postDeploy, rollback, scriptDir, distZip;
+  private EventDispatcher dispatcher;
   
+  @Mock
+  private File preDeploy, postDeploy, rollback, scriptDir, distZip;
+    
   @Before
   public void setUp() throws Exception {
+    
     ctx = TestServerContext.create();
     
     when(preDeploy.getName()).thenReturn("pre-deploy.corus");
@@ -92,7 +107,7 @@ public class DeployTaskTest {
     }).when(fs).getFileReader(any(File.class));
     
     ctx.getServices().rebind(FileSystemModule.class, fs);
-    
+    ctx.getServices().rebind(EventDispatcher.class, dispatcher);
   }
   
   @Test
@@ -101,12 +116,15 @@ public class DeployTaskTest {
     DeployTask task = new DeployTask();
     ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
-    
     verify(fs).openZipEntryStream(any(File.class), eq("META-INF/corus.xml"));
     verify(fs, times(2)).createDirectory(any(File.class));
     verify(fs).unzip(any(File.class), any(File.class));
     verify(fs).deleteFile(any(File.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
   }
   
   @Test
@@ -116,7 +134,11 @@ public class DeployTaskTest {
     DeployTask task = new DeployTask();
     ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
     assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
   }
   
   @Test
@@ -126,24 +148,31 @@ public class DeployTaskTest {
     DeployTask task = new DeployTask();
     ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
     assertFalse("Distribution was deployed but should not have been", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
- 
     verify(fs, times(2)).deleteDirectory(any(File.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
   }
   
   @Test
-  public void testExecute_post_deploy_script() throws Exception{
+  public void testExecute_post_deploy_script() throws Exception {
     when(preDeploy.exists()).thenReturn(true);
     when(postDeploy.exists()).thenReturn(true);
     
     DeployTask task = new DeployTask();
     ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
     DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    
     assertTrue("Distribution was not deployed", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
     
     verify(postDeploy).exists();
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
   }
   
   @Test
@@ -162,6 +191,53 @@ public class DeployTaskTest {
     
     verify(rollback).exists();
     verify(fs, times(2)).deleteDirectory(any(File.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
+    verify(dispatcher).dispatch(isA(RollbackStartingEvent.class));
+    verify(dispatcher).dispatch(isA(RollbackCompletedEvent.class));
+  }
+  
+  @Test
+  public void testExecute_rollback_script_failure() throws Exception{
+    when(preDeploy.exists()).thenReturn(true);
+    doAnswer(new Answer<File>() {
+      
+      @Override
+      public File answer(InvocationOnMock invocation) throws Throwable {
+        String fName = (String) invocation.getArguments()[0];
+        if (fName.contains("pre-deploy.corus")) return preDeploy;
+        else if (fName.contains("post-deploy.corus")) return postDeploy;
+        else if (fName.contains("rollback.corus")) {
+          throw new IOException("I/O error");
+        } else {
+          File mockFile = mock(File.class);
+          when(mockFile.getAbsolutePath()).thenReturn("test");
+          when(mockFile.exists()).thenReturn(true);
+          return mockFile;
+        }
+      }
+      
+    }).when(fs).getFileHandle(anyString());    
+    
+    
+    doThrow(new IOException("I/O error")).when(fs).unzip(any(File.class), any(File.class));
+    
+    DeployTask task = new DeployTask();
+    try {
+      ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
+    } catch (Throwable t) {
+      // noop
+    }
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    assertFalse("Distribution should not have been deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
+    verify(dispatcher).dispatch(isA(RollbackStartingEvent.class));
+    verify(dispatcher).dispatch(isA(RollbackCompletedEvent.class));
   }
   
   private InputStream getCorusXmlStream() throws IOException{

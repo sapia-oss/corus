@@ -10,6 +10,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.Permission;
 
@@ -38,6 +39,27 @@ public class ApplicationKeyResource {
         context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
             ArgMatchers.parse(context.getRequest().getValue("a", "*").asString()), 
             ClusterInfo.clustered()
+        )
+    );
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/appkeys"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public String getAppKeysForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doProcessResults(
+        context, 
+        context.getConnector().getApplicationKeyManagementFacade().getAppKeyInfos(
+            ArgMatchers.parse(context.getRequest().getValue("a", "*").asString()), 
+            targets
         )
     );
   }
@@ -78,6 +100,27 @@ public class ApplicationKeyResource {
     );
   }
   
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/appkeys/{corus:appId}"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createAppKeyForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    
+    context.getConnector().getApplicationKeyManagementFacade().createApplicationKey(
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
+        context.getRequest().getValue("k", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(),
+        context.getRequest().getValue("r").notNull().asString(), 
+        targets
+    );
+  }
+  
   @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}")
   @HttpMethod(HttpMethod.PUT)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -115,6 +158,26 @@ public class ApplicationKeyResource {
   }
   
   @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/appkeys/{corus:appId}/key/{corus:key}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void updateAppKeyForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    
+    context.getConnector().getApplicationKeyManagementFacade().changeApplicationKey(
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
+        context.getRequest().getValue("corus:key", UUID.randomUUID().toString().replace("-", "").toLowerCase()).asString(), 
+        targets
+    );
+  }
+  
+  @Path({
       "/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key/{corus:key}",
       "/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}/key"
   })
@@ -144,6 +207,27 @@ public class ApplicationKeyResource {
         context.getRequest().getValue("corus:appId").notNull().asString(), 
         context.getRequest().getValue("corus:role").notNull().asString(), 
         ClusterInfo.clustered()
+    );
+  }
+
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/appkeys/{corus:appId}/role/{corus:role}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void updateAppKeyRoleForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    
+    context.getConnector().getApplicationKeyManagementFacade().changeRole(
+        context.getRequest().getValue("corus:appId").notNull().asString(), 
+        context.getRequest().getValue("corus:role").notNull().asString(), 
+        targets
     );
   }
   
@@ -179,6 +263,25 @@ public class ApplicationKeyResource {
     );
   }
   
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/appkeys/{corus:appId}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void deleteAppKeyForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    
+    context.getConnector().getApplicationKeyManagementFacade().removeAppKey(
+        ArgMatchers.parse(context.getRequest().getValue("corus:appId").notNull().asString()), 
+        targets
+    );
+  }
+  
   @Path("/clusters/{corus:cluster}/hosts/{corus:host}/appkeys/{corus:appId}")
   @HttpMethod(HttpMethod.DELETE)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -209,7 +312,7 @@ public class ApplicationKeyResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
           .field("data");
-        apk.toJson(stream);
+        apk.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }      
     }

@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.repository;
 
+import org.sapia.corus.client.common.reference.Reference;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 
 /**
@@ -14,6 +16,11 @@ public interface Repository {
    * The module's role constant.
    */
   public static final String ROLE = Repository.class.getName();
+  
+  /**
+   * @return this instance's state.
+   */
+  public Reference<ModuleState> getState();
 
   /**
    * Forces a pull from repository server nodes.

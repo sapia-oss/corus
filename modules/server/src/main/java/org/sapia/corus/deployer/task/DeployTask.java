@@ -10,7 +10,6 @@ import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.AutoClusterFlag;
-import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.StrLookups;
@@ -21,10 +20,15 @@ import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Distribution.State;
-import org.sapia.corus.client.services.deployer.event.DeploymentEvent;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent.Status;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent.Type;
+import org.sapia.corus.client.services.deployer.event.DeploymentCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentFailedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentStartingEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentUnzippedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Status;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Type;
+import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -72,25 +76,34 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
 
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<File, DeployPreferences, Void, Void> params) throws Throwable {
+    doExecute(ctx, params);
+    return null;
+  }
+  
+  private void doExecute(TaskExecutionContext ctx, TaskParams<File, DeployPreferences, Void, Void> params) throws Throwable {
 
-    File              srcZip       = params.getParam1();
-    String            distFileName = srcZip.getName();
-    DeployPreferences prefs        = params.getParam2();
-    DistributionDatabase dists     = ctx.getServerContext().lookup(DistributionDatabase.class);
-    Deployer             deployer  = ctx.getServerContext().getServices().getDeployer();
-    FileSystemModule     fs        = ctx.getServerContext().getServices().getFileSystem();
+    File              srcZip        = params.getParam1();
+    String            distFileName  = srcZip.getName();
+    DeployPreferences prefs         = params.getParam2();
+    DistributionDatabase dists      = ctx.getServerContext().lookup(DistributionDatabase.class);
+    Deployer             deployer   = ctx.getServerContext().getServices().getDeployer();
+    FileSystemModule     fs         = ctx.getServerContext().getServices().getFileSystem();
+    EventDispatcher      dispatcher = ctx.getServerContext().getServices().getEventDispatcher();
     
     String tmpBaseDirName = null;
     String baseDirName    = null;
     File   tmpBaseDir     = null;
     File   baseDir        = null;
     File   commonDir      = null;
+  
+    dispatcher.dispatch(new DeploymentStartingEvent());
     
     // extracting corus.xml from archive and checking if already exists...
     Distribution dist = null; 
     try {
       dist = Distribution.newInstance(srcZip, fs);
     } catch (DeploymentException e) {
+      dispatcher.dispatch(new DeploymentFailedEvent());
       fs.deleteFile(srcZip);
       throw e;
     }
@@ -122,7 +135,8 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       DistributionCriteria criteria = DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build();
       if (dists.containsDistribution(criteria) && !prefs.isExecuteDeployScripts()) {
         ctx.error(new DuplicateDistributionException("Distribution already exists for: " + dist.getName() + " version: " + dist.getVersion()));
-        return null;
+        dispatcher.dispatch(new DeploymentFailedEvent(dist));
+        return;
       }
 
       // making distribution directories...
@@ -130,11 +144,13 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
         fs.createDirectory(commonDir);
       } catch (IOException e) {
         ctx.error(String.format("Could not make directory: %s", commonDir.getAbsolutePath()));
+        dispatcher.dispatch(new DeploymentFailedEvent(dist));
       }
       try {
         fs.createDirectory(processDir);
       } catch (IOException e) {
         ctx.error(String.format("Could not make directory: %s", processDir.getAbsolutePath()));
+        dispatcher.dispatch(new DeploymentFailedEvent(dist));
       }
       
       fs.unzip(srcZip, commonDir);
@@ -149,14 +165,16 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       commonDir = FilePath.newInstance().addDir(baseDirName).addDir("common").createFile();
       processDir = FilePath.newInstance().addDir(baseDirName).addDir("processes").createFile();
       ctx.info("Distribution added to Corus");
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentUnzippedEvent(dist));
       
       if (prefs.isExecuteDeployScripts()) {
         doRunDeployScript(fs, dist, commonDir, "post-deploy.corus", false, ctx);
       }
       dist.setState(State.DEPLOYED);
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentEvent(dist));
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentCompletedEvent(dist));
       
     } catch (Exception e) {
+      dispatcher.dispatch(new DeploymentFailedEvent(dist));
       if (tmpBaseDir != null) {
         if (prefs.isExecuteDeployScripts()) {
           ctx.info("Error occured while deploying. Will execute rollback.corus script if it is provided in the distribution");
@@ -164,15 +182,18 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
             // tmpBaseDir might or might not have been renamed to point to baseDir at this point
             File   actualBaseDir = tmpBaseDir.exists() ? tmpBaseDir : baseDir;
             String scriptBaseDir = FilePath.newInstance().addDir(actualBaseDir.getAbsolutePath()).addDir("common").createFilePath();
-            doRunDeployScript(fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false, ctx);
-            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.SUCCESS));
+            dispatcher.dispatch(new RollbackStartingEvent(dist));
+            if(doRunDeployScript(fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false, ctx)) {
+              ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.AUTO, Status.SUCCESS));
+            }
             ctx.error("Rollback completed. Was automatically performed due to error:", e);
           } catch (Exception e2) {
-            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.AUTO, Status.FAILURE));
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.AUTO, Status.FAILURE));
             ctx.error("Error executing rollback.corus script", e2);
             ctx.error("Original error that caused rollback was:", e);
           }
         } else {
+          dispatcher.dispatch(new DeploymentFailedEvent(dist));
           ctx.error("Deployment error occurred", e);
         }
         if (!(e instanceof DuplicateDistributionException) && baseDir != null && baseDir.exists()) {
@@ -180,6 +201,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
           fs.deleteDirectory(baseDir);
         }
       } else {
+        dispatcher.dispatch(new DeploymentFailedEvent(dist));
         ctx.error("Deployment error occurred", e);
       }
     } finally {
@@ -189,10 +211,9 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
         fs.deleteDirectory(fs.getFileHandle(tmpBaseDirName));
       }
     }
-    return null;
   }
   
-  private void doRunDeployScript(FileSystemModule fs, Distribution dist, File scriptBaseDir, String scriptName, boolean mandatory, final TaskExecutionContext ctx) 
+  private boolean doRunDeployScript(FileSystemModule fs, Distribution dist, File scriptBaseDir, String scriptName, boolean mandatory, final TaskExecutionContext ctx) 
       throws FileNotFoundException, IllegalStateException {
     FilePath scriptDirPath = FilePath.newInstance()
         .addDir(scriptBaseDir.getAbsolutePath())
@@ -204,7 +225,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
         throw new FileNotFoundException(scriptName + " not found under META-INF/scripts");
       } else {
         ctx.info(deployScript.getAbsolutePath() + " not found, will not be executed");
-        return;
+        return false;
       }
     }
     
@@ -252,6 +273,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
           StrLookup.systemPropertiesLookup(),
           StrLookup.mapLookup(System.getenv())
       ));
+      return true;
     } catch (Throwable e) {
       throw new IllegalStateException("Could not execute " + scriptName + " script", e);
     } finally {

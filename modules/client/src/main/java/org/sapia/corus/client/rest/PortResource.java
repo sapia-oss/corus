@@ -10,6 +10,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.ubik.util.Func;
 
@@ -21,6 +22,20 @@ import org.sapia.ubik.util.Func;
  */
 public class PortResource {
 
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getPortRangesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetPortRanges(context, targets);
+  }
+  
   @Path({
     "/clusters/{corus:cluster}/ports/ranges",
     "/clusters/{corus:cluster}/hosts/ports/ranges"
@@ -80,8 +95,9 @@ public class PortResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("portRange")
           .field("data");
-        r.toJson(stream);
+        r.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }
     }

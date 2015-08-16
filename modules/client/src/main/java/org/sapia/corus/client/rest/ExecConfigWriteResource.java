@@ -17,6 +17,28 @@ import org.sapia.corus.client.services.security.Permission;
  *
  */
 public class ExecConfigWriteResource extends DeploymentResourceSupport{
+
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM, ContentTypes.TEXT_XML})
+  @Authorized(Permission.DEPLOY)
+  public void deployExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    File file = transfer(context, ".xml");
+    try {
+      context.getConnector().getProcessorFacade().deployExecConfig(file, targets);
+    } finally {
+      file.delete();
+    }
+  }
+
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs",
@@ -28,7 +50,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   @Authorized(Permission.DEPLOY)
   public void deployExecConfigForCluster(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.clustered();
-    File        file    = transfer(context);
+    File        file    = transfer(context, ".xml");
     try {
       context.getConnector().getProcessorFacade().deployExecConfig(file, cluster);
     } finally {
@@ -45,7 +67,7 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   @Authorized(Permission.DEPLOY)
   public void deployExecConfigForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").notNull().asString());
-    File        file    = transfer(context);
+    File        file    = transfer(context, ".xml");
     try {
       context.getConnector().getProcessorFacade().deployExecConfig(file, cluster);
     } finally {
@@ -55,6 +77,27 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   
   // --------------------------------------------------------------------------
   // delete
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.DEPLOY)
+  public void undeployExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value config = context.getRequest().getValue("n").notNull();
+    Value backup = context.getRequest().getValue("backup", "0");
+    ExecConfigCriteria crit = ExecConfigCriteria.builder()
+        .backup(backup.asInt())
+        .name(ArgMatchers.parse(config.asString()))
+        .build();
+    context.getConnector().getProcessorFacade().undeployExecConfig(crit, targets);
+  }  
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs",
@@ -95,6 +138,23 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   
   // --------------------------------------------------------------------------
   // enable/disable
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs/enable"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void enableExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value config = context.getRequest().getValue("n").notNull();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
+    context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, true, targets);
+  }  
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs/enable",
@@ -124,6 +184,24 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
     ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
     context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, true, cluster);
   }  
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs/disable"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void disableExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value config = context.getRequest().getValue("n").notNull();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(config.asString())).build();
+    context.getConnector().getProcessorFacade().setExecConfigEnabled(crit, false, targets);
+  }  
+  
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs/disable",
@@ -156,6 +234,22 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   
   // --------------------------------------------------------------------------
   // archive/unarchive
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archiveExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().archiveExecConfigs(RevId.valueOf(revId.asString()), targets);
+  }  
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs/archive",
@@ -183,6 +277,23 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
     Value revId = context.getRequest().getValue("revId").notNull();
     context.getConnector().getProcessorFacade().archiveExecConfigs(RevId.valueOf(revId.asString()), cluster);
   }  
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchiveExecConfigForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value revId = context.getRequest().getValue("revId").notNull();
+    context.getConnector().getProcessorFacade().unarchiveExecConfigs(RevId.valueOf(revId.asString()), targets);
+  }  
+  
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs/unarchive",
@@ -213,6 +324,23 @@ public class ExecConfigWriteResource extends DeploymentResourceSupport{
   
   // --------------------------------------------------------------------------
   // exec
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs/exec"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.EXECUTE)
+  public ProgressResult execProcessConfigForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    Value config = context.getRequest().getValue("corus:name").notNull();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.exact(config.asString())).build();
+    return progress(context.getConnector().getProcessorFacade().execConfig(crit, targets));
+  }
   
   @Path({
     "/clusters/{corus:cluster}/exec-configs/{corus:name}/exec",

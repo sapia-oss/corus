@@ -20,6 +20,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -29,7 +30,16 @@ public class TagWriteResourceTest {
   private CorusConnector connector;
   
   @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
   private CorusConnectionContext connection;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest          request;
@@ -44,7 +54,7 @@ public class TagWriteResourceTest {
   @Before
   public void setUp() {
     resource = new TagWriteResource();
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
     
     when(connector.getContext()).thenReturn(connection);
     when(connector.getConfigFacade()).thenReturn(conf);

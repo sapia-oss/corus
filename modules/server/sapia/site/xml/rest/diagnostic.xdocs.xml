@@ -1,0 +1,522 @@
+<sapia:page title="Diagnostic API" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="REST API" href="../rest.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Diagnostic API">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="rest" href="../rest.html" />
+      <sapia:path name="diagnostic api" />
+    </sapia:section>
+  
+    <toc/>
+  
+    <sapia:sect-desc>
+      <p>
+        The Diagnostic API is built on Corus' core <a href="core.html">REST</a> support, and on its port management functionality. 
+        It allows for robust automation by providing a single endpoint to validate deployments at scale, and diagnose/monitor applications 
+        even post-deployment.
+      </p>
+      <p>
+        Here are some highlights:
+        <ul>
+          <li>Early failure detection through probing locally running processes after startup;</li>
+          <li>scanning of Corus' internal task manager log, for detecting deployment errors and minimizing the time required to reach a diagnostic;</li>
+          <li>probing of internal components to make sure concurrent activity that may impact diagnostic is taken into account (deployments are given
+          time to complete, processes are given time to run);</li>
+          <li>clients need connecting with only a single Corus node in order to obtain cluster-wide diagnostic data;</li>
+          <li>diagnostic outcome for a whole cluster reduced to a single HTTP status code (without hiding underlying details), allowing for
+          simple client-side logic and quick integration into existing CI/CD infrastructure.</li>
+        </ul>
+      </p>
+      
+      <sapia:note>
+      Even if the diagnostic support is primarily meant to be used through the API, the Corus command-line interface offers a <tt>diags</tt> command
+      also giving access to this feature.
+      </sapia:note>
+    </sapia:sect-desc>
+ 
+    <!-- ======================    DESIGN NOTES    ====================== -->
+    
+    <sapia:sect2 title="Some Background">
+      <sapia:sect-desc>
+        <p>
+          Before delving into the API spec itself, some useful background is provided. You do not need this background to start integrating the functionality
+          and may jump straight to the <a href="#spec">API spec</a> if you feel impatient. Having the background though will help understand the internals,
+          and might come handy when the time comes to make sense of the diagnostic output provided by Corus (for investigation/remediation purposes).
+        </p>
+      </sapia:sect-desc>
+	    <sapia:sect3 title="How it Works">
+	      <p>
+	        The API's main goal is to ease the job of automating deployment validation, by using Corus to perform the following:
+	          <ul>
+	            <li>Test for application responsiveness by having each Corus node in a cluster check for the status of the processes it controls;</li>
+	            <li>aggregate such node-specific statuses into a single global status that is easy to interpret and results in one of three possible outcomes:
+	              <ul>
+		              <li>Success: all Corus nodes (and all processes running on these nodes) have been diagnosed as healthy.</li>
+		              <li>Failure: one or more Corus nodes (and/or processes running on these nodes) have been diagnosed as down/unresponsive/unstable.</li>
+		              <li>Incomplete: the status that could be obtained is only temporary and due to one or more Corus instances unable to perform diagnostic 
+		              acquisition at the moment (due to concurrent activity that could yield erroneous results). Upon such an outcome, applications should simply retry
+		              a few seconds later - say, 10 seconds.</li>
+		            </ul>
+		          </li>
+	          </ul>
+	          <sapia:note>How the three statuses above map to HTTP status codes is explained <a href="#spec">further below</a>.</sapia:note>
+	      </p>
+	      <p>
+	        The functionality relies largely on Corus' port management feature: for each port configured in the <tt>corus.xml</tt> descriptor, it is possible to
+	        add a diagnostic configuration that is used at runtime by a Corus node to check the status of corresponding processes.
+	      </p>
+	      <p>
+	        In addition to checking applications state, Corus scans its own state to establish the proper diagnostic. This has been done in order to 
+	        detect rapidly conditions resulting in a failed deployment, and signal such a failed deployment early on, in an automatic manner (this is described
+	        further below). 
+	      </p>
+	      <p>
+	        To top this off, when tags are configured in the the <tt>corus.xml</tt> descriptor, Corus is able to determine if a process should be running or not on a give node.
+	        It will therefore not flag a process as being down (or even attempt checking it) if such a process is not expected to run.
+	      </p>
+	    </sapia:sect3>
+	    
+	    <!-- ======================      APP DIAGNOSTIC     ====================== -->
+	    
+	    <sapia:sect3 title="Application Diagnostic">
+	      <sapia:sect-desc>
+		      <p>
+		        The first thing to do in order for applications to be diagnosed by Corus is to configure them with a port (using a &lt;port&gt; element in the <tt>corus.xml</tt>
+		        descriptor) that will be checked at runtime. Currently, only HTTP/HTTPS-based checks are supported.
+		      </p>
+		      <sapia:note>For more detailed information regarding port management in Corus, please refer to the <i>Port Management</i> section of the <a href="../CorusGuide.pdf">Corus Guide</a>.</sapia:note>
+	
+		    </sapia:sect-desc>
+	      
+	      <sapia:sect4 title="Configuration">
+	        <p>
+	         Corus performs process diagnostic by performing a simple HTTP GET call to a predefined endpoint provided by the application. The sample below illustrates
+	         how the <tt>corus.xml</tt> file has to be modified to take advantage of this functionality.
+	        </p>
+	      
+		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-4.7.xsd&quot;&gt;
+  &lt;process name=&quot;httpServer&quot; maxKillRetry=&quot;3&quot; shutdownTimeout=&quot;30000&quot; invoke=&quot;true&quot; tags=&quot;http-server&quot;&gt;
+    &lt;port name=&quot;http.server&quot;&gt;
+      &lt;http-diagnostic portPrefix=&quot;8&quot; /&gt;
+    &lt;/port&gt;
+    ...
+  &lt;/process&gt;
+  ...
+&lt;/distribution&gt;</sapia:code>
+		      <p>
+		        The  &lt;port&gt; element supports both a &lt;http-diagnostic&gt; and a &lt;https-diagnostic&gt; element for connecting to processes over either HTTP or HTTPS, respectively.
+		        Only one such diagnostic element is supported under the &lt;port&gt; element. Using the provided configuration, Corus is able to recreate URLs that will be used to connect
+		        to the corresponding application processes and perform the HTTP/HTTPS <tt>GET</tt> call required to determine their status. 
+		        Both &lt;http-diagnostic&gt; and a &lt;https-diagnostic&gt; support the same attributes, documented below:
+		      </p>
+		      <ul>
+		        <li><b><tt>gracePeriod</tt></b> (optional, defaults to 45 seconds): the number of seconds given to the process to boot up and respond to health checks, after being started.</li>
+		        <li><b><tt>path</tt></b> (optional, defaults to <tt>/</tt>): indicates the context path (after the host:port) of the endpoint provided by the application for health check purposes.</li>
+		        <li><b><tt>portPrefix</tt></b> (optional): allows configuring one or more digits which, together with the port value passed to the process by Corus, will constitute the 
+		        full port number to use for pinging the process.</li>
+		        <li><b><tt>statusCode</tt></b> (optional, defaults to 200): indicates to HTTP status code to expect for the check to be considered a success.</li>
+		        <li><b><tt>readTimeout</tt></b> (optional, defaults to 3000 milliseconds): indicates the maximum amount of time of to wait (in millis) for establishing a HTTP connection.</li>
+		        <li><b><tt>connectionTimeout</tt></b> (optional, defaults to 3000 milliseconds): indicates the maximum amount of time of to wait (in millis) for incoming response data.</li>
+		      </ul>
+		      
+          <p>Using the information available, Corus is able to connect to the application process and determine it's liveness: it will check only processes on the current host, using the 
+          port allocated to each, and connect to the enpoint indicated by the the provided path (i.e.: the <tt>path</tt> attribute of the &lt;port&gt; element).</p>   
+          
+          <p>For this behavior to yield the expected results, application must provide an endpoint for health check purposes, over HTTP or HTTPS. Such an endpoint is will be invoked
+          using the <tt>GET</tt> method, and success will be inferred from the endpoint returning a HTTP 200 - or a status corresponding to what has been configured as part of either
+          the &lt;http-diagnostic&gt; or &lt;https-diagnostic&gt; element (as documented above).
+          </p>		    
+          
+          <sapia:note>An important point to remember is that Corus knows which processes are supposed to run or not on given hosts, based on their tags. Therefore, it will
+          not attempt to erroneously perform health checks on processes that are not supposed to be running, which would create false positives.</sapia:note>  
+		      
+	      </sapia:sect4>
+	      
+	      <sapia:sect4 title="More on the Port Prefix">
+		      <p>
+		        To better clarify the example above, let's expand it a bit and examine how the configuration will be interpreted at runtime to build a URL. For starters, here's
+		        an upgraded &lt;port&gt; configuration:
+		      </p>  
+		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-4.7.xsd&quot;&gt;
+  &lt;process name=&quot;httpServer&quot; maxKillRetry=&quot;3&quot; shutdownTimeout=&quot;30000&quot; invoke=&quot;true&quot; tags=&quot;http-server&quot;&gt;
+    &lt;port name=&quot;http.server&quot;&gt;
+      &lt;http-diagnostic portPrefix=&quot;8&quot; path=&quot;/ping&quot; successCode=&quot;200&quot;  readTimeout=&quot;1000&quot; connectionTimeout=&quot;2000&quot; gracePeriod=&quot;30&quot; /&gt;
+    &lt;/port&gt;
+    ...
+  &lt;/process&gt;
+  ...
+&lt;/distribution&gt;</sapia:code>
+		      
+		      
+		      <p>The <tt>portPrefix</tt> attribute deserve a bit more explaining, and a refresher about port management in Corus. First, remember that port management is supported by Corus
+		      mainly to allow running multiple processes on the same box. In such a context, suppose it is our preference to use different digits for different protocols. For example, 
+		      say we like to have the JMX server in the JVM listen on port 6xxx, and our HTTP service to listen on port 8xxx, and so on, but we like to have the same port suffix
+		      digits for a given process (on any given host): process #1 would have 6100 and 8100, process #2 6101 and 8101, etc. This is entirely possible by configuring in Corus a port range whose
+		      allocated values would be used as port suffixes. The corresponding <tt>port add</tt> command in the CLI would look like this (given our above configuration):</p>
+		      
+		      <sapia:code>conf add -n http.server -min 100 -max 104</sapia:code>
+		      
+		      <p>
+		        The above configures a range that allows for five ports. The values leased to processes by Corus will include the integers from 100 to 104, inclusively. In our <tt>corus.xml</tt>
+		        descriptor, port values passed to processes by Corus can be indirectly reused in config, with corresponding variables. The variables names consist of the port range name, prefixed
+		        by the <tt>corus.process.port</tt> string:
+		      </p>
+		  
+		  <sapia:code>&lt;java mainClass=&quot;org.sapia.corus.examples.HttpServer&quot; profile=&quot;test&quot; vmType=&quot;server&quot;&gt;
+  &lt;property name=&quot;server.port&quot; value=&quot;8${corus.process.port.http.server}&quot; /&gt;
+  &lt;xoption  name=&quot;ms&quot; value=&quot;16M&quot; /&gt;
+&lt;/java&gt;</sapia:code>
+		
+		      <p>Note the <tt>8</tt> digit preceding the variable: it corresponds to the <tt>portPrefix</tt> attribute, and we must provide it in order for Corus to correctly generate the URL
+		      that will be used for performing the health check.</p> 
+
+	      </sapia:sect4>
+	        
+	    </sapia:sect3>
+	    <sapia:sect3 title="Internal Diagnostic">
+	      <p>
+	        As was mentioned earlier on, Corus also checks its internal state in order to determine the proper diagnostic:
+	       
+	        <ul>     
+		        <li>It checks its own task log, and checks for those entries that have an <tt>ERROR</tt> level. If such entries are found since the last diagnostic
+		        check, they will result in a "failure" status. For example, a deployment might have been attempted, but failed due to an invalid Corus distribution
+		        archive. Or, in the context of a deployment, processes might have started and crashed immediately - and therefore might have been terminated automatically by Corus...</li>
+		        <li>It checks its internal components to ensure that they're not performing activity that might contradict the diagnostic Corus might come to. For example,
+		        if deployments are currently occurring, or if processes are pending execution, Corus detects it and allocates time for the completion of such activities. When
+		        Corus is not ready to perform a diagnostic, it will yield an "incomplete" status.</li>
+		      </ul>
+	      </p>
+	    </sapia:sect3>
+	  </sapia:sect2>
+	  <sapia:sect2 title="API Doc">
+	    <sapia:sect-desc>
+	     <p>
+	       The Diagnostic API is built on the foundation of the core <a href="core.html">REST API</a>. That is, the details regarding security, response format, etc, are
+	       exactly the same. The Diagnostic API in fact only adds two REST resources to the core API.
+	     </p>
+	    </sapia:sect-desc>  
+	    <sapia:sect3 title="Implementation Notes">
+	      <p>
+		     The Diagnostic API, from a client perspective, only requires interpreting the following HTTP statuses to start with (delving into the details of responses can be useful, but
+		     is not required to get going):
+		    </p>
+		    <ul>
+		       <li><tt>200</tt> (HTTP OK): Means that the diagnostic was positive.</li>
+		       <li><tt>500</tt> (HTTP General Server Error): Means that the diagnostic was negative - if in the context of a deployment, remediation should be considered (rollback, etc). </li>
+		       <li><tt>503</tt> (HTTP Service Unavailable): Means that a diagnostic could not be determined, due to ongoing concurrent activity, or to activity that has not yet completed. In
+		       such a case, clients should retry a few seconds later (10 seconds, as a rule of thumb).</li>
+		    </ul>
+		    <p>
+		     Note that the internals have been designed to avoid infinite loop conditions on the client-side, when performing retries. A "Service Unavailable" status will not last forever, and
+		     eventually Corus will yield a "final" status (either 200 or 500, depending).
+		    </p>
+		    <p>
+		     Just as in the case of the <a href="core.html">core REST API</a>, a response corresponding to either a single Corus node, or to a whole cluster, can be obtained. One 
+		     only needs connecting to a Corus instance in the cluster and obtain, using that instance, a diagnostic for that node only, or for all the nodes in the cluster. In the latter
+		     case, the node to which a client connects will play the role of aggregator, consolidating the responses from siblings into a single response.
+		    </p>
+		    <p>
+		     For a "success" diagnostic to be determined, all nodes in the cluster must return a diagnostic which amounts to a success.
+		    </p>
+		  </sapia:sect3>
+	    <sapia:sect3 title="Specification" alias="spec">
+	        <p>
+	        As was briefly mentioned above, only two REST resources have been added to support acquiring diagnostic data from Corus. These resources allow aquire such data
+	        for a single host, and for the whole cluster, respectively. They are documented below.
+	        </p>
+	    
+          <sapia:code>GET
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+- Response Status:
+  - 200: Indicates that all Corus process activity on all 
+         Corus nodes is normal.
+  - 500: Indicates that diagnostic acquisition failed at 
+         one node at least.
+  - 503: Indicates that diagnostic acquisition could not 
+         be obtained for now. The client should retry in
+         a few seconds, until a 200 or 500 is obtained.
+         
+- Resources:
+  /clusters/{clusterName}/diagnostic
+  /clusters/{clusterName}/hosts/{host}/diagnostic
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/diagnostic
+
+- Path variables:
+  - clusterName: the name of the cluster to access
+  - host.......: a host literal (taking the form: ip_address:port)
+  
+- Parameters:
+  - contentLevel: (optional, defaults to minimal - can be either 
+                  minimal, summary or detail): allows specifying the level 
+                  of detail (making the response more or less 
+                  verbose, depending on what clients require).</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/diagnostic
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/diagnostic
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/diagnostic?contentLevel=detail
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/diagnostic</sapia:code>	   
+          
+         <p><b>Sample Response</b></p>
+ 
+ <p>The diagnostic response below corresponds to the <tt>summary</tt> content level:</p>
+ 
+ <sapia:code>[
+{
+  "cluster": "default",
+  "host": "192.168.1.12:33000",
+  "dataType": "diagnostic",
+  "data": {
+    "classVersion": 1,
+    "status": "SUCCESS",
+    "processDiagnostics": [
+    {
+      "classVersion": 1,
+      "status": "NO_DIAGNOSTIC_AVAILABLE",
+      "suggestedAction": "REMEDIATE",
+      "name": "httpServer",
+      "distribution": {
+        "name": "demo",
+        "version": "1.0"
+      },
+      "results": [
+      {
+        "classVersion": 1,
+        "status": "NO_DIAGNOSTIC_CONFIG",
+        "message": "Process [distribution=demo,version=1.0,profile=test,process=httpServer,pid=150822379402,status=ACTIVE] ([distribution=demo,version=1.0,process=httpServer]) has no diagnostic config defined for port http.server",
+        "diagnosticPort": {
+          "name": "http.server",
+          "value": 100
+        },
+        "process": {
+          "classVersion": 2,
+          "id": "150822379402",
+          "name": "httpServer",
+          "pid": "4937",
+          "distribution": "demo",
+          "version": "1.0",
+          "profile": "test",
+          "activePorts": [
+          {
+            "name": "http.server",
+            "port": 100
+          }
+          ]
+        }
+      }
+      ]
+    }
+    ],
+    "progressDiagnostics": {
+      "classVersion": 1,
+      "errors": []
+    }
+  }
+}
+]</sapia:code>
+ 
+ 
+         <p>The response above gives an idea of how diagnostic data is provided. For <b>each Corus host</b>, the <tt>data</tt> section holds a JSON object 
+         corresponding to a global diagnostic result. For that global result, a status is provided, which is <tt>SUCCESS</tt> in the present case.
+         The possible values for this status are the following:</p>
+
+         <ul>
+           <li>SUCCESS: diagnostic was positive for the given Corus node (all processes running as expected, no error detected).</li>
+           <li>FAILURE: diagnostic check failed for one or more processes on the given node.</li>
+           <li>INCOMPLETE: diagnostic could not be obtained at this time on the given node. Client should retry.</li>
+         </ul>
+         
+         <p>
+         The global result is subdivided into two sections, each corresponding to different types of diagnostics.
+         These two sections are in fact represented as two fields: <tt>processDiagnostics</tt> and <tt>progressDiagnostic</tt>.
+         </p>
+         
+         <sapia:sect4 title="Process Diagnostics Overview">
+	         <p>The <tt>processDiagnostics</tt> field consists of an array holding diagnostic results for processes, grouped by process configuration. That is, each
+	         element of the array corresponds to a &lt;process&gt; element in the <tt>corus.xml</tt> descriptor. It holds the distribution name, version, and the name of the 
+	         processes for which diagnostic data was obtained. Within such a process configuration result, another array, under the <tt>results</tt> field: each element
+	         in that array corresponds to the diagnostic data for a specific process instance "under" that process configuration.
+	         </p>
+	         <p>For example, in the response output above, the overall diagnostic for the "httpServer" processes corresponding to the "demo" distribution 
+	         (version 1.0) is <tt>NO_DIAGNOSTIC_AVAILABLE</tt>. Note that a "suggested action" is indicated: <tt>REMEDIATE</tt>. The possible values are: 
+		         <ul>
+		           <li><tt>NOOP</tt>: nothing wrong has been detected.</li>
+		           <li><tt>RETRY</tt>: diagnostic data could not be obtained at this time and the client should retry in a few seconds.</li>
+		           <li><tt>REMEDIATE</tt>: diagnostic resulted in one or more failures being detected, require remediation.</li>
+		         </ul>
+	         </p>
+	         <p>It should be noted that status determined at the process level determines the status at "upper" levels: a status corresponding to a failure at the process
+	         will result in a failure at the global level, and in a HTTP 500 sent to the client.
+	         </p>
+	         <sapia:note>
+	         In the sample reponse above, you might wonder why suggested action <tt>REMEDIATE</tt> does not result in a status corresponding to an error: in the present case, 
+	         diagnostic could not be obtained because the <tt>corus.xml</tt> descriptor is missing the configuration needed for Corus to perform automatic diagnostic check 
+	         against corresponding processes. It was chosen to consider this case not as a failure per say, but as still justifying remediation in the form of fixing the <tt>corus.xml</tt>.
+	         </sapia:note>
+         </sapia:sect4>
+         
+         <sapia:sect4 title="Progress Diagnostic Overview">
+          <p>The <tt>progressDiagnostic</tt> field consists of an array of error messages (if any) coming from Corus' task manager component. Indeed, Corus
+          does most of its work (when there is such work) through so-called tasks. For example, deployment/undeployment is done by 
+          separate tasks; process execution and termination also; etc. Such tasks generate internal logs, according to different levels (debug, warning, error, etc.).
+          </p>
+          <p>As part of determining a diagnostic, Corus checks for messages corresponding to the "error" level that tasks might have logged. If any such message is present,
+          it is returned as part of the diagnostic response. It also means that the global diagnostic status will then be <tt>FAILURE</tt>.</p>
+          
+          <sapia:note>Corus does not rescan the task log messages it has previoulsy scanned. At the next diagnostic check, it will only scan the messages that have
+          been generated since the last check. This logic has been put in place to avoid considering messages that might not reflect the current situation, given
+          a remediation that might have occured in the meantime.</sapia:note>
+         
+         </sapia:sect4>
+         
+       </sapia:sect3>
+       <sapia:sect3 title="Status Doc" alias="statusdoc">
+        <sect-desc>
+          <p>
+            The following sub-sections describe the status at the different levels (global, process configuration, process instance). Not that clients
+            do not have to interpret all these statuses themselves. Such an interpretation is done by Corus, which returns, through an HTTP code, the result
+            of that intepretation. Yet, having such details in hand can prove useful for investigation/remediation purposes.
+          </p>
+        </sect-desc>
+       
+        <sapia:sect4 title="Process-Level Diagnostic">
+          <p>
+          The table below documents the statuses at the process level. These statuses are ultimately interpreted by Corus,
+          in order to determine the status at the process configuration level.
+          </p>
+        
+          <sapia:table>
+            <sapia:th>Status</sapia:th><sapia:th>Description</sapia:th><sapia:th>Outcome/Suggested Action</sapia:th>
+            <tr>
+              <td>CHECK_SUCCESSFUL</td>
+              <td>Process checked successfully.</td>
+              <td>No futher action required.</td>
+            </tr>
+            <tr>
+              <td>CHECK_FAILED</td>
+              <td>Process check failed.</td>
+              <td>Remediation required.</td>
+            </tr>
+            <tr>
+              <td>STALE</td>
+              <td>Process is stale - this happens when process auto-restart is disabled: unresponsive processes are terminated
+              by Corus, but not restarted. In such a case they're assigned the "stale" status.</td>
+              <td>Remediation required.</td>
+            </tr>
+            <tr>
+              <td>SUSPECT</td>
+              <td>Process check failed, but might not have finished booting up yet.</td>
+              <td>A retry should be attempted in a few seconds.</td>
+            </tr>
+            <tr>
+              <td>NO_DIAGNOSTIC_CONFIG</td>
+              <td>Process has no diagnostic configuration defined in the <tt>corus.xml</tt> descriptor, defeating the purpose of diagnostics.</td>
+              <td>This status does not result in a failure, but the corresponding process configuration should be modified in order
+              to allow for automatic health check by Corus.</td>
+            </tr>
+            <tr>
+              <td>PROCESS_LOCKED</td>
+              <td>The process is currently locked by a concurrent operation.</td>
+              <td>This is does not correspond to a failure. Retry should be attempted in a few seconds.</td>
+            </tr>
+            <tr>
+              <td>NO_ACTIVE_PORT</td>
+              <td>The process does have a port active (at least, not one configured through Corus).</td>
+              <td>This is does not correspond to a failure and requires no retry.</td>
+            </tr>            
+          </sapia:table>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Process Configuration-Level Diagnostic">
+          <p>The following statuses "fold up" into the global statuses - see next section.</p>
+  
+          <sapia:table>
+            <sapia:th>Status</sapia:th><sapia:th>Description</sapia:th><sapia:th>Outcome/Suggested Action</sapia:th>
+            <tr>
+              <td>SUCCESS</td>
+              <td>All processes responding.</td>
+              <td>No futher action required.</td>
+            </tr>
+            <tr>
+              <td>FAILURE</td>
+              <td>One or more processes not responding.</td>
+              <td>Remediation required.</td>
+            </tr>
+            <tr>
+              <td>BUSY</td>
+              <td>The system is busy with concurrent activities that may defeat diagnostic acquisition, or 
+              lead to the wrong diagnostic.</td>
+              <td>A retry should be attempted in a few seconds.</td>
+            </tr>
+            <tr>
+              <td>NO_PROCESSES_EXPECTED</td>
+              <td>No process expected to be running at this time.</td>
+              <td>No further action required.</td>
+            </tr>
+            <tr>
+              <td>NO_DIAGNOSTIC_AVAILABLE</td>
+              <td>No process diagnostic could be acquired due to missing diagnostic configuration in the <tt>corus.xml</tt> descriptor.</td>
+              <td>This status does not result in a failure, but the corresponding process configuration should be modified in order
+              to allow for automatic health check by Corus.</td>
+            </tr>
+            <tr>
+              <td>PENDING_EXECUTION</td>
+              <td>One or more processes pending execution.</td>
+              <td>A retry should be attempted in a few seconds.</td>
+            </tr>
+            <tr>
+              <td>MISSING_PROCESS_INSTANCES</td>
+              <td>One or more processes are likely down.</td>
+              <td>This status corresponds to a failure and requires remediation.</td>
+            </tr>    
+          </sapia:table>
+                 
+        </sapia:sect4>        
+        
+        <sapia:sect4 title="Global-Level Diagnostic">
+          <p>There is one global diagnostic per Corus node. From all such global diagnostics, a final HTTP status code is determined and returned to the client.
+          The following logic is applied: 
+	          <ul>
+	            <li>If all nodes have a <tt>SUCCESS</tt> status, the HTTP code returned by Corus will be 200;</li>
+	            <li>if at least one node has a <tt>FAILURE</tt> status, HTTP 500 will be returned.</li>
+	            <li>if at least one node has status corresponding diagnostic acquisition not being possible currently, or implying a retry, a HTTP 503 will be returned.</li>
+	          </ul> 
+          </p>
+          <sapia:table>
+            <sapia:th>Status</sapia:th><sapia:th>Description</sapia:th><sapia:th>Outcome/Suggested Action</sapia:th>
+            <tr>
+              <td>SUCCESS</td>
+              <td>All processes responding.</td>
+              <td>No futher action required.</td>
+            </tr>
+            <tr>
+              <td>FAILURE</td>
+              <td>One or more processes not responding.</td>
+              <td>Remediation required.</td>
+            </tr>
+            <tr>
+              <td>INCOMPLETE</td>
+              <td>Diagnostic data could not be obtained at this time.</td>
+              <td>A retry should be attempted in a few seconds.</td>
+            </tr>
+          </sapia:table>
+        </sapia:sect4>
+       </sapia:sect3>
+	  </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

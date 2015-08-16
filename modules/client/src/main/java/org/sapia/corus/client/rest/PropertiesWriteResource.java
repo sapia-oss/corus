@@ -27,6 +27,22 @@ public class PropertiesWriteResource {
 
   // --------------------------------------------------------------------------
   // add
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}/{corus:category}",
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void addPropertiesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doAddProperties(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
@@ -59,6 +75,22 @@ public class PropertiesWriteResource {
   // delete
 
   @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}/{corus:category}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void deletePropertyForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doDeleteProperty(context, targets);
+  }
+  
+  @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
     "/clusters/{corus:cluster}/hosts/properties/{corus:scope}",
     "/clusters/{corus:cluster}/properties/{corus:scope}/{corus:category}",
@@ -87,6 +119,23 @@ public class PropertiesWriteResource {
   
   // --------------------------------------------------------------------------
   // archive/unarchive
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePropertiesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getConfigFacade().archiveProcessProperties(RevId.valueOf(revId), targets);
+  }
+  
   
   @Path({
     "/clusters/{corus:cluster}/properties/archive",
@@ -105,7 +154,6 @@ public class PropertiesWriteResource {
   
   @Path({
     "/clusters/{corus:cluster}/hosts/{corus:host}/properties/archive",
-    "/clusters/{corus:cluster}/hosts/{corus:host}/properties/archive"
   })
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -115,6 +163,22 @@ public class PropertiesWriteResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     String revId = context.getRequest().getValue("revId").notNull().asString();
     context.getConnector().getConfigFacade().archiveProcessProperties(RevId.valueOf(revId), cluster);
+  }
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePropertiesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    String revId = context.getRequest().getValue("revId").notNull().asString();
+    context.getConnector().getConfigFacade().unarchiveProcessProperties(RevId.valueOf(revId), targets);
   }
   
   @Path({

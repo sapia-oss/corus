@@ -48,6 +48,7 @@ public class ProcessorExtension implements HttpExtension {
     this.context = context;
   }
 
+  @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(CONTEXT_PATH);
@@ -56,7 +57,8 @@ public class ProcessorExtension implements HttpExtension {
         + CONTEXT_PATH + "/status\"/>status</a> (/status) - takes d, v, p, n query string parameters");
     return info;
   }
-
+  
+  @Override
   public void process(HttpContext ctx) throws Exception {
     if (ctx.getPathInfo().startsWith(COMMAND_PS)) {
       processPs(ctx);
@@ -65,6 +67,10 @@ public class ProcessorExtension implements HttpExtension {
     } else {
       throw new FileNotFoundException(ctx.getPathInfo());
     }
+  }
+  
+  @Override
+  public void destroy() {
   }
 
   private void processPs(HttpContext ctx) throws IOException, Exception {

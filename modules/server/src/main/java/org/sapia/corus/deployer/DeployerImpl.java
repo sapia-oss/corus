@@ -13,11 +13,13 @@ import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.reference.AutoResetReference;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
-import org.sapia.corus.client.services.Service;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
 import org.sapia.corus.client.services.database.RevId;
@@ -53,6 +55,7 @@ import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -64,7 +67,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = { Deployer.class })
 public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
   
-  private static final int DEFAULT_THROTTLE = 1;
+  private static final int DEFAULT_THROTTLE                 = 1;
+  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
   
   /**
    * The file lock timeout property name (<code>file-lock-timeout</code>).
@@ -88,16 +92,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
   
-  private DeploymentProcessor processor;
+  private DeploymentProcessor  processor;
+  
   private DistributionDatabase store;
 
-  /**
-   * Returns this instance's {@link DeployerConfiguration}
-   */
-  public DeployerConfiguration getConfiguration() {
-    return configuration;
-  }
-
+  private DeployerStateManager stateManager;
+  
   /**
    * @param deploymentHandlers
    *          a {@link List} of {@link DeploymentHandler}s to assign.
@@ -105,14 +105,17 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   public void setDeploymentHandlers(List<DeploymentHandler> deploymentHandlers) {
     this.deploymentHandlers = deploymentHandlers;
   }
+  
+  // --------------------------------------------------------------------------
+  // Lifecycle
 
-  /**
-   * @see Service#init()
-   */
   @Override
   public void init() throws Exception {
-
-    store = new DistributionDatabaseImpl();
+    Reference<ModuleState> state = new AutoResetReference<ModuleState>(
+        ModuleState.IDLE, TimeValue.createSeconds(DEFAULT_STATE_IDLE_DELAY_SECONDS)
+    );
+    stateManager = new DeployerStateManager(state, events);
+    store        = new DistributionDatabaseImpl();
 
     services().bind(DistributionDatabase.class, store);
 
@@ -227,6 +230,16 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
     events.addInterceptor(ServerStartedEvent.class, this);
   }
+ 
+  @Override 
+  public void dispose() {
+    if (processor != null) {
+      processor.dispose();
+    }
+  }
+  
+  // --------------------------------------------------------------------------
+  // Event Interceptors
 
   /**
    * Called when the Corus server has started.
@@ -247,20 +260,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     }
   }
 
-  /**
-   * @see Service#dispose()
-   */
-  public void dispose() {
-    if (processor != null) {
-      processor.dispose();
-    }
-  }
-
-  /*
-   * //////////////////////////////////////////////////////////////////// Module
-   * INTERFACE IMPLEMENTATION
-   * ////////////////////////////////////////////////////////////////////
-   */
+  
+  // --------------------------------------------------------------------------
+  // Module interface
 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
@@ -269,11 +271,19 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     return Deployer.ROLE;
   }
 
-  /*
-   * ////////////////////////////////////////////////////////////////////
-   * InternalDeployer INTERFACE IMPLEMENTATION
-   * ////////////////////////////////////////////////////////////////////
-   */
+  // --------------------------------------------------------------------------
+  // Deployer interface
+
+  @Override
+  public Reference<ModuleState> getState() {
+    return stateManager.getState();
+  }
+  
+  @Override
+  public DeployerConfiguration getConfiguration() {
+    return configuration;
+  }
+  
   @Override
   public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException {
     return getDistributionStore().getDistribution(criteria);
@@ -334,7 +344,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     
     ProgressQueueImpl progress = new ProgressQueueImpl();
     SequentialTaskConfig cfg = SequentialTaskConfig.create(new TaskLogProgressQueue(progress));
-    taskman.execute(new RollbackTask(), dist, cfg);
+    taskman.execute(new RollbackTask(), TaskParams.createFor(dist), cfg);
     
     return progress;    
   }

@@ -28,6 +28,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ApplicationKeyManagementFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -42,7 +43,16 @@ public class ApplicationKeyResourceTest {
   private CorusConnector                 connector;
   
   @Mock
+  private ConnectorPool                  connectors;
+  
+  @Mock
   private CorusConnectionContext         connection;
+  
+  @Mock
+  private AsynchronousCompletionService  async;
+  
+  @Mock
+  private PartitionService               partitions;
   
   @Mock
   private RestRequest                    request;
@@ -60,9 +70,10 @@ public class ApplicationKeyResourceTest {
   
   @Before
   public void setUp() {
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
     resource = new ApplicationKeyResource();
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connector.getContext()).thenReturn(connection);
     
     results = new Results<List<AppKeyConfig>>();

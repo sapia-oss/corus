@@ -15,6 +15,21 @@ public class TagWriteResource {
   
   // --------------------------------------------------------------------------
   //  add
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/tags/{corus:tag}"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void addTagsForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doAddTags(context, targets);
+  }  
 
   @Path({
     "/clusters/{corus:cluster}/tags/{corus:tag}",
@@ -44,6 +59,22 @@ public class TagWriteResource {
   // delete
 
   @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/tags/{corus:tag}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void deleteTagForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doDeleteTag(context, targets);
+  }  
+  
+  
+  @Path({
     "/clusters/{corus:cluster}/tags/{corus:tag}",
     "/clusters/{corus:cluster}/hosts/tags/{corus:tag}"
   })
@@ -71,6 +102,21 @@ public class TagWriteResource {
   // archive
 
   @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/tags/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archiveTagForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doArchiveTags(context, targets);
+  }  
+  
+  @Path({
     "/clusters/{corus:cluster}/tags/archive",
     "/clusters/{corus:cluster}/hosts/tags/archive"
   })
@@ -93,6 +139,23 @@ public class TagWriteResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doArchiveTags(context, cluster);
   }
+
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/tags/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchiveTagForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doUnarchiveTags(context, targets);
+  }  
+  
   
   @Path({
     "/clusters/{corus:cluster}/tags/unarchive",

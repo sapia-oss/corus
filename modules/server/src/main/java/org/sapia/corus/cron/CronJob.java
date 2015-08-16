@@ -34,8 +34,6 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements Exte
 
   static final int VERSION_1 = 1;
   static final int CURRENT_VERSION = VERSION_1;
-
-  private int classVersion = CURRENT_VERSION;
   
   private transient CronModuleImpl owner;
   private transient ServerContext serverContext;
@@ -103,8 +101,8 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements Exte
   }
   
   @Override
-  public void toJson(JsonStream stream) {
-    info.toJson(stream);
+  public void toJson(JsonStream stream, ContentLevel level) {
+    info.toJson(stream, level);
   }
   
   public static CronJob fromJson(JsonInput in) {
@@ -121,13 +119,12 @@ public class CronJob extends AbstractPersistent<String, CronJob> implements Exte
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    classVersion = CURRENT_VERSION;
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     
-    out.writeInt(classVersion);
+    out.writeInt(CURRENT_VERSION);
     out.writeObject(info);
   }
 }

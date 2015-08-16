@@ -18,6 +18,22 @@ public class PortWriteResource {
 
   // --------------------------------------------------------------------------
   //  add
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/{corus:rangeName}"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void addPortRangeForPartition(RequestContext context)
+      throws PortRangeInvalidException, PortRangeConflictException {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doAddPortRange(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/ports/ranges/{corus:rangeName}",
@@ -47,6 +63,22 @@ public class PortWriteResource {
   
   // --------------------------------------------------------------------------
   //  delete
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/{corus:rangeName}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void deletePortRangeForPartition(RequestContext context)
+      throws PortActiveException {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doDeletePortRange(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/ports/ranges/{corus:rangeName}",
@@ -76,6 +108,21 @@ public class PortWriteResource {
   
   // --------------------------------------------------------------------------
   // release 
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/{corus:rangeName}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void releasePortRangeForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doReleasePortRange(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/ports/ranges/{corus:rangeName}",
@@ -103,6 +150,21 @@ public class PortWriteResource {
   
   // --------------------------------------------------------------------------
   // archive/unarchive 
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/archive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void archivePortRangeForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doArchivePortRange(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/ports/ranges/archive",
@@ -126,6 +188,21 @@ public class PortWriteResource {
   public void archivePortRangeForHost(RequestContext context) {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doArchivePortRange(context, cluster);
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/unarchive"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.WRITE)
+  public void unarchivePortRangeForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doUnarchivePortRange(context, targets);
   }
   
   @Path({

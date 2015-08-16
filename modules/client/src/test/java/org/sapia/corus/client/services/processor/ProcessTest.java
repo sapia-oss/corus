@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
@@ -81,7 +82,7 @@ public class ProcessTest {
     p.addActivePort(new ActivePort("port0", 0));
     p.addActivePort(new ActivePort("port1", 1));
     p.incrementStaleDetectionCount();
-    p.toJson(stream);
+    p.toJson(stream, ContentLevel.DETAIL);
     
     JSONObject json = JSONObject.fromObject(writer.toString());
     
@@ -122,7 +123,7 @@ public class ProcessTest {
     p.addActivePort(new ActivePort("port0", 0));
     p.addActivePort(new ActivePort("port1", 1));
     p.incrementStaleDetectionCount();
-    p.toJson(stream);
+    p.toJson(stream, ContentLevel.DETAIL);
     
     Process copy = Process.fromJson(JsonObjectInput.newInstance(writer.toString()));
     

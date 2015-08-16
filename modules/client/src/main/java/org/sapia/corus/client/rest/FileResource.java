@@ -8,6 +8,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
 
@@ -19,6 +20,22 @@ import org.sapia.corus.client.services.deployer.FileInfo;
  */
 public class FileResource {
 
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/files"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getFilesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetFiles(context, targets);
+  }  
+  
+  // --------------------------------------------------------------------------
+  
   @Path({
     "/clusters/{corus:cluster}/files",
     "/clusters/{corus:cluster}/hosts/files",
@@ -73,8 +90,9 @@ public class FileResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("file")
           .field("data");
-        f.toJson(stream);
+        f.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }      
     }

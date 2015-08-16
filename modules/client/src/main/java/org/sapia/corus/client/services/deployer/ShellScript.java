@@ -27,9 +27,7 @@ public class ShellScript extends AbstractPersistent<String, ShellScript> impleme
 
   static final int VERSION_1       = 1;
   static final int CURRENT_VERSION = VERSION_1;
-  
-  private int    classVersion = CURRENT_VERSION;
-  
+    
   private String alias, fileName, description;
 
   /**
@@ -83,9 +81,9 @@ public class ShellScript extends AbstractPersistent<String, ShellScript> impleme
   // JsonStreamable
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
-      .field("classVersion").value(classVersion)
+      .field("classVersion").value(CURRENT_VERSION)
       .field("alias").value(alias)
       .field("fileName").value(fileName)
       .field("description").value(description)
@@ -151,13 +149,12 @@ public class ShellScript extends AbstractPersistent<String, ShellScript> impleme
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    classVersion = CURRENT_VERSION;
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     
-    out.writeInt(classVersion);
+    out.writeInt(CURRENT_VERSION);
     
     out.writeUTF(alias);
     out.writeUTF(description);

@@ -70,6 +70,24 @@ public class ClusterResource {
     );
   }
   
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/name/{corus:name}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void changeClusterNameForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    context.getConnector().getCluster().changeCluster(
+        context.getRequest().getValue("corus:name").asString(), 
+        targets
+    );
+  }
+  
   @Path("/clusters/{corus:cluster}/hosts/{corus:host}/name/{corus:name}")
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -95,6 +113,22 @@ public class ClusterResource {
     doChangeRepoRole(context, ClusterInfo.clustered());
   }
   
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/repo/role/{corus:role}"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void changeRepoRoleForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    doChangeRepoRole(context, targets);
+  }
+  
   @Path("/clusters/{corus:cluster}/hosts/{corus:host}/repo/{corus:role}")
   @HttpMethod(HttpMethod.POST)
   @Output(ContentTypes.APPLICATION_JSON)
@@ -104,7 +138,6 @@ public class ClusterResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doChangeRepoRole(context, cluster);
   }
-  
   
   @Path({
     "/clusters/{corus:cluster}/repo/pull",
@@ -116,6 +149,21 @@ public class ClusterResource {
   @Authorized(Permission.DEPLOY)
   public void pullForCluster(RequestContext context) {
     context.getConnector().getRepoFacade().pull(ClusterInfo.clustered());
+  }
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/repo/pull"
+  })
+  @HttpMethod(HttpMethod.POST)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.DEPLOY)
+  public void pullForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    context.getConnector().getRepoFacade().pull(targets);
   }
   
   @Path("/clusters/{corus:cluster}/hosts/{corus:host}/repo/pull")

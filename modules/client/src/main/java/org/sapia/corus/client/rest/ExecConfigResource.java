@@ -8,6 +8,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 
@@ -18,6 +19,22 @@ import org.sapia.corus.client.services.processor.ExecConfigCriteria;
  *
  */
 public class ExecConfigResource {
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/exec-configs"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getExecConfigForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    String name = context.getRequest().getValue("n", "*").asString();
+    ExecConfigCriteria crit = ExecConfigCriteria.builder().name(ArgMatchers.parse(name)).build();
+    return doProcessResults(context, context.getConnector().getProcessorFacade().getExecConfigs(crit, targets));
+  }
 
   @Path({
     "/clusters/{corus:cluster}/exec-configs",
@@ -63,8 +80,9 @@ public class ExecConfigResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("exec-config")
           .field("data");
-        ec.toJson(stream);
+        ec.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }      
     }

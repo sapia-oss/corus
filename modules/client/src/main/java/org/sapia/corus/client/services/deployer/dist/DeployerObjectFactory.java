@@ -30,6 +30,8 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("process", ProcessConfig.class);
     register("preExec", PreExec.class);
     register("cmd", Cmd.class);
+    register("https-diagnostic", HttpsDiagnosticConfig.class);
+    register("http-diagnostic", HttpDiagnosticConfig.class);
   }
 
   void register(String localName, Class<?> clazz) {

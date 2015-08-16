@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 
 public class CronJobTest {
@@ -27,7 +28,7 @@ public class CronJobTest {
   public void testJson() {
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    job.toJson(stream);
+    job.toJson(stream, ContentLevel.DETAIL);
     CronJob copy = CronJob.fromJson(JsonObjectInput.newInstance(writer.toString()));
 
     assertEquals(job.getInfo().getId(), copy.getInfo().getId());

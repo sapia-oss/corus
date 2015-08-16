@@ -16,6 +16,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -26,7 +27,16 @@ public class ProcessWriteResourceTest {
   private CorusConnector connector;
   
   @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
   private CorusConnectionContext connection;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest          request;
@@ -41,8 +51,9 @@ public class ProcessWriteResourceTest {
   @Before
   public void setUp() {
     resource = new ProcessWriteResource();
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connector.getContext()).thenReturn(connection);
     when(connector.getProcessorFacade()).thenReturn(processor);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));

@@ -27,6 +27,14 @@ public class UnarchiveAndDeployTask extends Task<Void, TaskParams<RevId, Void, V
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<RevId, Void, Void, Void> params)
       throws Throwable {
+    
+    doExecute(ctx, params);
+    
+    return null;
+  }
+  
+  private void doExecute(TaskExecutionContext ctx, TaskParams<RevId, Void, Void, Void> params)
+      throws Throwable {
   
     RevId                revId    = params.getParam1();
     DistributionArchiver archiver = ctx.getServerContext().getServices().getDistributionArchiver(); 
@@ -50,10 +58,6 @@ public class UnarchiveAndDeployTask extends Task<Void, TaskParams<RevId, Void, V
     }
     archiver.clear(revId);
     ctx.info("Completed unarchiving of distributions kept under '" + revId + "' revision");
-    
-    return null;
   }
-  
-
 
 }

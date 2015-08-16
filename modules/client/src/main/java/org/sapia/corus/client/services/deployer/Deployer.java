@@ -5,9 +5,11 @@ import java.util.List;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 
@@ -22,6 +24,11 @@ public interface Deployer extends java.rmi.Remote, Module {
 
   String ROLE = Deployer.class.getName();
 
+  /**
+   * @return this instance's state.
+   */
+  public Reference<ModuleState> getState();
+  
   /**
    * @return this instance's configuration.
    */

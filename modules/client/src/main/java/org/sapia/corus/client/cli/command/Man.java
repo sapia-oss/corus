@@ -34,6 +34,7 @@ public class Man extends NoOptionCommand {
     COMMANDS.put("count", Count.class);
     COMMANDS.put("cron", Cron.class);
     COMMANDS.put("deploy", Deploy.class);
+    COMMANDS.put("diag", Diags.class);
     COMMANDS.put("dir", Dir.class);
     COMMANDS.put("dump", Dump.class);
     COMMANDS.put("err", Err.class);
