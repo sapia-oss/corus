@@ -36,9 +36,6 @@ public class PortManagerHttpExtension implements HttpExtension {
     portManager = aPortManager;
   }
   
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.services.http.HttpExtension#getInfo()
-   */
   @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
@@ -48,9 +45,6 @@ public class PortManagerHttpExtension implements HttpExtension {
     return info;
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.client.services.http.HttpExtension#process(org.sapia.corus.client.services.http.HttpContext)
-   */
   @Override
   public void process(HttpContext httpContext) throws Exception, FileNotFoundException {
     httpContext.getResponse().setHeader("Content-Type", "text/html");
@@ -90,6 +84,9 @@ public class PortManagerHttpExtension implements HttpExtension {
     responseStream.close();
   }
 
+  @Override
+  public void destroy() {
+  }
   
   protected static class PortRangeEntry implements Comparable<PortRangeEntry> {
 
@@ -112,9 +109,6 @@ public class PortManagerHttpExtension implements HttpExtension {
       return created;
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
     @Override
     public int compareTo(PortRangeEntry o) {
       return portNumber.compareTo(o.portNumber);

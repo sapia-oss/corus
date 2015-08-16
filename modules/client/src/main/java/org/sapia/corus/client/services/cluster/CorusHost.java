@@ -230,16 +230,19 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
   // --------------------------------------------------------------------------
   // JsonStreamable
   
-  public void toJson(JsonStream stream) {
+  @Override
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject();
     stream
       .field("hostName").value(hostName)
-      .field("jvmInfo").value(javaVmInfo)
-      .field("osInfo").value(osInfo)
       .field("host").value(endpoint.getServerTcpAddress().getHost())
-      .field("port").value(endpoint.getServerTcpAddress().getPort())
-      .field("repoRole").value(role.name())
-    .endObject();
+      .field("port").value(endpoint.getServerTcpAddress().getPort());
+    if (level.greaterThan(ContentLevel.MINIMAL)) {
+      stream.field("jvmInfo").value(javaVmInfo)
+      .field("osInfo").value(osInfo)
+      .field("repoRole").value(role.name());
+    }
+    stream.endObject();
   }
   
   // --------------------------------------------------------------------------

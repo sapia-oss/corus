@@ -58,4 +58,10 @@ public interface CorusConnector {
    * @return the {@link ApplicationKeyManagementFacade}.
    */
   public ApplicationKeyManagementFacade getApplicationKeyManagementFacade();
+  
+  /**
+   * @return the {@link DiagnosticFacade}.
+   */
+  public DiagnosticFacade getDiagnosticFacade();
+  
 }

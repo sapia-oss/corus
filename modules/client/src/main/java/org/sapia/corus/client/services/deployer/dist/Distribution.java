@@ -385,39 +385,41 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
   // JsonStreameable
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
       .field("name").value(name)
       .field("version").value(version);
     
-    stream.field("processConfigs").beginArray();
-    for (ProcessConfig pc : processConfigs) {
-      stream.beginObject()
-        .field("name").value(pc.getName())
-        .field("maxInstances").value(pc.getMaxInstances())
-        .field("maxKillRetry").value(pc.getMaxKillRetry())
-        .field("pollInterval").value(pc.getPollInterval())
-        .field("shutdownTimeout").value(pc.getShutdownTimeout())
-        .field("statusInterval").value(pc.getStatusInterval())
-        .field("deleteOnKill").value(pc.isDeleteOnKill())
-        .field("invoke").value(pc.isInvoke());
-      
-      stream.field("ports");
-      stream.strings(Collects.convertAsArray(pc.getPorts(), String.class, new Func<String, Port>() {
-        @Override
-        public String call(Port port) {
-          return port.getName();
-        }
-      }));
-      
-      stream.field("profiles");
-      stream.strings(pc.getProfiles().toArray(new String[pc.getProfiles().size()]));
-      
-      stream.field("tags");
-      stream.strings(pc.getTagSet().toArray(new String[pc.getTagSet().size()]));
-      stream.endObject();
+    if (level == ContentLevel.DETAIL) {
+      stream.field("processConfigs").beginArray();
+      for (ProcessConfig pc : processConfigs) {
+        stream.beginObject()
+          .field("name").value(pc.getName())
+          .field("maxInstances").value(pc.getMaxInstances())
+          .field("maxKillRetry").value(pc.getMaxKillRetry())
+          .field("pollInterval").value(pc.getPollInterval())
+          .field("shutdownTimeout").value(pc.getShutdownTimeout())
+          .field("statusInterval").value(pc.getStatusInterval())
+          .field("deleteOnKill").value(pc.isDeleteOnKill())
+          .field("invoke").value(pc.isInvoke());
+        
+        stream.field("ports");
+        stream.strings(Collects.convertAsArray(pc.getPorts(), String.class, new Func<String, Port>() {
+          @Override
+          public String call(Port port) {
+            return port.getName();
+          }
+        }));
+        
+        stream.field("profiles");
+        stream.strings(pc.getProfiles().toArray(new String[pc.getProfiles().size()]));
+        
+        stream.field("tags");
+        stream.strings(pc.getTagSet().toArray(new String[pc.getTagSet().size()]));
+        stream.endObject();
+      }
+      stream.endArray();
     }
-    stream.endArray();
     stream.endObject();
   }
   

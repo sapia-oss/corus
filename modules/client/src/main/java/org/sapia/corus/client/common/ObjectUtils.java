@@ -1,5 +1,7 @@
 package org.sapia.corus.client.common;
 
+import java.util.List;
+
 public class ObjectUtils {
 
   private static final int PRIME = 31;
@@ -57,5 +59,40 @@ public class ObjectUtils {
     } else {
       return false;
     }
+  }
+  
+  /**
+   * Compares two lists for equality.
+   * 
+   * @param a a {@link List} to compare for equality.
+   * @param b another {@link List}, to compare with the previous one.
+   * @return <code>true</code> if both lists have the same size and their 
+   * respective elements are equal.
+   */
+  public static boolean safeListEquals(List<?> a, List<?> b) {
+    if (a.size() == b.size()) {
+      for (int i = 0; i < a.size(); i++) {
+        if (!safeEquals(a.get(i), b.get(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+  
+  /**
+   * @param instances an array of arbitrary objects, matching the given generic type.
+   * @return the first non-null instance that is found in the given array.
+   * @throws IllegalArgumentException if all no non-null instance is found.
+   */
+  @SafeVarargs
+  public static <T> T safeNonNull(T...instances) throws IllegalArgumentException {
+    for (T i : instances) {
+      if (i != null) {
+        return i;
+      }
+    }
+    throw new IllegalArgumentException("At least one non-null instance expected in passed in array");
   }
 }

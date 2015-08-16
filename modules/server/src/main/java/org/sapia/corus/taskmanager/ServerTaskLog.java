@@ -6,17 +6,20 @@ import java.util.List;
 import org.sapia.corus.client.common.ProgressException;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.taskmanager.core.ProgressBuffer;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskLog;
 
 public class ServerTaskLog implements TaskLog {
 
   private List<ProgressMsg> msgs = new ArrayList<ProgressMsg>();
-  private ProgressQueues queues;
-  private TaskLog delegate;
+  private ProgressQueues    queues;
+  private ProgressBuffer    buffer;
+  private TaskLog           delegate;
 
-  public ServerTaskLog(ProgressQueues queues, TaskLog delegate) {
-    this.queues = queues;
+  public ServerTaskLog(ProgressBuffer buffer, ProgressQueues queues, TaskLog delegate) {
+    this.buffer   = buffer;
+    this.queues   = queues;
     this.delegate = delegate;
   }
 
@@ -41,6 +44,7 @@ public class ServerTaskLog implements TaskLog {
   public synchronized void addMsg(ProgressMsg msg) {
     msgs.add(msg);
     handleMsg(msg);
+    buffer.add(msg);
     queues.notify(msg);
     notify();
   }

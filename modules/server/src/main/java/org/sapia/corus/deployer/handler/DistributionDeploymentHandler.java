@@ -9,7 +9,7 @@ import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.services.deployer.ChecksumPreference;
-import org.sapia.corus.client.services.deployer.DeployerConfiguration;
+import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata.Type;
 import org.sapia.corus.deployer.task.DeployTask;
@@ -33,17 +33,17 @@ public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
   private TaskManager taskman;
 
   @Autowired
-  private DeployerConfiguration configuration;
+  private Deployer deployer;
 
   // --------------------------------------------------------------------------
   // Provided for testing
 
-  public final void setConfiguration(DeployerConfiguration configuration) {
-    this.configuration = configuration;
-  }
-
   public final void setTaskman(TaskManager taskman) {
     this.taskman = taskman;
+  }
+  
+  public final void setDeployer(Deployer deployer) {
+    this.deployer = deployer;
   }
 
   // --------------------------------------------------------------------------
@@ -56,7 +56,7 @@ public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
 
   @Override
   public File getDestFile(DeploymentMetadata meta) {
-    return FilePath.newInstance().addDir(configuration.getTempDir()).setRelativeFile(meta.getFileName() + "." + IDGenerator.makeId()).createFile();
+    return FilePath.newInstance().addDir(deployer.getConfiguration().getTempDir()).setRelativeFile(meta.getFileName() + "." + IDGenerator.makeId()).createFile();
   }
 
   @Override
@@ -66,7 +66,7 @@ public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
     progress.info("Distribution file uploaded, proceeding to deployment completion");
     
     File srcZip = FilePath.newInstance()
-        .addDir(configuration.getTempDir())
+        .addDir(deployer.getConfiguration().getTempDir())
         .setRelativeFile(file.getName()).createFile();
     
     if (meta.getPreferences().getChecksum().isSet()) {
@@ -78,6 +78,7 @@ public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
     }
     
     try {
+   
       taskman.execute(
           new DeployTask(), 
           TaskParams.createFor(srcZip, meta.getPreferences()), 

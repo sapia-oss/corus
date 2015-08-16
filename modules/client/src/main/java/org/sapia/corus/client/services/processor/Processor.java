@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.sapia.corus.client.Module;
 import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceException;
 import org.sapia.corus.client.services.Dumpable;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.interop.Status;
 
@@ -19,6 +21,11 @@ import org.sapia.corus.interop.Status;
 public interface Processor extends java.rmi.Remote, Module, Dumpable {
   String ROLE = Processor.class.getName();
 
+  /**
+   * @return this instance's state.
+   */
+  public Reference<ModuleState> getState();
+  
   /**
    * Starts process(es) corresponding to the passed in parameters.
    * 

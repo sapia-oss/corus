@@ -7,15 +7,21 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
@@ -23,20 +29,29 @@ import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
+import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
+import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
+import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * @author Yanick Duchesne
  */
+@RunWith(MockitoJUnitRunner.class)
 public class KillTaskTest extends TestBaseTask{
   
   private Process          proc;
+
+  @Mock
+  private EventDispatcher  dispatcher;
   
   @Before
   public void setUp() throws Exception {
     super.setUp();
     Distribution  dist  = super.createDistribution("testDist", "1.0");
     ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
+    super.ctx.getServices().rebind(EventDispatcher.class, dispatcher);
     
     PortRange     range = new PortRange("test", 8080, 8080);
     ctx.getPorts().addPortRange(range);
@@ -55,6 +70,8 @@ public class KillTaskTest extends TestBaseTask{
         "Process should not have been killed", 
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
   }
 
   @Test
@@ -65,6 +82,7 @@ public class KillTaskTest extends TestBaseTask{
         "Process should not have been killed", 
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
   }
 
   @Test
@@ -83,6 +101,8 @@ public class KillTaskTest extends TestBaseTask{
     );
     assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
     
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
   }
 
@@ -115,6 +135,11 @@ public class KillTaskTest extends TestBaseTask{
         "Process should have been killed and not restarted", 
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
 
@@ -147,6 +172,11 @@ public class KillTaskTest extends TestBaseTask{
         "Process should have been killed and not restarted", 
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
   }
 
@@ -181,6 +211,11 @@ public class KillTaskTest extends TestBaseTask{
     
     Process restarted = ctx.getProc().getProcessDB().getProcess(proc.getProcessID());
     assertNotSame("Restarted process should have new PID", oldPid, restarted.getOsPid());
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessRestartedEvent.class));
   }
 
   @Test
@@ -197,6 +232,11 @@ public class KillTaskTest extends TestBaseTask{
         "Process should not have been restarted", 
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
   }
   
   @Test
@@ -214,6 +254,10 @@ public class KillTaskTest extends TestBaseTask{
     );
     
     verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
   }
   
   @Test(expected=ProcessLockException.class)
@@ -225,6 +269,11 @@ public class KillTaskTest extends TestBaseTask{
     ).get();
     
     proc.getLock().acquire(LockOwner.createInstance());
+    
+    verify(dispatcher, never()).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessKilledEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
+    verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
   }
 
 }

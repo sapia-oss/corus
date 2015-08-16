@@ -90,7 +90,6 @@ public class CorusServer {
         // hack to avoid headaches with backslashes in Properties.load()
         String hackedCorusHome = corusHome.replace("\\", "\\\\");
         hackedCorusHome = hackedCorusHome.replace("\"", "");
-        System.out.println("-----------------> " + hackedCorusHome);
         System.setProperty("corus.home", hackedCorusHome);
       }
 

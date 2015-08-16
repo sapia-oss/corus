@@ -12,6 +12,7 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
+import org.sapia.corus.ftest.PartitionInfo;
 import org.sapia.ubik.util.Collects;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -112,12 +113,62 @@ public class RoleResourcesFuncTest {
         .get(JSONValue.class).asArray();
     assertEquals(roles.size(), 1);
   }
+
+  @Test
+  public void testAddRole_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition  + "/roles/test.role")
+        .queryParam("permissions", "rwx")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray roles = client.resource("/clusters/ftest/roles")
+        .queryParam("n", "test.*")
+        .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    assertEquals(roles.size(), 1);
+  }
   
   @Test
   public void testDeleteRole_specific_host() throws Exception {
     client.getConnector().getSecurityManagementFacade().addRole("test.role", Collects.arrayToSet(Permission.values()), ClusterInfo.clustered());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/roles/test.role")
+        .queryParam("permissions", "rwx")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray roles = client.resource("/clusters/ftest/roles")
+        .queryParam("n", "test.*")
+        .request()
+        .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+        .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    assertEquals(roles.size(), client.getHostCount() - 1);
+  }
+  
+  @Test
+  public void testDeleteRole_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    client.getConnector().getSecurityManagementFacade().addRole("test.role", Collects.arrayToSet(Permission.values()), ClusterInfo.clustered());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/roles/test.role")
         .queryParam("permissions", "rwx")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())

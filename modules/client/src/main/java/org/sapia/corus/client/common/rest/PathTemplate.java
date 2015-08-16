@@ -1,6 +1,7 @@
 package org.sapia.corus.client.common.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class PathTemplate implements Comparable<PathTemplate> {
   
   // --------------------------------------------------------------------------
 
-  private interface URLTemplatePart extends Comparable<URLTemplatePart> {
+  public interface URLTemplatePart extends Comparable<URLTemplatePart> {
     
     public String getValue();
     
@@ -82,7 +83,7 @@ public class PathTemplate implements Comparable<PathTemplate> {
     @Override
     public int compareTo(URLTemplatePart other) {
       if (other instanceof Variable) {
-        return 1;
+        return -1;
       }
       return value.compareTo(other.getValue());
     }
@@ -120,7 +121,7 @@ public class PathTemplate implements Comparable<PathTemplate> {
       if (other instanceof Variable) {
         return name.compareTo(((Variable) other).name);
       } else {
-        return -1;
+        return 1;
       }
     }
     
@@ -136,6 +137,13 @@ public class PathTemplate implements Comparable<PathTemplate> {
   
   private PathTemplate(List<URLTemplatePart> parts) {
     this.parts = parts;
+  }
+  
+  /**
+   * @return the {@link List} of {@link URLTemplatePart}s that this instance holds.
+   */
+  public List<URLTemplatePart> getParts() {
+    return Collections.unmodifiableList(parts);
   }
   
   /**

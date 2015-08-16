@@ -11,7 +11,6 @@ import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.AutoClusterFlag;
-import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.StrLookups;
@@ -20,9 +19,10 @@ import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent.Status;
-import org.sapia.corus.client.services.deployer.event.RollbackEvent.Type;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Status;
+import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Type;
+import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -41,7 +41,7 @@ import org.sapia.corus.util.IOUtil;
  * @author yduchesne
  *
  */
-public class RollbackTask extends Task<Void, Distribution> implements Throttleable {
+public class RollbackTask extends Task<Void, TaskParams<Distribution, Void, Void, Void>> implements Throttleable {
 
   @Override
   public ThrottleKey getThrottleKey() {
@@ -49,8 +49,13 @@ public class RollbackTask extends Task<Void, Distribution> implements Throttleab
   }
   
   @Override
-  public Void execute(TaskExecutionContext ctx, Distribution dist) throws Throwable {
-    
+  public Void execute(TaskExecutionContext ctx, TaskParams<Distribution, Void, Void, Void> params) throws Throwable {
+    doExecute(ctx, params);
+    return null;
+  }
+  
+  private void doExecute(TaskExecutionContext ctx, TaskParams<Distribution, Void, Void, Void> params) throws Throwable {
+    Distribution     dist      = params.getParam1();
     FileSystemModule fs        = ctx.getServerContext().getServices().getFileSystem();
     Processor        processor = ctx.getServerContext().getServices().getProcessor(); 
     Deployer         deployer  = ctx.getServerContext().getServices().getDeployer();  
@@ -69,11 +74,13 @@ public class RollbackTask extends Task<Void, Distribution> implements Throttleab
     }
     
     try {
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackStartingEvent(dist));
       doRunScript(fs, scriptBaseDir, scriptFile, dist, ctx);
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.USER, Status.SUCCESS));
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.USER, Status.SUCCESS));
     } catch (Exception e) {
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackEvent(dist, Type.USER, Status.FAILURE));
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.USER, Status.FAILURE));
       ctx.error("Error caught while executing rollback script", e);
+      throw e;
     }
     
     DistributionCriteria criteria = DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build();
@@ -88,10 +95,7 @@ public class RollbackTask extends Task<Void, Distribution> implements Throttleab
         ctx.getTaskManager().executeAndWait(new UndeployTask(), TaskParams.createFor(criteria)).get();
       }     
     }
-    
-    return null;
   }
-  
   
   private void doRunScript(FileSystemModule fs, File scriptBaseDir, File scriptFile, Distribution dist, final TaskExecutionContext ctx) 
       throws FileNotFoundException, IllegalStateException {

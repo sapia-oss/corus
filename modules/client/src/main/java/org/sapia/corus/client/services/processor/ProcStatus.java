@@ -37,7 +37,7 @@ public class ProcStatus extends Status implements JsonStreamable {
   }
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject().field("processId").value(corusPid);
     stream.beginArray();
     for (Context c : contexts) {

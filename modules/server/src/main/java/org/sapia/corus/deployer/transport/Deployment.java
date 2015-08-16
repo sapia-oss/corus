@@ -10,6 +10,9 @@ import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.services.deployer.event.DeploymentStreamingCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentStreamingFailedEvent;
+import org.sapia.corus.client.services.deployer.event.DeploymentStreamingStartingEvent;
 import org.sapia.corus.client.services.deployer.transport.Connection;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
@@ -81,6 +84,7 @@ public class Deployment {
 
     log.debug(String.format("Processing deployment stream of %s bytes: %s", length, meta.getFileName()));
     try {
+      context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingStartingEvent(meta));
       while ((read = is.read(buf, 0, BUFSZ)) > -1) {
         total = total + read;
         deployOutput.write(buf, 0, read);
@@ -99,7 +103,10 @@ public class Deployment {
         log.debug(String.format("Artifact upload completed for: %s. Got %s bytes out of %s", meta.getFileName(), total, length));
         handleResult(deployOutput.commit());
       }
+    } catch (IOException e) {
+      context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingFailedEvent(meta));      
     } finally {
+      context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingCompletedEvent(meta));
       Streams.closeSilently(is);
       deployOutput.close();
     }

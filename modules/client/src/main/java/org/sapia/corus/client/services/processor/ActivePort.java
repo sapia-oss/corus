@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.sapia.corus.client.common.ObjectUtils;
 import org.sapia.corus.client.services.port.PortRange;
 
 /**
@@ -74,6 +75,20 @@ public class ActivePort implements Externalizable {
   
   public String toString() {
     return new StringBuffer(name).append(':').append(port).toString();
+  }
+  
+  @Override
+  public int hashCode() {
+    return ObjectUtils.safeHashCode(name, port);
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof ActivePort) {
+      ActivePort other = (ActivePort) obj;
+      return name.equals(other.name) && port == other.port;
+    }
+    return false;
   }
   
   // --------------------------------------------------------------------------

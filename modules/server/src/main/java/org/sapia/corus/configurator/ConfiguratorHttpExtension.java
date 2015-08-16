@@ -97,6 +97,10 @@ public class ConfiguratorHttpExtension implements HttpExtension {
     responseStream.flush();
     responseStream.close();
   }
+  
+  @Override
+  public void destroy() {
+  }
 
   /**
    * Internal method that generate an html table of some properties.

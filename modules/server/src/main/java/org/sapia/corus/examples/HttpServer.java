@@ -7,6 +7,7 @@ import java.net.SocketAddress;
 import org.sapia.ubik.util.Conf;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
+import org.simpleframework.http.Status;
 import org.simpleframework.http.core.Container;
 import org.simpleframework.http.core.ContainerServer;
 import org.simpleframework.transport.Server;
@@ -22,6 +23,7 @@ public class HttpServer implements Container {
       PrintStream body = response.getPrintStream();
       long time = System.currentTimeMillis();
 
+      response.setStatus(Status.OK);
       response.setValue("Content-Type", "text/plain");
       response.setDate("Date", time);
       response.setDate("Last-Modified", time);

@@ -1,6 +1,9 @@
 package org.sapia.corus.client.services.processor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,9 +16,9 @@ import java.util.List;
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 
 public class ExecConfigTest {
 
@@ -94,7 +97,7 @@ public class ExecConfigTest {
     
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    conf.toJson(stream);
+    conf.toJson(stream, ContentLevel.DETAIL);
     
     ExecConfig copy = ExecConfig.fromJson(JsonObjectInput.newInstance(writer.toString()));
     
@@ -123,7 +126,7 @@ public class ExecConfigTest {
     
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    conf.toJson(stream);
+    conf.toJson(stream, ContentLevel.DETAIL);
     
     ExecConfig copy = ExecConfig.fromJson(JsonObjectInput.newInstance(writer.toString()));
     

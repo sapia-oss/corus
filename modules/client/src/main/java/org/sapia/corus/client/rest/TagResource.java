@@ -24,6 +24,22 @@ import org.sapia.ubik.util.Func;
  *
  */
 public class TagResource {
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/tags"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getTagsForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetTags(context, targets);
+  } 
+  
+  // --------------------------------------------------------------------------
   
   @Path({
     "/clusters/{corus:cluster}/tags",
@@ -86,6 +102,7 @@ public class TagResource {
             result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
             result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
         )
+        .field("dataType").value("tag")
         .field("data");
 
       List<Tag> sortedTags = new ArrayList<>(result.getData());

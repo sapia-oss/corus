@@ -29,6 +29,22 @@ public class PropertiesResource {
   
   private static final String SCOPE_SERVER    = "server";
   private static final String SCOPE_PROCESS   = "process";
+
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}",
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/properties/{corus:scope}/{corus:category}"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getPropertiesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doGetProperties(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/properties/{corus:scope}",
@@ -104,6 +120,7 @@ public class PropertiesResource {
             result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
             result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
         )
+        .field("dataType").value("properties")
         .field("data")
         .beginArray();
 

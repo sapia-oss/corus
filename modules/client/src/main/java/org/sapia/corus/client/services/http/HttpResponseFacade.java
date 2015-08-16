@@ -11,10 +11,14 @@ import java.io.OutputStream;
  */
 public interface HttpResponseFacade {
 
-  public static final int STATUS_OK            = 200;
-  public static final int STATUS_ACCESS_DENIED = 403;
-  public static final int STATUS_NOT_FOUND     = 404;
-  public static final int STATUS_SERVER_ERROR  = 500;
+  public static final int STATUS_IN_PROGRESS                 = 250;
+  public static final int STATUS_IN_PROGRESS_ERROR           = 251;
+  public static final int STATUS_PARTIAL_SUCCESS             = 252;
+  public static final int STATUS_OK                          = 200;
+  public static final int STATUS_PARTIAL_CONTENT             = 206;
+  public static final int STATUS_ACCESS_DENIED               = 403;
+  public static final int STATUS_NOT_FOUND                   = 404;
+  public static final int STATUS_SERVER_ERROR                = 500;
 
   /**
    * @param name

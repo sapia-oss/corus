@@ -6,6 +6,8 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Date;
 
+import net.sf.json.JSONObject;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -102,6 +104,18 @@ public class WriterJsonStreamTest {
   public void testEndObject() {
     stream.endObject();
     assertEquals("}", delegate.getBuffer().toString().trim());
+  }
+  
+  @Test
+  public void testComplexObject() {
+    stream.beginObject()
+      .field("field1").value("value")
+      .field("field2").beginObject().field("nestedField").value("nestedFieldValue").endObject()
+      .field("field3").beginObject().field("nestedField").value("nestedFieldValue").endObject()
+   .endObject();
+    
+    JSONObject json = JSONObject.fromObject(delegate.getBuffer().toString());
+    
   }
 
 }

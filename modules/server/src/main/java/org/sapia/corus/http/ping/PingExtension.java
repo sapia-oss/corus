@@ -67,5 +67,9 @@ public class PingExtension implements HttpExtension {
       os.flush();
     }
   }
+  
+  @Override
+  public void destroy() {
+  }
 
 }

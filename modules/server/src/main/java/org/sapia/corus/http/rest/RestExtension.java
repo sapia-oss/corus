@@ -15,30 +15,44 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.http.HttpStatus;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.cli.DefaultClientFileSystem;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.reference.DefaultReference;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
+import org.sapia.corus.client.rest.ConnectorPool;
+import org.sapia.corus.client.rest.PartitionServiceImpl;
 import org.sapia.corus.client.rest.ProgressResult;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
+import org.sapia.corus.client.rest.RestContainer.ResourceInvocationResult;
 import org.sapia.corus.client.rest.RestResponseFacade;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
+import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.Subject;
 import org.sapia.corus.configurator.PropertyChangeEvent;
 import org.sapia.corus.configurator.PropertyChangeEvent.EventType;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Strings;
+import org.sapia.ubik.util.TimeValue;
 import org.sapia.ubik.util.pool.Pool;
 
 /**
@@ -49,17 +63,22 @@ import org.sapia.ubik.util.pool.Pool;
  */
 public class RestExtension implements HttpExtension, Interceptor {
     
-  private static final int DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 5;
+  private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
+  private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);
+  private static final TimeValue DEFAULT_TASK_TIMEOUT              = TimeValue.createSeconds(30);
   
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")
    .setDescription("Handles REST calls")
    .setName("Corus REST API");
+  
 
   private Logger             logger     = Hierarchy.getDefaultHierarchy().getLoggerFor(RestExtension.class.getName());
   private CorusConnectorPool connectors;
   private RestContainer      container;
   private ServerContext      serverContext;
+  private AsynchronousCompletionServiceImpl asyncImpl;
+  private PartitionServiceImpl partitionImpl;
   
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
@@ -73,7 +92,28 @@ public class RestExtension implements HttpExtension, Interceptor {
       container.setAuthRequired(false);
     }
 
+    asyncImpl = new AsynchronousCompletionServiceImpl(
+        new TaskManagerExecutionProvider(serverContext.getServices().getTaskManager()), DEFAULT_TASK_TIMEOUT
+    );
+    partitionImpl = new PartitionServiceImpl();
+    
+    serverContext.getServices().getTaskManager().executeBackground(new Task<Void, Void>() {
+      @Override
+      public Void execute(TaskExecutionContext ctx, Void param)
+          throws Throwable {
+        asyncImpl.flushStaleTasks();
+        partitionImpl.flushStalePartitionSets();
+        return null;
+      }
+    }, null, BackgroundTaskConfig.create().setExecInterval(STALE_ASYNC_TASK_CLEANUP_DELAY.getValueInMillis()));
     serverContext.getServices().getEventDispatcher().addInterceptor(PropertyChangeEvent.class, this);
+    
+    ClientDebug.setOutput(new ClientDebug.ClientDebugOutput() {
+      @Override
+      public void println(String line) {
+        logger.debug(line);
+      }
+    });
   }
   
   private String doGetProperty(String propName) {
@@ -137,14 +177,45 @@ public class RestExtension implements HttpExtension, Interceptor {
     }
   }
   
+  @Override
+  public void destroy() {
+    asyncImpl.shutdown();
+  }
+  
   private void processRequest(Subject subject, final HttpContext ctx, CorusConnector connector) throws Exception, FileNotFoundException {
-    ServerRestRequest request = new ServerRestRequest(ctx);
-    Object            payload = null;
+    ServerRestRequest                      request               = new ServerRestRequest(ctx);
+    final Reference<Integer>               responseStatusCode    = new DefaultReference<Integer>(HttpStatus.SC_OK);
+    OptionalValue<String>                  nullMsg               = OptionalValue.none();
+    final Reference<OptionalValue<String>> responseStatusMessage = new DefaultReference<OptionalValue<String>>(nullMsg);
+    
     try {
-      payload = container.invoke(new RequestContext(subject, request, connector), new RestResponseFacade() {
+      
+      ConnectorPool pool = new ConnectorPool() {
+        @Override
+        public void release(CorusConnector toRelease) {
+          connectors.release(toRelease);
+        }
+        
+        @Override
+        public CorusConnector acquire() {
+          try {
+            return connectors.acquire();
+          } catch (Exception e) {
+            throw new IllegalStateException("Could not acquire connector from pool", e);
+          }
+        }
+      };
+      
+      RequestContext           reqCtx           = new RequestContext(subject, request, connector, asyncImpl, partitionImpl, pool);
+      ResourceInvocationResult invocationResult = container.invoke(reqCtx, new RestResponseFacade() {
+        
+        private boolean statusSet, statusMessageSet;
         @Override
         public void setStatus(int statusCode) {
-          ctx.getResponse().setStatusCode(statusCode);
+          if (!statusSet) {
+            responseStatusCode.set(statusCode);
+            statusSet = true;
+          }
         }
         
         @Override
@@ -154,33 +225,51 @@ public class RestExtension implements HttpExtension, Interceptor {
         
         @Override
         public void setStatusMessage(String msg) {
-          ctx.getResponse().setStatusMessage(msg);
+          if (!statusMessageSet) {
+            responseStatusMessage.set(OptionalValue.of(msg));
+            statusMessageSet = true;
+          }
         }
       });
       
-      if (payload == null) {
-        sendOkResponse(ctx, null);
-      } else if (payload instanceof ProgressResult) {
-        ProgressResult result = (ProgressResult) payload;
+      if (invocationResult.getReturnValue().isNull()) {
+        OptionalValue<String> payloadContent = OptionalValue.none();
+        sendOkResponse(ctx, responseStatusCode.get(), responseStatusMessage.get(), payloadContent);
+      } else if (invocationResult.getReturnValue().get() instanceof ProgressResult) {
+        ProgressResult result = (ProgressResult) invocationResult.getReturnValue().get();
         StringWriter   sw     = new StringWriter();
         JsonStream     stream = new WriterJsonStream(sw);
-        result.toJson(stream);
+        String         contentLevelName = ctx.getRequest().getParameter("contentLevel");
+        ContentLevel   contentLevel = ContentLevel.forNameOrDefault(contentLevelName, invocationResult.getResourceMetadata().getDefaultContentLevel());
+        result.toJson(stream, contentLevel);
         String content = sw.toString();
         if (logger.isDebugEnabled()) {
           logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
           logger.debug(content);
         }
-        sendResponse(ctx, result.getStatus(), null, content);
-        
-      } else if (payload instanceof String) {
-        String szPaylaod = (String) payload;
+        sendOkResponse(ctx, result.getStatus(), responseStatusMessage.get(), OptionalValue.of(content));
+      } else if (invocationResult.getReturnValue().get() instanceof String) {
+        String szPayload = (String) invocationResult.getReturnValue().get();
         if (logger.isDebugEnabled()) {
           logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
-          logger.debug(szPaylaod);
+          logger.debug(szPayload);
         }
-        sendOkResponse(ctx, szPaylaod);
+        sendOkResponse(ctx, responseStatusCode.get(), responseStatusMessage.get(), OptionalValue.of(szPayload));
+      } else if (invocationResult.getReturnValue().get() instanceof JsonStreamable) {
+        JsonStreamable result = (JsonStreamable) invocationResult.getReturnValue().get();
+        StringWriter   sw     = new StringWriter();
+        JsonStream     stream = new WriterJsonStream(sw);
+        String         contentLevelName = ctx.getRequest().getParameter("contentLevel");
+        ContentLevel   contentLevel = ContentLevel.forNameOrDefault(contentLevelName, invocationResult.getResourceMetadata().getDefaultContentLevel());
+        result.toJson(stream, contentLevel);
+        String content = sw.toString();
+        if (logger.isDebugEnabled()) {
+          logger.debug(String.format("Got response payload for REST call %s:", ctx.getPathInfo()));
+          logger.debug(content);
+        }
+        sendOkResponse(ctx, HttpResponseFacade.STATUS_OK, responseStatusMessage.get(), OptionalValue.of(content));
       } else {
-        throw new IllegalStateException("Unhandled payload type: " + payload);
+        throw new IllegalStateException("Illegal payload type: " + invocationResult.getReturnValue().get().getClass().getName());
       }
       
     } catch (FileNotFoundException e) {
@@ -209,21 +298,22 @@ public class RestExtension implements HttpExtension, Interceptor {
         .field("stackTrace").value(ExceptionUtils.getStackTrace(err))
         .field("feedback").strings(new String[]{})
       .endObject();
-    sendResponse(ctx, status, err.getMessage(), writer.toString());
+    OptionalValue<String> errMsg = OptionalValue.of(err.getMessage());
+    sendResponse(ctx, status, errMsg,  writer.toString());
   }
   
-  private void sendOkResponse(HttpContext ctx, String payload) throws IOException {
-    if (payload == null) {
+  private void sendOkResponse(HttpContext ctx, int statusCode, OptionalValue<String> statusMsg, OptionalValue<String> payload) throws IOException {
+    if (payload.isNull()) {
       StringWriter writer = new StringWriter();
       JsonStream   stream = new WriterJsonStream(writer);
       stream.beginObject().field("status").value(HttpStatus.SC_OK).field("feedback").strings(new String[]{}).endObject();
-      sendResponse(ctx, HttpStatus.SC_OK, null, writer.toString());
+      sendResponse(ctx, statusCode, statusMsg, writer.toString());
     } else {
-      sendResponse(ctx, HttpStatus.SC_OK, null, payload);
+      sendResponse(ctx, statusCode, statusMsg, payload.get());
     }
   }
   
-  public void sendResponse(HttpContext ctx, int statusCode, String statusMsg, String payload) throws IOException {
+  private void sendResponse(HttpContext ctx, int statusCode, OptionalValue<String> statusMsg, String payload) throws IOException {
     BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream());
     byte[] content = payload.getBytes("UTF-8");
     try {
@@ -234,9 +324,15 @@ public class RestExtension implements HttpExtension, Interceptor {
       ctx.getResponse().setHeader("Allow", "GET, POST, PUT, DELETE, OPTIONS");
       
       ctx.getResponse().setStatusCode(statusCode);
-      if (statusMsg != null) {
-        ctx.getResponse().setStatusMessage(statusMsg);
+      if (statusMsg.isSet()) {
+        ctx.getResponse().setStatusMessage(statusMsg.get());
       }
+     
+      if (logger.isDebugEnabled()) {
+        logger.debug("Sending response:");
+        logger.debug(payload);
+      }
+      
       bos.write(content);
       bos.flush();
     } finally {
@@ -262,7 +358,6 @@ public class RestExtension implements HttpExtension, Interceptor {
       }
     }
   }
-
   
   // ==========================================================================
   

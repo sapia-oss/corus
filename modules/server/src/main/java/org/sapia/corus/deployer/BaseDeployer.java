@@ -4,9 +4,12 @@ import java.util.List;
 
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.reference.DefaultReference;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
@@ -24,7 +27,13 @@ public class BaseDeployer implements Deployer {
 
   protected DeployerConfigurationImpl configuration = new DeployerConfigurationImpl();
   private DistributionDatabase store = new DistributionDatabaseImpl();
+  private Reference<ModuleState> state = DefaultReference.of(ModuleState.IDLE);
 
+  @Override
+  public Reference<ModuleState> getState() {
+    return state;
+  }
+   
   public DeployerConfiguration getConfiguration() {
     return configuration;
   }

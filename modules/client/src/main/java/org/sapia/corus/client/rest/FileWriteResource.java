@@ -26,6 +26,21 @@ public class FileWriteResource extends ResourceSupport {
   
   // --------------------------------------------------------------------------
   //  deploy
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/files/{corus:name}"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM})
+  @Authorized(Permission.DEPLOY)
+  public ProgressResult deployFileForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doDeployFileForCluster(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/files/{corus:name}",
@@ -36,6 +51,10 @@ public class FileWriteResource extends ResourceSupport {
   @Accepts({ContentTypes.APPLICATION_OCTET_STREAM})
   @Authorized(Permission.DEPLOY)
   public ProgressResult deployFileForCluster(RequestContext context) throws Exception {
+    return doDeployFileForCluster(context, ClusterInfo.clustered());
+  }
+  
+  private ProgressResult doDeployFileForCluster(RequestContext context, ClusterInfo cluster) throws Exception {
     String fileName = context.getRequest().getValue("corus:name").asString();
     Value checksum = context.getRequest().getValue("checksum-md5");
     DeployPreferences prefs = DeployPreferences.newInstance();
@@ -44,7 +63,7 @@ public class FileWriteResource extends ResourceSupport {
     }
     File file = transfer(context, fileName);
     try {
-      return doDeployFile(context, file, prefs, ClusterInfo.clustered());
+      return doDeployFile(context, file, prefs, cluster);
     } finally {
       file.delete();
     }
@@ -60,13 +79,13 @@ public class FileWriteResource extends ResourceSupport {
   public ProgressResult deployFileForHost(RequestContext context) throws Exception {
     String fileName = context.getRequest().getValue("corus:name").asString();
     File file = transfer(context, fileName);
-    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    Value checksum = context.getRequest().getValue("checksum-md5");
-    DeployPreferences prefs = DeployPreferences.newInstance();
-    if (checksum.isSet()) {
-      prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
-    }
     try {
+      ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
+      Value checksum = context.getRequest().getValue("checksum-md5");
+      DeployPreferences prefs = DeployPreferences.newInstance();
+      if (checksum.isSet()) {
+        prefs.setChecksum(ChecksumPreference.forMd5().assignClientChecksum(checksum.asString()));
+      }
       return doDeployFile(context, file, prefs, cluster);
     } finally {
       file.delete();
@@ -75,6 +94,21 @@ public class FileWriteResource extends ResourceSupport {
   
   // --------------------------------------------------------------------------
   //  undeploy
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/files/{corus:name}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_OCTET_STREAM})
+  @Authorized(Permission.DEPLOY)
+  public ProgressResult undeployFileForPartition(RequestContext context) throws Exception {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doUndeployFile(context, targets);
+  }
   
   @Path({
     "/clusters/{corus:cluster}/files/{corus:name}",

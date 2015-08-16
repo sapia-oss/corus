@@ -30,4 +30,9 @@ public interface HttpExtension {
    * @throws Exception
    */
   public void process(HttpContext ctx) throws Exception, FileNotFoundException;
+  
+  /**
+   * Releases this instance's resources.
+   */
+  public void destroy();
 }

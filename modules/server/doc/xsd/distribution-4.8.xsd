@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.sapia-oss.org/xsd/corus/distribution-4.7.xsd"
+	xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.7.xsd">
+
+	<xs:element name="distribution">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="process" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="version" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="tags" type="xs:string"></xs:attribute>
+			<xs:attribute name="propertyCategories" type="xs:string"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="process">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="port" maxOccurs="unbounded" minOccurs="0">
+        </xs:element>
+				<xs:element ref="preExec" maxOccurs="1" minOccurs="0">
+				</xs:element>
+        <xs:element ref="magnet" maxOccurs="unbounded" minOccurs="0">
+        </xs:element>
+        <xs:element ref="java" maxOccurs="unbounded" minOccurs="0">
+        </xs:element>
+        <xs:element ref="generic" maxOccurs="unbounded"
+          minOccurs="0">
+        </xs:element>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="maxKillRetry" type="xs:integer"
+				default="3"></xs:attribute>
+			<xs:attribute name="shutdownTimeout" type="xs:integer"
+				default="30000"></xs:attribute>
+			<xs:attribute name="deleteOnKill" type="xs:boolean"
+				default="false"></xs:attribute>
+			<xs:attribute name="invoke" type="xs:boolean" default="false"></xs:attribute>
+			<xs:attribute name="pollInterval" type="xs:integer"
+				default="10"></xs:attribute>
+			<xs:attribute name="pollTimeout" type="xs:integer"
+				default="-1"></xs:attribute>
+			<xs:attribute name="statusInterval" type="xs:integer"
+				default="30"></xs:attribute>
+			<xs:attribute name="tags" type="xs:string"></xs:attribute>
+			<xs:attribute name="propertyCategories" type="xs:string"></xs:attribute>
+			<xs:attribute name="interpolationPasses" type="xs:integer"></xs:attribute>
+			<xs:attribute name="maxInstances" type="xs:integer"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+  <xs:element name="port">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="http-diagnostic" maxOccurs="1" minOccurs="0">
+        </xs:element>
+        <xs:element ref="https-diagnostic" maxOccurs="1" minOccurs="0">
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="http-diagnostic">
+    <xs:complexType>
+      <xs:attribute name="path" type="xs:string" use="optional"></xs:attribute>
+      <xs:attribute name="statusCode" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="readTimeout" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="connectionTimeout" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="portPrefix" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="gracePeriod" type="xs:integer" use="optional"></xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="https-diagnostic">
+    <xs:complexType>
+      <xs:attribute name="path" type="xs:string" use="optional"></xs:attribute>
+      <xs:attribute name="statusCode" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="readTimeout" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="connectionTimeout" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="portPrefix" type="xs:integer" use="optional" ></xs:attribute>
+      <xs:attribute name="gracePeriod" type="xs:integer" use="optional"></xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+	<xs:element name="preExec">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="cmd" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="cmd">
+		<xs:complexType>
+			<xs:simpleContent>
+				<xs:extension base="xs:string">
+					<xs:attribute name="value" type="xs:string" use="optional"></xs:attribute>
+				</xs:extension>
+			</xs:simpleContent>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="magnet">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="vmType" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="arg" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="property" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+				<xs:element ref="option" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="xoption" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+				<xs:element ref="dependency" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="magnetFile" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="javaHome" type="xs:string"></xs:attribute>
+			<xs:attribute name="javaCmd" type="xs:string"></xs:attribute>
+			<xs:attribute name="vmType" type="xs:string"></xs:attribute>
+			<xs:attribute name="libDirs" type="xs:string"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="vmType" type="xs:string"></xs:element>
+
+	<xs:element name="java">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="vmType" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="arg" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="property" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+				<xs:element ref="option" maxOccurs="unbounded" minOccurs="0">
+				</xs:element>
+				<xs:element ref="xoption" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+				<xs:element ref="dependency" maxOccurs="unbounded"
+					minOccurs="0">
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="mainClass" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="javaHome" type="xs:string"></xs:attribute>
+			<xs:attribute name="javaCmd" type="xs:string"></xs:attribute>
+			<xs:attribute name="vmType" type="xs:string"></xs:attribute>
+			<xs:attribute name="libDirs" type="xs:string"></xs:attribute>
+			<xs:attribute name="args" type="xs:string"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="generic">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element ref="arg" maxOccurs="unbounded" minOccurs="1">
+				</xs:element>
+				<xs:element ref="processProperties" maxOccurs="unbounded">
+				</xs:element>
+				<xs:element ref="dependency" maxOccurs="unbounded">
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="mainClass" type="xs:string"></xs:element>
+
+	<xs:element name="dependency">
+		<xs:complexType>
+			<xs:attribute name="distribution" type="xs:string"></xs:attribute>
+			<xs:attribute name="dist" type="xs:string"></xs:attribute>
+			<xs:attribute name="process" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="version" type="xs:string"></xs:attribute>
+			<xs:attribute name="profile" type="xs:string"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="arg">
+		<xs:complexType>
+			<xs:attribute name="value" type="xs:string" use="required"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="property">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="value" type="xs:string" use="required"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="option">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="value" type="xs:string" use="required"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="xoption">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required"></xs:attribute>
+			<xs:attribute name="value" type="xs:string" use="required"></xs:attribute>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="processProperties" />
+
+</xs:schema>

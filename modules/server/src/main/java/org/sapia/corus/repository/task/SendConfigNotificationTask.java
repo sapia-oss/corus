@@ -32,7 +32,8 @@ public class SendConfigNotificationTask extends RunnableTask {
   @Override
   public void run() {
     try {
-      List<Property> props = context().getServerContext().getServices().getConfigurator().getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>());
+      List<Property> props = context().getServerContext().getServices().getConfigurator()
+          .getAllPropertiesList(PropertyScope.PROCESS, new HashSet<ArgMatcher>());
       Set<Tag>       tags  = context().getServerContext().getServices().getConfigurator().getTags();
 
       if (props.isEmpty() && tags.isEmpty()) {

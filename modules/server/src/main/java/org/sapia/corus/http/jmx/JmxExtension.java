@@ -41,6 +41,7 @@ public class JmxExtension implements HttpExtension {
     this.context = context;
   }
 
+  @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(HTTP_JMX_CONTEXT);
@@ -49,6 +50,7 @@ public class JmxExtension implements HttpExtension {
     return info;
   }
 
+  @Override
   public void process(HttpContext ctx) throws Exception {
     ctx.getResponse().setHeader("Content-Type", "text/xml");
     try {
@@ -57,6 +59,10 @@ public class JmxExtension implements HttpExtension {
       e.printStackTrace();
       throw e;
     }
+  }
+  
+  @Override
+  public void destroy() {
   }
 
   private void doProcess(HttpContext ctx) throws Exception {

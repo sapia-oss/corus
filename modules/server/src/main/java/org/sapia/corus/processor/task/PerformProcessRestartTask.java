@@ -9,6 +9,8 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
+import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
 import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -41,6 +43,8 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
     
     if (process.getStatus() == LifeCycleStatus.RESTARTING) {
       ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessRestartPendingEvent(dist, processConf, process));
+
       ProcessInfo info = new ProcessInfo(process, dist, processConf, true);
       Properties processProperties = ctx.getServerContext().getProcessProperties(processConf.getPropertyCategories());
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
@@ -51,6 +55,7 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
           process.clearCommands();
           process.setStatus(Process.LifeCycleStatus.ACTIVE);
           process.recycle();
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessRestartedEvent(dist, processConf, process));
           return true;
         } else {
           if (!process.isDeleted()) {
@@ -81,13 +86,15 @@ public class PerformProcessRestartTask extends Task<Boolean, Process> {
       ProcessConfig conf = dist.getProcess(process.getDistributionInfo().getProcessName());
       ProcessInfo info = new ProcessInfo(process, dist, conf, true);
       Properties processProperties = ctx.getServerContext().getProcessProperties(conf.getPropertyCategories());
-
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessRestartPendingEvent(dist, conf, process));
+      
       PerformExecProcessTask execProcess = new PerformExecProcessTask();
       if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
         process.touch();
         process.clearCommands();
         process.setStatus(Process.LifeCycleStatus.ACTIVE);
         process.recycle();
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessRestartedEvent(dist, conf, process));
         return true;
       } else {
         if (!process.isDeleted()) {

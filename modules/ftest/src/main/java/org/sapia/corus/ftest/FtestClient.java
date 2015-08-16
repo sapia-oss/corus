@@ -1,5 +1,7 @@
 package org.sapia.corus.ftest;
 
+import static org.testng.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
@@ -7,8 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.sapia.corus.client.ClusterInfo;
@@ -27,7 +34,7 @@ import org.sapia.ubik.util.Localhost;
  * 
  */
 public class FtestClient {
-
+  
   public static final String HEADER_APP_ID  = "X-corus-app-id";
   public static final String HEADER_APP_KEY = "X-corus-app-key";
   
@@ -118,6 +125,41 @@ public class FtestClient {
     Assertions.illegalState(instance == null,"Client not initialized");
     TCPAddress addr = instance.getConnector().getContext().getServerHost().getEndpoint().getServerTcpAddress();
     return addr.getHost() + ":" + addr.getPort();
+  }
+  
+  /**
+   * @return the ID of the partition set that was created.
+   * @throws IOException if an I/O problem occurs.
+   */
+  public PartitionInfo createPartitionSet() throws IOException {
+    JSONValue response = resource("/partitionsets") 
+        .queryParam("partitionSize", "1")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    
+    JSONObject partitionSet = response.asObject();
+    String partitionSetId = partitionSet.getString("id");
+    JSONArray  partitions = partitionSet.getJSONArray("partitions");
+    JSONObject partition  = partitions.getJSONObject(0);
+    
+    return new PartitionInfo(partitionSetId, partition.getInt("index"));
+  }
+  
+  /**
+   * @param id the ID of the partition set to delete.
+   * @throws IOException if an I/O problem occurs.
+   */
+  public void deletePartitionSet(String id) throws IOException {
+    JSONValue response = resource("/partitionsets/" + id)
+        .request()
+          .header(FtestClient.HEADER_APP_ID, getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
   }
   
   /**

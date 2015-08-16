@@ -13,12 +13,12 @@ public abstract class DeploymentResourceSupport extends ResourceSupport {
   // --------------------------------------------------------------------------
   // Restricted methods
   
-  protected File transfer(RequestContext ctx) throws IOException {
+  protected File transfer(RequestContext ctx, String extension) throws IOException {
     File tmpDir = new File(System.getProperty("java.io.tmpdir"));
     if (!tmpDir.exists()) {
       throw new IllegalStateException("Directory corresponding to java.io.tmpdir does not exist");
     }
-    File                tmpFile = new File(tmpDir, UUID.randomUUID() + ".zip");
+    File                tmpFile = new File(tmpDir, UUID.randomUUID() + extension);
     FileOutputStream    fos     = null;
     BufferedInputStream bis     = null;
     try {

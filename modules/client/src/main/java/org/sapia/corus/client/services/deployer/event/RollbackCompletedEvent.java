@@ -9,7 +9,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class RollbackEvent implements Event {
+public class RollbackCompletedEvent implements Event {
 
   /**
    * Indicates if the rollback was done automatically in the context of a deployment,
@@ -38,7 +38,7 @@ public class RollbackEvent implements Event {
   private Type         type;
   private Status       status;
 
-  public RollbackEvent(Distribution dist, Type type, Status status) {
+  public RollbackCompletedEvent(Distribution dist, Type type, Status status) {
     this.distribution = dist;
     this.type         = type;
     this.status       = status;

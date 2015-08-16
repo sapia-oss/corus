@@ -1,0 +1,25 @@
+<help>
+  <section title="Description">
+   <p>Performs process diagnostic.</p>
+  </section>
+  <section title="Syntax">
+    <p>diags [-a] [-s] [-w] [-t seconds] [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- a: aborts execution of the CLI if a failure is diagnosed.</p>
+    <p/>
+    <p>- s: enables silent mode (diagnostic report is not displayed in that case).</p>
+    <p/>
+    <p>- w: enables waiting until diagnostic status is final before exiting.</p>
+    <p/>
+    <p>- t: interval (in seconds) at which diagnostic is polled for (if not specified, defaults to 10 seconds). Will apply only if -w option is specified.</p>
+    <p/> 
+    <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
+  </section>
+  <section title="Examples">
+    <p>diags</p>
+    <p>diags -a -w -cluster</p>
+    <p/>    
+  </section>      
+</help>

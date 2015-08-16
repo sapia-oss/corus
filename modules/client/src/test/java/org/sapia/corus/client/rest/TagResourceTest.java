@@ -23,6 +23,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -37,7 +38,16 @@ public class TagResourceTest {
   private CorusConnector           connector;
   
   @Mock
+  private ConnectorPool            connectors;
+  
+  @Mock
   private CorusConnectionContext   connection;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest              request;
@@ -71,6 +81,7 @@ public class TagResourceTest {
       results.addResult(result);
     }
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getConfigFacade()).thenReturn(confs);
@@ -83,7 +94,7 @@ public class TagResourceTest {
 
   @Test
   public void testGetTagsForCluster() {
-    String response = resource.getTagsForCluster(new RequestContext(request, connector));
+    String response = resource.getTagsForCluster(new RequestContext(request, connector, async, partitions, connectors));
     JSONArray json = JSONArray.fromObject(response);
     int count = 0;
     for (int i = 0; i < json.size(); i++) {
@@ -96,7 +107,7 @@ public class TagResourceTest {
 
   @Test
   public void testGetTagsForHost() {
-    String response = resource.getTagsForHost(new RequestContext(request, connector));
+    String response = resource.getTagsForHost(new RequestContext(request, connector, async, partitions, connectors));
     JSONArray json = JSONArray.fromObject(response);
     int count = 0;
     for (int i = 0; i < json.size(); i++) {

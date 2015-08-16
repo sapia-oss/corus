@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
+
 /**
  * Keeps information pertaining to the distribution a process "comes" from.
  * 
@@ -81,6 +83,10 @@ public class DistributionInfo implements Externalizable, Comparable<Distribution
    */
   public String getVersion() {
     return version;
+  }
+  
+  public DistributionCriteria newDistributionCriteria() {
+    return DistributionCriteria.builder().version(version).name(name).build();
   }
 
   // --------------------------------------------------------------------------
