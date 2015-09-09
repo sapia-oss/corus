@@ -158,7 +158,7 @@ public class FileUtils {
       if (i > 0) {
         sb.append(File.pathSeparatorChar);
       }
-      sb.append(paths[i]);
+      sb.append(fixFileSeparators(paths[i]));
     }
     return sb.toString();
   }
@@ -174,7 +174,7 @@ public class FileUtils {
    * @return the path resulting from the concatenation.
    */
   public static final String append(String path, String subPath) {
-    StringBuilder sb = new StringBuilder(path);
+    StringBuilder sb = new StringBuilder(fixFileSeparators(path));
     append(sb, subPath);
     return sb.toString();
   }
@@ -199,9 +199,9 @@ public class FileUtils {
       subPath = subPath.substring(1);
     }
     if (path.length() > 0 && (path.charAt(path.length() - 1) == '/' || path.charAt(path.length() - 1) == '\\')) {
-      path.append(subPath);
+      path.append(fixFileSeparators(subPath));
     } else {
-      path.append(File.separator).append(subPath);
+      path.append(File.separator).append(fixFileSeparators(subPath));
     }
   }
 
@@ -216,12 +216,30 @@ public class FileUtils {
     StringBuilder sb = new StringBuilder();
     if (toConcat != null) {
       for (int i = 0; i < toConcat.length; i++) {
-        if (i > 0) {
+        String fixedPath = fixFileSeparators(toConcat[i]);
+        if (i > 0 && sb.length() != 0 && sb.charAt(sb.length() - 1) != File.separatorChar) {
           sb.append(File.separator);
         }
-        sb.append(toConcat[i]);
+        sb.append(fixedPath);
       }
     }
     return sb.toString();
+  }
+  
+  /**
+   * Replaces from a given path potentially non-platform file separators with 
+   * their platform equivalent and returns the new, fixed path.
+   * 
+   * @param path a path to fix.
+   * @return the new, fixed path.
+   */
+  public static final String fixFileSeparators(String path) {
+    if (path == null) {
+      return null;
+    } else {
+      String newPath = path.replace('/', File.separatorChar);
+      newPath = newPath.replace('\\', File.separatorChar);
+      return newPath;
+    }
   }
 }

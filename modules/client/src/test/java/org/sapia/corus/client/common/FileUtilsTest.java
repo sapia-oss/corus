@@ -146,5 +146,16 @@ public class FileUtilsTest {
   public void testToPathMultipleElements() {
     assertEquals("path1" + File.separator + "path2", FileUtils.toPath("path1", "path2"));
   }
+  
+  @Test
+  public void testFixFileSeparators() {
+    char platformSep = File.separatorChar;
+    char wrongSep = platformSep == '\\' ? '/' : '\\';
+    
+    String wrongPath = "p1" + wrongSep + "p2" + wrongSep + "p3";
+    String newPath = FileUtils.fixFileSeparators(wrongPath);
+    assertFalse(newPath.contains("" + wrongSep));
+    assertTrue(newPath.contains("" + platformSep));
+  }
 
 }

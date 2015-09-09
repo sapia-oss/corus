@@ -62,7 +62,7 @@ public class ResultsTest {
     assertTrue(!results.isFinished());
 
     int count = 0;
-    while (results.hasNext()) {
+    while (count < 5 && results.hasNext()) {
       results.next();
       count++;
     }
