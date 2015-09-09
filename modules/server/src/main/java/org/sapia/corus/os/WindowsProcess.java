@@ -377,6 +377,8 @@ public class WindowsProcess implements NativeProcess {
       return null;
     } catch (SigarException e) {
       throw new IOException("Could not obtain process information from Sigar", e);
+    } catch (UnsatisfiedLinkError e) {
+      throw new IOException("Could not load Sigar native lib", e);
     }
   }
   
