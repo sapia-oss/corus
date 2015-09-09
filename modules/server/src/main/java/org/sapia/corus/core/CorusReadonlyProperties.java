@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.Properties;
 
 import org.sapia.corus.util.PropertiesUtil;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * Class used to manage the .corus-readonly.properties file in a thread-safe manner.
@@ -55,6 +56,10 @@ public class CorusReadonlyProperties {
    */
   public static synchronized void save(Properties props, File homeDir, int port, boolean overwrite) {
     Properties toWrite;
+    
+    if (!homeDir.exists()) {
+      Assertions.illegalState(!homeDir.mkdirs(), "Could not create directory: " + homeDir.getAbsolutePath());
+    }
     
     // updating: keeping the existing properties
     if (!overwrite) {

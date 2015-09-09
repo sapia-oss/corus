@@ -5,6 +5,7 @@ import java.util.StringTokenizer;
 
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarProxy;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.core.ModuleHelper;
 
 /**
@@ -17,9 +18,9 @@ import org.sapia.corus.core.ModuleHelper;
  */
 public class SigarModuleImpl extends ModuleHelper implements SigarModule {
 
-  private static final String SIGAR_SUBDIR = "extra-lib/sigar";
+  private static final String SIGAR_SUBDIR = FileUtils.fixFileSeparators("extra-lib/sigar");
 
-  private static final String JAVA_LIB_PATH = System.getProperty("java.library.path");
+  private static final String JAVA_LIB_PATH = FileUtils.fixFileSeparators(System.getProperty("java.library.path"));
 
   private Sigar sigar;
 

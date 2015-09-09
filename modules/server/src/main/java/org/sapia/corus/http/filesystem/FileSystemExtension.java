@@ -26,6 +26,7 @@ import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.ReverseComparator;
 import org.sapia.corus.client.common.StrLookups;
@@ -202,7 +203,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
           PropertiesStrLookup.getInstance(context.getCorusProperties()), 
           PropertiesStrLookup.getSystemInstance())
        );
-      String thePatterns = sbs.replace(hidePatterns.toLowerCase()).replace("/", File.separator);
+      String thePatterns = FileUtils.fixFileSeparators(sbs.replace(hidePatterns.toLowerCase()));
       
       String[] patterns = StringUtils.split(thePatterns, ",");
       if (patterns.length > 0) {

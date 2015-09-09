@@ -23,7 +23,7 @@ public class FilePath {
    * @return this instance.
    */
   public FilePath addDir(String dir) {
-    dirs.add(dir);
+    dirs.add(FileUtils.fixFileSeparators(dir));
     return this;
   }
   
@@ -33,7 +33,7 @@ public class FilePath {
    * @return this instance.
    */
   public FilePath addUserHome() {
-    dirs.add(System.getProperty("user.home"));
+    dirs.add(FileUtils.fixFileSeparators(System.getProperty("user.home")));
     return this;
   }
   
@@ -43,7 +43,7 @@ public class FilePath {
    * @return this instance.
    */
   public FilePath addCorusUserDir() {
-    dirs.add(System.getProperty("user.home"));
+    dirs.add(FileUtils.fixFileSeparators(System.getProperty("user.home")));
     dirs.add(".corus");
     return this;
   }
@@ -54,7 +54,7 @@ public class FilePath {
    * @return this instance.
    */
   public FilePath setRelativeFile(String file) {
-    this.file = file;
+    this.file = FileUtils.fixFileSeparators(file);
     return this;
   }
 
@@ -73,9 +73,10 @@ public class FilePath {
    * @return the path corresponding to this instance.
    */
   public String createFilePathFrom(File baseDir) {
-    Assertions.isTrue(baseDir.isDirectory(), "File does not correspond to a directory: " + baseDir.getAbsolutePath());
+    File fixedDir = new File(FileUtils.fixFileSeparators(baseDir.getAbsolutePath()));
+    Assertions.isTrue(fixedDir.isDirectory(), "File does not correspond to a directory: " + fixedDir.getAbsolutePath());
     StringBuilder sb = new StringBuilder();
-    sb.append(baseDir.getAbsolutePath()).append(File.separator);
+    sb.append(fixedDir.getAbsolutePath()).append(File.separator);
     if (file != null) {
       sb.append(file);
     }
