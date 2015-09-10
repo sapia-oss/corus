@@ -27,6 +27,7 @@ import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
@@ -81,15 +82,16 @@ public class CorusServer {
 
       org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
 
-      String corusHome = System.getProperty("corus.home");
+      String corusHome = FileUtils.fixFileSeparators(System.getProperty("corus.home"));
 
       if (corusHome == null) {
         throw new CorusException("corus.home system property not set", ExceptionCode.INTERNAL_ERROR.getFullCode());
       } else {
         // hack to avoid headaches with backslashes in Properties.load()
-        corusHome = corusHome.replace('\\', '/');
-        corusHome = corusHome.replace("\"", "");
-        System.setProperty("corus.home", corusHome);
+        String hackedCorusHome = corusHome.replace("\\", "\\\\");
+        hackedCorusHome = hackedCorusHome.replace("\"", "");
+        System.out.println("-----------------> " + hackedCorusHome);
+        System.setProperty("corus.home", hackedCorusHome);
       }
 
       CmdLine cmd;
