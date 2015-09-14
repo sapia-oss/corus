@@ -9,10 +9,13 @@ import org.junit.Test;
 public class PropertiesTokenizerTest {
 
   private String simpleLiteral                                = "n=v";
+  private String simpleLiteralWithEmptyValue                  = "n=";
+
   private String literalWithEqualsSignInvalue                 = "n=v0=v1";
   private String literalWithEscapedEqualsSignInvalue          = "n=v0\\=v1";
 
   private String complexLiteral                               = "n0=v0,n1=v1,n2=v2";
+  private String complexLiteralWithEmptyValue                 = "n0=v0,n1=,n2=v2";
   private String complexLiteralWithEscape                     = "n0=v0,n1=v1-0\\,v1-1,n2=v2";
   private String complexLiteralWithCommaInValueInLastProperty = "n0=v0,n1=v1,n2=v2-0,v2-1";
 
@@ -24,6 +27,16 @@ public class PropertiesTokenizerTest {
 
     assertEquals("n", p.getLeft());
     assertEquals("v", p.getRight());
+  }
+  
+  @Test
+  public void testSimpleLiteralWithEmptyValue() {
+    PropertiesTokenizer tk = new PropertiesTokenizer(simpleLiteralWithEmptyValue);
+    assertTrue(tk.hasNext());
+    PairTuple<String, String> p = tk.next();
+
+    assertEquals("n", p.getLeft());
+    assertEquals("", p.getRight());
   }
   
   @Test
@@ -54,6 +67,21 @@ public class PropertiesTokenizerTest {
       PairTuple<String, String> p = tk.next();
       assertEquals("n" + i, p.getLeft());
       assertEquals("v" + i, p.getRight());
+    }
+  }
+  
+  @Test
+  public void testComplexLiteralWithEmptyValue() {
+    PropertiesTokenizer tk = new PropertiesTokenizer(complexLiteralWithEmptyValue);
+    for (int i = 0; i < 3; i++) {
+      assertTrue(tk.hasNext());
+      PairTuple<String, String> p = tk.next();
+      assertEquals("n" + i, p.getLeft());
+      if (i == 1) {
+        assertEquals("", p.getRight());
+      } else {
+        assertEquals("v" + i, p.getRight());
+      }
     }
   }
 

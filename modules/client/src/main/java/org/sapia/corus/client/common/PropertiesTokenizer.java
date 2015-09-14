@@ -41,7 +41,11 @@ public class PropertiesTokenizer {
     }
     
     private boolean isComplete() {
-      return name != null && value != null;
+      return name != null;
+    }
+    
+    private boolean isValueSet() {
+      return value != null;
     }
     
     private PairTuple<String, String> asTuple() {
@@ -76,10 +80,10 @@ public class PropertiesTokenizer {
   }
   
   public boolean hasNext() {
-    for (; index < toProcess.length() && !struct.isComplete() && state != State.TERMINATED; index++) {
+    for (; index < toProcess.length() && !struct.isValueSet() && state != State.TERMINATED; index++) {
       doProcess();
     }
-   
+    
     return struct.isComplete();
   }
   
@@ -92,7 +96,7 @@ public class PropertiesTokenizer {
         if (c == '=') {
           // end of name
           struct.name = buffer.toString();
-          buffer.delete(0,  buffer.length());
+          buffer.delete(0, buffer.length());
           state = State.VALUE;
         } else {
           buffer.append(c);
@@ -169,10 +173,6 @@ public class PropertiesTokenizer {
       }
     }
     return false;
-  }
-  
-  public static void main(String[] args) {
-    System.out.println(System.getProperty("test"));
   }
   
 }
