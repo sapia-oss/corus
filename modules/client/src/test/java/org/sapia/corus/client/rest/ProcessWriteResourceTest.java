@@ -1,6 +1,7 @@
 package org.sapia.corus.client.rest;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,6 +73,8 @@ public class ProcessWriteResourceTest {
     when(request.getValue("i", "1")).thenReturn(new Value("i", "1"));
     when(request.getValue("corus:process_id")).thenReturn(new Value("corus:process_id", "1234"));
     when(request.getValue("pr")).thenReturn(new Value("pr", "*:*"));
+    when(request.getValue("check", "false")).thenReturn(new Value("check", "false"));
+    when(request.getValue("async", "false")).thenReturn(new Value("async", "false"));
   }
 
   @Test

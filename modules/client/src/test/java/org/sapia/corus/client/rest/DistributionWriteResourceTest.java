@@ -82,6 +82,7 @@ public class DistributionWriteResourceTest {
     when(request.getValue("corus:name")).thenReturn(new Value("corus:name", "dist"));
     when(request.getValue("corus:version")).thenReturn(new Value("corus:version", "1.0"));
     when(request.getValue("rev")).thenReturn(new Value("rev", "previous"));
+    when(request.getValue("maxErrors", "0")).thenReturn(new Value("maxErrors", "0"));
     when(request.getValue("async", "false")).thenReturn(new Value("async", "false"));
     when(request.getValue("runDiagnostic", "false")).thenReturn(new Value("runDiagnostic", "false"));
     when(request.getValue("diagnosticInterval", "false")).thenReturn(new Value("diagnosticInterval", "10"));
