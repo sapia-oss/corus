@@ -33,6 +33,7 @@ public class DeployerExtension implements HttpExtension {
     this.context = context;
   }
 
+  @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(CONTEXT_PATH);
@@ -41,12 +42,17 @@ public class DeployerExtension implements HttpExtension {
     return info;
   }
 
+  @Override
   public void process(HttpContext ctx) throws Exception {
     if (ctx.getPathInfo().startsWith(COMMAND_LS)) {
       processLs(ctx);
     } else {
       throw new FileNotFoundException(ctx.getPathInfo());
     }
+  }
+  
+  @Override
+  public void destroy() {
   }
 
   private void processLs(HttpContext ctx) throws IOException {

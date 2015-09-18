@@ -25,6 +25,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.PortManagementFacade;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -36,18 +37,27 @@ import org.sapia.ubik.net.TCPAddress;
 public class PortResourceTest {
   
   @Mock
-  private CorusConnector           connector;
+  private CorusConnector connector;
   
   @Mock
-  private CorusConnectionContext   connection;
+  private ConnectorPool connectors;
   
   @Mock
-  private RestRequest              request;
+  private CorusConnectionContext connection;
   
   @Mock
-  private PortManagementFacade     ports;
+  private AsynchronousCompletionService async;
   
-  private PortResource             resource;
+  @Mock
+  private PartitionService partitions;
+  
+  @Mock
+  private RestRequest request;
+  
+  @Mock
+  private PortManagementFacade ports;
+  
+  private PortResource resource;
   private Results<List<PortRange>> results;
   
   @Before
@@ -75,6 +85,7 @@ public class PortResourceTest {
       results.addResult(result);
     }
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getPortManagementFacade()).thenReturn(ports);
@@ -88,7 +99,7 @@ public class PortResourceTest {
   
   @Test
   public void testGetPortRangesForClusters() {
-    String response = resource.getPortRangesForCluster(new RequestContext(request, connector));
+    String response = resource.getPortRangesForCluster(new RequestContext(request, connector, async, partitions, connectors));
     JSONArray json = JSONArray.fromObject(response);
     int count = 0;
     for (int i = 0; i < json.size(); i++) {
@@ -99,7 +110,7 @@ public class PortResourceTest {
 
   @Test
   public void testgetPortRangesForClusterAndHost() {
-    String response = resource.getPortRangesForHost(new RequestContext(request, connector));
+    String response = resource.getPortRangesForHost(new RequestContext(request, connector, async, partitions, connectors));
     JSONArray json = JSONArray.fromObject(response);
     int count = 0;
     for (int i = 0; i < json.size(); i++) {

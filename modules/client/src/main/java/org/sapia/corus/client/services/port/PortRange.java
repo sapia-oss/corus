@@ -41,8 +41,6 @@ public class PortRange extends AbstractPersistent<String, PortRange>
 
   static final int VERSION_1 = 1;
   static final int CURRENT_VERSION = VERSION_1;
-
-  private int classVersion = CURRENT_VERSION;
   
   private String name;
   private int min, max;
@@ -161,7 +159,7 @@ public class PortRange extends AbstractPersistent<String, PortRange>
   }
   
   @Override
-  public synchronized void toJson(JsonStream stream) {
+  public synchronized void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
       .field("classVersion").value(CURRENT_VERSION)
       .field("name").value(name)
@@ -240,12 +238,13 @@ public class PortRange extends AbstractPersistent<String, PortRange>
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    classVersion = CURRENT_VERSION;
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeInt(classVersion);
+    
+    out.writeInt(CURRENT_VERSION);
+    
     out.writeUTF(name);
     out.writeInt(min);
     out.writeInt(max);

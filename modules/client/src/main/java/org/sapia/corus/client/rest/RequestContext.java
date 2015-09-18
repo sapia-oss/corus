@@ -10,6 +10,7 @@ import java.util.Set;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.security.Subject;
 import org.sapia.corus.client.services.security.Subject.Anonymous;
 
@@ -21,18 +22,29 @@ import org.sapia.corus.client.services.security.Subject.Anonymous;
  */
 public class RequestContext {
 
-  private Subject        subject;
-  private RestRequest    request;
-  private CorusConnector connector;
-  
-  public RequestContext(Subject subject, RestRequest request, CorusConnector connector) {
-    this.subject   = subject;
-    this.request   = request;
-    this.connector = connector;
+  private Subject                       subject;
+  private RestRequest                   request;
+  private CorusConnector                connector;
+  private AsynchronousCompletionService asyncService;
+  private PartitionService              partitionService;
+  private ConnectorPool                 connectors;
+  public RequestContext(
+      Subject subject, 
+      RestRequest request, 
+      CorusConnector connector, 
+      AsynchronousCompletionService asyncService,
+      PartitionService partitionService,
+      ConnectorPool connectors) {
+    this.subject          = subject;
+    this.request          = request;
+    this.connector        = connector;
+    this.asyncService     = asyncService;
+    this.partitionService = partitionService;
+    this.connectors       = connectors;
   }
   
-  public RequestContext(RestRequest request, CorusConnector connector) {
-    this(Anonymous.newInstance(), request, connector);
+  public RequestContext(RestRequest request, CorusConnector connector, AsynchronousCompletionService asyncService, PartitionService partitionService, ConnectorPool connectors) {
+    this(Anonymous.newInstance(), request, connector, asyncService, partitionService, connectors);
   }
   
   /**
@@ -47,6 +59,28 @@ public class RequestContext {
    */
   public RestRequest getRequest() {
     return this.request;
+  }
+  
+  /**
+   * @return the {@link ConnectorPool} to use to acquire new {@link CorusConnector}s.
+   */
+  public ConnectorPool getConnectors() {
+    return connectors;
+  }
+  
+  /**
+   * @return the {@link AsynchronousCompletionService} instance to use for performing requests
+   * in the background.
+   */
+  public AsynchronousCompletionService getAsyncService() {
+    return asyncService;
+  }
+  
+  /**
+   * @return the {@link PartitionService} instance to use.
+   */
+  public PartitionService getPartitionService() {
+    return partitionService;
   }
   
   /**

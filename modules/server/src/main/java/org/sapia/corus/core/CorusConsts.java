@@ -8,7 +8,9 @@ import java.io.File;
  * @author Yanick Duchesne
  */
 public interface CorusConsts {
-
+  
+  public static final File CORUS_USER_HOME = new File(System.getProperty("user.home") + File.separator + ".corus");
+  
   /**
    * Corresponds to the property key to which the Corus domain is associated.
    */
@@ -55,6 +57,9 @@ public interface CorusConsts {
 
   public static final String CORUS_TRANSPORT_TCP                     = "tcp";
 
+  // --------------------------------------------------------------------------
+  // File & security-related
+  
   /**
    * Defines the property prefix of a symbolic link definition.
    */
@@ -70,16 +75,34 @@ public interface CorusConsts {
    */
   public static final String PROPERTY_CORUS_PROPERTY_HIDE_PATTERNS   = "corus.server.property.hide.patterns";
   
+  // --------------------------------------------------------------------------
+  // REST
+  
   /**
    * Indicates if authentication should be required for all REST calls - including <code>GET</code> ones.
    */
   public static final String PROPERTY_CORUS_REST_AUTH_REQUIRED       = "corus.server.api.auth.required";
+  
+  // --------------------------------------------------------------------------
+  // Hot Config
   
   /**
    * Indicates if configuration changes are dynamically updated to running processes (hot config). 
    */
   public static final String PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED = "corus.server.process.config-update.enabled"; 
 
+  // --------------------------------------------------------------------------
+  // Diagnostics
+  
+
+  /**
+   * Indicates the amount of time given to Corus to boot up and start processes.
+   */
+  public static final String PROPERTY_CORUS_DIAGNOSTIC_GRACE_PERIOD_DURATION = "corus.server.diagnostic.grace-period.duration"; 
+  
+  // --------------------------------------------------------------------------
+  // Consul
+  
   /**
    * Indicates if publishing to Consul is enabled.
    */
@@ -99,8 +122,5 @@ public interface CorusConsts {
    * Defines the TTL of Corus' publication to Consul (should be set to more than the publishing interval).
    */
   public static final String PROPERTY_CORUS_EXT_PUB_CONSUL_TTL       = "corus.server.pub.consul.ttl";
-  
-  public static final File CORUS_USER_HOME = new File(System.getProperty("user.home") + File.separator + ".corus");
-  
   
 }

@@ -151,6 +151,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     }
   }
   
+  @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(HTTP_FILESYSTEM_CONTEXT);
@@ -159,6 +160,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     return info;
   }
 
+  @Override
   public void process(HttpContext ctx) throws Exception {
     File requested;
     if (ctx.getPathInfo().length() == 0 || ctx.getPathInfo().trim().equals("/")) {
@@ -186,6 +188,10 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     } else {
       output(requested, ctx);
     }
+  }
+  
+  @Override
+  public void destroy() {
   }
   
   boolean isAccessAllowed(File f) {

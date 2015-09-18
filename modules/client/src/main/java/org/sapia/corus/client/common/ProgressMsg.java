@@ -6,6 +6,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.InvocationTargetException;
 
+import org.sapia.ubik.util.Assertions;
+
 /**
  * This class consists of a progress message, holding a status and an arbitrary object acting as the "message".
  * 
@@ -14,16 +16,20 @@ import java.lang.reflect.InvocationTargetException;
 public class ProgressMsg implements Externalizable {
 
   static final long serialVersionUID = 1L;
+  
+  static final int VERSION_1 = 1;
+  static final int CURRENT_VERSION = VERSION_1;
 
-  public static final int DEBUG = 0;
-  public static final int VERBOSE = 1;
-  public static final int INFO = 2;
-  public static final int WARNING = 3;
-  public static final int ERROR = 4;
+  public static final int DEBUG    = 0;
+  public static final int VERBOSE  = 1;
+  public static final int INFO     = 2;
+  public static final int WARNING  = 3;
+  public static final int ERROR    = 4;
 
   public static final String[] STATUS_LABELS = new String[] { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR" };
 
-  private int status = INFO;
+  private long   timestamp = System.nanoTime();
+  private int    status   = INFO;
   private Object msg;
  
   /** Do not call. Meant for Externalizable. */
@@ -41,6 +47,14 @@ public class ProgressMsg implements Externalizable {
   public ProgressMsg(Object msg, int status) {
     this(msg);
     this.status = status;
+  }
+  
+  /**
+   * @return the timestamp corresponding to the time at which this instance was created 
+   * - initially obtained with {@link System#nanoTime()}.
+   */
+  public long getTimestamp() {
+    return timestamp;
   }
 
   /**
@@ -84,6 +98,7 @@ public class ProgressMsg implements Externalizable {
   }
 
   public static final String getLabelFor(int status) {
+    Assertions.isTrue(status >= 0 && status < STATUS_LABELS.length, "Invalid value, expected to be between %s and %s", 0, STATUS_LABELS.length - 1);
     return STATUS_LABELS[status];
   }
   
@@ -93,12 +108,19 @@ public class ProgressMsg implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {
-    status = in.readInt();
-    msg    = in.readObject();
+    int inputVersion = in.readInt();
+    
+    if (inputVersion == VERSION_1) {
+      status = in.readInt();
+      msg    = in.readObject();
+    } else {
+      throw new IllegalStateException("Version not handled: " + inputVersion);
+    }
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeInt(CURRENT_VERSION);
     out.writeInt(status);
     out.writeObject(msg);
   }

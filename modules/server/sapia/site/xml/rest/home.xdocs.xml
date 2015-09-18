@@ -1,0 +1,840 @@
+<sapia:page title="REST API Starting Guide" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="REST API" href="../rest.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Starting Guide">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="rest" href="../rest.html" />
+      <sapia:path name="starting guide" />
+    </sapia:section>
+  
+    <toc/>
+  
+    <sapia:sect-desc>
+      <p>The information contained in this page is meant to provide background information in order to help you get
+      started using the API.</p>
+    </sapia:sect-desc>
+ 
+    <!-- ======================    DESIGN NOTES    ====================== -->
+    
+    <sapia:sect2 title="Design Notes">
+      <p>
+      The API has been design with simplicity in mind, first and foremost. It avoids taking JSON documents as input, and rather takes:
+        <ul>
+          <li>RESTful URLs without a request body as input to <tt>POST</tt> and <tt>PUT</tt> resources. In such a case, the data to use for updating 
+          is specified as part of the URL.</li>
+          <li>HTTP parameters where a RESTful approach is not well-suited.</li>
+        </ul>
+      </p>
+      <p>
+      The intent was to suggest an as simple as possible API in order to favor swift adoption by system administrators, as part of automation tasks.
+      </p>
+    </sapia:sect2>
+    
+    <!-- ======================      SECURITY      ====================== -->
+    
+    <sapia:sect2 title="Security">
+      <p>
+        The API gives access to "write" operations (killing processes, deploying, etc.) that require authentication and authorization.
+        In addition, such calls should be made over SSL, which Corus supports. The following sections explain these security considerations.
+      </p>
+      <p>
+        Note that it is possible to make the REST resources available and over SSL only, through <a href="#SSL-enforcing">configuration</a>.
+      </p>
+      <sapia:sect3 title="Authentication and Authorization">
+        <p>
+          Authentication and authorization require the creation of application keys. An application key is associated to an application
+          ID, and together they  provide the credentials required by an application to be authenticated. In turn, such credentials are associated
+          to a role, which itself corresponds to a set of permissions. The association of an application key to a role thus allows for authorization.
+        </p>
+        <sapia:note>Each Corus node keeps role definitions and application keys in its own local database. The CLI commands allowing for the 
+        administration of roles and application keys support the <tt>-cluster</tt> option, which allows replicating that data across a
+        cluster. In addition, when the <a href="advanced.html#repo">repository</a> functionality is used, replication of roles and 
+        application keys is performed automatically (from repo servers to repo clients).</sapia:note>
+        
+        <sapia:sect4 title="Creating Roles">
+          <p>
+            Prior to creating application keys, a logical step is to create one or more roles, to which application keys are meant to
+            be associated. Roles and permissions are created in Corus, through the CLI. Roles can be created, deleted, and listed, 
+            through the <tt>role</tt> command in the CLI.
+          </p>
+          <p>Furthermore, each role must be associated to a set of permissions. Corus supports the following predefined permissions:</p>
+          <ul>
+            <li><tt>READ</tt>: this permission does not required authentication. All read resources in the API (those that do not modify the state
+            of Corus - which are typically <tt>GET</tt> calls) are configured with such a permission.</li>
+            
+            <li><tt>WRITE</tt>: this permission corresponds to <tt>PUT</tt>, <tt>POST</tt> and <tt>DELETE</tt> resources that modify the state of Corus by adding or
+            removing data (similary to the CLI's <tt>port add</tt>, <tt>conf del</tt>, etc.</li>
+            
+            <li><tt>EXECUTE</tt>: this permission corresponds to resources that affect process lifecycle, and correspond to the CLI's
+            <tt>exec</tt>, <tt>kill</tt>, <tt>suspend</tt>, <tt>resume</tt> and <tt>restart</tt> commands.</li>
+            
+            <li><tt>DEPLOY</tt>: this permission strictly corresponds to the API's deployment/undeployment resources (analoguous to the CLI's
+            <tt>deploy</tt> and <tt>undeploy</tt> commands.</li>
+            
+            <li><tt>ADMIN</tt>: this permission is required to administer roles and application keys through the REST API.</li>
+          </ul>
+          <p>
+            To create (or update) a role, use the <tt>role add</tt> command in the CLI (see further below about managing roles through the API):
+          </p>
+          <sapia:code>role add -n admin -p rwxd -cluster</sapia:code>
+          <p>
+            The above creates a role, which is replicated through all the cluster. In a similar manner, roles can be deleted (through 
+            <tt>role del</tt> and listed, using <tt>role ls</tt> (see the CLI's help for the details, by typing <tt>man role</tt>). 
+          </p>
+          <p>
+            One thing to note is that the command can take up to two options, aside from the <tt>-cluster</tt> one:
+            <ul>
+              <li><b><tt>n</tt></b>: specifies the name of the role.</li>
+              <li><b><tt>p</tt></b>: specifies the set of permissions to assign to the role. In this case, note that one character is used
+              for each permission (that character is nicknamed the "abbreviation"):
+                <ul>
+                  <li><b><tt>r</tt></b>: <tt>READ</tt></li>
+                  <li><b><tt>w</tt></b>: <tt>WRITE</tt></li>
+                  <li><b><tt>x</tt></b>: <tt>EXECUTE</tt></li>
+                  <li><b><tt>d</tt></b>: <tt>DEPLOY</tt></li>
+                  <li><b><tt>a</tt></b>: <tt>ADMIN</tt></li>
+                </ul>
+              </li>
+            </ul>
+          </p>
+
+        </sapia:sect4>
+        <sapia:sect4 title="Creating Application Keys">
+          <p>
+            Once at least one role is created, you can proceed to creating application keys. To that end, the <tt>appkey</tt> command is used:
+          </p>
+          <sapia:code>appkey add -a chef -r admin -k akw71sey927a -cluster</sapia:code>
+          <p>
+            The above creates (or updates) an application key for the "chef" application, assigning to it the "admin" role, and the application key
+            specified by the <tt>-k</tt> option. That new application key is replicated across the cluster.
+          </p>
+          <p>
+            More formally, the options shown in the example above correspond to:
+          </p>
+          <ul>
+            <li><b><tt>-a</tt></b>: application ID.</li>
+            <li><b><tt>-k</tt></b>: application key (optional, defaults to a generated one).</li>
+            <li><b><tt>-r</tt></b>: role (corresponds to the name of an already defined role).</li>
+          </ul>
+          
+          <p>It is optional to specify an application key as a parameter: if none is passed, one is automatically created (that application key
+          consists of a randomnly generated sequence of 32 characters).</p>
+          <p>You can view the existing application keys with <tt>appkey ls</tt> and delete application keys with <tt>appkey del</tt>.</p>
+          
+          <sapia:note>Application keys can be managed through the REST API - see further below.</sapia:note>
+          
+        </sapia:sect4>
+        <sapia:sect4 title="Using an Application Key">
+          <p>
+            Once an application key is configured, it can be used to make API calls (this should be done over a SSL link, which Corus has support for,
+            as explained further below). There are two ways to do this: by providing the application ID and application key as HTTP headers, 
+            or by specifying that information as HTTP request parameters (the former method is preferred).
+          </p>
+          <p>
+            The HTTP headers to use are the following:
+          </p>
+          <ul>
+            <li><tt>X-corus-app-id</tt>: specifies the application ID.</li>
+            <li><tt>X-corus-app-key</tt>: specifies the application key.</li>
+          </ul>
+          <p>
+            In place of the above headers, the <tt>aid</tt> and <tt>apk</tt> request parameters can be used to specify the application ID and key,
+            respectively, as in the following:
+          </p>
+          <sapia:code>https://localhost:33443/rest/clusters/app-01/distributions?aid=chef&amp;apk=akw71sey927a</sapia:code>
+        </sapia:sect4>
+      
+      </sapia:sect3>
+      
+      <sapia:sect3 title="SSL">
+        <p>
+          When using the REST API, it is recommended to connect to the Corus SLL port. By default, SSL is disabled. It can be enabled through
+          simple configuration (in the <tt>corus.properties</tt> file).
+        </p>
+        <p>
+          A prerequisite, though, is to have created the required SSL certificate (and the keystore that stores it). 
+          This is widely documented online. Once the keystore has been created (using the JDK's <tt>keytool</tt> command), 
+          the Corus configuration can be modified accordingly. 
+        </p>
+        <p>
+          The following configuration properties drive SSL support by Corus:
+          <ul>
+            <li><b><tt>corus.server.ssl.enabled</tt></b>: enables/disables SSL (defaults to false, must of course be set to true for SSL to work).</li>
+            <li><b><tt>corus.server.ssl.keystore.file</tt></b>: points to the keystore file (normally, 
+            it corresponds to <tt>${user.home}/.keystore</tt>.</li>
+            <li><b><tt>corus.server.ssl.key.password</tt></b>: the password used to access the SSL certificate in the keystore.</li>
+            <li><b><tt>corus.server.ssl.keystore.password</tt></b>: the password used to access the keystore itself.</li>
+            <li><b><tt>corus.server.ssl.port</tt></b>: the SSL port to use. If zero (0) is specified, the port will default 
+            to <tt>corus_port + 443</tt>. That is, if the server runs on port 33000, the SSL port will be set to 33443; if it runs
+            on 33001, the port will be set to 33444, and so on.</li>
+          </ul>
+        </p>
+        <p>Here's an example configuration for the above properties</p>
+        <sapia:code>corus.server.ssl.key.password=corus-ssl
+corus.server.ssl.keystore.password=corus-ssl
+corus.server.ssl.keystore.file=${user.home}/.keystore
+corus.server.ssl.port=0
+corus.server.ssl.enabled=true</sapia:code>
+        
+        <p>
+          Once the configuration is done, Corus must be restarted.
+        </p>
+        
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Enforcing SSL and Authentication" alias="SSL-enforcing">
+        <p>
+          As of release 4.5.2, it is possible to enforce use of the API over SSL (that is: REST resources will then not be available over plain HTTP). 
+          By the same token, it is also possible to require authentication for all REST resources (even <tt>GET</tt> ones).
+        </p>
+        <p>
+          To enforce the use of SSL, configure the <tt>corus.server.api.ssl.enforced</tt> property as follows, in <tt>corus.properties</tt>:
+        </p>
+        <sapia:code>corus.server.api.ssl.enforced=true</sapia:code>
+        <p>
+          When the above is set to <tt>true</tt>, REST resources are only available over HTTPS - see the <a href="#SSL">SSL</a> section for more details.
+        </p>
+        <p>
+          To require systematic authentication (even on <tt>GET</tt> resources), set the <tt>corus.server.api.auth.required</tt> property to 
+          <tt>true</tt> in <tt>corus.properties</tt>:
+        </p>
+        <sapia:code>corus.server.api.auth.required=true</sapia:code>
+      </sapia:sect3>
+    
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Using the API">
+      <p>
+        Using the API is straighforward as you will see. The REST resources are accessible at any Corus node, under the following URI:
+      </p>
+      <sapia:code>http://&lt;host&gt;:&lt;port&gt;/rest</sapia:code>
+      
+      <p>
+      Note that the above in itself returns nothing.
+      </p>
+      
+      <sapia:sect3 title="General Guidelines">
+          <p>
+          All <tt>GET</tt> resources described further below return a JSON response for which a sample provided in the documentation.
+          </p>
+          <p>
+            For other resources, they always return a JSON payload, consisting of the following in non-error situations:
+          </p>
+          <sapia:code>{
+  "status": 200
+}</sapia:code>
+          <p>
+            When an error occurs, the following JSON response is returned:
+          </p>
+          <sapia:code>{
+  "status": &lt;error_code&gt;
+  "stackTrace": "&lt;stack_trace&gt;"
+}</sapia:code>
+
+          <p>
+          The &lt;stack_trace&gt; placeholder corresponds to the full server-side error stack trace. The &lt;error_code&gt; placeholder is meant for the
+          relevant HTTP error code, given the error that occurred.
+          </p>
+          <sapia:note>Note that the <tt>stackTrace</tt> field is <tt>optional</tt>: a response may result in an error even if it is not the result
+          of an exception being thrown. The <tt>status</tt> field is indicative of an error, even <tt>stackTrace</tt> field is absent.</sapia:note>
+          
+          <p>Of course, the HTTP status response header is always available. The status message, though, may or may not be present - consider it optional, 
+          from Corus' standpoint.</p>
+         
+          <p>
+            Some resources may return feedback (which are progress messages emitted by Corus). Such a feedback, if any, is provided by the <tt>feeback</tt>
+            field, which holds an array of progress messages:
+          </p>
+          <sapia:code>{
+  "status": 200
+  "feeback": [
+    "&lt;message_1&gt;",
+    "&lt;message_2&gt;",
+    "&lt;message_N&gt;"
+  ]
+}</sapia:code>
+          <sapia:note>
+            If the backend did not provide such progress messages, then the <tt>feedback</tt> field will be present, with an empty array as its value.
+            It may occur that a response results in an error, has not HTTP status message set, and has no stack trace. It will in such a case 
+            have feedback.
+          </sapia:note>
+            
+          <p>
+            Last but not least, some resources have an asynchronous behavior: upon being invoked, they trigger an asynchronous task on the server side. At
+            that point, a resource may return status <tt>OK</tt>, but the background task's outcome may eventually be an error. This API documents the behavior
+            of the resources from that standpoint. Asynchronous behavior will by identified by <tt>ASYNC</tt> in the doc, whilst synchronous behavior will
+            be labeled <tt>SYNC</tt>. Note that some resources support both synchronous and asynchronous invocation. When such is the case, an <tt>async</tt>
+            parameter must be passed to the resource, in the query string. Its value must be set to <tt>true</tt>.</p> 
+            <p>Additionally, some resources may return a so-called completion token, which clients can use to poll for the completion of certain asynchronous 
+            calls and obtain information about the outcome of the operation (success/failure) - such resources are labeled with <tt>ASYNC with polling</tt>
+            in the doc.
+          </p>
+          <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>.</sapia:note>
+      
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Partitioning">
+        <p>
+          In order to provide more flexibility than the ability to communicate either with a single or all the nodes in a cluster, the notion of "partitions"
+          has been introduced as part of Corus 4.8.</p>
+        <p>
+          More precisely: one can defined, using the API, so-called "partition sets", which are themselves groups of Corus nodes whose size is defined with
+          a <tt>partitionSize</tt> parameter passed at creation time. Given a cluster of 20 nodes, a partition size of 5 will yield a partition set containing 4
+          partitions of 5 nodes each.
+        </p>
+        <p>
+          The API allows creating multiple partition sets, which are each assigned a UUID. That UUID must then be used when wanting to perform operations on 
+          the corresponding partition set. Partition sets are not eternal: they are assigned a timeout of 5 minutes by default 
+          - their last access time is reset every time they're used.
+        </p>
+        
+        <p>Furthermore, the API allows passing in criteria for partition set creation. More precisely: partition sets can be created based on the tags of 
+        Corus nodes, through an inclusion/exclusion mechanism.</p>
+        
+        <p>The API provides three resources for managing partition sets. Their definition is provided in the following sub-sections.</p>
+        
+        <sapia:sect4 title="Get Partition Set">
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /partitionsets/{partitionSetId}
+        
+- Path variables:
+  - partitionSetId: The ID of the desired partition set.</sapia:code>
+          
+	        <p><b>Sample request</b></p>
+	        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets/24399ed2-56a3-11e5-885d-feff819cdc9f</sapia:code>    
+	
+	        <p><b>Sample response</b></p>
+	        <sapia:code>{
+  "id": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "partitionSize": 2,
+  "partitions": [
+    {
+      "index": 0,
+      "hosts": [
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.103",
+          "port": 33000
+        },
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.104",
+          "port": 33000
+        }       
+      ]
+    },
+    {
+      "index": 1,
+      "hosts": [
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.105",
+          "port": 33000
+        },
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.106",
+          "port": 33000
+        }       
+      ]
+    }
+  ]
+}</sapia:code>                
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Create Partition Set">
+          <p>Allows creating partition sets. The API allows specifying inclusion/exclusion patterns (based on Corus tags)
+          used to determine which nodes should be included in a partition set. Note the following:
+	          <ul>
+	            <li>All nodes are included if NO inclusion and/or exclusion patterns are specified.</li>
+	            <li>If inclusion patterns are specified, then only the nodes that match will be included.</li>
+	            <li>Exclusion is applied after inclusion, and overrides it (if a node matches both an inclusion
+	            and exclusion pattern, the exclusion one will win).</li>
+	          </ul>
+          </p>
+          
+          <sapia:code>PUT
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /partitionsets
+        
+- Parameters:
+  - partitionSize......: The size of the partitions in the partition set.
+  - timeout............: The timeout to assign to the partition set, in seconds 
+                         (defaults to 300 seconds - or 5 minutes).
+  - includes (optional): A comma-delimited list of tags/tag patterns, used to select 
+                         the Corus nodes that should be included for partitioning.
+  - excludes (optional): A comma-delimited list of tags/tag patterns, used to select 
+                         the Corus nodes that should be excluded from the partition set.</sapia:code>
+
+        <p><b>Sample Requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets?partitionSize=2
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets?partitionSize=2&amp;includes=master        
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets?partitionSize=2&amp;includes=slave        
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets?partitionSize=2&amp;includes=*&amp;excludes=master</sapia:code>    
+          
+        <p><b>Sample response</b></p>
+        <sapia:code>{
+  "id": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "partitionSize": 2,
+  "partitions": [
+    {
+      "index": 0,
+      "hosts": [
+		    {
+		      "cluster": "app-01",
+		      "corusVersion": "4.5",
+		      "hostName": "saturn",
+		      "hostAddress": "192.168.0.103",
+		      "port": 33000
+		    },
+		    {
+		      "cluster": "app-01",
+		      "corusVersion": "4.5",
+		      "hostName": "saturn",
+		      "hostAddress": "192.168.0.104",
+		      "port": 33000
+		    }       
+      ]
+    },
+    {
+      "index": 1,
+      "hosts": [
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.105",
+          "port": 33000
+        },
+        {
+          "cluster": "app-01",
+          "corusVersion": "4.5",
+          "hostName": "saturn",
+          "hostAddress": "192.168.0.106",
+          "port": 33000
+        }       
+      ]
+    }
+  ]
+}</sapia:code>        
+        </sapia:sect4>
+        <sapia:sect4 title="Delete Partition Set">
+          <p>A partition set is deleted by specifying its ID </p>
+          <sapia:code>DELETE
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /partitionsets/{partitionSetId}
+        
+- Path variables:
+  - partitionSetId: The ID of the desired partition set.</sapia:code>
+          
+        <p><b>Sample response</b></p>
+        <sapia:code>{
+  "status": 200,
+  "feedback": [
+  ]
+}</sapia:code>
+
+        
+        </sapia:sect4>
+        
+      
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Asynchronicity and Polling">
+        <p>
+        Some resources offering an asynchronous behavior return a completion token (a string uniquely identifying an asynchronous operation).
+        That string may be used by clients to poll the server for obtaining progress information pertaining to the corresponding operation.
+        The sequence is as follows:
+        </p>
+        <ol>
+          <li>A resource is invoked with the <tt>async</tt> query parameter set to <tt>true</tt>. The resource returns either HTTP status code
+          250 (indicating that the operation is in progress), or an error status code if a problem occurred and the operation could not start. 
+          The JSON response that is returned then embeds a <tt>completionToken</tt> field. The value of this field is the actual completion 
+          token to use for polling the server (see next step) and inquire about the status of the ongoing operation.</li>
+          <li>The client polls the <tt>/progress</tt> resource, passing to it the completion token as a path parameter - according to the
+          following format: <tt>/progress/{completionToken}</tt> - see further below for the formal definition of the resource.</li>
+          <li>The server returns HTTP status code 250 if the operation is still in progress (251 is also possible, this is explained further
+          in the <a href="#batching">Operation Batching and Error Tolerance</a> section below). The JSON payload then contains data about
+          the ongoing operation, which may be used for debugging or display.</li>
+          <li>The client polls until either HTTP status code 200 (or 252) or an error code (4xx/5xx) is returned - status code 252 is
+          also explained int he <a href="#batching">Operation Batching and Error Tolerance</a> section.</li>
+        </ol>
+        <sapia:note>A client having obtained a completion token from a Corus server must poll that same server with the said
+        completion token - such tokens are not replicated across a Corus cluster.</sapia:note>
+        
+        <p>The formal definition of the <tt>progress</tt> resource goes as follows:</p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+- Response status code:
+  - 250: operation has not completed yet and client should keep on polling.
+  - 200: operation has completed succesfully.
+  - 4xx/5xx: operation has completed with a failure.
+
+- Resources:
+  /progress/{completionToken}</sapia:code>
+        
+        <p><b>Operation in progress sample response</b></p>
+        <sapia:code>{
+  "status": 250,
+  "completionToken": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback": [
+    "Executing asynchronous operation"
+  ]
+}</sapia:code>
+     
+      </sapia:sect3>
+
+      <sapia:sect3 title="Operation Batching and Error Tolerance" alias="batching">
+        <p>
+          Certain REST resources allow executing operations over the cluster, but only over a given number of hosts at a time. This
+          allows better control of errors in case problems happen at certain nodes: one might want to still go ahead with a deployment,
+          for example, and intervene on the specific hosts later on.
+        </p>
+        <p>
+          Batching is controlled by the <tt>batchSize</tt> and <tt>minHosts</tt> query parameters. Error tolerance is configured with the
+          <tt>maxErrors</tt> query parameter. More precisely:
+          <ul>
+            <li>The <b><tt>batchSize</tt></b> parameter specifies over how many hosts in a cluster at a time an operation should be performed.
+            For example, in the context of a deployment, a batch size of 2 would deploy on two hosts at a time.</li>
+            <li>The <b><tt>minHosts</tt></b> parameter specifies how many hosts should be present in the cluster for the given 
+            batch size to apply. If yhe given minimum is not observed, execution of the operation will then fall back to one host at a time. 
+            This minimum is meant to act as a safeguard, in order to prevent performing a given operation on too many hosts at a time.</li>
+            <li>The <b><tt>maxErrors</tt></b> parameter determines the number of errors that are tolerated until the operation is deemed
+            unsuccessful and an error status is returned. More precisely, the parameter applies to batches of hosts (as determined by the 
+            <tt>batchSize</tt> parameter): if errors occur in the context of more batches of hosts specified by <tt>batchSize</tt>, an error
+            status is then returned.</li>
+          </ul> 
+        </p>
+        <p>
+          Batching (and error tolerance) are reflected in the responses returned by a given REST resource:
+          <ul>
+            <li>When an operation is performed in the context of batching, the JSON response that is returned holds the JSON respresentation
+            corresponding to the last batch(es) that was/were processed.</li>
+            <li>If the number of batches in error does not exceed the value specified by <tt>maxErrors</tt>, then:
+              <ul>
+                <li>a 251 HTTP status code is returned if hosts do remain on which the operation should be performed 
+                - this status code should be interpreted as "partial success, operation still in progress".</li>
+                <li>a 252 HTTP status code is returned if no hosts remain on which the operation should be performed 
+                - and if the operation was successful on at least one batch of hosts overall.</li>
+                <li>a 500 HTTP status code is returned if the operation resulted in a failure, against all batches of hosts on 
+                which it was executed.</li>
+              </ul>
+            </li>
+            <li>If the number of batches in error exceeds the value specified by <tt>maxErrors</tt>, then:
+              <ul>
+                <li>a 252 HTTP status code is returned if no hosts remain on which the operation should be performed 
+                - and if the operation was successful on at least one batch of hosts overall.</li>
+                <li>a 500 HTTP status code is returned if the operation resulted in a failure, against all batches of hosts on 
+                which it was executed.</li>
+              </ul>            
+            </li>
+            <li>The JSON response will hold a <tt>processedHosts</tt> field, enumerating the Corus hosts on which the operation was last performed.</li>
+          </ul>
+        </p>
+        
+        <sapia:sect4 title="Illustration of Batching with Error Tolerance">
+	        <p>To make the above clearer, sample responses are provided below, illustrating a typical sequence. The scenario involves a client
+	        invoking a REST resource with the <tt>async</tt> flag set to true, with the <tt>batchSize</tt> parameter set to a given number
+	        of hosts to be processed at a time, and the <tt>maxErrors</tt> parameter also set, in order to allow the operation to
+	        continue as long as the number of errors is not greater than the given threshold.</p>
+	       
+	        <p>The first response obtained would be:</p>
+        
+        <sapia:code>{
+  "status": 250,
+  "completionToken": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback": [
+    "Executing asynchronous operation"
+  ]
+}</sapia:code>
+	        <p>
+	        The following corresponds to a subsequent response indicating that an operation has been performed successfully on a 
+	        batch of 2 hosts, but that more batches of hosts are left to process. Note: the 250 status, indicating that no error occurred, 
+	        but that the operation has not been performed on all hosts yet; the <tt>processedHosts</tt> field, stating which hosts have been
+	        contacted, for the given batch: 
+	        </p>
+          <sapia:code>{
+  "status": 250,
+  "completionToken": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback": [
+    "Executing asynchronous operation"
+  ],
+  "processedHosts": [
+	  {
+	    "cluster": "app-01",
+	    "corusVersion": "4.5",
+	    "hostName": "saturn",
+	    "hostAddress": "192.168.0.103",
+	    "port": 33000
+	  },
+	  {
+	    "cluster": "app-01",
+	    "corusVersion": "4.5",
+	    "hostName": "saturn",
+	    "hostAddress": "192.168.0.104",
+	    "port": 33000
+	  }  
+  ]
+}</sapia:code>
+	        <p>
+	         Yet another subsequent response, this time indicating that an error occurred for the corresponding batch of hosts,
+	         but that the maximum error threshold has not yet been reached (and that more hosts are left to process). Note the 251
+	         status, indicating that an error occurred, but that the operation was not aborted (and should be considered as still
+	         in progress):
+	        </p>
+ <sapia:code>{
+  "status": 251,
+  "completionToken": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback": [
+    "Process could not be killed in a timely manner"
+  ],
+  "processedHosts": [
+    {
+      "cluster": "app-01",
+      "corusVersion": "4.5",
+      "hostName": "saturn",
+      "hostAddress": "192.168.0.103",
+      "port": 33000
+    },
+    {
+      "cluster": "app-01",
+      "corusVersion": "4.5",
+      "hostName": "saturn",
+      "hostAddress": "192.168.0.104",
+      "port": 33000
+    }  
+  ]
+}</sapia:code>
+	        <p>
+	         Yet another subsequent response, this time indicating that an error occurred for the corresponding batch of hosts,
+	         and that either the maximum error threshold has been reached, or that there are no more hosts to contact. Note 
+	         the 252 status this time, indicating a partial success (since the operation could previously complete successfully 
+	         on some hosts). This should be interpreted as "final" status: the client should stop polling at this points:
+	        </p>
+ <sapia:code>{
+  "status": 252,
+  "completionToken": "24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback": [
+    "Process could not be killed in a timely manner"
+  ],
+  "processedHosts": [
+    {
+      "cluster": "app-01",
+      "corusVersion": "4.5",
+      "hostName": "saturn",
+      "hostAddress": "192.168.0.103",
+      "port": 33000
+    },
+    {
+      "cluster": "app-01",
+      "corusVersion": "4.5",
+      "hostName": "saturn",
+      "hostAddress": "192.168.0.104",
+      "port": 33000
+    }  
+  ]
+}</sapia:code>
+          <sapia:note>If execution in the context of all batches of hosts results in an error, than the final status code
+          will be a HTTP 500 (indeed in such a case, a partial success would not reflect reality).</sapia:note>
+          
+          <p>The table below summarizes the status codes relevant to batching:</p>
+          <sapia:table>
+            <sapia:th>Status Code</sapia:th><sapia:th>Description</sapia:th><sapia:th>Final</sapia:th>
+            <tr>
+              <td>250</td><td>No error thus far, operation still in progress.</td><td>No</td>
+            </tr>
+            <tr>
+              <td>251</td><td>An error occurred in the context of the batch of hosts corresponding to the response, 
+              but the operation is still in progress.</td><td>No</td>
+            </tr>
+            <tr>
+	            <td>252</td><td>Partial success: the operation completed partially, on some hosts, but the maximum
+	            error threshold has been reached, or there are no batches of hosts left to contact.</td><td>Yes</td>
+	          </tr>
+	          <tr>
+	            <td>500</td><td>Error occurred, execution on all hosts resulted in a failure.</td><td>Yes</td>
+	          </tr>
+	          <tr>
+              <td>200</td><td>Operation completed, execution on all hosts was successful.</td><td>Yes</td>
+            </tr>
+          </sapia:table>
+        </sapia:sect4>
+        
+        <sapia:sect4 title="Batching without Error Tolerance">
+          <p>When the <tt>maxErrors</tt> parameter is not specified, an operation is deemed a failure as soon as a single error occurs. 
+          In such a case, the final status will always be an error indicated by a 4xx or 5xx HTTP status code. If no error occurs, the final
+          status will be HTTP 200. Intermediary "in progress" responses will have status code 250, as previously documented.</p>
+        </sapia:sect4>
+       
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Automatic Diagnostic">
+        <p>Some REST resources allow internally performing a <a href="diagnostic.html">diagnostic</a> check automatically, after execution of 
+        their main operation. In such cases, the resources accept a <tt>runDiagnostic</tt> parameter, whose value must be set to <tt>true</tt> 
+        for the automatic diagnostic to be executed. In addition, such resources also support a <tt>diagnosticInterval</tt> query parameter,
+        which indicates a time interval (in seconds) to wait for in between diagnostic acquisition checks - until a final diagnostic status
+        is obtained (if not specified, the default value used is 10 seconds).</p>
+        
+        <p>The outcome of the diagnostic will correspond to either HTTP status code 200 if no anomaly was detected, or HTTP 500 otherwise. The
+        JSON content corresponding to the diagnostic details (as documented in the <a href="diagnostic.html">Diagnostic API</a>) will be 
+        embedded in the last JSON response sent back to the client. The sample below illustrates such a response:</p>
+        
+<sapia:code>{
+  "status":200,
+  "completionToken":"24399ed2-56a3-11e5-885d-feff819cdc9f",
+  "feedback":[
+    "Operation completed"
+  ],
+  "processedHosts":[
+    {
+      "cluster":"app-01",
+      "corusVersion":"4.5",
+      "hostName":"saturn",
+      "hostAddress":"192.168.0.103",
+      "port":33000
+    }
+  ],
+  "diagnostic":{
+    "status":"SUCCESS",
+    "results":[
+      {
+        "cluster":"app-01",
+        "host":"192.168.0.103:33000",
+        "dataType":"diagnostic",
+        "data":{
+          "classVersion":1,
+          "status":"SUCCESS",
+          "processDiagnostics":[
+            {
+              "classVersion":1,
+              "status":"SUCCESS",
+              "suggestedAction":"NOOP",
+              "name":"httpServer",
+              "distribution":{
+                "name":"demo",
+                "version":"1.0"
+              },
+              "results":[
+                {
+                  "classVersion":1,
+                  "status":"CHECK_SUCCESSFUL",
+                  "message":"Found 1 process(es) for [distribution=demo,version=1.0,process=httpServer] (expected 1) - all processes are found running",
+                  "diagnosticPort":{
+                    "name":"http.server",
+                    "value":100
+                  },
+                  "process":{
+                    "classVersion":2,
+                    "id":"150822379402",
+                    "name":"httpServer",
+                    "pid":"4937",
+                    "distribution":"demo",
+                    "version":"1.0",
+                    "profile":"test",
+                    "activePorts":[
+                      {
+                        "name":"http.server",
+                        "port":100
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "progressDiagnostics":{
+            "classVersion":1,
+            "errors":[
+
+            ]
+          }
+        }
+      }
+    ]
+  }
+}</sapia:code>
+        
+      </sapia:sect3>
+
+
+      <sapia:sect3 title="Running Corus Scripts on the Server-Side">
+        <p>
+          Even though the API is meant to give access to all Corus functionality through HTTP (and thus acts as a substitute to the CLI), it may
+          still be convenient to have the ability to work with scripts, even for HTTP clients.   
+        </p>
+        <p>
+          The API thus allows pushing scripts to Corus, for them to be executed on the server-side. Given the implications, this requires 
+          <tt>ADMIN</tt> permissions.
+        </p>
+        <p>
+          Scripts are given the following as a base directory: <tt>$CORUS_HOME/files/uploads</tt>. They have access to the Java system properties
+          of the Corus JVM (since they're executed within Corus) and to its environment variables.
+        </p>
+        <p>
+          The resource to hit is given below. Note that is a very specific endpoint that differs from the normal shape of this API: since a
+          Corus script is meant to be executed at the current host, there was no point in publishing that functionality unde <tt>/clusters</tt>.       
+        </p>
+          <sapia:code>POST
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: text/plain
+
+- Resource:
+  /runscript
+ 
+- Parameters:
+  - clusteringEnabled (defaults to true): if set to false, clustering for the commands in the provided script will be disabled</sapia:code>
+          <p><b>Sample script</b></p>
+        <sapia:code>echo "test"</sapia:code>
+  
+        <p><b>Sample response</b></p>d    
+  
+        <sapia:code>{
+  "status": 200,
+  "feedback": [ "test"]
+
+}</sapia:code>
+      </sapia:sect3>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

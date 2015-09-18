@@ -25,6 +25,7 @@ import org.sapia.corus.client.services.deployer.FileCriteria;
 import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
+import org.sapia.corus.ftest.PartitionInfo;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
@@ -162,6 +163,42 @@ public class FileResourcesFuncTest {
   }
   
   @Test
+  public void testDeployDist_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
+        new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith("demo.zip");
+          }
+        }
+    );
+    assertEquals(1, matches.length, "Could not match");
+    
+    try(FileInputStream fis = new FileInputStream(matches[0])) {
+      JSONValue response = client.resource("/clusters/ftest/" + partition  + "/files/demo.zip")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
+      assertEquals(200, response.asObject().getInt("status"));
+    }
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, 1);
+    
+    JSONArray files = client.resource("/clusters/ftest/files")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(files.size(), 1);
+  }
+  
+  
+  @Test
   public void testUndeployFile_specific_host() throws Exception {
     File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
         new FilenameFilter() {
@@ -177,6 +214,42 @@ public class FileResourcesFuncTest {
     waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/files/*demo.zip")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUndeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount() - 1);
+    
+    JSONArray files = client.resource("/clusters/ftest/hosts/files/*")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(files.size(), client.getHostCount() - 1);
+  }
+  
+  @Test
+  public void testUndeployFile_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    File[] matches = client.getConnector().getContext().getFileSystem().getBaseDir().listFiles(
+        new FilenameFilter() {
+          @Override
+          public boolean accept(File dir, String name) {
+            return name.endsWith("demo.zip");
+          }
+        }
+    );
+    assertEquals(1, matches.length, "Could not match");
+    client.getConnector().getDeployerFacade().deployFile(matches[0].getAbsolutePath(), null, DeployPreferences.newInstance(), ClusterInfo.clustered());
+    
+    waitDeployed(DEPLOY_TIMEOUT, DEPLOY_CHECK_INTERVAL, client.getHostCount());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/files/*demo.zip")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
           .header(FtestClient.HEADER_APP_KEY, client.getAppkey())

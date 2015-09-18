@@ -1,0 +1,1903 @@
+<sapia:page title="REST API - Core Specification" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="REST API" href="../rest.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Core API">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="rest" href="../rest.html" />
+      <sapia:path name="core api" />
+    </sapia:section>
+  
+    <toc/>
+    
+    <sapia:sect-desc>
+      <p>
+        The Core API provides the essentials, the ones without which the API would not be complete. It
+        describes the basic operations, which are very similar in essence to the ones provided by the
+        Corus CLI.
+      </p>
+    </sapia:sect-desc>
+    
+    <!-- ====================== CLUSTERS AND HOSTS ====================== -->
+    
+      <sapia:sect2 title="Clusters and hosts">
+        <p>
+          The API allows accessing the different clusters, and obtaining information for each host in a cluster. When connecting to 
+          a Corus node in a given cluster, the only cluster information returned will be the one corresponding to that node's cluster.
+        </p>
+        
+        <sapia:sect3 title="Get clusters">
+          <p>
+          This call returns JSON objects (in an array) corresponding to the clusters that are available. When connecting to a given Corus node, 
+          it returns the cluster object for the cluster it is part of - still in an array, which will then hold a single object.
+          </p>
+          <p>
+          Obtaining cluster information is the first logical step when using the API: the cluster name is used to target against 
+          which cluster an operation should be performed - as explained later in this documentation.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters</sapia:code>
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "name": "app-01"
+  },
+  {
+    "name": "app-02"
+  }
+]</sapia:code>
+        </sapia:sect3>        
+        
+        <sapia:sect3 title="Get hosts">
+          <p>
+          This call returns the JSON objects corresponding to each host in a given cluster.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters/{clusterName}/hosts
+
+- Path variables:
+  - clusterName: the name of the cluster to access</sapia:code>
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "corusVersion": "4.5",
+    "hostName": "saturn",
+    "hostAddress": "192.168.0.103",
+    "port": 33000,
+    "jvmInfo": "1.7.0_45 Java HotSpot(TM) 64-Bit Server VM",
+    "osInfo": "Mac OS X 10.9.5",
+    "repoRole": "SERVER"      
+  },
+  {
+    "cluster": "app-01",
+    "corusVersion": "4.5",
+    "hostName": "saturn",
+    "hostAddress": "192.168.0.104",
+    "port": 33000,
+    "jvmInfo": "1.7.0_45 Java HotSpot(TM) 64-Bit Server VM",
+    "osInfo": "Mac OS X 10.9.5",
+    "repoRole": "CLIENT"
+  }  
+]</sapia:code>
+        </sapia:sect3>
+        
+        
+        <sapia:sect3 title="Modify cluster name">
+          <p>
+          The resources herein allow changing the cluster to which one or a whole cluster of Corus instances belong, in a manner similar to 
+          the CLI's <tt>cluster domain</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters/{clusterName}/name/{newClusterName}
+  /clusters/{clusterName}/hosts/{host}/name/{newClusterName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/name/{newClusterName}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - newClusterName: The name of the new cluster to which the Corus instance(s) should publish themselves.</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/name/app-10
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/name/app-10
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/name/app-10</sapia:code>
+
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Modify repository role">
+          <p>
+          The following resources allow modifying the repository role of one Corus instance, or of all instances in the cluster. Akin to CLI's 
+          <tt>cluster repo</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters/{clusterName}/repo/role/{newRepoRole}
+  /clusters/{clusterName}/hosts/{host}/repo/role/{newRepoRole}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/repo/role/{newRepoRole}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.  
+    (version 4.8+)  
+  - newRepoRole...: The new repo role (must be either: CLIENT, SERVER or NONE - handling is case-insensitive).</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/repo/role/client
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/repo/role/server
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/repo/role/server</sapia:code>
+
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Pull">
+          <p>
+          The following resources are meant to trigger a pull (the same way as the CLI's <tt>pull</tt>  command).
+          </p>
+          <sapia:code>POST
+- Permission.....: DEPLOY
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept: application/json
+
+- Resources:
+  /clusters/{clusterName}/repo/pull
+  /clusters/{clusterName}/hosts/{host}/repo/pull
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/repo/pull
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host:.........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.
+    (version 4.8+)</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/repo/pull
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/repo/pull
+http://saturn:33000/rest/clusters/app-01/hosts/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/repo/pull</sapia:code>
+
+        </sapia:sect3>
+          
+      </sapia:sect2>
+      
+      <!-- ====================== ROLES ====================== -->
+
+      <sapia:sect2 title="Roles">
+        <p>
+        The API allows managing roles. All REST resources pertaining to role management, including <tt>GET</tt> calls, require <tt>ADMIN</tt> 
+        permission.  
+        </p>
+        <sapia:note>All resources described in this section require the <tt>ADMIN</tt> permission.</sapia:note>
+        
+        <sapia:sect3 title="Get roles">
+          <p>This resource corresponds to the <tt>role ls</tt> command in the CLI. It returns a JSON array composed of
+          the roles matching the query (see the <tt>n</tt> parameter.</p>
+          
+          <sapia:code>GET
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/roles
+  /clusters/{clusterName}/hosts/{host}/roles
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/roles
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host..........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - n (optional): a role name (pattern matching supported).</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles 
+http://saturn:33000/rest/clusters/app-01/roles?n=test*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/roles?n=test*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data":
+      {
+        "name": "administrator",
+        "permissions": [
+          {
+            "name": "READ",
+            "abbreviation": "r"
+          },
+          {
+            "name": "WRITE",
+            "abbreviation": "w"
+          },
+          {
+            "name": "EXECUTE",
+            "abbreviation": "e"
+          },
+          {
+            "name": "DEPLOY",
+            "abbreviation": "d"
+          },
+          {
+            "name": "ADMIN",
+            "abbreviation": "a"
+          }
+        ]
+      }
+    }
+  }
+]</sapia:code>  
+        </sapia:sect3>  
+        
+        <sapia:sect3 title="Create or update roles">
+          <p>This resource is meant to create a new role, or update the corresponding role if it already exists.</p>
+        
+          <sapia:code>PUT
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/roles/{role}
+  /clusters/{clusterName}/hosts/{host}/roles/{role}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/roles
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - role:.........: The name of the role to create/update.
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+
+- Parameters:
+  - permissions: the set of permissions to assign to the role (specified in a single string composed of the letters consisting of the permissions' abbreviations).</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles/administrator?permissions=rwxda
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/developer?permissions=rwxd
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/roles/developer?permissions=rwxd</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Delete roles">
+          <p>Use the resources below to delete roles.</p>
+        
+          <sapia:code>DELETE
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/roles/{role}
+  /clusters/{clusterName}/hosts/{host}/roles/{role}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/roles
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - role:.........: The name of the role to delete.
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+
+- Parameters:
+  - permissions: the set of permissions to assign to the role.</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/roles/administrator
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/roles/developer
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/roles/developer</sapia:code>
+        </sapia:sect3>
+        
+      </sapia:sect2>
+      
+      <!-- ====================== APPLICATION KEYS ====================== -->
+
+      <sapia:sect2 title="Application Keys">
+        <p>
+        The resources described in this section are used to manage application keys, and correspond to the CLI's <tt>appkey</tt> command.
+        </p>
+        <sapia:note>All resources described in this section require the <tt>ADMIN</tt> permission.</sapia:note>
+        
+        <sapia:sect3 title="Get application keys">
+          <p>This resource is akin to the <tt>appkey ls</tt> command in the CLI. It returns a JSON array composed of
+          the application keys matching the query (see the <tt>a</tt> parameter.</p>
+
+          <sapia:code>GET
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/appkeys
+  /clusters/{clusterName}/hosts/{host}/appkeys
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/appkeys
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host..........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - a (optional): An application identifier (pattern matching supported).</sapia:code>
+  
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys 
+http://saturn:33000/rest/clusters/app-01/appkeys?a=test*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/appkeys?a=test*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data":
+      {
+        "appId": "test-app",
+        "role": "test-role",
+        "key": "c59a07fd075140e790f07b4c3da4aa50"
+      }
+    }
+  }
+]</sapia:code>      
+        </sapia:sect3>  
+      
+        <sapia:sect3 title="Create application keys">
+          <p>This resource is used to create application keys.</p>
+        
+          <sapia:code>PUT
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/appkeys/{appId}
+  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/appkeys/{appId}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.  
+    (version 4.8+)
+  - appId:........: The application identifier to associate to the application key.
+
+- Parameters:
+  - k (optional)..: The actual application key to use (if not specified, one is internally created).
+  - r ............: The role to associate to the new application key.</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app?k=c59a07fd075140e790f07b4c3da4aa50&amp;r=administrator
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app?k=c59a07fd075140e790f07b4c3da4aa50&amp;r=administrator
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/appkeys/test-app?k=c59a07fd075140e790f07b4c3da4aa50&amp;r=administrator</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Update the value associated to an application key">
+          <p>This resource is meant to update the key associated to an application key.</p>
+        
+          <sapia:code>POST
+- Permission.....: ADMIN
+
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/appkeys/{appId}/key/{value}
+  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/key/{value}
+  /clusters/{clusterName}/appkeys/{appId}/key
+  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/key
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/appkeys/{appId}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/appkeys/{appId}/key
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.  
+    (version 4.8+)
+  - appId:........: The application identifier to associate to the application key.
+  - value:........: The actual value of the key (if not specified, one is internally created).</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50
+http://saturn:33000/rest/clusters/app-01/appkeys/test-app/key
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/key
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/appkeys/test-app/key/c59a07fd075140e790f07b4c3da4aa50</sapia:code>
+
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Update the role associated to an application key">
+          <p>Use this resource to modify the role associated to an application key.</p>
+        
+          <sapia:code>POST
+- Permission.....: ADMIN
+          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/appkeys/{appId}/role/{role}
+  /clusters/{clusterName}/hosts/{host}/appkeys/{appId}/role/{role}
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.    
+    (version 4.8+)
+  - appId:........: The application identifier to associate to the application key.
+  - role:.........: The role to associate to the application key.</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/appkeys/test-app/role/developer
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/appkeys/test-app/role/developer
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/appkeys/test-app/role/developer</sapia:code>
+
+        </sapia:sect3>
+        
+      </sapia:sect2>
+      
+      <!-- ====================== DISTRIBUTIONS ====================== -->
+      
+      <sapia:sect2 title="Distributions">
+        <p>
+        The REST API allows accessing distribution information.
+        </p>
+        <sapia:sect3 title="Get distributions">
+          <p>
+          This call is similar to the <tt>ls</tt> command in the Corus CLI. Note that it takes optional <tt>d</tt> and
+          <tt>v</tt> parameters for filtering distributions by name and version, just like the CLI.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/distributions
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.    
+    (version 4.8+)
+  
+- Parameters:
+  - d (optional): a distribution name    (pattern matching supported).
+  - v (optional): a distribution version (pattern matching supported).</sapia:code>
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/distributions
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/distributions 
+http://saturn:33000/rest/clusters/app-01/distributions?d=demo&amp;v=*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/distributions</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "name": "demo",
+      "version": "1.0",
+      "processConfigs": [
+        {
+          "name": "httpServer",
+          "maxInstances": 0,
+          "maxKillRetry": 3,
+          "pollInterval": 10,
+          "shutdownTimeout": 30000,
+          "statusInterval": 30,
+          "deleteOnKill": false,
+          "invoke": true,
+          "ports": [
+              "http.server"
+          ],
+          "profiles": [
+              "test",
+              "prod"
+          ],
+          "tags": [
+              "http-server"
+          ]
+        }
+      ]
+    }
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        <sapia:sect3 title="Deploy distributions">
+          <p>
+          This call is similar to the CLI's <tt>deploy</tt> command.
+          </p>
+          <sapia:code>PUT
+- Permission......: DEPLOY
+- Behavior........: SYNC/ASYNC with polling
+- Request headers:
+  - Accept........: application/json
+  - Content-Type..: application/octet-stream
+  - Content-Length: &lt;payload_size_in_bytes&gt;
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/distributions
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - async (optional).........: If the value is set to true, execution will be performed asynchronously. 
+    (version 4.8+)
+  - runScripts (optional)....: Executes the packaged scripts (as in the CLI's <tt>deploy -r</tt> command).
+    (version 4.7+)
+  - batchSize (optional).....: If specified, indicates that graceful deployment should be performed. More 
+    (version 4.7+)             precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional)......: Used in the context of graceful deployment (see previous param): indicates
+    (version 4.7+)             at least how many hosts should be present in the cluster for the given
+                               batch size to apply. If that minimum is not observed, the batch size internally
+                               used will then be 1 (meaning deployment will be done to one host at a time).
+  - maxErrors (optional).....: The maximum number of batch errors to tolerate before the operation is aborted. 
+    (version 4.8+)
+  - rev (optional)...........: Indicates the revision ID under which to archive the undeployed distribution(s) 
+                               (same as the CLI's -rev option).
+  - runDiagnostic (optional).: If the value is set to true, indicates that a <a href="diagnostic.html">diagnostic</a> check will be performed
+    (version 4.8+)             automatically at the end of the deployment.
+  - diagnosticInterval.......: The number of second to wait for between diagnostic acquisition attempts
+    (version 4.8+)             (defaults to 10 seconds).</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the zip file of the distribution to deploy</p>
+        </sapia:sect3>
+        <sapia:sect3 title="Deploy archived distributions (version 4.7+)">
+          <p>
+          This call is similar to the CLI's <tt>deploy rev &lt;revId&gt;</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: DEPLOY
+- Behavior.......: SYNC/ASYNC with polling
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/distributions/revisions/{revId}
+  /clusters/{clusterName}/hosts/{host}/distributions/revisions/{revId}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/distributions/revisions/{revId}
+  
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.
+    (version 4.8+)
+  - revId.........: the revision ID for which archived distributions should be unarchived and deployed.
+  
+- Parameters:
+  - async (optional)........: If the value is set to true, execution will be performed asynchronously. 
+    (version 4.8+)
+  - batchSize (optional)....: If specified, indicates that graceful deployment should be performed. More 
+    (version 4.7+)            precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional).....: Used in the context of graceful deployment (see previous param): indicates
+    (version 4.7+)            at least how many hosts should be present in the cluster for the given
+                              batch size to apply. If that minimum is not observed, the batch size internally
+                              used will then be 1 (meaning deployment will be done to one host at a time).
+  - maxErrors (optional)....: The maximum number of batch errors to tolerate before the operation is aborted. 
+    (version 4.8+)
+  - runDiagnostic (optional): If the value is set to true, indicates that a <a href="diagnostic.html">diagnostic</a> check will be performed
+    (version 4.8+)            automatically at the end of the rollback.
+  - diagnosticInterval......: The number of second to wait for between diagnostic acquisition attempts
+    (version 4.8+)            (defaults to 10 seconds).</sapia:code>
+        </sapia:sect3>
+
+        <sapia:sect3 title="Roll back distributions">
+          <p>
+          This call is similar to the CLI's <tt>rollback</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC/ASYNC with polling
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{corus:cluster}/distributions/{name}/{version}/rollback
+  /clusters/{corus:cluster}/hosts/{host}/distributions/{name}/{version}/rollback
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/distributions/{name}/{version}/rollback
+  
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.
+    (version 4.8+)
+  - name..........: the name of the distribution to rollback.
+  - version.......: the version of the distribution to rollback.
+  
+- Parameters
+  - async (optional)........: If the value is set to true, execution will be performed asynchronously. 
+    (version 4.8+)
+  - batchSize (optional)....: If specified, indicates that graceful deployment should be performed. More 
+    (version 4.7+)            precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional).....: Used in the context of graceful deployment (see previous param): indicates
+    (version 4.7+)            at least how many hosts should be present in the cluster for the given
+                              batch size to apply. If that minimum is not observed, the batch size internally
+                              used will then be 1 (meaning deployment will be done to one host at a time).
+  - maxErrors (optional)....: The maximum number of batch errors to tolerate before the operation is aborted. 
+    (version 4.8+)
+  - runDiagnostic (optional): If the value is set to true, indicates that a <a href="diagnostic.html">diagnostic</a> check will be performed
+    (version 4.8+)            automatically at the end of the rollback.
+  - diagnosticInterval......: The number of second to wait for between diagnostic acquisition attempts
+    (version 4.8+)            (defaults to 10 seconds).</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Undeploy distributions">
+          <p>
+          This call is similar to the CLI's <tt>undeploy</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC/ASYNC with pollling
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/distributions
+  /clusters/{clusterName}/hosts/{host}/distributions
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/distributions  
+
+- Path variables:
+  - clusterName: the name of the cluster to access.
+  - host.......: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: the index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - async (optional)........: If the value is set to true, execution will be performed asynchronously. 
+    (version 4.8+)
+  - maxErrors (optional)....: The maximum number of batch errors to tolerate before the operation is aborted. 
+    (version 4.8+)
+  - runDiagnostic (optional): If the value is set to true, indicates that a <a href="diagnostic.html">diagnostic</a> check will be performed
+    (version 4.8+)            automatically at the end of the rollback.
+  - diagnosticInterval......: The number of second to wait for between diagnostic acquisition attempts
+    (version 4.8+)            (defaults to 10 seconds).
+  - d (optional)............: A distribution name    (pattern matching supported).
+  - v (optional)............: A distribution version (pattern matching supported).
+  - rev (optional)..........: Indicates the revision ID under which to archive the 
+    (version 4.7+)            undeployed distribution(s) (same as the CLI's -rev option).
+  - backup (optional).......: Indicates how many distributions should be kept on the 
+                              Corus server as backup (same as the CLI's -backup 
+                              option).</sapia:code>
+        </sapia:sect3>
+      </sapia:sect2>
+      
+      <!-- ====================== PROCESSES ====================== -->
+      
+      <sapia:sect2 title="Processes">
+        <p>
+        This section documents API calls pertaining to processes. Note that operations impacting process lifecycle (kill, restart, etc.) 
+        are performed asynchronously (a successful response does not mean that the operation has completed).
+        </p>
+        <sapia:sect3 title="Get processes">
+          <p>
+          This call returns an array of JSON objects corresponding to running processes. The command is similar to <tt>ps</tt>
+          command of the Corus CLI, in supports parameters corresponding to the same options of that command 
+          (<tt>d</tt>, <tt>v</tt>, <tt>n</tt>, <tt>p</tt>).
+          </p>
+        
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/processes
+  /clusters/{clusterName}/hosts/{host}/processes
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - process_id....: The Corus-generated process identifier of a given process 
+                    (which will then restrict the response to that process). 
+- Parameters:
+  - d (optional).: a distribution name    (pattern matching supported).
+  - v (optional).: a distribution version (pattern matching supported).
+  - n (optional).: a process name         (pattern matching supported).
+  - p (optional).: a profile name.
+  - pr (optional): a port range pattern.</sapia:code>
+          
+          <p>
+          As the URI templates above illustrate, use of the <tt>process_id</tt> path variable is only supported when targeting a specific host.
+          </p>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes 
+http://saturn:33000/rest/clusters/app-01/processes?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod    
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/143294992920
+http://saturn:33000/rest/clusters/app-01/processes?pr=http:* 
+http://saturn:33000/rest/clusters/app-01/processes?pr=http:8080
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "id": "141123240721",
+      "name": "httpServer",
+      "pid": "76096",
+      "distribution": "demo",
+      "version": "1.0",
+      "profile": "test",
+      "creationTimeMillis": 1416796872842,
+      "creationTimestamp": "2014-11-24T02:41:12:012Z",
+      "lastAccessTimeMillis": 1416796923259,
+      "lastAccessTimestamp": "2014-11-24T02:42:03:003Z",
+      "status": "ACTIVE",
+      "maxKillRetry": 3,
+      "deleteOnKill": false,
+      "shutdownTimeout": 30000,
+      "staleDetectionCount": 0,
+      "activePorts": [ ]
+    }
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        <sapia:sect3 title="Execute processes">
+          <p>Corresponds to the CLI's <tt>exec</tt> command.</p>
+        
+          <sapia:code>PUT
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/exec
+  /clusters/{clusterName}/hosts/{host}/processes/exec
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/exec
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+
+- Parameters
+  - d: a distribution name    (pattern matching supported).
+  - v: a distribution version (pattern matching supported).
+  - n: a process name         (pattern matching supported).
+  - p: a profile name</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/exec
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/exec 
+http://saturn:33000/rest/clusters/app-01/processes/exec?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/exec</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Kill processes">
+          <p>Corresponds to the CLI's <tt>kill</tt> command.</p>
+        
+          <sapia:code>DELETE
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept......: application/json
+ 
+- Resources:
+  /clusters/{clusterName}/processes/kill
+  /clusters/{clusterName}/hosts/{host}/processes/kill
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/kill
+  /clusters/{clusterName}/hosts/{host}/processes/kill/{process_id}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - process_id....: The Corus-generated process identifier of a given process.
+                    (which will then restrict the response to that process).
+
+- Parameters
+  - d............: a distribution name    (pattern matching supported).
+  - v............: a distribution version (pattern matching supported).
+  - n............: a process name         (pattern matching supported).
+  - p............: a profile name.
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified).</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/kill?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/kill
+http://saturn:33000/rest/clusters/app-01/processes/kill?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/kill?pr=tomcat.http:8100
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/kill?pr=tomcat.http:8100</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Suspend processes">
+          <p>Corresponds to the CLI's <tt>suspend</tt> command.</p>
+        
+          <sapia:code>POST
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/suspend
+  /clusters/{clusterName}/hosts/{host}/processes/suspend
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/suspend
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/suspend
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - process_id....: The Corus-generated process identifier of a given process 
+                    (which will then restrict the response to that process).
+
+- Parameters
+  - d............: a distribution name    (pattern matching supported).
+  - v............: a distribution version (pattern matching supported).
+  - n............: a process name         (pattern matching supported).
+  - p............: a profile name.
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified).</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/suspend?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/suspend
+http://saturn:33000/rest/clusters/app-01/processes/suspend?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/suspend?pr=tomcat.http:8100
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/suspend?pr=tomcat.http:8100</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Resume processes">
+          <p>Corresponds to the CLI's <tt>resume</tt> command.</p>
+        
+          <sapia:code>POST
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/resume
+  /clusters/{clusterName}/hosts/{host}/processes/resume
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/resume
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/resume
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)  
+  - process_id....: The Corus-generated process identifier of a given process 
+                    (which will then restrict the response to that process).
+
+- Parameters
+  - d: a distribution name    (pattern matching supported).
+  - v: a distribution version (pattern matching supported).
+  - n: a process name         (pattern matching supported).
+  - p: a profile name.</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/resume?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/resume?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/resume
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/resume?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Restart processes">
+          <p>Corresponds to the CLI's <tt>restart</tt> command.</p>
+        
+          <sapia:code>POST
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/processes/restart
+  /clusters/{clusterName}/hosts/{host}/processes/restart
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/restart
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/restart
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)  
+  - process_id....: The Corus-generated process identifier of a given process 
+                    (which will then restrict the response to that process).
+
+- Parameters
+  - d............: a distribution name    (pattern matching supported).
+  - v............: a distribution version (pattern matching supported).
+  - n............: a process name         (pattern matching supported).
+  - p............: a profile name.
+  - pr (optional): a port range pattern (other parameters  not required 
+                   if this one is specified).</sapia:code>
+                             
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/restart?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/restart
+http://saturn:33000/rest/clusters/app-01/processes/restart?pr=tomcat.http:*
+http://saturn:33000/rest/clusters/app-01/processes/restart?pr=tomcat.http:8100
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/restart?pr=tomcat.http:8100</sapia:code>
+
+        </sapia:sect3>
+        
+         <sapia:sect3 title="Clean processes">
+          <p>Corresponds to the CLI's <tt>ps -clean</tt> command.</p>
+        
+          <sapia:code>POST
+- Permission.....: ADMIN
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/processes/clean
+  /clusters/{clusterName}/hosts/{host}/processes/clean
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/processes/clean
+  /clusters/{clusterName}/hosts/{host}/processes/{process_id}/clean
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host:.........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)  
+  - process_id....: The Corus-generated process identifier of a given process 
+                    (which will then restrict the response to that process).
+
+- Parameters
+  - d: a distribution name    (pattern matching supported).
+  - v: a distribution version (pattern matching supported).
+  - n: a process name         (pattern matching supported).
+  - p: a profile name.</sapia:code>
+          
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/processes/clean?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/clean?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/processes/14893852530/clean
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/processes/clean?d=demo&amp;v=*&amp;n=httpServer&amp;p=prod</sapia:code>
+        </sapia:sect3>
+        
+      </sapia:sect2>
+
+      <!-- ====================== EXEC CONFIGS ====================== -->
+      
+      <sapia:sect2 title="Execution Configurations">
+        <p>The resources described in this section allow managing execution configurations.</p>
+        
+        <sapia:sect3 title="Get execution configurations">
+          <p>This resource corresponds to the CLI's <tt>ls -e</tt> command.</p>
+
+           <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs
+  /clusters/{clusterName}/hosts/{host}/exec-configs
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host:.........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)  
+   
+- Parameters:
+  - n (optional): an execution configuration name (pattern matching supported).</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs 
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?n=test-*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs?n=test-*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        
+        <p>
+        The properties are returned as part of the <tt>data</tt> field, in an array of name/value pairs 
+        (each such pair corresponding to a property).
+        </p>
+        
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data":
+      {
+        "name": "test-exec",
+        "profile": "test",
+        "startOnBoot": true,
+        "processes": [
+          {
+            "distribution": "http-server",
+            "version": "1.0",
+            "profile": "test",
+            "instances": 1
+          }
+        ]
+      }
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Add execution configurations">
+          <p>Resources described in this section allow adding/updating execution configurations, in a manner identical to
+          the CLI's <tt>deploy -e</tt> command.</p>
+          
+           <sapia:code>PUT
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs
+  /clusters/{clusterName}/hosts/{host}/exec-configs
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host:.........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Delete execution configurations">
+          <p>Resources described in this section allow deleting execution configurations, similarly to
+          the CLI's <tt>undeploy -e</tt> command.</p>
+          
+           <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/{exec-config-name}
+
+- Path variables:
+  - clusterName.....: The name of the cluster to access.
+  - host:...........: A host literal (taking the form: ip_address:port).
+  - partitionSetId..: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex..: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - exec-config-name: The name of the execution configuration to delete.
+   
+- Parameters:
+  - n.....: an execution configuration name (pattern matching supported).
+  - backup: indicates how many execution configurations should be kept as backup.</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs?n=test*
+http://saturn:33000/rest/clusters/app-01/exec-configs?n=test*&amp;backup=1
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs?n=test-exec
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs?n=test-exec</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Execute execution configurations">
+          <p>Resources described in this section allow deleting execution configurations, similarly to
+          the CLI's <tt>exec -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission.....: EXECUTE
+- Behavior.......: ASYNC          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/exec
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/exec
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/{exec-config-name}/exec
+
+- Path variables:
+  - clusterName.....: The name of the cluster to access.
+  - host:...........: A host literal (taking the form: ip_address:port).
+  - partitionSetId..: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex..: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - exec-config-name: The name of the execution configuration to delete.</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/test-exec/exec
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/test-exec/exec
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs/test-exec/exec</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Disable execution configurations">
+          <p>This resource is similar to the <tt>exec disable -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/disable
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/disable
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/{exec-config-name}/disable
+
+- Path variables:
+  - clusterName.....: The name of the cluster to access.
+  - host:...........: A host literal (taking the form: ip_address:port).
+  - partitionSetId..: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex..: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - exec-config-name: The name of the execution configuration to disable.
+  
+- Parameters:
+  - n: an execution configuration name (pattern matching supported).</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/disable?n=test-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/disable?n=test-exec
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs/disable?n=test-exec</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Enable execution configurations">
+          <p>This resource is similar to the CLI's <tt>exec enable -e</tt> command.</p>
+          
+           <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC          
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/{exec-config-name}/enable
+  /clusters/{clusterName}/hosts/{host}/exec-configs/{exec-config-name}/enable
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/{exec-config-name}/enable
+
+- Path variables:
+  - clusterName.....: The name of the cluster to access.
+  - host:...........: A host literal (taking the form: ip_address:port).
+  - partitionSetId..: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex..: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - exec-config-name: The name of the execution configuration to enable.
+  
+- Parameters:
+  - n: an execution configuration name (pattern matching supported).</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/enable?n=test-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/enable?n=test-exec
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs/enable?n=test-exec</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Archive execution configurations">
+          <p>
+          This call is similar to the CLI's <tt>exec archive -e</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/archive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/exec-configs/archive?revId=revisionId
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/archive?revId=revisionId
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+                  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs/archive?revId=previous</sapia:code>
+    
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Unarchive execution configurations">
+          <p>
+          This call is identical to the CLI's <tt>exec unarchive -e</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/exec-configs/unarchive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/exec-configs/unarchive?revId=revisionId
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/exec-configs/unarchive?revId=revisionId
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+                  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/exec-configs/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/exec-configs/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/exec-configs/unarchive?revId=previous</sapia:code>
+    
+        </sapia:sect3>
+        
+      </sapia:sect2>
+      
+      <!-- ====================== PROPERTIES ====================== -->
+      
+      <sapia:sect2 title="Properties">
+        <p>
+        The API gives access to both server and process properties stored in Corus. 
+        </p>
+        <sapia:sect3 title="Get properties">
+          <p>
+          This call is similar to the CLI's <tt>conf ls -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf ls -p -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf ls -p -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Note that the scope in the case of this call is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}
+  /clusters/{clusterName}/properties/{scope}/{category}
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}/{category}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - scope.........: Indicates the scope of the properties to get 
+                    (must be 'process' to obtain process properties stored 
+                    in Corus, or 'server' for the server properties).
+  - category......: A property category.
+   
+- Parameters:
+  - p (optional): a property name (pattern matching supported).</sapia:code>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/process
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process 
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?p=corp.acme.*
+http://saturn:33000/rest/clusters/app-01/properties/server
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/server
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/properties/process?p=corp.acme.*</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        
+        <p>
+        The properties are returned as part of the <tt>data</tt> field, in an array of name/value pairs 
+        (each such pair corresponding to a property).
+        </p>
+        
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": [
+      {
+        "name": "corp.acme.connections.max",
+        "value": "200"
+      },
+      {
+        "name": "corp.acme.session.timeout",
+        "value": "10min"
+      }
+    ]
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Add properties">
+          <p>
+          This call is similar to the CLI's <tt>conf add -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf add -p ... -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf add -p ... -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>PUT
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}/{category}?prop1=value1&amp;prop2=value2&amp;propN=valueN
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - scope.........: Indicates the scope of the properties to get 
+                    (must be 'process' to obtain process properties stored 
+                    in Corus, or 'server' for the server properties).
+  - category......: A property category.</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?connections.min=100&amp;connections.max=200
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/properties/process?connections.min=100&amp;connections.max=200</sapia:code>
+    
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Delete properties">
+          <p>
+          This call is similar to the CLI's <tt>conf del -p</tt> command. Invoking with the the <tt>server</tt> scope is equivalent
+          to doing a <tt>conf del -p ... -s s</tt>, while using the <tt>process</tt> scope is equivalent to the CLI's <tt>conf del -p ... -s p</tt>,
+          which is the default if the <tt>-s</tt> switch is not specified.
+          </p>
+          <p>
+          Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/{scope}?p=propNamePattern
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}?p=propNamePattern
+  /clusters/{clusterName}/properties/{scope}/{category}?p=propNamePattern
+  /clusters/{clusterName}/hosts/{host}/properties/{scope}/{category}?p=propNamePattern
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}?p=propNamePattern
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}/{category}?p=propNamePattern
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}?p=propNamePattern
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/{scope}/{category}?p=propNamePattern
+  
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - scope.........: Indicates the scope of the properties to get 
+                    (must be 'process' to obtain process properties stored 
+                    in Corus, or 'server' for the server properties).
+  - category......: A property category.
+                  
+- Parameters:
+  - p: a property name (pattern matching supported).</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?p=corp.acme.*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/properties/process?p=corp.acme.*</sapia:code>
+    
+        </sapia:sect3>
+           
+        <sapia:sect3 title="Archive properties">
+          <p>
+          This call is similar to the CLI's <tt>conf archive -p</tt> command. It is effective for process properties only.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/archive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/properties/archive?revId=revisionId
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/archive?revId=revisionId
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+                  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/archive?revId=previous</sapia:code>
+    
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Unarchive properties">
+          <p>
+          This call is akin to the CLI's <tt>conf unarchive -p</tt> command. It is effective for process properties only.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/properties/unarchive?revId=revisionId
+  /clusters/{clusterName}/hosts/{host}/properties/unarchive?revId=revisionId
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/properties/unarchive?revId=revisionId
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+                  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+        
+        <p><b>Sample request</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/properties/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/unarchive?revId=previous</sapia:code>
+    
+        </sapia:sect3>
+           
+      </sapia:sect2>    
+      
+      <!-- ====================== TAGS ====================== -->
+      
+      <sapia:sect2 title="Tags">
+        <p>
+        The REST API allows managing tags.
+        </p>
+        <sapia:sect3 title="Get tags">
+          <p>
+          This call corresponds to the <tt>conf ls -t</tt> command in the Corus CLI.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/tags
+  /clusters/{clusterName}/hosts/{host}/tags
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/tags
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - t (optional): a tag name (pattern matching supported).</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags
+http://saturn:33000/rest/clusters/app-01/tags?t=tag-*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/tags</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <p>
+        The tags are returned in an array, as part of the <tt>data</tt> field.
+        </p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": [
+      "tag-01", "tag-02"
+    ]
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Add tags">
+          <p>
+          This call corresponds to the CLI's <tt>conf add -t</tt> command.
+          </p>
+          <sapia:code>PUT
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/{tag}
+  /clusters/{clusterName}/hosts/{host}/tags/{tag}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/tags/{tag}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - tag:..........: The tag to add.</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/tags/test-env</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Delete tags">
+          <p>
+          This call corresponds to the CLI's <tt>conf del -t</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/{tag}
+  /clusters/{clusterName}/hosts/{host}/tags/{tag}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/tags/{tag}
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  - tag:..........: The tag to delete.</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/test-env
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/test-env
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/tags/test-env</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Archive tags">
+          <p>
+          This call has an outcome identical to the CLI's <tt>conf archive -t</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/archive
+  /clusters/{clusterName}/hosts/{host}/tags/archive
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/tags/archive
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/archive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/tags/archive?revId=previous</sapia:code>
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Unarchive tags">
+          <p>
+          This resource is akin to the CLI's <tt>conf unarchive -t</tt> command.
+          </p>
+          <sapia:code>POST
+- Permission.....: WRITE
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+  
+- Resources:
+  /clusters/{clusterName}/tags/unarchive
+  /clusters/{clusterName}/hosts/{host}/tags/unarchive
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/tags/unarchive
+
+- Path variables:
+  - clusterName...: The name of the cluster to access.
+  - host:.........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - revId: a revision identifier.</sapia:code>
+  
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/tags/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/tags/unarchive?revId=previous
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/tags/unarchive?revId=previous</sapia:code>
+        </sapia:sect3>
+           
+      </sapia:sect2>
+      
+      <!-- ====================== Files ====================== -->
+      
+      <sapia:sect2 title="Files (version 4.7+)">
+        <p>
+        The sub-sections below explain how the REST API can be used to deploy/undeploy files. These are saved under the
+        <tt>$CORUS_HOME/files/uploads</tt> directory by default - this can be overridden at upload time.
+        </p>
+        <sapia:sect3 title="Get files">
+          <p>
+            
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/files/{fileName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/files/{fileName}
+  
+- Path variables:
+  - fileName......: the name of the file information to return (pattern matching supported).
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)</sapia:code>
+    
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/files/*
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/files/*.txt
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/files/*.txt</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "data": {
+      "name": "content.txt",
+      "lastModifiedTimeMillis": 1416796872842,
+      "lastModifiedTimestamp": "2014-11-24T02:41:12:012Z",
+      "length": "290360"
+    }
+  }
+]</sapia:code>      
+        </sapia:sect3>
+        <sapia:sect3 title="Deploy files">
+          <p>
+          This call is similar to the CLI's <tt>deploy -f</tt> command.
+          </p>
+          <sapia:code>PUT
+- Permission......: DEPLOY
+- Behavior........: SYNC
+- Request headers:
+  - Accept........: application/json
+  - Content-Type..: application/octet-stream
+  - Content-Length: &lt;payload_size_in_bytes&gt;
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/{fileName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/files/{fileName}
+
+- Path variables:
+  - fileName......: The name of the file being uploaded.
+  - clusterName...: The name of the cluster to access.
+  - host..........: A host literal (taking the form: ip_address:port).
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)
+  
+- Parameters:
+  - d (optional): the directory on the Corus node(s) to which the file should be uploaded.</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the file being uploaded</p>
+        
+        <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/files/config.properties
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/files/config.properties?d=/opt/conf
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/files/config.properties?d=/opt/conf</sapia:code>
+        
+        </sapia:sect3>
+        
+        <sapia:sect3 title="Undeploy files">
+          <p>
+          This call is similar to the CLI's <tt>undeploy -f</tt> command.
+          </p>
+          <sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/files/{fileName}
+  /clusters/{clusterName}/hosts/{host}/files/{fileName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/files/{fileName}
+
+- Path variables:
+  - fileName......: The name of the file(s) being deleted (pattern matching supported)
+  - clusterName...: The name of the cluster to access
+  - host..........: A host literal (taking the form: ip_address:port)
+  - partitionSetId: The ID of the partition set to target.
+    (version 4.8+)
+  - partitionIndex: The index of the partition in the targeted partition set.
+    (version 4.8+)</sapia:code>
+    
+         <p><b>Sample requests</b></p>
+        <sapia:code>http://saturn:33000/rest/clusters/app-01/files/config.properties
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/files/config.*
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/files/config.*</sapia:code>   
+    
+        </sapia:sect3>
+      </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

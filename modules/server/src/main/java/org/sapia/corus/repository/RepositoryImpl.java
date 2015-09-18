@@ -9,6 +9,9 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.reference.AutoResetReference;
+import org.sapia.corus.client.common.reference.Reference;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
@@ -65,6 +68,7 @@ import org.sapia.ubik.net.ConnectionStateListener;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -89,6 +93,7 @@ public class RepositoryImpl extends ModuleHelper
   private static final long DEFAULT_HANDLE_EXEC_CONFIG_DELAY        = TimeUnit.SECONDS.toMillis(1);
   private static final long DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL     = TimeUnit.SECONDS.toMillis(3);
   private static final int  DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS = 5;
+  private static final long DEFAULT_IDLE_DELAY_SECONDS              = 60;
   
   @Autowired
   private TaskManager taskManager;
@@ -116,6 +121,10 @@ public class RepositoryImpl extends ModuleHelper
 
   @Autowired
   private RepositoryConfiguration repoConfig;
+  
+  private Reference<ModuleState> state = new AutoResetReference<ModuleState>(
+      ModuleState.IDLE, ModuleState.IDLE, TimeValue.createSeconds(DEFAULT_IDLE_DELAY_SECONDS)
+  );
 
   public void setRepoConfig(RepositoryConfiguration repoConfig) {
     this.repoConfig = repoConfig;
@@ -257,10 +266,18 @@ public class RepositoryImpl extends ModuleHelper
   // --------------------------------------------------------------------------
   // Repository interface
 
+  
+  @Override
+  public Reference<ModuleState> getState() {
+    return state;
+  }
+  
   @Override
   public void pull() throws IllegalStateException {
+    state.set(ModuleState.BUSY);
     if (serverContext().getCorusHost().getRepoRole().isClient()) {
       logger().debug("Node is a repo client: will try to acquire distributions from repo server");
+      state.set(ModuleState.BUSY);
       GetArtifactListTask task = new GetArtifactListTask();
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 
@@ -272,6 +289,7 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public void push() {
+    state.set(ModuleState.BUSY);
     if (serverContext().getCorusHost().getRepoRole().isServer()) {
       ForceClientPullNotification notif = new ForceClientPullNotification(serverContext().getCorusHost().getEndpoint());
       for (CorusHost host : clusterManager.getHosts()) {
@@ -326,6 +344,7 @@ public class RepositoryImpl extends ModuleHelper
   
   private void doFirstPull() {
     if (serverContext().getCorusHost().getRepoRole().isClient()) {
+      state.set(ModuleState.BUSY);
       logger().debug("Node is a repo client: will request distributions from repository");
       Task<Void, Void> task = new ForcePullTask(this);
       task.executeOnce();
@@ -345,34 +364,42 @@ public class RepositoryImpl extends ModuleHelper
     try {
       if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got artifact list request");
+        state.set(ModuleState.BUSY);
         handleArtifactListRequest((ArtifactListRequest) evt.getData());
 
       // Distribution (list response, deployment request)
       } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got distribution list response");
+        state.set(ModuleState.BUSY);
         handleDistributionListResponse((DistributionListResponse) evt.getData());
       } else if (evt.getType().equals(DistributionDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got distribution deployment request");
+        state.set(ModuleState.BUSY);
         handleDistributionDeploymentRequest((DistributionDeploymentRequest) evt.getData());
 
       // Shell script (list response, deployment request)
       } else if (evt.getType().equals(ShellScriptListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got shell script list response");
+        state.set(ModuleState.BUSY);
         handleShellScriptListResponse((ShellScriptListResponse) evt.getData());
       } else if (evt.getType().equals(ShellScriptDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got shell script deployment request");
+        state.set(ModuleState.BUSY);
         handleShellScriptDeploymentRequest((ShellScriptDeploymentRequest) evt.getData());
 
       // File (list response, deployment request)
       } else if (evt.getType().equals(FileListResponse.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got file list response");
+        state.set(ModuleState.BUSY);
         handleFileListResponse((FileListResponse) evt.getData());
       } else if (evt.getType().equals(FileDeploymentRequest.EVENT_TYPE) && role.isServer()) {
         logger().debug("Got file deployment request");
+        state.set(ModuleState.BUSY);
         handleFileDeploymentRequest((FileDeploymentRequest) evt.getData());
 
       } else if (evt.getType().equals(ChangeRepoRoleNotification.EVENT_TYPE)) {
         logger().debug("Got repo role change notification");
+        state.set(ModuleState.BUSY);
         handleChangeRoleNotification((ChangeRepoRoleNotification) evt.getData());
         
       } else {
@@ -389,15 +416,19 @@ public class RepositoryImpl extends ModuleHelper
     try {
       if (evt.getType().equals(ExecConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got exec config notification");
+        state.set(ModuleState.BUSY);
         handleExecConfigNotification((ExecConfigNotification) evt.getData());
       } else if (evt.getType().equals(ConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got config notification");
+        state.set(ModuleState.BUSY);
         handleConfigNotification((ConfigNotification) evt.getData());
       } else if (evt.getType().equals(PortRangeNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got port range notification");
+        state.set(ModuleState.BUSY);
         handlePortRangeNotification((PortRangeNotification) evt.getData());
       } else if (evt.getType().equals(SecurityConfigNotification.EVENT_TYPE) && role.isClient()) {
         logger().debug("Got security config notification");
+        state.set(ModuleState.BUSY);
         handleSecurityConfigNotification((SecurityConfigNotification) evt.getData());
       }
     } catch (IOException e) {

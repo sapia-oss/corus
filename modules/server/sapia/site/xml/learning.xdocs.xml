@@ -49,6 +49,17 @@
         </div>
         
         <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">Advanced</div>
+          <span class="text">
+            Learn more about Corus intricacies: distributed deployment, command 
+            replication, process management, etc.
+            <br/><a href="advanced.html">more...</a>
+          </span>
+        </div>
+      </div>
+      
+      <div style="margin-left: 3px">
+        <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
           <div class="content-box-title">REST API</div>
           <span class="text">
             Want automation? Need to control Corus using a non-Java programming language? As of version 4.5, 
@@ -56,12 +67,22 @@
             <br/><a href="rest.html">more...</a>
           </span>
         </div>
-      </div>
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">Diagnostic API</div>
+          <span class="text">
+            The Diagnostic API helps determining the 
+            state of applications processes following a deployment: obtain
+            diagnostic status for a whole cluster using a single API call.
+            <br/><a href="diagnostic.html">more...</a>
+          </span>
+        </div>
+      </div>     
+      
         
       <div style="clear: both;" />
       
    	  <div style="margin-left: 3px">
-        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+        <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
           <div class="content-box-title">Cookbook</div>
           <span class="text">
             Check our applied Corus recipes, discover the features through concrete
@@ -79,16 +100,6 @@
             <br/><a href="community.html">more...</a>
           </span>
         </div>
-        
-        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
-          <div class="content-box-title">Advanced</div>
-          <span class="text">
-            Learn more about Corus intricacies: distributed deployment, command 
-            replication, process management, etc.
-            <br/><a href="advanced.html">more...</a>
-          </span>
-        </div>
-        
       </div>
 
     </sapia:sect-desc>

@@ -9,6 +9,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 
@@ -22,6 +23,28 @@ public class RoleResource {
   
   // --------------------------------------------------------------------------
   // GET
+
+  
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/roles"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public String getRolesForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    return doProcessResults(
+        context, 
+        context.getConnector().getSecurityManagementFacade().getRoleConfig(
+            ArgMatchers.parse(context.getRequest().getValue("n", "*").asString()), 
+            targets
+        )
+    );
+  }
   
   @Path({
     "/clusters/{corus:cluster}/roles", 
@@ -59,6 +82,25 @@ public class RoleResource {
   
   // --------------------------------------------------------------------------
   // PUT
+
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/roles/{corus:role}"
+  })
+  @HttpMethod(HttpMethod.PUT)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void createOrUpdateRoleForParitition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    context.getConnector().getSecurityManagementFacade().addOrUpdateRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        Permission.forPermissionSet(context.getRequest().getValue("permissions").asString()),
+        targets
+    );
+  }
   
   @Path({
       "/clusters/{corus:cluster}/roles/{corus:role}", 
@@ -93,6 +135,24 @@ public class RoleResource {
   // --------------------------------------------------------------------------
   // DELETE
 
+  @Path({
+    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/roles/{corus:role}"
+  })
+  @HttpMethod(HttpMethod.DELETE)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  @Authorized(Permission.ADMIN)
+  public void deleteRoleForPartition(RequestContext context) {
+    ClusterInfo targets = context.getPartitionService()
+        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
+        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
+        .getTargets();
+    context.getConnector().getSecurityManagementFacade().removeRole(
+        context.getRequest().getValue("corus:role").asString(), 
+        targets
+    );
+  }
+  
   @Path({
     "/clusters/{corus:cluster}/roles/{corus:role}", 
     "/clusters/{corus:cluster}/hosts/roles/{corus:role}"
@@ -134,8 +194,9 @@ public class RoleResource {
               result.getOrigin().getEndpoint().getServerTcpAddress().getHost() + ":" +
               result.getOrigin().getEndpoint().getServerTcpAddress().getPort()
           )
+          .field("dataType").value("role")
           .field("data");
-        r.toJson(stream);
+        r.toJson(stream, ContentLevel.DETAIL);
         stream.endObject();
       }      
     }

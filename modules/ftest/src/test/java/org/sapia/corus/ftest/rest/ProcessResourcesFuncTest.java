@@ -18,6 +18,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.lang.text.StrLookup;
+import org.apache.http.HttpStatus;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
@@ -32,6 +33,7 @@ import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
+import org.sapia.corus.ftest.PartitionInfo;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
 import org.testng.annotations.AfterSuite;
@@ -271,6 +273,54 @@ public class ProcessResourcesFuncTest {
   }
   
   @Test
+  public void testExec_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/processes/exec")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON)
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, 1);
+    
+    Thread.sleep(INTERVAL_SECONDS);
+    
+    JSONArray procs = client.resource("/clusters/ftest/processes")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")        .request()
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    
+    assertEquals(procs.size(), 1);
+  }
+  
+  @Test 
+  public void testExec_specific_host_with_diagnostic() throws Exception {
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/processes/exec")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    waitUntilDiagnostic(INTERVAL_SECONDS, 1);
+  }
+  
+  @Test
   public void testKill_specific_host() throws Exception {
     
     client.getConnector().getProcessorFacade().exec(
@@ -283,6 +333,48 @@ public class ProcessResourcesFuncTest {
     waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/processes/kill")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    waitUntilTerminated(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount() - 1);
+    
+    Thread.sleep(INTERVAL_SECONDS);
+    
+    JSONArray procs = client.resource("/clusters/ftest/processes")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")        .request()
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    
+    assertEquals(procs.size(), 1);
+    
+  }
+  
+  @Test
+  public void testKill_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    client.getConnector().getProcessorFacade().exec(
+        ProcessCriteria.builder()
+          .distribution("demo")
+          .version(ArgMatchers.any())
+          .name("noopApp")
+          .profile("test").build(), 1, ClusterInfo.clustered());
+    
+    waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition  + "/processes/kill")
         .queryParam("d", "demo")
         .queryParam("v", "*")
         .queryParam("n", "noopApp")
@@ -336,6 +428,49 @@ public class ProcessResourcesFuncTest {
     waitUntilStatus(MAX_ATTEMPTS, INTERVAL_SECONDS, 1, LifeCycleStatus.SUSPENDED);
     
     response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/processes/resume")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUntilStatus(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount(), LifeCycleStatus.ACTIVE);
+  }
+  
+  @Test
+  public void testSuspendResume_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    client.getConnector().getProcessorFacade().exec(
+        ProcessCriteria.builder()
+          .distribution("demo")
+          .version(ArgMatchers.any())
+          .name("noopApp")
+          .profile("test").build(), 1, ClusterInfo.clustered());
+    
+    waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/processes/suspend")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUntilStatus(MAX_ATTEMPTS, INTERVAL_SECONDS, 1, LifeCycleStatus.SUSPENDED);
+    
+    response = client.resource("/clusters/ftest/" + partition + "/processes/resume")
         .queryParam("d", "demo")
         .queryParam("v", "*")
         .queryParam("n", "noopApp")
@@ -410,7 +545,46 @@ public class ProcessResourcesFuncTest {
     
     Set<String> currentCorusPids = Collects.arrayToSet(p.getOsPid());
     
-    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/processes/" + p.getProcessID() + "/restart")
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/processes/restart")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    waitUntilRestarted(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount(), currentCorusPids);
+
+  }
+  
+  @Test
+  public void testRestart_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    client.getConnector().getProcessorFacade().exec(
+        ProcessCriteria.builder()
+          .distribution("demo")
+          .version(ArgMatchers.any())
+          .name("noopApp")
+          .profile("test").build(), 1, ClusterInfo.clustered());
+    
+    waitUntilRunning(MAX_ATTEMPTS, INTERVAL_SECONDS, client.getHostCount());
+    
+    Results<List<org.sapia.corus.client.services.processor.Process>> results = client.getConnector().getProcessorFacade().getProcesses(
+        ProcessCriteria.builder().distribution("demo").name("noopApp").version(ArgMatchers.parse("*")).profile("test").build(), 
+        ClusterInfo.notClustered()
+     );
+    
+    org.sapia.corus.client.services.processor.Process p = results.next().getData().get(0);
+    
+    Set<String> currentCorusPids = Collects.arrayToSet(p.getOsPid());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/processes/restart")
         .queryParam("d", "demo")
         .queryParam("v", "*")
         .queryParam("n", "noopApp")
@@ -474,6 +648,20 @@ public class ProcessResourcesFuncTest {
     assertEquals(200, response.asObject().getInt("status"));
   }
   
+  @Test
+  public void testClean_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/processes/clean")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .post(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+  }
+  
   // --------------------------------------------------------------------------
   // helpers
   
@@ -496,6 +684,37 @@ public class ProcessResourcesFuncTest {
     }
     if (actualProcessCount < expectedProcessCount) {
       throw new IllegalStateException("Got " + actualProcessCount + " processes running, expected: " + expectedProcessCount);
+    }
+  }
+  
+  private void waitUntilDiagnostic(int intervalSecs, int expectedProcessCount) throws Exception {
+    int status = 0;
+    
+    do {
+      status = client.resource("/clusters/ftest/diagnostic")
+        .request()
+        .accept(MediaType.APPLICATION_JSON)
+        .get().getStatus();
+      if (status != HttpStatus.SC_SERVICE_UNAVAILABLE) {
+        break;
+      }
+      Thread.sleep(intervalSecs * 1000);
+      
+    } while (status == HttpStatus.SC_SERVICE_UNAVAILABLE);
+    
+    assertEquals(status, HttpStatus.SC_OK);
+    
+    JSONArray procs = client.resource("/clusters/ftest/diagnostic")
+        .queryParam("d", "demo")
+        .queryParam("v", "*")
+        .queryParam("n", "noopApp")
+        .queryParam("p", "test")
+        .request()
+        .accept(MediaType.APPLICATION_JSON)
+        .get(JSONValue.class).asArray();
+    
+    if (procs.size() < expectedProcessCount) {
+      throw new IllegalStateException("Got " + procs.size() + " processes running, expected: " + expectedProcessCount);
     }
   }
   

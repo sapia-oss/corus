@@ -1,6 +1,7 @@
 package org.sapia.corus.client.rest;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.processor.KillPreferences;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 
@@ -26,7 +28,16 @@ public class ProcessWriteResourceTest {
   private CorusConnector connector;
   
   @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
   private CorusConnectionContext connection;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest          request;
@@ -41,8 +52,9 @@ public class ProcessWriteResourceTest {
   @Before
   public void setUp() {
     resource = new ProcessWriteResource();
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connector.getContext()).thenReturn(connection);
     when(connector.getProcessorFacade()).thenReturn(processor);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));
@@ -61,6 +73,8 @@ public class ProcessWriteResourceTest {
     when(request.getValue("i", "1")).thenReturn(new Value("i", "1"));
     when(request.getValue("corus:process_id")).thenReturn(new Value("corus:process_id", "1234"));
     when(request.getValue("pr")).thenReturn(new Value("pr", "*:*"));
+    when(request.getValue("check", "false")).thenReturn(new Value("check", "false"));
+    when(request.getValue("async", "false")).thenReturn(new Value("async", "false"));
   }
 
   @Test

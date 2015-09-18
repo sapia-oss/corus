@@ -9,6 +9,7 @@ import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.database.ArchiveStatus;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.RevId;
@@ -66,7 +67,7 @@ public abstract class ArchiverSupport<K, V> implements Archiver<K, V> {
         stream.field("values").beginArray();
         for (Map.Entry<K, Revision<K, V>> entry : revisions.entrySet()) {
           V value = entry.getValue().getRecord().toObject(descriptor);
-          ((JsonStreamable) value).toJson(stream);
+          ((JsonStreamable) value).toJson(stream, ContentLevel.DETAIL);
         }
         stream.endArray();
         stream.endObject();

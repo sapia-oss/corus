@@ -17,6 +17,7 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
+import org.sapia.corus.ftest.PartitionInfo;
 import org.sapia.ubik.util.Collects;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -226,8 +227,55 @@ public class PropertiesResourcesFuncTest {
   }
   
   @Test
+  public void testAddProperties_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/properties/process/test.category")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+
+    assertEquals(checkProperties(results, true), 1);
+  }
+  
+  @Test
   public void testAddProperties_category_specific_host() throws Exception {
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/process/test.category")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client
+        .resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+
+    assertEquals(checkProperties(results, true), 1);
+  }
+  
+  @Test
+  public void testAddProperties_category_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition  + "/properties/process/test.category")
         .queryParam("test.prop.1", "value1")
         .queryParam("test.prop.2", "value2")
         .request()
@@ -277,7 +325,10 @@ public class PropertiesResourcesFuncTest {
   }
   
   @Test
-  public void testArchiveProperties_specific_host() throws Exception {
+  public void testDeleteProperties_category_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
     Properties props = new Properties();
     props.setProperty("test.prop.1", "value1");
     props.setProperty("test.prop.2", "value2");
@@ -289,7 +340,40 @@ public class PropertiesResourcesFuncTest {
         false, ClusterInfo.clustered()
      );
     
-    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/archive")
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/properties/process/test.category")
+        .queryParam("p", "test.prop.*")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+    
+    assertEquals(checkProperties(results, true), client.getHostCount() - 1);
+  }
+  
+  @Test
+  public void testArchiveProperties_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    Properties props = new Properties();
+    props.setProperty("test.prop.1", "value1");
+    props.setProperty("test.prop.2", "value2");
+    
+    client.getConnector().getConfigFacade().addProperties(
+        PropertyScope.PROCESS, 
+        props, 
+        Collects.arrayToSet("test.category"), 
+        false, ClusterInfo.clustered()
+     );
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/properties/archive")
         .queryParam("revId", "test")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
@@ -307,7 +391,7 @@ public class PropertiesResourcesFuncTest {
           .delete(JSONValue.class);
     assertEquals(200, response.asObject().getInt("status"));
     
-    response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/unarchive")
+    response = client.resource("/clusters/ftest/" + partition + "/properties/unarchive")
         .queryParam("revId", "test")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())

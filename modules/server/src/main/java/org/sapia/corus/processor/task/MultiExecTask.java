@@ -5,6 +5,8 @@ import java.util.Set;
 
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Tag;
+import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.event.ProcessStartPendingEvent;
 import org.sapia.corus.processor.ProcessRef;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.Task;
@@ -37,18 +39,26 @@ public class MultiExecTask extends Task<Void, List<ProcessRef>> {
             + serverTags);
         continue;
       }
+      
+      int expectedCount = current.getInstanceCount() - startedCount;
+      if (expectedCount > 0) {
+        ProcessStartupInfo startupInfo = new ProcessStartupInfo(expectedCount);
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(
+            new ProcessStartPendingEvent(current.getDist(), current.getProcessConfig(), startupInfo)
+        );
+        for (; startedCount < current.getInstanceCount(); startedCount++) {
 
-      for (; startedCount < current.getInstanceCount(); startedCount++) {
+          ctx.info("Preparing execution of process: " + current.toString() + "; started up to now: " + startedCount + "; remaining: "
+              + (current.getInstanceCount() - startedCount));
 
-        ctx.info("Preparing execution of process: " + current.toString() + "; started up to now: " + startedCount + "; remaining: "
-            + (current.getInstanceCount() - startedCount));
-
-        ctx.info("Executing process instance #" + (startedCount + 1) + " of " + current.getInstanceCount() + ": "
-            + current.getProcessConfig().getName() + " of distribution: " + current.getDist().getName() + ", " + current.getDist().getVersion()
-            + ", " + current.getProfile());
-
-        ctx.getTaskManager().execute(new ExecTask(), TaskParams.createFor(current.getDist(), current.getProcessConfig(), current.getProfile()));
+          ctx.info("Executing process instance #" + (startedCount + 1) + " of " + current.getInstanceCount() + ": "
+              + current.getProcessConfig().getName() + " of distribution: " + current.getDist().getName() + ", " + current.getDist().getVersion()
+              + ", " + current.getProfile());
+          
+          ctx.getTaskManager().execute(new ExecTask(), TaskParams.createFor(current.getDist(), current.getProcessConfig(), current.getProfile(), startupInfo));
+        }
       }
+
     }
 
     return null;

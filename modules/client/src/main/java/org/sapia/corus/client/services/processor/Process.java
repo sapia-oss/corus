@@ -16,6 +16,7 @@ import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Mappable;
+import org.sapia.corus.client.common.ObjectUtils;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -153,12 +154,12 @@ public class Process extends AbstractPersistent<String, Process>
   // --------------------------------------------------------------------------
 
   static final int VERSION_1       = 1;
-  static final int CURRENT_VERSION = VERSION_1;
+  static final int VERSION_2       = 2;
+  static final int CURRENT_VERSION = VERSION_2;
   
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int DEFAULT_KILL_RETRY            = 3;
   
-  private int                                      classVersion    = CURRENT_VERSION;
   private DistributionInfo                         distributionInfo;
   private String                                   processID       = IDGenerator.makeIdFromDate();
   private String                                   processDir;
@@ -175,6 +176,7 @@ public class Process extends AbstractPersistent<String, Process>
   private transient int                            staleDeleteCount;
   private List<ActivePort>                         activePorts     = new ArrayList<ActivePort>();
   private transient org.sapia.corus.interop.Status processStatus;
+  private ProcessStartupInfo                       startupInfo     = new ProcessStartupInfo();
 
   /**
    * Meant for externalization only.
@@ -409,6 +411,20 @@ public class Process extends AbstractPersistent<String, Process>
    */
   public void setOsPid(String pid) {
     this.pid = pid;
+  }
+  
+  /**
+   * @param startupInfo the {@link ProcessStartupInfo} to assign to this instance.
+   */
+  public void setStartupInfo(ProcessStartupInfo startupInfo) {
+    this.startupInfo = startupInfo;
+  }
+  
+  /**
+   * @return this instance's {@link ProcessStartupInfo}.
+   */
+  public ProcessStartupInfo getStartupInfo() {
+    return startupInfo;
   }
 
   /**
@@ -668,16 +684,18 @@ public class Process extends AbstractPersistent<String, Process>
   }
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
-      .field("classVersion").value(classVersion)
+      .field("classVersion").value(CURRENT_VERSION)
       .field("id").value(processID)
       .field("name").value(distributionInfo.getProcessName())
       .field("pid").value(pid)
       .field("distribution").value(distributionInfo.getName())
       .field("version").value(distributionInfo.getVersion())
-      .field("profile").value(distributionInfo.getProfile())
-      .field("creationTimeMillis").value(creationTime)
+      .field("profile").value(distributionInfo.getProfile());
+    
+    if (level == ContentLevel.DETAIL) {
+      stream.field("creationTimeMillis").value(creationTime)
       .field("creationTimestamp").value(new Date(creationTime))
       .field("lastAccessTimeMillis").value(lastAccess)
       .field("lastAccessTimestamp").value(new Date(lastAccess))
@@ -687,8 +705,10 @@ public class Process extends AbstractPersistent<String, Process>
       .field("pollTimeout").value(pollTimeout)
       .field("shutdownTimeout").value(shutdownTimeout)
       .field("staleDetectionCount").value(staleDeleteCount)
-      .field("processDir").value(processDir)
-      .field("activePorts").beginArray();
+      .field("processDir").value(processDir);
+    }
+    
+    stream.field("activePorts").beginArray();
     for (ActivePort p : activePorts) {
       stream.beginObject()
         .field("name").value(p.getName())
@@ -696,13 +716,17 @@ public class Process extends AbstractPersistent<String, Process>
       .endObject();
     }
     stream.endArray();
+    if (level == ContentLevel.DETAIL) {
+      stream.field("startupInfo");
+      startupInfo.toJson(stream, level);
+    }
     stream.endObject();
   }
   
   public static Process fromJson(JsonInput input) {
     Process p = new Process();
     int inputVersion = input.getInt("classVersion");
-    if (inputVersion == VERSION_1) {
+    if (inputVersion == VERSION_1 || inputVersion == VERSION_2) {
       p.lock = new ProcessLock();
       p.processID = input.getString("id");
       p.pid       = input.getString("pid");
@@ -728,10 +752,13 @@ public class Process extends AbstractPersistent<String, Process>
         );
         p.addActivePort(port);
       }
+      if (inputVersion >= VERSION_2) {
+        p.startupInfo = ProcessStartupInfo.fromJson(input.getObject("startupInfo"));
+      }
+      
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    p.classVersion = CURRENT_VERSION;
     
     return p;
   }
@@ -821,7 +848,8 @@ public class Process extends AbstractPersistent<String, Process>
       ClassNotFoundException {
     
     int inputVersion = in.readInt();
-    if (inputVersion == VERSION_1) {
+    
+    if (inputVersion == VERSION_1 || inputVersion == VERSION_2) {
       distributionInfo = (DistributionInfo) in.readObject();
       processID        = in.readUTF();
       processDir       = in.readUTF();
@@ -836,17 +864,19 @@ public class Process extends AbstractPersistent<String, Process>
       status           = (LifeCycleStatus) in.readObject();
       commands         = (List<AbstractCommand>) in.readObject();
       activePorts      = (List<ActivePort>) in.readObject();
+      if (inputVersion >= VERSION_2) {
+        this.startupInfo = ObjectUtils.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
+      }
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    classVersion = CURRENT_VERSION;
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     
-    out.writeInt(classVersion);
-    
+    out.writeInt(CURRENT_VERSION);
+    // V1
     out.writeObject(distributionInfo);
     out.writeUTF(processID);
     out.writeUTF(processDir);
@@ -860,6 +890,9 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeObject(status);
     out.writeObject(commands);
     out.writeObject(activePorts);
+    // V2
+    out.writeObject(startupInfo);
+
   }
   
 }

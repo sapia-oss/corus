@@ -25,6 +25,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.DeployerFacade;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -42,7 +43,16 @@ public class DistributionResourceTest {
   private CorusConnector connector;
   
   @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
   private CorusConnectionContext connection;
+  
+  @Mock
+  private AsynchronousCompletionService  async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest    request;
@@ -85,8 +95,9 @@ public class DistributionResourceTest {
       results.addResult(result);
     }
     
-    context = new RequestContext(request, connector);
+    context = new RequestContext(request, connector, async, partitions, connectors);
     
+    when(connectors.acquire()).thenReturn(connector);
     when(connection.getDomain()).thenReturn("test-cluster");
     when(connection.getVersion()).thenReturn("test-version");
     when(connector.getDeployerFacade()).thenReturn(deployer);

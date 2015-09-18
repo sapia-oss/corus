@@ -21,6 +21,7 @@ import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.ubik.util.Collects;
 
@@ -31,7 +32,16 @@ public class PropertiesWriteResourceTest {
   private CorusConnector           connector;
   
   @Mock
+  private ConnectorPool            connectors;
+  
+  @Mock
   private CorusConnectionContext   connection;
+  
+  @Mock
+  private AsynchronousCompletionService async;
+  
+  @Mock
+  private PartitionService partitions;
   
   @Mock
   private RestRequest              request;
@@ -46,8 +56,9 @@ public class PropertiesWriteResourceTest {
   @Before
   public void setUp() throws Exception {
     resource = new PropertiesWriteResource();
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
 
+    when(connectors.acquire()).thenReturn(connector);
     when(connector.getConfigFacade()).thenReturn(confs);
     when(connector.getContext()).thenReturn(connection);
     when(request.getValue("corus:host")).thenReturn(new Value("corus:host", "localhost:33000"));

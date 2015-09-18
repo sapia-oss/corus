@@ -45,6 +45,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     this.serverContext = serverContext;
   }
 
+  @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
     info.setContextPath(HTTP_INTEROP_SOAP_CONTEXT);
@@ -53,6 +54,7 @@ public class SoapExtension implements HttpExtension, RequestListener {
     return info;
   }
 
+  @Override
   public void process(HttpContext ctx) throws Exception {
     ctx.getResponse().setHeader("Content-Type", "text/xml");
     try {
@@ -62,6 +64,10 @@ public class SoapExtension implements HttpExtension, RequestListener {
     } finally {
       ctx.getResponse().commit();
     }
+  }
+  
+  @Override
+  public void destroy() {
   }
 
   public synchronized void onConfirmShutdown(Process proc, ConfirmShutdown confirm) throws Exception {

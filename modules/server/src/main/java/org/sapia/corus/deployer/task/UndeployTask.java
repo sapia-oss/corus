@@ -7,7 +7,9 @@ import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.corus.client.services.deployer.event.UndeploymentEvent;
+import org.sapia.corus.client.services.deployer.event.UndeploymentCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.UndeploymentFailedEvent;
+import org.sapia.corus.client.services.deployer.event.UndeploymentStartingEvent;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -31,22 +33,29 @@ public class UndeployTask extends Task<Void, TaskParams<DistributionCriteria, Vo
 
   @Override
   public Void execute(TaskExecutionContext ctx, TaskParams<DistributionCriteria, Void, Void, Void> params) throws Throwable {
-    DistributionCriteria criteria = params.getParam1();
-
-    FileSystemModule      fs     = ctx.getServerContext().getServices().getFileSystem();
-    DistributionDatabase  db     = ctx.getServerContext().getServices().getDistributions();
-    DeployerConfiguration config = ctx.getServerContext().getServices().getDeployer().getConfiguration();
-
+    
+    DistributionCriteria  criteria = params.getParam1();
+    FileSystemModule      fs       = ctx.getServerContext().getServices().getFileSystem();
+    DistributionDatabase  db       = ctx.getServerContext().getServices().getDistributions();
+    DeployerConfiguration config   = ctx.getServerContext().getServices().getDeployer().getConfiguration();
+    
     List<Distribution> dists = db.getDistributions(criteria);
     for (Distribution dist : dists) {
-      File distDir = new File(dist.getBaseDir());
-      ctx.info(String.format("Undeploying distribution %s", dist.getDislayInfo()));
-      fs.deleteDirectory(distDir);
-      fs.deleteFile(FilePath.newInstance().addDir(config.getRepoDir()).setRelativeFile(dist.getDistributionFileName()).createFile());
-      ctx.info("Undeployment successful");
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentEvent(dist));
+      try {
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentStartingEvent(dist));
+        File distDir = new File(dist.getBaseDir());
+        ctx.info(String.format("Undeploying distribution %s", dist.getDislayInfo()));
+        fs.deleteDirectory(distDir);
+        fs.deleteFile(FilePath.newInstance().addDir(config.getRepoDir()).setRelativeFile(dist.getDistributionFileName()).createFile());
+        ctx.info("Undeployment successful");
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentCompletedEvent(dist));
+      } catch (Throwable err) {
+        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new UndeploymentFailedEvent(dist));
+        throw err;
+      }
     }
     db.removeDistribution(criteria);
+    
     return null;
   }
 }

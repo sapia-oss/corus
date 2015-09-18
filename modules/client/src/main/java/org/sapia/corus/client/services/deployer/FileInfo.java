@@ -79,7 +79,7 @@ public class FileInfo implements Externalizable, JsonStreamable {
   // JsonStreamable
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
       .field("name").value(fileName)
       .field("lastModifiedTimeMillis").value(lastModified.getTime())

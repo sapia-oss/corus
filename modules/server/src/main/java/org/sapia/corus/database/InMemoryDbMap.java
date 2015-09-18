@@ -11,6 +11,7 @@ import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RecordMatcher;
@@ -164,7 +165,7 @@ public class InMemoryDbMap<K, V> implements DbMap<K, V> {
     while (keys.hasNext()) {
       V value = get(keys.next());
       if (value instanceof JsonStreamable) {
-        ((JsonStreamable) value).toJson(stream);
+        ((JsonStreamable) value).toJson(stream, ContentLevel.DETAIL);
       }
     }
     stream.endArray();

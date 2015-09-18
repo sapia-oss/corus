@@ -22,6 +22,7 @@ import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
+import org.sapia.corus.ftest.PartitionInfo;
 import org.sapia.ubik.util.Assertions;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
@@ -266,6 +267,33 @@ public class ExecConfigResourcesFuncTest {
   }
   
   @Test
+  public void testDeployExecConfig_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    File toDeploy = new File("etc/exec.xml");
+
+    Assertions.illegalState(!toDeploy.exists(), "Exec config does not exist");
+    
+    try(FileInputStream fis = new FileInputStream(toDeploy)) {
+      JSONValue response = client.resource("/clusters/ftest/" + partition + "/exec-configs")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(fis, MediaType.APPLICATION_OCTET_STREAM), JSONValue.class);
+      assertEquals(200, response.asObject().getInt("status"));
+    }
+        
+    JSONArray configs = client.resource("/clusters/ftest/exec-configs")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(configs.size(), 1);
+  }
+  
+  @Test
   public void testUndeployExecConfig_specific_host() throws Exception {
     
     File toDeploy = new File("etc/exec.xml");
@@ -275,6 +303,35 @@ public class ExecConfigResourcesFuncTest {
     client.getConnector().getProcessorFacade().deployExecConfig(toDeploy, ClusterInfo.clustered());
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/exec-configs")
+        .queryParam("n", "ftest")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .delete(JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+    
+    JSONArray configs = client.resource("/clusters/ftest/exec-configs")
+        .request()
+          .accept(MediaType.APPLICATION_JSON)
+          .get(JSONValue.class)
+          .asArray();
+    assertEquals(configs.size(), client.getHostCount() - 1);
+    
+  }
+  
+  @Test
+  public void testUndeployExecConfig_partition() throws Exception {
+    
+    PartitionInfo partition = client.createPartitionSet();
+    
+    File toDeploy = new File("etc/exec.xml");
+    
+    Assertions.illegalState(!toDeploy.exists(), "Exec config does not exist");
+
+    client.getConnector().getProcessorFacade().deployExecConfig(toDeploy, ClusterInfo.clustered());
+    
+    JSONValue response = client.resource("/clusters/ftest/" + partition + "/exec-configs")
         .queryParam("n", "ftest")
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())

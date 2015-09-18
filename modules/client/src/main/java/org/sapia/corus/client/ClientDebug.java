@@ -8,12 +8,34 @@ package org.sapia.corus.client;
  */
 public class ClientDebug {
   
+  public interface ClientDebugOutput {
+    
+    public void println(String line);
+    
+  }
+  
+  // ==========================================================================
+  
   private static final boolean ENABLED = System.getProperty("corus.client.debug.enabled", "false").equalsIgnoreCase("true");
   
-  private String owner;
+  private String            owner;
+  
+  private static ClientDebugOutput OUTPUT = new ClientDebugOutput() {
+    @Override
+    public void println(String line) {
+      System.out.println(line);
+    }
+  };
   
   private ClientDebug(String owner) {
     this.owner = owner;
+  }
+  
+  /**
+   * @param output {@link ClientDebugOutput} to redirect output to.
+   */
+  public static void setOutput(ClientDebugOutput output) {
+    OUTPUT = output;
   }
   
   /**
@@ -38,7 +60,7 @@ public class ClientDebug {
    */
   public void trace(String msg, Object...args) {
     if (ENABLED) {
-      System.out.println("[" + owner + "] " + String.format(msg, args));
+      OUTPUT.println("[" + owner + "] " + String.format(msg, args));
     }
   }
   

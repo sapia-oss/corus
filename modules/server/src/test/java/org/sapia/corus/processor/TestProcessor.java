@@ -7,7 +7,10 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.reference.DefaultReference;
+import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
+import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
@@ -23,9 +26,15 @@ public class TestProcessor implements Processor{
   
   private TestProcessRepository      db            = new TestProcessRepository();
   private ProcessorConfigurationImpl configuration = new  ProcessorConfigurationImpl();
+  private Reference<ModuleState>     state         = new DefaultReference<ModuleState>(ModuleState.IDLE);
   
   public TestProcessRepository getProcessRepository(){
     return db;
+  }
+  
+  @Override
+  public Reference<ModuleState> getState() {
+    return state;
   }
 
   @Override

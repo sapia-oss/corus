@@ -28,8 +28,6 @@ public class CronJobInfo implements Externalizable, JsonStreamable, Mappable {
   static final int VERSION_1 = 1;
   static final int CURRENT_VERSION = VERSION_1;
 
-  private int classVersion = CURRENT_VERSION;
-
   public static final int UNDEFINED = -1;
   private String distName;
   private String profile;
@@ -62,9 +60,9 @@ public class CronJobInfo implements Externalizable, JsonStreamable, Mappable {
   }
   
   @Override
-  public void toJson(JsonStream stream) {
+  public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
-      .field("classVersion").value(classVersion)
+      .field("classVersion").value(CURRENT_VERSION)
       .field("id").value(id)
       .field("distribution").value(distName)
       .field("profile").value(profile)
@@ -225,12 +223,11 @@ public class CronJobInfo implements Externalizable, JsonStreamable, Mappable {
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    classVersion = CURRENT_VERSION;    
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeInt(classVersion);
+    out.writeInt(CURRENT_VERSION);
     out.writeUTF(distName);
     out.writeUTF(profile);
     out.writeUTF(version);

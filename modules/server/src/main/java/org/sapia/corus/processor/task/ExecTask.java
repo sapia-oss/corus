@@ -8,6 +8,8 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.event.ProcessStartedEvent;
 import org.sapia.corus.processor.ProcessInfo;
 import org.sapia.corus.processor.ProcessorThrottleKeys;
 import org.sapia.corus.taskmanager.core.Task;
@@ -31,7 +33,7 @@ import org.sapia.corus.taskmanager.core.Throttleable;
  * 
  * @author Yanick Duchesne
  */
-public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig, String, Void>> implements Throttleable {
+public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig, String, ProcessStartupInfo>> implements Throttleable {
 
   @Override
   public ThrottleKey getThrottleKey() {
@@ -39,14 +41,16 @@ public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig,
   }
 
   @Override
-  public Void execute(TaskExecutionContext ctx, TaskParams<Distribution, ProcessConfig, String, Void> params) throws Throwable {
+  public Void execute(TaskExecutionContext ctx, TaskParams<Distribution, ProcessConfig, String, ProcessStartupInfo> params) throws Throwable {
 
-    Distribution  dist    = params.getParam1();
-    ProcessConfig conf    = params.getParam2();
-    String        profile = params.getParam3();
+    Distribution       dist    = params.getParam1();
+    ProcessConfig      conf    = params.getParam2();
+    String             profile = params.getParam3();
+    ProcessStartupInfo startupInfo = params.getParam4();
 
     Process process = new Process(new DistributionInfo(dist.getName(), dist.getVersion(), profile, conf.getName()));
-
+    process.setStartupInfo(startupInfo);
+    
     ProcessInfo info = new ProcessInfo(process, dist, conf, false);
     PerformExecProcessTask execProcess = new PerformExecProcessTask();
     List<String> categories = new ArrayList<>(dist.getPropertyCategories());
@@ -61,6 +65,7 @@ public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig,
     if (ctx.getTaskManager().executeAndWait(execProcess, TaskParams.createFor(info, processProperties)).get()) {
       ctx.info(String.format("Added process to active process list: %s", process));
       ctx.getServerContext().getServices().getProcesses().addProcess(process);
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessStartedEvent(dist, conf, process));
     } else {
       ctx.info("Process execution failed; no process representation internally kept");
     }

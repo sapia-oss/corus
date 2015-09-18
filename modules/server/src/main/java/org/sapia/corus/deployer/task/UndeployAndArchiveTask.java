@@ -25,8 +25,8 @@ public class UndeployAndArchiveTask extends Task<Void, TaskParams<DistributionCr
     RevId                revId     = params.getParam2();
     List<Distribution>   toArchive = ctx.getServerContext().getServices().getDeployer().getDistributions(criteria);
     DistributionArchiver archiver  = ctx.getServerContext().getServices().getDistributionArchiver();
-    archiver.archive(revId, toArchive);
     try {
+      archiver.archive(revId, toArchive);
       ctx.getTaskManager().executeAndWait(new UndeployTask(), TaskParams.createFor(criteria)).get();
     } catch (Throwable t) {
       archiver.clear(revId);

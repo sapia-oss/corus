@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 
 public class AppKeyConfigTest {
@@ -25,7 +26,7 @@ public class AppKeyConfigTest {
   public void testJson() {
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    conf.toJson(stream);
+    conf.toJson(stream, ContentLevel.DETAIL);
     JsonInput in = JsonObjectInput.newInstance(writer.toString());
     AppKeyConfig copy = AppKeyConfig.fromJson(in);
     

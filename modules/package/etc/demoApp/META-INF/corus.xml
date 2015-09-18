@@ -1,7 +1,9 @@
-<distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.6.xsd">
+<distribution name="demo" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-4.8.xsd">
 
   <process name="httpServer" maxKillRetry="3" shutdownTimeout="30000" invoke="true" tags="http-server">
-    <port name="http.server" />
+    <port name="http.server">
+      <http-diagnostic portPrefix="8" />
+    </port>
     <preExec>
       <cmd>echo "*** Executing pre-exec script ***</cmd>
       <cmd>conf merge -b ${user.dir}/app.properties -f ${corus.process.dir}/app.properties -r</cmd>
@@ -68,9 +70,9 @@
   </process>
   
   <process name="echoServer" maxKillRetry="3" shutdownTimeout="30000" invoke="true">
+    <port name="test" />
     <magnet magnetFile="echoServerMagnet.xml" profile="test" vmType="server">
       <xoption  name="ms" value="16M" />
     </magnet>
-    <port name="test" />
   </process>  
 </distribution>

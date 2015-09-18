@@ -4,6 +4,8 @@ import java.io.StringWriter;
 
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticStatus;
+import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticStatus;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.ubik.util.Collects;
@@ -66,6 +68,42 @@ public class MetadataResource {
         return arg.name();
       }
     }));
+    return output.toString();
+  }
+  
+  @Path("/metadata/diagnostic/process-config-statuses")
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getDiagnosticProcessConfigStatusMetadata(RequestContext context) {
+    StringWriter output = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(output);
+    stream.beginArray();
+    for (ProcessConfigDiagnosticStatus s : ProcessConfigDiagnosticStatus.values()) {
+      stream.beginObject()
+        .field("name").value(s.name())
+        .field("description").value(s.description())
+      .endObject();
+    }
+    stream.endArray();
+    return output.toString();
+  }
+  
+  @Path("/metadata/diagnostic/process-statuses")
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getDiagnosticProcessStatusMetadata(RequestContext context) {
+    StringWriter output = new StringWriter();
+    WriterJsonStream stream = new WriterJsonStream(output);
+    stream.beginArray();
+    for (ProcessDiagnosticStatus s : ProcessDiagnosticStatus.values()) {
+      stream.beginObject()
+        .field("name").value(s.name())
+        .field("description").value(s.description())
+      .endObject();
+    }
+    stream.endArray();
     return output.toString();
   }
 }

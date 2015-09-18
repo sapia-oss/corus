@@ -18,6 +18,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.rest.RestRequest;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
+import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -31,10 +32,19 @@ public class ClusterResourceTest {
   private CorusConnector connector;
   
   @Mock
+  private ConnectorPool connectors;
+  
+  @Mock
   private CorusConnectionContext connection;
   
   @Mock
-  private RestRequest    request;
+  private AsynchronousCompletionService  async;
+  
+  @Mock
+  private PartitionService partitions;
+  
+  @Mock
+  private RestRequest request;
   
   private List<CorusHost> hosts;
   private RequestContext context;
@@ -42,10 +52,11 @@ public class ClusterResourceTest {
   
   @Before
   public void setUp() {
-    context  = new RequestContext(request, connector);
+    context  = new RequestContext(request, connector, async, partitions, connectors);
     resource = new ClusterResource();
     
     when(connector.getContext()).thenReturn(connection);
+    when(connectors.acquire()).thenReturn(connector);
     
     hosts = new ArrayList<CorusHost>();
     for (int i = 0; i < 5; i++) {
