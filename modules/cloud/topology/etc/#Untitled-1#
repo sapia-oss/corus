@@ -1,0 +1,21 @@
+["corus"]["avis_xms"]="16M"
+["corus"]["avis_xmx"]="96M"
+["corus"]["avis_gc"]="UseParallelGC"
+["corus"]["avis_enabled"]=false
+["corus"]["avis_download_url"] = "http://www.mediafire.com/download/jech2hca5yc49q7/avis-1.2.2.rpm"
+
+
+
+['corus']['archive_download_url']='http://www.mediafire.com/download/4lg7yfl3gzbk9j1/sapia_corus_server_package-develop-SNAPSHOT-linux64.tar.gz'
+['corus']['extract_dir']='/opt/corus'
+['corus']['current_sym_link']='current' 
+['corus']['version']='experimental'
+
+
+['corus']['java_home']=
+['corus']['home']=['corus']['current_sym_link']
+['corus']['port']=33000
+['corus']['log_dir']=['corus']['home'] + "/logs" 
+['corus']['log_level']="INFO"
+["corus"]["xms"]="64M"
+["corus"]["xmx"]="128M"

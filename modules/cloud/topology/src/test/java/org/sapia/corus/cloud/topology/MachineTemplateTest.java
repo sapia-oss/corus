@@ -40,10 +40,10 @@ public class MachineTemplateTest {
   @Test
   public void testCopyFrom() {
     template.copyFrom(other);
-    assertTrue(template.createServerProperties().getProperties().contains(CorusProperty.of("svrProp1", "p1")));
-    assertTrue(template.createProcessProperties().getProperties().contains(CorusProperty.of("procProp1", "p1")));
-    assertTrue(template.createServerProperties().getProperties().contains(CorusProperty.of("svrProp2", "p2")));
-    assertTrue(template.createProcessProperties().getProperties().contains(CorusProperty.of("procProp2", "p2")));
+    assertTrue(template.createServerProperties().getProperties().contains(Property.of("svrProp1", "p1")));
+    assertTrue(template.createProcessProperties().getProperties().contains(Property.of("procProp1", "p1")));
+    assertTrue(template.createServerProperties().getProperties().contains(Property.of("svrProp2", "p2")));
+    assertTrue(template.createProcessProperties().getProperties().contains(Property.of("procProp2", "p2")));
    
     assertTrue(template.getServerTags().contains(ServerTag.of("tag1")));
     assertTrue(template.getServerTags().contains(ServerTag.of("tag2")));
@@ -60,10 +60,10 @@ public class MachineTemplateTest {
     
     template.copyFrom(other);
     
-    assertTrue(template.createServerProperties().getProperties().contains(CorusProperty.of("svrProp1", "p1")));
-    assertTrue(template.createProcessProperties().getProperties().contains(CorusProperty.of("procProp1", "p1")));
-    assertTrue(template.createServerProperties().getProperties().contains(CorusProperty.of("svrProp2", "p1")));
-    assertTrue(template.createProcessProperties().getProperties().contains(CorusProperty.of("procProp2", "p1")));
+    assertTrue(template.createServerProperties().getProperties().contains(Property.of("svrProp1", "p1")));
+    assertTrue(template.createProcessProperties().getProperties().contains(Property.of("procProp1", "p1")));
+    assertTrue(template.createServerProperties().getProperties().contains(Property.of("svrProp2", "p1")));
+    assertTrue(template.createProcessProperties().getProperties().contains(Property.of("procProp2", "p1")));
   }
   
   @Test

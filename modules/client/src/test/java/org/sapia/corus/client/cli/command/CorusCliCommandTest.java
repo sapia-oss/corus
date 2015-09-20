@@ -17,6 +17,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;

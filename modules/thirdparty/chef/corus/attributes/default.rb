@@ -13,6 +13,7 @@ default['corus']['log_level'] = "INFO"
 default["corus"]["xms"] = "32M"
 default["corus"]["xmx"] = "96M"
 default['corus']['gc'] = "UseConcMarkSweepGC"
+default['corus']['args'] = ""
 
 default["corus"]["domain"]="default"
 default["corus"]["repo_type"]="none"
@@ -80,4 +81,3 @@ default["corus"]["server_properties"] = [
 default["corus"]["process_properties"] = [
   #"some.process.property=some.value"
 ]
-

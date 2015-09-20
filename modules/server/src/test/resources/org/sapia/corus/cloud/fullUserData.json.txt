@@ -1,8 +1,13 @@
 { 
   "corus": {
     
+    "domain": "test-domain",
+    "repo-role": "server",
+    "artifacts": [
+      { "url": "http//dist1" },
+      { "url": "http//dist2" }
+    ],
     "server": {
-    
       "properties": [
         { 
           "name": "theName1",

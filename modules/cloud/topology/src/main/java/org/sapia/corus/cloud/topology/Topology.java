@@ -1,11 +1,18 @@
 package org.sapia.corus.cloud.topology;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.sapia.util.xml.ProcessingException;
+import org.sapia.util.xml.confix.Dom4jProcessor;
+import org.sapia.util.xml.confix.ReflectionFactory;
 
 /**
  * Corresponds to the <code>topology</code> element.
@@ -15,7 +22,7 @@ import java.util.Set;
  */
 public class Topology extends ParamContainer implements XmlStreamable, Validateable {
   
-  private String application;
+  private String org, application;
   
   private Set<EnvTemplate>     envTemplates     = new HashSet<>();
   private Set<MachineTemplate> machineTemplates = new HashSet<>();
@@ -24,6 +31,14 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
   
   private Set<Env>             environments     = new HashSet<>();
   private boolean              rendered;
+  
+  public void setOrg(String org) {
+    this.org = org;
+  }
+  
+  public String getOrg() {
+    return org;
+  }
   
   public void setApplication(String application) {
     this.application = application;
@@ -37,6 +52,10 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     if (!regionTemplates.add(regionTemplate)) {
       throw new IllegalArgumentException(String.format("Duplicate <region-template> child element %s under <topology> element %s", regionTemplate.getName(), application));
     }
+  }
+  
+  public Set<RegionTemplate> getRegionTemplates() {
+    return regionTemplates;
   }
   
   public void addEnvTemplate(EnvTemplate envTemplate) {
@@ -79,12 +98,27 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     return environments;
   }
   
+  /**
+   * @param name an environment name.
+   * @return the {@link Env} instance with the given name.
+   * @throws IllegalArgumentException if no such environment is defined.
+   */
+  public Env getEnvByName(String name) throws IllegalArgumentException {
+    for (Env e  : environments) {
+      if (e.getName().equals(name)) {
+        return e;
+      }
+    }
+    throw new IllegalArgumentException("No environment with given name: " + name);
+  }
+  
   public void render() {
     TopologyContext context = new TopologyContext();
     context
       .addClusterTemplates(getClusterTemplates())
       .addEnvTemplates(getEnvTemplates())
-      .addMachineTemplates(getMachineTemplates());
+      .addMachineTemplates(getMachineTemplates())
+      .addRegionTemplates(getRegionTemplates());
     
     for (Env env : environments) {
       env.render(context);
@@ -119,13 +153,64 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     }
   }
   
+  /**
+   * @param is the {@link File} corresponding to the topology definition to load.
+   * @return the {@link Topology} instance corresponding to the given file.
+   */
+  public static Topology newInstance(File toLoad) {
+    try {
+      return newInstance(new FileInputStream(toLoad));
+    } catch (FileNotFoundException e) {
+      throw new IllegalStateException("Could not find topology file: " + toLoad.getAbsolutePath());
+    } 
+  }
+  
+  /**
+   * @param resource the path to the resource to load.
+   * @return the {@link Topology} instance corresponding to the given resource.
+   */
+  public static Topology newInstance(String resource) {
+    InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource);
+    if (stream == null) {
+      throw new IllegalStateException("Could not find topology resource: " + resource);
+    }
+    return newInstance(stream);
+  }
+  
+  /**
+   * Loads the {@link Topology} corresponding to the given topology definition stream. Closes
+   * the stream before returning.
+   * 
+   * @param is the {@link InputStream} corresponding to the topology definition to load.
+   * @return the {@link Topology} instance corresponding to the given stream.
+   */
+  public static Topology newInstance(InputStream is) {
+    ReflectionFactory fac = new TopologyObjectFactory();
+    Dom4jProcessor proc = new Dom4jProcessor(fac);
+
+    try {
+      return ((Topology) proc.process(is));
+    } catch (ProcessingException e) {
+      throw new IllegalStateException("Could not load topology", e);
+    } finally {
+      try {
+        is.close();
+      } catch (Exception e) {
+        // noop
+      }
+    }
+  }
+  
   // --------------------------------------------------------------------------
   // Validateable
   
   @Override
   public void validate() throws IllegalArgumentException {
+    if (org == null) {
+      throw new IllegalArgumentException("'org' attribute not set on <topology> element");
+    }
     if (application == null) {
-      throw new IllegalArgumentException("application not set on topology");
+      throw new IllegalArgumentException("'application' attribute not set on <topology> element");
     }
     if (environments.isEmpty()) {
       throw new IllegalArgumentException("No <env> child element(s) defined for <topology> element " + getApplication());
@@ -141,6 +226,11 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
   @Override
   public void output(XmlStream stream) {
     stream.beginRootElement("topology");
+    stream.attribute("org", org);
+    stream.attribute("application", application);
+    for (Param p : getParams()) {
+      p.output(stream);
+    }
     for (Env env : environments) {
       env.output(stream);
     }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.ubik.net.TCPAddress;

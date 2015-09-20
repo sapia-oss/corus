@@ -1,5 +1,8 @@
 package org.sapia.corus.cloud.topology;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Corresponds to the <code>cluster</code> element.
  * 
@@ -25,6 +28,36 @@ public class Cluster extends ClusterTemplate implements TopologyElement, XmlStre
       copyFrom(template);
       addParams(template.getParams());
     }
+  }
+  
+  public Set<Machine> getRepoServerMachines() {
+    Set<Machine> toReturn = new HashSet<Machine>();
+    for (Machine m : getMachines()) {
+      if (m.getRepoRole().equals(Machine.REPO_ROLE_SERVER)) {
+        if (m.getMinInstances() == 0) {
+          m.setMinInstances(1);
+        }
+        toReturn.add(m);
+      }
+    }
+    if (toReturn.isEmpty()) {
+      // no repo server set: setting the first occurring machine as the repo server
+      Machine selected = getMachines().iterator().next();
+      selected.setRepoRole(Machine.REPO_ROLE_SERVER);
+      selected.setMinInstances(1);
+      toReturn.add(selected);
+    }
+    return toReturn;
+  }
+  
+  public Set<Machine> getRepoClientMachines() {
+    Set<Machine> toReturn = new HashSet<Machine>();
+    for (Machine m : getMachines()) {
+      if (m.getRepoRole().equals(Machine.REPO_ROLE_CLIENT)) {
+        toReturn.add(m);
+      }
+    }
+    return toReturn;
   }
   
   // --------------------------------------------------------------------------

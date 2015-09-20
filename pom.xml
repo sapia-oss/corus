@@ -50,11 +50,11 @@
   </modules>
 
   <repositories>
-    <repository>
+    <!-- repository>
       <id>jline</id>
       <name>JLine Project Repository</name>
       <url>http://jline.sourceforge.net/m2repo</url>
-    </repository>
+    </repository-->
     <repository>
       <id>jboss-third-party</id>
       <name>JBosse 3rd-party dependencies</name>
@@ -175,6 +175,12 @@
         <classifier>demo</classifier>
         <version>${project.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_cloud_topo</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.sapia</groupId>
@@ -187,7 +193,6 @@
         <artifactId>sapia_corus_iop_api</artifactId>
         <version>${sapia-corus-iop.version}</version>
       </dependency>
-
 
       <dependency>
         <groupId>org.sapia</groupId>
@@ -204,7 +209,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>2.1</version>
+        <version>develop-SNAPSHOT</version>
       </dependency>
 
       <dependency>
@@ -329,6 +334,14 @@
         <artifactId>sigar-dist</artifactId>
         <version>1.6.3.82</version>
         <type>zip</type>
+      </dependency>
+      
+      <!-- Cloud -->
+      
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>1.9.33</version>
       </dependency>
 
     </dependencies>

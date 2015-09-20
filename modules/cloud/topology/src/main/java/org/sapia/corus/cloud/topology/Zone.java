@@ -1,5 +1,8 @@
 package org.sapia.corus.cloud.topology;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Corresponds to the <code>zone</code> element.
  * 
@@ -9,6 +12,8 @@ package org.sapia.corus.cloud.topology;
 public class Zone implements XmlStreamable, Validateable {
 
   private String name;
+  
+  private Set<Subnet> subnets = new HashSet<>();
   
   public Zone() {
   }
@@ -21,12 +26,20 @@ public class Zone implements XmlStreamable, Validateable {
     return name;
   }
   
-  public void setText(String zoneName) {
-    this.name = zoneName.trim();
-  }
-  
   public void setName(String zoneName) {
     this.name = zoneName.trim();
+  }
+
+  public void addSubnet(Subnet subnet) {
+    subnets.add(subnet);
+  }
+  
+  public void addSubnets(Set<Subnet> subnets) {
+    this.subnets.addAll(subnets);
+  }
+  
+  public Set<Subnet> getSubnets() {
+    return subnets;
   }
   
   public static Zone of(String name) {
@@ -49,7 +62,10 @@ public class Zone implements XmlStreamable, Validateable {
   @Override
   public void output(XmlStream stream) {
     stream.beginElement("zone");
-    stream.cdata(name);
+    stream.attribute("name", name);
+    for (Subnet n : subnets) {
+      n.output(stream);
+    }
     stream.endElement("zone");
   }
   

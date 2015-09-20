@@ -15,6 +15,7 @@ import org.sapia.console.Command;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
@@ -29,66 +30,7 @@ import org.sapia.ubik.util.Func;
  */
 public abstract class CorusCliCommand implements Command {
   
-  /**
-   * Describes a command-line option.
-   * 
-   * @author yduchesne
-   *
-   */
-  public static final class OptionDef implements Comparable<OptionDef> {
-    
-    private String name;
-    private boolean mustHaveValue;
-    
-    /**
-     * @param name the option name.
-     * @param mustHaveValue if <code>true</code>, indicates that a value must be provided.
-     */
-    public OptionDef(String name, boolean mustHaveValue) {
-      this.name = name;
-      this.mustHaveValue = mustHaveValue;
-    }
-    
-    /**
-     * @return the name of this instance's corresponding option.
-     */
-    public String getName() {
-      return name;
-    }
-    
-    /**
-     * @return <code>true</code> if options corresponding to this instance 
-     * must have a value.
-     */
-    public boolean mustHaveValue() {
-      return mustHaveValue;
-    }
-    
-    @Override
-    public String toString() {
-      return name;
-    }
-    
-    @Override
-    public int hashCode() {
-      return name.hashCode();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-      if (obj instanceof OptionDef) {
-        OptionDef def = (OptionDef) obj;
-        return name.equals(def.getName());
-      }
-      return false;
-    }
-    
-    @Override
-    public int compareTo(OptionDef o) {
-      return name.compareTo(o.getName());
-    }
-    
-  }
+  
   
   // --------------------------------------------------------------------------
 
@@ -285,9 +227,9 @@ public abstract class CorusCliCommand implements Command {
   protected void validate(CmdLine cmdLine) throws InputException {
     if (!cmdLine.containsOption(NO_VALIDATE, false)) {
       List<OptionDef> availableOptions = getAvailableOptions();
-      Map<String, OptionDef> byName = new HashMap<String, CorusCliCommand.OptionDef>();
+      Map<String, OptionDef> byName = new HashMap<String, OptionDef>();
       for (OptionDef a : availableOptions) {
-        byName.put(a.name, a);
+        byName.put(a.getName(), a);
       }
       for (int i = 0; i < cmdLine.size(); i++) {
         CmdElement e = cmdLine.get(i);
@@ -298,12 +240,12 @@ public abstract class CorusCliCommand implements Command {
             if (availableOptions.isEmpty()) {
               throw new InputException("Command " + getName() + " does not support options");
             } else {
-              Set<OptionDef> sorted = new TreeSet<CorusCliCommand.OptionDef>(availableOptions); 
+              Set<OptionDef> sorted = new TreeSet<OptionDef>(availableOptions); 
               throw new InputException(String.format("Unsupported option: %s. '%s' supports following options: %s", 
                   o.getName(), getName(), sorted));
             }
           }
-          if (d.mustHaveValue && (o.getValue() == null || o.getValue().trim().length() == 0)) {
+          if (d.mustHaveValue() && (o.getValue() == null || o.getValue().trim().length() == 0)) {
             throw new InputException(String.format("Option %s must have a value", o.getName()));
           }
         }

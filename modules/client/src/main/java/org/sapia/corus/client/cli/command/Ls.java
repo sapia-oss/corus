@@ -5,6 +5,7 @@ import java.util.List;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.console.table.Cell;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;

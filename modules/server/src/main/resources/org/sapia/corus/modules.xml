@@ -29,6 +29,24 @@
         scope="singleton"
         autowire="autodetect">
   </bean> 
+  
+  <!-- ============ ARTIFACT MANAGER ============ -->
+
+  <bean class="org.sapia.corus.deployer.artifact.FileArtifactProvider" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
+  <bean class="org.sapia.corus.deployer.artifact.S3ArtifactProvider" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
+  <bean name="org.sapia.corus.client.services.artifact.ArtifactManager" 
+        class="org.sapia.corus.deployer.artifact.ArtifactManagerImpl" 
+        scope="singleton" 
+        autowire="autodetect">
+  </bean>
     
   <!-- ============ DEPLOYER ============ -->
 

@@ -4,19 +4,19 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-public class CorusPropertyTest {
+public class PropertyTest {
 
   @Test
   public void testEqualsObject() {
-    CorusProperty p1 = new CorusProperty();
+    Property p1 = new Property();
     p1.setName("p1");
     p1.setValue("v1");
 
-    CorusProperty p2 = new CorusProperty();
+    Property p2 = new Property();
     p2.setName("p2");
     p2.setValue("v2");
 
-    CorusProperty p3 = new CorusProperty();
+    Property p3 = new Property();
     p3.setName("p1");
     p3.setValue("v1");
     

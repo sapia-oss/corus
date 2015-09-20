@@ -34,6 +34,7 @@ import org.sapia.corus.client.exceptions.ExceptionCode;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.cloud.CorusUserData;
+import org.sapia.corus.cloud.CorusUserDataEvent;
 import org.sapia.corus.cloud.CorusUserDataFactory;
 import org.sapia.corus.log.CompositeTarget;
 import org.sapia.corus.log.FormatterFactory;
@@ -70,6 +71,9 @@ public class CorusServer {
   public static final String PROP_INCLUDES        = "corus.server.properties.include";
   private static final String LOCK_FILE_NAME      = ".lock";
 
+  /**
+   * @param args
+   */
   @SuppressWarnings({ "deprecation" })
   public static void main(String[] args) {
     
@@ -256,6 +260,10 @@ public class CorusServer {
             + " or configure " + CorusConsts.PROPERTY_CORUS_DOMAIN
             + " as part of " + " corus.properties", ExceptionCode.INTERNAL_ERROR.getFullCode());
       }
+      
+      if (userData.getDomain().isSet()) {
+        domain = userData.getDomain().get();
+      }
 
       System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
 
@@ -327,7 +335,9 @@ public class CorusServer {
       Logger serverLog = h.getLoggerFor(CorusServer.class.getName());
       
       if (userDataFetchError != null) {
-        serverLog.warn("Error occurred while attempting to fetch user data. Proceeding with default config. Error was: ", userDataFetchError);
+        serverLog.error("Error occurred while attempting to fetch user data. Proceeding with default config. Error was: ", userDataFetchError);
+        serverLog.error("Aborting server startup");
+        System.exit(1);
       }
 
       if (propFile.exists()) {
@@ -387,7 +397,13 @@ public class CorusServer {
       corusProps.setProperty("corus.server.host", corusAddr.getHost());
       corusProps.setProperty("corus.server.port", "" + corusAddr.getPort());
       corusProps.setProperty("corus.server.domain", domain);
-      corusProps.setProperty("corus.home", domain);
+      corusProps.setProperty("corus.home", corusHome);
+      
+      // getting repo role from user data
+      if (userData.getRepoRole().isSet()) {
+        corusProps.setProperty(CorusConsts.PROPERTY_REPO_TYPE, userData.getRepoRole().get().name());
+      }
+      
       CorusImpl corus = new CorusImpl(corusProps, domain, transport.getServerAddress(), channel, transport, corusHome);
 
       ServerContext context = corus.getServerContext();
@@ -410,6 +426,10 @@ public class CorusServer {
       System.out.println("Corus server (" + CorusVersion.create() + ") started on: " + addr + ", domain: " + domain);
 
       EventDispatcher dispatcher = context.lookup(EventDispatcher.class);
+      
+      serverLog.debug("Dispatching user data to internal components");
+      dispatcher.dispatch(new CorusUserDataEvent(userData));
+      
       dispatcher.dispatch(new ServerStartedEvent(addr));
 
       Thread.currentThread().setPriority(Thread.MIN_PRIORITY);

@@ -26,6 +26,13 @@ public class Param implements XmlStreamable, Validateable {
     return value;
   }
   
+  public static Param of(String name, String value) {
+    Param p = new Param();
+    p.name = name;
+    p.value = value;
+    return p;
+  }
+  
   // --------------------------------------------------------------------------
   // Validateable
   

@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<name>Sapia Corus Cloud AWS</name>
+	<description>AWS cloud support</description>
+	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
+	<artifactId>sapia_corus_cloud_aws</artifactId>
+
+	<parent>
+		<groupId>org.sapia</groupId>
+		<artifactId>sapia_corus_cloud_parent</artifactId>
+		<version>develop-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<packaging>jar</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.sapia</groupId>
+			<artifactId>sapia_corus_cloud_topo</artifactId>
+		</dependency>
+		
+		<dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_console</artifactId>
+    </dependency>
+
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>2.3.22</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk</artifactId>
+		</dependency>
+
+		<dependency>
+		  <groupId>org.slf4j</groupId>
+		  <artifactId>slf4j-log4j12</artifactId>
+		  <version>1.7.2</version>
+		</dependency>
+
+	</dependencies>
+</project>

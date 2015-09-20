@@ -58,7 +58,7 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
 
   @Override
   public void start() throws Exception {
-    addHttpExtension(new PingExtension());
+    addHttpExtension(new PingExtension(serverContext));
     addHttpExtension(new FileSystemExtension(serverContext));
     addHttpExtension(new JmxExtension(serverContext));
     addHttpExtension(new SoapExtension(serverContext));
