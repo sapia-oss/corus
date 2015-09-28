@@ -10,15 +10,20 @@ import java.util.concurrent.TimeUnit;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
+import org.sapia.corus.client.services.pub.ProcessPubContext;
+import org.sapia.corus.client.services.pub.PublishingCallback;
+import org.sapia.corus.client.services.pub.UnpublishingCallback;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
+import org.sapia.corus.publisher.ProcessPublishingProvider;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
-import org.sapia.corus.taskmanager.core.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -27,9 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author yduchesne
  *
  */
-public class ConsulPublisher extends ModuleHelper {
+public class ConsulPublisher extends ModuleHelper implements ProcessPublishingProvider {
   
-  public static final String ROLE = ConsulPublisher.class.getName();
+  public static final String ROLE = ProcessPublishingProvider.class.getName() + ".CONSUL";
   
   private static final int HTTP_CONNECT_TIMEOUT = 10000;
 
@@ -45,14 +50,6 @@ public class ConsulPublisher extends ModuleHelper {
   private DynamicProperty<Integer> publishTtlSeconds      = new DynamicProperty<Integer>();
   
   private volatile Task<Void, Void> publishTask;
-  
-  // --------------------------------------------------------------------------
-  // Module interface
-  
-  @Override
-  public String getRoleName() {
-    return ROLE;
-  }
   
   // --------------------------------------------------------------------------
   // Visible for testing
@@ -93,6 +90,14 @@ public class ConsulPublisher extends ModuleHelper {
   }
   
   // --------------------------------------------------------------------------
+  // Module interface
+  
+  @Override
+  public String getRoleName() {
+    return ROLE;
+  }
+  
+  // --------------------------------------------------------------------------
   // Lifecycle
   
   @Override
@@ -120,6 +125,25 @@ public class ConsulPublisher extends ModuleHelper {
   @Override
   public void start() throws Exception {
     startPublishTask();
+  }
+  
+  // --------------------------------------------------------------------------
+  // PublishingProvider interface
+  
+  @Override
+  public boolean accepts(ProcessPubConfig config) {
+    // TODO
+    return false;
+  }
+  
+  @Override
+  public void publish(ProcessPubContext context, PublishingCallback callback) {
+    // TODO
+  }
+  
+  @Override
+  public void unpublish(ProcessPubContext context, UnpublishingCallback callback) {
+    // TODO
   }
   
   // --------------------------------------------------------------------------

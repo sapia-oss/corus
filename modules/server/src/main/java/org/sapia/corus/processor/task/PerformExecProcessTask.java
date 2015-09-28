@@ -29,9 +29,11 @@ import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.deployer.config.EnvImpl;
 import org.sapia.corus.processor.ProcessInfo;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -56,6 +58,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     Distribution  dist              = info.getDistribution();
     PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
     OsModule      os                = ctx.getServerContext().getServices().getOS();
+    
+    ProcessorConfiguration processorConf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
 
     if (conf.getMaxKillRetry() > 0) {
       process.setMaxKillRetry(conf.getMaxKillRetry());
@@ -154,6 +158,15 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     } else {
       ctx.info(String.format("OS pid: %s", process.getOsPid()));
     }
+    
+    ctx.getTaskManager().executeBackground(
+        new PublishProcessTask(processorConf.getProcessPublishingDiagnosticMaxAttempts()), 
+        process, 
+        BackgroundTaskConfig.create()
+          .setExecDelay(0).setExecInterval(
+              processorConf.getProcessPublishingDiagnosticIntervalMillis()
+        )
+    );
     return true;
   }
 

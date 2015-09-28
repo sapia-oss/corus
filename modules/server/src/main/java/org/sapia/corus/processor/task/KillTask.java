@@ -92,6 +92,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     
     if (super.getExecutionCount() == 0) {
        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKillPendingEvent(requestor, proc));
+       ctx.getTaskManager().executeAndWait(new UnpublishProcessTask(), proc).get();
     }
 
     ctx.debug(String.format("Killing %s", proc));

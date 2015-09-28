@@ -103,6 +103,8 @@
     <property name="processTimeout"       value="${corus.process.timeout}" />
     <property name="autoRestart"          value="${corus.process.auto-restart}" />
     <property name="bootExecEnabled"      value="${corus.process.start-at-boot.enabled}" />
+    <property name="processPublishingDiagnosticMaxAttempts" value="${corus.process.pub.diagnostic.max-attempts}" />
+    <property name="processPublishingDiagnosticInterval"    value="${corus.process.pub.diagnostic.interval}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.processor.Processor" 
@@ -176,18 +178,39 @@
     <property name="alertLevel"      value="${corus.server.alert.level}" />
   </bean> 
 
-  <!-- ============ CONSUL ============ -->
+  <!-- ============ PUBLISHER ============ -->
+
+  <!-- AWS -->
   
-  <bean name="org.sapia.corus.ext.pub.consul.ConsulPublisher"
-  		class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
-  		scope="singleton"
-  		autowire="autodetect">
-    <property name="enabled"   	            value="${corus.server.pub.consul.enabled}" />
+  <bean name="org.sapia.corus.aws.AwsConfiguration"
+      class="org.sapia.corus.aws.AwsConfigBean"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="awsEnabled" value="${corus.server.aws.enabled}" />
+  </bean> 
+  
+  <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.AWS"
+      class="org.sapia.corus.ext.pub.aws.AwsElbPublishingProvider"
+      scope="singleton"
+      autowire="autodetect">
+  </bean> 
+
+  <!-- Consul -->
+  <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.CONSUL"
+      class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="enabled"                value="${corus.server.pub.consul.enabled}" />
     <property name="agentUrl"               value="${corus.server.pub.consul.agent-url}" />
     <property name="publishIntervalSeconds" value="${corus.server.pub.consul.interval}" />
     <property name="publishTtlSeconds"      value="${corus.server.pub.consul.ttl}" />
   </bean> 
-  
+
+  <bean name="orgs.sapia.co"
+      class="org.sapia.corus.publisher.ProcessPublisherImpl"
+      scope="singleton"
+      autowire="autodetect">
+  </bean> 
   
   <!-- ============ DIAGNOSTICS ============ -->
 

@@ -122,5 +122,13 @@ public interface CorusConsts {
    * Defines the TTL of Corus' publication to Consul (should be set to more than the publishing interval).
    */
   public static final String PROPERTY_CORUS_EXT_PUB_CONSUL_TTL       = "corus.server.pub.consul.ttl";
+
+  // --------------------------------------------------------------------------
+  // AWS
   
+  /**
+   * Indicates if AWS integration is enabled.
+   */
+  public static final String PROPERTY_CORUS_AWS_ENABLED   = "corus.server.aws.enabled";
+
 }

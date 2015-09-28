@@ -39,7 +39,7 @@ import org.sapia.corus.taskmanager.core.TaskParams;
  * @author Yanick Duchesne
  */
 @RunWith(MockitoJUnitRunner.class)
-public class KillTaskTest extends TestBaseTask{
+public class KillTaskTest extends TestBaseTask {
   
   private Process          proc;
 

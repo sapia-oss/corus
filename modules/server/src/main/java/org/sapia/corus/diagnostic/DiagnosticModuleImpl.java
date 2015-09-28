@@ -1,6 +1,7 @@
 package org.sapia.corus.diagnostic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import java.util.Set;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -49,6 +51,7 @@ import org.sapia.corus.taskmanager.CorusTaskManager;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.SysClock;
@@ -103,8 +106,6 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   
   @Autowired
   private CorusTaskManager taskManager;
- 
-  LockOwner lockOwner = LockOwner.createInstance();
   
   private long startTime = System.currentTimeMillis();
   private volatile long lastProgressCheck;
@@ -208,7 +209,6 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       }
     });
     
-    
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DIAGNOSTIC_GRACE_PERIOD_DURATION, processStartupGracePeriodDuration);
     
     dispatcher.addInterceptor(ProcessStartPendingEvent.class, this);
@@ -280,10 +280,27 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
     }
   }
   
-  // --------------------------------------------------------------------------
-  // Visible for testing
+  @Override
+  public synchronized ProcessDiagnosticResult acquireDiagnosticFor(Process process, LockOwner requestingOwner) {
+    if (process.getStatus() == LifeCycleStatus.STALE) {
+      return new ProcessDiagnosticResult(ProcessDiagnosticStatus.STALE, "Process is stale", process);
+    } else if (process.getStatus() == LifeCycleStatus.RESTARTING) {
+      return new ProcessDiagnosticResult(ProcessDiagnosticStatus.RESTARTING, "Process is restarting",  process);
+    } else if (process.getStatus() == LifeCycleStatus.KILL_CONFIRMED || process.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
+      return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SHUTTING_DOWN, "Process is shutting down",  process);
+    } else if (process.getStatus() == LifeCycleStatus.SUSPENDED) {
+      return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SUSPENDED, "Process is suspended",  process);
+    } else if (process.getLock().isLocked() && !process.getLock().getOwner().equals(requestingOwner)) {
+      return new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, "Process is locked. Try again in a few seconds",  process);
+    } else if (process.getStatus() == LifeCycleStatus.ACTIVE) {
+      return doAcquireProcessDiagnosticFor(process);
+    } else {
+      throw new IllegalStateException("Unknow process state: " + process.getStatus());
+    }
+  }
   
-  List<ProcessConfigDiagnosticResult> acquireProcessDiagnostics() {
+  @Override
+  public List<ProcessConfigDiagnosticResult> acquireProcessDiagnostics() {
     List<ProcessConfigDiagnosticResult> allResults = new ArrayList<ProcessConfigDiagnosticResult>();
     
     for (Distribution dist : deployer.getDistributions(DistributionCriteria.builder().all())) {
@@ -347,7 +364,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
           log.warn(String.format("Got %s terminating processes for %s", terminatingProcesses.size(), ToStringUtils.toString(dist, pc)));
           
           List<ProcessDiagnosticResult> pdrs = new ArrayList<ProcessDiagnosticResult>();
-          for (Process p : staleProcesses) {
+          for (Process p : terminatingProcesses) {
             ProcessDiagnosticResult pdr = new ProcessDiagnosticResult(ProcessDiagnosticStatus.SHUTTING_DOWN, "Process is shutting down", p);
             pdrs.add(pdr);
           }
@@ -360,7 +377,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
           log.warn(String.format("Got %s restarting processes for %s", restartingProcesses.size(), ToStringUtils.toString(dist, pc)));
           
           List<ProcessDiagnosticResult> pdrs = new ArrayList<ProcessDiagnosticResult>();
-          for (Process p : staleProcesses) {
+          for (Process p : restartingProcesses) {
             ProcessDiagnosticResult pdr = new ProcessDiagnosticResult(ProcessDiagnosticStatus.RESTARTING, "Process is retarting", p);
             pdrs.add(pdr);
           }
@@ -429,9 +446,43 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
     }
     return allResults;
   }
-  
+
   // --------------------------------------------------------------------------
-  // Restricted methods (visible for testing)
+  // Restricted methods
+  
+  private ProcessDiagnosticResult doAcquireProcessDiagnosticFor(Process process) {
+    try {
+      Distribution dist = deployer.getDistribution(process.getDistributionInfo().newDistributionCriteria());
+      ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
+      Assertions.illegalState(processConf == null, "No process configuration found for process: %s", ToStringUtils.toString(process));
+      
+      List<Process> toDiagnose = Arrays.asList(process);
+      
+      ProcessConfigDiagnosticResult.Builder diagnosticResultBuilder = ProcessConfigDiagnosticResult.Builder.newInstance()
+          .distribution(dist)
+          .processConfig(processConf);
+    
+      ProcessConfigDiagnosticEvaluationContext evalContext = new ProcessConfigDiagnosticEvaluationContext(
+          diagnosticCallback, 
+          diagnosticResultBuilder, 
+          dist, processConf, toDiagnose, 1
+      )
+      .withLog(log)
+      .withClock(clock)
+      .withGracePeriod(processStartupGracePeriodDuration.getValueNotNull())
+      .withStartTime(startTime);
+      
+      ProcessConfigDiagnosticEvaluator evaluator = selectEvaluator(evalContext);
+      evaluator.evaluate(evalContext);
+      
+      List<ProcessDiagnosticResult> processResults = diagnosticResultBuilder.build(evalContext).getProcessResults();
+      Assertions.illegalState(processResults.size() != 1, "Expected one result for process diagnostic, got: %s", processResults.size());
+      return processResults.get(0);
+    } catch (DistributionNotFoundException e) {
+      throw new IllegalStateException("Distribution not found for process: " + ToStringUtils.toString(process));
+    }
+    
+  }
   
   int getExpectedInstancesFor(ProcessConfig config) {
     int toReturn = -1;

@@ -30,6 +30,7 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
 
   private String _name;
   private OptionalValue<? extends DiagnosticConfig> _diagnosticConfig = OptionalValue.none();
+  private OptionalValue<PublishingConfig> _publishing = OptionalValue.none();
 
   /** Creates a new instance of Port */
   public Port() {
@@ -45,6 +46,17 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
   
   public OptionalValue<? extends DiagnosticConfig> getDiagnosticConfig() {
     return _diagnosticConfig;
+  }
+  
+  public OptionalValue<PublishingConfig> getPublishing() {
+    return _publishing;
+  }
+  
+  public PublishingConfig createPublishing() {
+    if (_publishing.isNull()) {
+      _publishing = OptionalValue.of(new PublishingConfig());
+    }
+    return _publishing.get();
   }
   
   // --------------------------------------------------------------------------
@@ -63,7 +75,8 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
     if (toHandle instanceof DiagnosticConfig) {
       _diagnosticConfig = OptionalValue.of((DiagnosticConfig) toHandle);
     } else {
-      throw new ConfigurationException("Expected instance of " + DiagnosticConfig.class.getName() + ". Got: " + toHandle.getClass().getName());
+      throw new ConfigurationException(String.format("Expected instance of %s. Got %s", 
+          DiagnosticConfig.class.getName(), toHandle.getClass().getName()));
     }
   }
  
@@ -83,11 +96,14 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
       ClassNotFoundException {
     _name = in.readUTF();
     _diagnosticConfig = (OptionalValue<DiagnosticConfig>) in.readObject();
+    _publishing = (OptionalValue<PublishingConfig>) in.readObject();
+
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeUTF(_name);
     out.writeObject(_diagnosticConfig);
+    out.writeObject(_publishing);
   }
 }

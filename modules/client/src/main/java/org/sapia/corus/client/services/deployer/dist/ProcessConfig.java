@@ -447,11 +447,11 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   // --------------------------------------------------------------------------
   // ObjectHandlerIF
   
-  public void handleObject(String elementName, Object starter) throws ConfigurationException {
-    if (starter instanceof Starter) {
-      addStarter((Starter) starter);
+  public void handleObject(String elementName, Object obj) throws ConfigurationException {
+    if (obj instanceof Starter) {
+      addStarter((Starter) obj);
     } else {
-      throw new ConfigurationException(starter.getClass().getName() + " does not implement the " + Starter.class.getName() + " interface");
+      throw new ConfigurationException(obj.getClass().getName() + " unexpected. Expected " + Starter.class.getName() + " instance");
     }
   }
   
