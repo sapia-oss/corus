@@ -74,7 +74,10 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
   public void init() throws Exception {
     awsConf.addConfigChangeListener(this);
     if (awsConf.isAwsEnabled()) {
+      log.info("AWS integration is enabled, creating AWS client");
       elbClient = OptionalValue.of(createElbClient());
+    } else {
+      log.info("AWS integration is disabled. AWS client not created");
     }
   }
   
@@ -91,6 +94,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
   @Override
   public void onAwsDisabled() {
     if (elbClient.isSet()) {
+      log.info("AWS integration has been disabled, shutting down AWS client");
       elbClient.get().shutdown();
       elbClient = OptionalValue.none();
     }
@@ -99,6 +103,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
   @Override
   public void onAwsEnabled() {
     if (elbClient.isNull()) {
+      log.info("AWS integration has been enabled, creating AWS client");
       elbClient = OptionalValue.of(createElbClient());
     }
   }

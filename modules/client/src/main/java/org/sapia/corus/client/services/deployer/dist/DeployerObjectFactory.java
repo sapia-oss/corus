@@ -33,6 +33,7 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("https-diagnostic", HttpsDiagnosticConfig.class);
     register("http-diagnostic", HttpDiagnosticConfig.class);
     register("aws-elb-publisher", AwsElbPublisherConfig.class);
+    register("consul-publisher", ConsulPublisherConfig.class);
   }
 
   void register(String localName, Class<?> clazz) {

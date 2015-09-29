@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.event.EventDispatcher;
@@ -38,19 +39,20 @@ public class UnpublishProcessTaskTest extends TestBaseTask {
   
   private Process process;
   
+  private Distribution dist;
+  
   private ProcessConfig processConf;
   
   private ActivePort activePort;
   
   private UnpublishProcessTask task;
   
-  
-  
   @Before
   public void setUp() throws Exception {
     super.setUp();
     
     process = new Process(new DistributionInfo("test", "1.0", "prod", "testProcess"));
+    dist = new Distribution("test", "1.0");
     processConf = new ProcessConfig("testProcess");
     activePort = new ActivePort("test-port", 8080);
     
@@ -93,7 +95,7 @@ public class UnpublishProcessTaskTest extends TestBaseTask {
       public Void answer(InvocationOnMock invocation) throws Throwable {
         Process p = invocation.getArgumentAt(0, Process.class);
         UnpublishingCallback cb = invocation.getArgumentAt(1, UnpublishingCallback.class);
-        cb.unpublishingSuccessful(new ProcessPubContext(p, processConf, activePort, mock(ProcessPubConfig.class)));
+        cb.unpublishingSuccessful(new ProcessPubContext(p, dist, processConf, activePort, mock(ProcessPubConfig.class)));
         return null;
       }
     }).when(publisher).unpublishProcess(eq(process), any(UnpublishingCallback.class));
@@ -105,7 +107,7 @@ public class UnpublishProcessTaskTest extends TestBaseTask {
       public Void answer(InvocationOnMock invocation) throws Throwable {
         Process p = invocation.getArgumentAt(0, Process.class);
         UnpublishingCallback cb = invocation.getArgumentAt(1, UnpublishingCallback.class);
-        cb.unpublishingFailed(new ProcessPubContext(p, processConf, activePort, mock(ProcessPubConfig.class)), 
+        cb.unpublishingFailed(new ProcessPubContext(p, dist, processConf, activePort, mock(ProcessPubConfig.class)), 
             new Exception("Unpublishing failed"));
         return null;
       }

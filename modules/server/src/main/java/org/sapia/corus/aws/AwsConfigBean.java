@@ -46,12 +46,23 @@ public class AwsConfigBean implements AwsConfiguration {
   // --------------------------------------------------------------------------
   // Visible for testing
   
-  void setAwsEnabled(boolean isAwsEnabled) {
-    this.isAwsEnabled = new DynamicProperty<Boolean>(isAwsEnabled);
+  DynamicProperty<Boolean> getIsAwsEnabled() {
+    return isAwsEnabled;
   }
   
   void setConfigurator(InternalConfigurator configurator) {
     this.configurator = configurator;
+  }
+  
+  public void setInstanceId(OptionalValue<String> instanceId) {
+    this.instanceId = instanceId;
+  }
+
+  // --------------------------------------------------------------------------
+  // Config setters
+  
+  public void setAwsEnabled(boolean isAwsEnabled) {
+    this.isAwsEnabled = new DynamicProperty<Boolean>(isAwsEnabled);
   }
 
   // --------------------------------------------------------------------------
@@ -76,7 +87,7 @@ public class AwsConfigBean implements AwsConfiguration {
           log.info("AWS integration disabled");
           synchronized (listeners) {
             for (AwsConfigChangeListener l : listeners) {
-              l.onAwsEnabled();
+              l.onAwsDisabled();
             }
           }
         }
@@ -84,9 +95,9 @@ public class AwsConfigBean implements AwsConfiguration {
     });
     
     if (isAwsEnabled.getValue()) {
-      log.debug("AWS support enabled");
+      log.info("AWS support enabled");
     } else {
-      log.debug("AWS support disabled");
+      log.info("AWS support disabled");
     }
   }
 
@@ -128,10 +139,13 @@ public class AwsConfigBean implements AwsConfiguration {
   // Restricted
   
   private void checkAwsEnabled() throws IllegalStateException {
-    throw new IllegalStateException("AWS support disabled");
+    if (!isAwsEnabled()) {
+      throw new IllegalStateException("AWS support disabled");
+    }
   }
   
-  private static String retrieveInstanceId() throws IOException {
+  // visible for testing
+  protected String retrieveInstanceId() throws IOException {
     String inputLine = null;
     URL url = new URL("http://169.254.169.254/latest/meta-data/instance-id");
     

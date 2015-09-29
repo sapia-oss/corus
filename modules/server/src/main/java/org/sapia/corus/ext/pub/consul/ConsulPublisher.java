@@ -5,11 +5,18 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.dist.ConsulPublisherConfig;
+import org.sapia.corus.client.services.deployer.dist.HttpDiagnosticConfig;
+import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.client.services.pub.ProcessPubContext;
@@ -24,6 +31,7 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
+import org.sapia.ubik.util.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -110,7 +118,7 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
       public void onModified(DynamicProperty<Boolean> property) {
         if (property.getValue()) {
           logger().info("Publishing to Consul enabled");
-          startPublishTask();
+          startPublishCorusHostTask();
         } else {
           logger().info("Publishing to Consul disabled");
         }
@@ -124,7 +132,7 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
   
   @Override
   public void start() throws Exception {
-    startPublishTask();
+    startPublishCorusHostTask();
   }
   
   // --------------------------------------------------------------------------
@@ -132,30 +140,161 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
   
   @Override
   public boolean accepts(ProcessPubConfig config) {
-    // TODO
-    return false;
+    return this.publishingEnabled.getValueNotNull() && config instanceof ConsulPublisherConfig;
   }
   
   @Override
   public void publish(ProcessPubContext context, PublishingCallback callback) {
-    // TODO
+    try {
+      callback.publishingStarted(context);
+      doPublish(context);
+      callback.publishingSuccessful(context);
+    } catch (Exception e) {
+      callback.publishingFailed(context, e);
+    }
+  }
+ 
+  private void doPublish(ProcessPubContext context) {
+    ConsulPublisherConfig pubConf     = (ConsulPublisherConfig) context.getPubConfig();
+    String                serviceName = 
+        pubConf.getServiceName().isNull() 
+        ? context.getProcess().getDistributionInfo().getName() + "-" + context.getProcess().getDistributionInfo().getProcessName()
+        : pubConf.getServiceName().get();
+        
+    Port portConf = context.getProcessConfig().getPortByName(context.getPort().getName()).get();
+    
+    Assertions.illegalState(
+        portConf.getDiagnosticConfig().isNull(), 
+        "Diagnostic config not set for port: %s of process %s",
+        portConf.getName(), ToStringUtils.toString(context.getProcess())
+    );
+    
+    Assertions.illegalState(
+        !(portConf.getDiagnosticConfig().get() instanceof HttpDiagnosticConfig), 
+        "Expected HttpDiagnostic config for port: %s of process %s. Got: %s",
+        portConf.getName(), ToStringUtils.toString(context.getProcess()),
+        portConf.getDiagnosticConfig().get()
+    );
+        
+    HttpDiagnosticConfig diagnosticConf = (HttpDiagnosticConfig) portConf.getDiagnosticConfig().get();
+    int servicePort = diagnosticConf.getPortPrefix() > 0 
+        ? Integer.parseInt("" + diagnosticConf.getPortPrefix() + context.getPort().getPort()) 
+        : context.getPort().getPort();
+        
+    Set<String> tags = new HashSet<String>();
+    tags.add(serverContext().getDomain());
+    tags.addAll(context.getDistribution().getTagSet());
+    tags.addAll(context.getProcessConfig().getTagSet());
+
+    StringWriter sw     = new StringWriter();
+    JsonStream   stream = new WriterJsonStream(sw);
+    Endpoint     ep     = serverContext().getCorusHost().getEndpoint();
+    
+    stream
+      .beginObject()
+        .field("id").value(serviceName + "-" + servicePort)
+        .field("name").value(serviceName)
+        .field("tags").strings(new ArrayList<String>(tags))
+        .field("address").value(ep.getServerTcpAddress().getHost())
+        .field("port").value(servicePort)
+        .field("checks").beginArray()
+          .beginObject()
+            .field("id").value("check-" + serviceName + "-" + servicePort)
+            .field("name").value("check-" + serviceName)
+            .field("http").value(diagnosticConf.getProtocol() + "://" 
+                + serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getHost() 
+                + ":" + servicePort + diagnosticConf.getPath())
+            .field("interval").value(pubConf.getCheckInterval() + "s")
+            .field("timeout").value(pubConf.getCheckTimeout() + "s")
+          .endObject()
+        .endArray()
+      .endObject();
+    
+    if (logger().isDebugEnabled()) {
+      logger().debug("Sending process publishing payload to Consul: " + sw.toString());
+    }
+    
+    try {
+      URL url = new URL(
+          agentUrl.getValue() + (agentUrl.getValue().endsWith("/") ? "" : "/") + "v1/agent/service/register"
+      );
+      ConsulResponseFacade resp = doSendPayload(url, sw.toString(), "PUT");
+      
+      if(resp.getStatusCode() != HttpResponseFacade.STATUS_OK) {
+        throw new IllegalStateException("Could not publish - got error from Consul agent: " + resp.getStatusCode() + " - " + resp.getStatusMessage());
+      } 
+      resp.disconnect();
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not connect to Consul agent at: " + agentUrl, e);
+    }
   }
   
   @Override
   public void unpublish(ProcessPubContext context, UnpublishingCallback callback) {
-    // TODO
+    try {
+      callback.unpublishingStarted(context);
+      doUnpublish(context);
+      callback.unpublishingSuccessful(context);
+    } catch (Exception e) {
+      callback.unpublishingFailed(context, e);
+    }
+  }
+  
+  private void doUnpublish(ProcessPubContext context) {
+    ConsulPublisherConfig pubConf     = (ConsulPublisherConfig) context.getPubConfig();
+    String                serviceName = 
+        pubConf.getServiceName().isNull() 
+        ? context.getProcess().getDistributionInfo().getName() + "-" + context.getProcess().getDistributionInfo().getProcessName()
+        : pubConf.getServiceName().get();
+        
+    Port portConf = context.getProcessConfig().getPortByName(context.getPort().getName()).get();
+    
+    Assertions.illegalState(
+        portConf.getDiagnosticConfig().isNull(), 
+        "Diagnostic config not set for port: %s of process %s",
+        portConf.getDiagnosticConfig(), ToStringUtils.toString(context.getProcess())
+    );
+    
+    Assertions.illegalState(
+        !(portConf.getDiagnosticConfig().get() instanceof HttpDiagnosticConfig), 
+        "Expected HttpDiagnostic config for port: %s of process %s. Got: %s",
+        portConf.getDiagnosticConfig(), ToStringUtils.toString(context.getProcess()),
+        portConf.getDiagnosticConfig().get()
+    );
+        
+    HttpDiagnosticConfig diagnosticConf = (HttpDiagnosticConfig) portConf.getDiagnosticConfig().get();
+    int servicePort = diagnosticConf.getPortPrefix() > 0 
+        ? Integer.parseInt("" + diagnosticConf.getPortPrefix() + context.getPort().getPort()) 
+        : context.getPort().getPort();
+    
+    try {
+      URL url = new URL(
+          agentUrl.getValue() 
+          + (agentUrl.getValue().endsWith("/") ? "" : "/") 
+          + "v1/agent/service/unregister/" 
+          + serviceName + "-" + servicePort
+      );
+      ConsulResponseFacade resp = doInvokeUrl(url, "DELETE");
+      
+      if(resp.getStatusCode() != HttpResponseFacade.STATUS_OK) {
+        throw new IllegalStateException("Could not publish - got error from Consul agent: " + resp.getStatusCode() + " - " + resp.getStatusMessage());
+      } 
+      resp.disconnect();
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not connect to Consul agent at: " + agentUrl, e);
+    }    
   }
   
   // --------------------------------------------------------------------------
   // Restricted
   
-  private synchronized void startPublishTask() {
+  private synchronized void startPublishCorusHostTask() {
     if (publishTask == null && publishingEnabled.getValueNotNull()) {
       publishTask = new Task<Void, Void>("ConsulPublishTask") {
         public Void execute(org.sapia.corus.taskmanager.core.TaskExecutionContext ctx, Void param) throws Throwable 
         {
           if (publishingEnabled.getValueNotNull()) {
-            doPublish();
+            doPublishCorusHost();
           } else {
             abort();
             publishTask = null;
@@ -174,21 +313,20 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     }
   }
   
-  private void doPublish() {
-    logger().info("Publishing to Consul is enabled - proceeding");
+  private void doPublishCorusHost() {
     StringWriter sw = new StringWriter();
     JsonStream stream = new WriterJsonStream(sw);
     Endpoint ep = serverContext().getCorusHost().getEndpoint();
     stream
       .beginObject()
-        .field("ID").value("corus-" + serverContext().getCorusHost().getFormattedAddress())
-        .field("Name").value("Corus")
-        .field("Tags").strings(new String[] {
+        .field("id").value("corus-" + serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getPort())
+        .field("name").value("corus")
+        .field("tags").strings(new String[] {
             serverContext().getCorus().getDomain()
          })
-        .field("Address").value(ep.getServerTcpAddress().getHost())
-        .field("Port").value(ep.getServerTcpAddress().getPort())
-        .field("Checks").beginArray()
+        .field("address").value(ep.getServerTcpAddress().getHost())
+        .field("port").value(ep.getServerTcpAddress().getPort())
+        .field("checks").beginArray()
           .beginObject()
             .field("id").value("check-corus-" + serverContext().getCorusHost().getFormattedAddress())
             .field("name").value("Health check for Corus node at: " + serverContext().getCorusHost().getFormattedAddress())
@@ -226,6 +364,8 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     conn.setRequestMethod(httpMethod);
     conn.setRequestProperty("Content-Type", "application/json");
     conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT);
+    conn.setReadTimeout(HTTP_CONNECT_TIMEOUT);
+
     byte[] payload = payloadContent.getBytes();
     conn.setRequestProperty("Content-Length", "" + payload.length);
     try (OutputStream os = conn.getOutputStream()) {
@@ -254,11 +394,42 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     };
   }
   
-  ConsulResponseFacade doInvokeUrl(URL url) throws IOException {
+  ConsulResponseFacade doSend(URL url, String httpMethod) throws IOException {
     final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setDoOutput(false);
-    conn.setRequestMethod("GET");
+    conn.setDoInput(true);
+    conn.setRequestMethod(httpMethod);
+    conn.setRequestProperty("Content-Type", "application/json");
     conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT);
+    conn.setReadTimeout(HTTP_CONNECT_TIMEOUT);
+
+    final String statusMsg  = conn.getResponseMessage();
+    final int    statusCode = conn.getResponseCode();
+    
+    return new ConsulResponseFacade() {
+      @Override
+      public String getStatusMessage() {
+        return statusMsg;
+      }
+      
+      @Override
+      public int getStatusCode() {
+        return statusCode;
+      }
+      
+      @Override
+      public void disconnect() {
+        conn.disconnect();
+      }
+    };
+  }
+  
+  ConsulResponseFacade doInvokeUrl(URL url, String httpMethod) throws IOException {
+    final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setDoOutput(false);
+    conn.setRequestMethod(httpMethod);
+    conn.setConnectTimeout(HTTP_CONNECT_TIMEOUT);
+    conn.setReadTimeout(HTTP_CONNECT_TIMEOUT);
 
     final String statusMsg  = conn.getResponseMessage();
     final int    statusCode = conn.getResponseCode();

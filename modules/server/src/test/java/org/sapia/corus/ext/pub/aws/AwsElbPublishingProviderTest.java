@@ -20,6 +20,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.aws.AwsConfiguration;
 import org.sapia.corus.client.services.deployer.dist.AwsElbPublisherConfig;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.DistributionInfo;
@@ -55,6 +56,8 @@ public class AwsElbPublishingProviderTest {
   
   private Process process;
   
+  private Distribution dist;
+  
   private ProcessConfig processConf;
   
   private ActivePort activePort;
@@ -79,9 +82,10 @@ public class AwsElbPublishingProviderTest {
     };
     
     process     = new Process(new DistributionInfo("test", "1.0", "prod", "testProcess"));
+    dist = new Distribution("test", "1.0");
     processConf = new ProcessConfig("testProcess");
     activePort  = new ActivePort("test-port", 8080);
-    context     = new ProcessPubContext(process, processConf, activePort, pubConfig);
+    context     = new ProcessPubContext(process, dist, processConf, activePort, pubConfig);
     
     when(awsConf.getInstanceId()).thenReturn("test-instance");
     when(awsConf.isAwsEnabled()).thenReturn(true);

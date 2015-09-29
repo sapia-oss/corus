@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.pub;
 
 import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.processor.ActivePort;
@@ -16,12 +17,19 @@ import org.sapia.ubik.util.Strings;
 public class ProcessPubContext {
   
   private Process          process;
+  private Distribution     distribution;
   private ProcessConfig    processConfig;
   private ActivePort       port;
   private ProcessPubConfig pubConfig;
 
-  public ProcessPubContext(Process proc, ProcessConfig conf, ActivePort port, ProcessPubConfig config) {
+  public ProcessPubContext(
+      Process proc, 
+      Distribution distribution, 
+      ProcessConfig conf, 
+      ActivePort port, 
+      ProcessPubConfig config) {
     this.process       = proc;
+    this.distribution  = distribution;
     this.processConfig = conf;
     this.port          = port;
     this.pubConfig     = config;
@@ -32,6 +40,13 @@ public class ProcessPubContext {
    */
   public Process getProcess() {
     return process;
+  }
+  
+  /**
+   * @return the distribution of the process to publish.
+   */
+  public Distribution getDistribution() {
+    return distribution;
   }
   
   /**
@@ -76,7 +91,7 @@ public class ProcessPubContext {
   
   @Override
   public String toString() {
-    return Strings.toStringFor(this, "process", process, "processConfig", processConfig, "pubConfig", pubConfig);
+    return Strings.toStringFor(this, "process", process, "pubConfig", pubConfig);
   }
   
 }

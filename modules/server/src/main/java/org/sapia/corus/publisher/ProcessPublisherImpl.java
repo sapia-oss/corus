@@ -63,7 +63,10 @@ public class ProcessPublisherImpl extends ModuleHelper implements ProcessPublish
   
   @Override
   public void init() throws Exception {
-    publishers.addAll(env().getBeansOfType(ProcessPublishingProvider.class).values());
+    for (ProcessPublishingProvider provider : env().getBeansOfType(ProcessPublishingProvider.class).values()) {
+      log.info("Adding publishing provider: " + provider);
+      publishers.add(provider);
+    }
   }
   
   @Override
@@ -139,7 +142,7 @@ public class ProcessPublisherImpl extends ModuleHelper implements ProcessPublish
         if (port.get().getPublishing().isSet()) {
           PublishingConfig p = port.get().getPublishing().get();
           for (ProcessPubConfig ppc : p.getConfigs()) {
-            ProcessPubContext ctx = new ProcessPubContext(process, processConf, ap, ppc);
+            ProcessPubContext ctx = new ProcessPubContext(process, dist, processConf, ap, ppc);
             OptionalValue<ProcessPublishingProvider> provider = selectPubProvider(ppc);
             if (provider.isSet()) {
               handler.call(new PairTuple<ProcessPubContext, ProcessPublishingProvider>(ctx, provider.get()));

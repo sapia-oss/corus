@@ -16,6 +16,17 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.dist.ConsulPublisherConfig;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.dist.HttpDiagnosticConfig;
+import org.sapia.corus.client.services.deployer.dist.Port;
+import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.processor.ActivePort;
+import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.pub.ProcessPubContext;
+import org.sapia.corus.client.services.pub.PublishingCallback;
+import org.sapia.corus.client.services.pub.UnpublishingCallback;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
@@ -49,6 +60,12 @@ public class ConsulPublisherTest {
   @Mock 
   private TaskExecutionContext execContext;
   
+  @Mock
+  private PublishingCallback pubCallback;
+  
+  @Mock
+  private UnpublishingCallback unpubCallback;
+  
   private CorusHost            corusHost;
   
   private ConsulPublisher      publisher;
@@ -71,7 +88,7 @@ public class ConsulPublisherTest {
     corusHost = CorusHost.newInstance(new Endpoint(new TCPAddress("test", "localhost", 33000), mock(ServerAddress.class)), "test", "test");
     publisher = new ConsulPublisher() {
       @Override
-      ConsulResponseFacade doInvokeUrl(URL url) throws IOException {
+      ConsulResponseFacade doInvokeUrl(URL url, String httpMethod) throws IOException {
         return resp;
       }
       
@@ -127,4 +144,47 @@ public class ConsulPublisherTest {
     assertFalse(publisher.isPublishTaskRunning());
   }
   
+  @Test
+  public void testAccepts() throws Exception {
+    assertTrue(publisher.accepts(createPubContext().getPubConfig()));
+  }
+
+  @Test
+  public void testAccepts_false() throws Exception {
+    publisher.setEnabled(false);
+    assertFalse(publisher.accepts(createPubContext().getPubConfig()));
+  }
+  
+  @Test
+  public void testPublishProcess_success() throws Exception {
+    ProcessPubContext context = createPubContext();
+    publisher.publish(context, pubCallback);
+    
+    verify(pubCallback).publishingStarted(context);
+    verify(pubCallback).publishingSuccessful(context);
+  }
+
+  @Test
+  public void testUnpublishProcess_success() throws Exception {
+    ProcessPubContext context = createPubContext();
+    publisher.unpublish(context, unpubCallback);
+    
+    verify(unpubCallback).unpublishingStarted(context);
+    verify(unpubCallback).unpublishingSuccessful(context);
+  }
+  
+  private ProcessPubContext createPubContext() throws Exception{
+    Process process = new Process(new DistributionInfo("test", "1.0", "prod", "testProcess"));
+    Distribution dist = new Distribution("test", "1.0");
+    ProcessConfig processConf = new ProcessConfig("testProcess");
+    Port portConf = processConf.createPort();
+    portConf.setName("test-port");
+    HttpDiagnosticConfig httpDiag = new HttpDiagnosticConfig();
+    httpDiag.setPath("/ping");
+    portConf.handleObject("diagConfig", httpDiag);
+    
+    ActivePort activePort = new ActivePort("test-port", 8080);
+    ConsulPublisherConfig config = new ConsulPublisherConfig();
+    return new ProcessPubContext(process, dist, processConf, activePort, config);
+  }
 }

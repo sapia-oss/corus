@@ -18,6 +18,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -59,6 +60,8 @@ public class PublishProcessTaskTest extends TestBaseTask {
   
   private Process process;
   
+  private Distribution dist;
+  
   private ProcessConfig processConf;
   
   private ActivePort activePort;
@@ -70,6 +73,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
     super.setUp();
     
     process = new Process(new DistributionInfo("test", "1.0", "prod", "testProcess"));
+    dist = new Distribution("test", "1.0");
     processConf = new ProcessConfig("testProcess");
     activePort = new ActivePort("test-port", 8080);
     
@@ -197,7 +201,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
         PublishingCallback cb = invocation.getArgumentAt(1, PublishingCallback.class);
-        cb.publishingSuccessful(new ProcessPubContext(process, processConf, activePort, mock(ProcessPubConfig.class)));
+        cb.publishingSuccessful(new ProcessPubContext(process, dist, processConf, activePort, mock(ProcessPubConfig.class)));
         return null;
       }
     }).when(publisher).publishProcess(any(Process.class), any(PublishingCallback.class));
@@ -208,7 +212,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
         PublishingCallback cb = invocation.getArgumentAt(1, PublishingCallback.class);
-        cb.publishingFailed(new ProcessPubContext(process, processConf, activePort, mock(ProcessPubConfig.class)), new Exception("Publishing failed"));
+        cb.publishingFailed(new ProcessPubContext(process, dist, processConf, activePort, mock(ProcessPubConfig.class)), new Exception("Publishing failed"));
         return null;
       }
     }).when(publisher).publishProcess(any(Process.class), any(PublishingCallback.class));
