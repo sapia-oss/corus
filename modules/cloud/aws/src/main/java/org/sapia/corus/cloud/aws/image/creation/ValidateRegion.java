@@ -33,12 +33,13 @@ public class ValidateRegion implements WorkflowStep<ImageCreationContext> {
     Collection<Region> regionCandidates = Collections2.filter(regionRes.getRegions(), new Predicate<Region>() {
       @Override
       public boolean apply(Region input) {
-        return input.getRegionName().equals(context.getConf().getRegion());
+        return input.getRegionName().equals(context.getSettings().getNotNull("region").get(String.class));
       }
     });
     
-    Preconditions.checkState(!regionCandidates.isEmpty(), "No region matched: " + context.getConf().getRegion());
-    context.getEc2Client().setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(context.getConf().getRegion())));    
+    String region = context.getSettings().getNotNull("region").get(String.class);
+    Preconditions.checkState(!regionCandidates.isEmpty(), "No region matched: " + region);
+    context.getEc2Client().setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(region)));    
   }
 
 }

@@ -21,7 +21,7 @@ public class ValidateRegionTest {
 
   @Test
   public void testExecute_matching_region() {
-    Region toReturn = new Region().withRegionName(context.getConf().getRegion());
+    Region toReturn = new Region().withRegionName(context.getSettings().getNotNull("region").get(String.class));
     when(context.getEc2Client().describeRegions()).thenReturn(new DescribeRegionsResult().withRegions(toReturn));
     
     step.execute(context); 

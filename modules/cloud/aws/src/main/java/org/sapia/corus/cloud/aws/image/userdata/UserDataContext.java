@@ -1,22 +1,22 @@
 package org.sapia.corus.cloud.aws.image.userdata;
 
-import org.sapia.corus.cloud.aws.image.EC2ImageConf;
+import org.sapia.corus.cloud.platform.settings.Settings;
 
 public class UserDataContext {
   
   private UserDataBuilder userData  = UserDataBuilder.newInstance().executable();
-  private EC2ImageConf    conf;
+  private Settings        settings;
   
-  public UserDataContext(EC2ImageConf conf) {
-    this.conf = conf;
+  public UserDataContext(Settings settings) {
+    this.settings = settings;
   }
   
   public UserDataBuilder getUserData() {
     return userData;
   }
   
-  public EC2ImageConf getConf() {
-    return conf;
+  public Settings getSettings() {
+    return settings;
   }
 
 }

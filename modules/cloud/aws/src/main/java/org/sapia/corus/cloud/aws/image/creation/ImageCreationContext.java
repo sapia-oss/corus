@@ -1,6 +1,6 @@
 package org.sapia.corus.cloud.aws.image.creation;
 
-import org.sapia.corus.cloud.aws.image.EC2ImageConf;
+import org.sapia.corus.cloud.platform.settings.Settings;
 import org.sapia.corus.cloud.platform.workflow.WorkflowContext;
 
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -8,18 +8,17 @@ import com.google.common.base.Preconditions;
 
 public class ImageCreationContext extends WorkflowContext {
 
-  private EC2ImageConf conf;
   private AmazonEC2    ec2Client;
   
   private String allocatedPublicIp, ipAllocationId, startedInstanceId, createdImageId;
-  
-  public ImageCreationContext(EC2ImageConf conf, AmazonEC2 ec2Client) {
-    this.conf      = conf;
+
+  public ImageCreationContext(Settings settings, AmazonEC2 ec2Client) {
+    super(settings);
     this.ec2Client = ec2Client;
   }
-  
-  public EC2ImageConf getConf() {
-    return conf;
+
+  public ImageCreationContext(ImageCreationConf conf, AmazonEC2 ec2Client) {
+    this(conf.asSettings(), ec2Client);
   }
   
   public AmazonEC2 getEc2Client() {

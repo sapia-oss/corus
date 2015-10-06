@@ -1,5 +1,6 @@
 package org.sapia.corus.cloud.aws.image.creation;
 
+import org.sapia.corus.cloud.aws.client.InstanceStatusCode;
 import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
@@ -21,23 +22,7 @@ import com.google.common.base.Preconditions;
  */
 public abstract class InstanceStatusCheckSupport implements WorkflowStep<ImageCreationContext> {
   
-  public enum InstanceStatusCode {
-    
-    PENDING(0),
-    RUNNING(16),
-    TERMINATED(48),
-    STOPPED(80);
-    
-    private int value;
   
-    private InstanceStatusCode(int value) {
-      this.value = value;
-    }
-    
-    public int value() {
-      return value;
-    }
-  }
 
   // ==========================================================================
   
@@ -71,7 +56,7 @@ public abstract class InstanceStatusCheckSupport implements WorkflowStep<ImageCr
         Instance      instance = reservation.getInstances().get(0);
         state                  = instance.getState();
         statusCode             = state.getCode();
-        if (state.getCode() != expectedCode.value) {
+        if (state.getCode() != expectedCode.value()) {
          context.getLog().verbose("Current instance state is: %s. Expected: %s", state.getName().toUpperCase(), expectedCode.name());
         }
         
@@ -85,9 +70,9 @@ public abstract class InstanceStatusCheckSupport implements WorkflowStep<ImageCr
         }
         
       }
-    } while (statusCode != expectedCode.value && latch.incrementAndPause().shouldContinue());
+    } while (statusCode != expectedCode.value() && latch.incrementAndPause().shouldContinue());
     Preconditions.checkState(statusCode != -1, "Instance %s does not seem to exist", context.getStartedInstanceId());
-    Preconditions.checkState(statusCode == expectedCode.value, "Invalid status: %s. Expected: %s", state.getName().toUpperCase(), expectedCode.name());
+    Preconditions.checkState(statusCode == expectedCode.value(), "Invalid status: %s. Expected: %s", state.getName().toUpperCase(), expectedCode.name());
   }
 
   protected abstract RetryCriteria doGetRetryCriteria(ImageCreationContext context);

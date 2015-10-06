@@ -16,6 +16,7 @@ public interface CliModule {
    *
    */
   public enum StatusCode {
+    
     SUCCESS(0), FAILURE(1);
     
     private int value;
@@ -29,8 +30,6 @@ public interface CliModule {
     }
     
   }
-  
- 
   
   /**
    * @param context the {@link CliModuleContext} to use in the context of a user interaction.

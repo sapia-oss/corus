@@ -7,6 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.apache.http.HttpStatus;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
@@ -30,10 +31,11 @@ public class WaitForCompletedCorusInstall implements WorkflowStep<ImageCreationC
   
   @Override
   public void execute(ImageCreationContext context) throws Exception {
-    String urlString = "http://" + context.getAllocatedPublicIp() + ":" + context.getConf().getCorusPort() + "/ping";
+    int corusPort = context.getSettings().getNotNull("corusPort").get(int.class);
+    String urlString = "https://" + context.getAllocatedPublicIp() + ":" + corusPort + "/ping";
     context.getLog().info("Connecting to Corus ping URL at: %s", urlString);
     URL corusUrl = new URL(urlString);
-    RetryLatch latch = new RetryLatch(context.getConf().getCorusIntallCheckRetry());
+    RetryLatch latch = new RetryLatch(context.getSettings().getNotNull("corusIntallCheckRetry").get(RetryCriteria.class));
     do {
       try {
         String response = getCorusResponse(context, corusUrl);

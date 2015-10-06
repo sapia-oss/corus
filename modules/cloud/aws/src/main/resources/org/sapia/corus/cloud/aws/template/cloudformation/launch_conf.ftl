@@ -10,14 +10,14 @@
     "InstanceType": "${machine.instanceType}",
     "SecurityGroups": [
       <#assign sgGroupCount = 0>
-      <#list machine.getParam("corus.aws.ec2.security.groups").value?split(",") as sg>
+      <#list machine.getParam("corus.cloud.instance.security.groups").value?split(",") as sg>
         <#if (sgGroupCount > 0)>,</#if>
         "${sg?trim}"
         <#assign sgGroupCount = sgGroupCount + 1>
       </#list>
     ],
-    "IamInstanceProfile": "${topology.getParam("corus.aws.ec2.iam.role").value}",
-    "KeyName" : "${machine.getParam("corus.aws.ec2.key.name").value}",
+    "IamInstanceProfile": "${topology.getParam("corus.cloud.instance.role").value}",
+    "KeyName" : "${machine.getParam("corus.cloud.instance.key.name").value}",
     "UserData" : { 
       "Fn::Base64" :  {
           "Fn::Join" : ["", [
@@ -28,7 +28,8 @@
     <@assignTags 
       topology=topology 
       environment=environment 
-      region=region zone=zone 
+      region=region 
+      zone=zone 
       domainName=domainName 
       globalTags=globalTags/>
   }

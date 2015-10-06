@@ -18,6 +18,7 @@ import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.sapia.corus.cloud.platform.settings.Settings;
 import org.sapia.corus.cloud.platform.workflow.GuardedExecutionCapable;
 import org.sapia.corus.cloud.platform.workflow.WorkflowContext;
 import org.sapia.corus.cloud.platform.workflow.WorkflowImpl;
@@ -41,6 +42,9 @@ public class WorkflowImplTest {
   @Spy
   private PrerequisiteStep preReq;
   
+  @Mock
+  private Settings settings;
+  
   private WorkflowContext context;
   
   @Before
@@ -48,7 +52,7 @@ public class WorkflowImplTest {
     successWfl = new WorkflowImpl<WorkflowContext>(Mockito.mock(WorkflowLog.class), Lists.newArrayList(successStep1, successStep2));
     errorWfl   = new WorkflowImpl<WorkflowContext>(Mockito.mock(WorkflowLog.class), Lists.newArrayList(successStep1, errStep, successStep2));
     guardedWfl = new WorkflowImpl<WorkflowContext>(Mockito.mock(WorkflowLog.class), Lists.newArrayList(preReq, errStep, guarded));
-    context    = new WorkflowContext();
+    context    = new WorkflowContext(settings);
  
     doAnswer(new Answer<Void>() {
       @Override

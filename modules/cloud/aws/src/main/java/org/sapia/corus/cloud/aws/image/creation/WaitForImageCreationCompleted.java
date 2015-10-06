@@ -2,6 +2,7 @@ package org.sapia.corus.cloud.aws.image.creation;
 
 import java.util.Set;
 
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
@@ -25,7 +26,7 @@ public class WaitForImageCreationCompleted implements WorkflowStep<ImageCreation
     DescribeImagesRequest describeImgReq = new DescribeImagesRequest();
     describeImgReq.withImageIds(context.getCreatedImageId());
     
-    RetryLatch latch = new RetryLatch(context.getConf().getImageCreationCheckRetry());
+    RetryLatch latch = new RetryLatch(context.getSettings().get("imgCreationCheckRetry").get(RetryCriteria.class));
     
     do {
       DescribeImagesResult result = context.getEc2Client().describeImages(describeImgReq);

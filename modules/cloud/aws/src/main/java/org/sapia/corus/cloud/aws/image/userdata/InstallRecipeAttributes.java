@@ -9,7 +9,7 @@ package org.sapia.corus.cloud.aws.image.userdata;
 public class InstallRecipeAttributes implements UserDataPopulator {
   
   public void addTo(UserDataContext context) {
-    context.getUserData().line(String.format("echo '%s\' >> /opt/chef/solo/attributes.json", context.getConf().getRecipeAttributes()));
+    context.getUserData().line(String.format("echo '%s\' >> /opt/chef/solo/attributes.json", context.getSettings().getNotNull("recipeAttributes").get(String.class)));
   }
 
 }

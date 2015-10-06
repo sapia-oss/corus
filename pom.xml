@@ -343,7 +343,15 @@
         <artifactId>aws-java-sdk</artifactId>
         <version>1.9.33</version>
       </dependency>
-
+      
+      <!-- REST client -->
+      
+	    <dependency>
+	      <groupId>org.glassfish.jersey.core</groupId>
+	      <artifactId>jersey-client</artifactId>
+	      <version>2.13</version>
+	    </dependency>
+    
     </dependencies>
   </dependencyManagement>
 

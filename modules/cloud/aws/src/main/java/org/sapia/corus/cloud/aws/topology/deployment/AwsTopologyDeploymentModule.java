@@ -15,8 +15,10 @@ import org.sapia.corus.cloud.topology.Env;
 import org.sapia.corus.cloud.topology.Machine;
 import org.sapia.corus.cloud.topology.Topology;
 
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 
 /**
  * Implements topology deployment over AWS.
@@ -28,9 +30,9 @@ public class AwsTopologyDeploymentModule implements CliModule {
 
   private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
-  public static final String TOPOLOGY_PARAM_IAM_ROLE         = "corus.aws.ec2.iam.role";
-  public static final String TOPOLOGY_PARAM_SECURITY_GROUPS  = "corus.aws.ec2.security.groups";
-  public static final String TOPOLOGY_PARAM_KEY_NAME         = "corus.aws.ec2.key.name";
+  public static final String TOPOLOGY_PARAM_IAM_ROLE         = "corus.cloud.instance.role";
+  public static final String TOPOLOGY_PARAM_SECURITY_GROUPS  = "corus.cloud.instance.security.groups";
+  public static final String TOPOLOGY_PARAM_KEY_NAME         = "corus.cloud.instance.key.name";
 
   private static final String OPT_WITH_TOPOLOGY_FILE         = "with-topology-file";
   private static final String OPT_WITH_TOPOLOGY_ENV          = "with-topology-env";
@@ -61,31 +63,33 @@ public class AwsTopologyDeploymentModule implements CliModule {
     
     AwsTopologyDeploymentConf conf = new AwsTopologyDeploymentConf();
     
-    conf.topology    = Topology.newInstance(new File(cmd.getOptNotNull(OPT_WITH_TOPOLOGY_FILE).getValueNotNull()));
-    conf.environment = cmd.getOptNotNull(OPT_WITH_TOPOLOGY_ENV).getValueNotNull();
+    conf
+      .withTopology(Topology.newInstance(new File(cmd.getOptNotNull(OPT_WITH_TOPOLOGY_FILE).getValueNotNull())))
+      .withEnvironment(cmd.getOptNotNull(OPT_WITH_TOPOLOGY_ENV).getValueNotNull());
     
     validateTopology(conf);
     
     if (cmd.containsOption(OPT_WITH_TOPOLOGY_VERSION)) {
-      conf.environment = cmd.getOpt(OPT_WITH_TOPOLOGY_VERSION).getValueNotNull();
+      conf.withTopologyVersionOverride(cmd.getOpt(OPT_WITH_TOPOLOGY_VERSION).getValueNotNull());
     }
     if (cmd.containsOption(OPT_WITH_FORMATION_OUTPUT_FILE)) {
-      conf.cloudFormationFileName  = cmd.getOpt(OPT_WITH_FORMATION_OUTPUT_FILE).getValueNotNull();
+      conf.withCloudFormationFileName(cmd.getOpt(OPT_WITH_FORMATION_OUTPUT_FILE).getValueNotNull());
     }
     if (cmd.containsOption(OPT_WITH_FORMATION_OUTPUT_DIR)) {
-      conf.cloudFormationOutputDir = new File(cmd.getOpt(OPT_WITH_FORMATION_OUTPUT_DIR).getValueNotNull());
+      conf.withCloudFormationOutputDir(new File(cmd.getOpt(OPT_WITH_FORMATION_OUTPUT_DIR).getValueNotNull()));
     }
-    conf.createStack = cmd.getSafeOpt(OPT_WITH_CREATE_STACK).getValueOrDefault(true);
+    conf.withCreateStack(cmd.getSafeOpt(OPT_WITH_CREATE_STACK).getValueOrDefault(true));
     
-    if (!conf.createStack) {
+    if (!conf.isCreateStack()) {
       context.getWorflowLog().warning(OPT_WITH_CREATE_STACK + " option was set to false: CloudFormation stack will not be created");
     }
     
     Workflow<AwsTopologyDeploymentContext> wf = AwsTopologyDeploymentWorkflowFactory.getDefaultWorkFlow(context.getWorflowLog());
     
-    AmazonCloudFormationClient client = new AmazonCloudFormationClient(new DefaultAWSCredentialsProviderChain().getCredentials());
-    
-    wf.execute(new AwsTopologyDeploymentContext(conf, client));
+    AWSCredentials             credentials          = new DefaultAWSCredentialsProviderChain().getCredentials();
+    AmazonCloudFormationClient cloudFormationClient = new AmazonCloudFormationClient();
+    AmazonEC2Client            ec2Client            = new AmazonEC2Client(credentials);
+    wf.execute(new AwsTopologyDeploymentContext(conf, cloudFormationClient, ec2Client));
     return wf.getResult();
   }
   
@@ -96,10 +100,10 @@ public class AwsTopologyDeploymentModule implements CliModule {
   
   private void validateTopology(AwsTopologyDeploymentConf conf) {
     List<String> errors = new ArrayList<String>();
-    if (!conf.topology.existsParam(TOPOLOGY_PARAM_IAM_ROLE)) {
+    if (!conf.getTopology().existsParam(TOPOLOGY_PARAM_IAM_ROLE)) {
       errors.add(TOPOLOGY_PARAM_IAM_ROLE + " <param> not defined under <topology> element");
     }
-    Env env = conf.getTopology().getEnvByName(conf.environment);
+    Env env = conf.getTopology().getEnvByName(conf.getEnvironment());
     for (Cluster c : env.getClusters()) {
       for (Machine m : c.getMachines()) {
         if (!m.existsParam(TOPOLOGY_PARAM_KEY_NAME)) {

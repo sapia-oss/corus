@@ -2,9 +2,11 @@ package org.sapia.corus.cloud.aws.topology.deployment;
 
 import java.io.File;
 
+import org.sapia.corus.cloud.platform.settings.Settings;
 import org.sapia.corus.cloud.platform.workflow.WorkflowContext;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.google.common.base.Preconditions;
 
 /**
@@ -15,22 +17,23 @@ import com.google.common.base.Preconditions;
  */
 public class AwsTopologyDeploymentContext extends WorkflowContext {
 
-  private AwsTopologyDeploymentConf conf;
-  private AmazonCloudFormation      cloudFormationClient;
+  private AmazonCloudFormation cloudFormationClient;
+  private AmazonEC2            ec2Client;
+  private String               stackId;
+  private File                 generatedCloudFormationFile;
   
-  private String stackId;
-  private File generatedCloudFormationFile;
-  
-  public AwsTopologyDeploymentContext(AwsTopologyDeploymentConf conf, AmazonCloudFormation cloudFormationClient) {
-    this.conf                 = conf;
+  public AwsTopologyDeploymentContext(Settings settings, 
+      AmazonCloudFormation cloudFormationClient,
+      AmazonEC2 ec2Client) {
+    super(settings);
     this.cloudFormationClient = cloudFormationClient;
+    this.ec2Client            = ec2Client;
   }
-
-  /**
-   * @return the {@link AwsTopologyDeploymentConf}.
-   */
-  public AwsTopologyDeploymentConf getConf() {
-    return conf;
+  
+  public AwsTopologyDeploymentContext(AwsTopologyDeploymentConf conf, 
+      AmazonCloudFormation cloudFormationClient,
+      AmazonEC2 ec2Client) {
+    this(conf.asSettings(), cloudFormationClient, ec2Client);
   }
   
   /**
@@ -38,6 +41,13 @@ public class AwsTopologyDeploymentContext extends WorkflowContext {
    */
   public AmazonCloudFormation getCloudFormationClient() {
     return cloudFormationClient;
+  }
+  
+  /**
+   * @return the {@link AmazonEC2} client.
+   */
+  public AmazonEC2 getEc2Client() {
+    return ec2Client;
   }
   
   public void assignGeneratedCloudFormationFile(File file) {

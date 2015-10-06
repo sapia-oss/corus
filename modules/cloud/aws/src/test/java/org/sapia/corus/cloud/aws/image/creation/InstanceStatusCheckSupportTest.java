@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.sapia.corus.cloud.aws.image.creation.InstanceStatusCheckSupport.InstanceStatusCode;
+import org.sapia.corus.cloud.aws.client.InstanceStatusCode;
 import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.TimeMeasure;
 

@@ -1,5 +1,6 @@
 package org.sapia.corus.cloud.aws.image.creation;
 
+import org.sapia.corus.cloud.aws.client.InstanceStatusCode;
 import org.sapia.corus.cloud.platform.util.RetryCriteria;
 
 /**
@@ -17,7 +18,7 @@ public class WaitForInstanceStopped extends InstanceStatusCheckSupport {
   
   @Override
   protected RetryCriteria doGetRetryCriteria(ImageCreationContext context) {
-    return context.getConf().getInstanceStopCheckRetry();
+    return context.getSettings().getNotNull("instanceStopCheckRetry").get(RetryCriteria.class);
   }
 
 }

@@ -4,10 +4,10 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.sapia.corus.cloud.aws.CloudFormationGenerator;
+import org.sapia.corus.cloud.platform.settings.Setting;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
+import org.sapia.corus.cloud.topology.Topology;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import freemarker.cache.TemplateLoader;
@@ -30,28 +30,28 @@ public class GenerateCloudFormationFile implements WorkflowStep<AwsTopologyDeplo
   @Override
   public void execute(AwsTopologyDeploymentContext context) throws Exception {
     Map<String, String> globalTags = new HashMap<String, String>();
-    globalTags.putAll(context.getConf().getGlobalTags());
+    globalTags.putAll(context.getSettings().getNotNull("globalTags").getMapOf(String.class, String.class));
     
-    String topologyVersion = MoreObjects.firstNonNull(
-        context.getConf().getTopologyVersionOverride(), context.getConf().getTopology().getVersion()
-    );
+    Setting  topologyOverride = context.getSettings().get("topologyVersionOverride");
+    Topology topology         = context.getSettings().getNotNull("topology").get(Topology.class);
+    String   topologyVersion  = topologyOverride.isSet() ? topologyOverride.get(String.class) : topology.getVersion();
     
     globalTags.put(AwsTopologyDeploymentConsts.TOPOLOGY_VERSION_TAG_NAME, topologyVersion);
     
     CloudFormationGenerator.Builder builder = CloudFormationGenerator.Builder.newInstance()
-        .withGlobalTags(context.getConf().getGlobalTags());
+        .withGlobalTags(globalTags);
     
-    for (File f : context.getConf().getSourceTemplateDirs()) {
+    for (File f : context.getSettings().getNotNull("sourceTemplateDirs").getListOf(File.class)) {
       builder.withTemplateDir(f);
     }
     
-    for (TemplateLoader t : context.getConf().getSourceTemplateLoaders()) {
+    for (TemplateLoader t : context.getSettings().getNotNull("sourceTemplateLoaders").getListOf(TemplateLoader.class)) {
       builder.withTemplateLoader(t);
     }
     
     CloudFormationGenerator generator = builder.build();
     
-    File outputDir = context.getConf().getCloudFormationOutputDir();
+    File outputDir = context.getSettings().getNotNull("cloudFormationOutputDir").get(File.class);
     if (outputDir.exists()) {
       Preconditions.checkState(outputDir.isDirectory(), "Specified CloudFormation output directory is in fact not a directory: " + outputDir.getAbsolutePath());
     } else {
@@ -60,10 +60,10 @@ public class GenerateCloudFormationFile implements WorkflowStep<AwsTopologyDeplo
     
     Preconditions.checkState(outputDir.exists(), "CloudFormation output directory does not exist: " + outputDir.getAbsolutePath());
     
-    File outputFile = new File(outputDir, context.getConf().getCloudFormationFileName());
+    File outputFile = new File(outputDir, context.getSettings().getNotNull("cloudFormationFileName").get(String.class));
     
     context.getLog().info("Generating cloud formation file: %s", outputFile.getAbsolutePath());
-    generator.generateFile(context.getConf().getTopology(), context.getConf().getEnvironment(), outputFile);
+    generator.generateFile(topology, context.getSettings().getNotNull("environment").get(String.class), outputFile);
     context.assignGeneratedCloudFormationFile(outputFile);
   }
   

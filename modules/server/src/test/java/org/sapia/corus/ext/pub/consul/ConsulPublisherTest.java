@@ -108,6 +108,7 @@ public class ConsulPublisherTest {
     publisher.setAgentUrl("http://localhost:8500");
 
     when(corus.getDomain()).thenReturn("test-domain");
+    when(serverContext.getDomain()).thenReturn("test-domain");
     when(serverContext.getCorus()).thenReturn(corus);
     when(serverContext.getCorusHost()).thenReturn(corusHost);
     when(resp.getStatusCode()).thenReturn(200);
@@ -163,6 +164,17 @@ public class ConsulPublisherTest {
     verify(pubCallback).publishingStarted(context);
     verify(pubCallback).publishingSuccessful(context);
   }
+  
+  @Test
+  public void testPublishProcess_failure() throws Exception {
+    when(resp.getStatusCode()).thenReturn(500);
+
+    ProcessPubContext context = createPubContext();
+    publisher.publish(context, pubCallback);
+    
+    verify(pubCallback).publishingStarted(context);
+    verify(pubCallback).publishingFailed(eq(context), any(Exception.class));
+  }
 
   @Test
   public void testUnpublishProcess_success() throws Exception {
@@ -171,6 +183,17 @@ public class ConsulPublisherTest {
     
     verify(unpubCallback).unpublishingStarted(context);
     verify(unpubCallback).unpublishingSuccessful(context);
+  }
+  
+  @Test
+  public void testUnpublishProcess_failure() throws Exception {
+    when(resp.getStatusCode()).thenReturn(500);
+
+    ProcessPubContext context = createPubContext();
+    publisher.unpublish(context, unpubCallback);
+    
+    verify(unpubCallback).unpublishingStarted(context);
+    verify(unpubCallback).unpublishingFailed(eq(context), any(Exception.class));
   }
   
   private ProcessPubContext createPubContext() throws Exception{

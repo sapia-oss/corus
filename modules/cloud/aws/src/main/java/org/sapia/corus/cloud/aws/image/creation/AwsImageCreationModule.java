@@ -5,18 +5,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 import net.sf.json.JSONObject;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.Options;
-import org.sapia.corus.cloud.aws.image.EC2ImageConf;
-import org.sapia.corus.cloud.aws.image.EC2ImageCreator;
 import org.sapia.corus.cloud.platform.cli.CliModule;
 import org.sapia.corus.cloud.platform.cli.CliModuleContext;
 import org.sapia.corus.cloud.platform.cli.CommandDefs;
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
+import org.sapia.corus.cloud.platform.util.TimeMeasure;
+import org.sapia.corus.cloud.platform.workflow.DefaultWorkflowLog;
+import org.sapia.corus.cloud.platform.workflow.Workflow;
+import org.sapia.corus.cloud.platform.workflow.WorkflowLog;
 import org.sapia.corus.cloud.platform.workflow.WorkflowResult;
 
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.io.CharStreams;
@@ -73,67 +78,123 @@ public class AwsImageCreationModule implements CliModule {
       .option().name(OPT_WITH_IMAGE_ID).desc("The Amazon image ID corresponding to the image from which to create a new image.").mustHaveValue().required()
       .option().name(OPT_WITH_KET_PAIR).desc("The name of the keypair to associate the instance from which an image will be created.").mustHaveValue().required()
       .option().name(OPT_WITH_REGION).desc("The identifier of the AWS region under which to start the instance used for image creation - defaults to: " 
-          + EC2ImageConf.DEFAULT_REGION + ".").mustHaveValue()
+          + ImageCreationConf.DEFAULT_REGION + ".").mustHaveValue()
       .option().name(OPT_WITH_SECURITY_GROUPS).desc("A comma-delimited list of security group IDs under which to run the instance used for image creation.")
         .mustHaveValue().required()
       .option().name(OPT_WITH_SUBNET).desc("The ID of the subnet in which the instance used for image creation should be started." 
         + " Note that the provided security group IDs must be associated to the subnet being specified.").mustHaveValue().required()
       .option().name(OPT_WITH_YUM_UPDATE).desc("Indicates if a yum update should be peformed on the instance used for image creation (true by default)").mustHaveValue()
-      .option().name(OPT_WITH_IMG_NAME_PREFIX).desc("Specifies what image name prefix to use - defaults to " + EC2ImageConf.DEFAULT_IMAGE_PREFIX 
+      .option().name(OPT_WITH_IMG_NAME_PREFIX).desc("Specifies what image name prefix to use - defaults to " + ImageCreationConf.DEFAULT_IMAGE_PREFIX 
         + " A suffix is automatically appended which corresponds to the current date/time.").mustHaveValue()
       .option().name(OPT_WITH_CORUS_PORT).desc("Indicates the port of the Corus server that will be installed. Used for pinging Corus in order to"
-          + " determine installation completion - defaults to " + EC2ImageConf.DEFAULT_CORUS_PORT + ".").mustHaveValue()
+          + " determine installation completion - defaults to " + ImageCreationConf.DEFAULT_CORUS_PORT + ".").mustHaveValue()
       .option().name(OPT_WITH_INSTANCE_RUN_WAIT).desc("Max amount of time to wait for the instance (from which an image will be created) to stop " 
-          + " - defaults to " + EC2ImageConf.DEFAULT_INSTANCE_RUN_CHECK_MAX_WAIT + " minutes.").mustHaveValue()
+          + " - defaults to " + ImageCreationConf.DEFAULT_INSTANCE_RUN_CHECK_MAX_WAIT + " minutes.").mustHaveValue()
       .option().name(OPT_WITH_CORUS_INSTALL_WAIT).desc("Max amount of time to wait for Corus installation completion - defaults to " 
-          + EC2ImageConf.DEFAULT_CORUS_INSTALL_MAX_WAIT + " minutes.").mustHaveValue()
+          + ImageCreationConf.DEFAULT_CORUS_INSTALL_MAX_WAIT + " minutes.").mustHaveValue()
       .option().name(OPT_WITH_INSTANCE_STOP_WAIT).desc("Max mount of time to wait for the instance on which Corus was installed to stop" 
-          + " (before an image is created from it). Defaults to " +  EC2ImageConf.DEFAULT_INSTANCE_STOP_MAX_WAIT + " minutes.").mustHaveValue()
+          + " (before an image is created from it). Defaults to " +  ImageCreationConf.DEFAULT_INSTANCE_STOP_MAX_WAIT + " minutes.").mustHaveValue()
       .option().name(OPT_WITH_IMG_CREATION_WAIT).desc("Max amount of time wait for image creation (from the running Corus instance) - defaults"
-          + " to " + EC2ImageConf.DEFAULT_IMG_CREATION_MAX_WAIT + " minutes.").mustHaveValue()
+          + " to " + ImageCreationConf.DEFAULT_IMG_CREATION_MAX_WAIT + " minutes.").mustHaveValue()
       .option().name(OPT_WITH_INSTANCE_TERM_WAIT).desc("Max amount of time to wait for the instance used to create the image to be terminated"
-          + " - defaults to " + EC2ImageConf.DEFAULT_INSTANCE_TERMINATION_MAX_WAIT + " minutes.").mustHaveValue()
+          + " - defaults to " + ImageCreationConf.DEFAULT_INSTANCE_TERMINATION_MAX_WAIT + " minutes.").mustHaveValue()
       .buildOptions().sortAlphabeticallyRequiredFirst();
   
   @Override
   public WorkflowResult interact(CliModuleContext context, CmdLine cmd) {
-    EC2ImageCreator.Builder builder = EC2ImageCreator.Builder.newInstance();
     OPTIONS.validate(cmd);
+
+    ImageCreationConf conf = new ImageCreationConf();
     
-    
-    builder
-      .withWorkflowLog(context.getWorflowLog())
-      .withImage(cmd.getOptNotNull(OPT_WITH_IMAGE_ID).getValue())
+    conf
+      .withImageId(cmd.getOptNotNull(OPT_WITH_IMAGE_ID).getValue())
       .withIamRole(cmd.getOptNotNull(OPT_WITH_IAM_ROLE).getValue())
-      .withCookbooks(cmd.getOptOrDefault(OPT_WITH_COOKBOOKS, "tar,java,corus").getSplitValue())
-      .withKeyPair(cmd.getOptNotNull(OPT_WITH_KET_PAIR).getValue())
-      .withRegion(cmd.getSafeOpt(OPT_WITH_REGION).getValueOrDefault(EC2ImageConf.DEFAULT_REGION))
-      .withSecurityGroups(cmd.getOptNotNull(OPT_WITH_SECURITY_GROUPS).getSplitValue())
-      .withSubnet(cmd.getOptNotNull(OPT_WITH_SUBNET).getValue())
+      .withCookbooks(Arrays.asList(cmd.getOptOrDefault(OPT_WITH_COOKBOOKS, "tar,java,corus").getSplitValue()))
+      .withKeypair(cmd.getOptNotNull(OPT_WITH_KET_PAIR).getValue())
+      .withRegion(cmd.getSafeOpt(OPT_WITH_REGION).getValueOrDefault(ImageCreationConf.DEFAULT_REGION))
+      .withSecurityGroups(Arrays.asList(cmd.getOptNotNull(OPT_WITH_SECURITY_GROUPS).getSplitValue()))
+      .withSubnetId(cmd.getOptNotNull(OPT_WITH_SUBNET).getValue())
       .withYumUpdate(cmd.getSafeOpt(OPT_WITH_YUM_UPDATE).getValueOrDefault(true))
-      .withAwsCli(cmd.getSafeOpt(OPT_WITH_AWS_CLI).getValueOrDefault(true))
-      .withImageNamePrefix(cmd.getOptOrDefault(OPT_WITH_IMG_NAME_PREFIX, EC2ImageConf.DEFAULT_IMAGE_PREFIX).getValue())
-      .withCorusPort(cmd.getSafeOpt(OPT_WITH_CORUS_PORT).getValueOrDefault(EC2ImageConf.DEFAULT_CORUS_PORT))
-      .withCorusInstallCheckMaxWait(cmd.getSafeOpt(OPT_WITH_CORUS_INSTALL_WAIT).getValueOrDefault(EC2ImageConf.DEFAULT_CORUS_INSTALL_MAX_WAIT))
-      .withImgCreationMaxWait(cmd.getSafeOpt(OPT_WITH_IMG_CREATION_WAIT).getValueOrDefault(EC2ImageConf.DEFAULT_IMG_CREATION_MAX_WAIT))
-      .withInstanceRunMaxWait(cmd.getSafeOpt(OPT_WITH_INSTANCE_RUN_WAIT).getValueOrDefault(EC2ImageConf.DEFAULT_INSTANCE_RUN_CHECK_MAX_WAIT))
-      .withInstanceStopMaxWait(cmd.getSafeOpt(OPT_WITH_INSTANCE_STOP_WAIT).getValueOrDefault(EC2ImageConf.DEFAULT_INSTANCE_STOP_MAX_WAIT))
-      .withInstanceTerminationMaxWait(cmd.getSafeOpt(OPT_WITH_INSTANCE_TERM_WAIT).getValueOrDefault(EC2ImageConf.DEFAULT_INSTANCE_TERMINATION_MAX_WAIT));
+      .withAwsCliInstall(cmd.getSafeOpt(OPT_WITH_AWS_CLI).getValueOrDefault(true))
+      .withCorusImageNamePrefix(cmd.getOptOrDefault(OPT_WITH_IMG_NAME_PREFIX, ImageCreationConf.DEFAULT_IMAGE_PREFIX).getValue())
+      .withCorusPort(cmd.getSafeOpt(OPT_WITH_CORUS_PORT).getValueOrDefault(ImageCreationConf.DEFAULT_CORUS_PORT))
+      .withCorusIntallCheckRetry(
+          RetryCriteria.forMaxDuration(
+              TimeMeasure.forSeconds(ImageCreationConf.POLLING_INTERVAL_SECONDS),
+              TimeMeasure.forMinutes(
+                cmd
+                  .getSafeOpt(OPT_WITH_CORUS_INSTALL_WAIT)
+                  .getValueOrDefault(ImageCreationConf.DEFAULT_CORUS_INSTALL_MAX_WAIT)
+              )
+          )
+      )
+      .withImgCreationCheckRetry(
+          RetryCriteria.forMaxDuration(
+              TimeMeasure.forSeconds(ImageCreationConf.POLLING_INTERVAL_SECONDS),
+              TimeMeasure.forMinutes(
+                cmd
+                  .getSafeOpt(OPT_WITH_IMG_CREATION_WAIT)
+                  .getValueOrDefault(ImageCreationConf.DEFAULT_IMG_CREATION_MAX_WAIT)
+              )
+          )
+      )
+      .withInstanceRunCheckRetry(
+          RetryCriteria.forMaxDuration(
+              TimeMeasure.forSeconds(ImageCreationConf.POLLING_INTERVAL_SECONDS),
+              TimeMeasure.forMinutes(
+                cmd
+                  .getSafeOpt(OPT_WITH_INSTANCE_RUN_WAIT)
+                  .getValueOrDefault(ImageCreationConf.DEFAULT_INSTANCE_RUN_CHECK_MAX_WAIT)
+              )
+          )
+      )
+      .withInstanceStopCheckRetry(
+          RetryCriteria.forMaxDuration(
+              TimeMeasure.forSeconds(ImageCreationConf.POLLING_INTERVAL_SECONDS),
+              TimeMeasure.forMinutes(
+                cmd
+                  .getSafeOpt(OPT_WITH_INSTANCE_STOP_WAIT)
+                  .getValueOrDefault(ImageCreationConf.DEFAULT_INSTANCE_STOP_MAX_WAIT)
+              )
+          )
+      )
+      .withInstanceTerminatedCheckRetry(
+          RetryCriteria.forMaxDuration(
+              TimeMeasure.forSeconds(ImageCreationConf.POLLING_INTERVAL_SECONDS),
+              TimeMeasure.forMinutes(
+                cmd
+                  .getSafeOpt(OPT_WITH_INSTANCE_TERM_WAIT)
+                  .getValueOrDefault(ImageCreationConf.DEFAULT_INSTANCE_TERMINATION_MAX_WAIT)
+              )
+          )
+      );       
     
     if (cmd.containsOption(OPT_WITH_RECIPE_ATTRIBUTES, true)) {
-      builder.withRecipeAttributes(loadRecipeAttributes(
+      conf.withRecipeAttributes(loadRecipeAttributes(
           new File(cmd.getOptNotNull(OPT_WITH_RECIPE_ATTRIBUTES).getValue())
       ));
     } else {
-      builder.withRecipeAttributes(loadDefaultRecipeAttributes(
+      conf.withRecipeAttributes(loadDefaultRecipeAttributes(
           Optional.fromNullable(cmd.getSafeOpt(OPT_WITH_RECIPE_CORUS_VER).getValue()),
           Optional.fromNullable(cmd.getSafeOpt(OPT_WITH_RECIPE_CORUS_URL).getValue()),
           Optional.fromNullable(cmd.getSafeOpt(OPT_WITH_RECIPE_JDK_VER).getValue())
       ));
     }
     
-    return builder.build().createImage();
+    AmazonEC2Client     ec2Client = new AmazonEC2Client(conf.getAwsCredentials());
+    
+    try {
+      WorkflowLog                    log = DefaultWorkflowLog.getDefault();
+      Workflow<ImageCreationContext> wf  = ImageCreationWorkflowFactory.getDefaultWorkFlow(log);
+      ImageCreationContext           ctx = new ImageCreationContext(conf, ec2Client);
+      wf.execute(ctx);
+      return wf.getResult();
+    } finally {
+      ec2Client.shutdown();
+    }
   }
+  
+  
   
   
   @Override

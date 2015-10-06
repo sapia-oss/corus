@@ -1,5 +1,6 @@
 package org.sapia.corus.cloud.aws.topology.deployment;
 
+import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.RetryLatch;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 
@@ -30,8 +31,8 @@ public class WaitForStackCreationCompleted implements WorkflowStep<AwsTopologyDe
   
   @Override
   public void execute(AwsTopologyDeploymentContext context) throws Exception {
-    
-    RetryLatch latch          = new RetryLatch(context.getConf().getCloudFormationCreationCheckRetry());
+  
+    RetryLatch latch          = new RetryLatch(context.getSettings().getNotNull("cloudFormationCreationCheckRetry").get(RetryCriteria.class));
     String     expectedStatus = StackCreationStatus.CREATE_COMPLETE.name();
     String     actualStatus   = null;
     do {
@@ -47,7 +48,6 @@ public class WaitForStackCreationCompleted implements WorkflowStep<AwsTopologyDe
       if (actualStatus.equals(StackCreationStatus.CREATE_FAILED.name())) {
         throw new IllegalStateException("Stack creation failed. Reason: " + stack.getStackStatusReason());
       }
-      
     } while (!actualStatus.equals(expectedStatus) && latch.incrementAndPause().shouldContinue());
   }
 

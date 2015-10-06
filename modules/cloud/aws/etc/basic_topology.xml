@@ -1,7 +1,7 @@
 <topology org="sapia" application="sample-app">
   <param name="corus.user"  value="corus" />
   <param name="corus.group" value="corus" />
-  <param name="corus.aws.ec2.iam.role" value="CorusEC2" />
+  <param name="corus.cloud.instance.role" value="CorusEC2" />
   
   <env name="dev">
     <region name="us-west-2">
@@ -18,8 +18,8 @@
     <cluster name="read-only" instances="1">
       <machine name="request-server" serverTags="read-only,server" imageId="ami-adbe909d" instanceType="t2.micro" minInstances="1" maxInstances="5">
         <!-- this param takes a comma-delimited list of groups -->
-        <param name="corus.aws.ec2.security.groups" value="sg-ddac92b8" />
-        <param name="corus.aws.ec2.key.name" value="yanick-keys-uswest" />
+        <param name="corus.cloud.instance.security.groups" value="sg-ddac92b8" />
+        <param name="corus.cloud.instance.key.name" value="yanick-keys-uswest" />
         
         <serverProperties>
           <property name="corus.server.file.link.request-server-logs" value="/var/log/request-server" />

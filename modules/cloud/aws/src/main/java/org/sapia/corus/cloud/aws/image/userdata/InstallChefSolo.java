@@ -11,7 +11,7 @@ public class InstallChefSolo implements UserDataPopulator {
   @Override
   public void addTo(UserDataContext context) {
     context.getUserData()
-      .line("curl -L https://www.opscode.com/chef/install.sh | bash -s -- -v " + context.getConf().getChefVersion())
+      .line("curl -L https://www.opscode.com/chef/install.sh | bash -s -- -v " + context.getSettings().getNotNull("checkVersion").get(String.class))
       .line("mkdir -p /opt/chef/solo")
       .line("cd /opt/chef")
       .line("wget http://github.com/opscode/chef-repo/tarball/master")

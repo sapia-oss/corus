@@ -8,7 +8,8 @@ package org.sapia.corus.cloud.platform.cli;
  */
 public enum CommandDefs {
 
-  CREATE_IMAGE("create-image", "Creates an image on the targeted provider");
+  CREATE_IMAGE("create-image", "Creates an image on the targeted provider"),
+  DEPLOY_TOPOLOGY("deploy-topology", "Deploys a Corus topology");
   
   private String name, desc;
   

@@ -1,4 +1,4 @@
-package org.sapia.corus.cloud.aws;
+package org.sapia.corus.cloud.aws.topology.deployment;
 
 import java.io.BufferedReader;
 import java.io.File;

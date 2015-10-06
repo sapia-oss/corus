@@ -25,7 +25,7 @@ public class InvokeCreateImage implements WorkflowStep<ImageCreationContext> {
   
   public void execute(ImageCreationContext context) throws Exception {
     CreateImageRequest createImgReq = new CreateImageRequest(context.getStartedInstanceId(), 
-       context.getConf().getCorusImageNamePrefix() + "-" + new SimpleDateFormat("yyyyMMdd-hhmmss").format(new Date()));
+       context.getSettings().getNotNull("corusImageNamePrefix").get(String.class) + "-" + new SimpleDateFormat("yyyyMMdd-hhmmss").format(new Date()));
     CreateImageResult createImgRes = context.getEc2Client().createImage(createImgReq);
     context.assignCreatedImageId(createImgRes.getImageId());
   }

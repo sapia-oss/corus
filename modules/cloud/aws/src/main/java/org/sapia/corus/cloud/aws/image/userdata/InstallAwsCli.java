@@ -10,7 +10,7 @@ public class InstallAwsCli implements UserDataPopulator {
   
   @Override
   public void addTo(UserDataContext context) {
-    if (context.getConf().isAwsCliInstall()) {
+    if (context.getSettings().getNotNull("isAwsCliInstall").get(Boolean.class)) {
       context.getUserData().line("pip install awscli");
     }
   }
