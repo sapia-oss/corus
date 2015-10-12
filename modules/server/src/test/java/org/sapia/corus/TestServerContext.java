@@ -4,13 +4,16 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Properties;
 
+import org.mockito.Mockito;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
+import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Processor;
+import org.sapia.corus.client.services.pub.ProcessPublisher;
 import org.sapia.corus.configurator.TestConfigurator;
 import org.sapia.corus.core.InternalServiceContext;
 import org.sapia.corus.core.ServerContextImpl;
@@ -39,6 +42,8 @@ public class TestServerContext extends ServerContextImpl{
   private TestTaskManager       _tm;
   private TestFileSystemModule  _fs;
   private TestOsModule          _os;
+  private DiagnosticModule      _diagnostics;
+  private ProcessPublisher      _publisher;
   
   public static TestServerContext create() {
     TestServerContext created = new TestServerContext(mock(EventChannel.class));
@@ -52,6 +57,8 @@ public class TestServerContext extends ServerContextImpl{
     created._tm    = new TestTaskManager(created);
     created._fs    = new TestFileSystemModule();
     created._os    = new TestOsModule();
+    created._diagnostics = Mockito.mock(DiagnosticModule.class);
+    created._publisher   = Mockito.mock(ProcessPublisher.class);
     
     created.getServices().bind(EventDispatcher.class, created._disp);
     created.getServices().bind(Deployer.class, created._depl);
@@ -63,6 +70,8 @@ public class TestServerContext extends ServerContextImpl{
     created.getServices().bind(ProcessRepository.class, created._proc.getProcessRepository());
     created.getServices().bind(FileSystemModule.class, created._fs);
     created.getServices().bind(OsModule.class, created._os);
+    created.getServices().bind(DiagnosticModule.class, created._diagnostics);
+    created.getServices().bind(ProcessPublisher.class, created._publisher);
     
     registerThrottles(created);
     

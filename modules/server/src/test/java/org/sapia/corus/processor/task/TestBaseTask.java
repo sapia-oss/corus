@@ -20,7 +20,7 @@ import org.sapia.corus.taskmanager.core.TaskManager;
 /**
  * @author Yanick Duchesne
  */
-public class TestBaseTask{
+public class TestBaseTask {
   
   protected TestServerContext ctx;
   protected ProcessRepository db;

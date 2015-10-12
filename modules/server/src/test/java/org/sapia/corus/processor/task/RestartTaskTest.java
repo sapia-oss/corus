@@ -12,6 +12,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -23,18 +26,25 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.pub.ProcessPublisher;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
  * @author Yanick Duchesne
  */
-public class RestartTaskTest extends TestBaseTask{
+@RunWith(MockitoJUnitRunner.class)
+public class RestartTaskTest extends TestBaseTask {
 
+  @Mock
+  private ProcessPublisher publisher;
+  
   private Process  proc, procWithPort;
   
   @Before
   public void setUp() throws Exception {
     super.setUp();
+    ctx.getServices().rebind(ProcessPublisher.class, publisher);
+
     Distribution  dist  = super.createDistribution("testDist", "1.0");
     ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
     proc = super.createProcess(dist, conf, "testProfile");

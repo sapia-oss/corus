@@ -10,6 +10,7 @@ import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.TimeMeasure;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.google.common.base.Preconditions;
 
 public class ImageCreationConf {
@@ -70,6 +71,9 @@ public class ImageCreationConf {
   }
 
   public AWSCredentials getAwsCredentials() {
+    if (awsCredentials == null) {
+      awsCredentials = new DefaultAWSCredentialsProviderChain().getCredentials();
+    }
     return awsCredentials;
   }
 

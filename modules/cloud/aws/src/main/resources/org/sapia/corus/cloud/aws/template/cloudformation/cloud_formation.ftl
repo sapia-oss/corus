@@ -27,6 +27,7 @@
             <@scale_up suffix="${machine.alphaNumericName}${machineSuffix}"/>,
             <@scale_down suffix="${machine.alphaNumericName}${machineSuffix}"/>,
             <@auto_scaling 
+              machine=machine
               machineSuffix=machineSuffix 
               topology=topology 
               environment=environment 

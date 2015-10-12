@@ -33,6 +33,7 @@ import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
+import org.sapia.corus.client.services.pub.ProcessPublisher;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
@@ -46,12 +47,16 @@ public class KillTaskTest extends TestBaseTask {
   @Mock
   private EventDispatcher  dispatcher;
   
+  @Mock
+  private ProcessPublisher publisher;
+  
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    Distribution  dist  = super.createDistribution("testDist", "1.0");
-    ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
+    final Distribution  dist  = super.createDistribution("testDist", "1.0");
+    final ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
     super.ctx.getServices().rebind(EventDispatcher.class, dispatcher);
+    super.ctx.getServices().rebind(ProcessPublisher.class, publisher);
     
     PortRange     range = new PortRange("test", 8080, 8080);
     ctx.getPorts().addPortRange(range);
@@ -59,7 +64,8 @@ public class KillTaskTest extends TestBaseTask {
     port.setName("test");
     proc = super.createProcess(dist, conf, "testProfile");
     int portNumber = ctx.getPorts().aquirePort(port.getName());
-    proc.addActivePort(new ActivePort(port.getName(), portNumber));
+    final ActivePort ap = new ActivePort(port.getName(), portNumber);
+    proc.addActivePort(ap);
   }
 
   @Test

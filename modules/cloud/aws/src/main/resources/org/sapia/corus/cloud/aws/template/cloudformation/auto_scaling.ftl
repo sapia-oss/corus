@@ -1,5 +1,5 @@
 <#include "../common/aws.ftl">
-<#macro auto_scaling machineSuffix topology environment region zone domainName globalTags>
+<#macro auto_scaling machine machineSuffix topology environment region zone domainName globalTags>
 "AutoScaling${machine.alphaNumericName}${machineSuffix}": {
   "Type":"AWS::AutoScaling::AutoScalingGroup",
   "Properties": {
@@ -36,3 +36,4 @@
       globalTags=globalTags/>
   }
 }
+</#macro>

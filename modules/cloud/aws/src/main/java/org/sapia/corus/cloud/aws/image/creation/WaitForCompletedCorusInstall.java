@@ -31,7 +31,7 @@ public class WaitForCompletedCorusInstall implements WorkflowStep<ImageCreationC
   
   @Override
   public void execute(ImageCreationContext context) throws Exception {
-    int corusPort = context.getSettings().getNotNull("corusPort").get(int.class);
+    int corusPort = context.getSettings().getNotNull("corusPort").get(Integer.class);
     String urlString = "https://" + context.getAllocatedPublicIp() + ":" + corusPort + "/ping";
     context.getLog().info("Connecting to Corus ping URL at: %s", urlString);
     URL corusUrl = new URL(urlString);

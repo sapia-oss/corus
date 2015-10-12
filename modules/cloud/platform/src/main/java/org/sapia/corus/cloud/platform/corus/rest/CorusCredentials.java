@@ -1,8 +1,7 @@
 package org.sapia.corus.cloud.platform.corus.rest;
 
-import org.assertj.core.util.Strings;
-
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 /**
  * Models credentials - to use with the {@link CorusRestClient}.
