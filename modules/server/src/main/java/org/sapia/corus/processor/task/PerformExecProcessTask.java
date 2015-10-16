@@ -14,16 +14,17 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
-import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Interpolation;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.Property;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
@@ -99,16 +100,16 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       return false;
     }
 
-    CmdLine cmd;
+    OptionalValue<StarterResult> startResult;
     try {
-      cmd = conf.toCmdLine(env);
+      startResult = conf.toCmdLine(env);
     } catch (Exception e) {
       process.releasePorts(ports);
       ctx.error(e);
       return false;
     }
 
-    if (cmd == null) {
+    if (startResult.isNull()) {
       ctx.warn(String.format("No executable found for profile: %s", env.getProfile()));
       process.releasePorts(ports);
       return false;
@@ -141,15 +142,18 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     ctx.info(String.format("Running pre-exec script"));
     conf.preExec(env);
 
-    ctx.info(String.format("Executing process under: %s ---> %s", processDir, cmd.toString()));
+    ctx.info(String.format("Executing process under: %s ---> %s", processDir, startResult.get().getCommand().toString()));
     
     try {
-      process.setOsPid(os.executeProcess(callback(ctx), processDir, cmd));
+      process.setOsPid(os.executeProcess(callback(ctx), processDir, startResult.get().getCommand()));
     } catch (IOException e) {
       ctx.error("Process could not be started", e);
       process.releasePorts(ports);
       return false;
     }
+    
+    process.setInteropEnabled(startResult.get().isInteropEnabled());
+    process.setStarterType(startResult.get().getStarterType());
 
     ctx.info(String.format("Process started; corus pid: %s", process.getProcessID()));
 

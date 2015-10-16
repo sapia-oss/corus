@@ -54,7 +54,7 @@ public class BaseJavaStarterTest {
     arg.setValue("-javaaagent:${testAgent}");
     starter.addArg(arg);
     when(env.getProperties()).thenReturn(new Property[] { new Property("testAgent", "test") });
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     Arg a = (Arg) cmd.get(1);
     assertEquals("-javaaagent:test", a.getName());
   }
@@ -66,7 +66,7 @@ public class BaseJavaStarterTest {
     prop.setValue("${someValue}");
     starter.addProperty(prop);
     when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
     assertEquals("DsomeProp=test", o.getName());
 
@@ -79,7 +79,7 @@ public class BaseJavaStarterTest {
     opt.setValue("${someValue}");
     starter.addOption(opt);
     when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
     assertEquals("someOption", o.getName());
     assertEquals("test", o.getValue());
@@ -92,7 +92,7 @@ public class BaseJavaStarterTest {
     opt.setValue("${someValue}");
     starter.addXoption(opt);
     when(env.getProperties()).thenReturn(new Property[] { new Property("someValue", "test") });
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     org.sapia.console.Option o = (org.sapia.console.Option) cmd.get(1);
     assertEquals("XsomeOptiontest", o.getName());
   }
@@ -311,8 +311,8 @@ public class BaseJavaStarterTest {
   static class TestJavaStarter extends BaseJavaStarter {
 
     @Override
-    public CmdLine toCmdLine(Env env) throws MissingDataException {
-      return super.buildCommandLine(env).command;
+    public StarterResult toCmdLine(Env env) throws MissingDataException {
+      return new StarterResult(StarterType.JAVA, buildCommandLine(env).command, true);
     }
   }
 }

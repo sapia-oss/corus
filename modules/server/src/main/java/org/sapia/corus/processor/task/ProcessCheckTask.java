@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
+import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
+import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
@@ -34,12 +37,16 @@ import org.sapia.corus.taskmanager.core.TaskParams;
  */
 public class ProcessCheckTask extends Task<Void, Void> {
 
+  private LockOwner lockOwner = LockOwner.createInstance();
+  
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     ctx.debug("Checking for stale processes...");
 
-    Processor processor = ctx.getServerContext().getServices().getProcessor();
+    Processor              processor     = ctx.getServerContext().getServices().getProcessor();
+    DiagnosticModule       diagnostics   = ctx.getServerContext().getServices().getDiagnosticModule();
     ProcessorConfiguration processorConf = processor.getConfiguration();
+    
     List<Process> processes = ctx.getServerContext().getServices().getProcesses().getProcesses(
         ProcessCriteria.builder().lifecycles(LifeCycleStatus.ACTIVE).build()
     );
@@ -52,9 +59,24 @@ public class ProcessCheckTask extends Task<Void, Void> {
       long configuredTimeout = proc.getPollTimeout() > 0 ? 
           TimeUnit.MILLISECONDS.convert(proc.getPollTimeout(), TimeUnit.SECONDS) : 
           processor.getConfiguration().getProcessTimeoutMillis();
-          
       if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) && proc.isTimedOut(configuredTimeout)) {
-        proc.incrementStaleDetectionCount();
+        
+        // if interop is not enabled: proceeding to diagnostic
+        if (!proc.isInteropEnabled()) {
+          ProcessDiagnosticResult diag = diagnostics.acquireDiagnosticFor(proc, lockOwner);
+          if (diag.getStatus().isFinal() && diag.getStatus().isProblem()) {
+            proc.incrementStaleDetectionCount();
+          } else {
+            // all OK
+            // faking poll to clear stale detection count
+            proc.poll();
+            // moving on to next process
+            continue;
+          }
+        } else {
+          proc.incrementStaleDetectionCount();
+        }
+        
         if (!processorConf.autoRestartStaleProcesses()) {
           ctx.warn(String.format("Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s." 
               + " Timeout set to %s millis", 

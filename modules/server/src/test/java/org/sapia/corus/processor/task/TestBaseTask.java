@@ -5,11 +5,14 @@ import org.mockito.Mockito;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.client.common.Env;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Java;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
+import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Processor;
@@ -48,8 +51,8 @@ public class TestBaseTask {
   
   protected ProcessConfig createProcessConfig(Distribution dist, String processName, String profile){
     ProcessConfig conf = new ProcessConfig(){
-      public CmdLine toCmdLine(Env env) throws MissingDataException {
-        return new CmdLine();
+      public OptionalValue<StarterResult> toCmdLine(Env env) throws MissingDataException {
+        return OptionalValue.of(new StarterResult(StarterType.JAVA, new CmdLine(), true));
       }
     };
     conf.setName(processName);

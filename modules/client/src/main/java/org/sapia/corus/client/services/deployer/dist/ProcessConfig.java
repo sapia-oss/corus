@@ -382,20 +382,17 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   }
 
   /**
-   * Returns a "command-line" representation of this instance.
-   * 
-   * @return this instance as a {@link CmdLine} object, or <code>null</code> if
-   *         no {@link CmdLine} could be generated for the profile contained in
-   *         the passed in {@link Env} instance.
+   * @return the {@link StarterResult} corresponding to the process to execute, or {@link OptionalValue#none()} 
+   *         if no {@link CmdLine} could be generated for the profile contained in the passed in {@link Env} instance.
    */
-  public CmdLine toCmdLine(Env env) throws MissingDataException {
+  public OptionalValue<StarterResult> toCmdLine(Env env) throws MissingDataException {
     Starter st = findFor(env.getProfile());
 
     if (st == null) {
-      return null;
+      return OptionalValue.none();
     }
 
-    return st.toCmdLine(env);
+    return OptionalValue.of(st.toCmdLine(env));
   }
 
   /**
