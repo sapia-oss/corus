@@ -17,9 +17,8 @@ import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.FilePath;
-import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.os.OsModule.LogCallback;
 import org.sapia.corus.sigar.SigarSupplier;
 import org.sapia.corus.util.IOUtil;
 
@@ -43,7 +42,7 @@ public class WindowsProcess implements NativeProcess {
      * @param log the {@link LoggingCallback} instance to log to.
      * @param pid the OS pid of the process to kill.
      */
-    public void call(OsModule.LogCallback log, String pid) throws IOException;
+    public void call(LogCallback log, String pid) throws IOException;
     
   }
   
@@ -58,7 +57,7 @@ public class WindowsProcess implements NativeProcess {
   public class KillWithPvFunction implements KillProcessFunction {
 
     @Override
-    public void call(OsModule.LogCallback log, String pid) throws IOException {
+    public void call(LogCallback log, String pid) throws IOException {
   
       // Generate the kill command
       CmdLine aKillCommand = createPVCmdLine();
@@ -94,7 +93,7 @@ public class WindowsProcess implements NativeProcess {
   public class KillWithTaskKillFunction implements KillProcessFunction {
 
     @Override
-    public void call(OsModule.LogCallback log, String pid) throws IOException {
+    public void call(LogCallback log, String pid) throws IOException {
   
       // Generate the kill command
       CmdLine aKillCommand = CmdLine.parse(String.format("cmd /c taskkill /PID %s", pid));
@@ -263,7 +262,7 @@ public class WindowsProcess implements NativeProcess {
    *
    */
   @Override
-  public String exec(OsModule.LogCallback log, File baseDir, CmdLine cmd) throws IOException {
+  public String exec(LogCallback log, File baseDir, CmdLine cmd) throws IOException {
     // Generate the call to the javastart.bat script
     CmdLine javaCmd = new CmdLine();
     String cmdStr = System.getProperty("corus.home") + File.separator + "bin" + File.separator + "javastart.bat";
@@ -340,7 +339,7 @@ public class WindowsProcess implements NativeProcess {
 
 
   @Override
-  public void kill(OsModule.LogCallback log, KillSignal sig, String pid) throws IOException {
+  public void kill(LogCallback log, KillSignal sig, String pid) throws IOException {
     if (SigarSupplier.isSet() && SigarSupplier.get() instanceof Sigar) {
       try {
         log.debug(String.format("Killing process %s with SIGAR", pid));
@@ -358,7 +357,7 @@ public class WindowsProcess implements NativeProcess {
     }
   }
   
-  private String extractPidUsingSigar(OsModule.LogCallback log, File baseDir)
+  private String extractPidUsingSigar(LogCallback log, File baseDir)
       throws IOException {
     try {
       for (long pid : SigarSupplier.get().getProcList()) {
@@ -382,12 +381,12 @@ public class WindowsProcess implements NativeProcess {
     }
   }
   
-  private void killWithPv(OsModule.LogCallback log, String pid) throws IOException {
+  private void killWithPv(LogCallback log, String pid) throws IOException {
     KillWithPvFunction func = new KillWithPvFunction();
     func.call(log, pid); 
   }
   
-  private String extractPidUsingPV(OsModule.LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
+  private String extractPidUsingPV(LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
       throws IOException {
       // Retrieve the OS pid using the process viewer tool
       CmdLine aListCommand = createPVCmdLine();

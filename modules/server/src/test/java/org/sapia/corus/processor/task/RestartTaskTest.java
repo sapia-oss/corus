@@ -1,6 +1,7 @@
 package org.sapia.corus.processor.task;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -16,17 +17,19 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
-import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.pub.ProcessPublisher;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
@@ -60,9 +63,8 @@ public class RestartTaskTest extends TestBaseTask {
   
   @Test
   public void testExecute() throws Exception{
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    
+    ProcessHookManager processHooks = ctx.getServices().lookup(ProcessHookManager.class);
+ 
     proc.confirmKilled();
     proc.save();
     long oldCreationTime = proc.getCreationTime();
@@ -78,14 +80,13 @@ public class RestartTaskTest extends TestBaseTask {
     assertNotSame("Last access times should not be identical", lastAccessTime, proc.getLastAccess());  
     ProcessCriteria crit = ProcessCriteria.builder().pid(ArgMatchers.parse(proc.getProcessID())).lifecycles(LifeCycleStatus.ACTIVE).build();
     assertTrue("Process should be active", !ctx.getServices().getProcesses().getProcesses(crit).isEmpty());
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));    
   }
   
   @Test
   public void testRestartFailed() throws Exception{
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    
+    ProcessHookManager processHooks = ctx.getServices().lookup(ProcessHookManager.class);
+
     PortManager pm = mock(PortManager.class);
     ctx.getServices().rebind(PortManager.class, pm);
     when(pm.aquirePort(anyString())).thenThrow(new PortUnavailableException("port unavailable"));
@@ -105,7 +106,7 @@ public class RestartTaskTest extends TestBaseTask {
         "Process should have been removed", 
         ctx.getServices().getProcesses().getProcesses(crit).isEmpty()
     );
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));    
   }
 
 }

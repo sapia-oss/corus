@@ -5,21 +5,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 public class ForcefulKillTaskTest extends TestBaseTask{
@@ -53,12 +54,11 @@ public class ForcefulKillTaskTest extends TestBaseTask{
   
   @Test
   public void testExecuteFailure() throws Exception{
-    OsModule os = mock(OsModule.class);
-    doThrow(new IOException("Kill error")).when(os).killProcess(
-          any(OsModule.LogCallback.class), 
+    ProcessHookManager processHooks = ctx.getServices().lookup(ProcessHookManager.class);
+    doThrow(new IOException("Kill error")).when(processHooks).kill(
+          any(ProcessContext.class), 
           any(KillSignal.class),
-          any(String.class));
-    ctx.getServices().rebind(OsModule.class, os);
+          any(LogCallback.class));
     ForcefulKillTask task = new ForcefulKillTask();
     assertEquals("Should not have available ports", 0, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
     assertFalse(

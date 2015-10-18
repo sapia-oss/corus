@@ -93,7 +93,6 @@ public interface CorusConsts {
 
   // --------------------------------------------------------------------------
   // Diagnostics
-  
 
   /**
    * Indicates the amount of time given to Corus to boot up and start processes.
@@ -131,4 +130,19 @@ public interface CorusConsts {
    */
   public static final String PROPERTY_CORUS_AWS_ENABLED   = "corus.server.aws.enabled";
 
+  // --------------------------------------------------------------------------
+  // Docker
+
+  /**
+   * Indicates if Docker integration is enabled.
+   */
+  public static final String PROPERTY_CORUS_DOCKER_ENABLED          = "corus.server.docker.enabled"; 
+
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_EMAIL     = "corus.server.docker.client.email"; 
+  
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_USERNAME  = "corus.server.docker.client.username"; 
+
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_PASSWORD  = "corus.server.docker.client.password"; 
+  
+  public static final String PROPERTY_CORUS_DOCKER_REGISTRY_ADDRESS = "corus.server.docker.registry.address"; 
 }

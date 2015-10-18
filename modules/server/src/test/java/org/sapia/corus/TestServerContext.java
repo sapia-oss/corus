@@ -26,12 +26,14 @@ import org.sapia.corus.core.ServerContextImpl;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.deployer.TestDeployer;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.file.TestFileSystemModule;
 import org.sapia.corus.os.TestOsModule;
 import org.sapia.corus.port.TestPortManager;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.processor.ProcessorThrottleKeys;
 import org.sapia.corus.processor.TestProcessor;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TestTaskManager;
 import org.sapia.corus.taskmanager.core.Throttle;
@@ -50,6 +52,8 @@ public class TestServerContext extends ServerContextImpl{
   private TestOsModule          _os;
   private DiagnosticModule      _diagnostics;
   private ProcessPublisher      _publisher;
+  private ProcessHookManager  _processHooks;
+  private DeploymentProcessorManager _deploymentProcessors;
   
   public static TestServerContext create() {
     TestServerContext created = new TestServerContext(mock(EventChannel.class));
@@ -63,8 +67,10 @@ public class TestServerContext extends ServerContextImpl{
     created._tm    = new TestTaskManager(created);
     created._fs    = new TestFileSystemModule();
     created._os    = new TestOsModule();
-    created._diagnostics = Mockito.mock(DiagnosticModule.class);
-    created._publisher   = Mockito.mock(ProcessPublisher.class);
+    created._diagnostics  = Mockito.mock(DiagnosticModule.class);
+    created._publisher    = Mockito.mock(ProcessPublisher.class);
+    created._processHooks = Mockito.mock(ProcessHookManager.class);
+    created._deploymentProcessors = Mockito.mock(DeploymentProcessorManager.class);
     
     created.getServices().bind(EventDispatcher.class, created._disp);
     created.getServices().bind(Deployer.class, created._depl);
@@ -78,6 +84,8 @@ public class TestServerContext extends ServerContextImpl{
     created.getServices().bind(OsModule.class, created._os);
     created.getServices().bind(DiagnosticModule.class, created._diagnostics);
     created.getServices().bind(ProcessPublisher.class, created._publisher);
+    created.getServices().bind(ProcessHookManager.class, created._processHooks);
+    created.getServices().bind(DeploymentProcessorManager.class, created._deploymentProcessors);
     
     when(created._diagnostics.acquireDiagnosticFor(
         any(Process.class), any(LockOwner.class)

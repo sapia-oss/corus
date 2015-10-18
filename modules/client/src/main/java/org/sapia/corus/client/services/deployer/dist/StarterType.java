@@ -11,6 +11,7 @@ public enum StarterType {
   JAVA,
   MAGNET,
   GENERIC,
+  DOCKER,
   UNDEFINED;
  
 }

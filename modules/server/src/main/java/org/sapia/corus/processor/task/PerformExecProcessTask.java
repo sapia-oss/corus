@@ -17,6 +17,7 @@ import org.apache.commons.lang.text.StrLookup;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Interpolation;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.configurator.PropertyMasker;
@@ -304,13 +305,16 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     return (Property[]) props.toArray(new Property[props.size()]);
   }
 
-  private OsModule.LogCallback callback(final TaskExecutionContext ctx) {
-    return new OsModule.LogCallback() {
+  private LogCallback callback(final TaskExecutionContext ctx) {
+    return new LogCallback() {
       @Override
       public void error(String msg) {
         ctx.error(msg);
       }
-
+      @Override
+      public void info(String msg) {
+        ctx.info(msg);
+      }
       @Override
       public void debug(String msg) {
         ctx.debug(msg);

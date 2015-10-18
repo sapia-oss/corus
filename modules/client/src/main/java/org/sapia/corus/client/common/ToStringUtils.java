@@ -1,5 +1,7 @@
 package org.sapia.corus.client.common;
 
+import java.util.Collection;
+
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
@@ -81,10 +83,28 @@ public class ToStringUtils {
    * @param toJoin the objects whose string representation should be joined.
    * @return a new {@link String} consisting of a joint string representation.
    */
+  public static <T> String joinToString(String delim, Collection<T> toJoin) {
+    return joinToString(delim, toJoin.toArray(new Object[toJoin.size()]));
+  }
+  
+  /**
+   * Creates a joint comma-delimited string representation of the given objects.
+   * 
+   * @param toJoin the objects whose string representation should be joined.
+   * @return a new {@link String} consisting of a joint string representation.
+   */
   public static String joinToString(Object...toJoin) {
     return joinToString(",", toJoin);
   }
 
-  
+  /**
+   * Creates a joint comma-delimited string representation of the given objects.
+   * 
+   * @param toJoin the objects whose string representation should be joined.
+   * @return a new {@link String} consisting of a joint string representation.
+   */
+  public static <T> String joinToString(Collection<T> toJoin) {
+    return joinToString(toJoin.toArray(new Object[toJoin.size()]));
+  }
   
 }

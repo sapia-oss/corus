@@ -11,6 +11,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -58,7 +59,7 @@ public class ExecTaskTest extends TestBaseTask{
   public void testExecuteProcessWithPortFailed() throws Exception{
     OsModule os = mock(OsModule.class);
     ctx.getServices().rebind(OsModule.class, os);
-    when(os.executeProcess(any(OsModule.LogCallback.class), any(File.class), any(CmdLine.class)))
+    when(os.executeProcess(any(LogCallback.class), any(File.class), any(CmdLine.class)))
       .thenThrow(new IOException("Execution error"));
     
     PortRange range = new PortRange("test", 8080, 8080);

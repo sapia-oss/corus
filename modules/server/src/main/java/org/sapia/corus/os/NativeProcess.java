@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 
@@ -28,7 +29,7 @@ public interface NativeProcess {
    * @return the started process' PID, or <code>null</code> if a native PID
    *         could not be returned.
    */
-  public String exec(OsModule.LogCallback log, File baseDir, CmdLine cmd) throws IOException;
+  public String exec(LogCallback log, File baseDir, CmdLine cmd) throws IOException;
 
   /**
    * Kills the process corresponding to the given identifier.
@@ -41,5 +42,5 @@ public interface NativeProcess {
    *          a process' OS-specific identifier.
    * @throws IOException
    */
-  public void kill(OsModule.LogCallback log, KillSignal sig, String pid) throws IOException;
+  public void kill(LogCallback log, KillSignal sig, String pid) throws IOException;
 }

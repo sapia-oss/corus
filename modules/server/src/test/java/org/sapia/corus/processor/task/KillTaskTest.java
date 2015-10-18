@@ -5,10 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -17,12 +15,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventDispatcher;
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
@@ -34,6 +32,8 @@ import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
 import org.sapia.corus.client.services.pub.ProcessPublisher;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 /**
@@ -50,6 +50,9 @@ public class KillTaskTest extends TestBaseTask {
   @Mock
   private ProcessPublisher publisher;
   
+  @Mock
+  private ProcessHookManager processHooks;
+  
   @Before
   public void setUp() throws Exception {
     super.setUp();
@@ -57,7 +60,7 @@ public class KillTaskTest extends TestBaseTask {
     final ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
     super.ctx.getServices().rebind(EventDispatcher.class, dispatcher);
     super.ctx.getServices().rebind(ProcessPublisher.class, publisher);
-    
+    super.ctx.getServices().rebind(ProcessHookManager.class, processHooks);
     PortRange     range = new PortRange("test", 8080, 8080);
     ctx.getPorts().addPortRange(range);
     Port port = conf.createPort();
@@ -93,8 +96,6 @@ public class KillTaskTest extends TestBaseTask {
 
   @Test
   public void testKillFromCorusConfirmed() throws Exception {
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
 
     proc.confirmKilled();
     proc.save();
@@ -109,14 +110,11 @@ public class KillTaskTest extends TestBaseTask {
     
     verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
     verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
   }
 
   @Test
   public void testKill_zeroRetryAttempt() throws Exception {
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    
     int      maxRetry = 0;
     KillTask kill        = new KillTask(maxRetry);
     for(int i = 0; i < 1+maxRetry; i++){
@@ -146,14 +144,11 @@ public class KillTaskTest extends TestBaseTask {
     verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
     verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
     verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
   }
 
   @Test
   public void testKillMaxAttemptReachedNoRestart() throws Exception {
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    
     int      maxRetry = 3;
     KillTask kill        = new KillTask(maxRetry);
     for(int i = 0; i < 1+maxRetry; i++){
@@ -183,7 +178,7 @@ public class KillTaskTest extends TestBaseTask {
     verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
     verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));
     verify(dispatcher, never()).dispatch(isA(ProcessRestartedEvent.class));
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());    
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
   }
 
   @Test
@@ -246,10 +241,7 @@ public class KillTaskTest extends TestBaseTask {
   }
   
   @Test
-  public void testHardKill() throws Exception {
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    
+  public void testHardKill() throws Exception {    
     KillTask kill = new KillTask(3);  
     kill.setHardKill(true);
     tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)).get();
@@ -259,7 +251,7 @@ public class KillTaskTest extends TestBaseTask {
         ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
     );
     
-    verify(os).killProcess(any(OsModule.LogCallback.class), eq(KillSignal.SIGKILL), anyString());
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
     verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
     verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
     verify(dispatcher, never()).dispatch(isA(ProcessRestartPendingEvent.class));

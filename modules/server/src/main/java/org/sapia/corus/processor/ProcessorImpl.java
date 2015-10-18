@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
@@ -561,12 +562,15 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       // trying to kill stale process, just it case it is zombie
       if (p.getStatus() == LifeCycleStatus.STALE || p.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
         try {
-          os.killProcess(new OsModule.LogCallback() {
+          os.killProcess(new LogCallback() {
             @Override
             public void error(String error) {
             }
             @Override
             public void debug(String msg) {
+            }
+            @Override
+            public void info(String msg) {
             }
           }, KillSignal.SIGKILL, p.getOsPid());
         } catch (IOException e) {

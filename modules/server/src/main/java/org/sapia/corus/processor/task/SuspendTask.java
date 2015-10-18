@@ -2,11 +2,13 @@ package org.sapia.corus.processor.task;
 
 import java.io.IOException;
 
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.processor.ProcessRepository;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
+import org.sapia.corus.taskmanager.TaskLogCallback;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 /**
@@ -27,9 +29,9 @@ public class SuspendTask extends KillTask {
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
 
       try {
-        OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {
-          os.killProcess(osKillCallback(), KillSignal.SIGKILL, proc.getOsPid());
+          ProcessHookManager processHooks = ctx.getServerContext().lookup(ProcessHookManager.class);
+          processHooks.kill(new ProcessContext(proc), KillSignal.SIGKILL, new TaskLogCallback(ctx));
         }
       } catch (IOException e) {
         ctx.warn("Error caught trying to kill process", e);

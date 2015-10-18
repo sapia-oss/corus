@@ -353,6 +353,13 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   public int getInterpolationPasses() {
     return interpolationPasses;
   }
+  
+  /**
+   * @return the {@link List} of {@link Starter}s held by this instance.
+   */
+  public List<Starter> getStarters() {
+    return starters;
+  }
 
   /**
    * @param env the {@link Env} instance.
