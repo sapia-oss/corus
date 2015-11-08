@@ -1,0 +1,39 @@
+<topology org="sapia" application="sample-app">
+  <param name="corus.user"  value="corus" />
+  <param name="corus.group" value="corus" />
+  <param name="corus.cloud.instance.role" value="CorusEC2" />
+  
+  <env name="dev">
+    <region name="us-west-2">
+      <zone name="us-west-2b">
+        <subnet>subnet-daaf05ad</subnet>
+      </zone>
+      <!-- zone>us-west-1b</zone-->
+    </region>
+    <!-- region name="ap-southeast-1">
+      <zone>ap-southeast-1a</zone>
+      <zone>ap-southeast-1b</zone>
+    </region-->
+
+    <cluster name="read-only" instances="1">
+      <machine name="request-server" serverTags="read-only,server" imageId="ami-adbe909d" instanceType="t2.micro" minInstances="1" maxInstances="5">
+        <!-- this param takes a comma-delimited list of groups -->
+        <param name="corus.cloud.instance.security.groups" value="sg-ddac92b8" />
+        <param name="corus.cloud.instance.key.name" value="yanick-keys-uswest" />
+        
+        <serverProperties>
+          <property name="corus.server.file.link.request-server-logs" value="/var/log/request-server" />
+        </serverProperties>
+        <processProperties>
+          <property name="request.server.log.level" value="info" />
+          <property name="corus.env" value="dev" />
+        </processProperties>
+        <load-balancer-attachment name="lb-us-west" />
+        <user-data>
+          <line>mkdir -p /var/log/request-server</line>
+          <line>chown -R corus:corus /var/log/request-server</line>
+        </user-data>
+      </machine>
+    </cluster>
+  </env>
+</topology>

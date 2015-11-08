@@ -17,6 +17,8 @@ import java.util.Map;
  */
 @SuppressWarnings(value = "unchecked")
 public class PatternArgMatcher implements ArgMatcher {
+  
+  public static char[] DEFAULT_WILDCARD = new char[] {'*', '+'};
 
   public static final long serialVersionUID = 1L;
 
@@ -31,12 +33,13 @@ public class PatternArgMatcher implements ArgMatcher {
   /** The int value that terminates the pattern <code>int []</code>. */
   protected static final int MATCH_END = -3;
 
+  private char[] wildcardChars;
   private int[]  pattern;
   private String token;
   private boolean and = true;
- 
-
-  PatternArgMatcher(String token) {
+  
+  PatternArgMatcher(char[] wildcardChars, String token) {
+    this.wildcardChars = wildcardChars;
     if (token.startsWith("!")) {
       this.token = token.substring(1);
       this.pattern = compilePattern(this.token);
@@ -45,6 +48,10 @@ public class PatternArgMatcher implements ArgMatcher {
       this.pattern = compilePattern(token);
       this.token   = token;
     }
+  }
+
+  PatternArgMatcher(String token) {
+    this(DEFAULT_WILDCARD, token);
   }
 
   @SuppressWarnings("rawtypes")
@@ -98,7 +105,7 @@ public class PatternArgMatcher implements ArgMatcher {
    * @exception NullPointerException
    *              If data is null.
    */
-  static int[] compilePattern(String data) throws NullPointerException {
+  int[] compilePattern(String data) throws NullPointerException {
 
     // Prepare the arrays
     int expr[] = new int[data.length() + 2];
@@ -114,7 +121,7 @@ public class PatternArgMatcher implements ArgMatcher {
     if (buff.length > 0) {
       if (buff[0] == '\\') {
         slash = true;
-      } else if (buff[0] == '*') {
+      } else if (isWildCard(buff[0])) {
         expr[y++] = MATCH_FILE;
       } else {
         expr[y++] = buff[0];
@@ -132,7 +139,7 @@ public class PatternArgMatcher implements ArgMatcher {
           if (buff[x] == '\\') {
             slash = true;
             // If this char is '*' check the previous one
-          } else if (buff[x] == '*') {
+          } else if (isWildCard(buff[x])) {
             // If the previous character als was '*' match a path
             if (expr[y - 1] <= MATCH_FILE) {
               expr[y - 1] = MATCH_PATH;
@@ -402,4 +409,12 @@ public class PatternArgMatcher implements ArgMatcher {
     return (true);
   }
 
+  private boolean isWildCard(char c) {
+    for (int i = 0; i < wildcardChars.length; i++) {
+      if (wildcardChars[i] == c) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

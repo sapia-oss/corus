@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>4.8</version>
+    <version>4.8.1</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -183,6 +183,16 @@
       <groupId>org.hyperic</groupId>
       <artifactId>sigar</artifactId>
     </dependency>
+    
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+    </dependency>
+
+		<dependency>
+		  <groupId>com.spotify</groupId>
+		  <artifactId>docker-client</artifactId>
+		</dependency>
 
   </dependencies>
 

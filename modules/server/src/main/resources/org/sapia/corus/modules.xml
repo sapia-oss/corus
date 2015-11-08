@@ -29,8 +29,59 @@
         scope="singleton"
         autowire="autodetect">
   </bean> 
-    
+  
+  <!-- ============ ARTIFACT MANAGER ============ -->
+
+  <bean class="org.sapia.corus.deployer.artifact.FileArtifactProvider" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
+  <bean class="org.sapia.corus.deployer.artifact.S3ArtifactProvider" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
+  
+  <bean name="org.sapia.corus.client.services.artifact.ArtifactManager" 
+        class="org.sapia.corus.deployer.artifact.ArtifactManagerImpl" 
+        scope="singleton" 
+        autowire="autodetect">
+  </bean>
+  
+  <!-- ============= DOCKER ============= -->
+
+  <bean name="org.sapia.corus.docker.DockerFacade" 
+        scope="singleton" 
+        class="org.sapia.corus.docker.DockerFacadeImpl">
+    <property name="enabled"       value="${corus.server.docker.enabled}" />
+    <property name="email"         value="${corus.server.docker.client.email}" />
+    <property name="username"      value="${corus.server.docker.client.username}" />
+    <property name="password"      value="${corus.server.docker.client.password}" />
+    <property name="serverAddress" value="${corus.server.docker.registry.address}" />
+  </bean>
+
+  <bean name="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor" 
+        scope="singleton" 
+        class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor">
+  </bean>
+
+  <bean name="org.sapia.corus.ext.hook.docker.DockerProcessKillHook" 
+        scope="singleton" 
+        class="org.sapia.corus.ext.hook.docker.DockerProcessKillHook">
+  </bean>
+  
+  <bean name="org.sapia.corus.ext.hook.docker.DockerProcessStartHook" 
+        scope="singleton" 
+        class="org.sapia.corus.ext.hook.docker.DockerProcessStartHook">
+  </bean>
+  
+
   <!-- ============ DEPLOYER ============ -->
+  
+  <bean name="org.sapia.corus.deployer.processor.DeploymentProcessorManager" 
+        scope="singleton" 
+        class="org.sapia.corus.deployer.processor.DeploymentProcessorManagerImpl">
+  </bean>
 
   <bean name="deployer.configuration" 
         scope="singleton" 
@@ -76,8 +127,29 @@
   </bean>
   
   <!-- ============ PROCESSOR ============ -->
+  
+  <bean 
+    name="org.sapia.corus.processor.hook.ProcessHookManager"
+    scope="singleton" 
+    class="org.sapia.corus.processor.hook.ProcessHookManagerImpl">  
+  </bean>
+  
+  <bean 
+    name="org.sapia.corus.processor.hook.DefaultProcessStartHook"
+    scope="singleton" 
+    class="org.sapia.corus.processor.hook.DefaultProcessStartHook">
+  </bean>
 
-  <bean name="processor.configuration" class="org.sapia.corus.processor.ProcessorConfigurationImpl">
+  <bean 
+    name="org.sapia.corus.processor.hook.DefaultProcessKillHook"
+    scope="singleton" 
+    class="org.sapia.corus.processor.hook.DefaultProcessKillHook">
+  </bean>
+
+  <bean 
+    name="processor.configuration"
+    scope="singleton" 
+    class="org.sapia.corus.processor.ProcessorConfigurationImpl">
     <property name="processCheckInterval" value="${corus.process.check-interval}" />
     <property name="killInterval"         value="${corus.process.kill-interval}" />
     <property name="startInterval"        value="${corus.process.start-interval}" />
@@ -85,6 +157,8 @@
     <property name="processTimeout"       value="${corus.process.timeout}" />
     <property name="autoRestart"          value="${corus.process.auto-restart}" />
     <property name="bootExecEnabled"      value="${corus.process.start-at-boot.enabled}" />
+    <property name="processPublishingDiagnosticMaxAttempts" value="${corus.process.pub.diagnostic.max-attempts}" />
+    <property name="processPublishingDiagnosticInterval"    value="${corus.process.pub.diagnostic.interval}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.processor.Processor" 
@@ -158,18 +232,39 @@
     <property name="alertLevel"      value="${corus.server.alert.level}" />
   </bean> 
 
-  <!-- ============ CONSUL ============ -->
+  <!-- ============ PUBLISHER ============ -->
+
+  <!-- AWS -->
   
-  <bean name="org.sapia.corus.ext.pub.consul.ConsulPublisher"
-  		class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
-  		scope="singleton"
-  		autowire="autodetect">
-    <property name="enabled"   	            value="${corus.server.pub.consul.enabled}" />
+  <bean name="org.sapia.corus.aws.AwsConfiguration"
+      class="org.sapia.corus.aws.AwsConfigBean"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="awsEnabled" value="${corus.server.aws.enabled}" />
+  </bean> 
+  
+  <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.AWS"
+      class="org.sapia.corus.ext.pub.aws.AwsElbPublishingProvider"
+      scope="singleton"
+      autowire="autodetect">
+  </bean> 
+
+  <!-- Consul -->
+  <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.CONSUL"
+      class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="enabled"                value="${corus.server.pub.consul.enabled}" />
     <property name="agentUrl"               value="${corus.server.pub.consul.agent-url}" />
     <property name="publishIntervalSeconds" value="${corus.server.pub.consul.interval}" />
     <property name="publishTtlSeconds"      value="${corus.server.pub.consul.ttl}" />
   </bean> 
-  
+
+  <bean name="orgs.sapia.co"
+      class="org.sapia.corus.publisher.ProcessPublisherImpl"
+      scope="singleton"
+      autowire="autodetect">
+  </bean> 
   
   <!-- ============ DIAGNOSTICS ============ -->
 

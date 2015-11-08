@@ -1,5 +1,8 @@
 package org.sapia.corus.processor;
 
+import java.util.concurrent.TimeUnit;
+
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 
 public class ProcessorConfigurationImpl implements ProcessorConfiguration {
@@ -35,25 +38,29 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
    * between two startups for the second one to be authorized; value is 120
    * (seconds).
    */
-  public static int DEFAULT_RESTART_INTERVAL = 120;
-
+  public static final int DEFAULT_RESTART_INTERVAL = 120;
+  
   /**
-   * This constant specifis the amount of seconds to wait for prior to lauch the
+   * This constant specifies the amount of seconds to wait for prior to lauch the
    * boot time execution configurations.
    */
-  public static int DEFAULT_BOOT_EXEC_DELAY = 30;
-
+  public static final int DEFAULT_BOOT_EXEC_DELAY = 30;
+  
+  public static final int DEFAULT_PROCESS_PUBLISH_INTERVAL = 5;
+  
   private int processTimeout = DEFAULT_PROCESS_TIMEOUT;
   private int processCheckInterval = DEFAULT_CHECK_INTERVAL;
   private int killInterval = DEFAULT_KILL_INTERVAL;
   private int startInterval = DEFAULT_START_INTERVAL;
   private int restartInterval = DEFAULT_RESTART_INTERVAL;
   private int bootExecDelay = DEFAULT_BOOT_EXEC_DELAY;
+  private OptionalValue<Integer> publishMaxAttempts = OptionalValue.none();
+  private int publishInterval = DEFAULT_PROCESS_PUBLISH_INTERVAL;
   private boolean bootExecEnabled = true;
   private boolean autoRestart = true;
 
   public long getProcessTimeoutMillis() {
-    return processTimeout * 1000;
+    return TimeUnit.SECONDS.toMillis(processTimeout);
   }
 
   public void setProcessTimeout(int processTimeout) {
@@ -69,7 +76,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   }
 
   public long getProcessCheckIntervalMillis() {
-    return processCheckInterval * 1000;
+    return TimeUnit.SECONDS.toMillis(processCheckInterval);
   }
 
   public int getKillInterval() {
@@ -77,7 +84,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   }
 
   public long getKillIntervalMillis() {
-    return killInterval * 1000;
+    return TimeUnit.SECONDS.toMillis(killInterval);
   }
 
   public void setKillInterval(int killInterval) {
@@ -89,7 +96,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   }
 
   public long getStartIntervalMillis() {
-    return this.startInterval * 1000;
+    return TimeUnit.SECONDS.toMillis(startInterval);
   }
 
   public void setStartInterval(int startInterval) {
@@ -101,7 +108,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   }
 
   public long getRestartIntervalMillis() {
-    return this.restartInterval * 1000;
+    return TimeUnit.SECONDS.toMillis(restartInterval);
   }
 
   public void setRestartInterval(int restartInterval) {
@@ -113,7 +120,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   }
 
   public long getBootExecDelayMillis() {
-    return bootExecDelay * 1000;
+    return TimeUnit.SECONDS.toMillis(bootExecDelay);
   }
 
   public void setBootExecDelay(int bootExecDelay) {
@@ -135,4 +142,27 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   public boolean isBootExecEnabled() {
     return bootExecEnabled;
   }
+  
+  public void setProcessPublishingDiagnosticMaxAttempts(int publishMaxAttempts) {
+    if (publishMaxAttempts > 0) {
+      this.publishMaxAttempts = OptionalValue.of(publishMaxAttempts);
+    } else {
+      this.publishMaxAttempts = OptionalValue.none();
+    }
+  }
+  
+  @Override
+  public OptionalValue<Integer> getProcessPublishingDiagnosticMaxAttempts() {
+    return publishMaxAttempts;
+  }
+  
+  public void setProcessPublishingDiagnosticInterval(int publishInterval) {
+    this.publishInterval = publishInterval;
+  }
+
+  @Override
+  public long getProcessPublishingDiagnosticIntervalMillis() {
+    return TimeUnit.SECONDS.toMillis(publishInterval);
+  }
+
 }

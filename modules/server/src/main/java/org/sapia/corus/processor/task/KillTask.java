@@ -5,17 +5,19 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
-import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
+import org.sapia.corus.taskmanager.TaskLogCallback;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -92,6 +94,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     
     if (super.getExecutionCount() == 0) {
        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKillPendingEvent(requestor, proc));
+       ctx.getTaskManager().executeAndWait(new UnpublishProcessTask(), proc).get();
     }
 
     ctx.debug(String.format("Killing %s", proc));
@@ -169,14 +172,14 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     try {
       ctx.info(String.format("Process kill (by %s) confirmed for %s", requestor, proc));
 
-      ProcessorConfiguration procConfig = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
-      PortManager ports = ctx.getServerContext().getServices().getPortManager();
+      ProcessHookManager   processHooks = ctx.getServerContext().lookup(ProcessHookManager.class);
+      ProcessorConfiguration procConfig   = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
+      PortManager            ports        = ctx.getServerContext().getServices().getPortManager();
       proc.releasePorts(ports);
       
       try {
-        OsModule os = ctx.getServerContext().lookup(OsModule.class);
         if (performOsKill && proc.getOsPid() != null) {
-          os.killProcess(osKillCallback(), KillSignal.SIGKILL, proc.getOsPid());
+          processHooks.kill(new ProcessContext(proc), KillSignal.SIGKILL, new TaskLogCallback(ctx));
         }
       } catch (IOException e) {
         ctx.warn("Error caught trying to hard kill process as part of cleanup (process probably absent, so it properly shut down)", e);
@@ -207,17 +210,5 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     } finally {
       abort(ctx);
     }
-  }
-
-  protected OsModule.LogCallback osKillCallback() {
-    return new OsModule.LogCallback() {
-      @Override
-      public void error(String msg) {
-      }
-
-      @Override
-      public void debug(String msg) {
-      }
-    };
   }
 }

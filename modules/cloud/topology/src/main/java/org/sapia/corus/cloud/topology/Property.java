@@ -6,14 +6,14 @@ package org.sapia.corus.cloud.topology;
  * @author yduchesne
  *
  */
-public class CorusProperty implements XmlStreamable, Validateable {
+public class Property implements XmlStreamable, Validateable {
 
   private String name, value;
   
-  public CorusProperty() {
+  public Property() {
   }
   
-  public CorusProperty(String name, String value) {
+  public Property(String name, String value) {
     this.name  = name;
     this.value = value;
   }
@@ -34,8 +34,8 @@ public class CorusProperty implements XmlStreamable, Validateable {
     return value;
   }
   
-  public static CorusProperty of(String name, String value) {
-    return new CorusProperty(name, value);
+  public static Property of(String name, String value) {
+    return new Property(name, value);
   }
   
   // --------------------------------------------------------------------------
@@ -73,8 +73,8 @@ public class CorusProperty implements XmlStreamable, Validateable {
   
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof CorusProperty) {
-      CorusProperty p = (CorusProperty) obj;
+    if (obj instanceof Property) {
+      Property p = (Property) obj;
       if (name == null  || p.name == null) {
         return false;
       }

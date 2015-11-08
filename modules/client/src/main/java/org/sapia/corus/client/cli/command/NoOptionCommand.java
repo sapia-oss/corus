@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 
 /**
  * To be inherited by commands that have no options, or want to bypass option validation.
@@ -18,6 +19,6 @@ public abstract class NoOptionCommand extends CorusCliCommand {
   }
   
   public java.util.List<OptionDef> getAvailableOptions() {
-    return new ArrayList<CorusCliCommand.OptionDef>();
+    return new ArrayList<OptionDef>();
   }
 }

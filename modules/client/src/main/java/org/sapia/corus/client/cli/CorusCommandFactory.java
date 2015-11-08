@@ -12,6 +12,7 @@ import org.sapia.console.Command;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.common.ArgMatcher;

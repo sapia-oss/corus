@@ -80,7 +80,6 @@ public class XmlStreamWriterTest {
     writer.attribute("attr2", "val2");
     writer.endElement("child");
     writer.endRootElement("parent");
-    System.out.println(sw.toString());
   }
   
 }

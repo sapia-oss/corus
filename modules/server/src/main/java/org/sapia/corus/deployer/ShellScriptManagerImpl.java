@@ -9,6 +9,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
@@ -131,11 +132,16 @@ public class ShellScriptManagerImpl extends ModuleHelper implements InternalShel
       throw new IOException("Script " + scriptFile.getName() + " is not executable");
     }
     final ProgressQueue progress = new ProgressQueueImpl();
-    osModule.executeScript(new OsModule.LogCallback() {
+    osModule.executeScript(new LogCallback() {
       @Override
       public void error(String error) {
         progress.error(error);
         progress.close();
+      }
+      
+      @Override
+      public void info(String msg) {
+        progress.info(msg);
       }
 
       @Override

@@ -25,6 +25,7 @@ public class Java extends BaseJavaStarter {
   protected String args;
   protected String mainArgs;
   protected String libDirs;
+  private boolean interopEnabled = true;
 
   public void setCorusHome(String home) {
     corusHome = home;
@@ -59,8 +60,20 @@ public class Java extends BaseJavaStarter {
   public void setLibDirs(String dirs) {
     libDirs = dirs;
   }
+  
+  /**
+   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
+   */
+  public void setInteropEnabled(boolean interopEnabled) {
+    this.interopEnabled = interopEnabled;
+  }
+  
+  public boolean isInteropEnabled() {
+    return interopEnabled;
+  }
 
-  public CmdLine toCmdLine(Env env) throws MissingDataException {
+  @Override
+  public StarterResult toCmdLine(Env env) throws MissingDataException {
 
     CmdLineBuildResult result = super.buildCommandLine(env);
 
@@ -92,7 +105,7 @@ public class Java extends BaseJavaStarter {
       }
     }
 
-    return result.command;
+    return new StarterResult(StarterType.JAVA, result.command, interopEnabled);
   }
 
   private String getMainCp(Env env) {

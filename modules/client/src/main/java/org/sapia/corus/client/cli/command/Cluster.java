@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
 import org.sapia.corus.client.Result;

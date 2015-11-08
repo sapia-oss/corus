@@ -26,6 +26,11 @@ public interface DeployerConfiguration extends Remote {
   public String getTempDir();
 
   /**
+   * @return the number of hours to keep files under the temp directory, before deleting them.
+   */
+  public int getTempFileTimeoutHours();
+  
+  /**
    * @return the path to the repo directory.
    */
   public String getRepoDir();

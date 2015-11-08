@@ -11,11 +11,21 @@ import java.util.Set;
  */
 public class MachineTemplate extends ParamContainer {
   
-  private String name, imageId;
+  public static final String REPO_ROLE_CLIENT = "client";
+  public static final String REPO_ROLE_SERVER = "server";
   
-  private Set<ServerTag> serverTags = new HashSet<>();
+  private boolean publicIpEnabled = true;
+  private String name, imageId, instanceType;
   
-  private PropertyCollection serverProperties, processProperties;
+  private String repoRole = REPO_ROLE_CLIENT;
+  
+  private Set<ServerTag>              serverTags = new HashSet<>();
+  private Set<Artifact>               artifacts  = new HashSet<>();
+  private Set<LoadBalancerAttachment> lbs        = new HashSet<>();
+  private UserData                    userdata   = new UserData();
+  
+  private PropertyCollection serverProperties  = new PropertyCollection();
+  private PropertyCollection processProperties = new PropertyCollection();
   
   private int minInstances, maxInstances = -1;
 
@@ -25,6 +35,17 @@ public class MachineTemplate extends ParamContainer {
   
   public String getName() {
     return name;
+  }
+  
+  public String getAlphaNumericName() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+        sb.append(c);
+      }
+    }
+    return sb.toString();
   }
   
   public void setMinInstances(int minInstances) {
@@ -49,6 +70,22 @@ public class MachineTemplate extends ParamContainer {
   
   public String getImageId() {
     return imageId;
+  }
+  
+  public void setInstanceType(String instanceType) {
+    this.instanceType = instanceType;
+  }
+  
+  public String getInstanceType() {
+    return instanceType;
+  }
+  
+  public void setPublicIpEnabled(boolean publicIpEnabled) {
+    this.publicIpEnabled = publicIpEnabled;
+  }
+  
+  public boolean isPublicIpEnabled() {
+    return publicIpEnabled;
   }
   
   public void setServerTags(String tagsList) {
@@ -88,18 +125,53 @@ public class MachineTemplate extends ParamContainer {
   }
   
   public PropertyCollection createServerProperties() {
-    return serverProperties == null ? serverProperties = new PropertyCollection() : serverProperties;
+    return serverProperties;
   }
   
   public PropertyCollection createProcessProperties() {
-    return processProperties == null ? processProperties = new PropertyCollection() : processProperties;
+    return processProperties;
+  }
+  
+  public Set<Artifact> getArtifacts() {
+    return artifacts;
+  }
+  
+  public void addArtifact(Artifact artifact) {
+    artifacts.add(artifact);
+  }
+  
+  public Set<LoadBalancerAttachment> getLoadBalancerAttachments() {
+    return lbs;
+  }
+  
+  public void addLoadBalancerAttachment(LoadBalancerAttachment lb) {
+    lbs.add(lb);
+  }
+  
+  public void setRepoRole(String repoRole) {
+    this.repoRole = repoRole;
+  }
+  
+  public String getRepoRole() {
+    return repoRole;
+  }
+  
+  public void setUserData(UserData userdata) {
+    this.userdata = userdata;
+  }
+  
+  public UserData getUserData() {
+    return userdata;
   }
   
   public void copyFrom(MachineTemplate other) {
     this.processProperties.copyFrom(other.processProperties);
     this.serverProperties.copyFrom(other.serverProperties);
     this.serverTags.addAll(other.serverTags);
-    
+    this.artifacts.addAll(other.artifacts);
+    this.lbs.addAll(other.lbs);
+    this.userdata.copyFrom(other.userdata);
+    this.publicIpEnabled = other.publicIpEnabled;
     if (minInstances < 0) {
       minInstances = other.minInstances;
     }
@@ -108,6 +180,9 @@ public class MachineTemplate extends ParamContainer {
     }
     if (imageId == null) {
       this.imageId = other.imageId;
+    }
+    if (instanceType == null) {
+      this.instanceType = other.instanceType;
     }
     addParams(other.getParams());
   }

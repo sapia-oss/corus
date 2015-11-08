@@ -14,24 +14,28 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
-import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.Interpolation;
+import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.configurator.PropertyMasker;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.Property;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.deployer.config.EnvImpl;
 import org.sapia.corus.processor.ProcessInfo;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -56,6 +60,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     Distribution  dist              = info.getDistribution();
     PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
     OsModule      os                = ctx.getServerContext().getServices().getOS();
+    
+    ProcessorConfiguration processorConf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
 
     if (conf.getMaxKillRetry() > 0) {
       process.setMaxKillRetry(conf.getMaxKillRetry());
@@ -95,16 +101,16 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       return false;
     }
 
-    CmdLine cmd;
+    OptionalValue<StarterResult> startResult;
     try {
-      cmd = conf.toCmdLine(env);
+      startResult = conf.toCmdLine(env);
     } catch (Exception e) {
       process.releasePorts(ports);
       ctx.error(e);
       return false;
     }
 
-    if (cmd == null) {
+    if (startResult.isNull()) {
       ctx.warn(String.format("No executable found for profile: %s", env.getProfile()));
       process.releasePorts(ports);
       return false;
@@ -137,15 +143,18 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     ctx.info(String.format("Running pre-exec script"));
     conf.preExec(env);
 
-    ctx.info(String.format("Executing process under: %s ---> %s", processDir, cmd.toString()));
+    ctx.info(String.format("Executing process under: %s ---> %s", processDir, startResult.get().getCommand().toString()));
     
     try {
-      process.setOsPid(os.executeProcess(callback(ctx), processDir, cmd));
+      process.setOsPid(os.executeProcess(callback(ctx), processDir, startResult.get().getCommand()));
     } catch (IOException e) {
       ctx.error("Process could not be started", e);
       process.releasePorts(ports);
       return false;
     }
+    
+    process.setInteropEnabled(startResult.get().isInteropEnabled());
+    process.setStarterType(startResult.get().getStarterType());
 
     ctx.info(String.format("Process started; corus pid: %s", process.getProcessID()));
 
@@ -154,6 +163,15 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     } else {
       ctx.info(String.format("OS pid: %s", process.getOsPid()));
     }
+    
+    ctx.getTaskManager().executeBackground(
+        new PublishProcessTask(processorConf.getProcessPublishingDiagnosticMaxAttempts()), 
+        process, 
+        BackgroundTaskConfig.create()
+          .setExecDelay(0).setExecInterval(
+              processorConf.getProcessPublishingDiagnosticIntervalMillis()
+        )
+    );
     return true;
   }
 
@@ -287,13 +305,16 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     return (Property[]) props.toArray(new Property[props.size()]);
   }
 
-  private OsModule.LogCallback callback(final TaskExecutionContext ctx) {
-    return new OsModule.LogCallback() {
+  private LogCallback callback(final TaskExecutionContext ctx) {
+    return new LogCallback() {
       @Override
       public void error(String msg) {
         ctx.error(msg);
       }
-
+      @Override
+      public void info(String msg) {
+        ctx.info(msg);
+      }
       @Override
       public void debug(String msg) {
         ctx.debug(msg);

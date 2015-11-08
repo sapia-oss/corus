@@ -124,6 +124,12 @@ Attributes
     <td>String</td>
     <td>Name of the GC algo to use by the JVM in which Corus runs.</td>
     <td><tt>UseConcMarkSweepGC</tt></td>
+  </tr> 
+  <tr>
+    <td><tt>['corus']['args']</tt></td>
+    <td>String</td>
+    <td>Additional arguments to pass to the Corus server at startup.</td>
+    <td>Empty string by default</td>
   </tr>  
   <tr>
     <td><tt>['corus']['domain']</tt></td>
@@ -153,10 +159,17 @@ Attributes
   </tr>  
   <tr>
     <td><tt>['corus']['process_properties']</tt></td>
-    <td>String</td>
-    <td>If specified, a comma-delimited list of process properties to add to the Corus instance.
-     (e.g.: <tt>foo=bar,sna=fu</tt></td>
-    <td><tt>UNDEFINED</tt></td>
+    <td>List</td>
+    <td>A list of process properties to add to the Corus instance (each element in the list is expected
+    to be a property literal, corresponding to <ii>name=value</ii>)</td>
+    <td>Defaults to an empty list</td>
+  </tr>  
+  <tr>
+    <td><tt>['corus']['server_properties']</tt></td>
+    <td>List</td>
+    <td>A list of server properties to add to the Corus instance (each element in the list is expected
+    to be a property literal, corresponding to <ii>name=value</ii>)</td>
+    <td>Defaults to an empty list</td>
   </tr>  
   <tr>
     <td><tt>['corus']['log_sym_link_name']</tt></td>

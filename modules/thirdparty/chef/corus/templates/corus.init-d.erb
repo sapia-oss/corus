@@ -104,7 +104,7 @@ javaCommand="java"                                               # name of the J
 javaCommandLineKeyword="$serviceNameLo_$CORUS_PORT"              # a keyword that occurs on the commandline, used to detect an already running service process and to distinguish it from others
 javaExe="$JAVA_HOME/bin/$javaCommand"                            # file name of the Java application launcher executable
 
-javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir"
+javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir <%=@corus_args%>"
 
 javaCommandLine="$javaExe $javaArgs"                             # command line to start the Java service application
  

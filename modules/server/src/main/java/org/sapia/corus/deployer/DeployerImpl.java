@@ -4,15 +4,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
@@ -23,6 +30,7 @@ import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
 import org.sapia.corus.client.services.database.RevId;
+import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -32,13 +40,18 @@ import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStre
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
+import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
+import org.sapia.corus.cloud.CorusUserData.Artifact;
+import org.sapia.corus.cloud.CorusUserDataEvent;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
+import org.sapia.corus.deployer.artifact.InternalArtifactManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
+import org.sapia.corus.deployer.task.CleanTempDirTask;
 import org.sapia.corus.deployer.task.RollbackTask;
 import org.sapia.corus.deployer.task.UnarchiveAndDeployTask;
 import org.sapia.corus.deployer.task.UndeployAndArchiveTask;
@@ -46,6 +59,7 @@ import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
@@ -67,8 +81,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = { Deployer.class })
 public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
   
-  private static final int DEFAULT_THROTTLE                 = 1;
-  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
+  private static final int DEFAULT_THROTTLE                        = 1;
+  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS        = 60;
+  private static final int DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES = 5;
   
   /**
    * The file lock timeout property name (<code>file-lock-timeout</code>).
@@ -89,6 +104,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
   @Autowired
   private DeployerConfiguration configuration;
+  
+  @Autowired
+  private InternalArtifactManager artifactManager;
 
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
   
@@ -107,8 +125,13 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
   
   // --------------------------------------------------------------------------
-  // Lifecycle
+  // Module interface
 
+  @Override
+  public String getRoleName() {
+    return Deployer.ROLE;
+  }
+  
   @Override
   public void init() throws Exception {
     Reference<ModuleState> state = new AutoResetReference<ModuleState>(
@@ -229,6 +252,17 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     log.info("Distribution objects succesfully rebuilt");
 
     events.addInterceptor(ServerStartedEvent.class, this);
+    events.addInterceptor(CorusUserDataEvent.class, this);
+  }
+  
+  @Override
+  public void start() throws Exception {
+    CleanTempDirTask clean = new CleanTempDirTask();
+    taskman.executeBackground(clean, null,
+        BackgroundTaskConfig.create()
+          .setExecDelay(0)
+          .setExecInterval(TimeUnit.MINUTES.toMillis(DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES)));
+    
   }
  
   @Override 
@@ -239,10 +273,59 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
   
   // --------------------------------------------------------------------------
-  // Event Interceptors
+  // CorusUserData interceptor
 
   /**
+   * Called in a cloud context, when user data is available for processing. This method 
+   * is invoked before {@link #onServerStartedEvent(ServerStartedEvent)}.
+   * 
+   * @param event the {@link CorusUserDataEvent} being dispatched.
+   */
+  public void onCorusUserDataEvent(CorusUserDataEvent event) {
+    for (Artifact artifact : event.getUserData().getArtifacts()) {
+      log.info("Peforming deployment of artifact specified in user data");
+      StrLookup vars = StrLookups.merge(
+          StrLookups.forKeyValues("corus.server.domain", serverContext.getDomain(), "corus.home", serverContext.getHomeDir()),
+          StrLookup.systemPropertiesLookup()
+       );
+      String artifactUrl = new StrSubstitutor(vars).replace(artifact.getUrl());
+      URI artifactUri = URI.create(artifactUrl);
+      String[] path = artifactUri.getPath().split("/");
+      if (path.length == 0) {
+        log.error(String.format("Invalid pathin artifact URL %s", artifactUrl));
+      } else {
+        String fileName = path[path.length - 1];
+        File artifactFile = FilePath.newInstance()
+          .addDir(configuration.getTempDir())
+          .setRelativeFile(fileName + "." + IDGenerator.makeId())
+          .createFile();
+
+        try {
+          artifactManager.downloadArtifact(artifactUri, artifactFile);
+        } catch (IOException e) {
+          artifactFile.delete();
+          throw new IllegalStateException("Could not perform deployment of artifact: " + artifactUrl, e);
+        } 
+        
+        DeploymentMetadata meta = new DistributionDeploymentMetadata(
+            fileName, 
+            artifactFile.length(), 
+            DeployPreferences.newInstance().executeDeployScripts(), 
+            ClusterInfo.notClustered()
+        );
+        DeploymentHandler handler = selectDeploymentHandler(meta);
+        handler.completeDeployment(meta, artifactFile);
+      }
+    }
+  }
+  
+  // --------------------------------------------------------------------------
+  // ServerStartedEvent interceptor
+  
+  /**
    * Called when the Corus server has started.
+   * 
+   * @param the {@link ServerStartedEvent} being dispatched.
    */
   public void onServerStartedEvent(ServerStartedEvent evt) {
     try {
@@ -260,17 +343,6 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     }
   }
 
-  
-  // --------------------------------------------------------------------------
-  // Module interface
-
-  /**
-   * @see org.sapia.corus.client.Module#getRoleName()
-   */
-  public String getRoleName() {
-    return Deployer.ROLE;
-  }
-
   // --------------------------------------------------------------------------
   // Deployer interface
 
@@ -283,6 +355,8 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   public DeployerConfiguration getConfiguration() {
     return configuration;
   }
+  // --------------------------------------------------------------------------
+  // InternalDeployer interface
   
   @Override
   public Distribution getDistribution(DistributionCriteria criteria) throws DistributionNotFoundException {
@@ -370,9 +444,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     return store;
   }
 
-  /**
-   * @see DeploymentConnector#connect(Deployment)
-   */
+  // --------------------------------------------------------------------------
+  // DeploymentConnector interface
+
+  @Override
   public void connect(Deployment deployment) {
     DeploymentMetadata meta;
 

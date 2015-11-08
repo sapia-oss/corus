@@ -27,8 +27,9 @@ public class Generic implements Starter, Serializable {
   static final long serialVersionUID = 1L;
 
   private String             profile;
-  private List<Dependency>   dependencies = new ArrayList<Dependency>();
-  private List<CmdGenerator> args         = new ArrayList<CmdGenerator>();
+  private List<Dependency>   dependencies   = new ArrayList<Dependency>();
+  private List<CmdGenerator> args           = new ArrayList<CmdGenerator>();
+  private boolean            interopEnabled = true;
   
   @Override
   public void setProfile(String profile) {
@@ -67,6 +68,17 @@ public class Generic implements Starter, Serializable {
   public List<Dependency> getDependencies() {
     return dependencies;
   }
+
+  /**
+   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
+   */
+  public void setInteropEnabled(boolean interopEnabled) {
+    this.interopEnabled = interopEnabled;
+  }
+  
+  public boolean isInteropEnabled() {
+    return interopEnabled;
+  }
   
   /**
    * @return a new {@link GenericArg}.
@@ -87,7 +99,7 @@ public class Generic implements Starter, Serializable {
   }
 
   @Override
-  public CmdLine toCmdLine(Env env) throws MissingDataException {
+  public StarterResult toCmdLine(Env env) throws MissingDataException {
     Assertions.notNull(profile, "Profile not set");
     
     Map<String, String> cmdLineVars   = new HashMap<String, String>();
@@ -114,7 +126,7 @@ public class Generic implements Starter, Serializable {
       }
     }
     
-    return cmd;
+    return new StarterResult(StarterType.GENERIC, cmd, interopEnabled);
   }
   
   private String render(StrLookup context, String value) {

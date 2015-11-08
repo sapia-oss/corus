@@ -152,9 +152,9 @@ public abstract class Task<R, P> {
   }
 
   /**
-   * Increments this instance's execution count.
+   * Increments this instance's execution count (invoke directly only in the context of unit testing).
    */
-  void incrementExecutionCount() {
+  protected void incrementExecutionCount() {
     if (executionCount == Integer.MAX_VALUE) {
       executionCount = 0;
     }

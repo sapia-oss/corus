@@ -1,5 +1,6 @@
 package org.sapia.corus.cloud.topology;
 
+
 /**
  * Corresponds to the <code>cluster</code> element.
  * 

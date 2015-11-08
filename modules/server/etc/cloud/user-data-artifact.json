@@ -1,0 +1,8 @@
+{
+  "corus": {
+    "artifacts": [
+      { "url": "file:${corus.home}/../package/target/sapia_corus_server_package-develop-SNAPSHOT-demo.zip"}
+    ]
+  }
+
+}

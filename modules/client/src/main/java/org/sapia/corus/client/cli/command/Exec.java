@@ -7,6 +7,7 @@ import java.util.List;
 import org.sapia.console.AbortException;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.exec.ExecProcessByDescriptors;

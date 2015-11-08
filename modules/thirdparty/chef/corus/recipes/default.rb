@@ -93,7 +93,8 @@ template "/etc/init.d/corus" do
 		:log_level => node['corus']['log_level'],
     :xms => node['corus']['xms'],
     :xmx => node['corus']['xmx'],
-    :gc  => node['corus']['gc'])
+    :gc  => node['corus']['gc'],
+    :corus_args => node['corus']['args'])
 end
 
 template "/etc/profile.d/corus.sh" do

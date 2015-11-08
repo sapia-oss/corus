@@ -1,6 +1,5 @@
 package org.sapia.corus.deployer.task;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
@@ -25,12 +24,12 @@ import java.io.StringReader;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.TestServerContext;
+import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.event.DeploymentCompletedEvent;
@@ -41,6 +40,8 @@ import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.deployer.processor.DeploymentContext;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -58,11 +59,15 @@ public class DeployTaskTest {
   
   @Mock
   private File preDeploy, postDeploy, rollback, scriptDir, distZip;
+  
+  private DeploymentProcessorManager processors;
     
   @Before
   public void setUp() throws Exception {
     
     ctx = TestServerContext.create();
+    
+    processors = ctx.getServices().lookup(DeploymentProcessorManager.class);
     
     when(preDeploy.getName()).thenReturn("pre-deploy.corus");
     when(postDeploy.getName()).thenReturn("post-deploy.corus");
@@ -125,6 +130,7 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   @Test
@@ -139,6 +145,7 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   @Test
@@ -155,6 +162,7 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
     verify(dispatcher, never()).dispatch(isA(DeploymentUnzippedEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
+    verify(processors).onPostUndeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   @Test
@@ -173,13 +181,13 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   @Test
   public void testExecute_rollback_script() throws Exception{
     when(preDeploy.exists()).thenReturn(true);
     when(rollback.exists()).thenReturn(true);
-    
     
     doThrow(new IOException("I/O error")).when(fs).unzip(any(File.class), any(File.class));
     
@@ -196,6 +204,7 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
     verify(dispatcher).dispatch(isA(RollbackStartingEvent.class));
     verify(dispatcher).dispatch(isA(RollbackCompletedEvent.class));
+    verify(processors).onPostUndeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   @Test
@@ -238,6 +247,7 @@ public class DeployTaskTest {
     verify(dispatcher).dispatch(isA(DeploymentFailedEvent.class));
     verify(dispatcher).dispatch(isA(RollbackStartingEvent.class));
     verify(dispatcher).dispatch(isA(RollbackCompletedEvent.class));
+    verify(processors).onPostUndeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
   
   private InputStream getCorusXmlStream() throws IOException{

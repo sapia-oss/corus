@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Test;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 
 public class CorusUserDataParserTest {
 
@@ -51,6 +52,9 @@ public class CorusUserDataParserTest {
   @Test
   public void testParseFull() throws Exception {
     CorusUserData ud = CorusUserDataParser.parse(getResource("fullUserData.json.txt"));
+    
+    assertEquals("test-domain", ud.getDomain().get());
+    assertEquals(RepoRole.SERVER, ud.getRepoRole().get());
     
     assertEquals("theValue1", ud.getServerProperties().getProperty("theName1"));
     assertEquals("theValue2", ud.getServerProperties().getProperty("theName2"));

@@ -73,7 +73,7 @@
             The Diagnostic API helps determining the 
             state of applications processes following a deployment: obtain
             diagnostic status for a whole cluster using a single API call.
-            <br/><a href="diagnostic.html">more...</a>
+            <br/><a href="rest/diagnostic.html">more...</a>
           </span>
         </div>
       </div>     

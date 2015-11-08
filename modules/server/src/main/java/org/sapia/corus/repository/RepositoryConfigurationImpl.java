@@ -13,26 +13,26 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   static final long serialVersionUID = 1L;
 
   private static final int DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS = 3;
-  private static final int DEFAULT_DIST_DISCO_INTERVAL_SECONDS = 5;
-  private static final int DEFAULT_DIST_DISCO_MAX_ATTEMPTS = 3;
+  private static final int DEFAULT_DIST_DISCO_INTERVAL_SECONDS        = 5;
+  private static final int DEFAULT_DIST_DISCO_MAX_ATTEMPTS            = 3;
 
-  private boolean pushTagsEnabled = true;
-  private boolean pullTagsEnabled = true;
-  private boolean pushScriptsEnabled = true;
-  private boolean pullScriptsEnabled = true;
-  private boolean pushFilesEnabled = true;
-  private boolean pullFilesEnabled = true;
-  private boolean pushPropertiesEnabled = true;
-  private boolean pullPropertiesEnabled = true;
-  private boolean pushPortRangesEnabled = true;
-  private boolean pullPortRangesEnabled = true;
+  private boolean pushTagsEnabled           = true;
+  private boolean pullTagsEnabled           = true;
+  private boolean pushScriptsEnabled        = true;
+  private boolean pullScriptsEnabled        = true;
+  private boolean pushFilesEnabled          = true;
+  private boolean pullFilesEnabled          = true;
+  private boolean pushPropertiesEnabled     = true;
+  private boolean pullPropertiesEnabled     = true;
+  private boolean pushPortRangesEnabled     = true;
+  private boolean pullPortRangesEnabled     = true;
   private boolean pushSecurityConfigEnabeld = true;
   private boolean pullSecurityConfigEnabled = true;
-  private boolean bootExecEnabled = true;
+  private boolean bootExecEnabled           = true;
 
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
-  private int distributionDiscoveryMaxAttempts = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
-  private int maxConcurrentDeploymentRequests = DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS;
+  private int distributionDiscoveryMaxAttempts     = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
+  private int maxConcurrentDeploymentRequests      = DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS;
 
   // --------------------------------------------------------------------------
   // tags

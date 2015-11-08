@@ -44,7 +44,11 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
     List<ProcessDiagnosticResult> results = new ArrayList<ProcessDiagnosticResult>();
     try {
       if (log.isInfoEnabled()) log.info("Performing diagnostic acquisition for process " + toDiagnose);
-      toDiagnose.getLock().acquire(lockOwner);
+      if (context.getLockOwner().isSet()) {
+        toDiagnose.getLock().acquire(context.getLockOwner().get());
+      } else {
+        toDiagnose.getLock().acquire(lockOwner);
+      }
       if (!toDiagnose.getActivePorts().isEmpty()) {
         for (ActivePort activePort : toDiagnose.getActivePorts()) {
           OptionalValue<Port> portRange = context.getProcessConfig().getPortByName(activePort.getName());
@@ -79,7 +83,9 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
       );
       results.add(new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, msg, toDiagnose));
     } finally {
-      toDiagnose.getLock().release(lockOwner);
+      if (context.getLockOwner().isNull()) {
+        toDiagnose.getLock().release(lockOwner);
+      }
     }
     
     return results;

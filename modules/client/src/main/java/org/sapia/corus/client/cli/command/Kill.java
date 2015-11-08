@@ -8,6 +8,7 @@ import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;

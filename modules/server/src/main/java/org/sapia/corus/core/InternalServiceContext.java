@@ -9,11 +9,13 @@ import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.FileManager;
 import org.sapia.corus.client.services.deployer.ShellScriptManager;
+import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Processor;
+import org.sapia.corus.client.services.pub.ProcessPublisher;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.deployer.DistributionDatabase;
@@ -165,6 +167,20 @@ public class InternalServiceContext {
    */
   public OsModule getOS() {
     return lookup(OsModule.class);
+  }
+  
+  /**
+   * @return the {@link DiagnosticModule}.
+   */
+  public DiagnosticModule getDiagnosticModule() {
+    return lookup(DiagnosticModule.class);
+  }
+  
+  /**
+   * @return the {@link ProcessPublisher}.
+   */
+  public ProcessPublisher getProcessPublisher() {
+    return lookup(ProcessPublisher.class);
   }
 
   /**

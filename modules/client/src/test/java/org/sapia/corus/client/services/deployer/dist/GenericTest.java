@@ -38,7 +38,7 @@ public class GenericTest {
     starter.createArg().setValue("arg0");
     starter.createArg().setValue("arg1");
     
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     assertEquals("arg0", cmd.get(0).getName());
     assertEquals("arg1", cmd.get(1).getName());
   }
@@ -48,7 +48,7 @@ public class GenericTest {
     starter.createArg().setValue("${prop1}");
     starter.createArg().setValue("${prop2}");
     
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
    
     assertEquals("val1", cmd.get(0).getName());
     assertEquals("val2", cmd.get(1).getName());
@@ -58,7 +58,7 @@ public class GenericTest {
   public void testCreateProcessProperties() {
     starter.createProcessProperties();
     
-    CmdLine cmd = starter.toCmdLine(env);
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
     
     assertEquals("Dprop1=val1", cmd.get(0).getName());
     assertEquals("Dprop2=val2", cmd.get(1).getName());

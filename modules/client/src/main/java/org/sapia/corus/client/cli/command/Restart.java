@@ -6,6 +6,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.exec.RestartAllCommand;
 import org.sapia.corus.client.cli.command.exec.RestartByOsPidCommand;

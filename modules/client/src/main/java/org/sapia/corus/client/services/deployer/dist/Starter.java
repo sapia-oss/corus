@@ -30,6 +30,7 @@ public interface Starter {
    * @return this instances dependencies.
    */
   public List<Dependency> getDependencies();
+  
 
   /**
    * @param env
@@ -39,5 +40,5 @@ public interface Starter {
    * @throws MissingDataException
    *           if the command-line object could not be created.
    */
-  public CmdLine toCmdLine(Env env) throws MissingDataException;
+  public StarterResult toCmdLine(Env env) throws MissingDataException;
 }

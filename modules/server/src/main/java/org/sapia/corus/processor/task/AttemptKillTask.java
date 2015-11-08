@@ -1,9 +1,11 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
+import org.sapia.corus.taskmanager.TaskLogCallback;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -23,6 +25,7 @@ public class AttemptKillTask extends Task<Boolean, TaskParams<Process, ProcessTe
   @Override
   public Boolean execute(TaskExecutionContext ctx, TaskParams<Process, ProcessTerminationRequestor, Integer, Integer> params) throws Throwable {
 
+    ProcessHookManager processHooks = ctx.getServerContext().lookup(ProcessHookManager.class);
     Process proc = params.getParam1();
     ProcessTerminationRequestor requestor = params.getParam2();
     int currentRetryCount = params.getParam3().intValue();
@@ -32,31 +35,19 @@ public class AttemptKillTask extends Task<Boolean, TaskParams<Process, ProcessTe
       ctx.info(String.format("Process %s has confirmed shutdown", proc));
       return true;
     }
-    ctx.info(String.format("Attempting to kill process %s. Attempt: %s; requestor %s", proc, currentRetryCount, requestor));
-    proc.kill(requestor);
-    
-    // try SIGTERM if we're at the before last attempt
-    if (currentRetryCount >= currentMaxExec - 1) {
-      ctx.debug("Execution count is: " + currentRetryCount + "; max executions: " + currentMaxExec);
-      OsModule os = ctx.getServerContext().lookup(OsModule.class);
-      os.killProcess(callback(ctx), KillSignal.SIGTERM, proc.getOsPid());
+    if (proc.isInteropEnabled()) {
+      ctx.info(String.format("Attempting to kill process %s. Attempt: %s; requestor %s", proc, currentRetryCount, requestor));
+      proc.kill(requestor);
+      // try SIGTERM if we're at the before last attempt
+      if (currentRetryCount >= currentMaxExec - 1) {
+        ctx.debug("Execution count is: " + currentRetryCount + "; max executions: " + currentMaxExec);
+        processHooks.kill(new ProcessContext(proc), KillSignal.SIGTERM, new TaskLogCallback(ctx));
+      }
+    } else {
+      ctx.info(String.format("Attempting to kill process %s. Attempt: %s; requestor %s", proc, currentRetryCount, requestor));
+      processHooks.kill(new ProcessContext(proc), KillSignal.SIGTERM, new TaskLogCallback(ctx));
     }
     proc.save();
     return false;
-  }
-
-  private OsModule.LogCallback callback(final TaskExecutionContext ctx) {
-    return new OsModule.LogCallback() {
-
-      @Override
-      public void error(String msg) {
-        ctx.error(msg);
-      }
-
-      @Override
-      public void debug(String msg) {
-        ctx.debug(msg);
-      }
-    };
   }
 }

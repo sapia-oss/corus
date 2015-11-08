@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.LogCallback;
 
 /**
  * Specifies OS-level methods.
@@ -47,15 +48,6 @@ public interface OsModule {
       return code;
     }
     
-  }
-
-  /**
-   * Callback specified for logging.
-   */
-  interface LogCallback {
-    void debug(String msg);
-
-    void error(String error);
   }
 
   /**

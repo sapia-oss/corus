@@ -8,6 +8,7 @@ public enum ProcessDiagnosticStatus {
   SHUTTING_DOWN("Process is shutting down", false, false),
   RESTARTING("Process is restarting", false, false),
   SUSPECT("Process check failed, but might not have finished startup", false, false),
+  SUSPENDED("Process is suspended (diagnostic not performed)", true, false),
   NO_DIAGNOSTIC_CONFIG("Process has no diagnostic configuration defined", true, false),
   PROCESS_LOCKED("Process currently locked, try again", false,false),
   NO_ACTIVE_PORT("Process has no port active", true, false);

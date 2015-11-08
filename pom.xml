@@ -6,7 +6,7 @@
   <description>Corus is a generic application process manager</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>4.8</version>
+  <version>4.8.1</version>
 
   <properties>
     <sapia-corus-iop.version>2.8.2</sapia-corus-iop.version>
@@ -50,11 +50,11 @@
   </modules>
 
   <repositories>
-    <repository>
+    <!-- repository>
       <id>jline</id>
       <name>JLine Project Repository</name>
       <url>http://jline.sourceforge.net/m2repo</url>
-    </repository>
+    </repository-->
     <repository>
       <id>jboss-third-party</id>
       <name>JBosse 3rd-party dependencies</name>
@@ -107,7 +107,7 @@
       <dependency>
         <groupId>org.mapdb</groupId>
         <artifactId>mapdb</artifactId>
-        <version>1.0.6</version>
+        <version>1.0.8</version>
       </dependency>
 
       <dependency>
@@ -175,6 +175,12 @@
         <classifier>demo</classifier>
         <version>${project.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_cloud_topo</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       
       <dependency>
         <groupId>org.sapia</groupId>
@@ -187,7 +193,6 @@
         <artifactId>sapia_corus_iop_api</artifactId>
         <version>${sapia-corus-iop.version}</version>
       </dependency>
-
 
       <dependency>
         <groupId>org.sapia</groupId>
@@ -204,7 +209,7 @@
       <dependency>
         <groupId>org.sapia</groupId>
         <artifactId>sapia_console</artifactId>
-        <version>2.1</version>
+        <version>2.2</version>
       </dependency>
 
       <dependency>
@@ -330,7 +335,31 @@
         <version>1.6.3.82</version>
         <type>zip</type>
       </dependency>
-
+      
+      <!-- Cloud -->
+      
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk</artifactId>
+        <version>1.9.33</version>
+      </dependency>
+      
+      <!-- REST client -->
+      
+	    <dependency>
+	      <groupId>org.glassfish.jersey.core</groupId>
+	      <artifactId>jersey-client</artifactId>
+	      <version>2.13</version>
+	    </dependency>
+	    
+	    <!-- Docker -->
+    
+			<dependency>
+			  <groupId>com.spotify</groupId>
+			  <artifactId>docker-client</artifactId>
+			  <version>3.1.9</version>
+			</dependency>
+    
     </dependencies>
   </dependencyManagement>
 

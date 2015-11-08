@@ -2,15 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-        <name>Sapia Corus Cloud Infra - parent POM</name>
+	<name>Sapia Corus Cloud Infra - parent POM</name>
 	<description>The Corus Cloud parent POM</description>
 	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
-        <artifactId>sapia_corus_cloud_parent</artifactId>
+	<artifactId>sapia_corus_cloud_parent</artifactId>
 
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_parent</artifactId>
-		<version>4.8</version>
+		<version>4.8.1</version>
 		<relativePath>../..</relativePath>
 	</parent>
 
@@ -24,6 +24,76 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>platform</module>
 		<module>topology</module>
+		<module>aws</module>
+		<module>tools</module>
 	</modules>
+
+	<properties>
+		<jclouds.version>1.9.0</jclouds.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.sapia</groupId>
+				<artifactId>sapia_corus_cloud_platform</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.sapia</groupId>
+				<artifactId>sapia_corus_cloud_topo</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+      <dependency>
+        <groupId>org.sapia</groupId>
+        <artifactId>sapia_corus_cloud_aws</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    
+      <!-- 
+			<dependency>
+				<groupId>org.apache.jclouds</groupId>
+				<artifactId>jclouds-all</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds</groupId>
+				<artifactId>jclouds-compute</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.api</groupId>
+				<artifactId>chef</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds</groupId>
+				<artifactId>jclouds-allcompute</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.labs</groupId>
+				<artifactId>joyentcloud</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.driver</groupId>
+				<artifactId>jclouds-sshj</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.driver</groupId>
+				<artifactId>jclouds-enterprise</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.jclouds.provider</groupId>
+				<artifactId>aws-ec2</artifactId>
+				<version>${jclouds.version}</version>
+			</dependency>
+			-->
+		</dependencies>
+	</dependencyManagement>
 </project>

@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
@@ -23,11 +24,14 @@ import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
+import org.sapia.corus.client.services.deployer.dist.Starter;
+import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.AbstractCommand;
 import org.sapia.corus.interop.ConfigurationEvent;
 import org.sapia.corus.interop.ConfigurationEvent.ConfigurationEventBuilder;
 import org.sapia.corus.interop.Shutdown;
+import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -153,9 +157,13 @@ public class Process extends AbstractPersistent<String, Process>
   
   // --------------------------------------------------------------------------
 
-  static final int VERSION_1       = 1;
-  static final int VERSION_2       = 2;
-  static final int CURRENT_VERSION = VERSION_2;
+  private static final int VERSION_1       = 1;
+  private static final int VERSION_2       = 2;
+  private static final int VERSION_3       = 3;
+  private static final Set<Integer> SUPPORTED_VERSIONS = Collects.arrayToSet(
+      VERSION_1, VERSION_2, VERSION_3
+  );
+  private static final int CURRENT_VERSION = VERSION_3;
   
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int DEFAULT_KILL_RETRY            = 3;
@@ -177,6 +185,8 @@ public class Process extends AbstractPersistent<String, Process>
   private List<ActivePort>                         activePorts     = new ArrayList<ActivePort>();
   private transient org.sapia.corus.interop.Status processStatus;
   private ProcessStartupInfo                       startupInfo     = new ProcessStartupInfo();
+  private boolean                                  interopEnabled  = true;
+  private StarterType                              starterType     = StarterType.UNDEFINED;
 
   /**
    * Meant for externalization only.
@@ -414,6 +424,20 @@ public class Process extends AbstractPersistent<String, Process>
   }
   
   /**
+   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
+   */
+  public void setInteropEnabled(boolean interopEnabled) {
+    this.interopEnabled = interopEnabled;
+  }
+  
+  /**
+   * @return <code>true</code> if interop is enabled.
+   */
+  public boolean isInteropEnabled() {
+    return interopEnabled;
+  }
+  
+  /**
    * @param startupInfo the {@link ProcessStartupInfo} to assign to this instance.
    */
   public void setStartupInfo(ProcessStartupInfo startupInfo) {
@@ -425,6 +449,22 @@ public class Process extends AbstractPersistent<String, Process>
    */
   public ProcessStartupInfo getStartupInfo() {
     return startupInfo;
+  }
+  
+  /**
+   * @param starterType the {@link StarterType} corresponding to the {@link Starter} which generated the command-line
+   * to start this process.
+   */
+  public void setStarterType(StarterType starterType) {
+    this.starterType = starterType;
+  }
+  
+  /**
+   * @return the {@link StarterType} corresponding to the {@link Starter} which generated the command-line
+   * to start this process.
+   */
+  public StarterType getStarterType() {
+    return starterType;
   }
 
   /**
@@ -449,7 +489,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Increments this instance's stale detection count.
    */
-  public void incrementStaleDetectionCount() {
+  public synchronized void incrementStaleDetectionCount() {
     staleDeleteCount++;
   }
 
@@ -460,6 +500,7 @@ public class Process extends AbstractPersistent<String, Process>
    * @return the {@link List} of pending commands for the process.
    */
   public synchronized List<AbstractCommand> poll() {
+    staleDeleteCount = 0;
     touch();
 
     List<AbstractCommand> commands = new ArrayList<AbstractCommand>(getCommands());
@@ -705,7 +746,9 @@ public class Process extends AbstractPersistent<String, Process>
       .field("pollTimeout").value(pollTimeout)
       .field("shutdownTimeout").value(shutdownTimeout)
       .field("staleDetectionCount").value(staleDeleteCount)
-      .field("processDir").value(processDir);
+      .field("processDir").value(processDir)
+      .field("interopEnabled").value(interopEnabled)
+      .field("starterType").value(starterType.name());
     }
     
     stream.field("activePorts").beginArray();
@@ -726,7 +769,7 @@ public class Process extends AbstractPersistent<String, Process>
   public static Process fromJson(JsonInput input) {
     Process p = new Process();
     int inputVersion = input.getInt("classVersion");
-    if (inputVersion == VERSION_1 || inputVersion == VERSION_2) {
+    if (SUPPORTED_VERSIONS.contains(inputVersion)) {
       p.lock = new ProcessLock();
       p.processID = input.getString("id");
       p.pid       = input.getString("pid");
@@ -754,6 +797,10 @@ public class Process extends AbstractPersistent<String, Process>
       }
       if (inputVersion >= VERSION_2) {
         p.startupInfo = ProcessStartupInfo.fromJson(input.getObject("startupInfo"));
+      } 
+      if (inputVersion >= VERSION_3) {
+        p.interopEnabled = input.getBoolean("interopEnabled");
+        p.starterType = StarterType.valueOf(input.getString("starterType"));
       }
       
     } else {
@@ -849,7 +896,7 @@ public class Process extends AbstractPersistent<String, Process>
     
     int inputVersion = in.readInt();
     
-    if (inputVersion == VERSION_1 || inputVersion == VERSION_2) {
+    if (SUPPORTED_VERSIONS.contains(inputVersion)) {
       distributionInfo = (DistributionInfo) in.readObject();
       processID        = in.readUTF();
       processDir       = in.readUTF();
@@ -865,7 +912,11 @@ public class Process extends AbstractPersistent<String, Process>
       commands         = (List<AbstractCommand>) in.readObject();
       activePorts      = (List<ActivePort>) in.readObject();
       if (inputVersion >= VERSION_2) {
-        this.startupInfo = ObjectUtils.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
+        startupInfo = ObjectUtils.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
+      }
+      if (inputVersion >= VERSION_3) {
+        interopEnabled = in.readBoolean();
+        starterType = (StarterType) in.readObject();
       }
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
@@ -892,6 +943,9 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeObject(activePorts);
     // V2
     out.writeObject(startupInfo);
+    // V3
+    out.writeBoolean(interopEnabled);
+    out.writeObject(starterType);
 
   }
   

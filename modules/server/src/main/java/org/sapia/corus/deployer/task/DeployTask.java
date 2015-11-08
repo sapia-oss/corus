@@ -32,6 +32,9 @@ import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
+import org.sapia.corus.deployer.processor.DeploymentContext;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
+import org.sapia.corus.taskmanager.TaskLogCallback;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -85,10 +88,12 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     File              srcZip        = params.getParam1();
     String            distFileName  = srcZip.getName();
     DeployPreferences prefs         = params.getParam2();
-    DistributionDatabase dists      = ctx.getServerContext().lookup(DistributionDatabase.class);
-    Deployer             deployer   = ctx.getServerContext().getServices().getDeployer();
-    FileSystemModule     fs         = ctx.getServerContext().getServices().getFileSystem();
-    EventDispatcher      dispatcher = ctx.getServerContext().getServices().getEventDispatcher();
+    
+    DistributionDatabase dists            = ctx.getServerContext().lookup(DistributionDatabase.class);
+    Deployer             deployer         = ctx.getServerContext().getServices().getDeployer();
+    FileSystemModule     fs               = ctx.getServerContext().getServices().getFileSystem();
+    EventDispatcher      dispatcher       = ctx.getServerContext().getServices().getEventDispatcher();
+    DeploymentProcessorManager processor  = ctx.getServerContext().lookup(DeploymentProcessorManager.class);
     
     String tmpBaseDirName = null;
     String baseDirName    = null;
@@ -171,10 +176,12 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
         doRunDeployScript(fs, dist, commonDir, "post-deploy.corus", false, ctx);
       }
       dist.setState(State.DEPLOYED);
+      processor.onPostDeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentCompletedEvent(dist));
       
     } catch (Exception e) {
       dispatcher.dispatch(new DeploymentFailedEvent(dist));
+      processor.onPostUndeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
       if (tmpBaseDir != null) {
         if (prefs.isExecuteDeployScripts()) {
           ctx.info("Error occured while deploying. Will execute rollback.corus script if it is provided in the distribution");

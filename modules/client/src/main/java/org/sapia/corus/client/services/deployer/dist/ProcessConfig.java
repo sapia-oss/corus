@@ -353,6 +353,13 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   public int getInterpolationPasses() {
     return interpolationPasses;
   }
+  
+  /**
+   * @return the {@link List} of {@link Starter}s held by this instance.
+   */
+  public List<Starter> getStarters() {
+    return starters;
+  }
 
   /**
    * @param env the {@link Env} instance.
@@ -382,20 +389,17 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   }
 
   /**
-   * Returns a "command-line" representation of this instance.
-   * 
-   * @return this instance as a {@link CmdLine} object, or <code>null</code> if
-   *         no {@link CmdLine} could be generated for the profile contained in
-   *         the passed in {@link Env} instance.
+   * @return the {@link StarterResult} corresponding to the process to execute, or {@link OptionalValue#none()} 
+   *         if no {@link CmdLine} could be generated for the profile contained in the passed in {@link Env} instance.
    */
-  public CmdLine toCmdLine(Env env) throws MissingDataException {
+  public OptionalValue<StarterResult> toCmdLine(Env env) throws MissingDataException {
     Starter st = findFor(env.getProfile());
 
     if (st == null) {
-      return null;
+      return OptionalValue.none();
     }
 
-    return st.toCmdLine(env);
+    return OptionalValue.of(st.toCmdLine(env));
   }
 
   /**
@@ -447,11 +451,11 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   // --------------------------------------------------------------------------
   // ObjectHandlerIF
   
-  public void handleObject(String elementName, Object starter) throws ConfigurationException {
-    if (starter instanceof Starter) {
-      addStarter((Starter) starter);
+  public void handleObject(String elementName, Object obj) throws ConfigurationException {
+    if (obj instanceof Starter) {
+      addStarter((Starter) obj);
     } else {
-      throw new ConfigurationException(starter.getClass().getName() + " does not implement the " + Starter.class.getName() + " interface");
+      throw new ConfigurationException(obj.getClass().getName() + " unexpected. Expected " + Starter.class.getName() + " instance");
     }
   }
   

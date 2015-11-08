@@ -14,6 +14,7 @@ import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
 import org.sapia.corus.client.AutoClusterFlag;
+import org.sapia.console.OptionDef;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.Interpreter;

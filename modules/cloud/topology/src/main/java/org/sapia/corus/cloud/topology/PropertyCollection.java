@@ -1,6 +1,7 @@
 package org.sapia.corus.cloud.topology;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -10,27 +11,32 @@ import java.util.Set;
  * @author yduchesne
  *
  */
-public class PropertyCollection {
+public class PropertyCollection implements Iterable<Property> {
   
-  private Set<CorusProperty> properties = new HashSet<>();
+  private Set<Property> properties = new HashSet<>();
   
-  public void addProperty(CorusProperty property) {
+  public void addProperty(Property property) {
     this.properties.add(property);
   }
   
   public void addProperty(String name, String value) {
-    CorusProperty p = new CorusProperty();
+    Property p = new Property();
     p.setName(name);
     p.setValue(value);
-    addProperty(p);
+    properties.add(p);
   }
   
-  public Set<CorusProperty> getProperties() {
+  public Set<Property> getProperties() {
     return properties;
   }
   
   public void copyFrom(PropertyCollection other) {
     properties.addAll(other.properties);
+  }
+  
+  @Override
+  public Iterator<Property> iterator() {
+    return properties.iterator();
   }
   
 }
