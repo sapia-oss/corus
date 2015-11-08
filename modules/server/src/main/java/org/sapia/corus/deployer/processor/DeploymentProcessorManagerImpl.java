@@ -3,12 +3,9 @@ package org.sapia.corus.deployer.processor;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
+import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.LogCallback;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.sapia.corus.core.ModuleHelper;
 
 /**
  * Implementation of the {@link DeploymentProcessorManager} interface.
@@ -16,25 +13,36 @@ import org.springframework.context.ApplicationContextAware;
  * @author yduchesne
  *
  */
-public class DeploymentProcessorManagerImpl implements DeploymentProcessorManager, ApplicationContextAware {
-  
-  private ApplicationContext appContext;
+@Bind(moduleInterface = { DeploymentProcessorManager.class })
+public class DeploymentProcessorManagerImpl extends ModuleHelper implements DeploymentProcessorManager {
   
   private List<DeploymentPostProcessor>   deploymentPostProcessors   = new ArrayList<DeploymentPostProcessor>();
   private List<UndeploymentPostProcessor> undeploymentPostProcessors = new ArrayList<UndeploymentPostProcessor>();
-  
-  @PostConstruct
+
+  // --------------------------------------------------------------------------
+  // Module methods
+
+  @Override
+  public String getRoleName() {
+    return ROLE;
+  }
+
+  @Override
   public void init() {
     deploymentPostProcessors.addAll(appContext.getBeansOfType(DeploymentPostProcessor.class).values());
     undeploymentPostProcessors.addAll(appContext.getBeansOfType(UndeploymentPostProcessor.class).values());
+    
+    for (DeploymentPostProcessor p : deploymentPostProcessors) {
+      logger().info("Got DeploymentPostProcessor: " + p);
+    }
+    
+    for (UndeploymentPostProcessor p : undeploymentPostProcessors) {
+      logger().info("Got UndeploymentPostProcessor: " + p);
+    }
   }
   
-  // --------------------------------------------------------------------------
-  // ApplicationContextAware interface
-  
   @Override
-  public void setApplicationContext(ApplicationContext appContext) throws BeansException {
-    this.appContext = appContext;
+  public void dispose() throws Exception {
   }
   
   // --------------------------------------------------------------------------

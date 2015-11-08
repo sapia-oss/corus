@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
@@ -18,9 +19,9 @@ import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
-import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
@@ -50,6 +51,7 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.artifact.InternalArtifactManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
+import org.sapia.corus.deployer.task.CleanTempDirTask;
 import org.sapia.corus.deployer.task.RollbackTask;
 import org.sapia.corus.deployer.task.UnarchiveAndDeployTask;
 import org.sapia.corus.deployer.task.UndeployAndArchiveTask;
@@ -57,6 +59,7 @@ import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
@@ -78,8 +81,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = { Deployer.class })
 public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
   
-  private static final int DEFAULT_THROTTLE                 = 1;
-  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
+  private static final int DEFAULT_THROTTLE                        = 1;
+  private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS        = 60;
+  private static final int DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES = 5;
   
   /**
    * The file lock timeout property name (<code>file-lock-timeout</code>).
@@ -121,8 +125,13 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
   
   // --------------------------------------------------------------------------
-  // Lifecycle
+  // Module interface
 
+  @Override
+  public String getRoleName() {
+    return Deployer.ROLE;
+  }
+  
   @Override
   public void init() throws Exception {
     Reference<ModuleState> state = new AutoResetReference<ModuleState>(
@@ -245,13 +254,15 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     events.addInterceptor(ServerStartedEvent.class, this);
     events.addInterceptor(CorusUserDataEvent.class, this);
   }
-
-  // --------------------------------------------------------------------------
-  // Module interface
-
+  
   @Override
-  public String getRoleName() {
-    return Deployer.ROLE;
+  public void start() throws Exception {
+    CleanTempDirTask clean = new CleanTempDirTask();
+    taskman.executeBackground(clean, null,
+        BackgroundTaskConfig.create()
+          .setExecDelay(0)
+          .setExecInterval(TimeUnit.MINUTES.toMillis(DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES)));
+    
   }
  
   @Override 
@@ -260,7 +271,6 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       processor.dispose();
     }
   }
-  
   
   // --------------------------------------------------------------------------
   // CorusUserData interceptor

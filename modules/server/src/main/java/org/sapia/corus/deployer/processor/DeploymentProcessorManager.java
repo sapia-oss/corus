@@ -11,6 +11,8 @@ import org.sapia.corus.client.common.LogCallback;
  */
 public interface DeploymentProcessorManager {
   
+  public static final String ROLE = DeploymentProcessorManager.class.getName();
+  
   /**
    * @param context a {@link DeploymentContext}.
    * @param callback a {@link LogCallback} to log to for informing about progress.

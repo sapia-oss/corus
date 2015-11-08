@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
+import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.sapia.corus.core.ModuleHelper;
 
 /**
  * Implementation of the {@link ProcessHookManager} interface.
@@ -20,23 +17,40 @@ import org.springframework.context.ApplicationContextAware;
  * @author yduchesne
  *
  */
-public class ProcessHookManagerImpl implements ProcessHookManager, ApplicationContextAware {
+@Bind(moduleInterface = { ProcessHookManager.class })
+public class ProcessHookManagerImpl extends ModuleHelper implements ProcessHookManager {
   
-  private ApplicationContext     appContext;
   private List<ProcessStartHook> startHooks = new ArrayList<ProcessStartHook>();
   private List<ProcessKillHook>  killHooks  = new ArrayList<ProcessKillHook>();
   
+  // --------------------------------------------------------------------------
+  // Module methods
+
   @Override
-  public void setApplicationContext(ApplicationContext appContext)
-      throws BeansException {
-    this.appContext = appContext;
+  public String getRoleName() {
+    return ROLE;
   }
   
-  @PostConstruct
+  @Override
   public void init() {
     startHooks.addAll(appContext.getBeansOfType(ProcessStartHook.class).values());
     killHooks.addAll(appContext.getBeansOfType(ProcessKillHook.class).values());
+    
+    for (ProcessStartHook h : startHooks) {
+      logger().info("Got ProcessStartHook: " + h);
+    }
+    
+    for (ProcessKillHook h : killHooks) {
+      logger().info("Got ProcessKillHook: " + h);
+    }
   }
+  
+  @Override
+  public void dispose() throws Exception {
+  }
+  
+  // --------------------------------------------------------------------------
+  // ProcessHookManager interface
   
   @Override
   public void kill(ProcessContext context, KillSignal signal, LogCallback callback) throws IOException {

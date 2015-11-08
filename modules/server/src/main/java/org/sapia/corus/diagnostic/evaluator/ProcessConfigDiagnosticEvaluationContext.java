@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticEnv;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult.Builder;
+import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.diagnostic.DiagnosticModuleImpl;
 import org.sapia.corus.diagnostic.ProcessDiagnosticCallback;
@@ -24,6 +26,7 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
 
   private Logger                                log         = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   private long                                  startTime   = System.currentTimeMillis();
+  private OptionalValue<LockOwner>              lockOwner   = OptionalValue.none();
   private TimeValue                             gracePeriod = TimeValue.createSeconds(DiagnosticModuleImpl.DEFAULT_GRACE_PERIOD_DURATION_SECONDS);
   private SysClock                              clock       = SysClock.RealtimeClock.getInstance();
   private ProcessDiagnosticCallback             diagnosticCallback;
@@ -47,7 +50,7 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
     this.toDiagnose            = toDiagnose;
     this.expectedInstanceCount = expected;
   }
-  
+
   /**
    * @return the {@link Logger} to use.
    */
@@ -74,6 +77,13 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
    */
   public SysClock getClock() {
     return clock;
+  }
+  
+  /**
+   * @return the process {@link LockOwner} to use when performing diagnostic.
+   */
+  public OptionalValue<LockOwner> getLockOwner() {
+    return lockOwner;
   }
   
   /**
@@ -180,4 +190,21 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
     return this;
   }
   
+  /**
+   * @param lockOwner the {@link LockOwner} to use.
+   * @return this instance.
+   */
+  public ProcessConfigDiagnosticEvaluationContext withLockOwner(LockOwner lockOwner) {
+    this.lockOwner = OptionalValue.of(lockOwner);
+    return this;
+  }
+
+  /**
+   * @param lockOwner the optional {@link LockOwner} to use.
+   * @return this instance.
+   */
+  public ProcessConfigDiagnosticEvaluationContext withLockOwner(OptionalValue<LockOwner> lockOwner) {
+    this.lockOwner = lockOwner;
+    return this;
+  }
 }

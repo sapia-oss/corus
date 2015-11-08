@@ -8,6 +8,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   static final long serialVersionUID = 1L;
 
   public static final long DEFAULT_FILELOCK_TIMEOUT = 120000L;
+  public static final int DEFAULT_TEMP_FILE_TIMEOUT_HOURS = 1;
 
   private String deployDir;
   private String tempDir;
@@ -16,6 +17,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   private String uploadDir;
   private String archiveDir;
   private long fileLockTimeout = DEFAULT_FILELOCK_TIMEOUT;
+  private int tempFileTimeoutHours = DEFAULT_TEMP_FILE_TIMEOUT_HOURS;
 
   @Override
   public String getDeployDir() {
@@ -78,6 +80,15 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
 
   public void setUploadDir(String uploadDir) {
     this.uploadDir = uploadDir;
+  }
+  
+  @Override
+  public int getTempFileTimeoutHours() {
+    return tempFileTimeoutHours;
+  }
+  
+  public void setTempFileTimeoutHours(int tempFileTimeoutHours) {
+    this.tempFileTimeoutHours = tempFileTimeoutHours;
   }
 
   @Override

@@ -15,6 +15,9 @@ import org.sapia.corus.client.services.os.OsModule.KillSignal;
  */
 public interface ProcessHookManager {
   
+  public static final String ROLE = ProcessHookManager.class.getName();
+
+  
   /**
    * @param context a {@link ProcessContext} holding data corresponding to the process to kill.
    * @param the {@link KillSignal} to send to the process.

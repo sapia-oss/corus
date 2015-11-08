@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
@@ -293,7 +294,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
     } else if (process.getLock().isLocked() && !process.getLock().getOwner().equals(requestingOwner)) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, "Process is locked. Try again in a few seconds",  process);
     } else if (process.getStatus() == LifeCycleStatus.ACTIVE) {
-      return doAcquireProcessDiagnosticFor(process);
+      return doAcquireProcessDiagnosticFor(process, OptionalValue.of(requestingOwner));
     } else {
       throw new IllegalStateException("Unknow process state: " + process.getStatus());
     }
@@ -450,7 +451,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   // --------------------------------------------------------------------------
   // Restricted methods
   
-  private ProcessDiagnosticResult doAcquireProcessDiagnosticFor(Process process) {
+  private ProcessDiagnosticResult doAcquireProcessDiagnosticFor(Process process, OptionalValue<LockOwner> lockOwner) {
     try {
       Distribution dist = deployer.getDistribution(process.getDistributionInfo().newDistributionCriteria());
       ProcessConfig processConf = dist.getProcess(process.getDistributionInfo().getProcessName());
@@ -470,7 +471,8 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       .withLog(log)
       .withClock(clock)
       .withGracePeriod(processStartupGracePeriodDuration.getValueNotNull())
-      .withStartTime(startTime);
+      .withStartTime(startTime)
+      .withLockOwner(lockOwner);
       
       ProcessConfigDiagnosticEvaluator evaluator = selectEvaluator(evalContext);
       evaluator.evaluate(evalContext);

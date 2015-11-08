@@ -200,6 +200,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
           String command = sub.toString().trim();
           command        = command.substring(("-" + COMMAND_OPT).length());
           CmdLine toRun  = CmdLine.parse(command);
+          System.out.println("Executing command => " + command);
           
           // overloading system properties with environnment variables 
           CompositeStrLookup vars = new CompositeStrLookup();

@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.List;
 
+import org.sapia.corus.client.common.FileFacade;
+
 /**
  * Abstracts the file system.
  * 
@@ -121,6 +123,12 @@ public interface FileSystemModule {
    * @return a new {@link File} handle, for the given path.
    */
   public File getFileHandle(String path);
+  
+  /**
+   * @param toWrap a {@link File} to wrap into a {@link FileFacade}.
+   * @return the {@link FileFacade} wrapping the given file.
+   */
+  public FileFacade getFileFacade(File toWrap);
   
   /**
    * @param a {@link File} for which to return a reader.

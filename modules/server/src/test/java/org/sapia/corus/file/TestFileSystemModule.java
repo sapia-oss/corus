@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.sapia.corus.client.common.FileFacade;
 import org.sapia.corus.client.services.file.FileSystemModule;
 
 public class TestFileSystemModule implements FileSystemModule{
@@ -58,6 +59,11 @@ public class TestFileSystemModule implements FileSystemModule{
   @Override
   public File getFileHandle(String path) {
     return new File(path);
+  }
+  
+  @Override
+  public FileFacade getFileFacade(File toWrap) {
+    return FileFacade.DefaultFileFacade.of(toWrap);
   }
   
   @Override

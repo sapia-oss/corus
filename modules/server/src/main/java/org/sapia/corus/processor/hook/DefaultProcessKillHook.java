@@ -8,6 +8,7 @@ import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.ubik.util.Collects;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Default implementation of the {@link ProcessKillHook}. Handles the following starter types:
@@ -25,6 +26,7 @@ public class DefaultProcessKillHook implements ProcessKillHook {
   
   private static final Set<StarterType> ACCEPTED_STARTER_TYPES = Collects.arrayToSet(StarterType.GENERIC, StarterType.JAVA, StarterType.MAGNET);
   
+  @Autowired
   private OsModule os;
   
   /// -------------------------------------------------------------------------

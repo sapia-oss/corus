@@ -23,7 +23,9 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.selectors.TypeSelector;
 import org.apache.tools.ant.types.selectors.TypeSelector.FileType;
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.FileFacade;
 import org.sapia.corus.client.common.ZipUtils;
+import org.sapia.corus.client.common.FileFacade.DefaultFileFacade;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.core.ModuleHelper;
 import org.springframework.util.Assert;
@@ -178,6 +180,11 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
   @Override
   public File getFileHandle(String path) {
     return new File(path);
+  }
+  
+  @Override
+  public FileFacade getFileFacade(File toWrap) {
+    return DefaultFileFacade.of(toWrap);
   }
   
   @Override
