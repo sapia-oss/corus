@@ -478,7 +478,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       evaluator.evaluate(evalContext);
       
       List<ProcessDiagnosticResult> processResults = diagnosticResultBuilder.build(evalContext).getProcessResults();
-      Assertions.illegalState(processResults.size() != 1, "Expected one result for process diagnostic, got: %s", processResults.size());
+      Assertions.illegalState(processResults.size() < 1, "Expected at least one result for process diagnostic, got: %s", processResults.size());
       return processResults.get(0);
     } catch (DistributionNotFoundException e) {
       throw new IllegalStateException("Distribution not found for process: " + ToStringUtils.toString(process));
