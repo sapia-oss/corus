@@ -83,6 +83,7 @@ public class DockerStarter implements Starter, Serializable {
   private List<Dependency>          dependencies   = new ArrayList<Dependency>();
   private List<DockerPortMapping>   portMappings   = new ArrayList<DockerPortMapping>();
   private List<DockerVolumeMapping> volumeMappings = new ArrayList<DockerVolumeMapping>();
+  private DockerEnv                 environment    = new DockerEnv();
 
   @Override
   public void setProfile(String profile) {
@@ -250,6 +251,14 @@ public class DockerStarter implements Starter, Serializable {
   
   public List<DockerPortMapping> getPortMappings() {
     return portMappings;
+  }
+  
+  public DockerEnv getEnvironment() {
+    return environment;
+  }
+  
+  public DockerEnv createEnv() {
+    return environment;
   }
   
   public void addVolumeMapping(DockerVolumeMapping volMapping) {
