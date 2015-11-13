@@ -136,6 +136,15 @@ public class DockerProcessStartHook implements ProcessStartHook {
         hostConfigBuilder.binds(bindings);
       }
     
+      Map<String, String> envVars = new HashMap<String, String>();
+      for (Property p : starter.getEnvironment().getProperties()) {
+        if (p.getValue() != null) {
+          String value = substitutor.replace(p.getValue());
+          vars.put(p.getName(), value);
+          envVars.put(p.getName(), value);
+        }
+      }
+      
       // mac
       if (starter.getMacAddress().isSet()) {
         containerBuilder.macAddress(substitutor.replace(starter.getMacAddress().get()));
@@ -188,7 +197,7 @@ public class DockerProcessStartHook implements ProcessStartHook {
       String containerId = creation.id();
       client.startContainer(containerId);
       context.getProcess().setOsPid(containerId);
-      callback.debug(String.format("Created Docker container for process %s (container id: %s)", 
+      callback.info(String.format("Created Docker container for process %s (container id: %s)", 
           ToStringUtils.toString(context.getProcess()) , containerId));
     } catch (InterruptedException | DockerException e) {
       throw new IOException("Could not start Docker container for process: " + ToStringUtils.toString(context.getProcess()), e);

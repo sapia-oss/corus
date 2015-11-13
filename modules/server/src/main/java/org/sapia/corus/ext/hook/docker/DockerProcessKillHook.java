@@ -55,6 +55,7 @@ public class DockerProcessKillHook implements ProcessKillHook {
     if (context.getProcess().getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
       DockerClient client = dockerFacade.getDockerClient();
       try {
+        callback.info(String.format("Terminating Docker containerfor process %s", ToStringUtils.toString(context.getProcess())));
         int secondsToWaitBeforeHardKill = 
             (int) TimeUnit.MILLISECONDS.toSeconds(processorConfig.getKillIntervalMillis()) * context.getProcess().getMaxKillRetry();
         client.stopContainer(context.getProcess().getOsPid(), secondsToWaitBeforeHardKill);
