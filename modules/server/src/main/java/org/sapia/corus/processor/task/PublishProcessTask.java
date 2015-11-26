@@ -60,21 +60,25 @@ public class PublishProcessTask extends Task<Void, Process> {
       DiagnosticModule diag      = ctx.getServerContext().getServices().getDiagnosticModule();
       ProcessPublisher publisher = ctx.getServerContext().getServices().getProcessPublisher();
       
-      ProcessDiagnosticResult diagnosticResult = diag.acquireDiagnosticFor(process, processLockOwner);
-      
-      if (diagnosticResult.getStatus().isFinal() && !diagnosticResult.getStatus().isProblem()) {
-        if (callback == null) {
-          callback = new PublishProcessTaskCallback(ctx);
-          publisher.publishProcess(process, callback);
+      try {
+        ProcessDiagnosticResult diagnosticResult = diag.acquireDiagnosticFor(process, processLockOwner);
+        if (diagnosticResult.getStatus().isFinal() && !diagnosticResult.getStatus().isProblem()) {
+          if (callback == null) {
+            callback = new PublishProcessTaskCallback(ctx);
+            publisher.publishProcess(process, callback);
+            abort(ctx);
+          }
+        } else if (diagnosticResult.getStatus().isFinal() && diagnosticResult.getStatus().isProblem()){
+          ctx.error(String.format("Diagnostic failed for process %s (got status: %s). Aborting publishing", 
+              ToStringUtils.toString(process), diagnosticResult.getStatus()));
           abort(ctx);
+        } else {
+          ctx.info(String.format("Diagnostic incomplete for process %s (got status: %s). Will try again.", 
+              ToStringUtils.toString(process), diagnosticResult.getStatus()));
         }
-      } else if (diagnosticResult.getStatus().isFinal() && diagnosticResult.getStatus().isProblem()){
-        ctx.error(String.format("Diagnostic failed for process %s (got status: %s). Aborting publishing", 
-            ToStringUtils.toString(process), diagnosticResult.getStatus()));
+      } catch (RuntimeException e) {
+        ctx.error("Error caught trying to publish process", e);
         abort(ctx);
-      } else {
-        ctx.info(String.format("Diagnostic incomplete for process %s (got status: %s). Will try again.", 
-            ToStringUtils.toString(process), diagnosticResult.getStatus()));
       }
     }
       
