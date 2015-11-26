@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.console.AbortException;
+import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.OptionDef;
 import org.sapia.console.table.Row;
@@ -15,12 +16,14 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -38,7 +41,8 @@ public class Diags extends CorusCliCommand {
 
   
   private static final List<OptionDef> AVAILABLE_OPTIONS = Collects.arrayToList(
-      OPT_CLUSTER, OPT_ABORT_ENABLED, OPT_POLL_INTERVAL, OPT_WAIT
+      OPT_CLUSTER, OPT_ABORT_ENABLED, OPT_POLL_INTERVAL, OPT_WAIT, 
+      OPT_DIST, OPT_VERSION, OPT_PROCESS_NAME 
   );
   
   private static final int DEFAULT_INTERVAL_SECONDS = 10;
@@ -94,7 +98,7 @@ public class Diags extends CorusCliCommand {
       processDiagnosticResults.clear();
       progressDiagnosticResults.clear();
       
-      Results<GlobalDiagnosticResult> results = ctx.getCorus().getDiagnosticFacade().acquireDiagnostics(getClusterInfo(ctx));
+      Results<GlobalDiagnosticResult> results = ctx.getCorus().getDiagnosticFacade().acquireDiagnostics(getProcessCriteria(ctx), getClusterInfo(ctx));
       
       while (results.hasNext()) {
         Result<GlobalDiagnosticResult> globalDiag = results.next();
@@ -232,5 +236,22 @@ public class Diags extends CorusCliCommand {
       row.getCellAt(MSG_TBL.col("msg").index()).append(pdr);
       row.flush();
     }
+  }
+  
+  private ProcessCriteria getProcessCriteria(CliContext ctx) {
+    ProcessCriteria.Builder builder = ProcessCriteria.builder();
+    CmdLine cmd = ctx.getCommandLine();
+    if (cmd.containsOption(OPT_DIST.getName(), true)) {
+      builder.distribution(ArgMatchers.parse(cmd.assertOption(OPT_DIST.getName(), true).getValue()));
+    }
+
+    if (cmd.containsOption(OPT_VERSION.getName(), true)) {
+      builder.version(ArgMatchers.parse(cmd.assertOption(OPT_VERSION.getName(), true).getValue()));
+    }
+
+    if (cmd.containsOption(OPT_PROCESS_NAME.getName(), true)) {
+      builder.name(ArgMatchers.parse(cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue()));
+    }
+    return builder.build();
   }
 }

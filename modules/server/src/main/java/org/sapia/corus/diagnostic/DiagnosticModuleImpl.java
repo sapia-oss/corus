@@ -16,7 +16,6 @@ import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.Deployer;
-import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -89,7 +88,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   // ==========================================================================
   
   public static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = 60;
-  
+    
   @Autowired
   private Deployer   deployer;
   
@@ -258,7 +257,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   // DiagnosticModule interface
   
   @Override
-  public synchronized GlobalDiagnosticResult acquireDiagnostics() {
+  public synchronized GlobalDiagnosticResult acquireGlobalDiagnostics(OptionalValue<LockOwner> requestingOwner) {
     if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
       return GlobalDiagnosticResult.Builder.newInstance().busy().build();
     } else {
@@ -275,14 +274,39 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       }));
    
       builder.progressDiagnostics(progressResult);
-      builder.processDiagnostics(acquireProcessDiagnostics());
+      builder.processDiagnostics(acquireProcessDiagnostics(requestingOwner));
       lastProgressCheck = clock.nanoTime();
       return builder.build();
     }
   }
   
   @Override
-  public synchronized ProcessDiagnosticResult acquireDiagnosticFor(Process process, LockOwner requestingOwner) {
+  public synchronized GlobalDiagnosticResult acquireGlobalDiagnostics(
+      ProcessCriteria criteria, OptionalValue<LockOwner> requestingOwner) {
+    if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
+      return GlobalDiagnosticResult.Builder.newInstance().busy().build();
+    } else {
+      GlobalDiagnosticResult.Builder builder = GlobalDiagnosticResult.Builder.newInstance();
+      List<ProgressMsg>        lastProgressMsgs = taskManager.clearBufferedMessages(ProgressMsg.ERROR, lastProgressCheck);
+      ProgressDiagnosticResult progressResult   = new ProgressDiagnosticResult(Collects.convertAsList(lastProgressMsgs, new Func<String, ProgressMsg>() {
+        @Override
+        public String call(ProgressMsg msg) {
+          if (msg.isThrowable()) {
+            return msg.getThrowable().getMessage();
+          } 
+          return msg.getMessage().toString();
+        }
+      }));
+   
+      builder.progressDiagnostics(progressResult);
+      builder.processDiagnostics(acquireProcessDiagnostics(criteria, requestingOwner));
+      lastProgressCheck = clock.nanoTime();
+      return builder.build();
+    }
+  }
+  
+  @Override
+  public synchronized ProcessDiagnosticResult acquireProcessDiagnostics(Process process, OptionalValue<LockOwner> requestingOwner) {
     if (process.getStatus() == LifeCycleStatus.STALE) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.STALE, "Process is stale", process);
     } else if (process.getStatus() == LifeCycleStatus.RESTARTING) {
@@ -291,22 +315,27 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SHUTTING_DOWN, "Process is shutting down",  process);
     } else if (process.getStatus() == LifeCycleStatus.SUSPENDED) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SUSPENDED, "Process is suspended",  process);
-    } else if (process.getLock().isLocked() && !process.getLock().getOwner().equals(requestingOwner)) {
+    } else if (process.getLock().isLocked() && (requestingOwner.isSet() &&  !process.getLock().getOwner().equals(requestingOwner.get()) || requestingOwner.isNull())) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, "Process is locked. Try again in a few seconds",  process);
     } else if (process.getStatus() == LifeCycleStatus.ACTIVE) {
-      return doAcquireProcessDiagnosticFor(process, OptionalValue.of(requestingOwner));
+      return doAcquireProcessDiagnosticFor(process, requestingOwner);
     } else {
       throw new IllegalStateException("Unknow process state: " + process.getStatus());
     }
   }
   
   @Override
-  public List<ProcessConfigDiagnosticResult> acquireProcessDiagnostics() {
+  public List<ProcessConfigDiagnosticResult> acquireProcessDiagnostics(OptionalValue<LockOwner> requestingOwner) {
+    return acquireProcessDiagnostics(ProcessCriteria.builder().all(), requestingOwner);
+  }
+  
+  @Override
+  public List<ProcessConfigDiagnosticResult>  acquireProcessDiagnostics(ProcessCriteria criteria, OptionalValue<LockOwner> requestingOwner) {
     List<ProcessConfigDiagnosticResult> allResults = new ArrayList<ProcessConfigDiagnosticResult>();
     
-    for (Distribution dist : deployer.getDistributions(DistributionCriteria.builder().all())) {
+    for (Distribution dist : deployer.getDistributions(criteria.getDistributionCriteria())) {
       if (log.isDebugEnabled()) log.debug("Acquiring diagnostics for distribution: " + ToStringUtils.toString(dist));
-      for (ProcessConfig pc : dist.getProcesses()) {
+      for (ProcessConfig pc : dist.getProcesses(criteria.getName())) {
         if (log.isDebugEnabled()) log.debug("Checking for process config: " + ToStringUtils.toString(dist, pc));
         ProcessConfigDiagnosticResult.Builder diagnosticResult = ProcessConfigDiagnosticResult.Builder.newInstance()
             .distribution(dist)
@@ -336,7 +365,6 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
           .withClock(clock)
           .withGracePeriod(processStartupGracePeriodDuration.getValueNotNull())
           .withStartTime(startTime);
-          
           
           allResults.add(
               ProcessConfigDiagnosticResult.Builder.newInstance()
@@ -417,6 +445,10 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
           .withGracePeriod(processStartupGracePeriodDuration.getValueNotNull())
           .withStartTime(startTime);
           
+          if (requestingOwner.isSet()) {
+            evalContext.withLockOwner(requestingOwner);
+          }
+          
           ProcessConfigDiagnosticEvaluator evaluator = selectEvaluator(evalContext);
           evaluator.evaluate(evalContext);
           
@@ -434,7 +466,6 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
           .withClock(clock)
           .withGracePeriod(processStartupGracePeriodDuration.getValueNotNull())
           .withStartTime(startTime);
-          
           
           allResults.add(
               ProcessConfigDiagnosticResult.Builder.newInstance()
@@ -478,7 +509,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       evaluator.evaluate(evalContext);
       
       List<ProcessDiagnosticResult> processResults = diagnosticResultBuilder.build(evalContext).getProcessResults();
-      Assertions.illegalState(processResults.size() < 1, "Expected at least one result for process diagnostic, got: %s", processResults.size());
+      Assertions.illegalState(processResults.size() != 1, "Expected one result for process diagnostic, got: %s result(s)", processResults.size());
       return processResults.get(0);
     } catch (DistributionNotFoundException e) {
       throw new IllegalStateException("Distribution not found for process: " + ToStringUtils.toString(process));

@@ -35,6 +35,7 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
   private ProcessConfig                         processConfig;
   private List<Process>                         toDiagnose;
   private int                                   expectedInstanceCount;
+  private boolean                               specificProcess;
   
   public ProcessConfigDiagnosticEvaluationContext(
       ProcessDiagnosticCallback diagnosticCallback,
@@ -151,6 +152,16 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
     return !isWithinGracePeriod();
   }
   
+  /**
+   * @return  <code>true</code> if there's only one process in the given process list and this instance
+   * <code>specificProcess</code> flag is set to <code>true</code>.
+   * 
+   * @see #withSpecificProcess()
+   */
+  public boolean isSpecificProcess() {
+    return this.specificProcess;
+  }
+  
   // ------------------------------------------------------------------------
   // Config override methods
   
@@ -205,6 +216,15 @@ public class ProcessConfigDiagnosticEvaluationContext implements ProcessConfigDi
    */
   public ProcessConfigDiagnosticEvaluationContext withLockOwner(OptionalValue<LockOwner> lockOwner) {
     this.lockOwner = lockOwner;
+    return this;
+  }
+  
+  /**
+   * @param process the specific process to perform a diagnostic check on.
+   * @return this instance.
+   */
+  public ProcessConfigDiagnosticEvaluationContext withSpecificProcess() {
+    this.specificProcess = true;
     return this;
   }
 }

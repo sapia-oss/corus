@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.processor.LockOwner;
@@ -63,7 +64,7 @@ public class ProcessCheckTask extends Task<Void, Void> {
         
         // if interop is not enabled: proceeding to diagnostic
         if (!proc.isInteropEnabled()) {
-          ProcessDiagnosticResult diag = diagnostics.acquireDiagnosticFor(proc, lockOwner);
+          ProcessDiagnosticResult diag = diagnostics.acquireProcessDiagnostics(proc, OptionalValue.of(lockOwner));
           if (diag.getStatus().isFinal() && diag.getStatus().isProblem()) {
             proc.incrementStaleDetectionCount();
           } else {

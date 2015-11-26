@@ -61,7 +61,7 @@ public class PublishProcessTask extends Task<Void, Process> {
       ProcessPublisher publisher = ctx.getServerContext().getServices().getProcessPublisher();
       
       try {
-        ProcessDiagnosticResult diagnosticResult = diag.acquireDiagnosticFor(process, processLockOwner);
+        ProcessDiagnosticResult diagnosticResult = diag.acquireProcessDiagnostics(process, OptionalValue.of(processLockOwner));
         if (diagnosticResult.getStatus().isFinal() && !diagnosticResult.getStatus().isProblem()) {
           if (callback == null) {
             callback = new PublishProcessTaskCallback(ctx);
