@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -83,7 +84,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   @Test
   public void testStaleVmCheck_diagnostic_success() throws Exception {   
     proc.setInteropEnabled(false);
-    when(diagnostics.acquireDiagnosticFor(any(Process.class), any(LockOwner.class)))
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_SUCCESSFUL, "success", proc));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
@@ -107,7 +108,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   @Test
   public void testStaleVmCheck_diagnostic_failure() throws Exception {   
     proc.setInteropEnabled(false);
-    when(diagnostics.acquireDiagnosticFor(any(Process.class), any(LockOwner.class)))
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_FAILED, "failure", proc));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);

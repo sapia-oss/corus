@@ -87,7 +87,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
     when(serviceContext.getEventDispatcher()).thenReturn(dispatcher);
     when(serviceContext.getDiagnosticModule()).thenReturn(diagnosticModule);
     when(serviceContext.getProcessPublisher()).thenReturn(publisher);
-    when(diagnosticModule.acquireDiagnosticFor(eq(process), any(LockOwner.class)))
+    when(diagnosticModule.acquireProcessDiagnostics(eq(process), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_SUCCESSFUL, "success", process));
   }
 
@@ -147,7 +147,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
           return new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, "incomplete", process);
         }
       }
-    }).when(diagnosticModule).acquireDiagnosticFor(eq(process), any(LockOwner.class));
+    }).when(diagnosticModule).acquireProcessDiagnostics(eq(process), any(OptionalValue.class));
     
     setUpPublisherForSuccess();
     
@@ -185,7 +185,7 @@ public class PublishProcessTaskTest extends TestBaseTask {
   @Test
   public void testExecute_diagnostic_incomplete_multiple_attempts_failure() throws Throwable {
     reset(diagnosticModule);
-    when(diagnosticModule.acquireDiagnosticFor(eq(process), any(LockOwner.class)))
+    when(diagnosticModule.acquireProcessDiagnostics(eq(process), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, "incomplete", process));
     
     for (int i = 0; i < MAX_EXEC + 1; i++) {

@@ -17,9 +17,11 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.reference.DefaultReference;
 import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
@@ -47,6 +49,7 @@ import org.junit.runner.RunWith;
 @RunWith(MockitoJUnitRunner.class)
 public class DiagnosticModuleImplTest {
   
+  private static final OptionalValue<LockOwner> NULL_LOCK_OWNER = OptionalValue.none();
   
   private Distribution       dist;
   private DistributionInfo   distInfo;
@@ -181,7 +184,7 @@ public class DiagnosticModuleImplTest {
 
   @Test
   public void testAcquireDiagnostic_all_processes_started() {
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertEquals(2, result.get(0).getProcessResults().size());
     
     assertEquals(ProcessConfigDiagnosticStatus.SUCCESS, result.get(0).getStatus());
@@ -207,7 +210,7 @@ public class DiagnosticModuleImplTest {
     
     
 
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertEquals(1, result.get(0).getProcessResults().size());
     assertEquals(ProcessConfigDiagnosticStatus.PENDING_EXECUTION, result.get(0).getStatus());
   }
@@ -218,7 +221,7 @@ public class DiagnosticModuleImplTest {
     dist.setTags("distributionTag");
     processConfig.setTags("processTag");
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertTrue(result.get(0).getProcessResults().isEmpty());
     
     assertEquals(ProcessConfigDiagnosticStatus.NO_PROCESSES_EXPECTED, result.get(0).getStatus());
@@ -228,7 +231,7 @@ public class DiagnosticModuleImplTest {
   public void testAcquireDiagnostic_deployer_busy() {
     when(deployer.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertTrue(result.get(0).getProcessResults().isEmpty());
     
     assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
@@ -238,7 +241,7 @@ public class DiagnosticModuleImplTest {
   public void testAcquireDiagnostic_repository_busy() {
     when(repository.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertTrue(result.get(0).getProcessResults().isEmpty());
     
     assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
@@ -263,7 +266,7 @@ public class DiagnosticModuleImplTest {
     }).when(processor).getProcesses(any(ProcessCriteria.class));
 
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     
     assertEquals(ProcessConfigDiagnosticStatus.FAILURE, result.get(0).getStatus());
   }
@@ -287,7 +290,7 @@ public class DiagnosticModuleImplTest {
     }).when(processor).getProcesses(any(ProcessCriteria.class));
 
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     
     assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
   }
@@ -311,7 +314,7 @@ public class DiagnosticModuleImplTest {
     }).when(processor).getProcesses(any(ProcessCriteria.class));
 
     
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics();
+    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     
     assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
   }

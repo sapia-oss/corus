@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import java.util.Properties;
 
 import org.mockito.Mockito;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -87,8 +88,8 @@ public class TestServerContext extends ServerContextImpl{
     created.getServices().bind(ProcessHookManager.class, created._processHooks);
     created.getServices().bind(DeploymentProcessorManager.class, created._deploymentProcessors);
     
-    when(created._diagnostics.acquireDiagnosticFor(
-        any(Process.class), any(LockOwner.class)
+    when(created._diagnostics.acquireProcessDiagnostics(
+        any(Process.class), any(OptionalValue.class)
     )).thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_SUCCESSFUL, "test", null));
     
     registerThrottles(created);
