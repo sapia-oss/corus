@@ -36,6 +36,7 @@ import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
 import org.sapia.corus.client.rest.RestContainer.ResourceInvocationResult;
 import org.sapia.corus.client.rest.RestResponseFacade;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
@@ -83,7 +84,8 @@ public class RestExtension implements HttpExtension, Interceptor {
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
     connectors = new CorusConnectorPool(DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
-    container  = RestContainer.Builder.newInstance().buildDefaultInstance();
+    Auditor auditor = serverContext.getServices().getAuditor();
+    container  = RestContainer.Builder.newInstance().auditor(auditor).buildDefaultInstance();
     
     String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
     if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
@@ -367,6 +369,11 @@ public class RestExtension implements HttpExtension, Interceptor {
     
     ServerRestRequest(HttpContext delegate) {
       this.delegate = delegate;
+    }
+    
+    @Override
+    public String getRemoteHost() {
+      return delegate.getRequest().getRemoteHost();
     }
     
     @Override

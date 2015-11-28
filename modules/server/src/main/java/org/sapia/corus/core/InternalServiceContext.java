@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -181,6 +182,13 @@ public class InternalServiceContext {
    */
   public ProcessPublisher getProcessPublisher() {
     return lookup(ProcessPublisher.class);
+  }
+  
+  /**
+   * @return the {@link Auditor} module.
+   */
+  public Auditor getAuditor() {
+    return lookup(Auditor.class);
   }
 
   /**

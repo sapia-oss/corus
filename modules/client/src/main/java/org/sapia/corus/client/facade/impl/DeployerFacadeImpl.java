@@ -19,6 +19,8 @@ import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+import org.sapia.corus.client.common.encryption.Encryption;
+import org.sapia.corus.client.common.encryption.EncryptionContext;
 import org.sapia.corus.client.exceptions.deployer.ConcurrentDeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
@@ -26,6 +28,9 @@ import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundExceptio
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.DeployerFacade;
+import org.sapia.corus.client.services.audit.AuditInfo;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -41,6 +46,7 @@ import org.sapia.corus.client.services.deployer.transport.DistributionDeployment
 import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Streams;
 
 public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements DeployerFacade {
@@ -185,7 +191,25 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
           log.trace("Deployment target: %s",  addr);
         }
       }
-      
+      if (CurrentAuditInfo.isSet()) {
+        AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+        AuditInfo ai = reg.getAuditInfo();
+        Assertions.illegalState(
+            !reg.getHost().equals(context.getServerHost()), 
+            "Corus hosts mismatched in the context of audit info registration (%s != %s)", 
+            reg.getHost(), context.getServerHost()
+         );
+        if (!ai.isEncrypted()) {
+          EncryptionContext ec = Encryption.getDefaultEncryptionContext(reg.getHost().getPublicKey());
+          ai = ai.encryptWith(ec);
+        }
+        meta.setAuditInfo(ai);
+      } else {
+        AuditInfo ai = AuditInfo.forCurrentUser();
+        EncryptionContext ec = Encryption.getDefaultEncryptionContext(context.getServerHost().getPublicKey());
+        ai = ai.encryptWith(ec);
+        meta.setAuditInfo(ai);
+      }
       dos = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(context.getAddress()));
 
       os = new DeployOsAdapter(dos);

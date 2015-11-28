@@ -3,6 +3,8 @@ package org.sapia.corus.repository.task;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
+
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
@@ -47,7 +49,7 @@ public abstract class AbstractRepoTaskTest {
     security       = mock(SecurityModule.class);
     appkeys        = mock(ApplicationKeyManager.class);
     
-    node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test");
+    node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
     node.setRepoRole(RepoRole.CLIENT);
     
     when(taskContext.getServerContext()).thenReturn(serverContext);

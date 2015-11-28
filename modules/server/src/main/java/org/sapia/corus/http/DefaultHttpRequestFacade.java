@@ -23,6 +23,11 @@ public class DefaultHttpRequestFacade implements HttpRequestFacade {
   public DefaultHttpRequestFacade(Request request) {
     this.request = request;
   }
+  
+  @Override
+  public String getRemoteHost() {
+    return request.getClientAddress().getHostString();
+  }
 
   @Override
   public String getParameter(String name) {

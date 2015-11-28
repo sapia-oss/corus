@@ -1,6 +1,9 @@
 package org.sapia.corus.client.sort;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import java.security.PublicKey;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +54,7 @@ public class ClusterStatusComparatorsTest {
   }
   
   private ClusterStatus status(EventChannel.Role role, String host, int port) {
-    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "");
+    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
     h.setHostName(host);
     return new ClusterStatus(role, h, 0);
   }

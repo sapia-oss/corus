@@ -14,24 +14,23 @@ public class DeploymentClientConnection implements Connection {
   public DeploymentClientConnection(AbstractDeploymentClient client) {
     this.client = client;
   }
+  
+  @Override
+  public String getRemoteHost() {
+    throw new UnsupportedOperationException("getRemoteHost() method not implemented");
+  }
 
-  /**
-   * @see org.sapia.corus.client.services.deployer.transport.Connection#close()
-   */
+  @Override
   public void close() {
     client.close();
   }
 
-  /**
-   * @see org.sapia.corus.client.services.deployer.transport.Connection#getInputStream()
-   */
+  @Override
   public InputStream getInputStream() throws IOException {
     return client.getInputStream();
   }
 
-  /**
-   * @see org.sapia.corus.client.services.deployer.transport.Connection#getOutputStream()
-   */
+  @Override
   public OutputStream getOutputStream() throws IOException {
     return client.getOutputStream();
   }

@@ -9,6 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -118,7 +120,7 @@ public class RepositoryImplTest {
   
   private CorusHost createCorusHost(RepoRole repoRole) {
     
-    CorusHost host = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", corusPort++), new TcpSocketAddress("test", corusPort++)), "testOsInfo", "testVMInfo");
+    CorusHost host = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", corusPort++), new TcpSocketAddress("test", corusPort++)), "testOsInfo", "testVMInfo", mock(PublicKey.class));
     host.setRepoRole(repoRole);
     return host;
   }

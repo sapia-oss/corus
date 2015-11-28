@@ -35,6 +35,13 @@ public interface ClusterManager extends java.rmi.Remote, Module {
   public Set<CorusHost> getHosts();
 
   /**
+   * @param hostAddress the {@link ServerAddress} of the {@link CorusHost} to return.
+   * @return the {@link CorusHost} corresponding to the given address.
+   * @throws IllegalArgumentException if no such host exists.
+   */
+  public CorusHost resolveHost(ServerAddress hostAddress) throws IllegalArgumentException;
+  
+  /**
    * Returns the event channel used to dispatch events to the other Corus nodes
    * in the cluster.
    * <p>

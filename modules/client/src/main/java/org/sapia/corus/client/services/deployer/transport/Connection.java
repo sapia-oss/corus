@@ -10,6 +10,11 @@ import java.io.OutputStream;
  * @author Yanick Duchesne
  */
 public interface Connection {
+  
+  /**
+   * @return the address of the remote host from which the deployment originates.
+   */
+  public String getRemoteHost();
 
   /**
    * @return this client's {@link InputStream}.

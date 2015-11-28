@@ -4,10 +4,12 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.KeyPair;
 import java.util.Properties;
 
 import org.mockito.Mockito;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -120,7 +122,8 @@ public class TestServerContext extends ServerContextImpl{
   			channel,
   			"test",
   			System.getProperty("user.dir"), 
-  			new InternalServiceContext(), new Properties());
+  			new InternalServiceContext(), new Properties(),
+  			Encryption.generateDefaultKeyPair());
   }
 
   public EventDispatcher getDisp() {

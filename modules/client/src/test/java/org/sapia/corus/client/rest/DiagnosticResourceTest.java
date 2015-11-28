@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -167,7 +168,8 @@ public class DiagnosticResourceTest {
     CorusHost host = CorusHost.newInstance(
         new Endpoint(new TCPAddress("test", "host-" + index, index), mock(ServerAddress.class)), 
         "os-" + index, 
-        "jvm-" + index
+        "jvm-" + index,
+        mock(PublicKey.class)
     );
     
     return new Result<GlobalDiagnosticResult>(host,

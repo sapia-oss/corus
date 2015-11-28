@@ -15,6 +15,11 @@ import java.util.Set;
 public interface RestRequest {
 
   /**
+   * @return the address of the host that sent the request.
+   */
+  public String getRemoteHost();
+  
+  /**
    * @return a request path.
    */
   public String getPath();

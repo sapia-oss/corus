@@ -1,6 +1,7 @@
 package org.sapia.corus.core;
 
 import java.io.IOException;
+import java.security.KeyPair;
 import java.util.List;
 import java.util.Properties;
 
@@ -21,6 +22,11 @@ public interface ServerContext {
    */
   public Corus getCorus();
 
+  /**
+   * @return the server's {@link KeyPair}.
+   */
+  public KeyPair getKeyPair();
+  
   /**
    * @return the name of the Corus server.
    */

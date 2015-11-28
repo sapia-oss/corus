@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.net.UnknownHostException;
+import java.security.PublicKey;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -71,6 +72,8 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
   private String   javaVmInfo;
   private RepoRole role        = RepoRole.NONE;
   private String   hostName;
+  private long     creationTime = System.currentTimeMillis();
+  private PublicKey  publicKey;
 
   static {
     try {
@@ -96,12 +99,13 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
    *          the Java VM info.
    * @return a new {@link CorusHost}.
    */
-  public static CorusHost newInstance(Endpoint endpoint, String anOsInfo, String aJavaVmInfo) {
+  public static CorusHost newInstance(Endpoint endpoint, String anOsInfo, String aJavaVmInfo, PublicKey pubKey) {
     CorusHost created = new CorusHost();
     created.endpoint = endpoint;
     created.osInfo = anOsInfo;
     created.javaVmInfo = aJavaVmInfo;
     created.hostName = localHostName;
+    created.publicKey = pubKey;
     return created;
   }
 
@@ -180,6 +184,20 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
   public String getHostName() {
     return hostName;
   }
+  
+  /**
+   * @return the {@link PublicKey} of the Corus server corresponding to this instance.
+   */
+  public PublicKey getPublicKey() {
+    return publicKey;
+  }
+  
+  /**
+   * @return the time at which this instance was created, in millis.
+   */
+  public long getCreationTime() {
+    return creationTime;
+  }
 
   /**
    * @return a pretty-print address corresponding to this instance, meant for
@@ -255,6 +273,8 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
     this.javaVmInfo = (String) in.readObject();
     this.role = (RepoRole) in.readObject();
     this.hostName = (String) in.readObject();
+    this.publicKey = (PublicKey) in.readObject();
+    this.creationTime = in.readLong();
   }
 
   @Override
@@ -264,6 +284,8 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
     out.writeObject(javaVmInfo);
     out.writeObject(role);
     out.writeObject(hostName);
+    out.writeObject(publicKey);
+    out.writeLong(creationTime);
   }
 
   // --------------------------------------------------------------------------

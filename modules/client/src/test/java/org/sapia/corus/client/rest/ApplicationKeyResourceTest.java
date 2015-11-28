@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,7 +83,8 @@ public class ApplicationKeyResourceTest {
       CorusHost host = CorusHost.newInstance(
           new Endpoint(new TCPAddress("test", "host-" + i, i), mock(ServerAddress.class)), 
           "os-" + i, 
-          "jvm-" + i
+          "jvm-" + i,
+          mock(PublicKey.class)
       );
       host.setHostName("hostname-" + i);
       host.setRepoRole(RepoRole.CLIENT);

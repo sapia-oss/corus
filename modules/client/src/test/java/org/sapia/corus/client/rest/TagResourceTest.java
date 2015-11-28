@@ -5,6 +5,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,7 +69,8 @@ public class TagResourceTest {
       CorusHost host = CorusHost.newInstance(
           new Endpoint(new TCPAddress("test", "host-" + i, i), mock(ServerAddress.class)), 
           "os-" + i, 
-          "jvm-" + i
+          "jvm-" + i,
+          mock(PublicKey.class)
       );
       host.setHostName("hostname-" + i);
       host.setRepoRole(RepoRole.CLIENT);

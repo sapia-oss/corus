@@ -3,7 +3,7 @@
    <p>Performs process diagnostic.</p>
   </section>
   <section title="Syntax">
-    <p>diags [-a] [-s] [-w] [-t seconds] [-cluster]</p>
+    <p>diags [-a] [-s] [-w] [-t seconds] [-d] [-v] [-n] [-cluster]</p>
     <p/>
     <p>Where:</p>
     <p/>
@@ -15,11 +15,19 @@
     <p/>
     <p>- t: interval (in seconds) at which diagnostic is polled for (if not specified, defaults to 10 seconds). Will apply only if -w option is specified.</p>
     <p/> 
+    <p>- d: the name (or name pattern) of the distribution whose processes should be diagnosed.</p>
+    <p/>
+    <p>- v: the version (or version pattern) of the distribution whose processes should be diagnosed.</p>
+    <p/>
+    <p>- n: the name (or name pattern) of the process configurations whose processes should be diagnosed.</p>
+    <p/>    
     <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
   </section>
   <section title="Examples">
     <p>diags</p>
     <p>diags -a -w -cluster</p>
+    <p>diags -a -w -d * -v *</p>
+    <p>diags -a -w -d * -v * -n httpServer -cluster</p>
     <p/>    
   </section>      
 </help>

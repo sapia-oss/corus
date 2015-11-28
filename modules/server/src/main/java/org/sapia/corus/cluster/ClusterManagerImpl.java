@@ -149,6 +149,17 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public synchronized Set<CorusHost> getHosts() {
     return new HashSet<CorusHost>(hostsInfos);
   }
+  
+  @Override
+  public CorusHost resolveHost(ServerAddress hostAddress)
+      throws IllegalArgumentException {
+    for (CorusHost h : hostsInfos) {
+      if (h.getEndpoint().getServerAddress().equals(hostAddress)) {
+        return h;
+      }
+    }
+    throw new IllegalArgumentException("Could not find Corus host information for provided address: " + hostAddress);
+  }
 
   @Override
   public ClusterStatus getClusterStatus() {

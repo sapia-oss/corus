@@ -17,9 +17,13 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.StrLookups;
+import org.sapia.corus.client.common.encryption.DecryptionContext;
+import org.sapia.corus.client.common.encryption.Encryption;
+import org.sapia.corus.client.common.encryption.EncryptionContext;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
@@ -27,8 +31,11 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.ModuleState;
+import org.sapia.corus.client.services.audit.AuditInfo;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -108,6 +115,9 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   @Autowired
   private InternalArtifactManager artifactManager;
 
+  @Autowired
+  private Auditor auditor;
+  
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
   
   private DeploymentProcessor  processor;
@@ -459,6 +469,18 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
       return;
     }
+  
+    OptionalValue<AuditInfo> optionalDecryptedAuditInfo = OptionalValue.none();
+    if (meta.getAuditInfo().isSet()) {
+      DecryptionContext dc        = Encryption.getDefaultDecryptionContext(serverContext().getKeyPair().getPrivate());
+      AuditInfo         decrypted = meta.getAuditInfo().get().decryptWith(dc);
+      auditor.audit(
+          decrypted, 
+          new RemoteAddress(deployment.getConnection().getRemoteHost()), 
+          Deployer.class.getName(), "deploy_" + meta.getType().name().toLowerCase()
+      );
+      optionalDecryptedAuditInfo = OptionalValue.of(decrypted);
+    }
     
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
@@ -503,6 +525,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
             out = new DeployOutputStreamImpl(destFile, meta, handler);
           }
         } else {
+          if (optionalDecryptedAuditInfo.isSet()) {
+            CorusHost host = cluster.resolveHost(addr);
+            EncryptionContext ec = Encryption.getDefaultEncryptionContext(host.getPublicKey());
+            AuditInfo encryptedAuditInfo = optionalDecryptedAuditInfo.get().encryptWith(ec);
+            meta.setAuditInfo(encryptedAuditInfo);
+          }
           // chaining deployment to next host.
           if (!meta.isTargeted(current)) {
             log.info("This host is not targeted. Deployment is cascaded to the next host");
@@ -572,5 +600,22 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       }
     }
     throw new IllegalStateException("Could not find deployment handler for: " + meta);
+  }
+  
+  private static class RemoteAddress implements ServerAddress {
+    private static final String DEPLOYMENT_TRANSPORT_TYPE = "deploy";
+    private String remoteAddress;
+    
+    private RemoteAddress(String remoteAddress) {
+      this.remoteAddress = remoteAddress;
+    }
+    @Override
+    public String getTransportType() {
+      return DEPLOYMENT_TRANSPORT_TYPE;
+    }
+    @Override
+    public String toString() {
+      return remoteAddress;
+    }
   }
 }

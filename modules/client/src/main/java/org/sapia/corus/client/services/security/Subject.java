@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.security;
 
 import java.util.Set;
 
+import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -29,11 +30,18 @@ public interface Subject {
    */
   public boolean isAnonymous();
   
+  /**
+   * @return a new {@link AuditInfo} for this instance.
+   */
+  public AuditInfo getAuditInfo();
+  
   // ==========================================================================
   // Anonymous subject impl.
   
   public class Anonymous implements Subject {
    
+    public static final String CLIENT_ID = "anonymous";
+    
     private Set<Permission> permissions = Collects.arrayToSet(Permission.READ);
     
     @Override
@@ -56,6 +64,11 @@ public interface Subject {
      */
     public static Anonymous newInstance() {
       return new Anonymous();
+    }
+    
+    @Override
+    public AuditInfo getAuditInfo() {
+      return AuditInfo.forClientId(CLIENT_ID);
     }
   }
 }

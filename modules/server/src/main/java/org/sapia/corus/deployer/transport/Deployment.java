@@ -45,6 +45,10 @@ public class Deployment {
     this.context = context;
     this.conn = conn;
   }
+  
+  public Connection getConnection() {
+    return conn;
+  }
 
   public DeploymentMetadata getMetadata() throws IOException {
     if (meta == null) {

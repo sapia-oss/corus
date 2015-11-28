@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -169,20 +170,20 @@ public class PartitionServiceImplTest {
     int count = 0;
     for (int i = 0; i < numHostsOfEachTag; ++i) {
       if (i == 0) {
-        thisHost = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+        thisHost = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
         count++;
       } else {
-        CorusHost host = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+        CorusHost host = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
         otherHosts.add(host);
         count++;
       }
     }
     for (int i = 0; i < numHostsOfEachTag; ++i) {
       if (thisHost == null) {
-        thisHost = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+        thisHost = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
         count++;
       } else {
-        CorusHost host = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+        CorusHost host = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
         otherHosts.add(host);
         count++;
       }
@@ -201,14 +202,14 @@ public class PartitionServiceImplTest {
         Results<Set<Tag>> tagResults = new Results<>();
         if (count == 0) {
           Set<Tag> tagSet = Collects.arrayToSet(new Tag("foo1"), new Tag("foo2"));
-          CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+          CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
           Result<Set<Tag>> tags = new Result<Set<Tag>>(host, tagSet, Result.Type.COLLECTION);
           tagResults.addResult(tags);
           count++;
         } else {
           for (int i = 0; i < numHostsOfEachTag - 1; i++) {
             Set<Tag> tagSet = Collects.arrayToSet(new Tag("foo1"), new Tag("foo2"));
-            CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+            CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
             Result<Set<Tag>> tags = new Result<Set<Tag>>(host, tagSet, Result.Type.COLLECTION);
             tagResults.addResult(tags);
             count++;
@@ -216,7 +217,7 @@ public class PartitionServiceImplTest {
           
           for (int i = 0; i < numHostsOfEachTag; i++) {
             Set<Tag> tagSet = Collects.arrayToSet(new Tag("bar1"), new Tag("bar2"));
-            CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count);
+            CorusHost host  = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "" + count, "jvm-" + count, mock(PublicKey.class));
             Result<Set<Tag>> tags = new Result<Set<Tag>>(host, tagSet, Result.Type.COLLECTION);
             tagResults.addResult(tags);
             count++;

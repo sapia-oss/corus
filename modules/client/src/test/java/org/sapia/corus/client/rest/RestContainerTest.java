@@ -8,9 +8,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.common.rest.RestRequest;
+import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
+import org.sapia.corus.client.services.audit.Auditor;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,6 +30,15 @@ public class RestContainerTest {
   
   @Mock
   private CorusConnector connector;
+  
+  @Mock
+  private CorusConnectionContext connectionContext;
+  
+  @Mock
+  private ServerAddress address;
+  
+  @Mock
+  private Auditor auditor;
   
   @Mock
   private ConnectorPool connectors;
@@ -40,9 +55,16 @@ public class RestContainerTest {
   @Before
   public void setUp() {
     resource  = new TestResource();
-    container = RestContainer.Builder.newInstance().resource(resource).build();
+    container = RestContainer.Builder.newInstance().auditor(auditor).resource(resource).build();
     when(request.getAccepts()).thenReturn(Collects.arrayToSet(ContentTypes.APPLICATION_JSON));
     when(request.getMethod()).thenReturn(HttpMethod.GET);
+    when(connector.getContext()).thenReturn(connectionContext);
+    when(connectionContext.getServerHost()).thenReturn(
+        CorusHost.newInstance(
+            new Endpoint(address, address), "os", "jvm", 
+            Encryption.generateDefaultKeyPair().getPublic()
+        )
+     );
   }
   
   @Test
