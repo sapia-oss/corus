@@ -3,6 +3,7 @@ package org.sapia.corus.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,11 @@ class ModuleLifeCycleManager implements ServerContext, PropertyProvider {
   @Override
   public Corus getCorus() {
     return delegate.getCorus();
+  }
+  
+  @Override
+  public KeyPair getKeyPair() {
+    return delegate.getKeyPair();
   }
 
   @Override

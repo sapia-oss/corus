@@ -25,6 +25,11 @@ public class HttpConnection implements Connection {
     this.req = req;
     this.res = res;
   }
+  
+  @Override
+  public String getRemoteHost() {
+    return req.getClientAddress().getHostString();
+  }
 
   /**
    * @see Connection#getInputStream()

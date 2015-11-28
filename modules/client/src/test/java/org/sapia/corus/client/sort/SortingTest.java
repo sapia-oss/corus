@@ -1,7 +1,9 @@
 package org.sapia.corus.client.sort;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -535,14 +537,14 @@ public class SortingTest {
   }
 
   private CorusHost host(RepoRole role, String host, int port) {
-    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "");
+    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
     h.setRepoRole(role);
     h.setHostName(host);
     return h;
   }
   
   private ClusterStatus status(EventChannel.Role role, String host, int port) {
-    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "");
+    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
     h.setHostName(host);
     return new ClusterStatus(role, h, 0);
   }

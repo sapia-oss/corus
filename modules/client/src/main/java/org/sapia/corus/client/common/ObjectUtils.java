@@ -62,6 +62,31 @@ public class ObjectUtils {
   }
   
   /**
+   * Compares two byte arrays for equality (if both are <code>null</code>, they 
+   * will be considered equal).
+   * 
+   * @param a a byte array.
+   * @param b another byte array.
+   * @return
+   */
+  public static boolean safeEquals(byte[] a, byte[] b) {
+    if (a == null && b == null) {
+      return true;
+    } else if (a == null || b == null) {
+      return false;
+    } else if (a.length != b.length) {
+      return false;
+    } else {
+      for (int i = 0; i < a.length; i++) {
+        if (a[i] != b[i]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
+  /**
    * Compares two lists for equality.
    * 
    * @param a a {@link List} to compare for equality.

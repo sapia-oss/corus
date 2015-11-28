@@ -13,6 +13,13 @@
   <!-- Register Annotation-based Post Processing Beans -->
   <context:annotation-config />
   <bean name="extModulePostProcessor" class="org.sapia.corus.core.ModulePostProcessor" />
+
+
+  <bean name="org.sapia.corus.client.services.audit.Auditor"
+        class="org.sapia.corus.audit.AuditorImpl" 
+        scope="singleton" 
+        autowire="autodetect">
+  </bean> 
   
   <!-- ============ CLUSTER ============ -->
 

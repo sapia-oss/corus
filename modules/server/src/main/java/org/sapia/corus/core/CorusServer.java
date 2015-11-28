@@ -3,6 +3,8 @@ package org.sapia.corus.core;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log.Hierarchy;
+import org.apache.log.LogTarget;
 import org.apache.log.Logger;
 import org.apache.log.Priority;
 import org.apache.log.format.Formatter;
@@ -23,14 +26,17 @@ import org.apache.log4j.Level;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.console.Option;
+import org.sapia.corus.audit.AuditLogFormatter;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.exceptions.CorusException;
 import org.sapia.corus.client.exceptions.ExceptionCode;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.cloud.CorusUserData;
@@ -70,7 +76,7 @@ public class CorusServer {
   public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
   public static final String PROP_INCLUDES        = "corus.server.properties.include";
   private static final String LOCK_FILE_NAME      = ".lock";
-
+  
   /**
    * @param args
    */
@@ -270,9 +276,13 @@ public class CorusServer {
       // ----------------------------------------------------------------------
       // Setting up logging.
 
-      Hierarchy h = Hierarchy.getDefaultHierarchy();
-      CompositeTarget logTarget = null;
+      Hierarchy       allLogs        = Hierarchy.getDefaultHierarchy();
+      CompositeTarget allLogsTarget  = new CompositeTarget();
 
+      Logger          auditLog       = Hierarchy.getDefaultHierarchy().getLoggerFor(Auditor.ROLE);
+      CompositeTarget auditLogTarget = new CompositeTarget();
+      auditLog.setPriority(Priority.DEBUG);
+      
       Priority p = Priority.DEBUG;
 
       if (cmd.containsOption(LOG_VERBOSITY_OPT, true)) {
@@ -283,7 +293,7 @@ public class CorusServer {
         }
       }
 
-      h.setDefaultPriority(p);
+      allLogs.setDefaultPriority(p);
 
       if (cmd.containsOption(LOG_FILE_OPT, false)) {
 
@@ -300,25 +310,21 @@ public class CorusServer {
           throw new IOException("Log directory does not exist and could not be created: " + logsDir.getAbsolutePath());
         }
 
-        Formatter formatter = FormatterFactory.createDefaultFormatter();
-        RotateStrategyByTime strategy = new RotateStrategyByTime(1000 * 60 * 60 * 24);
-
-        File logFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_" + port + ".log");
-
-        RevolvingFileStrategy fileStrategy = new RevolvingFileStrategy(logFile, 5);
-        RotatingFileTarget target = new RotatingFileTarget(formatter, strategy, fileStrategy);
-        if (logTarget == null) {
-          logTarget = new CompositeTarget();
-        }
-        logTarget.addTarget(target);
-
+        Formatter allLogsFormatter = FormatterFactory.createDefaultFormatter();
+        File      allLogsFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_" + port + ".log");
+        allLogsTarget.addTarget(createFileLogTarget(allLogsFile, allLogsFormatter));
+        
+        Formatter auditLogFormatter = new AuditLogFormatter();
+        File      auditLogFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_audit_" + port + ".log");
+        auditLogTarget.addTarget(createFileLogTarget(auditLogFile, auditLogFormatter));
       } else {
-        Formatter formatter = FormatterFactory.createDefaultFormatter();
-        StdoutTarget target = new StdoutTarget(formatter);
-        if (logTarget == null) {
-          logTarget = new CompositeTarget();
-        }
-        logTarget.addTarget(target);
+        Formatter allLogsFormatter  = FormatterFactory.createDefaultFormatter();
+        StdoutTarget allLogsStdoutTarget = new StdoutTarget(allLogsFormatter);
+        allLogsTarget.addTarget(allLogsStdoutTarget);
+        
+        Formatter auditLogFormatter = new AuditLogFormatter();
+        StdoutTarget auditLogStdoutTarget = new StdoutTarget(auditLogFormatter);
+        auditLogTarget.addTarget(auditLogStdoutTarget);
       }
 
       String syslogHost = corusProps.getProperty(PROP_SYSLOG_HOST);
@@ -327,12 +333,13 @@ public class CorusServer {
 
       if (syslogHost != null && syslogPort != null && syslogProto != null) {
         SyslogTarget target = new SyslogTarget(syslogProto, syslogHost, Integer.parseInt(syslogPort));
-        logTarget.addTarget(target);
+        allLogsTarget.addTarget(target);
       }
 
-      h.setDefaultLogTarget(logTarget);
+      allLogs.setDefaultLogTarget(allLogsTarget);
+      auditLog.setLogTargets(new LogTarget[] {auditLogTarget});
 
-      Logger serverLog = h.getLoggerFor(CorusServer.class.getName());
+      Logger serverLog = allLogs.getLoggerFor(CorusServer.class.getName());
       
       if (userDataFetchError != null) {
         serverLog.error("Error occurred while attempting to fetch user data. Proceeding with default config. Error was: ", userDataFetchError);
@@ -404,7 +411,13 @@ public class CorusServer {
         corusProps.setProperty(CorusConsts.PROPERTY_REPO_TYPE, userData.getRepoRole().get().name());
       }
       
-      CorusImpl corus = new CorusImpl(corusProps, domain, transport.getServerAddress(), channel, transport, corusHome);
+      KeyPair keyPair = KeyPairGenerator.getInstance(corusProps.getProperty(CorusConsts.PROPERTY_KEYPAIR_ALGO, Encryption.DEFAULT_KEY_ALGO)).generateKeyPair();
+      
+      CorusImpl corus = new CorusImpl(
+          corusProps, 
+          domain, 
+          transport.getServerAddress(), 
+          channel, transport, corusHome, keyPair);
 
       ServerContext context = corus.getServerContext();
 
@@ -447,7 +460,14 @@ public class CorusServer {
       e.printStackTrace();
     }
   }
-
+  
+  private static LogTarget createFileLogTarget(File file, Formatter logFormatter) throws IOException {
+    RotateStrategyByTime  rotateStrategy = new RotateStrategyByTime(1000 * 60 * 60 * 24);
+    RevolvingFileStrategy fileStrategy = new RevolvingFileStrategy(file, 5);
+    RotatingFileTarget    rotatingTarget = new RotatingFileTarget(logFormatter, rotateStrategy, fileStrategy);
+    return rotatingTarget;
+  }
+  
   static final void help() {
     System.out.println();
     System.out.println("Corus server command-line syntax:");

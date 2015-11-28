@@ -87,11 +87,14 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
   }  
 
   @Override
-  public void changeApplicationKey(String appId, String newAppkey)
+  public void changeApplicationKey(String appId, String newAppId)
       throws IllegalArgumentException {
+    Assertions.isFalse(Strings.isBlank(appId), "Current application ID must be specified");
+    Assertions.isFalse(Strings.isBlank(newAppId), "New application ID must be specified");
+    Assertions.isFalse(newAppId.equals(Subject.Anonymous.CLIENT_ID), "Invalid app ID ('%s' is reserved)", newAppId);
     AppKeyConfig config = appKeys.get(appId);
     Assertions.notNull(config, "Unknown application ID");
-    config.setApplicationKey(newAppkey);
+    config.setApplicationKey(newAppId);
     config.save();
   }
 
@@ -112,7 +115,8 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
       throws IllegalArgumentException, CorusSecurityException {
     Assertions.isFalse(Strings.isBlank(appId), "Application ID must be specified");
     Assertions.isFalse(Strings.isBlank(role), "Role must be specified");
-        
+    Assertions.isFalse(appId.equals(Subject.Anonymous.CLIENT_ID), "Invalid app ID ('%s' is reserved)", appId);
+    
     // validating role's existence
     securityModule.getPermissionsFor(role);
     
@@ -128,6 +132,7 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
   public void addOrUpdateApplicationKey(String appId, String appKey, String role) {
     Assertions.isFalse(Strings.isBlank(appId), "Application ID must be specified");
     Assertions.isFalse(Strings.isBlank(role), "Role must be specified");
+    Assertions.isFalse(appId.equals(Subject.Anonymous.CLIENT_ID), "Invalid app ID ('%s' is reserved)", appId);
         
     // validating role's existence
     securityModule.getPermissionsFor(role);

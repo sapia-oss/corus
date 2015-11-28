@@ -1,6 +1,9 @@
 package org.sapia.corus.client.services.cluster;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+
+import java.security.PublicKey;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
@@ -17,7 +20,7 @@ public class CorusHostTest {
   @Before
   public void setUp() {
     ep = new Endpoint(new TCPAddress("tcp", "host", 1), new TCPAddress("tcp", "host", 2));
-    host = CorusHost.newInstance(ep, "linux", "jvm");
+    host = CorusHost.newInstance(ep, "linux", "jvm", mock(PublicKey.class));
   }
 
 

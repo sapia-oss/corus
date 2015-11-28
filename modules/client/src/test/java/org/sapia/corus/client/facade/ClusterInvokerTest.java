@@ -2,6 +2,9 @@ package org.sapia.corus.client.facade;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import java.security.PublicKey;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +31,7 @@ public class ClusterInvokerTest {
   @Before
   public void setUp() throws Exception {
     Endpoint ep = new Endpoint(new HttpAddress(Uri.parse("http://test")), channelAddress);
-    CorusHost host = CorusHost.newInstance(ep, "os", "vm");
+    CorusHost host = CorusHost.newInstance(ep, "os", "vm", mock(PublicKey.class));
     TestInvocationDispatcher dispatcher = new TestInvocationDispatcher(host);
     dispatcher.add(TestInterface.class, new TestInterfaceImpl());
     invoker = new ClusterInvoker<TestInterface>(TestInterface.class, dispatcher);

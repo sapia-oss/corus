@@ -51,7 +51,7 @@ public interface CorusConsts {
   /**
    * Corresponds to the property that defines the multicast port.
    * 
-   * @deprecated
+   * @deprecate
    */
   public static final String PROPERTY_CORUS_MCAST_PORT               = "corus.server.multicast.port";
 
@@ -60,6 +60,17 @@ public interface CorusConsts {
   // --------------------------------------------------------------------------
   // File & security-related
   
+
+  /**
+   * Corresponds to the property for setting the keypair generation algorithm.
+   */
+  public static final String PROPERTY_KEYPAIR_ALGO                   = "corus.keypair.algo";
+
+  /**
+   * Corresponds to the property for setting the cipher generation algorithm.
+   */
+  public static final String PROPERTY_CIPHER_ALGO                    = "corus.cipher.algo";
+
   /**
    * Defines the property prefix of a symbolic link definition.
    */

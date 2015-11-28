@@ -2,8 +2,10 @@ package org.sapia.corus.client.rest.async;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -122,7 +124,7 @@ public class PartialDiagnosticTaskTest {
   
 
   private CorusHost corusHost(int i) {
-    return CorusHost.newInstance(new Endpoint(new TCPAddress("test", "host-" + i, i), new TCPAddress("test", "host-" + i, i)), "os", "jvm");
+    return CorusHost.newInstance(new Endpoint(new TCPAddress("test", "host-" + i, i), new TCPAddress("test", "host-" + i, i)), "os", "jvm", mock(PublicKey.class));
   }
 
 }

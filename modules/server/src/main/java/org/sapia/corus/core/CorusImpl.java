@@ -3,6 +3,8 @@ package org.sapia.corus.core;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.rmi.RemoteException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
@@ -33,18 +35,26 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
 
   private ModuleLifeCycleManager lifeCycle;
   private volatile String domain;
+  private KeyPair keyPair;
 
-  CorusImpl(Properties config, String domain, ServerAddress serverAddress, EventChannel channel, CorusTransport aTransport, String corusHome)
+  CorusImpl(Properties config, String domain, ServerAddress serverAddress, EventChannel channel, CorusTransport aTransport, String corusHome, KeyPair keyPair)
       throws IOException, Exception {
-    init(config, domain, serverAddress, channel, aTransport, corusHome);
+    init(config, domain, serverAddress, channel, aTransport, corusHome, keyPair);
   }
 
+  @Override
   public String getVersion() {
     return CorusVersion.create().toString();
   }
 
+  @Override
   public String getDomain() {
     return domain;
+  }
+  
+  @Override
+  public PublicKey getPublicKey() {
+    return keyPair.getPublic();
   }
   
   @Override
@@ -75,12 +85,12 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
   }
 
   private ServerContext init(final Properties props, String domain, ServerAddress address, EventChannel channel, CorusTransport aTransport,
-      String corusHome) throws IOException, Exception {
+      String corusHome, KeyPair keyPair) throws IOException, Exception {
     this.domain = domain;
-
+    this.keyPair = keyPair;
     InternalServiceContext services = new InternalServiceContext();
     String fixedCorusHome = FileUtils.fixFileSeparators(corusHome);
-    ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, channel, domain, fixedCorusHome, services, props);
+    ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, channel, domain, fixedCorusHome, services, props, keyPair);
 
     // root context
     PropertyContainer propContainer = new PropertyContainer() {

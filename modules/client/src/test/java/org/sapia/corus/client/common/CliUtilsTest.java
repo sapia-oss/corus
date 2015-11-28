@@ -1,7 +1,9 @@
 package org.sapia.corus.client.common;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
+import java.security.PublicKey;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +43,7 @@ public class CliUtilsTest {
     results.setInvocationCount(5);
     for (int i = 0; i < 5; i++) {
       Endpoint ep = new Endpoint(new HttpAddress(Uri.parse("http://test_" + i)), channelAddress);
-      CorusHost host = CorusHost.newInstance(ep, "os_" + i, "vm_" + i);
+      CorusHost host = CorusHost.newInstance(ep, "os_" + i, "vm_" + i, mock(PublicKey.class));
       host.setRepoRole(RepoRole.NONE);
       
       Result<String> r = new Result<String>(host, "data_i", Result.Type.ELEMENT);

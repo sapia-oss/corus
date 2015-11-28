@@ -18,9 +18,12 @@ import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.rest.PathTemplate;
 import org.sapia.corus.client.common.rest.PathTemplate.MatchResult;
 import org.sapia.corus.client.common.rest.PathTemplateTree;
+import org.sapia.corus.client.services.audit.Auditor;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.CorusSecurityException.Type;
 import org.sapia.corus.client.services.security.Permission;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
@@ -53,6 +56,7 @@ public class RestContainer {
   public static class Builder {
     
     private List<Object> resources = new ArrayList<Object>();
+    private Auditor      auditor;
     
     private Builder() {
     }
@@ -63,6 +67,15 @@ public class RestContainer {
      */
     public Builder resource(Object resource) {
       resources.add(resource);
+      return this;
+    }
+    
+    /**
+     * @param auditor the {@link Auditor} module.
+     * @return this instance.
+     */
+    public Builder auditor(Auditor auditor) {
+      this.auditor = auditor;
       return this;
     }
     
@@ -131,6 +144,7 @@ public class RestContainer {
      * @return a new {@link RestContainer} instances.
      */
     public RestContainer build() {
+      Assertions.illegalState(auditor == null, "Auditor not set");
       PathTemplateTree<RestResourceMetadata> tree = new PathTemplateTree<>();
       for (Object r : resources) {
         for (Method m : r.getClass().getDeclaredMethods()) {
@@ -200,7 +214,7 @@ public class RestContainer {
         }
       }
       
-      RestContainer container = new RestContainer(tree);
+      RestContainer container = new RestContainer(tree, auditor);
       return container;
     }
     
@@ -311,14 +325,16 @@ public class RestContainer {
   // --------------------------------------------------------------------------
   
   private PathTemplateTree<RestResourceMetadata> resources;
+  private Auditor auditor;
   
   private volatile boolean authRequired;
   
   /**
    * @param resources a {@link PathTemplateTree} of {@link RestResourceMetadata} instances.
    */
-  private RestContainer(PathTemplateTree<RestResourceMetadata> resources) {
+  private RestContainer(PathTemplateTree<RestResourceMetadata> resources, Auditor auditor) {
     this.resources  = resources;
+    this.auditor    = auditor;
   }
   
   /**
@@ -359,6 +375,14 @@ public class RestContainer {
         if (LOG.enabled()) {
           LOG.trace(String.format("Performing REST invocation on %s (method: %s) - resource: %s", r.target, r.method, r.template));
         }
+        auditor.audit(
+            context.getSubject().getAuditInfo(), 
+            new RemoteHostAddress(context.getRequest().getRemoteHost()), 
+            r.getTemplate().toString(), context.getRequest().getPath()
+        );
+        
+        CurrentAuditInfo.set(context.getSubject().getAuditInfo(), context.getConnector().getContext().getServerHost());
+        
         if (r.method.getParameterTypes().length == 1) {
           Assertions.illegalState(!RequestContext.class.isAssignableFrom(r.method.getParameterTypes()[0]), 
               "Method %s should have %s argument type", r.method, RequestContext.class.getName());
@@ -380,6 +404,22 @@ public class RestContainer {
       }
     } 
     throw new FileNotFoundException("Resource path not handled: " + context.getRequest().getPath());
+  }
+  
+  private static class RemoteHostAddress implements ServerAddress {
+    private static final String REST_TRANSPORT_TYPE = "REST";
+    private String remoteHost;
+    private RemoteHostAddress(String remoteHost) {
+      this.remoteHost = remoteHost;
+    }
+    @Override
+    public String getTransportType() {
+      return REST_TRANSPORT_TYPE;
+    }
+    @Override
+    public String toString() {
+      return remoteHost;
+    }
   }
 }
 

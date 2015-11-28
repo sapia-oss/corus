@@ -3,8 +3,10 @@ package org.sapia.corus.client.rest.async;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -290,6 +292,9 @@ public class AsyncProgressTaskSupportTest {
   }
   
   private CorusHost createHost() {
-    return CorusHost.newInstance(new Endpoint(Mockito.mock(ServerAddress.class), Mockito.mock(ServerAddress.class)), "testOs", "testJvm");
+    return CorusHost.newInstance(
+        new Endpoint(Mockito.mock(ServerAddress.class), Mockito.mock(ServerAddress.class)), "testOs", "testJvm",
+        mock(PublicKey.class)
+    );
   }
 }

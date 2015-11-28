@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.http.conn.util.InetAddressUtils;
+import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.Result;
@@ -24,10 +25,13 @@ import org.sapia.corus.client.Results.ResultListener;
 import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
@@ -44,6 +48,8 @@ import org.sapia.ubik.util.Assertions;
  */
 public class CorusConnectionContextImpl implements CorusConnectionContext {
 
+  private static final ClientDebug DEBUG = ClientDebug.get(CorusConnectionContextImpl.class);
+  
   static final int  INVOKER_THREADS     = 10;
   static final long RECONNECT_INTERVAL  = 15000;
 
@@ -247,7 +253,6 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   @Override
   public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     try {
-
       ClientSideClusterInterceptor.clusterCurrentThread(info);
 
       Object toReturn = null;
@@ -275,11 +280,13 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
 
     List<CorusHost> hostList = new ArrayList<CorusHost>();
     if (cluster.isTargetingAllHosts()) {
+      DEBUG.trace("Invocation targeting all hosts - %s", method.getName());
       hostList.add(serverHost);
       for (CorusHost otherHost : otherHosts.values()) {
         hostList.add(otherHost);
       }
     } else {
+      DEBUG.trace("Invocation targeting specific hosts - %s", method.getName());
       for (ServerAddress t : cluster.getTargets()) {
         if (serverHost.getEndpoint().getServerAddress().equals(t)) {
           hostList.add(serverHost);
@@ -292,6 +299,15 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
         }
       }
     }
+    
+    if (DEBUG.enabled()) {
+      DEBUG.trace("Targeting following hosts for %s", method.getName());
+      for (CorusHost h : hostList) {
+        DEBUG.trace("  --> %s", h.getFormattedAddress());
+      }
+    }
+    
+    final OptionalValue<AuditInfoRegistration> auditInfo = CurrentAuditInfo.get();
 
     Iterator<CorusHost> itr = hostList.iterator();
     List<Runnable> invokers = new ArrayList<Runnable>(hostList.size());
@@ -305,6 +321,9 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
         @SuppressWarnings("rawtypes")
         @Override
         public void run() {
+          
+          DEBUG.trace("Invoking %s on %s", method.getName(), addr.getFormattedAddress());
+          
           Corus corus = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
 
           if (corus == null) {
@@ -319,17 +338,29 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
 
           try {
             module = corus.lookup(moduleInterface.getName());
+            
+            if (auditInfo.isSet()) {
+              DEBUG.trace("AuditInfo was set, tranferring to invoker thread for %s - invocation: %s", addr.getFormattedAddress(), method.getName());
+              CurrentAuditInfo.set(auditInfo.get(), addr);
+            }
             returnValue = method.invoke(module, params);
+            DEBUG.trace("Invocation of %s completed for host %s", method.getName(), addr.getFormattedAddress());
             Result.Type resultType = Result.Type.forClass(method.getReturnType());
             
             Result newResult = new Result(addr, returnValue, resultType).filter(getResultFilter());
             if (!getResultFilter().getClass().equals(Matcheable.AnyPattern.class) && newResult.size() == 0) {
+              DEBUG.trace("Ignoring result from %s (%s elements were returned)", addr.getFormattedAddress(), newResult.size());
               results.decrementInvocationCount();
             } else {
+              DEBUG.trace("Adding result from %s (%s elements were returned)", addr.getFormattedAddress(), newResult.size());
               results.addResult(newResult);
             }
           } catch (Exception err) {
             results.decrementInvocationCount();
+          } finally {
+            if (auditInfo.isSet()) {
+              CurrentAuditInfo.unset();
+            }
           }
 
         }

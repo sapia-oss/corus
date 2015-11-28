@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.URL;
+import java.security.PublicKey;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -85,7 +86,7 @@ public class ConsulPublisherTest {
   @Before
   public void setUp() throws Exception {
     
-    corusHost = CorusHost.newInstance(new Endpoint(new TCPAddress("test", "localhost", 33000), mock(ServerAddress.class)), "test", "test");
+    corusHost = CorusHost.newInstance(new Endpoint(new TCPAddress("test", "localhost", 33000), mock(ServerAddress.class)), "test", "test", mock(PublicKey.class));
     publisher = new ConsulPublisher() {
       @Override
       ConsulResponseFacade doInvokeUrl(URL url, String httpMethod) throws IOException {

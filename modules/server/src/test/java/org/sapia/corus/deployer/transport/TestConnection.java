@@ -25,6 +25,11 @@ public class TestConnection implements Connection{
 		_is = in;
 	}
 	
+	@Override
+	public String getRemoteHost() {
+	  return "test-remote-host";
+	}
+	
   /**
    * @see org.sapia.corus.client.services.deployer.transport.Connection#getInputStream()
    */

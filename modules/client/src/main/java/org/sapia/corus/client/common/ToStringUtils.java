@@ -106,5 +106,19 @@ public class ToStringUtils {
   public static <T> String joinToString(Collection<T> toJoin) {
     return joinToString(toJoin.toArray(new Object[toJoin.size()]));
   }
-  
+
+  /**
+   * @param fields one more fields to concatenate.
+   * @return a CSV-formatted string.
+   */
+  public static String joinAsCsv(Object...fields) {
+    StringBuilder csv = new StringBuilder();
+    for (int i = 0; i < fields.length; i++) {
+     if (i > 0) {
+       csv.append(",");
+      }
+      csv.append('"').append(fields[i] == null ? "" : fields[i]).append('"');
+    }
+    return csv.toString();
+  }
 }

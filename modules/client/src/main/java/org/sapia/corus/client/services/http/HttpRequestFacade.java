@@ -14,6 +14,11 @@ import java.util.Set;
 public interface HttpRequestFacade {
   
   /**
+   * @return the address of the hos from which this request originates.
+   */
+  public String getRemoteHost();
+  
+  /**
    * @return the HTTP method name (POST, GET, etc.).
    */
   public String getMethod();
