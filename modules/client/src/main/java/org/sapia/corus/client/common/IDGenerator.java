@@ -1,6 +1,7 @@
 package org.sapia.corus.client.common;
 
 import java.util.Calendar;
+import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -10,21 +11,73 @@ import org.apache.commons.lang.StringUtils;
  * @author Yanick Duchesne
  */
 public class IDGenerator {
-  private static int _count = 0;
 
-  private static synchronized int increment() {
-    if (_count > 99) {
-      _count = 0;
+  private static final char[] ID_CHARS = new char[('z' - 'a') + 1 + ('Z' - 'A') + 1  + ('9' - '0') + 1];
+  
+  static {
+    int charIndex = 0;
+    for (int i = 0; i <= 'z' - 'a'; i++) {
+      ID_CHARS[charIndex++] = (char) ('a' + i);
     }
-    _count++;
-    return _count;
+    for (int i = 0; i <= 'Z' - 'A'; i++) {
+      ID_CHARS[charIndex++] = (char) ('A' + i);
+    }    
+    for (int i = 0; i <= '9' - '0'; i++) {
+      ID_CHARS[charIndex++] = (char) ('0' + i);
+    }
+  }
+  
+  private static final int MAX_COUNT = 99;
+  
+  private static int count = 0;
+
+  private IDGenerator() {
+  }
+  
+  private static synchronized int increment() {
+    if (count > MAX_COUNT) {
+      count = 0;
+    }
+    count++;
+    return count;
   }
 
-  public static synchronized String makeId() {
+  /**
+   * Makes sequential identifiers, using the current system time to which
+   * an internal counter value is appended. The internal counter is reset when it 
+   * reaches 99.
+   * 
+   * @return a new string consisting of a sequential identifier.
+   */
+  public static synchronized String makeSequentialId() {
     return "" + System.currentTimeMillis() + increment();
   }
+  
+  /**
+   * Makes random string identifiers of given length, using characters with the 
+   * [a - z], [A - Z] and [0 - 9] range inclusively.
+   * 
+   * @param length the number of characters expected in the output string.
+   * @return a new {@link String}, composed of the given number of random characters.
+   */
+  public static synchronized String makeBase62Id(int length) {
+    Random rand = new Random(System.currentTimeMillis());
+    StringBuilder sb = new StringBuilder(length);
+    for (int i = 0; i < length; i++) {
+      char c = ID_CHARS[rand.nextInt(ID_CHARS.length)];
+      sb.append(c);
+    }
+    return sb.toString();
+  }
 
-  public static synchronized String makeIdFromDate() {
+  /**
+   * Makes date-based identifiers, of the format yyyyMMddsssss[counter], where
+   * [counter] consists of an internal sequential counter which is reset when
+   * it reaches 99. 
+   * 
+   * @return
+   */
+  public static synchronized String makeDateId() {
     Calendar cal = Calendar.getInstance();
     String year = Integer.toString(cal.get(Calendar.YEAR));
     if (year.charAt(1) != '0') {
@@ -48,8 +101,9 @@ public class IDGenerator {
   }
 
   public static void main(String[] args) {
-    System.out.println(makeId());
+    System.out.println(makeSequentialId());
 
-    System.out.println(makeIdFromDate());
+    System.out.println(makeDateId());
+    System.out.println(makeBase62Id(32));
   }
 }

@@ -307,7 +307,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
         String fileName = path[path.length - 1];
         File artifactFile = FilePath.newInstance()
           .addDir(configuration.getTempDir())
-          .setRelativeFile(fileName + "." + IDGenerator.makeId())
+          .setRelativeFile(fileName + "." + IDGenerator.makeSequentialId())
           .createFile();
 
         try {

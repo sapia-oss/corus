@@ -169,7 +169,7 @@ public class Process extends AbstractPersistent<String, Process>
   public static final int DEFAULT_KILL_RETRY            = 3;
   
   private DistributionInfo                         distributionInfo;
-  private String                                   processID       = IDGenerator.makeIdFromDate();
+  private String                                   processID       = IDGenerator.makeDateId();
   private String                                   processDir;
   private String                                   pid;
   private boolean                                  deleteOnKill    = false;

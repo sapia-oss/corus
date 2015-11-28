@@ -52,6 +52,7 @@ import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Streams;
 import org.sapia.ubik.util.Strings;
 import org.sapia.ubik.util.TimeValue;
 import org.sapia.ubik.util.pool.Pool;
@@ -67,6 +68,7 @@ public class RestExtension implements HttpExtension, Interceptor {
   private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
   private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);
   private static final TimeValue DEFAULT_TASK_TIMEOUT              = TimeValue.createSeconds(30);
+  private static final int       TRANSFER_BUFSZ                    = 2048;
   
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")
@@ -270,6 +272,8 @@ public class RestExtension implements HttpExtension, Interceptor {
           logger.debug(content);
         }
         sendOkResponse(ctx, HttpResponseFacade.STATUS_OK, responseStatusMessage.get(), OptionalValue.of(content));
+      } else if (invocationResult.getReturnValue().get() instanceof InputStream) {
+        sendReponse(ctx, (InputStream) invocationResult.getReturnValue().get()); 
       } else {
         throw new IllegalStateException("Illegal payload type: " + invocationResult.getReturnValue().get().getClass().getName());
       }
@@ -340,6 +344,26 @@ public class RestExtension implements HttpExtension, Interceptor {
     } finally {
       bos.close();
       ctx.getResponse().commit();
+    }
+  }
+  
+  private void sendReponse(HttpContext ctx, InputStream is) throws IOException {
+    ctx.getResponse().setHeader("Access-Control-Allow-Origin", "*");
+    ctx.getResponse().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    ctx.getResponse().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    ctx.getResponse().setHeader("Allow", "GET, POST, PUT, DELETE, OPTIONS");
+    ctx.getResponse().setStatusCode(HttpStatus.SC_OK);
+    BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream(), TRANSFER_BUFSZ);
+    byte[] buf = new byte[TRANSFER_BUFSZ];
+    int read;
+    try {
+      while ((read = is.read(buf)) > -1) {
+        bos.write(buf, 0, read);
+        bos.flush();
+      }
+    } finally {
+      Streams.closeSilently(bos);
+      Streams.closeSilently(is);
     }
   }
   

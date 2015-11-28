@@ -37,6 +37,8 @@ public class AuditInfoTest {
     AuditInfo decrypted = encrypted.decryptWith(kp.getPrivate(), cp);
 
     assertEquals(info, decrypted);
+    
+    assertEquals(info.getRequestId(), decrypted.getRequestId());
   }
   
   @Test
@@ -45,6 +47,7 @@ public class AuditInfoTest {
     AuditInfo encrypted = info.encryptWith(Encryption.getDefaultEncryptionContext(kp.getPublic()));
     AuditInfo decrypted = encrypted.decryptWith(Encryption.getDefaultDecryptionContext(kp.getPrivate()));
     assertEquals(info, decrypted);
+    assertEquals(info.getRequestId(), decrypted.getRequestId());
   }
 
   @Test
@@ -52,5 +55,6 @@ public class AuditInfoTest {
     byte[] serialized = Serialization.serialize(info);
     AuditInfo copy = (AuditInfo) Serialization.deserialize(serialized);
     assertEquals(info, copy);
+    assertEquals(info.getRequestId(), copy.getRequestId());
   }
 }

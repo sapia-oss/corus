@@ -43,11 +43,23 @@ public class AuditorImpl extends ModuleHelper implements Auditor {
     if (remoteAddr instanceof TCPAddress) {
       TCPAddress tcpAddress = (TCPAddress) remoteAddr;
       log.debug(ToStringUtils.joinAsCsv(
-          dtf.format(new Date()), tcpAddress.getHost(), info.getUserToken(), info.getType().name().toLowerCase(), moduleName, methodName
+          dtf.format(new Date()), 
+          info.getRequestId(), 
+          tcpAddress.getHost(), 
+          info.getUserToken(), 
+          info.getType().name().toLowerCase(), 
+          moduleName, 
+          methodName
       ) + LINE_SEPARATOR);
     } else {
       log.debug(ToStringUtils.joinAsCsv(
-          dtf.format(new Date()), remoteAddr, info.getUserToken(), info.getType().name().toLowerCase(), moduleName, methodName
+          dtf.format(new Date()), 
+          info.getRequestId(), 
+          remoteAddr, 
+          info.getUserToken(), 
+          info.getType().name().toLowerCase(), 
+          moduleName, 
+          methodName
       ) + LINE_SEPARATOR);
     }
   }
