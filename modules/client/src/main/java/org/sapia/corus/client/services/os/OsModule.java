@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.sapia.console.CmdLine;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 
 /**
  * Specifies OS-level methods.

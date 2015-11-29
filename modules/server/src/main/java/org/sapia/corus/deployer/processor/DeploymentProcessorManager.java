@@ -1,6 +1,6 @@
 package org.sapia.corus.deployer.processor;
 
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 
 /**
  * An implementation of this interface is expected to use {@link DeploymentPostProcessor}s 

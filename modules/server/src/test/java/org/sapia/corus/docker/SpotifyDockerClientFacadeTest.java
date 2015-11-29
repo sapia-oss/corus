@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.configurator.InternalConfigurator;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -20,11 +20,11 @@ public class SpotifyDockerClientFacadeTest {
   @Mock
   private LogCallback logCallback;
 
-  private SpotifyDockerClientFacade sut;
+  private SpotifyDockerFacade sut;
 
   @Before
   public void setUp() throws Exception {
-    sut = new SpotifyDockerClientFacade(configurator);
+    sut = new SpotifyDockerFacade(configurator);
     sut.setEnabled(false);
     sut.setEmail("jcdesrochers@gmail.com");
     sut.setUsername("jcdesrochers");

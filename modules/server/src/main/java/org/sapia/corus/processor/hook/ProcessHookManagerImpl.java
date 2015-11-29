@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.core.ModuleHelper;

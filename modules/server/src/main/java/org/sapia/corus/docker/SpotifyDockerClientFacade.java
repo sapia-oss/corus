@@ -1,243 +1,121 @@
 package org.sapia.corus.docker;
 
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrLookup;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
-import org.sapia.corus.client.common.LogCallback;
-import org.sapia.corus.configurator.InternalConfigurator;
-import org.sapia.corus.core.CorusConsts;
-import org.sapia.corus.util.DynamicProperty;
-import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
+import org.sapia.corus.client.common.CompositeStrLookup;
+import org.sapia.corus.client.common.EnvVariableStrLookup;
+import org.sapia.corus.client.common.PropertiesStrLookup;
+import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.log.LogCallback;
+import org.sapia.corus.client.common.log.PrefixedLogCallback;
+import org.sapia.corus.client.services.deployer.dist.Property;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerPortMapping;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerVolumeMapping;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
+import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.ubik.util.Assertions;
+import org.sapia.ubik.util.Streams;
 
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerCertificateException;
-import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.DockerException;
 import com.spotify.docker.client.ProgressHandler;
-import com.spotify.docker.client.messages.AuthConfig;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
-import com.spotify.docker.client.messages.Version;
 
 /**
- * Implementation of the {@link DockerFacade} interface with the spotify docker client.
- *
+ * Implementation of the {@link DockerClientFacade} based on the {@link DockerClient} interface.
+ * 
  * @author yduchesne
+ *
  */
-public class SpotifyDockerClientFacade implements DockerFacade {
+public class SpotifyDockerClientFacade implements DockerClientFacade {
+  
+   private static final String DOCKER_PREFIX = "DOCKER >>";
+   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
+  
+   private ServerContext serverContext;
+   private DockerClient  dockerClient;
 
-  private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
-
-  private final InternalConfigurator configurator;
-
-  private DynamicProperty<Boolean> enabled          = new DynamicProperty<Boolean>();
-  private DynamicProperty<String>  email            = new DynamicProperty<String>();
-  private DynamicProperty<String>  username         = new DynamicProperty<String>();
-  private DynamicProperty<String>  password         = new DynamicProperty<String>();
-  private DynamicProperty<String>  serverAddress    = new DynamicProperty<String>();
-  private DynamicProperty<String>  daemonUri        = new DynamicProperty<String>();
-  private DynamicProperty<String>  certificatesPath = new DynamicProperty<String>();
-
-  private final Object lock = new Object();
-  private volatile DockerClient dockerClient;
-
-  /**
-   * Creates a new {@link SpotifyDockerClientFacade} instance.
-   *
-   * @param configurator The corus configurator.
-   */
-  public SpotifyDockerClientFacade(InternalConfigurator configurator) {
-    this.configurator = configurator;
+  SpotifyDockerClientFacade(ServerContext serverContext, DockerClient dockerClient) {
+    this.serverContext = serverContext;
+    this.dockerClient  = dockerClient;
   }
-
-  // --------------------------------------------------------------------------
-  // Config setters
-
-  public void setEnabled(boolean enabled) {
-    this.enabled.setValue(enabled);
-  }
-
-  public void setEmail(String email) {
-    this.email.setValue(email);
-  }
-
-  public void setPassword(String password) {
-    this.password.setValue(password);
-  }
-
-  public void setServerAddress(String serverAddress) {
-    this.serverAddress.setValue(serverAddress);
-  }
-
-  public void setUsername(String username) {
-    this.username.setValue(username);
-  }
-
-  public void setDaemonUri(String uri) {
-    this.daemonUri.setValue(uri);
-  }
-
-  public void setCertificatesPath(String path) {
-    this.certificatesPath.setValue(path);
-  }
-
-  // --------------------------------------------------------------------------
-  // Lifecyle
-
-  @PostConstruct
-  public void init() {
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_ENABLED, enabled);
-    enabled.addListener(new DynamicPropertyListener<Boolean>() {
-      @Override
-      public void onModified(DynamicProperty<Boolean> property) {
-        onDockerConfigChange();
-      }
-    });
-
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_EMAIL, email);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_USERNAME, username);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_PASSWORD, password);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_REGISTRY_ADDRESS, serverAddress);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_DAEMON_URI, daemonUri);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CERTIFICATES_PATH, certificatesPath);
-    DynamicPropertyListener<String> propertyChangeListener = new DynamicPropertyListener<String>() {
-      @Override
-      public void onModified(DynamicProperty<String> property) {
-        onDockerConfigChange();
-      }
-    };
-    email.addListener(propertyChangeListener);
-    username.addListener(propertyChangeListener);
-    password.addListener(propertyChangeListener);
-    serverAddress.addListener(propertyChangeListener);
-    daemonUri.addListener(propertyChangeListener);
-    certificatesPath.addListener(propertyChangeListener);
-
-    if (enabled.getValueNotNull()) {
-      log.info("Docker integration enabled");
-    } else {
-      log.info("Docker integration disabled");
-    }
-  }
-
-  @PreDestroy
-  public void shutdown() {
-    log.info("Shutting down docker facade...");
-    if (dockerClient != null) {
-      log.info("Closing current docker client connection & resources...");
-      dockerClient.close();
-      dockerClient = null;
-    }
-  }
-
-  protected void onDockerConfigChange() {
-    log.info("Detecting docker config change...");
-    if (dockerClient != null) {
-      synchronized (lock) {
-        try {
-          log.info("Closing current docker client connection & resources...");
-          dockerClient.close();
-        } finally {
-          dockerClient = null;
-        }
-      }
-    }
-  }
-
-  protected DockerClient internalGetDockerClient() throws IllegalStateException, DockerCertificateException {
-    synchronized (lock) {
-      if (dockerClient == null) {
-        log.info("Creating new docker client with configuration:"
-            + "\n\temail=" + email.getValue()
-            + "\n\tusername=" + username.getValue()
-            + "\n\tregistryServer=" + serverAddress.getValue()
-            + "\n\tdaemonUri=" + daemonUri.getValue()
-            + "\n\tcertificatesPath=" + certificatesPath.getValue());
-
-        AuthConfig auth = AuthConfig.builder()
-            .email(email.getValueNotNull())
-            .username(username.getValueNotNull())
-            .password(password.getValueNotNull())
-            .serverAddress(serverAddress.getValueNotNull())
-            .build();
-
-        DefaultDockerClient.Builder clientBuilder = DefaultDockerClient.builder()
-            .authConfig(auth)
-            .uri(daemonUri.getValueNotNull());
-
-        if (StringUtils.isNotBlank(certificatesPath.getValue())) {
-          clientBuilder.dockerCertificates(new DockerCertificates(Paths.get(certificatesPath.getValueNotNull())));
-        }
-
-        dockerClient = clientBuilder.build();
-      }
-    }
-
-    return dockerClient;
-  }
-
-  // --------------------------------------------------------------------------
-  // DockerFacade interface
 
   @Override
-  public DockerClient getDockerClient() throws IllegalStateException {
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot create Docker client");
+  public void loadImage(String imageName, InputStream imagePayload,
+      LogCallback callback) {
+    
+    try {
+      Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
+      Assertions.notNull(imagePayload, "Docker image payload passed in cannot be null or blank");      
+      
+      final LogCallback prefixedLogCallback = wrap(callback);
+      log.info("Loading docker image '" + imageName + "' into Docker daemon...");
+      dockerClient.load(imageName, imagePayload, new ProgressHandler() {
+        @Override
+        public void progress(ProgressMessage msg) throws DockerException {
+          if (msg.error() != null) {
+            prefixedLogCallback.error(msg.toString());
+          } else {
+            prefixedLogCallback.debug(msg.toString());
+          }
+        }
+      });
+    } catch (Exception e) {
+      throw new DockerFacadeException("System error loading docker image '" + imageName + "' into Docker daemon", e);
+    } finally {
+      Streams.closeSilently(imagePayload);
+    } 
+  }
+  
+  @Override
+  public InputStream saveImage(String imageName, LogCallback callback) {
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
+    
+    final LogCallback prefixedLogCallback = wrap(callback);
+    log.info("Saving docker image '" + imageName + "' from Docker daemon...");
+    prefixedLogCallback.info("Obtaining image: " + imageName);
+    try {
+      return dockerClient.save(imageName);
+    } catch (Exception e) {
+      throw new DockerFacadeException("System error saving docker image '" + imageName + "' from Docker daemon", e);
     }
-    AuthConfig auth = AuthConfig.builder()
-        .email(email.getValueNotNull())
-        .username(username.getValueNotNull())
-        .password(password.getValueNotNull())
-        .serverAddress(serverAddress.getValueNotNull())
-        .build();
-
-    return DefaultDockerClient.builder().authConfig(auth).build();
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#pullImage(java.lang.String, org.sapia.corus.client.common.LogCallback)
-   */
   @Override
-  public void pullImage(String imageName, final LogCallback logCallback) {
-    // Validation
-    if (StringUtils.isBlank(imageName)) {
-      throw new IllegalArgumentException("Docker image name passed in cannot be null or blank");
-    }
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot pull docker image");
-    }
+  public void pullImage(String imageName, final LogCallback callback) {
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
 
+    final LogCallback prefixedLogCallback = wrap(callback);
     try {
       log.info("Pulling docker image '" + imageName + "' from remote registry...");
 
-      DockerClient client = internalGetDockerClient();
-
-      client.pull(imageName, new ProgressHandler() {
+      dockerClient.pull(imageName, new ProgressHandler() {
         @Override
         public void progress(ProgressMessage msg) throws DockerException {
-          log.info("DOCKER >> " + msg.toString());
-          if (logCallback != null) {
-            if (msg.error() == null) {
-              logCallback.error("DOCKER >> " + msg.error());
-            } else {
-              StringBuilder builder = new StringBuilder()
-                  .append("DOCKER >> ")
-                  .append(msg.status());
-              if (msg.progress() != null) {
-                builder.append(" : ").append(msg.status());
-              }
-              logCallback.debug(builder.toString());
-            }
+          if (msg.error() != null) {
+            prefixedLogCallback.error(msg.toString());
+          } else {
+            prefixedLogCallback.debug(msg.toString());
           }
         }
       });
@@ -246,34 +124,24 @@ public class SpotifyDockerClientFacade implements DockerFacade {
       throw new DockerFacadeException("System error pulling docker image '" + imageName + "' from remote registry", e);
     }
   }
-
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#removeImage(java.lang.String, org.sapia.corus.client.common.LogCallback)
-   */
+  
   @Override
   public void removeImage(String imageName, LogCallback callback) {
-    // Validation
-    if (StringUtils.isBlank(imageName)) {
-      throw new IllegalArgumentException("Docker image name passed in cannot be null or blank");
-    }
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot remove docker image");
-    }
-
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
+    
+    LogCallback prefixedLogCallback = wrap(callback);
     try {
       log.info("Removing docker image '" + imageName + "' from local daemon...");
 
-      DockerClient client = internalGetDockerClient();
-
-      List<RemovedImage> response = client.removeImage(imageName);
+      List<RemovedImage> response = dockerClient.removeImage(imageName);
 
       if (response.isEmpty()) {
         log.warn("No docker image removed from local daemon");
-        callback.error("No docker image removed from local daemon");
+        prefixedLogCallback.error("No docker image removed from local daemon");
       } else {
         for (RemovedImage ri: response) {
           log.info("Removed docker image " + ri.toString());
-          callback.debug("Removed docker image id " + ri.imageId());
+          prefixedLogCallback.debug("Removed docker image id " + ri.imageId());
         }
       }
 
@@ -282,141 +150,182 @@ public class SpotifyDockerClientFacade implements DockerFacade {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#createContainer()
-   */
-  @Override
-  public String createContainer() {
-    return "";
-  }
-
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#startContainer(java.lang.String, org.sapia.corus.client.common.LogCallback)
-   */
-  @Override
-  public void startContainer(String containerId, LogCallback callback) {
-    // Validation
-    if (StringUtils.isBlank(containerId)) {
-      throw new IllegalArgumentException("Docker container id passed in cannot be null or blank");
-    }
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot start container");
-    }
-
-    try {
-      log.info("Starting docker container '" + containerId + "' from local daemon...");
-
-      DockerClient client = internalGetDockerClient();
-
-      client.startContainer(containerId);
-      log.info("Docker container " + containerId + " started");
-      callback.debug("Docker container " + containerId + " started");
-
-    } catch (Exception e) {
-      callback.error("Error starting docker container " + containerId + " ==> " + e.getMessage());
-      throw new DockerFacadeException("System error starting docker container '" + containerId + "' from local daemon", e);
-    }
-  }
-
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#stopContainer(java.lang.String, int, org.sapia.corus.client.common.LogCallback)
-   */
   @Override
   public void stopContainer(String containerId, int timeoutSeconds, LogCallback callback) {
-    // Validation
-    if (StringUtils.isBlank(containerId)) {
-      throw new IllegalArgumentException("Docker container id passed in cannot be null or blank");
-    }
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot stop container");
-    }
+    Assertions.isFalse(StringUtils.isBlank(containerId), "Docker container id passed in cannot be null or blank");
 
+    LogCallback prefixedLogCallback = wrap(callback);
     try {
       log.info("Stopping docker container '" + containerId + "'...");
-      callback.debug("Stopping container " + containerId + "...");
+      prefixedLogCallback.debug("Stopping container " + containerId + "...");
 
-      internalGetDockerClient().stopContainer(containerId, timeoutSeconds);
-
+      dockerClient.stopContainer(containerId, timeoutSeconds);
       log.info("Docker container " + containerId + " stopped");
-      callback.debug("Docker container " + containerId + " stopped");
+      prefixedLogCallback.debug("Docker container " + containerId + " stopped");
 
     } catch (Exception e) {
-      callback.error("Error stopping docker container " + containerId + " ==> " + e.getMessage());
+      prefixedLogCallback.error("Error stopping docker container " + containerId + " ==> " + e.getMessage());
       throw new DockerFacadeException("System error stopping docker container '" + containerId + "' from local daemon", e);
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.sapia.corus.docker.DockerFacade#removeContainer(java.lang.String, org.sapia.corus.client.common.LogCallback)
-   */
   @Override
   public void removeContainer(String containerId, LogCallback callback) {
-    // Validation
-    if (StringUtils.isBlank(containerId)) {
-      throw new IllegalArgumentException("Docker container id passed in cannot be null or blank");
-    }
-    if (!enabled.getValueNotNull()) {
-      throw new IllegalStateException("Docker integration disabled: cannot remove container");
-    }
+    Assertions.isFalse(StringUtils.isBlank(containerId), "Docker container id passed in cannot be null or blank");
 
+    LogCallback prefixedLogCallback = wrap(callback);
     try {
       log.info("Removing docker container '" + containerId + "'...");
-      callback.debug("Removing container " + containerId + "...");
+      prefixedLogCallback.debug("Removing container " + containerId + "...");
 
-      internalGetDockerClient().removeContainer(containerId, true);
-
+      dockerClient.removeContainer(containerId, true);
       log.info("Docker container " + containerId + " removed");
-      callback.debug("Docker container " + containerId + " removed");
+      prefixedLogCallback.debug("Docker container " + containerId + " removed");
 
     } catch (Exception e) {
-      callback.error("Error removing docker container " + containerId + " ==> " + e.getMessage());
+      prefixedLogCallback.error("Error removing docker container " + containerId + " ==> " + e.getMessage());
       throw new DockerFacadeException("System error removing docker container '" + containerId + "' from local daemon", e);
     }
   }
 
-
-  public String ping() {
+  @Override
+  public String startContainer(ProcessContext context, StarterResult starterResult,
+      DockerStarterAttachment attachment, LogCallback callback) throws IOException {
     try {
-      log.info("Ping docker client...");
-
-      DockerClient client = internalGetDockerClient();
-      return client.ping();
-
-    } catch (Exception e) {
-      throw new DockerFacadeException("System error accessing docker client", e);
+      return doStartContainer(context, starterResult, attachment, callback);
+    } catch (InterruptedException e) {
+      throw new IOException("Thread interrupted while attempting to start Docker container", e);
+    } catch (DockerException e) {
+      throw new IOException("Docker error caught while attempting to start container", e);
     }
   }
+      
+  
+  public String doStartContainer(ProcessContext context, StarterResult starterResult,
+      DockerStarterAttachment attachment, LogCallback callback)
+      throws DockerException, InterruptedException {
 
-  public void version() {
-    try {
-      log.info("Version docker client...");
+    Map<String, String> vars = new HashMap<String, String>();
+    vars.put("user.dir", attachment.getEnv().getCommonDir());
+    vars.put("corus.home", serverContext.getHomeDir());
 
-      DockerClient client = internalGetDockerClient();
-      Version response = client.version();
-      log.info("DOCKER >> " + response.toString());
+    Property[] envProperties = attachment.getEnv().getProperties();
 
-      Info response2 = client.info();
-      log.info("DOCKER >> " + response2.toString());
+    CompositeStrLookup propContext = new CompositeStrLookup()
+        .add(StrLookup.mapLookup(vars))
+        .add(PropertiesStrLookup.getInstance(envProperties))
+        .add(PropertiesStrLookup.getSystemInstance())
+        .add(new EnvVariableStrLookup());
 
-    } catch (Exception e) {
-      throw new DockerFacadeException("System error accessing docker client", e);
+    StrSubstitutor substitutor = new StrSubstitutor(propContext);
+
+    DockerStarter           starter           = attachment.getStarter();
+    ContainerConfig.Builder containerBuilder  = ContainerConfig.builder();
+    HostConfig.Builder      hostConfigBuilder = HostConfig.builder();
+
+    // user
+    if (starter.getUser().isSet()) {
+      containerBuilder.user(substitutor.replace(starter.getUser().get()));
     }
-  }
 
-  public void getAllImages() {
-    try {
-      log.info("Getting all local docker images...");
+    // image
+    if (starter.getImage().isSet()) {
+      containerBuilder.image(substitutor.replace(starter.getImage().get()));
+    } else {
+      String image =
+          context.getProcess().getDistributionInfo().getName() + ":"
+          + context.getProcess().getDistributionInfo().getVersion();
+      containerBuilder.image(image);
+    }
 
-      DockerClient client = internalGetDockerClient();
-      List<Image> response = client.listImages(ListImagesParam.allImages(false));
-      log.info("DOCKER >> Got " + response.size() + " image(s)");
-      for (Image im: response) {
-        log.info("DOCKER >> " + im.toString());
+    // cmd
+    if (!starterResult.getCommand().isEmpty()) {
+      String[] cmdArr = starterResult.getCommand().toArray();
+      for (int i = 0; i < cmdArr.length; i++) {
+        cmdArr[i] = substitutor.replace(cmdArr[i]);
       }
-
-    } catch (Exception e) {
-      throw new DockerFacadeException("System error accessing docker client", e);
+      containerBuilder.cmd(cmdArr);
     }
 
+    // volumes
+    if (!starter.getVolumeMappings().isEmpty()) {
+      Set<String> volumes   = new HashSet<String>();
+      List<String> bindings = new ArrayList<String>();
+      for (DockerVolumeMapping m : starter.getVolumeMappings()) {
+        String vol = m.getContainerVolume();
+        if (m.getPermission().isSet()) {
+          vol = vol + ":" + m.getPermission().get();
+        }
+        volumes.add(substitutor.replace(vol));
+        bindings.add(m.getHostVolume() + ":" + substitutor.replace(m.getContainerVolume()));
+      }
+      containerBuilder.volumes(volumes);
+      hostConfigBuilder.binds(bindings);
+    }
+
+    // mac
+    if (starter.getMacAddress().isSet()) {
+      containerBuilder.macAddress(substitutor.replace(starter.getMacAddress().get()));
+    }
+
+    // port bindings
+    Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
+    Set<String> containerPorts = new HashSet<String>();
+    for (DockerPortMapping portMapping : starter.getPortMappings()) {
+      List<PortBinding> hostPorts = new ArrayList<PortBinding>();
+      hostPorts.add(
+          PortBinding.of(serverContext.getCorusHost().getEndpoint().getServerTcpAddress().getHost(),
+          substitutor.replace(portMapping.getHostPort()))
+      );
+      portBindings.put(portMapping.getContainerPort(), hostPorts);
+      containerPorts.add(portMapping.getContainerPort());
+    }
+    hostConfigBuilder.portBindings(portBindings);
+    containerBuilder.exposedPorts(containerPorts);
+
+    // cpu
+    if (starter.getCpuShares().isSet()) {
+      hostConfigBuilder.cpuShares(Long.parseLong(substitutor.replace(starter.getCpuShares().get())));
+    }
+    if (starter.getCpuSetCpus().isSet()) {
+      hostConfigBuilder.cpusetCpus(substitutor.replace(starter.getCpuSetCpus().get()));
+    }
+
+    // memory
+    if (starter.getMemory().isSet()) {
+      containerBuilder.memory(Long.parseLong(substitutor.replace(starter.getMemory().get())));
+    }
+    if (starter.getMemorySwap().isSet()) {
+      containerBuilder.memorySwap(Long.parseLong(substitutor.replace(starter.getMemorySwap().get())));
+    }
+
+    // working dir
+    containerBuilder.workingDir(substitutor.replace(context.getProcess().getProcessDir()));
+
+    // cgroup parent
+    if (starter.getCgroupParent().isSet()) {
+      hostConfigBuilder.cgroupParent(substitutor.replace(starter.getCgroupParent().get()));
+    }
+
+    ContainerCreation creation = dockerClient.createContainer(
+        containerBuilder.build(),
+        context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
+    );
+
+    String containerId = creation.id();
+    dockerClient.startContainer(containerId);
+    
+    callback.debug(
+        String.format(
+          "Created Docker container for process %s (container id: %s)",
+          ToStringUtils.toString(context.getProcess()) , containerId
+        )
+    );    
+    return containerId;
   }
+  
+  private LogCallback wrap(LogCallback callback) {
+    return new PrefixedLogCallback(DOCKER_PREFIX, callback);
+  }
+
 }

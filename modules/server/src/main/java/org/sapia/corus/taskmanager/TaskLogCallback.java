@@ -1,6 +1,6 @@
 package org.sapia.corus.taskmanager;
 
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
 /**

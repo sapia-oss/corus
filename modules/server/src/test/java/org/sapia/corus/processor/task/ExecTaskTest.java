@@ -11,7 +11,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.console.CmdLine;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
