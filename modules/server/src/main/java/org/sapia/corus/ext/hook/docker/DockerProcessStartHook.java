@@ -37,7 +37,7 @@ import com.spotify.docker.client.messages.PortBinding;
 
 /**
  * Implements the {@link ProcessStartHook} interface in the context of docker.
- * 
+ *
  * @author yduchesne
  *
  */
@@ -45,39 +45,39 @@ public class DockerProcessStartHook implements ProcessStartHook {
 
   @Autowired
   private ServerContext serverContext;
-  
+
   @Autowired
   private DockerFacade dockerFacade;
 
   // --------------------------------------------------------------------------
   // Visible for testing
-  
+
   public void setServerContext(ServerContext serverContext) {
     this.serverContext = serverContext;
   }
-  
+
   public void setDockerFacade(DockerFacade dockerFacade) {
     this.dockerFacade = dockerFacade;
   }
-  
+
   // --------------------------------------------------------------------------
   // ProcessStartHook interface
-  
+
   @Override
   public boolean accepts(ProcessContext context) {
     return context.getProcess().getStarterType().equals(StarterType.DOCKER);
   }
-  
+
   @Override
   public void start(ProcessContext context, StarterResult starterResult, LogCallback callback) throws IOException {
     DockerClient client = dockerFacade.getDockerClient();
     try {
-      
+
       DockerStarterAttachment attachment = starterResult.getNotNull(
-          DockerStarter.DOCKER_STARTER_ATTACHMENT, 
+          DockerStarter.DOCKER_STARTER_ATTACHMENT,
           DockerStarterAttachment.class
       );
-      
+
       Map<String, String> vars = new HashMap<String, String>();
       vars.put("user.dir", attachment.getEnv().getCommonDir());
       vars.put("corus.home", serverContext.getHomeDir());
@@ -89,23 +89,23 @@ public class DockerProcessStartHook implements ProcessStartHook {
           .add(PropertiesStrLookup.getInstance(envProperties))
           .add(PropertiesStrLookup.getSystemInstance())
           .add(new EnvVariableStrLookup());
-      
+
       StrSubstitutor substitutor = new StrSubstitutor(propContext);
-      
+
       DockerStarter           starter           = attachment.getStarter();
       ContainerConfig.Builder containerBuilder  = ContainerConfig.builder();
       HostConfig.Builder      hostConfigBuilder = HostConfig.builder();
-      
+
       // user
       if (starter.getUser().isSet()) {
-        containerBuilder.image(substitutor.replace(starter.getUser().get()));
+        containerBuilder.user(substitutor.replace(starter.getUser().get()));
       }
-      
+
       // image
       if (starter.getImage().isSet()) {
         containerBuilder.image(substitutor.replace(starter.getImage().get()));
       } else {
-        String image = 
+        String image =
             context.getProcess().getDistributionInfo().getName() + ":"
             + context.getProcess().getDistributionInfo().getVersion();
         containerBuilder.image(image);
@@ -119,7 +119,7 @@ public class DockerProcessStartHook implements ProcessStartHook {
         }
         containerBuilder.cmd(cmdArr);
       }
-      
+
       // volumes
       if (!starter.getVolumeMappings().isEmpty()) {
         Set<String> volumes   = new HashSet<String>();
@@ -144,19 +144,19 @@ public class DockerProcessStartHook implements ProcessStartHook {
           envVars.put(p.getName(), value);
         }
       }
-      
+
       // mac
       if (starter.getMacAddress().isSet()) {
         containerBuilder.macAddress(substitutor.replace(starter.getMacAddress().get()));
       }
-      
+
       // port bindings
       Map<String, List<PortBinding>> portBindings = new HashMap<String, List<PortBinding>>();
       Set<String> containerPorts = new HashSet<String>();
       for (DockerPortMapping portMapping : starter.getPortMappings()) {
         List<PortBinding> hostPorts = new ArrayList<PortBinding>();
         hostPorts.add(
-            PortBinding.of(serverContext.getCorusHost().getEndpoint().getServerTcpAddress().getHost(), 
+            PortBinding.of(serverContext.getCorusHost().getEndpoint().getServerTcpAddress().getHost(),
             substitutor.replace(portMapping.getHostPort()))
         );
         portBindings.put(portMapping.getContainerPort(), hostPorts);
@@ -164,7 +164,7 @@ public class DockerProcessStartHook implements ProcessStartHook {
       }
       hostConfigBuilder.portBindings(portBindings);
       containerBuilder.exposedPorts(containerPorts);
-      
+
       // cpu
       if (starter.getCpuShares().isSet()) {
         hostConfigBuilder.cpuShares(Long.parseLong(substitutor.replace(starter.getCpuShares().get())));
@@ -172,7 +172,7 @@ public class DockerProcessStartHook implements ProcessStartHook {
       if (starter.getCpuSetCpus().isSet()) {
         hostConfigBuilder.cpusetCpus(substitutor.replace(starter.getCpuSetCpus().get()));
       }
-      
+
       // memory
       if (starter.getMemory().isSet()) {
         containerBuilder.memory(Long.parseLong(substitutor.replace(starter.getMemory().get())));
@@ -180,20 +180,20 @@ public class DockerProcessStartHook implements ProcessStartHook {
       if (starter.getMemorySwap().isSet()) {
         containerBuilder.memorySwap(Long.parseLong(substitutor.replace(starter.getMemorySwap().get())));
       }
-      
+
       // working dir
       containerBuilder.workingDir(substitutor.replace(context.getProcess().getProcessDir()));
-      
+
       // cgroup parent
       if (starter.getCgroupParent().isSet()) {
         hostConfigBuilder.cgroupParent(substitutor.replace(starter.getCgroupParent().get()));
       }
-      
+
       ContainerCreation creation = client.createContainer(
-          containerBuilder.build(), 
+          containerBuilder.build(),
           context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
       );
-      
+
       String containerId = creation.id();
       client.startContainer(containerId);
       context.getProcess().setOsPid(containerId);

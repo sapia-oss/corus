@@ -59,7 +59,8 @@
 
   <bean name="org.sapia.corus.docker.DockerFacade" 
         scope="singleton" 
-        class="org.sapia.corus.docker.DockerFacadeImpl">
+        class="org.sapia.corus.docker.DockerFacadeImpl"
+        autowire="constructor">
     <property name="enabled"       value="${corus.server.docker.enabled}" />
     <property name="email"         value="${corus.server.docker.client.email}" />
     <property name="username"      value="${corus.server.docker.client.username}" />
@@ -69,7 +70,8 @@
 
   <bean name="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor" 
         scope="singleton" 
-        class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor">
+        class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor"
+        autowire="constructor">
   </bean>
 
   <bean name="org.sapia.corus.ext.hook.docker.DockerProcessKillHook" 
