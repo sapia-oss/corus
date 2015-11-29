@@ -17,7 +17,7 @@ import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
 import org.sapia.corus.client.common.CliUtils;
 import org.sapia.corus.client.common.FilePath;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.sigar.SigarSupplier;
 import org.sapia.corus.util.IOUtil;

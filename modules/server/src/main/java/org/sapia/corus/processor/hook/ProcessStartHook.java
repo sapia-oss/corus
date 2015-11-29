@@ -2,7 +2,7 @@ package org.sapia.corus.processor.hook;
 
 import java.io.IOException;
 
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 
 /**

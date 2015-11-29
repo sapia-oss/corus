@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.console.CmdLine;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;

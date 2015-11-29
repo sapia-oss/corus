@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;

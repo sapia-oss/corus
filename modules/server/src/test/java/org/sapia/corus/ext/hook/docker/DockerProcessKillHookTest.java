@@ -2,6 +2,7 @@ package org.sapia.corus.ext.hook.docker;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -12,17 +13,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.processor.hook.ProcessContext;
-
-import com.spotify.docker.client.DockerClient;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DockerProcessKillHookTest {
@@ -34,7 +34,7 @@ public class DockerProcessKillHookTest {
   private ServerContext serverContext;
   
   @Mock
-  private DockerClient dockerClient;
+  private DockerClientFacade dockerClient;
   
   @Mock
   private ProcessorConfiguration processorConf;
@@ -74,7 +74,6 @@ public class DockerProcessKillHookTest {
   public void testKill() throws Exception {
     hook.kill(new ProcessContext(process), KillSignal.SIGTERM, callback);
   
-    verify(dockerClient).stopContainer(eq(process.getOsPid()), anyInt());
-    verify(dockerClient).close();
+    verify(dockerClient).stopContainer(eq(process.getOsPid()), anyInt(), any(LogCallback.class));
   }
 }

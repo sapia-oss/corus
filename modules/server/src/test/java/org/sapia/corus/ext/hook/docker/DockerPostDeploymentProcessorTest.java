@@ -12,19 +12,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.corus.deployer.processor.DeploymentContext;
+import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.ubik.util.Collects;
-
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.ProgressHandler;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DockerPostDeploymentProcessorTest {
@@ -33,7 +31,7 @@ public class DockerPostDeploymentProcessorTest {
   private Configurator configurator;
   
   @Mock
-  private DockerClient dockerClient;
+  private DockerClientFacade dockerClient;
   
   @Mock
   private DockerFacade dockerFacade;
@@ -56,7 +54,7 @@ public class DockerPostDeploymentProcessorTest {
   public void testOnPostDeploy() throws Exception {
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pull(eq("test-img"), any(ProgressHandler.class));
+    verify(dockerClient).pullImage(eq("test-img"), any(LogCallback.class));
   }
   
   @Test
@@ -64,20 +62,20 @@ public class DockerPostDeploymentProcessorTest {
     image = OptionalValue.none();
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pull(eq("test:1.0"), any(ProgressHandler.class));
+    verify(dockerClient).pullImage(eq("test:1.0"), any(LogCallback.class));
   }
   
   @Test
   public void testOnPostDeploy_no_tag_match() throws Exception {
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient, never()).pull(eq("test-img"), any(ProgressHandler.class));
+    verify(dockerClient, never()).pullImage(eq("test-img"), any(LogCallback.class));
   }
   
   @Test
   public void testOnPostUndeploy() throws Exception {
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pull(eq("test-img"), any(ProgressHandler.class));
+    verify(dockerClient).pullImage(eq("test-img"), any(LogCallback.class));
   }
   
   @Test
@@ -85,13 +83,13 @@ public class DockerPostDeploymentProcessorTest {
     image = OptionalValue.none();
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pull(eq("test:1.0"), any(ProgressHandler.class));
+    verify(dockerClient).pullImage(eq("test:1.0"), any(LogCallback.class));
   }
 
   @Test
   public void testOnPostUndeploy_no_tag_match() throws Exception {
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient, never()).pull(eq("test-img"), any(ProgressHandler.class));
+    verify(dockerClient, never()).pullImage(eq("test-img"), any(LogCallback.class));
   }
 
   private Distribution createDistribution(OptionalValue<String> image) {

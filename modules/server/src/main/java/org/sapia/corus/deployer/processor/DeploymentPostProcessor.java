@@ -1,6 +1,6 @@
 package org.sapia.corus.deployer.processor;
 
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 
 /**
  * Instances of this interface are invoked synchronously right after deployment of a given 

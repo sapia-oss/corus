@@ -3,12 +3,13 @@ package org.sapia.corus.ext.hook.docker;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
+import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.docker.DockerFacadeException;
 import org.sapia.corus.processor.hook.ProcessContext;
@@ -55,9 +56,11 @@ public class DockerProcessKillHook implements ProcessKillHook {
         int secondsToWaitBeforeHardKill = (int) TimeUnit.MILLISECONDS.toSeconds(
                 processorConfig.getKillIntervalMillis()) * context.getProcess().getMaxKillRetry();
 
-        dockerFacade.stopContainer(context.getProcess().getOsPid(), secondsToWaitBeforeHardKill, callback);
+        DockerClientFacade client = dockerFacade.getDockerClient();
+        
+        client.stopContainer(context.getProcess().getOsPid(), secondsToWaitBeforeHardKill, callback);
 
-        dockerFacade.removeContainer(context.getProcess().getOsPid(), callback);
+        client.removeContainer(context.getProcess().getOsPid(), callback);
 
         context.getProcess().setStatus(LifeCycleStatus.KILL_CONFIRMED);
 
@@ -66,5 +69,4 @@ public class DockerProcessKillHook implements ProcessKillHook {
       }
     }
   }
-
 }

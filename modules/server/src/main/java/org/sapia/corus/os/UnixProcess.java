@@ -8,7 +8,7 @@ import java.util.StringTokenizer;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.util.IOUtil;
 
