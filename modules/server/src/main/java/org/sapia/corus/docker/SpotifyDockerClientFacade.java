@@ -69,7 +69,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       Assertions.notNull(imagePayload, "Docker image payload passed in cannot be null or blank");      
       
       final LogCallback prefixedLogCallback = wrap(callback);
-      log.info("Loading docker image '" + imageName + "' into Docker daemon...");
+      log.info("Loading Docker image '" + imageName + "' into Docker daemon...");
       dockerClient.load(imageName, imagePayload, new ProgressHandler() {
         @Override
         public void progress(ProgressMessage msg) throws DockerException {
@@ -81,7 +81,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
         }
       });
     } catch (Exception e) {
-      throw new DockerFacadeException("System error loading docker image '" + imageName + "' into Docker daemon", e);
+      throw new DockerFacadeException("System error loading Docker image '" + imageName + "' into Docker daemon", e);
     } finally {
       Streams.closeSilently(imagePayload);
     } 
@@ -92,12 +92,12 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
     
     final LogCallback prefixedLogCallback = wrap(callback);
-    log.info("Saving docker image '" + imageName + "' from Docker daemon...");
+    log.info("Saving Docker image '" + imageName + "' from Docker daemon...");
     prefixedLogCallback.info("Obtaining image: " + imageName);
     try {
       return dockerClient.save(imageName);
     } catch (Exception e) {
-      throw new DockerFacadeException("System error saving docker image '" + imageName + "' from Docker daemon", e);
+      throw new DockerFacadeException("System error saving Docker image '" + imageName + "' from Docker daemon", e);
     }
   }
 
@@ -107,7 +107,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
 
     final LogCallback prefixedLogCallback = wrap(callback);
     try {
-      log.info("Pulling docker image '" + imageName + "' from remote registry...");
+      log.info("Pulling Docker image '" + imageName + "' from remote registry...");
 
       dockerClient.pull(imageName, new ProgressHandler() {
         @Override
@@ -121,7 +121,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       });
 
     } catch (Exception e) {
-      throw new DockerFacadeException("System error pulling docker image '" + imageName + "' from remote registry", e);
+      throw new DockerFacadeException("System error pulling Docker image '" + imageName + "' from remote registry", e);
     }
   }
   
@@ -131,41 +131,22 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     
     LogCallback prefixedLogCallback = wrap(callback);
     try {
-      log.info("Removing docker image '" + imageName + "' from local daemon...");
+      log.info("Removing Docker image '" + imageName + "' from local daemon...");
 
-      List<RemovedImage> response = dockerClient.removeImage(imageName);
+      List<RemovedImage> response = dockerClient.removeImage(imageName, true, false);
 
       if (response.isEmpty()) {
-        log.warn("No docker image removed from local daemon");
-        prefixedLogCallback.error("No docker image removed from local daemon");
+        log.warn("No Docker image removed from local daemon");
+        prefixedLogCallback.error("No Docker image removed from local daemon");
       } else {
         for (RemovedImage ri: response) {
-          log.info("Removed docker image " + ri.toString());
-          prefixedLogCallback.debug("Removed docker image id " + ri.imageId());
+          log.info("Removed Docker image " + ri.toString());
+          prefixedLogCallback.debug("Removed Docker image id " + ri.imageId());
         }
       }
 
     } catch (Exception e) {
-      throw new DockerFacadeException("System error removing docker image '" + imageName + "' from local daemon", e);
-    }
-  }
-
-  @Override
-  public void stopContainer(String containerId, int timeoutSeconds, LogCallback callback) {
-    Assertions.isFalse(StringUtils.isBlank(containerId), "Docker container id passed in cannot be null or blank");
-
-    LogCallback prefixedLogCallback = wrap(callback);
-    try {
-      log.info("Stopping docker container '" + containerId + "'...");
-      prefixedLogCallback.debug("Stopping container " + containerId + "...");
-
-      dockerClient.stopContainer(containerId, timeoutSeconds);
-      log.info("Docker container " + containerId + " stopped");
-      prefixedLogCallback.debug("Docker container " + containerId + " stopped");
-
-    } catch (Exception e) {
-      prefixedLogCallback.error("Error stopping docker container " + containerId + " ==> " + e.getMessage());
-      throw new DockerFacadeException("System error stopping docker container '" + containerId + "' from local daemon", e);
+      throw new DockerFacadeException("System error removing Docker image '" + imageName + "' from local daemon", e);
     }
   }
 
@@ -184,9 +165,51 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
 
     } catch (Exception e) {
       prefixedLogCallback.error("Error removing docker container " + containerId + " ==> " + e.getMessage());
-      throw new DockerFacadeException("System error removing docker container '" + containerId + "' from local daemon", e);
+      throw new DockerFacadeException("System error removing Docker container '" + containerId + "' from local daemon", e);
     }
   }
+  
+  @Override
+  public String startContainer(String imageName, LogCallback callback) {
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
+ 
+    LogCallback prefixedLogCallback = wrap(callback);
+    try {
+      log.info("Starting Docker container '" + imageName + "'...");
+      prefixedLogCallback.debug("Starting Docker container " + imageName + "...");
+
+      ContainerConfig.Builder containerConfig = ContainerConfig.builder();
+      containerConfig.image(imageName);
+      String containerId = dockerClient.createContainer(containerConfig.build()).id();
+      dockerClient.startContainer(containerId);
+      log.info("Docker container " + containerId + " started");
+      prefixedLogCallback.debug("Docker container " + containerId + " started");
+      return containerId;
+    } catch (Exception e) {
+      prefixedLogCallback.error("Error starting Docker container for image " + imageName + " ==> " + e.getMessage());
+      throw new DockerFacadeException("System error starting Docker container  for image: '" + imageName + "' from local daemon", e);
+    }
+  }
+  
+  @Override
+  public void stopContainer(String containerId, int timeoutSeconds, LogCallback callback) {
+    Assertions.isFalse(StringUtils.isBlank(containerId), "Docker container id passed in cannot be null or blank");
+
+    LogCallback prefixedLogCallback = wrap(callback);
+    try {
+      log.info("Stopping Docker container '" + containerId + "'...");
+      prefixedLogCallback.debug("Stopping container " + containerId + "...");
+
+      dockerClient.stopContainer(containerId, timeoutSeconds);
+      log.info("Docker container " + containerId + " stopped");
+      prefixedLogCallback.debug("Docker container " + containerId + " stopped");
+
+    } catch (Exception e) {
+      prefixedLogCallback.error("Error stopping docker container " + containerId + " ==> " + e.getMessage());
+      throw new DockerFacadeException("System error stopping docker container '" + containerId + "' from local daemon", e);
+    }
+  }
+
 
   @Override
   public String startContainer(ProcessContext context, StarterResult starterResult,

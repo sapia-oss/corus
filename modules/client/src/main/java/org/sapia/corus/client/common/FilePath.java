@@ -47,6 +47,18 @@ public class FilePath {
     dirs.add(".corus");
     return this;
   }
+  
+  /**
+   * Adds the directory corresponding to the <code>java.io.tmpdir</code> system property.
+   * 
+   * @return this instance.
+   */
+  public FilePath addJvmTempDir() {
+    String tmp = System.getProperty("java.io.tmpdir");
+    Assertions.illegalState(tmp == null, "java.io.tmpdir system property not set");
+    dirs.add(tmp);
+    return this;
+  }
 
   /**
    * @param file

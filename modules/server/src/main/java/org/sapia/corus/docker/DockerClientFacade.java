@@ -35,6 +35,8 @@ public interface DockerClientFacade {
    */
   public String startContainer(ProcessContext context, StarterResult starterResult, DockerStarterAttachment attachment, LogCallback callback) throws IOException;
   
+  public String startContainer(String containerId, LogCallback callback);
+  
   public void stopContainer(String containerId, int timeoutMillis, LogCallback callback);
 
   public void removeContainer(String containerId, LogCallback callback);
