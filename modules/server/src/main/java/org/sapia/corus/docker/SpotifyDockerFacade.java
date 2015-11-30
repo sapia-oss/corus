@@ -22,6 +22,7 @@ import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.messages.AuthConfig;
+import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.Version;
@@ -32,9 +33,15 @@ import com.spotify.docker.client.messages.Version;
  * @author yduchesne
  */
 public class SpotifyDockerFacade implements DockerFacade {
+  
+  private enum State {
+    INIT,
+    RUNNING;
+  }
 
   private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
 
+  private State state = State.INIT;
   
   @Autowired
   private ServerContext serverContext;
@@ -57,11 +64,11 @@ public class SpotifyDockerFacade implements DockerFacade {
   // --------------------------------------------------------------------------
   // Visible for testing
   
-  void setConfigurator(InternalConfigurator configurator) {
+  public void setConfigurator(InternalConfigurator configurator) {
     this.configurator = configurator;
   }
   
-  void setServerContext(ServerContext serverContext) {
+  public void setServerContext(ServerContext serverContext) {
     this.serverContext = serverContext;
   }
   
@@ -133,6 +140,8 @@ public class SpotifyDockerFacade implements DockerFacade {
     } else {
       log.info("Docker integration disabled");
     }
+    
+    state = State.RUNNING;
   }
 
   @PreDestroy
@@ -145,55 +154,8 @@ public class SpotifyDockerFacade implements DockerFacade {
     }
   }
 
-  protected void onDockerConfigChange() {
-    log.info("Detecting docker config change...");
-    if (dockerClient != null) {
-      synchronized (lock) {
-        try {
-          log.info("Closing current docker client connection & resources...");
-          dockerClient.close();
-        } finally {
-          dockerClient = null;
-        }
-      }
-    }
-  }
-
-  protected DockerClient internalGetDockerClient() throws IllegalStateException, DockerCertificateException {
-    synchronized (lock) {
-      if (dockerClient == null) {
-        log.info("Creating new docker client with configuration:"
-            + "\n\temail=" + email.getValue()
-            + "\n\tusername=" + username.getValue()
-            + "\n\tregistryServer=" + serverAddress.getValue()
-            + "\n\tdaemonUri=" + daemonUri.getValue()
-            + "\n\tcertificatesPath=" + certificatesPath.getValue());
-
-        AuthConfig auth = AuthConfig.builder()
-            .email(email.getValueNotNull())
-            .username(username.getValueNotNull())
-            .password(password.getValueNotNull())
-            .serverAddress(serverAddress.getValueNotNull())
-            .build();
-
-        DefaultDockerClient.Builder clientBuilder = DefaultDockerClient.builder()
-            .authConfig(auth)
-            .uri(daemonUri.getValueNotNull());
-
-        if (StringUtils.isNotBlank(certificatesPath.getValue())) {
-          clientBuilder.dockerCertificates(new DockerCertificates(Paths.get(certificatesPath.getValueNotNull())));
-        }
-
-        dockerClient = clientBuilder.build();
-      }
-    }
-
-    return dockerClient;
-  }
-
   // --------------------------------------------------------------------------
   // DockerFacade interface
-
   
   @Override
   public DockerClientFacade getDockerClient() throws IllegalStateException {
@@ -231,24 +193,117 @@ public class SpotifyDockerFacade implements DockerFacade {
       log.info("DOCKER >> " + response2.toString());
 
     } catch (Exception e) {
-      throw new DockerFacadeException("System error accessing docker client", e);
+      throw new DockerFacadeException("System error accessing Docker client", e);
     }
   }
 
-  public void getAllImages() {
+  // --------------------------------------------------------------------------
+  // Maintenance-related methods
+  
+  public List<Container> getContainers(boolean all) {
     try {
-      log.info("Getting all local docker images...");
+      return internalGetDockerClient().listContainers(DockerClient.ListContainersParam.allContainers(true));
+    } catch (Exception e) {
+      throw new DockerFacadeException("System error accessing Docker client", e);
+    }
+  }
+  
+  public List<Image> getAllImages() {
+    try {
+      return internalGetDockerClient().listImages(ListImagesParam.allImages(false));
+    } catch (Exception e) {
+      throw new DockerFacadeException("System error accessing Docker client", e);
+    }
+  }
+  
+  
+  public void clean() {
+    try {
+      log.info("Stopping all containers and removing all local Docker images...");
 
       DockerClient client = internalGetDockerClient();
-      List<Image> response = client.listImages(ListImagesParam.allImages(false));
-      log.info("DOCKER >> Got " + response.size() + " image(s)");
-      for (Image im: response) {
-        log.info("DOCKER >> " + im.toString());
-      }
 
+      List<Container> containers = client.listContainers();
+      log.info("Got " + containers.size() + " container(s)");
+
+      for (Container c : containers) {
+        client.stopContainer(c.id(), 30);
+        client.removeContainer(c.id());
+      }
+      List<Image> response = client.listImages(ListImagesParam.allImages(false));
+      log.info("Got " + response.size() + " image(s)");
+      for (Image im: response) {
+        client.removeImage(im.id(), true, false);
+      }
     } catch (Exception e) {
-      throw new DockerFacadeException("System error accessing docker client", e);
+      throw new DockerFacadeException("System error accessing Docker client", e);
+    }    
+  }
+  
+  public void stopAllContainers() {
+    try {
+      DockerClient client = internalGetDockerClient();
+  
+      List<Container> containers = client.listContainers();
+      log.info("Got " + containers.size() + " container(s)");
+  
+      for (Container c : containers) {
+        client.stopContainer(c.id(), 30);
+        client.removeContainer(c.id());
+      }
+    } catch (Exception e) {
+      throw new DockerFacadeException("System error accessing Docker client", e);
+    }    
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted methods
+
+  protected void onDockerConfigChange() {
+    if (state == State.RUNNING) {
+      log.info("Detecting docker config change...");
+      if (dockerClient != null) {
+        synchronized (lock) {
+          try {
+            log.info("Closing current docker client connection & resources...");
+            dockerClient.close();
+          } finally {
+            dockerClient = null;
+          }
+        }
+      }
+    }
+  }
+
+  protected DockerClient internalGetDockerClient() throws IllegalStateException, DockerCertificateException {
+    synchronized (lock) {
+      if (dockerClient == null) {
+        log.info("Creating new docker client with configuration:"
+            + "\n\temail=" + email.getValue()
+            + "\n\tusername=" + username.getValue()
+            + "\n\tregistryServer=" + serverAddress.getValue()
+            + "\n\tdaemonUri=" + daemonUri.getValue()
+            + "\n\tcertificatesPath=" + certificatesPath.getValue());
+
+        AuthConfig auth = AuthConfig.builder()
+            .email(email.getValueNotNull())
+            .username(username.getValueNotNull())
+            .password(password.getValueNotNull())
+            .serverAddress(serverAddress.getValueNotNull())
+            .build();
+
+        DefaultDockerClient.Builder clientBuilder = DefaultDockerClient.builder()
+            .authConfig(auth)
+            .uri(daemonUri.getValueNotNull());
+
+        if (StringUtils.isNotBlank(certificatesPath.getValue())) {
+          clientBuilder.dockerCertificates(new DockerCertificates(Paths.get(certificatesPath.getValueNotNull())));
+        }
+
+        dockerClient = clientBuilder.build();
+      }
     }
 
+    return dockerClient;
   }
 }

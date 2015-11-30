@@ -59,7 +59,12 @@
 	    <groupId>org.sapia</groupId>
 	    <artifactId>sapia_corus_client</artifactId>
     </dependency>
-    
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_server</artifactId>
+    </dependency>
+        
 	</dependencies>
 
 	<build>
