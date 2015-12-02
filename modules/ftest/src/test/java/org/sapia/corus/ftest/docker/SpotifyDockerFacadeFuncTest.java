@@ -183,15 +183,7 @@ public class SpotifyDockerFacadeFuncTest {
 
   @Test(dependsOnMethods = "testStartContainer")
   public void testStopContainer() throws Exception {
-    System.out.println("Running containers before stopping:");
-    for (Container c : sut.getContainers(false)) {
-      System.out.println(c);
-    }
     sut.getDockerClient().stopContainer(containerId.get(), CONTAINER_STOP_TIMEOUT, logCallback);
-    System.out.println("Running containers after stopping:");
-    for (Container c : sut.getContainers(false)) {
-      System.out.println(c);
-    }
   }
   
   // --------------------------------------------------------------------------
