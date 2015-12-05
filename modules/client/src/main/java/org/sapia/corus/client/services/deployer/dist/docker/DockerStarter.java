@@ -70,7 +70,7 @@ public class DockerStarter implements Starter, Serializable {
   private OptionalValue<String>   cpuPeriod      = OptionalValue.none();
   private OptionalValue<String>   cpuSetCpus     = OptionalValue.none();
   private OptionalValue<String>   cpuSetMems     = OptionalValue.none();
-  private OptionalValue<String>   cpuQuota       = OptionalValue.none();
+  private OptionalValue<Long>     cpuQuota       = OptionalValue.none();
 
   private OptionalValue<String>   cgroupParent     = OptionalValue.none();
   private OptionalValue<String>   blkioWeight      = OptionalValue.none();
@@ -159,11 +159,11 @@ public class DockerStarter implements Starter, Serializable {
     return cpuPeriod;
   }
   
-  public void setCpuQuota(String cpuQuota) {
+  public void setCpuQuota(Long cpuQuota) {
     this.cpuQuota = OptionalValue.of(cpuQuota);
   }
   
-  public OptionalValue<String> getCpuQuota() {
+  public OptionalValue<Long> getCpuQuota() {
     return cpuQuota;
   }
   

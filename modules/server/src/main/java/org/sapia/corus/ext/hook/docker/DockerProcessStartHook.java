@@ -8,6 +8,7 @@ import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.processor.hook.ProcessContext;
 import org.sapia.corus.processor.hook.ProcessStartHook;
@@ -54,7 +55,9 @@ public class DockerProcessStartHook implements ProcessStartHook {
         DockerStarterAttachment.class
     );
     
-        String[] cmdArr = starterResult.getCommand().toArray();
+    DockerClientFacade client = dockerFacade.getDockerClient();
+
+    String containerId = client.startContainer(
         context, 
         starterResult, 
         attachment, 

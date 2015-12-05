@@ -24,8 +24,8 @@ import org.sapia.corus.client.services.deployer.dist.Property;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerPortMapping;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
-import org.sapia.corus.client.services.deployer.dist.docker.DockerVolumeMapping;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerVolumeMapping;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.processor.hook.ProcessContext;
 import org.sapia.ubik.util.Assertions;
@@ -48,6 +48,8 @@ import com.spotify.docker.client.messages.RemovedImage;
  *
  */
 public class SpotifyDockerClientFacade implements DockerClientFacade {
+  
+   private static final int DEFAULT_SECONDS_BEFORE_KILL = 30;
   
    private static final String DOCKER_PREFIX = "DOCKER >>";
    private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
@@ -215,7 +217,8 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
   public String startContainer(ProcessContext context, StarterResult starterResult,
       DockerStarterAttachment attachment, LogCallback callback) throws IOException {
     try {
-      return doStartContainer(context, starterResult, attachment, callback);
+      LogCallback prefixedLogCallback = wrap(callback);
+      return doStartContainer(context, starterResult, attachment, prefixedLogCallback);
     } catch (InterruptedException e) {
       throw new IOException("Thread interrupted while attempting to start Docker container", e);
     } catch (DockerException e) {
@@ -246,30 +249,9 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     ContainerConfig.Builder containerBuilder  = ContainerConfig.builder();
     HostConfig.Builder      hostConfigBuilder = HostConfig.builder();
 
-    // user
-    if (starter.getUser().isSet()) {
-      containerBuilder.user(substitutor.replace(starter.getUser().get()));
-    }
-
-    // image
-    if (starter.getImage().isSet()) {
-      containerBuilder.image(substitutor.replace(starter.getImage().get()));
-    } else {
-      String image =
-          context.getProcess().getDistributionInfo().getName() + ":"
-          + context.getProcess().getDistributionInfo().getVersion();
-      containerBuilder.image(image);
-    }
-
-    // cmd
-    if (!starterResult.getCommand().isEmpty()) {
-      String[] cmdArr = starterResult.getCommand().toArray();
-      for (int i = 0; i < cmdArr.length; i++) {
-        cmdArr[i] = substitutor.replace(cmdArr[i]);
-      }
-      containerBuilder.cmd(cmdArr);
-    }
-
+    // ------------------------------------------------------------------------
+    // Config touching both host and container
+    
     // volumes
     if (!starter.getVolumeMappings().isEmpty()) {
       Set<String> volumes   = new HashSet<String>();
@@ -284,11 +266,6 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       }
       containerBuilder.volumes(volumes);
       hostConfigBuilder.binds(bindings);
-    }
-
-    // mac
-    if (starter.getMacAddress().isSet()) {
-      containerBuilder.macAddress(substitutor.replace(starter.getMacAddress().get()));
     }
 
     // port bindings
@@ -306,6 +283,9 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     hostConfigBuilder.portBindings(portBindings);
     containerBuilder.exposedPorts(containerPorts);
 
+    // ------------------------------------------------------------------------
+    // Host-centric
+    
     // cpu
     if (starter.getCpuShares().isSet()) {
       hostConfigBuilder.cpuShares(Long.parseLong(substitutor.replace(starter.getCpuShares().get())));
@@ -313,38 +293,105 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     if (starter.getCpuSetCpus().isSet()) {
       hostConfigBuilder.cpusetCpus(substitutor.replace(starter.getCpuSetCpus().get()));
     }
-
+    if (starter.getCpuQuota().isSet()) {
+      hostConfigBuilder.cpuQuota(starter.getCpuQuota().get());
+    }
+      
     // memory
     if (starter.getMemory().isSet()) {
-      containerBuilder.memory(Long.parseLong(substitutor.replace(starter.getMemory().get())));
+      hostConfigBuilder.memory(Long.parseLong(substitutor.replace(starter.getMemory().get())));
     }
     if (starter.getMemorySwap().isSet()) {
-      containerBuilder.memorySwap(Long.parseLong(substitutor.replace(starter.getMemorySwap().get())));
+      hostConfigBuilder.memorySwap(Long.parseLong(substitutor.replace(starter.getMemorySwap().get())));
     }
-
-    // working dir
-    containerBuilder.workingDir(substitutor.replace(context.getProcess().getProcessDir()));
 
     // cgroup parent
     if (starter.getCgroupParent().isSet()) {
       hostConfigBuilder.cgroupParent(substitutor.replace(starter.getCgroupParent().get()));
     }
-
-    ContainerCreation creation = dockerClient.createContainer(
-        containerBuilder.build(),
-        context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
-    );
-
-    String containerId = creation.id();
-    dockerClient.startContainer(containerId);
     
-    callback.debug(
-        String.format(
-          "Created Docker container for process %s (container id: %s)",
-          ToStringUtils.toString(context.getProcess()) , containerId
-        )
-    );    
-    return containerId;
+    // ------------------------------------------------------------------------
+    // Container-centric
+    
+    // env
+    if (!starter.getEnvironment().getProperties().isEmpty()) {
+      List<String> env = new ArrayList<String>();
+      for (Property envProp : starter.getEnvironment().getProperties()) {
+        String envValue =  substitutor.replace(envProp.getValue());
+        env.add(envProp.getName() + "=" + envValue);
+      }
+      containerBuilder.env(env);
+    }
+
+    // mac
+    if (starter.getMacAddress().isSet()) {
+      containerBuilder.macAddress(substitutor.replace(starter.getMacAddress().get()));
+    }
+    
+    // user
+    if (starter.getUser().isSet()) {
+      containerBuilder.user(substitutor.replace(starter.getUser().get()));
+    }
+
+    // image
+    String image = null;
+    if (starter.getImage().isSet()) {
+      image = substitutor.replace(starter.getImage().get());
+    } else {
+      image =
+          context.getProcess().getDistributionInfo().getName() + ":"
+          + context.getProcess().getDistributionInfo().getVersion();
+    }
+    containerBuilder.image(image);
+
+    // cmd
+    if (!starterResult.getCommand().isEmpty()) {
+      String[] cmdArr = starterResult.getCommand().toArray();
+      for (int i = 0; i < cmdArr.length; i++) {
+        cmdArr[i] = substitutor.replace(cmdArr[i]);
+      }
+      containerBuilder.cmd(cmdArr);
+    }
+    
+    // working dir
+    containerBuilder.workingDir(substitutor.replace(context.getProcess().getProcessDir()));
+
+    // assigning host config
+    containerBuilder.hostConfig(hostConfigBuilder.build());
+    
+    // creating container
+    ContainerCreation creation = null;
+    
+    try {
+      creation = dockerClient.createContainer(
+          containerBuilder.build(),
+          context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
+      );
+  
+      String containerId = creation.id();
+      dockerClient.startContainer(containerId);
+      
+      callback.info(
+          String.format(
+            "Created Docker container for process %s (container id: %s, image: %s)",
+            ToStringUtils.toString(context.getProcess()) , containerId, image
+          )
+      );    
+      return containerId;
+    } catch (DockerException e) {
+      log.error("Could not start container for image: " + image, e);
+      callback.error(String.format("Could not start container for image: %s (%s)", image, e.getMessage()));
+      if (creation != null) {
+        callback.info("Will try stopping container " + creation.id());
+        try {
+          dockerClient.stopContainer(creation.id(), DEFAULT_SECONDS_BEFORE_KILL);
+        } catch (DockerException e2) {
+          callback.error(String.format("Could not stop container %s (%s)", creation.id(), e2.getMessage()));
+          log.error("Could not stop container " + creation.id(), e2);
+        }
+      }
+      throw e;
+    }
   }
   
   private LogCallback wrap(LogCallback callback) {
