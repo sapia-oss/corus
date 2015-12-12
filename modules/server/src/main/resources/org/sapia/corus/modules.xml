@@ -151,6 +151,20 @@
     </property>
   </bean>
   
+  <!-- ============== NUMA ============== -->
+  
+  <bean name="org.sapia.corus.numa.NumaModule" 
+        scope="singleton" 
+        class="org.sapia.corus.numa.NumaModuleImpl">
+      <constructor-arg ref="org.sapia.corus.client.services.configurator.Configurator"/>
+      <constructor-arg ref="org.sapia.corus.client.services.processor.Processor"/>
+      <property name="enabled"         value="${corus.server.numa.enabled}" />
+      <property name="bindingCpu"      value="${corus.server.numa.bind.cpu}" />
+      <property name="bindingMemory"   value="${corus.server.numa.bind.memory}" />
+      <property name="firstNumaNodeId" value="${corus.server.numa.first.node.id}" />
+      <property name="numaNodeCount"   value="${corus.server.numa.node.count}" />
+  </bean>
+  
   <!-- ============ PROCESSOR ============ -->
   
   <bean 

@@ -3,10 +3,10 @@
    <p>Lists the processes that are currently running.</p>
   </section>
   <section title="Syntax">
-    <p>ps [-d &lt;distribution_name&gt;] [-v &lt;version&gt;] [-n &lt;process_name&gt;] [-pr &lt;port_range_pattern&gt;] [-p &lt;profile&gt;] [-ports] [-cluster]</p>
+    <p>ps [-d &lt;distribution_name&gt;] [-v &lt;version&gt;] [-n &lt;process_name&gt;] [-pr &lt;port_range_pattern&gt;] [-p &lt;profile&gt;] [-ports | -numa] [-cluster]</p>
     <p/>
     <p>OR:</p>
-    <p>ps [-i &lt;process_identifier&gt;] [-ports]</p>
+    <p>ps [-i &lt;process_identifier&gt;] [-ports | -numa]</p>
     <p/>
     <p>OR:</p>
     <p>ps -clean [-cluster]</p>
@@ -28,6 +28,8 @@
     <p>- clean: indicates that processes in "stale" status must have their corresponding entry deleted from Corus.
     </p>
     <p>- ports: indicates that the ports used by the processes should be displayed.</p>
+    <p/>    
+    <p>- numa: indicates that the numa node binding of processes should be displayed.</p>
     <p/>    
     <p>- cluster: specifies if the command should be executed cluster-wide.</p>    
   </section>

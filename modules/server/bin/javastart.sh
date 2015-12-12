@@ -19,12 +19,12 @@ then
     # Run the command and send the output to the file
     echo "$*" >> ${OUTPUT_FILE}
     echo "" >> ${OUTPUT_FILE}
-    "$@" 1>> ${OUTPUT_FILE} 2>> ${OUTPUT_FILE} &
+    ${1+"$@"} 1>> ${OUTPUT_FILE} 2>> ${OUTPUT_FILE} &
 
 
 else
     # Run the command as is
-    "$@" &
+    ${1+"$@"} &
 fi
 
 echo $!
