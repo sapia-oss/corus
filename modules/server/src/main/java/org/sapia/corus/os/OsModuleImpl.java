@@ -3,6 +3,7 @@ package org.sapia.corus.os;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
@@ -14,9 +15,9 @@ import org.sapia.corus.core.ModuleHelper;
 
 /**
  * Implements the {@link OsModule} interface.
- * 
+ *
  * @author yduchesne
- * 
+ *
  */
 @Bind(moduleInterface = OsModule.class)
 public class OsModuleImpl extends ModuleHelper implements OsModule {
@@ -40,14 +41,15 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
 
   // ///////////// OsModule interface
 
+  @Override
   public String getRoleName() {
     return OsModule.ROLE;
   }
 
   @Override
-  public String executeProcess(LogCallback log, File rootDirectory, CmdLine commandLine) throws IOException {
+  public String executeProcess(LogCallback log, File rootDirectory, CmdLine commandLine, Map<String, String> processOptions) throws IOException {
     NativeProcess proc = NativeProcessFactory.newNativeProcess();
-    return proc.exec(log, rootDirectory, commandLine);
+    return proc.exec(log, rootDirectory, commandLine, processOptions);
   }
 
   @Override

@@ -37,21 +37,21 @@ import org.sapia.ubik.util.Strings;
 /**
  * This class models an external process. An instance of this class actually
  * corresponds to a process started by a Corus server.
- * 
+ *
  * @author Yanick Duchesne
  */
-public class Process extends AbstractPersistent<String, Process> 
+public class Process extends AbstractPersistent<String, Process>
   implements Externalizable, Comparable<Process>, JsonStreamable, Matcheable, Mappable {
 
   static final long serialVersionUID = 1L;
-  
+
   // --------------------------------------------------------------------------
   // Identifies the different types kill "requestors".
 
   public enum ProcessTerminationRequestor {
 
-    KILL_REQUESTOR_ADMIN("corus.admin", "Process termination has been requested by a Corus end user"), 
-    KILL_REQUESTOR_SERVER("corus.server", "Process termination has been requested by the Corus instance"), 
+    KILL_REQUESTOR_ADMIN("corus.admin", "Process termination has been requested by a Corus end user"),
+    KILL_REQUESTOR_SERVER("corus.server", "Process termination has been requested by the Corus instance"),
     KILL_REQUESTOR_PROCESS("corus.process", "Process termination has been requested by the process itself");
 
     private String type;
@@ -61,14 +61,14 @@ public class Process extends AbstractPersistent<String, Process>
       this.type        = type;
       this.description = description;
     }
-    
+
     /**
      * @return the actual requestor type.
      */
     public String getType() {
       return type;
     }
-    
+
     /**
      * @return this instance's description.
      */
@@ -81,7 +81,7 @@ public class Process extends AbstractPersistent<String, Process>
       return type;
     }
   }
-  
+
   // --------------------------------------------------------------------------
   // Holds the constants corresponding to the different process lifecycles.
 
@@ -89,21 +89,21 @@ public class Process extends AbstractPersistent<String, Process>
 
     /**
      * Corresponds to the "active" status: the process is up and running.
-     * 
+     *
      * @see #getStatus()
      */
     ACTIVE("act.", "Indicates that a process is running"),
 
     /**
      * Corresponds to the "kill requested" status: the process is shutting down.
-     * 
+     *
      * @see #getStatus()
      */
     KILL_REQUESTED("shutd.", "Indicates that the shutdown of a process has been requested"),
 
     /**
      * Corresponds to the "kill confirmed" status: the process has terminated.
-     * 
+     *
      * @see #getStatus()
      */
     KILL_CONFIRMED("shutd.", "Indicates that a process has confirmed its termination"),
@@ -111,7 +111,7 @@ public class Process extends AbstractPersistent<String, Process>
     /**
      * Corresponds to the "restarting" status: the process is in the
      * "restarting" queue.
-     * 
+     *
      * @see #getStatus()
      */
     RESTARTING("rest.", "Indicates that a process is restarting"),
@@ -119,7 +119,7 @@ public class Process extends AbstractPersistent<String, Process>
     /**
      * Corresponds to the "suspended" status: the process is in the "suspended"
      * queue.
-     * 
+     *
      * @see #getStatus()
      */
     SUSPENDED("susp.", "Indicates that a process is currently suspended"),
@@ -127,26 +127,26 @@ public class Process extends AbstractPersistent<String, Process>
     /**
      * Corresponds to the "stale" status: the process is in the active queue
      * still, bug flagged as stale.
-     * 
+     *
      * @see #getStatus()
      */
     STALE("stale", "Indicates that a process is stale (was deemed unresponsived and killed, and not restarted)");
-    
+
     private String abbr;
     private String description;
-    
+
     private LifeCycleStatus(String abbr, String description) {
       this.abbr        = abbr;
       this.description = description;
     }
-    
+
     /**
      * @return this instance's corresponding abbreviation (used for display).
      */
     public String abbreviation() {
       return abbr;
     }
-    
+
     /**
      * @return
      */
@@ -154,20 +154,21 @@ public class Process extends AbstractPersistent<String, Process>
       return description;
     }
   }
-  
+
   // --------------------------------------------------------------------------
 
-  private static final int VERSION_1       = 1;
-  private static final int VERSION_2       = 2;
-  private static final int VERSION_3       = 3;
+  private static final int VERSION_1 = 1;
+  private static final int VERSION_2 = 2;
+  private static final int VERSION_3 = 3;
+  private static final int VERSION_4 = 4;
   private static final Set<Integer> SUPPORTED_VERSIONS = Collects.arrayToSet(
-      VERSION_1, VERSION_2, VERSION_3
+      VERSION_1, VERSION_2, VERSION_3, VERSION_4
   );
-  private static final int CURRENT_VERSION = VERSION_3;
-  
+  private static final int CURRENT_VERSION = VERSION_4;
+
   public static final int DEFAULT_SHUTDOWN_TIMEOUT_SECS = 30;
   public static final int DEFAULT_KILL_RETRY            = 3;
-  
+
   private DistributionInfo                         distributionInfo;
   private String                                   processID       = IDGenerator.makeDateId();
   private String                                   processDir;
@@ -187,16 +188,18 @@ public class Process extends AbstractPersistent<String, Process>
   private ProcessStartupInfo                       startupInfo     = new ProcessStartupInfo();
   private boolean                                  interopEnabled  = true;
   private StarterType                              starterType     = StarterType.UNDEFINED;
+  private Integer                                  numaNode;
+  private final Map<String, String>           nativeProcessOptions = new HashMap<>();
 
   /**
    * Meant for externalization only.
    */
   public Process() {
   }
-  
+
   /**
    * Creates an instance of this class.
-   * 
+   *
    * @param info
    *          a {@link DistributionInfo}.
    */
@@ -206,7 +209,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Creates an instance of this class.
-   * 
+   *
    * @param info
    *          a {@link DistributionInfo}.
    * @param processID
@@ -219,7 +222,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Creates an instance of this class.
-   * 
+   *
    * @param info
    *          a {@link DistributionInfo}.
    * @param shutDownTimeoutSeconds
@@ -233,7 +236,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Creates an instance of this class.
-   * 
+   *
    * @param info
    *          a {@link DistributionInfo}.
    * @param shutDownTimeoutSeconds
@@ -274,7 +277,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns this process' distribution information.
-   * 
+   *
    * @return this instance's {@link DistributionInfo}.
    */
   public DistributionInfo getDistributionInfo() {
@@ -283,7 +286,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns this instance's process identifier.
-   * 
+   *
    * @return this instance's process identifier as a string.
    */
   public String getProcessID() {
@@ -292,7 +295,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns this instance's process directory.
-   * 
+   *
    * @return this instance's process process private directory.
    */
   public String getProcessDir() {
@@ -301,7 +304,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Sets this instance's process private directory.
-   * 
+   *
    * @param dir
    *          a valid directory path.
    */
@@ -311,7 +314,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns the time at which this instance was created.
-   * 
+   *
    * @return this instance's creation time as a long.
    */
   public long getCreationTime() {
@@ -320,7 +323,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns this instance's shutdown timeout.
-   * 
+   *
    * @return this instance's shutdown timeout, in seconds.
    */
   public int getShutdownTimeout() {
@@ -329,33 +332,33 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Sets this instance's shutdown timeout.
-   * 
+   *
    * @param timeout
    *          a timeout in seconds.
    */
   public void setShutdownTimeout(int timeout) {
     shutdownTimeout = timeout;
   }
-  
+
   /**
-   * @param pollTimeout 
+   * @param pollTimeout
    *          the amount of time (in seconds) that the Corus server should give to a process to poll,
    *          beyond which the process should be deemed irresponsive.
    */
   public void setPollTimeout(int pollTimeout) {
     this.pollTimeout = pollTimeout;
   }
-  
+
   /**
    * Returns a polling timeout. If it timeout <= 0, the value configured on the server side
    * should be used.
-   * 
+   *
    * @return the amount of time (in seconds) that the Corus server should give to a process to poll,
    *          beyond which the process should be deemed irresponsive.
    */
   public int getPollTimeout() {
     return pollTimeout;
-  }  
+  }
 
   /**
    * @return the <code>List</code> of <code>ActivePort</code>s that this
@@ -371,7 +374,7 @@ public class Process extends AbstractPersistent<String, Process>
    */
   public void releasePorts(PortManager ports) {
     for (int i = 0; i < activePorts.size(); i++) {
-      ActivePort port = (ActivePort) activePorts.remove(i--);
+      ActivePort port = activePorts.remove(i--);
       ports.releasePort(port.getName(), port.getPort());
     }
   }
@@ -385,9 +388,44 @@ public class Process extends AbstractPersistent<String, Process>
   }
 
   /**
+   * @return the assigned numa node of this process.
+   */
+  public Integer getNumaNode() {
+    return numaNode;
+  }
+
+  /**
+   * Changes the numa node assigned to this process.
+   *
+   * @param nodeId The new numa node value.
+   */
+  public void setNumaNode(Integer nodeId) {
+    numaNode = nodeId;
+  }
+
+  /**
+   * @return The native process options of this process.
+   */
+  public Map<String, String> getNativeProcessOptions() {
+    return nativeProcessOptions;
+  }
+
+  /**
+   * Sets a native process option to the given value.
+   *
+   * @param optionName The name of the native process option.
+   * @param optionValue The value of the native process options.
+   * @return This {@link Process} instance to chain calls like a builder.
+   */
+  public Process setNativeProcessOption(String optionName, String optionValue) {
+    nativeProcessOptions.put(optionName, optionValue);
+    return this;
+  }
+
+  /**
    * Returns the maximum amount of time the Corus server should attempt killing
    * the process corresponding to this instance before it performs an "OS" kill.
-   * 
+   *
    * @return the maximum amount of time the Corus server should try killing the
    *         process corresponding to this instance.
    */
@@ -397,7 +435,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Sets this instance's max number of kill retries.
-   * 
+   *
    * @param retry
    *          a max number of retries.
    */
@@ -415,42 +453,42 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Sets this instance's OS-specific process identifier.
-   * 
+   *
    * @param pid
    *          an OS-specific identifier.
    */
   public void setOsPid(String pid) {
     this.pid = pid;
   }
-  
+
   /**
    * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
    */
   public void setInteropEnabled(boolean interopEnabled) {
     this.interopEnabled = interopEnabled;
   }
-  
+
   /**
    * @return <code>true</code> if interop is enabled.
    */
   public boolean isInteropEnabled() {
     return interopEnabled;
   }
-  
+
   /**
    * @param startupInfo the {@link ProcessStartupInfo} to assign to this instance.
    */
   public void setStartupInfo(ProcessStartupInfo startupInfo) {
     this.startupInfo = startupInfo;
   }
-  
+
   /**
    * @return this instance's {@link ProcessStartupInfo}.
    */
   public ProcessStartupInfo getStartupInfo() {
     return startupInfo;
   }
-  
+
   /**
    * @param starterType the {@link StarterType} corresponding to the {@link Starter} which generated the command-line
    * to start this process.
@@ -458,7 +496,7 @@ public class Process extends AbstractPersistent<String, Process>
   public void setStarterType(StarterType starterType) {
     this.starterType = starterType;
   }
-  
+
   /**
    * @return the {@link StarterType} corresponding to the {@link Starter} which generated the command-line
    * to start this process.
@@ -470,9 +508,9 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Returns the time at which this instance was last accessed by its
    * corresponding process.
-   * 
+   *
    * @return a time in milliseconds.
-   * 
+   *
    */
   public long getLastAccess() {
     return lastAccess;
@@ -496,7 +534,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Called by this instance's corresponding process when the latter polls the
    * corus server.
-   * 
+   *
    * @return the {@link List} of pending commands for the process.
    */
   public synchronized List<AbstractCommand> poll() {
@@ -512,7 +550,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Called by this instance's corresponding process when the latter sends its
    * status to the corus server.
-   * 
+   *
    * @return the <code>List</code> of pending commands for the process.
    */
   public synchronized List<AbstractCommand> status(org.sapia.corus.interop.Status stat) {
@@ -535,7 +573,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * This process' "interoperability" status: corresponds to the "status"
    * message defined by the Corus Interop Spec.
-   * 
+   *
    * @return the <code>Status</code> of this process instance.
    */
   @Transient
@@ -546,7 +584,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Creates a configuration event of updated configuration properties to be published
    * to the managed process the next time it polls back the server.
-   * 
+   *
    * @param updatedProperties The collection of updated properties.
    */
   public synchronized void configurationUpdated(Collection<Property> updatedProperties) {
@@ -558,7 +596,7 @@ public class Process extends AbstractPersistent<String, Process>
       for (Property property: updatedProperties) {
         builder.param(property.getName(), property.getValue());
       }
-      
+
       getCommands().add(builder.build());
     }
   }
@@ -566,7 +604,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Creates a configuration event of deleted configuration properties to be published
    * to the managed process the next time it polls back the server.
-   * 
+   *
    * @param deletedProperties The collection of the deleted properties
    */
   public synchronized void configurationDeleted(Collection<Property> deletedProperties) {
@@ -578,11 +616,11 @@ public class Process extends AbstractPersistent<String, Process>
       for (Property property: deletedProperties) {
         builder.param(property.getName(), "");
       }
-      
+
       getCommands().add(builder.build());
     }
   }
-  
+
   /**
    * Asks that this instance notifies its process that it should terminate.
    */
@@ -621,7 +659,7 @@ public class Process extends AbstractPersistent<String, Process>
   public void touch() {
     lastAccess = System.currentTimeMillis();
   }
-  
+
   @Override
   public void recycle() {
     touch();
@@ -638,7 +676,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Sets this process' status.
-   * 
+   *
    * @param status
    *          a {@link LifeCycleStatus}
    */
@@ -649,7 +687,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Returns <code>true</code> if the process corresponding to this instance has
    * timed-out (has not polled for the amount of time specified).
-   * 
+   *
    * @param timeout
    *          a timeout used internally for verification.
    * @return <code>true</code> if this process has timed-out.
@@ -661,7 +699,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * Returns <code>true</code> if the process corresponding to this instance has
    * not confirmed its shut-down within its assigned shutdown delay.
-   * 
+   *
    * @return <code>true</code> if this instance's process shutdown has timed
    *         out.
    */
@@ -677,7 +715,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Returns the {@link ProcessLock} on this instance.
-   * 
+   *
    * @return a {@link ProcessLock}.
    */
   @Transient
@@ -691,7 +729,7 @@ public class Process extends AbstractPersistent<String, Process>
 
   /**
    * Clears this instance's state:
-   * 
+   *
    * <ul>
    * <li>Empties this instance's command queue (see {@link #getCommands()}).
    * <li>Sets this instance's creation to the current time.
@@ -706,7 +744,7 @@ public class Process extends AbstractPersistent<String, Process>
     lastAccess   = System.currentTimeMillis();
     status       = LifeCycleStatus.ACTIVE;
   }
-  
+
   @Override
   public Map<String, Object> asMap() {
     Map<String, Object> toReturn = new HashMap<String, Object>();
@@ -723,7 +761,7 @@ public class Process extends AbstractPersistent<String, Process>
     toReturn.put("process.maxKillRetry", maxKillRetry);
     return toReturn;
   }
-  
+
   @Override
   public void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
@@ -734,7 +772,7 @@ public class Process extends AbstractPersistent<String, Process>
       .field("distribution").value(distributionInfo.getName())
       .field("version").value(distributionInfo.getVersion())
       .field("profile").value(distributionInfo.getProfile());
-    
+
     if (level == ContentLevel.DETAIL) {
       stream.field("creationTimeMillis").value(creationTime)
       .field("creationTimestamp").value(new Date(creationTime))
@@ -750,7 +788,7 @@ public class Process extends AbstractPersistent<String, Process>
       .field("interopEnabled").value(interopEnabled)
       .field("starterType").value(starterType.name());
     }
-    
+
     stream.field("activePorts").beginArray();
     for (ActivePort p : activePorts) {
       stream.beginObject()
@@ -763,9 +801,27 @@ public class Process extends AbstractPersistent<String, Process>
       stream.field("startupInfo");
       startupInfo.toJson(stream, level);
     }
+
+    // V4
+    if (level == ContentLevel.DETAIL) {
+      if (numaNode != null) {
+        stream.field("numaNode").value(numaNode.intValue());
+      }
+      if (nativeProcessOptions.size() > 0) {
+        stream.field("nativeProcessOptions").beginArray();
+        for (Map.Entry<String, String> entry: nativeProcessOptions.entrySet()) {
+          stream.beginObject()
+              .field(entry.getKey())
+              .value(entry.getValue())
+              .endObject();
+        }
+        stream.endArray();
+      }
+    }
+
     stream.endObject();
   }
-  
+
   public static Process fromJson(JsonInput input) {
     Process p = new Process();
     int inputVersion = input.getInt("classVersion");
@@ -797,22 +853,34 @@ public class Process extends AbstractPersistent<String, Process>
       }
       if (inputVersion >= VERSION_2) {
         p.startupInfo = ProcessStartupInfo.fromJson(input.getObject("startupInfo"));
-      } 
+      }
       if (inputVersion >= VERSION_3) {
         p.interopEnabled = input.getBoolean("interopEnabled");
         p.starterType = StarterType.valueOf(input.getString("starterType"));
       }
-      
+      if (inputVersion >= VERSION_4) {
+        if (input.containsField("numaNode")) {
+          p.setNumaNode(input.getInt("numaNode"));
+        }
+        if (input.containsField("nativeProcessOptions")) {
+          for (JsonInput in : input.iterate("nativeProcessOptions")) {
+            for (String name: in.fields()) {
+              p.setNativeProcessOption(name, in.getString(name));
+            }
+          }
+        }
+      }
+
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
-    
+
     return p;
   }
-  
+
   @Override
   public boolean matches(Pattern pattern) {
-    return (pid != null && pattern.matches(pid)) || 
+    return (pid != null && pattern.matches(pid)) ||
         pattern.matches(processID) ||
         pattern.matches(distributionInfo.getName()) ||
         pattern.matches(distributionInfo.getProcessName()) ||
@@ -821,7 +889,7 @@ public class Process extends AbstractPersistent<String, Process>
         pattern.matches(status.name().toLowerCase()) ||
         pattern.matches(status.abbreviation());
   }
-  
+
   public boolean matches(ProcessCriteria criteria) {
     return criteria.getDistribution().matches(distributionInfo.getName())
         && criteria.getVersion().matches(distributionInfo.getVersion())
@@ -832,7 +900,7 @@ public class Process extends AbstractPersistent<String, Process>
         && (criteria.getProfile().isNull() || criteria.getProfile().get().equals(distributionInfo.getProfile()))
         && matches(criteria.getPortCriteria());
   }
-  
+
   private boolean matches(OptionalValue<PortCriteria> criteria) {
     if (criteria.isSet()) {
       for (ActivePort p : activePorts) {
@@ -844,11 +912,11 @@ public class Process extends AbstractPersistent<String, Process>
     }
     return true;
   }
- 
+
 
   // --------------------------------------------------------------------------
   // Comparable
-  
+
   @Override
   public int compareTo(Process other) {
     int c = distributionInfo.compareTo(other.getDistributionInfo());
@@ -857,16 +925,16 @@ public class Process extends AbstractPersistent<String, Process>
     }
     return c;
   }
-  
+
   // --------------------------------------------------------------------------
   // Object overrides
 
   @Override
   public String toString() {
     return Strings.toStringFor(
-        this, "id", processID, 
-        "pid", pid, 
-        "status", status, 
+        this, "id", processID,
+        "pid", pid,
+        "status", status,
         "lock", lock,
         "deleted", isDeleted()
     );
@@ -888,14 +956,14 @@ public class Process extends AbstractPersistent<String, Process>
 
   // --------------------------------------------------------------------------
   // Externalizable
-  
+
   @SuppressWarnings("unchecked")
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {
-    
+
     int inputVersion = in.readInt();
-    
+
     if (SUPPORTED_VERSIONS.contains(inputVersion)) {
       distributionInfo = (DistributionInfo) in.readObject();
       processID        = in.readUTF();
@@ -918,14 +986,23 @@ public class Process extends AbstractPersistent<String, Process>
         interopEnabled = in.readBoolean();
         starterType = (StarterType) in.readObject();
       }
+      if (inputVersion >= VERSION_4) {
+        if (in.readBoolean()) {
+          numaNode = in.readInt();
+        }
+        int nativeProcessOptionCount = in.readInt();
+        for (int i = 0; i < nativeProcessOptionCount; i++) {
+          nativeProcessOptions.put(in.readUTF(), in.readUTF());
+        }
+      }
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
   }
-  
+
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    
+
     out.writeInt(CURRENT_VERSION);
     // V1
     out.writeObject(distributionInfo);
@@ -946,7 +1023,18 @@ public class Process extends AbstractPersistent<String, Process>
     // V3
     out.writeBoolean(interopEnabled);
     out.writeObject(starterType);
-
+    // V4
+    if (numaNode != null) {
+      out.writeBoolean(true);
+      out.writeInt(numaNode);
+    } else {
+      out.writeBoolean(false);
+    }
+    out.writeInt(nativeProcessOptions.size());
+    for (Map.Entry<String, String> entry: nativeProcessOptions.entrySet()) {
+      out.writeUTF(entry.getKey());
+      out.writeUTF(entry.getValue());
+    }
   }
-  
+
 }

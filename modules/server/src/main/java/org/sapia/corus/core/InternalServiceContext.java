@@ -22,6 +22,7 @@ import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.deployer.archiver.DistributionArchiver;
 import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
+import org.sapia.corus.numa.NumaModule;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -43,10 +44,10 @@ import org.sapia.corus.taskmanager.core.TaskManager;
  * Any object that has access to an instance of this class can also bind its own
  * objects (i.e.: those that it creates itself and are not instantiated by the
  * Spring container).
- * 
- * 
+ *
+ *
  * @author yduchesne
- * 
+ *
  */
 public class InternalServiceContext {
 
@@ -93,14 +94,14 @@ public class InternalServiceContext {
   public Processor getProcessor() {
     return lookup(Processor.class);
   }
-  
+
   /**
    * @return the {@link DistributionArchiver}.
    */
   public DistributionArchiver getDistributionArchiver() {
     return lookup(DistributionArchiver.class);
   }
- 
+
   /**
    * @return the {@link Deployer}
    */
@@ -130,6 +131,13 @@ public class InternalServiceContext {
   }
 
   /**
+   * @return The {@link NumaModule}
+   */
+  public NumaModule getNumaModule() {
+    return lookup(NumaModule.class);
+  }
+
+  /**
    * @return the {@link Configurator}
    */
   public Configurator getConfigurator() {
@@ -156,14 +164,14 @@ public class InternalServiceContext {
   public ShellScriptManager getScriptManager() {
     return lookup(ShellScriptManager.class);
   }
-  
+
   /**
    * @return the {@link SecurityModule}.
    */
   public SecurityModule getSecurityModule() {
     return lookup(SecurityModule.class);
   }
-  
+
   /**
    * @return the {@link ApplicationKeyManager}.
    */
@@ -177,21 +185,21 @@ public class InternalServiceContext {
   public OsModule getOS() {
     return lookup(OsModule.class);
   }
-  
+
   /**
    * @return the {@link DiagnosticModule}.
    */
   public DiagnosticModule getDiagnosticModule() {
     return lookup(DiagnosticModule.class);
   }
-  
+
   /**
    * @return the {@link ProcessPublisher}.
    */
   public ProcessPublisher getProcessPublisher() {
     return lookup(ProcessPublisher.class);
   }
-  
+
   /**
    * @return the {@link Auditor} module.
    */
@@ -201,7 +209,7 @@ public class InternalServiceContext {
 
   /**
    * Returns the service instance corresponding to the given interface.
-   * 
+   *
    * @param <S>
    * @param serviceInterface
    *          the interface of the desired service.
@@ -219,7 +227,7 @@ public class InternalServiceContext {
 
   /**
    * Looks up the service with the given name and returns it.
-   * 
+   *
    * @param name
    *          the name of the service to return.
    * @return an {@link Object} matching the given name.
@@ -234,7 +242,7 @@ public class InternalServiceContext {
 
   /**
    * Binds the given service instance "under" the given interface.
-   * 
+   *
    * @param serviceInterface
    *          the interface to use to internally bind the service (this
    *          interface can later be used for lookup).
@@ -250,7 +258,7 @@ public class InternalServiceContext {
   /**
    * Binds the given service instance "under" the given interface - ignoring any
    * already existing binding for that interface.
-   * 
+   *
    * @param serviceInterface
    *          the interface to use to internally bind the service (this
    *          interface can later be used for lookup).

@@ -4,7 +4,7 @@ import java.io.File;
 
 /**
  * This interface holds common property names.
- * 
+ *
  * @author Yanick Duchesne
  */
 public interface CorusConsts {
@@ -51,7 +51,7 @@ public interface CorusConsts {
   /**
    * Corresponds to the property that defines the multicast port.
    *
-   * @deprecated
+   * @deprecate
    */
   public static final String PROPERTY_CORUS_MCAST_PORT               = "corus.server.multicast.port";
 
@@ -59,7 +59,7 @@ public interface CorusConsts {
 
   // --------------------------------------------------------------------------
   // File & security-related
-  
+
 
   /**
    * Corresponds to the property for setting the keypair generation algorithm.
@@ -160,9 +160,28 @@ public interface CorusConsts {
   public static final String PROPERTY_CORUS_DOCKER_REGISTRY_ENABLED    = "corus.server.docker.registry.sync-enabled";
 
   public static final String PROPERTY_CORUS_DOCKER_AUTO_REMOVE_ENABLED = "corus.server.docker.image-auto-remove-enabled";
-  
+
   public static final String PROPERTY_CORUS_DOCKER_DAEMON_URL          = "corus.server.docker.daemon.url";
 
   public static final String PROPERTY_CORUS_DOCKER_CERTIFICATES_PATH   = "corus.server.docker.certificates.path";
+
+
+  // --------------------------------------------------------------------------
+  // NUMA
+
+  /** Indicates if NUMA integration is enabled. */
+  public static final String PROPERTY_CORUS_NUMA_ENABLED       = "corus.server.numa.enabled";
+
+  /** Indicates if corus should bind process to numa cpu nodes or not. */
+  public static final String PROPERTY_CORUS_NUMA_BIND_CPU      = "corus.server.numa.bind.cpu";
+
+  /** Indicates if corus should bind process to numa memory slot or not. */
+  public static final String PROPERTY_CORUS_NUMA_BIND_MEMORY   = "corus.server.numa.bind.memory";
+
+  /** Indicates the number of numa nodes available on the current host. */
+  public static final String PROPERTY_CORUS_NUMA_NODE_COUNT    = "corus.server.numa.node.count";
+
+  /** Indicates the starting numa node id from which corus should start doing process binding. */
+  public static final String PROPERTY_CORUS_NUMA_FIRST_NODE_ID = "corus.server.numa.first.node.id";
 
 }
