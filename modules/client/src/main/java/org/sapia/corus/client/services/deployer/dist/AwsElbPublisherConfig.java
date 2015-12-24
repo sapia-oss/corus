@@ -9,14 +9,17 @@ import org.sapia.ubik.util.Strings;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
+
 /**
  * Holds Amazon ELB publishing config.
  * 
  * @author yduchesne
  *
  */
-public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, ObjectCreationCallback {
+public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, ObjectCreationCallback  {
   
+  public static final String ELEMENT_NAME = "aws-elb-publisher";
   public static final int DEFAULT_MAX_UNPUBLISH_ATTEMPTS  = 20;
   public static final int DEFAULT_UNPUBLISH_INTERVAL      = 5;
   
@@ -73,9 +76,7 @@ public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, 
   // ObjectCreationCallback interface
   
   public Object onCreate() throws ConfigurationException {
-    if (elbName == null) {
-      throw new ConfigurationException("ELB name not set");
-    }
+    attributeNotNullOrEmpty(ELEMENT_NAME, "elbName", elbName);
     return this;
   }
   

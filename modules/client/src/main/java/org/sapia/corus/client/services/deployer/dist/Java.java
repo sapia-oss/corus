@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNull;
+
 import java.io.File;
 
 import org.apache.commons.lang.text.StrLookup;
@@ -8,16 +10,18 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Corresponds to the "java" element of the corus.xml file.
  * 
  * @author Yanick Duchesne
  */
-public class Java extends BaseJavaStarter {
+public class Java extends BaseJavaStarter implements ObjectCreationCallback {
 
   public static final String CORUS_JAVAPROC_MAIN_CLASS = "corus.process.java.main";
-  public static final String STARTER_CLASS = "org.sapia.corus.starter.Starter";
+  public static final String STARTER_CLASS             = "org.sapia.corus.starter.Starter";
 
   static final long serialVersionUID = 1L;
 
@@ -26,10 +30,6 @@ public class Java extends BaseJavaStarter {
   protected String mainArgs;
   protected String libDirs;
   private boolean interopEnabled = true;
-
-  public void setCorusHome(String home) {
-    corusHome = home;
-  }
 
   /**
    * Sets the name of the class to execute - class must have a main() method.
@@ -106,6 +106,13 @@ public class Java extends BaseJavaStarter {
     }
 
     return new StarterResult(StarterType.JAVA, result.command, interopEnabled);
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    super.doValidate("java");
+    attributeNotNull("java", "mainClass", mainClass);
+    return this;
   }
 
   private String getMainCp(Env env) {

@@ -24,16 +24,16 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("magnet", Magnet.class);
     register("generic", Generic.class);
     register("option", Option.class);
-    register("arg", VmArg.class);
+    register(VmArg.ELEMENT_NAME, VmArg.class);
     register("property", Property.class);
     register("xoption", XOption.class);
     register("process", ProcessConfig.class);
     register("preExec", PreExec.class);
     register("cmd", Cmd.class);
-    register("https-diagnostic", HttpsDiagnosticConfig.class);
-    register("http-diagnostic", HttpDiagnosticConfig.class);
-    register("aws-elb-publisher", AwsElbPublisherConfig.class);
-    register("consul-publisher", ConsulPublisherConfig.class);
+    register(HttpsDiagnosticConfig.ELEMENT_NAME, HttpsDiagnosticConfig.class);
+    register(HttpDiagnosticConfig.ELEMENT_NAME, HttpDiagnosticConfig.class);
+    register(AwsElbPublisherConfig.ELEMENT_NAME, AwsElbPublisherConfig.class);
+    register(ConsulPublisherConfig.ELEMENT_NAME, ConsulPublisherConfig.class);
   }
 
   void register(String localName, Class<?> clazz) {

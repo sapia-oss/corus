@@ -7,13 +7,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.deployer.dist.ConsulPublisherConfig;
 import org.sapia.corus.client.services.deployer.dist.HttpDiagnosticConfig;
 import org.sapia.corus.client.services.deployer.dist.Port;
@@ -190,6 +194,11 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     JsonStream   stream = new WriterJsonStream(sw);
     Endpoint     ep     = serverContext().getCorusHost().getEndpoint();
     
+    List<String> categories = new ArrayList<String>();
+    categories.addAll(context.getDistribution().getPropertyCategories());
+    categories.addAll(context.getProcessConfig().getPropertyCategories());
+    PropertiesStrLookup processProps = new PropertiesStrLookup(configurator.getProperties(PropertyScope.PROCESS, categories));
+    StrSubstitutor subs = new StrSubstitutor(processProps);
     stream
       .beginObject()
         .field("id").value(serviceName + "-" + servicePort)
@@ -204,8 +213,8 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
             .field("http").value(diagnosticConf.getProtocol() + "://" 
                 + serverContext().getCorusHost().getEndpoint().getServerTcpAddress().getHost() 
                 + ":" + servicePort + diagnosticConf.getPath())
-            .field("interval").value(pubConf.getCheckInterval() + "s")
-            .field("timeout").value(pubConf.getCheckTimeout() + "s")
+            .field("interval").value(subs.replace(pubConf.getCheckInterval()) + "s")
+            .field("timeout").value(subs.replace(pubConf.getCheckTimeout()) + "s")
           .endObject()
         .endArray()
       .endObject();

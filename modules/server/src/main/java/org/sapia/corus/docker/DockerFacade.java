@@ -1,8 +1,5 @@
 package org.sapia.corus.docker;
 
-import org.sapia.corus.client.common.log.LogCallback;
-
-import com.spotify.docker.client.DockerClient;
 
 /**
  * Hides Docker integration details.

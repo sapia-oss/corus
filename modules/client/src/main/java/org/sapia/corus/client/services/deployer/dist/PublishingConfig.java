@@ -25,13 +25,9 @@ public class PublishingConfig implements ObjectHandlerIF, Externalizable {
   }
   
   @Override
-  public void handleObject(String name, Object obj)
-      throws ConfigurationException {
-    if (obj instanceof ProcessPubConfig) {
-      configs.add((ProcessPubConfig) obj);
-    } else {
-      throw new ConfigurationException("Unexpected instance: " + obj + " under " + this);
-    }
+  public void handleObject(String name, Object obj) throws ConfigurationException {
+    ConfigAssertions.elementExpectsInstanceOf("publishing", ProcessPubConfig.class, obj);
+    configs.add((ProcessPubConfig) obj);
   }
   
   @SuppressWarnings("unchecked")

@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.File;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,9 @@ import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Strings;
+import org.sapia.util.xml.confix.ConfigurationException;
+
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
 
 /**
  * This helper class can be inherited from to implement {@link Starter}s that
@@ -315,6 +319,13 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     }
 
     return buf.toString();
+  }
+  
+  protected void doValidate(String elementName) throws ConfigurationException {
+    attributeNotNullOrEmpty(elementName, "corusHome", corusHome);
+    attributeNotNullOrEmpty(elementName, "javaCmd", javaCmd);
+    attributeNotNullOrEmpty(elementName, "javaHome", javaHome);
+    attributeNotNullOrEmpty(elementName, "profile", profile);
   }
 
   static final class CmdLineBuildResult {

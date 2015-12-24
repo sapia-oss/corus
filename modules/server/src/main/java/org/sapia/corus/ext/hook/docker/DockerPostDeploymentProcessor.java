@@ -1,8 +1,11 @@
 package org.sapia.corus.ext.hook.docker;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.ToStringUtils;
 import org.sapia.corus.client.common.log.LogCallback;
@@ -16,6 +19,7 @@ import org.sapia.corus.deployer.processor.DeploymentPostProcessor;
 import org.sapia.corus.deployer.processor.UndeploymentPostProcessor;
 import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
+import org.sapia.corus.docker.DockerFacadeException;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, UndeploymentPostProcessor {
+  
+  private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
 
   @Autowired
   private Configurator configurator;
@@ -59,7 +65,12 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
             data.getLeft(), ToStringUtils.toString(context.getDistribution())
         ));
 
-        data.getRight().pullImage(data.getLeft(), callback);
+        try {
+          data.getRight().pullImage(data.getLeft(), callback);
+        } catch (DockerFacadeException | IOException e) {
+          log.error("Error trying to sync with Docker in post-deploy", e);
+          callback.error(e.getMessage());
+        }
         return null;
       }
     });
@@ -79,7 +90,12 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
             data.getLeft(), ToStringUtils.toString(context.getDistribution())
         ));
 
-        data.getRight().removeImage(data.getLeft(), callback);
+        try {
+          data.getRight().removeImage(data.getLeft(), callback);
+        } catch (DockerFacadeException | IOException e) {
+          log.error("Error trying to sync with Docker in post-undeploy", e);
+          callback.error(e.getMessage());
+        }
         return null;
       }
     });
