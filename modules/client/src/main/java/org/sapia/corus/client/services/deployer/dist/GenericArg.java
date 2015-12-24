@@ -5,6 +5,8 @@ import java.io.Serializable;
 import org.sapia.console.Arg;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Models a generic command-line argument.
@@ -12,7 +14,7 @@ import org.sapia.corus.client.common.Env;
  * @author yduchesne
  *
  */
-public class GenericArg implements CmdGenerator, Serializable {
+public class GenericArg implements CmdGenerator, Serializable, ObjectCreationCallback {
   
   private static final long serialVersionUID = 1L;
   
@@ -35,5 +37,11 @@ public class GenericArg implements CmdGenerator, Serializable {
   @Override
   public void generate(Env env, CmdLine toAppendTo) {
     toAppendTo.addArg(new Arg(value));
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    ConfigAssertions.attributeNotNull("arg", "value", value);
+    return this;
   }
 }

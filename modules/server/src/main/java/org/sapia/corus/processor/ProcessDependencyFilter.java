@@ -151,40 +151,37 @@ public class ProcessDependencyFilter {
     List<Dependency> deps = parentNode.getProcessRef().getProcessConfig().getDependenciesFor(defaultProfile);
     if (deps.size() > 0) {
       for (Dependency dep : deps) {
-        if (dep.getDist() != null) {
-          String currentVersion = dep.getVersion() != null ? dep.getVersion() : defaultVersion;
-          String currentProfile = dep.getProfile() != null ? dep.getProfile() : defaultProfile;
-          try {
-            Distribution dist = callback.getDistribution(new StringArg(dep.getDist()), new StringArg(currentVersion));
-            if (dist != null) {
-              ProcessConfig depProcess = dist.getProcess(dep.getProcess());
-              if (depProcess != null) {
-                if (depProcess.containsProfile(currentProfile)) {
-                  if (callback.getProcesses(new StringArg(dist.getName()), new StringArg(currentVersion), currentProfile,
-                      new StringArg(dep.getProcess())).size() == 0) {
-                    ProcessRef ref = new ProcessRef(dist, depProcess, currentProfile);
-                    DependencyGraphNode childNode = new DependencyGraphNode(ref);
-                    if (parentNode.add(ref)) {
-                      doFilterDependencies(childNode, defaultVersion, currentProfile, callback);
-                    }
-                  } else {
-                    progress.warning("Process already running for distribution " + dep.getDist() + ", version: " + currentVersion + ", profile: "
-                        + currentProfile);
+        String distName = dep.getDist().isSet() ? dep.getDist().get() : parentNode.getProcessRef().getDist().getName();
+        String currentVersion = dep.getVersion().isSet() ? dep.getVersion().get() : defaultVersion;
+        String currentProfile = dep.getProfile().isSet() ? dep.getProfile().get() : defaultProfile;
+        try {
+          Distribution dist = callback.getDistribution(new StringArg(distName), new StringArg(currentVersion));
+          if (dist != null) {
+            ProcessConfig depProcess = dist.getProcess(dep.getProcess());
+            if (depProcess != null) {
+              if (depProcess.containsProfile(currentProfile)) {
+                if (callback.getProcesses(new StringArg(dist.getName()), new StringArg(currentVersion), currentProfile,
+                    new StringArg(dep.getProcess())).size() == 0) {
+                  ProcessRef ref = new ProcessRef(dist, depProcess, currentProfile);
+                  DependencyGraphNode childNode = new DependencyGraphNode(ref);
+                  if (parentNode.add(ref)) {
+                    doFilterDependencies(childNode, defaultVersion, currentProfile, callback);
                   }
                 } else {
-                  progress.warning("Profile " + currentProfile + " not found for dependency - distribution " + dist + ", process: " + depProcess);
+                  progress.warning("Process already running for distribution " + dep.getDist() + ", version: " + currentVersion + ", profile: "
+                      + currentProfile);
                 }
               } else {
-                progress.warning("No process found: " + dep.getProcess() + " in distribution: " + dist);
+                progress.warning("Profile " + currentProfile + " not found for dependency - distribution " + dist + ", process: " + depProcess);
               }
             } else {
-              progress.warning("No distribution found for dependency - distribution " + dep.getDist() + ", version: " + currentVersion);
+              progress.warning("No process found: " + dep.getProcess() + " in distribution: " + dist);
             }
-          } catch (DistributionNotFoundException dnfe) {
-            progress.warning("Could not find distribution for dependency: " + dnfe.getMessage());
+          } else {
+            progress.warning("No distribution found for dependency - distribution " + dep.getDist() + ", version: " + currentVersion);
           }
-        } else { // no distribution specified
-          progress.warning("No distribution specified for dependency " + dep + " in " + parentNode.getProcessRef().getDist());
+        } catch (DistributionNotFoundException dnfe) {
+          progress.warning("Could not find distribution for dependency: " + dnfe.getMessage());
         }
       }
     }

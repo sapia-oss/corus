@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.File;
 
 import org.sapia.console.CmdLine;
@@ -7,6 +9,8 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileUtils;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * This class corresponds to the <code>magnet</code> element in the corus.xml
@@ -14,7 +18,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
  * 
  * @author Yanick Duchesne
  */
-public class Magnet extends BaseJavaStarter implements java.io.Serializable {
+public class Magnet extends BaseJavaStarter implements java.io.Serializable, ObjectCreationCallback {
 
   static final long serialVersionUID = 1L;
 
@@ -25,6 +29,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   private String libDirs;
   private boolean interopEnabled = true;
 
+  
   /**
    * Sets the name of the magnet file that will be used to start the VM.
    * 
@@ -62,7 +67,6 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   public boolean isInteropEnabled() {
     return interopEnabled;
   }
-  
 
   /**
    * Returns a "command-line" representation of this instance.
@@ -96,6 +100,12 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
     }
 
     return new StarterResult(StarterType.MAGNET, result.command, interopEnabled);
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    attributeNotNullOrEmpty("magnet", "magnetFile", magnetFile);
+    return this;
   }
 
   public String toString() {

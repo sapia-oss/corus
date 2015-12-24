@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import java.io.Serializable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,10 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Assertions;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
+
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
 
 /**
  * A {@link Starter} implementation used to start any type of process (supports specifying the corresponding
@@ -22,7 +27,7 @@ import org.sapia.ubik.util.Assertions;
  * @author yduchesne
  *
  */
-public class Generic implements Starter, Serializable {
+public class Generic implements Starter, Serializable, ObjectCreationCallback {
   
   static final long serialVersionUID = 1L;
 
@@ -128,6 +133,13 @@ public class Generic implements Starter, Serializable {
     
     return new StarterResult(StarterType.GENERIC, cmd, interopEnabled);
   }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    attributeNotNullOrEmpty("generic", "profile", profile);
+    return this;
+  }
+  
   
   private String render(StrLookup context, String value) {
     StrSubstitutor substitutor = new StrSubstitutor(context);

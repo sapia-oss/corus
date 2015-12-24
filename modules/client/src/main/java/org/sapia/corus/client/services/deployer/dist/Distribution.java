@@ -1,5 +1,8 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.elementAtleast;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -422,8 +425,24 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     }
     stream.endObject();
   }
+
+  // --------------------------------------------------------------------------
+  // ObjectCreationCallback interface
+  
+  public Object onCreate() throws ConfigurationException {
+    for (ProcessConfig cfg : processConfigs) {
+      cfg.init(name, version);
+    }
+    
+    attributeNotNullOrEmpty("distribution", "name", name);
+    attributeNotNullOrEmpty("distribution", "version", version);
+    elementAtleast("process", 1, processConfigs);
+    
+    return this;
+  }
   
   // --------------------------------------------------------------------------
+  // Object overriddes
   
   @Override
   public String toString() {  
@@ -445,6 +464,9 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     }
   }
 
+  // --------------------------------------------------------------------------
+  // Comparable interface
+  
   @Override
   public int compareTo(Distribution other) {
     int c = name.compareTo(other.getName());
@@ -453,13 +475,9 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
     }
     return c;
   }
-
-  public Object onCreate() throws ConfigurationException {
-    for (ProcessConfig cfg : processConfigs) {
-      cfg.init(name, version);
-    }
-    return this;
-  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted methods
 
   private boolean matchesProcesses(Pattern pattern) {
     for (ProcessConfig pc : processConfigs) {
