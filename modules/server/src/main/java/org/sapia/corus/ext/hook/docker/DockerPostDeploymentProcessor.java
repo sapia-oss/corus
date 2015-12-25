@@ -130,15 +130,14 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
       Set<String> processTags = new HashSet<String>(context.getDistribution().getTagSet());
       processTags.addAll(pc.getTagSet());
       if (corusTags.containsAll(processTags)) {
-        if (!processTags.isEmpty()) {
-          callback.info(
-              String.format("Process tags (%s) matched Corus tags, will proceed to deployment of Docker image",
-              ToStringUtils.joinToString(processTags))
-          );
-        }
-
         for (Starter st : pc.getStarters()) {
           if (st instanceof DockerStarter) {
+            if (!processTags.isEmpty()) {
+              callback.info(
+                  String.format("Process tags (%s) matched Corus tags, will proceed to deployment of Docker image",
+                  ToStringUtils.joinToString(processTags))
+              );
+            }
             DockerStarter dst = (DockerStarter) st;
             String imageName = null;
             if (dst.getImage().isSet()) {

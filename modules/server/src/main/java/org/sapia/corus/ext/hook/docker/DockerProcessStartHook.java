@@ -7,7 +7,6 @@ import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
-import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.processor.hook.ProcessContext;
@@ -23,17 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DockerProcessStartHook implements ProcessStartHook {
 
   @Autowired
-  private ServerContext serverContext;
-
-  @Autowired
   private DockerFacade dockerFacade;
 
   // --------------------------------------------------------------------------
   // Visible for testing
-
-  public void setServerContext(ServerContext serverContext) {
-    this.serverContext = serverContext;
-  }
 
   public void setDockerFacade(DockerFacade dockerFacade) {
     this.dockerFacade = dockerFacade;
