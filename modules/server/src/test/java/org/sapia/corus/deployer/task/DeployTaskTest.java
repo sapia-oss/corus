@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +65,7 @@ public class DeployTaskTest {
     
   @Before
   public void setUp() throws Exception {
-    
+    System.setProperty("corus.home", System.getProperty("user.dir"));
     ctx = TestServerContext.create();
     
     processors = ctx.getServices().lookup(DeploymentProcessorManager.class);
@@ -113,6 +114,11 @@ public class DeployTaskTest {
     
     ctx.getServices().rebind(FileSystemModule.class, fs);
     ctx.getServices().rebind(EventDispatcher.class, dispatcher);
+  }
+  
+  @After
+  public void tearDown() {
+    System.clearProperty("corus.home");
   }
   
   @Test

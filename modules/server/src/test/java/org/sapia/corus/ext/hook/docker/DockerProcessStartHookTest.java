@@ -22,7 +22,6 @@ import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.processor.hook.ProcessContext;
@@ -32,9 +31,6 @@ public class DockerProcessStartHookTest {
  
   @Mock
   private DockerFacade dockerFacade;
-  
-  @Mock
-  private ServerContext serverContext;
   
   @Mock
   private DockerClientFacade dockerClient;
@@ -59,7 +55,6 @@ public class DockerProcessStartHookTest {
     
     hook = new DockerProcessStartHook();
     hook.setDockerFacade(dockerFacade);
-    hook.setServerContext(serverContext);
     
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
     when(dockerClient.startContainer(any(ProcessContext.class), any(StarterResult.class), any(DockerStarterAttachment.class), any(LogCallback.class)))
