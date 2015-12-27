@@ -3,7 +3,7 @@ package org.sapia.corus.ext.hook.docker;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
@@ -65,7 +65,7 @@ public class DockerProcessKillHook implements ProcessKillHook {
         context.getProcess().setStatus(LifeCycleStatus.KILL_CONFIRMED);
 
       } catch (DockerFacadeException e) {
-        throw new IOException("Could not kill Docker container for process: " + ToStringUtils.toString(context.getProcess()), e);
+        throw new IOException("Could not kill Docker container for process: " + ToStringUtil.toString(context.getProcess()), e);
       }
     }
   }

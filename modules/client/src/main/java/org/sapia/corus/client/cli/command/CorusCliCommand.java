@@ -19,7 +19,7 @@ import org.sapia.console.OptionDef;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.CliError;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.exceptions.cli.SystemExitException;
@@ -129,7 +129,7 @@ public abstract class CorusCliCommand implements Command {
       Option opt = ctx.getCommandLine().assertOption(OPT_CLUSTER.getName(), false);
       if (opt.getValue() != null && !opt.getValue().isEmpty()) {
         ClusterInfo info = new ClusterInfo(true);
-        info.addTargets(CliUtils.parseServerAddresses(opt.getValue()));
+        info.addTargets(CliUtil.parseServerAddresses(opt.getValue()));
         return info;
       } else {
         return new ClusterInfo(true);

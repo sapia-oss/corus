@@ -15,8 +15,8 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.EnvVariableStrLookup;
-import org.sapia.corus.client.common.FileUtils;
-import org.sapia.corus.client.common.FileUtils.FileInfo;
+import org.sapia.corus.client.common.FileUtil;
+import org.sapia.corus.client.common.FileUtil.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
@@ -182,7 +182,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (!javaHomeDir.exists()) {
       throw new MissingDataException("java.home not found");
     }
-    cmd.addArg(FileUtils.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
+    cmd.addArg(FileUtil.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
 
     if (vmType != null) {
       if (!vmType.startsWith("-")) {
@@ -253,7 +253,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (libDirs == null) {
       return "";
     } else {
-      baseDirs = FileUtils.splitFilePaths(render(envVars, libDirs));
+      baseDirs = FileUtil.splitFilePaths(render(envVars, libDirs));
     }
 
     StringBuffer buf = new StringBuffer();
@@ -261,13 +261,13 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     for (int dirIndex = 0; dirIndex < baseDirs.length; dirIndex++) {
       String baseDir = baseDirs[dirIndex];
       String currentDir;
-      if (FileUtils.isAbsolute(baseDir)) {
+      if (FileUtil.isAbsolute(baseDir)) {
         currentDir = baseDir;
       } else {
-        currentDir = FileUtils.toPath(processUserDir, baseDir);
+        currentDir = FileUtil.toPath(processUserDir, baseDir);
       }
 
-      FileInfo fileInfo = FileUtils.getFileInfo(currentDir);
+      FileInfo fileInfo = FileUtil.getFileInfo(currentDir);
       PathFilter filter = env.createPathFilter(fileInfo.directory);
       if (fileInfo.isClasses) {
         if (buf.length() > 0) {

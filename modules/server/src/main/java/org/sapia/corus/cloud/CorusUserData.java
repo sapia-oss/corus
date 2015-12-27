@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 
@@ -38,14 +38,14 @@ public class CorusUserData {
     public boolean equals(Object obj) {
       if (obj instanceof Artifact) {
         Artifact other = (Artifact) obj;
-        return ObjectUtils.safeEquals(url, other.url);
+        return ObjectUtil.safeEquals(url, other.url);
       }
       return false;
     }
     
     @Override
     public int hashCode() {
-      return ObjectUtils.safeHashCode(url);
+      return ObjectUtil.safeHashCode(url);
     }
   }
   

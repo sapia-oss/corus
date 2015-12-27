@@ -1,11 +1,15 @@
 package org.sapia.corus.ext.hook.docker;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.HashSet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +52,10 @@ public class DockerPostDeploymentProcessorTest {
     processor.setDockerFacade(dockerFacade);
     
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
+    when(dockerFacade.isAutoRemoveEnabled()).thenReturn(true);
+    when(dockerFacade.isRegistrySyncEnabled()).thenReturn(true);
+    when(dockerFacade.isEnabled()).thenReturn(true);
+    when(dockerClient.checkContainsImages(anySetOf(String.class))).thenReturn(new HashSet<String>());
   }
 
   @Test
@@ -55,6 +63,7 @@ public class DockerPostDeploymentProcessorTest {
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
     verify(dockerClient).pullImage(eq("test-img"), any(LogCallback.class));
+    verify(dockerClient, never()).checkContainsImages(anySetOf(String.class));
   }
   
   @Test
@@ -63,33 +72,51 @@ public class DockerPostDeploymentProcessorTest {
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
     verify(dockerClient).pullImage(eq("test:1.0"), any(LogCallback.class));
+    verify(dockerClient, never()).checkContainsImages(anySetOf(String.class));
   }
   
   @Test
   public void testOnPostDeploy_no_tag_match() throws Exception {
     processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
     verify(dockerClient, never()).pullImage(eq("test-img"), any(LogCallback.class));
+    verify(dockerClient, never()).checkContainsImages(anySetOf(String.class));
+  }
+  
+  @Test
+  public void testOnPostDeploy_registry_sync_disabled() throws Exception {
+    when(dockerFacade.isRegistrySyncEnabled()).thenReturn(false);
+    processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient, never()).pullImage(anyString(), any(LogCallback.class));
+    verify(dockerClient).checkContainsImages(anySetOf(String.class));
   }
   
   @Test
   public void testOnPostUndeploy() throws Exception {
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
-    processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pullImage(eq("test-img"), any(LogCallback.class));
+    processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient).removeImage(eq("test-img"), any(LogCallback.class));
+  }
+  
+  @Test
+  public void testOnPostUndeploy_auto_remove_disabled() throws Exception {
+    when(dockerFacade.isAutoRemoveEnabled()).thenReturn(false);
+    when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
+    processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient, never()).removeImage(eq("test-img"), any(LogCallback.class));
   }
   
   @Test
   public void testOnPostUndeploy_distribution_image() throws Exception {
     image = OptionalValue.none();
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
-    processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient).pullImage(eq("test:1.0"), any(LogCallback.class));
+    processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient).removeImage(eq("test:1.0"), any(LogCallback.class));
   }
 
   @Test
   public void testOnPostUndeploy_no_tag_match() throws Exception {
-    processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
-    verify(dockerClient, never()).pullImage(eq("test-img"), any(LogCallback.class));
+    processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient, never()).removeImage(eq("test-img"), any(LogCallback.class));
   }
 
   private Distribution createDistribution(OptionalValue<String> image) {

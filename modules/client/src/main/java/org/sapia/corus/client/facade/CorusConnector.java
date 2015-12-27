@@ -64,4 +64,9 @@ public interface CorusConnector {
    */
   public DiagnosticFacade getDiagnosticFacade();
   
+  /**
+   * @return the {@link DockerManagementFacade}.
+   */
+  public DockerManagementFacade getDockerManagementFacade();
+  
 }

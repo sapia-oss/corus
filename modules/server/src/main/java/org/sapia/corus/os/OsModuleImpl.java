@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.core.ModuleHelper;
@@ -58,13 +58,13 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(processHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+    CliUtil.extractUntilAvailable(processHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
 
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the error stream of the process
     anOutput.reset();
-    CliUtils.extractAvailable(processHandle.getErrStream(), anOutput);
+    CliUtil.extractAvailable(processHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error starting the process: " + anOutput.toString("UTF-8").trim());
     }

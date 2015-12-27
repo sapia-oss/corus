@@ -31,7 +31,7 @@ import org.sapia.corus.client.CliPropertyKeys;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.cli.command.Sort;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.PropertiesStrLookup;
@@ -88,7 +88,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
     super.setCommandListener(new CliConsoleListener());
     errors = new AutoFlushedBoundedList<CliError>(MAX_ERROR_HISTORY);
     // Change the prompt
-    setPrompt(CliUtils.getPromptFor(corus.getContext()));
+    setPrompt(CliUtil.getPromptFor(corus.getContext()));
   }
  
   private static ConsoleIO getConsoleIO(ConsoleOutput toWrap) {
@@ -163,15 +163,15 @@ public class CorusCli extends CommandConsole implements CorusConsole {
         }
       }
       
-      CmdLine sub = CliUtils.fromOption(COMMAND_OPT, main);
+      CmdLine sub = CliUtil.fromOption(COMMAND_OPT, main);
       if (sub.size() > 0) {
-        main = CliUtils.toOption(COMMAND_OPT, main);
+        main = CliUtil.toOption(COMMAND_OPT, main);
       }
 
       if (main.containsOption("ver", false)) {
         System.out.println("Corus client version: " + CorusVersion.create());
         System.out.println("Java version: " + System.getProperty("java.version"));
-      } else if (CliUtils.isHelp(main)) {
+      } else if (CliUtil.isHelp(main)) {
         help();
       } else {
         if (main.containsOption(HOST_OPT, true)) {
@@ -235,7 +235,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
           
           // overriding system properties with  specified at the command-line
           CompositeStrLookup vars = new CompositeStrLookup()
-            .add(StrLookup.mapLookup(CliUtils.getOptionsMap(main)))
+            .add(StrLookup.mapLookup(CliUtil.getOptionsMap(main)))
             .add(new PropertiesStrLookup(System.getProperties()))
             .add(StrLookup.mapLookup(System.getenv()));
           
@@ -308,8 +308,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
   }
   
   private static void loadProfile(CorusCli cli, CorusConnector connector) throws IOException, IllegalStateException {
-    File userCommands = FilePath.newInstance()
-        .addCorusUserDir()
+    File userCommands = FilePath.forCorusUserDir()
         .setRelativeFile(CORUSCLI_SCRIPT)
         .createFile();
     
@@ -338,8 +337,7 @@ public class CorusCli extends CommandConsole implements CorusConsole {
   }
   
   private static void loadProfile(Interpreter interp) throws IOException {
-    File userCommands = FilePath.newInstance()
-        .addCorusUserDir()
+    File userCommands = FilePath.forCorusUserDir()
         .setRelativeFile(CORUSCLI_SCRIPT)
         .createFile();
     

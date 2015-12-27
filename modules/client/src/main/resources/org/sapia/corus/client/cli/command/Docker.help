@@ -1,0 +1,41 @@
+<help>
+  <section title="Description">
+   <p>Handles various Docker-related commands, in a manner similar to the Docker command-line.</p>
+  </section>
+  <section title="Syntax">
+    <p>For pulling images:</p>
+    <p>docker pull [-n &lt;image_name&gt;] [-cluster]</p>
+    <p/>
+  	<p>For listing images:</p>
+    <p>docker ls [-n &lt;image_tag_pattern&gt;] [-cluster]</p>
+    <p/>
+    <p>For saving the an image tarball locally (to load images, use the deploy -docker command):</p>
+    <p>docker save -n &lt;image_name&gt; -o &lt;image_tar_file&gt;</p>
+    <p/>
+    <p>For deleting images:</p>
+    <p>docker rm -n &lt;image_tag_pattern&gt; [-cluster]</p>
+    <p/>
+    <p>For listing containers:</p>
+    <p>docker ps [-n &lt;container_name_pattern&gt;] [-cluster]</p>
+    <p/>
+    <p>Where:</p>
+    <p/>
+    <p>- n: in the context of 'save' and 'pull', the name of the image to fetch and save locally. Otherwise, a name or name pattern to
+    match against image IDs/tags and container IDs/names.</p>
+    <p/>
+    <p>- f: in the context of 'save', the path to the file to which the image should be output.</p>
+    <p/>
+    <p>- cluster: if specified, the deployment will be replicated to all Corus servers in the cluster.</p>
+  </section>
+  <section title="Examples">
+    <p>docker ls -cluster</p>
+    <p>docker ls -n my** -cluster</p>
+    <p>docker ls -n my/image:*</p>
+    <p>docker ls -n **:latest</p>
+    <p>docker rm -n my** -cluster</p>
+    <p>docker save -n my/image:latest -f my-image.tar</p>
+    <p>docker ps</p>
+    <p>docker ps -n my-image* -cluster</p>
+    <p/>    
+  </section>
+</help>

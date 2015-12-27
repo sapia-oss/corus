@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.corus.client.common.PropertiesStrLookup;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -170,13 +170,13 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     Assertions.illegalState(
         portConf.getDiagnosticConfig().isNull(), 
         "Diagnostic config not set for port: %s of process %s",
-        portConf.getName(), ToStringUtils.toString(context.getProcess())
+        portConf.getName(), ToStringUtil.toString(context.getProcess())
     );
     
     Assertions.illegalState(
         !(portConf.getDiagnosticConfig().get() instanceof HttpDiagnosticConfig), 
         "Expected HttpDiagnostic config for port: %s of process %s. Got: %s",
-        portConf.getName(), ToStringUtils.toString(context.getProcess()),
+        portConf.getName(), ToStringUtil.toString(context.getProcess()),
         portConf.getDiagnosticConfig().get()
     );
         
@@ -261,13 +261,13 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
     Assertions.illegalState(
         portConf.getDiagnosticConfig().isNull(), 
         "Diagnostic config not set for port: %s of process %s",
-        portConf.getDiagnosticConfig(), ToStringUtils.toString(context.getProcess())
+        portConf.getDiagnosticConfig(), ToStringUtil.toString(context.getProcess())
     );
     
     Assertions.illegalState(
         !(portConf.getDiagnosticConfig().get() instanceof HttpDiagnosticConfig), 
         "Expected HttpDiagnostic config for port: %s of process %s. Got: %s",
-        portConf.getDiagnosticConfig(), ToStringUtils.toString(context.getProcess()),
+        portConf.getDiagnosticConfig(), ToStringUtil.toString(context.getProcess()),
         portConf.getDiagnosticConfig().get()
     );
         

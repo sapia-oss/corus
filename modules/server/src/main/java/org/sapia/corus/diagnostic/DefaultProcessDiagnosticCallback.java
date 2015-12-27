@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.log.Logger;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
@@ -60,7 +60,7 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
               results.add(result);
             } else {
               String msg = String.format("Process %s (%s) has no diagnostic config defined for port %s", 
-                  ToStringUtils.toString(toDiagnose), ToStringUtils.toString(context.getDistribution(), context.getProcessConfig()), activePort.getName());
+                  ToStringUtil.toString(toDiagnose), ToStringUtil.toString(context.getDistribution(), context.getProcessConfig()), activePort.getName());
               log.warn(msg);
               OptionalValue<String> noneProtocol = OptionalValue.none();
               results.add(new ProcessDiagnosticResult(ProcessDiagnosticStatus.NO_DIAGNOSTIC_CONFIG, msg, toDiagnose, noneProtocol, activePort));
@@ -72,14 +72,14 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
       } else {
         String msg = String.format(
             "Process %s (%s) has no active ports", 
-            ToStringUtils.toString(toDiagnose), ToStringUtils.toString(context.getDistribution(), context.getProcessConfig())
+            ToStringUtil.toString(toDiagnose), ToStringUtil.toString(context.getDistribution(), context.getProcessConfig())
         );
         results.add(new ProcessDiagnosticResult(ProcessDiagnosticStatus.NO_ACTIVE_PORT, msg, toDiagnose));
       }
     } catch (ProcessLockException ple) {
       String msg = String.format(
           "Process %s (%s) is currently locked", 
-          ToStringUtils.toString(toDiagnose), ToStringUtils.toString(context.getDistribution(), context.getProcessConfig())
+          ToStringUtil.toString(toDiagnose), ToStringUtil.toString(context.getDistribution(), context.getProcessConfig())
       );
       results.add(new ProcessDiagnosticResult(ProcessDiagnosticStatus.PROCESS_LOCKED, msg, toDiagnose));
     } finally {

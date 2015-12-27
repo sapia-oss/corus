@@ -17,7 +17,7 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
 import org.sapia.corus.client.common.ArgMatchers;
-import org.sapia.corus.client.common.PairTuple;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;

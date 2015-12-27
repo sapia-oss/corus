@@ -13,6 +13,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.processor.PortCriteria;
 import org.sapia.corus.client.services.processor.Process;
@@ -27,6 +28,8 @@ import org.sapia.ubik.util.Collects;
  */
 public class Ps extends CorusCliCommand {
 
+  private static final int OS_PID_LEN = 10;
+  
   private final TableDef PROC_TBL = TableDef.newInstance()
       .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ospid", 6).createCol("status", 9);
@@ -152,7 +155,7 @@ public class Ps extends CorusCliCommand {
     if (displayPorts) {
       row.getCellAt(PROC_PORTS_TBL.col("ports").index()).append(proc.getActivePorts().toString());
     } else {
-      row.getCellAt(PROC_TBL.col("ospid").index()).append(proc.getOsPid() == null ? "n/a" : proc.getOsPid());
+      row.getCellAt(PROC_TBL.col("ospid").index()).append(proc.getOsPid() == null ? "n/a" : ToStringUtil.abbreviate(proc.getOsPid(), OS_PID_LEN));
       row.getCellAt(PROC_TBL.col("status").index()).append(proc.getStatus().abbreviation());
     }
     row.flush();

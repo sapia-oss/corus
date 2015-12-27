@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.ubik.util.Strings;
 
@@ -101,14 +101,14 @@ public class DeployPreferences implements Externalizable {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(execDeployScripts, checksum);
+    return ObjectUtil.safeHashCode(execDeployScripts, checksum);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof DeployPreferences) {
       DeployPreferences other = DeployPreferences.class.cast(obj);
-      return ObjectUtils.safeEquals(this.checksum, other.checksum)
+      return ObjectUtil.safeEquals(this.checksum, other.checksum)
       && this.execDeployScripts && other.execDeployScripts;
     }
     return false;

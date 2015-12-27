@@ -23,8 +23,8 @@ import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
-import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.CliUtil;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -125,13 +125,13 @@ public class Http extends CorusCliCommand {
         cluster = getClusterInfo(ctx);
       }
 
-      Map<ServerAddress, List<PortRange>> portRangesByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getPortManagementFacade()
+      Map<ServerAddress, List<PortRange>> portRangesByNode = CliUtil.collectResultsPerHost(ctx.getCorus().getPortManagementFacade()
           .getPortRanges(cluster));
 
-      Map<ServerAddress, List<Distribution>> distsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getDeployerFacade()
+      Map<ServerAddress, List<Distribution>> distsByNode = CliUtil.collectResultsPerHost(ctx.getCorus().getDeployerFacade()
           .getDistributions(DistributionCriteria.builder().all(), cluster));
 
-      Map<ServerAddress, Set<Tag>> tagsByNode = CliUtils.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
+      Map<ServerAddress, Set<Tag>> tagsByNode = CliUtil.collectResultsPerHost(ctx.getCorus().getConfigFacade().getTags(cluster));
 
       List<ArgMatcher> portRangePatterns = getOptValues(ctx, PORT_RANGE_OPT.getName(), new Func<ArgMatcher, String>() {
         @Override
@@ -156,7 +156,7 @@ public class Http extends CorusCliCommand {
                   HttpAddress address = (HttpAddress) node;
                   for (Integer port : r.getActive()) {
                     String url = "http://" + address.getHost() + ":" + (portPrefix != null ? portPrefix + port : port);
-                    url = FileUtils.append(url, contextPath);
+                    url = FileUtil.append(url, contextPath);
                     doCheck(ctx, url, maxAttempts, expected, interval);
                   }
                 } 

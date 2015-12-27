@@ -5,12 +5,12 @@ import java.util.List;
 
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.reference.DefaultReference;
 import org.sapia.corus.client.common.reference.Reference;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.common.tuple.PairTuple;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;

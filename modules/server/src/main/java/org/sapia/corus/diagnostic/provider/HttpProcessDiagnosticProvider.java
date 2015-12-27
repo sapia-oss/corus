@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.IOUtils;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.deployer.dist.HttpDiagnosticConfig;
 import org.sapia.corus.client.services.deployer.dist.HttpsDiagnosticConfig;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
@@ -53,7 +53,7 @@ public class HttpProcessDiagnosticProvider implements ProcessDiagnosticProvider 
     InputStream       is          = null;
     HttpDiagnosticConfig    conf        = (HttpDiagnosticConfig) context.getDiagnosticConfig();
     String            connString  = createConnectionString(context);
-    if (log.isDebugEnabled()) log.debug(String.format("Connecting to %s for process: %s", connString, ToStringUtils.toString(context.getProcess())));
+    if (log.isDebugEnabled()) log.debug(String.format("Connecting to %s for process: %s", connString, ToStringUtil.toString(context.getProcess())));
     try {
       conn = (HttpURLConnection) new URL(connString).openConnection();
       conn.setRequestMethod("GET");
@@ -79,13 +79,13 @@ public class HttpProcessDiagnosticProvider implements ProcessDiagnosticProvider 
     } catch (IOException e) {
       if (clock.currentTimeMillis() - context.getProcess().getCreationTime() < 
           TimeUnit.SECONDS.toMillis(context.getDiagnosticConfig().getGracePeriod())) {
-        log.error("Connection issue trying to acquire diagnostic for process: " + ToStringUtils.toString(context.getProcess()) 
+        log.error("Connection issue trying to acquire diagnostic for process: " + ToStringUtil.toString(context.getProcess()) 
             + ". Still within grace period, will flag as suspect", e);
         return new ProcessDiagnosticResult(
             ProcessDiagnosticStatus.SUSPECT, e.getMessage(), context.getProcess(), context.getDiagnosticConfig().getProtocol(), context.getPort()
         );
       } else {
-        log.error("Could not acquire diagnostic for process: " + ToStringUtils.toString(context.getProcess()), e);
+        log.error("Could not acquire diagnostic for process: " + ToStringUtil.toString(context.getProcess()), e);
         return new ProcessDiagnosticResult(
             ProcessDiagnosticStatus.CHECK_FAILED, e.getMessage(), context.getProcess(), context.getDiagnosticConfig().getProtocol(), context.getPort()
         );

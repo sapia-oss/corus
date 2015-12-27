@@ -3,7 +3,7 @@ package org.sapia.corus.client.cli.command;
 import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.exceptions.cli.SystemExitException;
 import org.sapia.ubik.net.TCPAddress;
 
@@ -25,9 +25,9 @@ public class Exit extends NoOptionCommand {
       throw new SystemExitException();
     } else {
       TCPAddress previousAddress = (TCPAddress) ctx.getCorus().getContext().getConnectionHistory().pop();
-      ctx.getCorus().getContext().reconnect(previousAddress.getHost(), previousAddress.getPort());
+      ctx.getCorus().getContext().connect(previousAddress.getHost(), previousAddress.getPort());
       // Change the prompt
-      ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
+      ctx.getConsole().setPrompt(CliUtil.getPromptFor(ctx.getCorus().getContext()));
     }
   }
 }

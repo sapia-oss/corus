@@ -15,6 +15,9 @@
     <p>deploy -s &lt;shell_script&gt; -a &lt;alias&gt; [-d &lt;comment&gt; ] [-chkmd5 [&lt;value&gt;]] [-cluster]</p>
     <p/>    
     <p>OR:</p>    
+    <p>deploy -f &lt;docker_image_tar&gt; -img &lt;docker_image_name&gt; [-seq] [-chkmd5 [&lt;value&gt;]] [-cluster]</p>
+    <p/>    
+    <p>OR:</p>    
     <p>deploy -rev &lt;revId&gt; [-cluster]</p>
     <p/>    
     <p>Where:</p>
@@ -46,6 +49,10 @@
     <p/>
     <p>- r: this option stands for "run scripts". It will trigger the execution of the distribution's packaged scripts (under META-INF/scripts) upon deployment.</p>
     <p/>   
+    <p>- docker: indicates that the given file(s) is/are Docker image tarball(s).</p>
+    <p/>
+    <p>- i: in the context of Docker image deployment: indicates the name of the image to associate to the image tarball.</p>
+    <p/>
     <p>- rev: this option specifies a revision under which given distributions have been archived. Through 'deploy', such archived distributions
     can be redeployed.</p>
     <p/>   
@@ -61,6 +68,8 @@
     <p>deploy -f someArchive.tar -d /opt/archives -cluster</p>
     <p>deploy -s restart_memcached.sh -a restart-memcached -d "restarts memcached"</p>
     <p>deploy -rev previous</p>
+    <p>deploy -docker -img my/image:latest -f myImage.tar</p>
+    <p>deploy -docker -img my/image:latest -f myImage.tar -cluster</p>
     <p>deploy -rev previous -cluster</p>
     <p/>    
   </section>

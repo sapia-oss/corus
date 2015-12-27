@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.rest.PathTemplate.MatchResult;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.ubik.util.Condition;
 
 public class PathTemplateTreeTest {

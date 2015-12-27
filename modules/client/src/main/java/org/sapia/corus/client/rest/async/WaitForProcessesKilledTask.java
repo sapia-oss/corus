@@ -7,7 +7,7 @@ import java.util.List;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.Delay;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;

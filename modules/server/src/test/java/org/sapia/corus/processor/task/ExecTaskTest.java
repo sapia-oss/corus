@@ -2,23 +2,23 @@ package org.sapia.corus.processor.task;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
-import org.sapia.corus.client.services.os.OsModule;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
 public class ExecTaskTest extends TestBaseTask{
@@ -57,10 +57,10 @@ public class ExecTaskTest extends TestBaseTask{
   
   @Test
   public void testExecuteProcessWithPortFailed() throws Exception{
-    OsModule os = mock(OsModule.class);
-    ctx.getServices().rebind(OsModule.class, os);
-    when(os.executeProcess(any(LogCallback.class), any(File.class), any(CmdLine.class)))
-      .thenThrow(new IOException("Execution error"));
+    ProcessHookManager hooks = mock(ProcessHookManager.class);
+    ctx.getServices().rebind(ProcessHookManager.class, hooks);
+    doThrow(new IOException("Could not start process"))
+      .when(hooks).start(any(ProcessContext.class), any(StarterResult.class), any(LogCallback.class));
     
     PortRange range = new PortRange("test", 8080, 8080);
     ctx.getPorts().addPortRange(range);

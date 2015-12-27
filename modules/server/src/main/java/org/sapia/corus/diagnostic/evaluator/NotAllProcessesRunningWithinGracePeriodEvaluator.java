@@ -1,6 +1,6 @@
 package org.sapia.corus.diagnostic.evaluator;
 
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.processor.Process;
 
 /**
@@ -26,7 +26,7 @@ public class NotAllProcessesRunningWithinGracePeriodEvaluator implements Process
       context.getResultsBuilder().results(context.getDiagnosticCallback().invoke(context, p));
     }
     
-    String processConfigInfo = ToStringUtils.toString(context.getDistribution(), context.getProcessConfig());
+    String processConfigInfo = ToStringUtil.toString(context.getDistribution(), context.getProcessConfig());
     context.getLog().warn(String.format(
         "Found %s process(es) for %s (expected %s) - some processes not yet started, execution deemed pending", 
         context.getProcesses().size(), processConfigInfo, context.getExpectedInstanceCount())

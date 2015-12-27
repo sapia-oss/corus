@@ -9,11 +9,15 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.ToStringUtil;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
+import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.spotify.docker.client.DefaultDockerClient;
@@ -32,7 +36,7 @@ import com.spotify.docker.client.messages.Version;
  *
  * @author yduchesne
  */
-public class SpotifyDockerFacade implements DockerFacade {
+public class SpotifyDockerFacade implements DockerFacade, Interceptor {
   
   private enum State {
     INIT,
@@ -47,16 +51,25 @@ public class SpotifyDockerFacade implements DockerFacade {
   private ServerContext serverContext;
   
   @Autowired
-  
   private InternalConfigurator configurator;
+  
+  @Autowired
+  private EventDispatcher events;
+  
+  // Not used, but keeping reference on it as to avoid it being GC'd due
+  // to being kept as a SoftReference by the EventDispatcher.
+  @SuppressWarnings("unused")
+  private DockerHandler dockerHandler;
 
-  private DynamicProperty<Boolean> enabled          = new DynamicProperty<Boolean>();
-  private DynamicProperty<String>  email            = new DynamicProperty<String>();
-  private DynamicProperty<String>  username         = new DynamicProperty<String>();
-  private DynamicProperty<String>  password         = new DynamicProperty<String>();
-  private DynamicProperty<String>  serverAddress    = new DynamicProperty<String>();
-  private DynamicProperty<String>  daemonUri        = new DynamicProperty<String>();
-  private DynamicProperty<String>  certificatesPath = new DynamicProperty<String>();
+  private DynamicProperty<Boolean> enabled             = new DynamicProperty<Boolean>();
+  private DynamicProperty<Boolean> registrySyncEnabled = new DynamicProperty<Boolean>();
+  private DynamicProperty<Boolean> autoRemoveEnabled   = new DynamicProperty<Boolean>();
+  private DynamicProperty<String>  email               = new DynamicProperty<String>();
+  private DynamicProperty<String>  username            = new DynamicProperty<String>();
+  private DynamicProperty<String>  password            = new DynamicProperty<String>();
+  private DynamicProperty<String>  serverAddress       = new DynamicProperty<String>();
+  private DynamicProperty<String>  daemonUrl           = new DynamicProperty<String>();
+  private DynamicProperty<String>  certificatesPath    = new DynamicProperty<String>();
 
   private final Object lock = new Object();
   private volatile DockerClient dockerClient;
@@ -78,6 +91,29 @@ public class SpotifyDockerFacade implements DockerFacade {
   public void setEnabled(boolean enabled) {
     this.enabled.setValue(enabled);
   }
+  
+  @Override
+  public boolean isEnabled() {
+    return enabled.getValue();
+  }
+  
+  public void setRegistrySyncEnabled(boolean registrySyncEnabled) {
+    this.registrySyncEnabled.setValue(registrySyncEnabled);
+  }
+  
+  @Override
+  public boolean isRegistrySyncEnabled() {
+    return registrySyncEnabled.getValue();
+  }
+  
+  public void setAutoRemoveEnabled(boolean autoRemoveEnabled) {
+    this.autoRemoveEnabled.setValue(autoRemoveEnabled);
+  }
+  
+  @Override
+  public boolean isAutoRemoveEnabled() {
+    return this.autoRemoveEnabled.getValue();
+  }
 
   public void setEmail(String email) {
     this.email.setValue(email);
@@ -95,8 +131,8 @@ public class SpotifyDockerFacade implements DockerFacade {
     this.username.setValue(username);
   }
 
-  public void setDaemonUri(String uri) {
-    this.daemonUri.setValue(uri);
+  public void setDaemonUrl(String url) {
+    this.daemonUrl.setValue(url);
   }
 
   public void setCertificatesPath(String path) {
@@ -116,11 +152,13 @@ public class SpotifyDockerFacade implements DockerFacade {
       }
     });
 
+    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_REGISTRY_ENABLED, registrySyncEnabled);
+    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_AUTO_REMOVE_ENABLED, autoRemoveEnabled);
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_EMAIL, email);
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_USERNAME, username);
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CLIENT_PASSWORD, password);
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_REGISTRY_ADDRESS, serverAddress);
-    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_DAEMON_URI, daemonUri);
+    configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_DAEMON_URL, daemonUrl);
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_DOCKER_CERTIFICATES_PATH, certificatesPath);
     DynamicPropertyListener<String> propertyChangeListener = new DynamicPropertyListener<String>() {
       @Override
@@ -132,7 +170,7 @@ public class SpotifyDockerFacade implements DockerFacade {
     username.addListener(propertyChangeListener);
     password.addListener(propertyChangeListener);
     serverAddress.addListener(propertyChangeListener);
-    daemonUri.addListener(propertyChangeListener);
+    daemonUrl.addListener(propertyChangeListener);
     certificatesPath.addListener(propertyChangeListener);
 
     if (enabled.getValueNotNull()) {
@@ -140,6 +178,14 @@ public class SpotifyDockerFacade implements DockerFacade {
     } else {
       log.info("Docker integration disabled");
     }
+    
+    if (registrySyncEnabled.getValueNotNull()) {
+      log.info("Synchronization with Docker registry enabled");
+    } else {
+      log.info("Synchronization with Docker registry disabled (will operate in registry-less mode)");
+    }
+    
+    events.addInterceptor(ServerStartedEvent.class, this);
     
     state = State.RUNNING;
   }
@@ -154,6 +200,24 @@ public class SpotifyDockerFacade implements DockerFacade {
     }
   }
 
+  
+  // --------------------------------------------------------------------------
+  // ServerStartedEvent interceptor
+  
+  /**
+   * Called when the Corus server has started.
+   * 
+   * @param the {@link ServerStartedEvent} being dispatched.
+   */
+  public void onServerStartedEvent(ServerStartedEvent evt) {
+    try {
+      dockerHandler = new DockerHandler(serverContext, this);
+    } catch (Exception e) {
+      log.error("Could not initialize DockerHandler", e);
+      throw new IllegalArgumentException("Could not initialize DockerHandler", e);
+    }
+  }
+  
   // --------------------------------------------------------------------------
   // DockerFacade interface
   
@@ -163,7 +227,7 @@ public class SpotifyDockerFacade implements DockerFacade {
       throw new IllegalStateException("Docker integration disabled: cannot create Docker client");
     }
     try {
-      return new SpotifyDockerClientFacade(serverContext, internalGetDockerClient());
+      return new SpotifyDockerClientFacade(serverContext, internalGetDockerClient(), registrySyncEnabled);
     } catch (DockerCertificateException e) {
       throw new IllegalStateException("Error caught pertaining to Docker certificate", e);
     }
@@ -279,10 +343,10 @@ public class SpotifyDockerFacade implements DockerFacade {
     synchronized (lock) {
       if (dockerClient == null) {
         log.info("Creating new docker client with configuration:"
-            + "\n\temail=" + email.getValue()
-            + "\n\tusername=" + username.getValue()
+            + "\n\temail=" + ToStringUtil.abbreviate(email.getValue(), email.getValue().length(), 1, 4)
+            + "\n\tusername=" + ToStringUtil.abbreviate(username.getValue(), username.getValue().length(), 1, 1) 
             + "\n\tregistryServer=" + serverAddress.getValue()
-            + "\n\tdaemonUri=" + daemonUri.getValue()
+            + "\n\tdaemonUri=" + daemonUrl.getValue()
             + "\n\tcertificatesPath=" + certificatesPath.getValue());
 
         AuthConfig auth = AuthConfig.builder()
@@ -294,7 +358,7 @@ public class SpotifyDockerFacade implements DockerFacade {
 
         DefaultDockerClient.Builder clientBuilder = DefaultDockerClient.builder()
             .authConfig(auth)
-            .uri(daemonUri.getValueNotNull());
+            .uri(daemonUrl.getValueNotNull());
 
         if (StringUtils.isNotBlank(certificatesPath.getValue())) {
           clientBuilder.dockerCertificates(new DockerCertificates(Paths.get(certificatesPath.getValueNotNull())));

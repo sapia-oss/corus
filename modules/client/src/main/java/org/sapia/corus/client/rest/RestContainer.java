@@ -1,6 +1,7 @@
 package org.sapia.corus.client.rest;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,11 +13,36 @@ import java.util.Set;
 import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.rest.PathTemplate;
 import org.sapia.corus.client.common.rest.PathTemplate.MatchResult;
+import org.sapia.corus.client.common.tuple.PairTuple;
+import org.sapia.corus.client.rest.resources.ApplicationKeyResource;
+import org.sapia.corus.client.rest.resources.ClusterResource;
+import org.sapia.corus.client.rest.resources.DiagnosticResource;
+import org.sapia.corus.client.rest.resources.DistributionResource;
+import org.sapia.corus.client.rest.resources.DistributionWriteResource;
+import org.sapia.corus.client.rest.resources.DockerResource;
+import org.sapia.corus.client.rest.resources.DockerWriteResource;
+import org.sapia.corus.client.rest.resources.ExecConfigResource;
+import org.sapia.corus.client.rest.resources.ExecConfigWriteResource;
+import org.sapia.corus.client.rest.resources.FileResource;
+import org.sapia.corus.client.rest.resources.FileWriteResource;
+import org.sapia.corus.client.rest.resources.MetadataResource;
+import org.sapia.corus.client.rest.resources.PartitionResource;
+import org.sapia.corus.client.rest.resources.PortResource;
+import org.sapia.corus.client.rest.resources.PortWriteResource;
+import org.sapia.corus.client.rest.resources.ProcessResource;
+import org.sapia.corus.client.rest.resources.ProcessWriteResource;
+import org.sapia.corus.client.rest.resources.ProgressResource;
+import org.sapia.corus.client.rest.resources.ProgressResult;
+import org.sapia.corus.client.rest.resources.PropertiesResource;
+import org.sapia.corus.client.rest.resources.PropertiesWriteResource;
+import org.sapia.corus.client.rest.resources.RoleResource;
+import org.sapia.corus.client.rest.resources.ScriptResource;
+import org.sapia.corus.client.rest.resources.TagResource;
+import org.sapia.corus.client.rest.resources.TagWriteResource;
 import org.sapia.corus.client.common.rest.PathTemplateTree;
 import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
@@ -44,7 +70,8 @@ public class RestContainer {
       void.class,
       String.class,
       ProgressResult.class,
-      JsonStreamable.class
+      JsonStreamable.class,
+      InputStream.class
   );
 
   /**
@@ -95,6 +122,8 @@ public class RestContainer {
      *  <li> {@link DiagnosticResource}
      *  <li> {@link DistributionResource}
      *  <li> {@link DistributionWriteResource}
+     *  <li> {@link DockerResource}
+     *  <li> {@link DockerWriteResource}
      *  <li> {@link ExecConfigResource}
      *  <li> {@link ExecConfigWriteResource}
      *  <li> {@link FileResource}
@@ -120,6 +149,8 @@ public class RestContainer {
       .resource(new DiagnosticResource())
       .resource(new DistributionResource())
       .resource(new DistributionWriteResource())
+      .resource(new DockerResource())
+      .resource(new DockerWriteResource())
       .resource(new ExecConfigResource())
       .resource(new ExecConfigWriteResource())
       .resource(new FileResource())
@@ -166,7 +197,7 @@ public class RestContainer {
               }
             }
             
-            Assertions.isTrue(valid, "REST resource method must return either void, String, ProgressResult or JsonStreamable: %s", m);
+            Assertions.isTrue(valid, "REST resource method must return either void, String, ProgressResult, InputStream or JsonStreamable: %s", m);
             Assertions.isTrue(m.getParameterTypes().length == 1 || m.getParameterTypes().length == 2, 
                 "REST resource method %s must have either first parameter of type %s, and optionally second parameter of type %s if provided", 
                 m, RequestContext.class.getName(), RestResponseFacade.class);
@@ -406,6 +437,7 @@ public class RestContainer {
     throw new FileNotFoundException("Resource path not handled: " + context.getRequest().getPath());
   }
   
+  @SuppressWarnings("serial")
   private static class RemoteHostAddress implements ServerAddress {
     private static final String REST_TRANSPORT_TYPE = "REST";
     private String remoteHost;

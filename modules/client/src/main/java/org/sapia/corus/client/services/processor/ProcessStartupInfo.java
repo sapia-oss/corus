@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.util.UUID;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
@@ -83,16 +83,16 @@ public class ProcessStartupInfo implements Externalizable, JsonStreamable {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(id);
+    return ObjectUtil.safeHashCode(id);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ProcessStartupInfo) {
       ProcessStartupInfo other = (ProcessStartupInfo) obj;
-      return ObjectUtils.safeEquals(id, other.id)
-          && ObjectUtils.safeEquals(requestedAt, other.requestedAt)
-          && ObjectUtils.safeEquals(requestedInstances, other.requestedInstances);
+      return ObjectUtil.safeEquals(id, other.id)
+          && ObjectUtil.safeEquals(requestedAt, other.requestedAt)
+          && ObjectUtil.safeEquals(requestedInstances, other.requestedInstances);
     } 
     return false;
   }

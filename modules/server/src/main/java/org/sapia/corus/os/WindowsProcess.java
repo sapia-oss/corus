@@ -15,12 +15,12 @@ import org.javasimon.callback.logging.LoggingCallback;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.sigar.SigarSupplier;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * Windows implementation of the {@link NativeProcess} interface.
@@ -69,7 +69,7 @@ public class WindowsProcess implements NativeProcess {
   
       // Extract the output stream of the process
       ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
   
       // Extract the error stream of the process
@@ -104,7 +104,7 @@ public class WindowsProcess implements NativeProcess {
   
       // Extract the output stream of the process
       ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
   
       // Extract the error stream of the process
@@ -293,7 +293,7 @@ public class WindowsProcess implements NativeProcess {
 
     try {
       // Extract the output stream of the process
-      CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
   
       // Extract the error stream of the process
@@ -396,7 +396,7 @@ public class WindowsProcess implements NativeProcess {
 
       // Extract the output stream of the process
       anOutput.reset();
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
 
       // Generates a string of the format "\njavaw.exe       (284)\n"

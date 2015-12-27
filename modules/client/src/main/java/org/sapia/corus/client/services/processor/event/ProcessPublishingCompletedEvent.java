@@ -1,6 +1,6 @@
 package org.sapia.corus.client.services.processor.event;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.ubik.rmi.interceptor.Event;
@@ -53,15 +53,15 @@ public class ProcessPublishingCompletedEvent implements Event {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(process, status);
+    return ObjectUtil.safeHashCode(process, status);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ProcessPublishingCompletedEvent) {
       ProcessPublishingCompletedEvent other = (ProcessPublishingCompletedEvent) obj;
-      return ObjectUtils.safeEquals(process, other.getProcess())
-          && ObjectUtils.safeEquals(status, other.getStatus());
+      return ObjectUtil.safeEquals(process, other.getProcess())
+          && ObjectUtil.safeEquals(status, other.getStatus());
     }
     return false;
   }

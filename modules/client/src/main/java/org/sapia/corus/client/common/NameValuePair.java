@@ -56,14 +56,14 @@ public class NameValuePair implements Serializable, Comparable<NameValuePair>, M
   public boolean equals(Object obj) {
     if (obj instanceof NameValuePair) {
       NameValuePair other = (NameValuePair) obj;
-      return ObjectUtils.safeEquals(name, other.name) && ObjectUtils.safeEquals(value, other.value);
+      return ObjectUtil.safeEquals(name, other.name) && ObjectUtil.safeEquals(value, other.value);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(name, value);
+    return ObjectUtil.safeHashCode(name, value);
   }
 
 }

@@ -50,6 +50,10 @@
     <p>- pull</p>
     <p>- ripple</p>
     <p/>
+    <p>Container management:</p>
+    <p/>
+    <p>- docker (ls, ps, save, rm)</p>
+    <p/>   
     <p>Productivity:</p>
     <p/>
     <p>- alias</p>

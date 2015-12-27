@@ -12,6 +12,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
@@ -33,7 +34,6 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * Executes the rollback of a specific distribution.

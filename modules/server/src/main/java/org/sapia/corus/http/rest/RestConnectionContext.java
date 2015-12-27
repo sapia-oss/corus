@@ -35,6 +35,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
@@ -154,6 +155,23 @@ public class RestConnectionContext implements CorusConnectionContext {
   // --------------------------------------------------------------------------
   // Core functionality
 
+  @Override
+  public void connect(String host, int port) {
+    for (CorusHost h : getOtherHosts()) {
+      TCPAddress addr = h.getEndpoint().getServerTcpAddress();
+      if (addr.getHost().equals(host) && addr.getPort() == port) {
+        this.serverHost = h;
+      }
+    }
+    throw new IllegalArgumentException(String.format("No host found for host:port => %s:%s", host, port));
+  }
+  
+  @Override
+  public void connect(CorusHost host) {
+    TCPAddress addr = host.getEndpoint().getServerTcpAddress();
+    connect(addr.getHost(), addr.getPort());
+  }
+  
   @Override
   public Collection<CorusHost> getOtherHosts() {
     return ((ClusterManager) corus.lookup(ClusterManager.ROLE)).getHosts();
@@ -421,10 +439,6 @@ public class RestConnectionContext implements CorusConnectionContext {
   
   @Override
   public void reconnect() {
-  }
-  
-  @Override
-  public void reconnect(String host, int port) {
   }
   
   private Corus getRemoteCorus(CorusHost remoteHost) throws RemoteException {

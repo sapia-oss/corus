@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.ubik.util.Assertions;
 
@@ -122,9 +122,9 @@ public class EncryptableString implements Encryptable<String>, Externalizable {
     if (obj instanceof EncryptableString) {
       EncryptableString other = (EncryptableString) obj;
       if (decrypted != null && other.decrypted != null) {
-        return ObjectUtils.safeEquals(decrypted, other.decrypted);
+        return ObjectUtil.safeEquals(decrypted, other.decrypted);
       } else if (encrypted != null && other.encrypted != null) {
-        return ObjectUtils.safeEquals(encrypted, other.encrypted);
+        return ObjectUtil.safeEquals(encrypted, other.encrypted);
       }
       return false;
     }

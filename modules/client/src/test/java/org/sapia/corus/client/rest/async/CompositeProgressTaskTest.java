@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 
 @RunWith(MockitoJUnitRunner.class)

@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.ubik.rmi.interceptor.Event;
@@ -156,16 +156,16 @@ public class PropertyChangeEvent implements Serializable, Event {
   public boolean equals(Object obj) {
     if (obj instanceof PropertyChangeEvent) {
       PropertyChangeEvent other = (PropertyChangeEvent) obj;
-      return ObjectUtils.safeEquals(eventType, other.eventType)
-          && ObjectUtils.safeEquals(other.scope, scope)
-          && ObjectUtils.safeEquals(other.properties, properties);
+      return ObjectUtil.safeEquals(eventType, other.eventType)
+          && ObjectUtil.safeEquals(other.scope, scope)
+          && ObjectUtil.safeEquals(other.properties, properties);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(eventType, scope, properties);
+    return ObjectUtil.safeHashCode(eventType, scope, properties);
   }
   
   @Override

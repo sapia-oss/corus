@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Docker Sample</name>
+  <artifactId>corus_sample_docker</artifactId>
+  <packaging>jar</packaging>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+ 
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_samples_parent</artifactId>
+    <version>develop-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-dist</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dist.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+

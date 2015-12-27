@@ -15,7 +15,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.corus.client.common.CompositeStrLookup;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.Interpolation;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.log.LogCallback;
@@ -27,7 +27,6 @@ import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.Property;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.file.FileSystemModule;
-import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
@@ -35,6 +34,8 @@ import org.sapia.corus.client.services.processor.ProcessorConfiguration;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.deployer.config.EnvImpl;
 import org.sapia.corus.processor.ProcessInfo;
+import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
@@ -59,7 +60,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     Process       process           = info.getProcess();
     Distribution  dist              = info.getDistribution();
     PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
-    OsModule      os                = ctx.getServerContext().getServices().getOS();
+    ProcessHookManager processHook  = ctx.getServerContext().getServices().lookup(ProcessHookManager.class);
     
     ProcessorConfiguration processorConf = ctx.getServerContext().getServices().getProcessor().getConfiguration();
 
@@ -114,7 +115,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       ctx.warn(String.format("No executable found for profile: %s", env.getProfile()));
       process.releasePorts(ports);
       return false;
-    }
+    } 
+    process.setStarterType(startResult.get().getStarterType());
     
     // ------------------------------------------------------------------------
     // At this point, only non-hidden properties are passed to the process using -D options.
@@ -145,8 +147,10 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     ctx.info(String.format("Executing process under: %s ---> %s", processDir, startResult.get().getCommand().toString()));
     
+
     try {
-      process.setOsPid(os.executeProcess(callback(ctx), processDir, startResult.get().getCommand()));
+      ProcessContext processContext = new ProcessContext(process);
+      processHook.start(processContext, startResult.get(), callback(ctx));
     } catch (IOException e) {
       ctx.error("Process could not be started", e);
       process.releasePorts(ports);
@@ -177,7 +181,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
   private File makeProcessDir(TaskExecutionContext ctx, ProcessInfo info) {
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
-    File processDir = new File(FileUtils.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
+    File processDir = new File(FileUtil.toPath(info.getDistribution().getProcessesDir(), info.getProcess().getProcessID()));
 
     if (info.isRestart() && !fs.exists(processDir)) {
       ctx.warn("Process directory: " + processDir + " does not exist; restart aborted");

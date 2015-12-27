@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.ubik.concurrent.Spawn;
 import org.sapia.ubik.util.Assertions;

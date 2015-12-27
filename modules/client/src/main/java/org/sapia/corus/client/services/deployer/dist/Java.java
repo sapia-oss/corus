@@ -7,7 +7,7 @@ import java.io.File;
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.util.xml.confix.ConfigurationException;
@@ -86,7 +86,7 @@ public class Java extends BaseJavaStarter implements ObjectCreationCallback {
     prop.setValue(mainClass);
     result.command.addElement(prop.convert());
     
-    String classpath = FileUtils.mergeFilePaths(
+    String classpath = FileUtil.mergeFilePaths(
         env.getCorusIopLibPath(), 
         getCp(env, env.getJavaLibDir()),
         env.getJavaStarterLibPath(),

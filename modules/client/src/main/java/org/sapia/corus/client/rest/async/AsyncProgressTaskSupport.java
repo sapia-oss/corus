@@ -10,7 +10,7 @@ import java.util.concurrent.TimeoutException;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.rest.ConnectorPool;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.ubik.util.Assertions;

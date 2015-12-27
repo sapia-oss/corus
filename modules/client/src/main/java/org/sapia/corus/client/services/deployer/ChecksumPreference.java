@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.ubik.util.Strings;
 
@@ -85,7 +85,7 @@ public class ChecksumPreference implements Externalizable {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(algo, clientChecksum);
+    return ObjectUtil.safeHashCode(algo, clientChecksum);
   }
   
   @Override

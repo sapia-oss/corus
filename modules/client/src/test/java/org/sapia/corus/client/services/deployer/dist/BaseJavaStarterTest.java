@@ -16,7 +16,7 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.FileSystemFacade;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
@@ -139,7 +139,7 @@ public class BaseJavaStarterTest {
         .setRelativeFile("test-jar1.jar")
         .createFilePath();
     
-    assertEquals(FileUtils.mergeFilePaths(p1, p2), cp);
+    assertEquals(FileUtil.mergeFilePaths(p1, p2), cp);
   }
   
   @Test
@@ -162,7 +162,7 @@ public class BaseJavaStarterTest {
         .setRelativeFile("test-jar1.jar")
         .createFilePath();
 
-    assertEquals(FileUtils.mergeFilePaths(p1, p2), cp);
+    assertEquals(FileUtil.mergeFilePaths(p1, p2), cp);
   }
   
   @Test
@@ -204,7 +204,7 @@ public class BaseJavaStarterTest {
         .setRelativeFile("test-jar1.jar")
         .createFilePath();
     
-    assertEquals(FileUtils.mergeFilePaths(p1, p2, p3, p4, p5, p6), cp);
+    assertEquals(FileUtil.mergeFilePaths(p1, p2, p3, p4, p5, p6), cp);
 
   }
   

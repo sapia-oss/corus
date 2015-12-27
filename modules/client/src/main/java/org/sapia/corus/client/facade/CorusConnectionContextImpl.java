@@ -33,6 +33,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
@@ -91,7 +92,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
    *           given host/port.
    */
   public CorusConnectionContextImpl(String host, int port, ClientFileSystem fileSys, int invokerThreads) throws ConnectionException, Exception {
-    reconnect(host, port);
+    connect(host, port);
     interceptor = new ClientSideClusterInterceptor();
     this.fileSys = fileSys;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
@@ -172,7 +173,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   }
 
   @Override
-  public synchronized void reconnect(String host, int port) {
+  public synchronized void connect(String host, int port) {
     if (InetAddressUtils.isIPv4Address(host)) {
       connectAddress = HttpAddress.newDefaultInstance(host, port);
     } else if (InetAddressUtils.isIPv6Address(host)) {
@@ -186,6 +187,12 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       }
     }
     reconnect();
+  }
+  
+  @Override
+  public void connect(CorusHost host) {
+    TCPAddress addr = host.getEndpoint().getServerTcpAddress();
+    connect(addr.getHost(), addr.getPort());
   }
 
   @Override

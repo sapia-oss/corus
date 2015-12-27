@@ -1,14 +1,13 @@
 package org.sapia.corus.ext.hook.docker;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
-import org.sapia.corus.client.common.PairTuple;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.log.LogCallback;
+import org.sapia.corus.client.common.tuple.TripleTuple;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -51,29 +50,58 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
   void setDockerFacade(DockerFacade dockerFacade) {
     this.dockerFacade = dockerFacade;
   }
-
+  
   // --------------------------------------------------------------------------
   // DeploymentPostProcessor interface
 
   @Override
   public void onPostDeploy(final DeploymentContext context, final LogCallback callback) {
-    onPostProcess(context, callback, new Func<Void, PairTuple<String, DockerClientFacade>>() {
-      @Override
-      public Void call(PairTuple<String, DockerClientFacade> data) {
-        callback.debug(String.format(
-            "Removing Docker image %s in the context of distribution deployment for: %s",
-            data.getLeft(), ToStringUtils.toString(context.getDistribution())
-        ));
-
-        try {
-          data.getRight().pullImage(data.getLeft(), callback);
-        } catch (DockerFacadeException | IOException e) {
-          log.error("Error trying to sync with Docker in post-deploy", e);
-          callback.error(e.getMessage());
+    if (dockerFacade.isRegistrySyncEnabled()) {
+      onPostProcess(context, callback, new Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>>() {
+        @Override
+        public Void call(TripleTuple<String, DockerStarter, DockerClientFacade> data) {
+          callback.info(String.format(
+              "Pulling Docker image %s in the context of distribution deployment for: %s",
+              data.getFirst(), ToStringUtil.toString(context.getDistribution())
+          ));
+          try {
+            data.getThird().pullImage(data.getFirst(), callback);
+          } catch (DockerFacadeException e) {
+            log.error("Error trying to sync with Docker in post-deploy", e);
+            callback.error(e.getMessage());
+          }
+          return null;
         }
-        return null;
+      });
+    } else {
+      callback.info("Synchronization with Docker registry is disabled. Checking if images have been pre-deployed");
+      Set<String> imageNames = new HashSet<>();
+      for (ProcessConfig pc : context.getDistribution().getProcesses()) {
+        for (Starter st : pc.getStarters()) {
+          if (st instanceof DockerStarter) {
+            DockerStarter dst = (DockerStarter) st;
+            String imageName;
+            if (dst.getImage().isSet()) {
+              imageName = dst.getImage().get();
+            } else {
+              imageName = context.getDistribution().getName() + ":" + context.getDistribution().getVersion();
+            }
+            imageNames.add(imageName);
+          }
+        }
       }
-    });
+      try {
+        Set<String> notFound = dockerFacade.getDockerClient().checkContainsImages(imageNames);
+        if (!notFound.isEmpty()) {
+          String msg = "Could not find the following expected Docker images in Docker daemon: " + ToStringUtil.joinToString(notFound);
+          log.error(msg);
+          callback.error(msg);
+        }
+      } catch (DockerFacadeException e) {
+        log.error("Error checking state of Docker daemon", e);
+        callback.error(e.getMessage());
+      }
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -82,23 +110,36 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
   @Override
   public void onPostUndeploy(final DeploymentContext context, final LogCallback callback)
       throws Exception {
-    onPostProcess(context, callback, new Func<Void, PairTuple<String, DockerClientFacade>>() {
-      @Override
-      public Void call(PairTuple<String, DockerClientFacade> data) {
-        callback.debug(String.format(
-            "Removing Docker image %s in the context distribution undeployment for: %s",
-            data.getLeft(), ToStringUtils.toString(context.getDistribution())
-        ));
-
-        try {
-          data.getRight().removeImage(data.getLeft(), callback);
-        } catch (DockerFacadeException | IOException e) {
-          log.error("Error trying to sync with Docker in post-undeploy", e);
-          callback.error(e.getMessage());
+    if (dockerFacade.isAutoRemoveEnabled()) {
+      onPostProcess(context, callback, new Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>>() {
+        @Override
+        public Void call(TripleTuple<String, DockerStarter, DockerClientFacade> data) {
+          if (data.getSecond().isAutoRemoveEnabled()) {
+            callback.debug(String.format(
+                "Removing Docker image %s in the context of distribution undeployment for: %s",
+                data.getFirst(), ToStringUtil.toString(context.getDistribution())
+            ));
+            try {
+              data.getThird().removeImage(data.getFirst(), callback);
+            } catch (DockerFacadeException e) {
+              log.error("Error trying to sync with Docker in post-undeploy", e);
+              callback.error(e.getMessage());
+            }
+          } else {
+            callback.debug(String.format(
+                "Auto-removal is disabled for Docker image %s in the context of distribution undeployment for: %s",
+                data.getFirst(), ToStringUtil.toString(context.getDistribution())
+            ));
+          }  
+          return null;
         }
-        return null;
-      }
-    });
+      });
+    } else {
+      callback.info(String.format(
+          "Docker images corresponding to distribution %s will not be removed (auto-removal is disabled)", 
+          ToStringUtil.toString(context.getDistribution())
+      ));
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -107,7 +148,7 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
   private void onPostProcess(
       DeploymentContext context, 
       LogCallback callback, 
-      Func<Void, PairTuple<String, DockerClientFacade>> processingFunction) {
+      Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>> processingFunction) {
     DockerClientFacade dockerClient = dockerFacade.getDockerClient();
     onPostProcess(context, callback, processingFunction, dockerClient);
   }
@@ -115,7 +156,7 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
   private void onPostProcess(
       DeploymentContext context, 
       LogCallback callback, 
-      Func<Void, PairTuple<String, DockerClientFacade>> processingFunction, 
+      Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>> processingFunction, 
       DockerClientFacade client) {
 
     Set<String> processedImages = new HashSet<String>();
@@ -132,12 +173,6 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
       if (corusTags.containsAll(processTags)) {
         for (Starter st : pc.getStarters()) {
           if (st instanceof DockerStarter) {
-            if (!processTags.isEmpty()) {
-              callback.info(
-                  String.format("Process tags (%s) matched Corus tags, will proceed to deployment of Docker image",
-                  ToStringUtils.joinToString(processTags))
-              );
-            }
             DockerStarter dst = (DockerStarter) st;
             String imageName = null;
             if (dst.getImage().isSet()) {
@@ -145,8 +180,14 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
             } else {
               imageName = context.getDistribution().getName() + ":" + context.getDistribution().getVersion();
             }
+            if (!processTags.isEmpty()) {
+              callback.info(
+                  String.format("Process tags (%s) matched Corus tags, will process Docker image: %s",
+                  ToStringUtil.joinToString(processTags), imageName)
+              );
+            }
             if (!processedImages.contains(imageName)) {
-              processingFunction.call(new PairTuple<String, DockerClientFacade>(imageName, client));
+              processingFunction.call(new TripleTuple<String, DockerStarter, DockerClientFacade>(imageName, dst, client));
               processedImages.add(imageName);
             }
           }

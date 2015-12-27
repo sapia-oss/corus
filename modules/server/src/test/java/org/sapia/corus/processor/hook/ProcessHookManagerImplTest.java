@@ -16,6 +16,7 @@ import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
+import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.ubik.util.Collects;
 import org.springframework.context.ApplicationContext;
@@ -37,11 +38,15 @@ public class ProcessHookManagerImplTest {
   
   @Mock
   private ApplicationContext appContext;
+ 
+  private Process process;
   
   private ProcessHookManagerImpl manager;
   
   @Before
   public void setUp() throws Exception {
+    process = new Process(new DistributionInfo("dist", "1.0", "test", "test-proc"));
+    
     manager = new ProcessHookManagerImpl();
     manager.setApplicationContext(appContext);
 
@@ -57,12 +62,12 @@ public class ProcessHookManagerImplTest {
 
   @Test
   public void testKill() throws Exception {
-    manager.kill(new ProcessContext(new Process()), KillSignal.SIGKILL, mock(LogCallback.class));
+    manager.kill(new ProcessContext(process), KillSignal.SIGKILL, mock(LogCallback.class));
   }
 
   @Test
   public void testStart() throws Exception {
-    manager.start(new ProcessContext(new Process()), new StarterResult(StarterType.JAVA, new CmdLine(), true), mock(LogCallback.class));
+    manager.start(new ProcessContext(process), new StarterResult(StarterType.JAVA, new CmdLine(), true), mock(LogCallback.class));
   }
 
 }

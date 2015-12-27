@@ -78,7 +78,8 @@ public class DockerStarter implements Starter, Serializable {
   private OptionalValue<String>   memorySwappiness = OptionalValue.none();
   private OptionalValue<String>   user             = OptionalValue.none();
    
-  private boolean                 interopEnabled = false;
+  private boolean                 interopEnabled    = false;
+  private boolean                 autoRemoveEnabled = true;
 
   private List<Dependency>          dependencies   = new ArrayList<Dependency>();
   private List<DockerPortMapping>   portMappings   = new ArrayList<DockerPortMapping>();
@@ -313,7 +314,19 @@ public class DockerStarter implements Starter, Serializable {
   public boolean isInteropEnabled() {
     return interopEnabled;
   }
-
+  
+  /**
+   * 
+   * @param autoRemoveEnabled if <code>true</code>, indicates that auto-removal of the corresponding Docker image should be 
+   * performed at undeployment.
+   */
+  public void setAutoRemoveEnabled(boolean autoRemoveEnabled) {
+    this.autoRemoveEnabled = autoRemoveEnabled;
+  }
+  
+  public boolean isAutoRemoveEnabled() {
+    return this.autoRemoveEnabled;
+  }
   
   @Override
   public StarterResult toCmdLine(Env env) throws MissingDataException {

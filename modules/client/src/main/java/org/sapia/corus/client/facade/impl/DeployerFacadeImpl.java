@@ -43,6 +43,7 @@ import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
+import org.sapia.corus.client.services.deployer.transport.DockerImageDeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.FileDeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.ShellScriptDeploymentMetadata;
 import org.sapia.ubik.net.ServerAddress;
@@ -91,6 +92,18 @@ public class DeployerFacadeImpl extends FacadeHelper<Deployer> implements Deploy
       }
     });
   }
+  
+  @Override
+  public synchronized ProgressQueue deployDockerImage(final String imageName, final String fileName, final DeployPreferences prefs, final ClusterInfo cluster) 
+      throws IOException, Exception {
+    return doDeployArtifact(fileName, cluster, new MetadataFactory() {
+      @Override
+      public DeploymentMetadata create(String fileName, long fileLen, ClusterInfo cluster) {
+        return new DockerImageDeploymentMetadata(imageName, fileName, fileLen, prefs.getCopy(), cluster);
+      }
+    });
+  }
+
 
   @Override
   public ProgressQueue deployFile(String fileName, final String destinationDir, final DeployPreferences prefs, ClusterInfo cluster) throws IOException, Exception {

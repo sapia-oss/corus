@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
@@ -60,14 +60,14 @@ public class ConfigProperty extends AbstractPersistent<String, ConfigProperty> i
   public boolean equals(Object obj) {
     if (obj instanceof ConfigProperty) {
       ConfigProperty other = (ConfigProperty) obj;
-      return ObjectUtils.safeEquals(other.name, name) && ObjectUtils.safeEquals(other.value, value);
+      return ObjectUtil.safeEquals(other.name, name) && ObjectUtil.safeEquals(other.value, value);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(name, value);
+    return ObjectUtil.safeHashCode(name, value);
   }
   
   @Override

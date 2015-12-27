@@ -6,7 +6,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.InputException;
 import org.sapia.console.OptionDef;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.Collects;
 
@@ -40,10 +40,10 @@ public class Connect extends CorusCliCommand {
         throw new InputException(String.format("Expected valid port for option -%s", OPT_PORT));
       }
     }
-    ctx.getCorus().getContext().reconnect(host, port);
+    ctx.getCorus().getContext().connect(host, port);
 
     // Change the prompt
-    ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
+    ctx.getConsole().setPrompt(CliUtil.getPromptFor(ctx.getCorus().getContext()));
     ctx.getCorus().getContext().getConnectionHistory().push(currentAddress);
   }
   

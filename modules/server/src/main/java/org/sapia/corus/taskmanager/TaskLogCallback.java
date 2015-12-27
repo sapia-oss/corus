@@ -11,6 +11,7 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
  */
 public class TaskLogCallback implements LogCallback {
   
+  private boolean failsafe = true;
   private TaskExecutionContext context;
   
   /**
@@ -18,6 +19,28 @@ public class TaskLogCallback implements LogCallback {
    */
   public TaskLogCallback(TaskExecutionContext context) {
     this.context = context;
+  }
+  
+  /**
+   * Sets this instance's {@link #failsafe} flag to true.
+   * 
+   * @return this instance.
+   * @see #failfast().
+   */
+  public TaskLogCallback failsafe() {
+    failsafe = true;
+    return this;
+  }
+  
+  /**
+   * Sets this instances {@link #failsafe} flag to false (an {@link IllegalStateException} will be 
+   * thrown as soon as the {@link #error(String)} method is called).
+   * 
+   * @return this instance.
+   */
+  public TaskLogCallback failfast() {
+    failsafe = false;
+    return this;
   }
   
   @Override
@@ -33,6 +56,9 @@ public class TaskLogCallback implements LogCallback {
   @Override
   public void error(String msg) {
     context.error(msg);
+    if (!failsafe) {
+      throw new IllegalStateException(msg);
+    }
   }
 
 }

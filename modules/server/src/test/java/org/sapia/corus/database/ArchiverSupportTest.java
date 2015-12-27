@@ -12,10 +12,10 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonObjectInput;
 import org.sapia.corus.client.common.json.WriterJsonStream;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.database.Revision;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;

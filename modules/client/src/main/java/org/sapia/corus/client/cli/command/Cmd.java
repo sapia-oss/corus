@@ -7,7 +7,7 @@ import org.sapia.console.AbortException;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.cli.CliContext;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 
 /**
  * Invokes an OS command.
@@ -36,13 +36,13 @@ public class Cmd extends NoOptionCommand {
 
       // Extract the output stream of the process
       ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-      CliUtils.extractUntilAvailable(handle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(handle.getInputStream(), anOutput, COMMAND_TIME_OUT);
 
       ctx.getConsole().println(anOutput.toString("UTF-8").trim());
 
       // Extract the error stream of the process
       anOutput.reset();
-      CliUtils.extractAvailable(handle.getErrStream(), anOutput);
+      CliUtil.extractAvailable(handle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
         ctx.getConsole().println(anOutput.toString("UTF-8").trim());
         throw new AbortException("Aborting on process error");

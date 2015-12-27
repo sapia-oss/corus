@@ -62,7 +62,7 @@ public interface CorusConnectionContext {
   public ServerAddress getAddress();
 
   /**
-   * Reconnects to the corus server at the given host/port.
+   * Connects to the Corus server at the given host/port.
    * 
    * @param host
    *          the host of the server to reconnect to.
@@ -70,10 +70,18 @@ public interface CorusConnectionContext {
    *          the port of the server to reconnect to.
    * @throws CorusException
    */
-  public void reconnect(String host, int port);
+  public void connect(String host, int port);
+  
+  /**
+   * Connects to the Corus server corresponding to the given {@link CorusHost}. 
+   * 
+   * @param host
+   *          the {@link CorusHost} corresponding to the Corus instance to connect to.
+   */
+  public void connect(CorusHost host);
 
   /**
-   * Reconnects to the corus server that this instance corresponds to.
+   * Reconnects to the Corus server that this instance corresponds to.
    * 
    * @throws CorusException
    */

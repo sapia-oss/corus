@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -156,16 +156,16 @@ public class Property implements Externalizable, Comparable<Property>, Matcheabl
   public boolean equals(Object obj) {
     if (obj instanceof Property) {
       Property other = (Property) obj;
-      return ObjectUtils.safeEquals(name, other.name) 
-          && ObjectUtils.safeEquals(value, other.value)
-          && ObjectUtils.safeEquals(category, other.category);
+      return ObjectUtil.safeEquals(name, other.name) 
+          && ObjectUtil.safeEquals(value, other.value)
+          && ObjectUtil.safeEquals(category, other.category);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(name, value, category);
+    return ObjectUtil.safeHashCode(name, value, category);
   }
   
   // --------------------------------------------------------------------------
