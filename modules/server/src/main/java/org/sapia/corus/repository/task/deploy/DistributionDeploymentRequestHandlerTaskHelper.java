@@ -9,6 +9,8 @@ import java.util.Set;
 
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.ProcessDef;
@@ -18,6 +20,7 @@ import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.deployer.InternalDeployer;
 import org.sapia.corus.repository.task.DistributionRequestHandlerTask;
 import org.sapia.corus.repository.task.SendExecConfigNotificationTask;
+import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.CompositeTask;
 import org.sapia.corus.taskmanager.util.RunnableTask;
@@ -53,8 +56,15 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
     for (final Map.Entry<RepoDistribution, Set<Endpoint>> entry : distributionTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
-        RunnableTask task = new DistributionRequestHandlerTask(deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()),
-            new ArrayList<Endpoint>(entry.getValue()));
+        Distribution dist = deployer.getDistribution(DistributionCriteria.builder().name(entry.getKey().getName()).version(entry.getKey().getVersion()).build());
+        List<Endpoint> endpoint = new ArrayList<>(entry.getValue());
+        for (Task<Void, Void> t : deployer.getImageDeploymentTasksFor(dist, endpoint)) {
+          toAddTo.add(t);
+        }
+        RunnableTask task = new DistributionRequestHandlerTask(
+            deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()),
+            endpoint
+        );
         toAddTo.add(task);
         List<ExecConfig> execConfigsForDistribution = Collects.filterToArrayList(execConfigs, new Condition<ExecConfig>() {
           @Override

@@ -51,8 +51,7 @@
     <module>corus_sample_jetty</module>
     <module>corus_sample_magnet</module>
     <module>corus_sample_tomcat</module>
+    <module>corus_sample_docker</module>
  </modules>
-
-
 
 </project>

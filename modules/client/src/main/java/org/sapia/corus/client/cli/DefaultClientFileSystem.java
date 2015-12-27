@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 
 /**
  * Default {@link ClientFileSystem} implementation.
@@ -39,7 +39,7 @@ public class DefaultClientFileSystem implements ClientFileSystem {
 
   @Override
   public File getFile(String name) {
-    if (CliUtils.isAbsolute(name)) {
+    if (CliUtil.isAbsolute(name)) {
       return new File(name);
     } else {
       return new File(baseDir, name);
@@ -50,7 +50,7 @@ public class DefaultClientFileSystem implements ClientFileSystem {
   public void changeBaseDir(String dirName) throws IOException, FileNotFoundException {
     File dir;
 
-    if (CliUtils.isAbsolute(dirName)) {
+    if (CliUtil.isAbsolute(dirName)) {
       dir = new File(dirName);
     } else if (dirName.equals(".")) {
       return;

@@ -9,7 +9,7 @@ import java.security.PublicKey;
 import javax.crypto.Cipher;
 
 import org.sapia.corus.client.common.IDGenerator;
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.encryption.DecryptionContext;
 import org.sapia.corus.client.common.encryption.EncryptionContext;
 import org.sapia.ubik.util.Assertions;
@@ -193,11 +193,11 @@ public class AuditInfo implements Externalizable {
     if (obj instanceof AuditInfo) {
       AuditInfo other = (AuditInfo) obj;
       if (userToken != null) {
-        return ObjectUtils.safeEquals(userToken, other.userToken)
-        &&  ObjectUtils.safeEquals(type, other.type);
+        return ObjectUtil.safeEquals(userToken, other.userToken)
+        &&  ObjectUtil.safeEquals(type, other.type);
       } else {
-        return ObjectUtils.safeEquals(encryptedToken, other.encryptedToken)
-        &&  ObjectUtils.safeEquals(type, other.type);
+        return ObjectUtil.safeEquals(encryptedToken, other.encryptedToken)
+        &&  ObjectUtil.safeEquals(type, other.type);
       }
     }
     return false;

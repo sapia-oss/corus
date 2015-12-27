@@ -6,6 +6,7 @@ import java.util.Map;
 import org.sapia.util.xml.confix.CreationStatus;
 import org.sapia.util.xml.confix.ObjectCreationException;
 import org.sapia.util.xml.confix.ReflectionFactory;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 
 /**
  * Implements the Confix object factory that creates the objects pertaining to
@@ -23,6 +24,7 @@ public class DeployerObjectFactory extends ReflectionFactory {
     register("java", Java.class);
     register("magnet", Magnet.class);
     register("generic", Generic.class);
+    register("docker", DockerStarter.class);
     register("option", Option.class);
     register(VmArg.ELEMENT_NAME, VmArg.class);
     register("property", Property.class);

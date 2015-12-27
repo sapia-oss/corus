@@ -36,6 +36,7 @@ import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -57,6 +58,7 @@ import org.sapia.corus.cloud.CorusUserDataEvent;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.artifact.InternalArtifactManager;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
 import org.sapia.corus.deployer.task.CleanTempDirTask;
 import org.sapia.corus.deployer.task.RollbackTask;
@@ -68,6 +70,7 @@ import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -117,7 +120,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
   @Autowired
   private Auditor auditor;
-  
+
+  @Autowired
+  private DeploymentProcessorManager processorManager;
+
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
   
   private DeploymentProcessor  processor;
@@ -422,6 +428,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
   
   @Override
+  public List<Task<Void, Void>> getImageDeploymentTasksFor(Distribution dist, List<Endpoint> endpoints) {
+    return processorManager.getImageDeploymentTasksFor(dist, endpoints);
+  }
+  
+  @Override
   public ProgressQueue rollbackDistribution(String name, String version)
       throws RollbackScriptNotFoundException, DistributionNotFoundException {
     Distribution dist = getDistributionStore().getDistribution(DistributionCriteria.builder().name(name).version(version).build());
@@ -602,6 +613,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     throw new IllegalStateException("Could not find deployment handler for: " + meta);
   }
   
+  
+  // --------------------------------------------------------------------------
+  // Inner classes
+  
+  @SuppressWarnings("serial")
   private static class RemoteAddress implements ServerAddress {
     private static final String DEPLOYMENT_TRANSPORT_TYPE = "deploy";
     private String remoteAddress;

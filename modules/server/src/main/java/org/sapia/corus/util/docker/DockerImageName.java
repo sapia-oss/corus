@@ -1,7 +1,7 @@
 package org.sapia.corus.util.docker;
 
 import org.apache.commons.lang.StringUtils;
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 
 /**
@@ -12,6 +12,8 @@ import org.sapia.corus.client.common.OptionalValue;
  */
 public class DockerImageName {
 
+  private static final String DEFAULT_TAG = "latest";
+  
   private static final int USER_PART = 0;
   private static final int NAME_PART = 1;
 
@@ -19,9 +21,9 @@ public class DockerImageName {
   private static final int TAG_INDEX  = 1;
   
   private String image;
+  private String tag = DEFAULT_TAG;
   private OptionalValue<String> user = OptionalValue.none();
-  private OptionalValue<String> tag  = OptionalValue.none();
- 
+
   public DockerImageName(String image) {
     this.image = image;
   }
@@ -30,7 +32,7 @@ public class DockerImageName {
     return image;
   }
 
-  public OptionalValue<String> getTag() {
+  public String getTag() {
     return tag;
   }
   
@@ -56,7 +58,7 @@ public class DockerImageName {
   public DockerImageName withTag(String tag) {
     DockerImageName copy = new DockerImageName(image);
     copy.user = user;
-    copy.tag  = OptionalValue.of(tag);
+    copy.tag  = tag;
     return copy;
   }
   
@@ -83,7 +85,7 @@ public class DockerImageName {
         return new DockerImageName(nameVersion[NAME_INDEX]);
       } else if (nameVersion.length == 2){
         DockerImageName img = new DockerImageName(nameVersion[NAME_INDEX]);
-        img.tag = OptionalValue.of(nameVersion[TAG_INDEX]);
+        img.tag = nameVersion[TAG_INDEX];
         return img;
       } else {
         throw new IllegalArgumentException("Expected <user>/<image-name>[:tag]. Got: " + imageName);
@@ -97,7 +99,7 @@ public class DockerImageName {
         return img;
       } else if (nameVersion.length == 2){
         DockerImageName img = new DockerImageName(nameVersion[NAME_INDEX]);
-        img.tag = OptionalValue.of(nameVersion[TAG_INDEX]);
+        img.tag = nameVersion[TAG_INDEX];
         img.user = OptionalValue.of(user);
         return img;
       } else {
@@ -117,10 +119,7 @@ public class DockerImageName {
     if (user.isSet()) {
       sb.append(user.get()).append("/");
     }
-    sb.append(image);
-    if (tag.isSet()) {
-      sb.append(":").append(tag.get());
-    }
+    sb.append(image).append(":").append(tag);
     return sb.toString();
   }
   
@@ -128,16 +127,16 @@ public class DockerImageName {
   public boolean equals(Object obj) {
     if (obj instanceof DockerImageName) {
       DockerImageName other = (DockerImageName) obj;
-      return ObjectUtils.safeEquals(user, other.user)
-          && ObjectUtils.safeEquals(image, other.image)
-          && ObjectUtils.safeEquals(tag, other.tag);
+      return ObjectUtil.safeEquals(user, other.user)
+          && ObjectUtil.safeEquals(image, other.image)
+          && ObjectUtil.safeEquals(tag, other.tag);
     }
     return false;
   }
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(user, image, tag);
+    return ObjectUtil.safeHashCode(user, image, tag);
   }
 
 }

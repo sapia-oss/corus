@@ -7,10 +7,10 @@ import java.util.StringTokenizer;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * Unix implementation of the {@link NativeProcess} interface.
@@ -51,7 +51,7 @@ public class UnixProcess implements NativeProcess {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+    CliUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the process id
@@ -83,7 +83,7 @@ public class UnixProcess implements NativeProcess {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(handle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+    CliUtil.extractUntilAvailable(handle.getInputStream(), anOutput, COMMAND_TIME_OUT);
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the error stream of the process

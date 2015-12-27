@@ -1,6 +1,6 @@
 package org.sapia.corus.client.services.pub;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
@@ -86,7 +86,7 @@ public class ProcessPubContext {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(process, processConfig, pubConfig);
+    return ObjectUtil.safeHashCode(process, processConfig, pubConfig);
   }
   
   @Override

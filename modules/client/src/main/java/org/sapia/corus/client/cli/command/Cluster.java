@@ -17,7 +17,7 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
@@ -126,13 +126,13 @@ public class Cluster extends CorusCliCommand {
   private void cluster(CliContext ctx, String newClusterName) throws InputException {
     ctx.getCorus().getCluster().changeCluster(newClusterName, getClusterInfo(ctx));
     ctx.getCorus().getContext().reconnect();
-    ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
+    ctx.getConsole().setPrompt(CliUtil.getPromptFor(ctx.getCorus().getContext()));
   }
   
   private void repo(CliContext ctx, RepoRole newRole) throws InputException {
     ctx.getCorus().getRepoFacade().changeRole(newRole, getClusterInfo(ctx));
     ctx.getCorus().getContext().reconnect();
-    ctx.getConsole().setPrompt(CliUtils.getPromptFor(ctx.getCorus().getContext()));
+    ctx.getConsole().setPrompt(CliUtil.getPromptFor(ctx.getCorus().getContext()));
   }
 
   private void check(final CliContext ctx) throws InputException {

@@ -11,6 +11,7 @@ import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.AutoClusterFlag;
 import org.sapia.corus.client.common.FilePath;
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
@@ -40,7 +41,6 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * This task handles the extraction of deployment jars from the temporary file
@@ -93,7 +93,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     Deployer             deployer         = ctx.getServerContext().getServices().getDeployer();
     FileSystemModule     fs               = ctx.getServerContext().getServices().getFileSystem();
     EventDispatcher      dispatcher       = ctx.getServerContext().getServices().getEventDispatcher();
-    DeploymentProcessorManager processor  = ctx.getServerContext().lookup(DeploymentProcessorManager.class);
+    DeploymentProcessorManager processor  = ctx.getServerContext().getServices().getDeploymentProcessorManager();
     
     String tmpBaseDirName = null;
     String baseDirName    = null;
@@ -169,7 +169,6 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       fs.renameDirectory(tmpBaseDir, baseDir);
       commonDir = FilePath.newInstance().addDir(baseDirName).addDir("common").createFile();
       processDir = FilePath.newInstance().addDir(baseDirName).addDir("processes").createFile();
-      ctx.info("Distribution added to Corus");
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentUnzippedEvent(dist));
       
       if (prefs.isExecuteDeployScripts()) {
@@ -177,12 +176,18 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       }
       dist.setState(State.DEPLOYED);
       processor.onPostDeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
+      ctx.info("Distribution added to Corus");
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentCompletedEvent(dist));
       
     } catch (Exception e) {
+      ctx.warn("Deloyment resulted in an error", e);
       dispatcher.dispatch(new DeploymentFailedEvent(dist));
-      processor.onPostUndeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
       if (tmpBaseDir != null) {
+        try {
+          processor.onPostUndeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
+        } catch (Exception pe) {
+          ctx.warn("Got non-critical error while undeploying (moving ahead with remaining undeployment steps)", pe);
+        }
         if (prefs.isExecuteDeployScripts()) {
           ctx.info("Error occured while deploying. Will execute rollback.corus script if it is provided in the distribution");
           try {

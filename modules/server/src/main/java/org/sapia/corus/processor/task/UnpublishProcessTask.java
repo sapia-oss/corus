@@ -1,6 +1,6 @@
 package org.sapia.corus.processor.task;
 
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.event.ProcessUnpublishingCompletedEvent;
 import org.sapia.corus.client.services.processor.event.ProcessUnpublishingCompletedEvent.UnpublishStatus;
@@ -48,7 +48,7 @@ public class UnpublishProcessTask extends Task<Boolean, Process> {
     @Override
     public void unpublishingFailed(ProcessPubContext ctx, Exception err) {
       status = UnpublishStatus.FAILURE;
-      taskContext.warn("Error occurred trying to unpublish process " + ToStringUtils.toString(ctx.getProcess()), err);
+      taskContext.warn("Error occurred trying to unpublish process " + ToStringUtil.toString(ctx.getProcess()), err);
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessUnpublishingCompletedEvent(ctx.getProcess(), err));
     }
    
@@ -56,13 +56,13 @@ public class UnpublishProcessTask extends Task<Boolean, Process> {
     public void unpublishingNotApplicable(Process process) {
       status = UnpublishStatus.NOT_APPLICABLE;
       taskContext.info(String.format("Unpublishing not applicable for process %s", 
-          ToStringUtils.toString(process)));
+          ToStringUtil.toString(process)));
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessUnpublishingCompletedEvent(process, status));
     }
   
     @Override
     public void unpublishingStarted(ProcessPubContext ctx) {
-      taskContext.info(String.format("Attempting to unpublish process: %s for %s", ToStringUtils.toString(ctx.getProcess()), ctx.getPubConfig()));
+      taskContext.info(String.format("Attempting to unpublish process: %s for %s", ToStringUtil.toString(ctx.getProcess()), ctx.getPubConfig()));
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessUnpublishingPendingEvent(ctx.getProcess()));
     }
     
@@ -70,7 +70,7 @@ public class UnpublishProcessTask extends Task<Boolean, Process> {
     public void unpublishingSuccessful(ProcessPubContext ctx) {
       status = UnpublishStatus.SUCCESS;
       taskContext.info(String.format("Unpublishing successful for process %s with publishing config: %s", 
-          ToStringUtils.toString(ctx.getProcess()), ctx.getPubConfig()));
+          ToStringUtil.toString(ctx.getProcess()), ctx.getPubConfig()));
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessUnpublishingCompletedEvent(ctx.getProcess(), status));
     }
   }

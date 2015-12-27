@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -240,17 +240,17 @@ public class ProcessConfigDiagnosticResult implements Externalizable, JsonStream
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(status, distribution, processConfig);
+    return ObjectUtil.safeHashCode(status, distribution, processConfig);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ProcessConfigDiagnosticResult) {
       ProcessConfigDiagnosticResult other = (ProcessConfigDiagnosticResult) obj;
-      return ObjectUtils.safeEquals(status, other.status) 
-          && ObjectUtils.safeEquals(distribution, other.distribution) 
-          && ObjectUtils.safeEquals(processConfig, other.processConfig)
-          && ObjectUtils.safeListEquals(processResults, other.processResults);
+      return ObjectUtil.safeEquals(status, other.status) 
+          && ObjectUtil.safeEquals(distribution, other.distribution) 
+          && ObjectUtil.safeEquals(processConfig, other.processConfig)
+          && ObjectUtil.safeListEquals(processResults, other.processResults);
     }
     return false;
   }

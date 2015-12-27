@@ -11,18 +11,20 @@ public class DockerImageNameTest {
   public void testWithUser() {
     DockerImageName img = new DockerImageName("test");
     assertEquals("usr", img.withUser("usr").getUser().get());
+    assertEquals("latest", img.getTag());
   }
 
   @Test
   public void testWithTag() {
     DockerImageName img = new DockerImageName("test");
-    assertEquals("1.0", img.withTag("1.0").getTag().get());
+    assertEquals("1.0", img.withTag("1.0").getTag());
   }
 
   @Test
   public void testWithImage() {
     DockerImageName img = new DockerImageName("test");
     assertEquals("test2", img.withImage("test2").getImage());
+    assertEquals("latest", img.getTag());
   }
   
   @Test
@@ -30,6 +32,7 @@ public class DockerImageNameTest {
     DockerImageName img = DockerImageName.parse("usr/test");
     assertEquals("usr", img.getUser().get());
     assertEquals("test", img.getImage());
+    assertEquals("latest", img.getTag());
   }
   
   @Test
@@ -37,7 +40,7 @@ public class DockerImageNameTest {
     DockerImageName img = DockerImageName.parse("usr/test:1.0");
     assertEquals("usr", img.getUser().get());
     assertEquals("test", img.getImage());
-    assertEquals("1.0", img.getTag().get());
+    assertEquals("1.0", img.getTag());
   }
   
   @Test
@@ -45,7 +48,7 @@ public class DockerImageNameTest {
     DockerImageName img = DockerImageName.parse("test:1.0");
     assertTrue(img.getUser().isNull());
     assertEquals("test", img.getImage());
-    assertEquals("1.0", img.getTag().get());
+    assertEquals("1.0", img.getTag());
   }
   
   @Test
@@ -53,13 +56,14 @@ public class DockerImageNameTest {
     DockerImageName img = DockerImageName.parse("test");
     assertTrue(img.getUser().isNull());
     assertEquals("test", img.getImage());
-    assertTrue(img.getTag().isNull());
+    assertEquals("latest", img.getTag());
   }
   
   @Test
   public void testToString_with_user() {
     DockerImageName img = new DockerImageName("test").withUser("usr");
-    assertEquals("usr/test", img.toString());
+    assertEquals("usr/test:latest", img.toString());
+    assertEquals("latest", img.getTag());
   }
   
   @Test
@@ -79,6 +83,7 @@ public class DockerImageNameTest {
     DockerImageName img = DockerImageName.parse("test");
     assertTrue(img.getUser().isNull());
     assertEquals("test", img.getImage());
-    assertTrue(img.getTag().isNull());
+    assertEquals("latest", img.getTag());
   }
+ 
 }

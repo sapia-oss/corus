@@ -9,11 +9,11 @@ import java.util.Map;
 import org.sapia.console.AbortException;
 import org.sapia.console.CmdLine;
 import org.sapia.console.Command;
+import org.sapia.console.CommandFactory;
 import org.sapia.console.CommandNotFoundException;
 import org.sapia.console.Context;
 import org.sapia.console.InputException;
 import org.sapia.console.OptionDef;
-import org.sapia.console.ReflectCommandFactory;
 import org.sapia.corus.client.cli.command.CorusCliCommand;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.ubik.util.Collects;
@@ -25,14 +25,11 @@ import org.sapia.ubik.util.Condition;
  * @author yduchesne
  *
  */
-public class CorusCommandFactory extends ReflectCommandFactory {
+public class CorusCommandFactory implements CommandFactory {
   
   private Map<String, Command>      cachedCommands = new HashMap<>();
   private Map<String, AliasCommand> aliases        = new HashMap<>();
 
-  public CorusCommandFactory() {
-    addPackage("org.sapia.corus.client.cli.command");
-  }
   
   /**
    * Returns a {@link Map} from alias names to aliased commands.
@@ -56,7 +53,7 @@ public class CorusCommandFactory extends ReflectCommandFactory {
     }
     Command delegate = cachedCommands.get(commandName);
     if (delegate == null) {
-      delegate = super.getCommandFor(commandName);
+      delegate = CommandDict.instantiateCommandFor(commandName);
       cachedCommands.put(commandName, delegate);
     }
     aliases.put(aliasName, new AliasCommand(delegate, aliasName, commandName, cmdLine));
@@ -86,13 +83,13 @@ public class CorusCommandFactory extends ReflectCommandFactory {
     } else {
       Command cmd = cachedCommands.get(name);
       if (cmd == null) {
-        cmd =  super.getCommandFor(name);
+        cmd =  CommandDict.instantiateCommandFor(name);
         cachedCommands.put(name, cmd);
       }
       return cmd;
     }
   }
-  
+
   /**
    * Method for adding commands dynamically, for test purposes.
    * 

@@ -2,7 +2,7 @@ package org.sapia.corus.client.rest.async;
 
 import java.util.concurrent.TimeoutException;
 
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 
 /**
  * To be implemented by tasks that return {@link ProgressResult} data.

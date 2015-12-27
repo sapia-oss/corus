@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -89,7 +89,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     this.domain = domain;
     this.keyPair = keyPair;
     InternalServiceContext services = new InternalServiceContext();
-    String fixedCorusHome = FileUtils.fixFileSeparators(corusHome);
+    String fixedCorusHome = FileUtil.fixFileSeparators(corusHome);
     ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, channel, domain, fixedCorusHome, services, props, keyPair);
 
     // root context

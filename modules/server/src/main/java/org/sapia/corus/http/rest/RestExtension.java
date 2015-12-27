@@ -30,11 +30,11 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.rest.ConnectorPool;
 import org.sapia.corus.client.rest.PartitionServiceImpl;
-import org.sapia.corus.client.rest.ProgressResult;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
 import org.sapia.corus.client.rest.RestContainer.ResourceInvocationResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.rest.RestResponseFacade;
 import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
@@ -68,7 +68,7 @@ public class RestExtension implements HttpExtension, Interceptor {
   private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
   private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);
   private static final TimeValue DEFAULT_TASK_TIMEOUT              = TimeValue.createSeconds(30);
-  private static final int       TRANSFER_BUFSZ                    = 2048;
+  private static final int       TRANSFER_BUFSZ                    = 8082;
   
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")

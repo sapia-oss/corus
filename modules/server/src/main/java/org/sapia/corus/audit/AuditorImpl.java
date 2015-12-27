@@ -7,7 +7,7 @@ import java.util.Date;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.core.ModuleHelper;
@@ -42,7 +42,7 @@ public class AuditorImpl extends ModuleHelper implements Auditor {
     DateFormat dtf = getDateFormat();
     if (remoteAddr instanceof TCPAddress) {
       TCPAddress tcpAddress = (TCPAddress) remoteAddr;
-      log.debug(ToStringUtils.joinAsCsv(
+      log.debug(ToStringUtil.joinAsCsv(
           dtf.format(new Date()), 
           info.getRequestId(), 
           tcpAddress.getHost(), 
@@ -52,7 +52,7 @@ public class AuditorImpl extends ModuleHelper implements Auditor {
           methodName
       ) + LINE_SEPARATOR);
     } else {
-      log.debug(ToStringUtils.joinAsCsv(
+      log.debug(ToStringUtil.joinAsCsv(
           dtf.format(new Date()), 
           info.getRequestId(), 
           remoteAddr, 

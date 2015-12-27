@@ -77,6 +77,7 @@ public class NonClusteredCommand extends InvokeCommand implements CorusCallbackC
     return super.execute();
   }
   
+  @SuppressWarnings("unchecked")
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {

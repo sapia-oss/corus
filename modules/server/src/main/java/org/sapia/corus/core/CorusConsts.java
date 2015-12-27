@@ -147,18 +147,22 @@ public interface CorusConsts {
   /**
    * Indicates if Docker integration is enabled.
    */
-  public static final String PROPERTY_CORUS_DOCKER_ENABLED           = "corus.server.docker.enabled";
+  public static final String PROPERTY_CORUS_DOCKER_ENABLED             = "corus.server.docker.enabled";
 
-  public static final String PROPERTY_CORUS_DOCKER_CLIENT_EMAIL      = "corus.server.docker.client.email";
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_EMAIL        = "corus.server.docker.client.email";
 
-  public static final String PROPERTY_CORUS_DOCKER_CLIENT_USERNAME   = "corus.server.docker.client.username";
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_USERNAME     = "corus.server.docker.client.username";
 
-  public static final String PROPERTY_CORUS_DOCKER_CLIENT_PASSWORD   = "corus.server.docker.client.password";
+  public static final String PROPERTY_CORUS_DOCKER_CLIENT_PASSWORD     = "corus.server.docker.client.password";
 
-  public static final String PROPERTY_CORUS_DOCKER_REGISTRY_ADDRESS  = "corus.server.docker.registry.address";
+  public static final String PROPERTY_CORUS_DOCKER_REGISTRY_ADDRESS    = "corus.server.docker.registry.address";
 
-  public static final String PROPERTY_CORUS_DOCKER_DAEMON_URI        = "corus.server.docker.daemon.uri";
+  public static final String PROPERTY_CORUS_DOCKER_REGISTRY_ENABLED    = "corus.server.docker.registry.sync-enabled";
 
-  public static final String PROPERTY_CORUS_DOCKER_CERTIFICATES_PATH = "corus.server.docker.certificates.path";
+  public static final String PROPERTY_CORUS_DOCKER_AUTO_REMOVE_ENABLED = "corus.server.docker.image-auto-remove-enabled";
+  
+  public static final String PROPERTY_CORUS_DOCKER_DAEMON_URL          = "corus.server.docker.daemon.url";
+
+  public static final String PROPERTY_CORUS_DOCKER_CERTIFICATES_PATH   = "corus.server.docker.certificates.path";
 
 }

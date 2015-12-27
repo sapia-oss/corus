@@ -46,7 +46,7 @@ public class ProcessResourcesFuncTest {
   private static final long DEPLOY_TIMEOUT        = 10000;
   private static final long DEPLOY_CHECK_INTERVAL = 2000;
   
- private static final int MAX_ATTEMPTS      = 10;
+ private static final int MAX_ATTEMPTS      = 20;
  private static final int INTERVAL_SECONDS  = 6;
 
  private FtestClient client;
@@ -92,7 +92,7 @@ public class ProcessResourcesFuncTest {
   private void tearDown() {
     Interpreter interp = new Interpreter(client.getConnector());
     try {
-      interp.eval("kill -d demo -v * -n noopApp -w 60 -cluster", StrLookup.noneLookup());
+      interp.eval("kill -d demo -v * -n noopApp -w 120 -cluster", StrLookup.noneLookup());
     } catch (Throwable err) {
       throw new IllegalStateException("Could not kill processes", err);
     }

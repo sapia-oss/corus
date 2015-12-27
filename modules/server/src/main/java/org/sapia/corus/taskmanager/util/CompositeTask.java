@@ -45,7 +45,8 @@ public class CompositeTask extends Task<Void, Void> {
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     for (Task<?, ?> t : children) {
-      ctx.getTaskManager().executeAndWait(t, null);
+      ctx.debug("Executing nested task synchronously: " + t.getName());
+      ctx.getTaskManager().executeAndWait(t, null).get();
     }
     return null;
   }

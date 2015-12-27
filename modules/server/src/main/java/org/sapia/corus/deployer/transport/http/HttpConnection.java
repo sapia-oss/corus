@@ -21,7 +21,7 @@ public class HttpConnection implements Connection {
   private OutputStream out;
   private InputStream is;
 
-  HttpConnection(Request req, Response res) {
+  public HttpConnection(Request req, Response res) {
     this.req = req;
     this.res = res;
   }

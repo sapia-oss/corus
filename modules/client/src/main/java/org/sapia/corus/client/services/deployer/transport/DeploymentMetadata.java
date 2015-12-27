@@ -34,7 +34,12 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
     /**
      * Indicates that the deployment consists of a file.
      */
-    FILE
+    FILE,
+    
+    /**
+     * Indicates that the deployment consists of a Docker image.
+     */
+    DOCKER_IMAGE
   }
 
   static final long serialVersionUID = 1L;

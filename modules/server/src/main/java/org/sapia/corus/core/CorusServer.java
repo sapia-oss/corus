@@ -29,9 +29,10 @@ import org.sapia.console.Option;
 import org.sapia.corus.audit.AuditLogFormatter;
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.CorusVersion;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.FilePath;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.exceptions.CorusException;
@@ -47,7 +48,6 @@ import org.sapia.corus.log.FormatterFactory;
 import org.sapia.corus.log.StdoutTarget;
 import org.sapia.corus.log.SyslogTarget;
 import org.sapia.corus.util.CorusTimestampOutputStream;
-import org.sapia.corus.util.IOUtil;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
@@ -91,17 +91,20 @@ public class CorusServer {
     try {
 
       org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
-
-      String corusHome = FileUtils.fixFileSeparators(System.getProperty("corus.home"));
-
-      if (corusHome == null) {
-        throw new CorusException("corus.home system property not set", ExceptionCode.INTERNAL_ERROR.getFullCode());
-      } else {
-        // hack to avoid headaches with backslashes in Properties.load()
-        String hackedCorusHome = corusHome.replace("\\", "\\\\");
-        hackedCorusHome = hackedCorusHome.replace("\"", "");
-        System.setProperty("corus.home", hackedCorusHome);
+      
+      if (System.getProperty("corus.home") == null) {
+        String userDir = System.getProperty("user.dir");
+        System.out.println("WARNING: corus.home system property not set. Will be set to " + userDir + ".");
+        System.out.println("(In a proper Corus installation, corus.home is derived from the CORUS_HOME environment variable.");
+        System.setProperty("corus.home", userDir);
       }
+
+      String corusHome = FileUtil.fixFileSeparators(System.getProperty("corus.home"));
+      
+      // hack to avoid headaches with backslashes in Properties.load()
+      String hackedCorusHome = corusHome.replace("\\", "\\\\");
+      hackedCorusHome = hackedCorusHome.replace("\"", "");
+      System.setProperty("corus.home", hackedCorusHome);
 
       CmdLine cmd;
       if (args.length == 0) {
@@ -110,7 +113,7 @@ public class CorusServer {
         cmd = CmdLine.parse(args);
       }
 
-      if (CliUtils.isHelp(cmd)) {
+      if (CliUtil.isHelp(cmd)) {
         help();
         return;
       }
@@ -163,13 +166,11 @@ public class CorusServer {
           .createFile();
 
       // files under $HOME/.corus
-      File userPropFile = FilePath.newInstance()
-          .addCorusUserDir()
+      File userPropFile = FilePath.forCorusUserDir()
           .setRelativeFile("corus.properties")
           .createFile();
 
-      File userSpecificPropFile = FilePath.newInstance()
-          .addCorusUserDir()
+      File userSpecificPropFile = FilePath.forCorusUserDir()
           .setRelativeFile("corus_" + port + ".properties")
           .createFile();
       

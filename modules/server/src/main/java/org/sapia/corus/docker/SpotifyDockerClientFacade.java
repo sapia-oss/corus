@@ -1,6 +1,5 @@
 package org.sapia.corus.docker;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,10 +13,11 @@ import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.EnvVariableStrLookup;
 import org.sapia.corus.client.common.PropertiesStrLookup;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.common.log.PrefixedLogCallback;
 import org.sapia.corus.client.services.deployer.dist.Property;
@@ -26,17 +26,27 @@ import org.sapia.corus.client.services.deployer.dist.docker.DockerPortMapping;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerVolumeMapping;
+import org.sapia.corus.client.services.docker.DockerContainer;
+import org.sapia.corus.client.services.docker.DockerImage;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.processor.hook.ProcessContext;
+import org.sapia.corus.util.DynamicProperty;
+import org.sapia.corus.util.docker.DockerImageName;
 import org.sapia.ubik.util.Assertions;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.Streams;
 
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerClient.ListContainersParam;
+import com.spotify.docker.client.DockerClient.ListImagesParam;
 import com.spotify.docker.client.DockerException;
 import com.spotify.docker.client.ProgressHandler;
+import com.spotify.docker.client.messages.Container;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 import com.spotify.docker.client.messages.PortBinding;
 import com.spotify.docker.client.messages.ProgressMessage;
 import com.spotify.docker.client.messages.RemovedImage;
@@ -49,28 +59,30 @@ import com.spotify.docker.client.messages.RemovedImage;
  */
 public class SpotifyDockerClientFacade implements DockerClientFacade {
   
-   private static final int DEFAULT_SECONDS_BEFORE_KILL = 30;
+  private static final int DEFAULT_SECONDS_BEFORE_KILL = 30;
   
    private static final String DOCKER_PREFIX = "DOCKER >>";
    private Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
   
-   private ServerContext serverContext;
-   private DockerClient  dockerClient;
+   private ServerContext            serverContext;
+   private DockerClient             dockerClient;
+   private DynamicProperty<Boolean> registrySyncEnabled;
 
-  SpotifyDockerClientFacade(ServerContext serverContext, DockerClient dockerClient) {
-    this.serverContext = serverContext;
-    this.dockerClient  = dockerClient;
+  SpotifyDockerClientFacade(ServerContext serverContext, DockerClient dockerClient, DynamicProperty<Boolean> registrySyncEnabled) {
+    this.serverContext       = serverContext;
+    this.dockerClient        = dockerClient;
+    this.registrySyncEnabled = registrySyncEnabled;
   }
 
   @Override
   public void loadImage(String imageName, InputStream imagePayload,
       LogCallback callback) {
-    
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
+    Assertions.notNull(imagePayload, "Docker image payload passed in cannot be nullk");
+
+    final LogCallback prefixedLogCallback = wrap(callback);
+
     try {
-      Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
-      Assertions.notNull(imagePayload, "Docker image payload passed in cannot be null or blank");      
-      
-      final LogCallback prefixedLogCallback = wrap(callback);
       log.info("Loading Docker image '" + imageName + "' into Docker daemon...");
       dockerClient.load(imageName, imagePayload, new ProgressHandler() {
         @Override
@@ -105,6 +117,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
 
   @Override
   public void pullImage(String imageName, final LogCallback callback) {
+    Assertions.illegalState(!registrySyncEnabled.getValue(), "Cannot pull image from Docker registry: registry synchronization is disabled");
     Assertions.isFalse(StringUtils.isBlank(imageName), "Docker image name passed in cannot be null or blank");
 
     final LogCallback prefixedLogCallback = wrap(callback);
@@ -166,7 +179,6 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       prefixedLogCallback.debug("Docker container " + containerId + " removed");
 
     } catch (Exception e) {
-      prefixedLogCallback.error("Error removing docker container " + containerId + " ==> " + e.getMessage());
       throw new DockerFacadeException("System error removing Docker container '" + containerId + "' from local daemon", e);
     }
   }
@@ -187,9 +199,9 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       log.info("Docker container " + containerId + " started");
       prefixedLogCallback.debug("Docker container " + containerId + " started");
       return containerId;
+  
     } catch (Exception e) {
-      prefixedLogCallback.error("Error starting Docker container for image " + imageName + " ==> " + e.getMessage());
-      throw new DockerFacadeException("System error starting Docker container  for image: '" + imageName + "' from local daemon", e);
+      throw new DockerFacadeException("System error starting Docker container for image: '" + imageName + "' from local daemon", e);
     }
   }
   
@@ -205,9 +217,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       dockerClient.stopContainer(containerId, timeoutSeconds);
       log.info("Docker container " + containerId + " stopped");
       prefixedLogCallback.debug("Docker container " + containerId + " stopped");
-
     } catch (Exception e) {
-      prefixedLogCallback.error("Error stopping docker container " + containerId + " ==> " + e.getMessage());
       throw new DockerFacadeException("System error stopping docker container '" + containerId + "' from local daemon", e);
     }
   }
@@ -215,19 +225,113 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
 
   @Override
   public String startContainer(ProcessContext context, StarterResult starterResult,
-      DockerStarterAttachment attachment, LogCallback callback) throws IOException {
+      DockerStarterAttachment attachment, LogCallback callback) throws DockerFacadeException {
     try {
       LogCallback prefixedLogCallback = wrap(callback);
       return doStartContainer(context, starterResult, attachment, prefixedLogCallback);
     } catch (InterruptedException e) {
-      throw new IOException("Thread interrupted while attempting to start Docker container", e);
+      throw new DockerFacadeException("Thread interrupted while attempting to start Docker container", e);
     } catch (DockerException e) {
-      throw new IOException("Docker error caught while attempting to start container", e);
+      throw new DockerFacadeException("Docker error caught while attempting to start container", e);
     }
   }
-      
   
-  public String doStartContainer(ProcessContext context, StarterResult starterResult,
+  @Override
+  public boolean containsImage(String imageName) throws DockerFacadeException {
+    Assertions.isFalse(StringUtils.isBlank(imageName), "Docker container id passed in cannot be null or blank");
+    try {
+      String normalizedImageName = DockerImageName.parse(imageName).toString();
+      for (Image img : dockerClient.listImages()) {
+        for (String t : img.repoTags()) {
+          if (normalizedImageName.equals(t)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (InterruptedException e) {
+      throw new DockerFacadeException("Thread interrupted while attempting to check Docker images", e);
+    } catch (DockerException e) {
+      throw new DockerFacadeException("Docker error caught while attempting to check Docker images", e);
+    }
+  }
+  
+  @Override
+  public Set<String> checkContainsImages(Set<String> imageNames) throws DockerFacadeException {
+    Set<String> normalizedImageNames = Collects.convertAsSet(imageNames, new Func<String, String>() {
+      @Override
+      public String call(String imageName) {
+        return DockerImageName.parse(imageName).toString();
+      }
+    });
+    Set<String> notFound = new HashSet<>(normalizedImageNames);
+    try {
+      for (Image img : dockerClient.listImages()) {
+        for (String expected : normalizedImageNames) {
+          for (String t : img.repoTags()) {
+            if (expected.equals(t)) {
+              notFound.remove(t);
+              break;
+            }
+          }
+        }
+      }
+      return notFound;
+    } catch (InterruptedException e) {
+      throw new DockerFacadeException("Thread interrupted while attempting to check Docker images", e);
+    } catch (DockerException e) {
+      throw new DockerFacadeException("Docker error caught while attempting to check Docker images", e);
+    }
+  }
+  
+  @Override
+  public List<DockerImage> listImages(ArgMatcher tagMatcher) throws DockerFacadeException {
+    List<DockerImage> matched = new ArrayList<>();
+    try {
+      for (Image img : dockerClient.listImages(ListImagesParam.allImages(false))) {
+        for (String t : img.repoTags()) {
+          if (tagMatcher.matches(t)) {
+            DockerImage dimg = new DockerImage(img.id(), img.created());
+            dimg.getTags().addAll(img.repoTags());
+            matched.add(dimg);
+            break;
+          }
+        }
+      }
+      return matched;
+    } catch (InterruptedException e) {
+      throw new DockerFacadeException("Thread interrupted while attempting to check Docker images", e);
+    } catch (DockerException e) {
+      throw new DockerFacadeException("Docker error caught while attempting to check Docker images", e);
+    }
+  }
+  
+  @Override
+ public List<DockerContainer> listContainers(ArgMatcher nameMatcher) throws DockerFacadeException {
+    List<DockerContainer> matched = new ArrayList<>();
+    try {
+      for (Container cnt : dockerClient.listContainers(ListContainersParam.allContainers(false))) {
+        log.debug("Got container: " + cnt);
+        if(nameMatcher.matches(cnt.image())) {
+          matched.add(convert(cnt));
+        } else {
+          for (String n : cnt.names()) {
+            if (nameMatcher.matches(n)) {
+              matched.add(convert(cnt));
+              break;
+            }
+          }
+        }
+      }
+      return matched;
+    } catch (InterruptedException e) {
+      throw new DockerFacadeException("Thread interrupted while attempting to check Docker containers", e);
+    } catch (DockerException e) {
+      throw new DockerFacadeException("Docker error caught while attempting to check Docker containers", e);
+    }
+ }
+  
+  private String doStartContainer(ProcessContext context, StarterResult starterResult,
       DockerStarterAttachment attachment, LogCallback callback)
       throws DockerException, InterruptedException {
 
@@ -365,7 +469,8 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     try {
       creation = dockerClient.createContainer(
           containerBuilder.build(),
-          context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
+          image.replace("/", "-").replace(":", "-").replace(".", "_")
+          + "-" + context.getProcess().getDistributionInfo().getProcessName() + "-" + context.getProcess().getProcessID()
       );
   
       String containerId = creation.id();
@@ -374,7 +479,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
       callback.info(
           String.format(
             "Created Docker container for process %s (container id: %s, image: %s)",
-            ToStringUtils.toString(context.getProcess()) , containerId, image
+            ToStringUtil.toString(context.getProcess()) , containerId, image
           )
       );    
       return containerId;
@@ -396,6 +501,12 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
   
   private LogCallback wrap(LogCallback callback) {
     return new PrefixedLogCallback(DOCKER_PREFIX, callback);
+  }
+  
+  private DockerContainer convert(Container cnt) {
+    DockerContainer dcnt = new DockerContainer(cnt.id(), cnt.image(), Long.toString(cnt.created()));
+    dcnt.getNames().addAll(cnt.names());
+    return dcnt;
   }
 
 }

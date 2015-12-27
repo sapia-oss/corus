@@ -163,13 +163,18 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   }
   
   // --------------------------------------------------------------------------
+  // Not implemented
   
   @Override
-  public synchronized void reconnect(String host, int port) {
+  public void connect(String host, int port) {
+  }
+  
+  @Override
+  public void connect(CorusHost host) {
   }
 
   @Override
-  public synchronized void reconnect() {
+  public void reconnect() {
   }
 
   @Override

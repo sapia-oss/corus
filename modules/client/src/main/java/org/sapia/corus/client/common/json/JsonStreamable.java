@@ -1,6 +1,6 @@
 package org.sapia.corus.client.common.json;
 
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -52,7 +52,7 @@ public interface JsonStreamable {
         }
       }
       throw new IllegalArgumentException("Invalid content level. Expected one of: " + 
-          ToStringUtils.joinToString((Object[])ContentLevel.values()));
+          ToStringUtil.joinToString((Object[])ContentLevel.values()));
     }
     
     /**

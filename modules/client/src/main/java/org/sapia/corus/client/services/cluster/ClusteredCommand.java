@@ -95,7 +95,6 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
     // not clustering if command does not target a module.
     disable = !(getOID() instanceof CorusModuleOID);
 
-    
     callback.debug(String.format("Received clustered command %s. Targets: %s", getMethodName(), targeted));
 
     try {

@@ -59,18 +59,27 @@
 
   <bean name="org.sapia.corus.docker.DockerFacade" 
         scope="singleton" 
-        class="org.sapia.corus.docker.DockerFacadeImpl"
+        class="org.sapia.corus.docker.SpotifyDockerFacade"
         autowire="constructor">
-    <property name="enabled"       value="${corus.server.docker.enabled}" />
-    <property name="email"         value="${corus.server.docker.client.email}" />
-    <property name="username"      value="${corus.server.docker.client.username}" />
-    <property name="password"      value="${corus.server.docker.client.password}" />
-    <property name="serverAddress" value="${corus.server.docker.registry.address}" />
+    <property name="enabled"             value="${corus.server.docker.enabled}" />
+    <property name="email"               value="${corus.server.docker.client.email}" />
+    <property name="username"            value="${corus.server.docker.client.username}" />
+    <property name="password"            value="${corus.server.docker.client.password}" />
+    <property name="serverAddress" 		 value="${corus.server.docker.registry.address}" />
+    <property name="registrySyncEnabled" value="${corus.server.docker.registry.sync-enabled}" />          
+    <property name="autoRemoveEnabled"   value="${corus.server.docker.image-auto-remove-enabled}" />    
+    <property name="daemonUrl"           value="${corus.server.docker.daemon.url}" />
   </bean>
 
   <bean name="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor" 
         scope="singleton" 
         class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor"
+        autowire="constructor">
+  </bean>
+  
+    <bean name="org.sapia.corus.ext.hook.docker.DockerImageDeploymentReplicationProcessor" 
+        scope="singleton" 
+        class="org.sapia.corus.ext.hook.docker.DockerImageDeploymentReplicationProcessor"
         autowire="constructor">
   </bean>
 
@@ -82,6 +91,11 @@
   <bean name="org.sapia.corus.ext.hook.docker.DockerProcessStartHook" 
         scope="singleton" 
         class="org.sapia.corus.ext.hook.docker.DockerProcessStartHook">
+  </bean>
+  
+  <bean name="org.sapia.corus.client.services.docker.DockerManager"
+        scope="singleton"
+        class="org.sapia.corus.docker.DockerManagerImpl">
   </bean>
   
 
@@ -120,6 +134,7 @@
   <bean name="fileDeploymentHandler"         class="org.sapia.corus.deployer.handler.FileDeploymentHandler" />
   <bean name="distributionDeploymentHandler" class="org.sapia.corus.deployer.handler.DistributionDeploymentHandler" />
   <bean name="scriptDeploymentHandler"       class="org.sapia.corus.deployer.handler.ScriptDeploymentHandler" />
+  <bean name="dockerImageDeploymentHandler"  class="org.sapia.corus.deployer.handler.DockerImageDeploymentHandler" />
   
   <bean name="org.sapia.corus.client.services.deployer.Deployer" 
         class="org.sapia.corus.deployer.DeployerImpl" 
@@ -131,6 +146,7 @@
             <ref bean="fileDeploymentHandler" />
             <ref bean="distributionDeploymentHandler" />
             <ref bean="scriptDeploymentHandler" />
+            <ref bean="dockerImageDeploymentHandler" />
         </list>
     </property>
   </bean>

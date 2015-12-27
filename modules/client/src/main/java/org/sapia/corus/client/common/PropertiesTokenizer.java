@@ -2,6 +2,8 @@ package org.sapia.corus.client.common;
 
 import java.util.Properties;
 
+import org.sapia.corus.client.common.tuple.PairTuple;
+
 /**
  * Supports tokenizing property literals, according to the following format:
  * <pre>

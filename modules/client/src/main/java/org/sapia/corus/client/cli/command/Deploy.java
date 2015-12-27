@@ -39,13 +39,15 @@ public class Deploy extends CorusCliCommand {
   private static final OptionDef OPT_DEPLOY_SCRIPTS = new OptionDef("r", false);
   private static final OptionDef OPT_DEPLOY_REV     = new OptionDef("rev", true);
   private static final OptionDef OPT_SEQ            = new OptionDef("seq", false);
+  private static final OptionDef OPT_DOCKER         = new OptionDef("docker", false);
+  private static final OptionDef OPT_IMAGE          = new OptionDef("img", false);
   private static final OptionDef OPT_CHECKSUM_MD5   = new OptionDef("chkmd5", false);
 
   
   private static List<OptionDef> AVAIL_OPTIONS = Collects.arrayToList(
     OPT_EXEC_CONF, OPT_FILE, OPT_SCRIPT, OPT_DESC_OR_DIR, OPT_ALIAS, 
-    OPT_DEPLOY_SCRIPTS, OPT_DEPLOY_REV, OPT_SEQ, OPT_CHECKSUM_MD5,
-    OPT_CLUSTER
+    OPT_DEPLOY_SCRIPTS, OPT_DEPLOY_REV, OPT_SEQ, OPT_DOCKER, OPT_IMAGE, 
+    OPT_CHECKSUM_MD5,OPT_CLUSTER
   );
   
   @Override
@@ -62,6 +64,13 @@ public class Deploy extends CorusCliCommand {
     if (ctx.getCommandLine().containsOption(OPT_DEPLOY_REV.getName(), false)) {
       RevId revId = RevId.valueOf(ctx.getCommandLine().assertOption(OPT_DEPLOY_REV.getName(), true).getValue());
       displayProgress(ctx.getCorus().getDeployerFacade().unarchiveDistributions(revId, getClusterInfo(ctx)), ctx);
+    } else if (ctx.getCommandLine().containsOption(OPT_DOCKER.getName(), false)) {
+      deployDockerImage(
+          ctx, 
+          ctx.getCommandLine().assertOption(OPT_IMAGE.getName(), true).getValue(), 
+          ctx.getCommandLine().assertOption(OPT_FILE.getName(), true).getValue(), 
+          DeployPreferences.newInstance()
+      );
     } else if (ctx.getCommandLine().containsOption(OPT_EXEC_CONF.getName(), true)) {
       deployExec(ctx, ctx.getCommandLine().assertOption(OPT_EXEC_CONF.getName(), true).getValue());
     } else if (ctx.getCommandLine().containsOption(OPT_FILE.getName(), true)) {
@@ -116,7 +125,52 @@ public class Deploy extends CorusCliCommand {
       }
     }
   }
+  
+  // --------------------------------------------------------------------------
+  // Docker deployment
 
+  private void deployDockerImage(final CliContext ctx, final String imageName, final String fileName, final DeployPreferences prefs) throws AbortException, InputException {
+    if (!ctx.getFileSystem().getFile(fileName).exists()) {
+      throw new InputException("Docker image file not found: " + fileName);
+    }
+    if (ctx.getCommandLine().containsOption(OPT_SEQ.getName(), false)) {
+      doSequentionDeployment(fileName, ctx, new Func<Void, CorusHost>() {
+        @Override
+        public Void call(CorusHost target) {
+          ClusterInfo info = new ClusterInfo(false);
+          try {
+            displayProgress(
+                ctx.getCorus().getDeployerFacade().deployDockerImage(
+                  imageName, 
+                  fileName, 
+                  assignChecksumPreference(prefs.getCopy(), ctx), info
+                ), 
+                ctx
+            );
+          } catch (Exception e) {
+            throw new AbortException("Error caught performing Docker image deployment: " + e.getMessage(), e);
+          }
+          return null;
+        }
+      });
+    } else {
+      try {
+        displayProgress(
+            ctx.getCorus().getDeployerFacade().deployDockerImage(
+              imageName, 
+              fileName, 
+              assignChecksumPreference(prefs.getCopy(), ctx), getClusterInfo(ctx)
+            ), 
+            ctx
+        );
+      } catch (Exception e) {
+        CliError err = ctx.createAndAddErrorFor(this, "Problem deploying Docker image", e);
+        ctx.getConsole().println(err.getSimpleMessage());
+      }
+    }
+    
+  }
+  
   // --------------------------------------------------------------------------
   // Script deployment
   
@@ -257,14 +311,14 @@ public class Deploy extends CorusCliCommand {
     try {
       for (CorusHost t : targets) {
         ctx.getConsole().println(String.format("Deploying %s to %s", fileName, t.getFormattedAddress()));
-        ctx.getCorus().getContext().reconnect(
+        ctx.getCorus().getContext().connect(
             t.getEndpoint().getServerTcpAddress().getHost(), 
             t.getEndpoint().getServerTcpAddress().getPort()
         );
         deployFunc.call(t);
       }
     } finally {
-      ctx.getCorus().getContext().reconnect(
+      ctx.getCorus().getContext().connect(
           current.getEndpoint().getServerTcpAddress().getHost(), 
           current.getEndpoint().getServerTcpAddress().getPort()
       );

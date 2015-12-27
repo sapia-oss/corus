@@ -21,6 +21,7 @@ import org.sapia.corus.client.services.security.ApplicationKeyManager;
 import org.sapia.corus.client.services.security.SecurityModule;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.deployer.archiver.DistributionArchiver;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.processor.ExecConfigDatabase;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.taskmanager.core.TaskManager;
@@ -105,6 +106,13 @@ public class InternalServiceContext {
    */
   public Deployer getDeployer() {
     return lookup(Deployer.class);
+  }
+  
+  /**
+   * @return the {@link DeploymentProcessorManager}.
+   */
+  public DeploymentProcessorManager getDeploymentProcessorManager() {
+    return lookup(DeploymentProcessorManager.class);
   }
 
   /**

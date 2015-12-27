@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.ubik.util.Strings;
 import org.sapia.util.xml.confix.ConfigurationException;
@@ -81,16 +81,16 @@ public class ConsulPublisherConfig implements ProcessPubConfig, Externalizable, 
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(checkInterval, checkTimeout, serviceName);
+    return ObjectUtil.safeHashCode(checkInterval, checkTimeout, serviceName);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ConsulPublisherConfig) {
       ConsulPublisherConfig other = (ConsulPublisherConfig) obj;
-      return ObjectUtils.safeEquals(checkInterval, other.checkInterval)
-          && ObjectUtils.safeEquals(checkTimeout, other.checkTimeout)
-          && ObjectUtils.safeEquals(serviceName, other.serviceName);
+      return ObjectUtil.safeEquals(checkInterval, other.checkInterval)
+          && ObjectUtil.safeEquals(checkTimeout, other.checkTimeout)
+          && ObjectUtil.safeEquals(serviceName, other.serviceName);
     }
     return false;
   }

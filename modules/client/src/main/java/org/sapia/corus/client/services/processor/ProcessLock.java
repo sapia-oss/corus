@@ -43,6 +43,7 @@ public class ProcessLock implements Externalizable {
     } else {
       lockOwner = leaser;
     }
+    lockOwner = leaser;
   }
 
   /**

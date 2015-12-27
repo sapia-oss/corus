@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.PropertiesStrLookup;
-import org.sapia.corus.util.IOUtil;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesTransformer;
 import org.sapia.corus.util.PropertiesUtil;

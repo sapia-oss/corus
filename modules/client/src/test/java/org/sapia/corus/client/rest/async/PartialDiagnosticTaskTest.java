@@ -23,7 +23,7 @@ import org.sapia.corus.client.Result.Type;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.DiagnosticFacade;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;

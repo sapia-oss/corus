@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.cloud.CorusUserData.Artifact;
-import org.sapia.corus.util.IOUtil;
 import org.sapia.ubik.util.Strings;
 
 import net.sf.json.JSONArray;

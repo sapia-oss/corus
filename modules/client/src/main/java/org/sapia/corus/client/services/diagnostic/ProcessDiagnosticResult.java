@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
@@ -81,18 +81,18 @@ public class ProcessDiagnosticResult implements Externalizable, JsonStreamable {
   
   @Override
   public int hashCode() {
-    return ObjectUtils.safeHashCode(process, port, protocol, status, message);
+    return ObjectUtil.safeHashCode(process, port, protocol, status, message);
   }
   
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ProcessDiagnosticResult) {
       ProcessDiagnosticResult other = (ProcessDiagnosticResult) obj;
-      return ObjectUtils.safeEquals(process, other.process)
-          && ObjectUtils.safeEquals(port, other.port)
-          && ObjectUtils.safeEquals(protocol, other.protocol)
-          && ObjectUtils.safeEquals(status, other.status)
-          && ObjectUtils.safeEquals(message, other.message);
+      return ObjectUtil.safeEquals(process, other.process)
+          && ObjectUtil.safeEquals(port, other.port)
+          && ObjectUtil.safeEquals(protocol, other.protocol)
+          && ObjectUtil.safeEquals(status, other.status)
+          && ObjectUtil.safeEquals(message, other.message);
     }
     return false;
   }

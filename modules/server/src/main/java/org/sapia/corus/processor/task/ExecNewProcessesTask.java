@@ -47,7 +47,7 @@ public class ExecNewProcessesTask extends Task<Void, Void> {
     Deployer deployer = ctx.getServerContext().getServices().getDeployer();
     Processor processor = ctx.getServerContext().getServices().getProcessor();
     ProcessRepository processes = ctx.getServerContext().lookup(ProcessRepository.class);
-    ProcessDependencyFilter filter = new ProcessDependencyFilter(new ProgressQueueTaskLog(this, ctx.getLog()));
+    ProcessDependencyFilter filter = new ProcessDependencyFilter(new ProgressQueueTaskLog(ctx));
 
     for (ProcessDef pd : toStart) {
       Distribution dist = null;

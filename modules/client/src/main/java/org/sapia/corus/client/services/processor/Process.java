@@ -17,7 +17,7 @@ import org.sapia.corus.client.common.CyclicIdGenerator;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Mappable;
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -912,7 +912,7 @@ public class Process extends AbstractPersistent<String, Process>
       commands         = (List<AbstractCommand>) in.readObject();
       activePorts      = (List<ActivePort>) in.readObject();
       if (inputVersion >= VERSION_2) {
-        startupInfo = ObjectUtils.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
+        startupInfo = ObjectUtil.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
       }
       if (inputVersion >= VERSION_3) {
         interopEnabled = in.readBoolean();

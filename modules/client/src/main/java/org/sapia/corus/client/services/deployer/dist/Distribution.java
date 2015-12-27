@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.sapia.corus.client.common.ArgMatcher;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -244,8 +244,8 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
    */
   public void setBaseDir(String baseDir) {
     this.baseDir = baseDir;
-    commonDir    = FileUtils.toPath(baseDir, "common");
-    processesDir = FileUtils.toPath(baseDir, "processes");
+    commonDir    = FileUtil.toPath(baseDir, "common");
+    processesDir = FileUtil.toPath(baseDir, "processes");
   }
 
   /**
