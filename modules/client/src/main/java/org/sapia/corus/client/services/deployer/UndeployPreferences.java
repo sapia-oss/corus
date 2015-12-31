@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.services.database.RevId;
 
 /**
  * Holds preferences used when undeploying.

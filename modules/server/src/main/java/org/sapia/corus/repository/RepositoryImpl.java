@@ -1,5 +1,6 @@
 package org.sapia.corus.repository;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +10,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.services.ModuleState;
@@ -18,6 +20,7 @@ import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.port.PortManager;
@@ -58,7 +61,9 @@ import org.sapia.corus.repository.task.ShellScriptListResponseHandlerTask;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SemaphoreThrottle;
 import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskManager;
+import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
 import org.sapia.corus.util.Queue;
 import org.sapia.corus.util.TimeUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
@@ -120,6 +125,9 @@ public class RepositoryImpl extends ModuleHelper
   private Queue<ArtifactDeploymentRequest> deployRequests = new Queue<ArtifactDeploymentRequest>();
 
   @Autowired
+  private DeployerConfiguration   depoyerConfig;
+  
+  @Autowired
   private RepositoryConfiguration repoConfig;
   
   private Reference<ModuleState> state = new AutoResetReference<ModuleState>(
@@ -128,6 +136,10 @@ public class RepositoryImpl extends ModuleHelper
 
   public void setRepoConfig(RepositoryConfiguration repoConfig) {
     this.repoConfig = repoConfig;
+  }
+  
+  public void setDepoyerConfig(DeployerConfiguration depoyerConfig) {
+    this.depoyerConfig = depoyerConfig;
   }
   
   // --------------------------------------------------------------------------
@@ -212,6 +224,41 @@ public class RepositoryImpl extends ModuleHelper
       logger().info("This node will not act as either a repository server or client");
     }
     doRegisterEventListeners();
+    
+    this.taskManager.executeBackground(new Task<Void, Void>("RepoFileCleanerTask") {
+        @Override
+        public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
+          File repoDir = FilePath.forDirectory(depoyerConfig.getRepoDir()).createFile();
+          long ttlMillis = TimeUnit.MINUTES.toMillis(repoConfig.getRepoFileTtlMinutes());
+          for (File toCheck : repoDir.listFiles()) {
+            if (System.currentTimeMillis() - toCheck.lastModified() >= ttlMillis) {
+              ctx.debug("Deleting stale repo file: " + toCheck.getName());
+              toCheck.delete();
+            }
+          }
+          return null;
+        }
+      }, 
+      null, 
+      BackgroundTaskConfig.create().setExecInterval(
+          TimeValue.createSeconds(repoConfig.getRepoFileCheckIntervalSeconds()).getValueInMillis()
+      )
+    );
+  }
+  
+  @Override
+  public void start() throws Exception {
+    FileDeletionTask cleanRepoDir = new FileDeletionTask(
+        "CleanRepoDirTask", 
+        serverContext().getServices().getFileSystem().getFileHandle(depoyerConfig.getRepoDir()), 
+        TimeUnit.MINUTES.toMillis(repoConfig.getRepoFileTtlMinutes())
+    );
+    
+    taskManager.executeBackground(cleanRepoDir, null, 
+      BackgroundTaskConfig.create().setExecInterval(
+          TimeValue.createSeconds(repoConfig.getRepoFileCheckIntervalSeconds()).getValueInMillis()
+      )
+    );
   }
   
   private void doRegisterEventListeners() throws Exception {

@@ -15,12 +15,12 @@ import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.deployer.processor.DeploymentContext;
 import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
+import org.sapia.corus.taskmanager.TaskLogCallback;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
-import org.sapia.corus.taskmanager.TaskLogCallback;
 
 /**
  * This tasks remove a distribution from the Corus server.

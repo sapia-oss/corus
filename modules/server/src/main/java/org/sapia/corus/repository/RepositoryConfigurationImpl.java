@@ -15,6 +15,8 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private static final int DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS = 3;
   private static final int DEFAULT_DIST_DISCO_INTERVAL_SECONDS        = 5;
   private static final int DEFAULT_DIST_DISCO_MAX_ATTEMPTS            = 3;
+  private static final int DEFAULT_REPO_FILE_TTL_MINUTES              = 60;
+  private static final int DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS   = 120;
 
   private boolean pushTagsEnabled           = true;
   private boolean pullTagsEnabled           = true;
@@ -33,7 +35,27 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
   private int distributionDiscoveryMaxAttempts     = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
   private int maxConcurrentDeploymentRequests      = DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS;
-
+  private int repoFileTtlMinutes                   = DEFAULT_REPO_FILE_TTL_MINUTES;
+  private int repoFileCheckIntervalSeconds         = DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS;
+  
+  public void setRepoFileCheckIntervalSeconds(int repoFileCheckIntervalSeconds) {
+    this.repoFileCheckIntervalSeconds = repoFileCheckIntervalSeconds;
+  }
+  
+  @Override
+  public int getRepoFileCheckIntervalSeconds() {
+    return repoFileCheckIntervalSeconds;
+  }
+  
+  public void setRepoFileTtlMinutes(int repoFileTtlMinutes) {
+    this.repoFileTtlMinutes = repoFileTtlMinutes;
+  }
+  
+  @Override
+  public int getRepoFileTtlMinutes() {
+    return repoFileTtlMinutes;
+  }
+  
   // --------------------------------------------------------------------------
   // tags
 

@@ -60,7 +60,6 @@ import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.artifact.InternalArtifactManager;
 import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
-import org.sapia.corus.deployer.task.CleanTempDirTask;
 import org.sapia.corus.deployer.task.RollbackTask;
 import org.sapia.corus.deployer.task.UnarchiveAndDeployTask;
 import org.sapia.corus.deployer.task.UndeployAndArchiveTask;
@@ -76,6 +75,7 @@ import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
+import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
@@ -273,12 +273,14 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   
   @Override
   public void start() throws Exception {
-    CleanTempDirTask clean = new CleanTempDirTask();
+    FileDeletionTask clean = new FileDeletionTask(
+        "CleanTempDirTask", 
+        serverContext().getServices().getFileSystem().getFileHandle(this.configuration.getTempDir()),
+        TimeUnit.HOURS.toMillis(configuration.getTempFileTimeoutHours())
+     );
     taskman.executeBackground(clean, null,
         BackgroundTaskConfig.create()
-          .setExecDelay(0)
           .setExecInterval(TimeUnit.MINUTES.toMillis(DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES)));
-    
   }
  
   @Override 

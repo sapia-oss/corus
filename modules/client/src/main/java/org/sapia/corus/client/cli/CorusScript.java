@@ -1,9 +1,5 @@
 package org.sapia.corus.client.cli;
 
-import groovy.lang.Binding;
-import groovy.util.GroovyScriptEngine;
-import groovy.util.ResourceException;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,6 +25,10 @@ import org.sapia.corus.client.exceptions.cli.ConnectionException;
 import org.sapia.corus.client.facade.CorusConnectionContextImpl;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.ubik.util.Localhost;
+
+import groovy.lang.Binding;
+import groovy.util.GroovyScriptEngine;
+import groovy.util.ResourceException;
 
 /**
  * This class provides scripting functionality.

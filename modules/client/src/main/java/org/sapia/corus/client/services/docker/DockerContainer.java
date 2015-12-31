@@ -4,8 +4,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.ubik.util.Strings;

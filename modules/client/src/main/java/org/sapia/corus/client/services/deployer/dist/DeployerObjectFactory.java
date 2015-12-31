@@ -3,10 +3,10 @@ package org.sapia.corus.client.services.deployer.dist;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 import org.sapia.util.xml.confix.CreationStatus;
 import org.sapia.util.xml.confix.ObjectCreationException;
 import org.sapia.util.xml.confix.ReflectionFactory;
-import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
 
 /**
  * Implements the Confix object factory that creates the objects pertaining to
