@@ -1,9 +1,11 @@
 package org.sapia.corus.core;
 
 import java.lang.reflect.UndeclaredThrowableException;
+import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.http.conn.util.InetAddressUtils;
 import org.sapia.console.CmdLine;
 import org.sapia.console.InputException;
 import org.sapia.corus.client.Corus;
@@ -11,7 +13,9 @@ import org.sapia.corus.client.CorusVersion;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.taskmanager.CorusTaskManager;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.Hub;
+import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
 
 /**
  * @author Yanick Duchesne
@@ -64,7 +68,20 @@ public class CorusMonitor {
     CorusTaskManager taskman;
 
     try {
-      corus = (Corus) Hub.connect(host, port);
+      ServerAddress connectAddress;
+      if (InetAddressUtils.isIPv4Address(host)) {
+        connectAddress = HttpAddress.newDefaultInstance(host, port);
+      } else if (InetAddressUtils.isIPv6Address(host)) {
+        connectAddress = HttpAddress.newDefaultInstance(host, port);
+      } else {
+        try {
+          InetAddress addr = InetAddress.getByName(host);
+          connectAddress = HttpAddress.newDefaultInstance(addr.getHostAddress(), port);
+        } catch (java.net.UnknownHostException e) {
+          throw new IllegalArgumentException("Unkown host: " + host, e);
+        }
+      }
+      corus = (Corus) Hub.connect(connectAddress);
       taskman = (CorusTaskManager) corus.lookup(CorusTaskManager.ROLE);
     } catch (Exception e) {
       e.printStackTrace();
