@@ -12,7 +12,7 @@
     <sapia-corus-iop.version>2.8.2</sapia-corus-iop.version>
     <springframework.version>4.1.3.RELEASE</springframework.version>
     <camel.version>2.15.0</camel.version>
-    <sapia-ubik.version>4.3</sapia-ubik.version>
+    <sapia-ubik.version>4.4</sapia-ubik.version>
   </properties>
 
   <parent>
