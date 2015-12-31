@@ -14,10 +14,10 @@ import org.sapia.corus.client.rest.DefaultContentLevel;
 import org.sapia.corus.client.rest.HttpMethod;
 import org.sapia.corus.client.rest.Output;
 import org.sapia.corus.client.rest.PartitionService;
+import org.sapia.corus.client.rest.PartitionService.PartitionSet;
 import org.sapia.corus.client.rest.Path;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
-import org.sapia.corus.client.rest.PartitionService.PartitionSet;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.ubik.util.TimeValue;
 

@@ -1,10 +1,9 @@
 package org.sapia.corus.deployer;
 
-import org.sapia.corus.client.services.deployer.FileInfo;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 
+import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.FileManager;
 
 /**

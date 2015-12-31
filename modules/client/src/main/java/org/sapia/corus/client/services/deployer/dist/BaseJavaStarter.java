@@ -1,7 +1,8 @@
 package org.sapia.corus.client.services.deployer.dist;
 
-import java.io.File;
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,8 +23,6 @@ import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Strings;
 import org.sapia.util.xml.confix.ConfigurationException;
-
-import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
 
 /**
  * This helper class can be inherited from to implement {@link Starter}s that

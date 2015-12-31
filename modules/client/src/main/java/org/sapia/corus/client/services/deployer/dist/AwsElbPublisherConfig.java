@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -8,8 +10,6 @@ import java.io.ObjectOutput;
 import org.sapia.ubik.util.Strings;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;
-
-import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
 
 /**
  * Holds Amazon ELB publishing config.

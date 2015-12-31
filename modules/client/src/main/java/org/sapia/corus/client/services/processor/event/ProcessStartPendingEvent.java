@@ -3,8 +3,8 @@ package org.sapia.corus.client.services.processor.event;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.event.EventLog.Level;
+import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
 import org.sapia.ubik.rmi.interceptor.Event;
 

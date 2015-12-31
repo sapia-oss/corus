@@ -24,8 +24,8 @@ import org.sapia.corus.client.common.IOUtil;
 import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.docker.DockerClientException;
-import org.sapia.corus.client.services.docker.DockerImage;
 import org.sapia.corus.client.services.docker.DockerContainer;
+import org.sapia.corus.client.services.docker.DockerImage;
 import org.sapia.ubik.util.Collects;
 
 /**

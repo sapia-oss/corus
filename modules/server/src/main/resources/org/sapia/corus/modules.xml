@@ -219,6 +219,8 @@
   
   <bean name="repository.configuration" class="org.sapia.corus.repository.RepositoryConfigurationImpl">
     <property name="maxConcurrentDeploymentRequests"      value="${corus.server.repository.max.concurrent-deployments}" />
+    <property name="repoFileTtlMinutes"                   value="${corus.server.repository.files.ttl}" />
+    <property name="repoFileCheckIntervalSeconds"         value="${corus.server.repository.files.check-interval}" />
     <property name="distributionDiscoveryMaxAttempts"     value="${corus.server.repository.dist.disco.max-attempts}" />    
     <property name="distributionDiscoveryIntervalSeconds" value="${corus.server.repository.dist.disco.interval}" />
     <property name="pushTagsEnabled"                      value="${corus.server.repository.tags.push.enabled}" />

@@ -1,4 +1,4 @@
-package org.sapia.corus.deployer.task;
+package org.sapia.corus.taskmanager.tasks;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
@@ -14,7 +14,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.FileFacade;
-import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.core.InternalServiceContext;
@@ -24,8 +23,8 @@ import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.SysClock.MutableClock;
 
 @RunWith(MockitoJUnitRunner.class)
-public class CleanTempDirTaskTest {
-  
+public class FileDeletionTaskTest {
+
   @Mock
   private TaskExecutionContext   taskContext;
   @Mock
@@ -37,13 +36,11 @@ public class CleanTempDirTaskTest {
   private FileFacade toDeleteFacade, toKeepFacade;
   @Mock
   private DeployerConfiguration conf;
-  @Mock
-  private Deployer deployer;
   
   private File tmpDir;
   private File toDelete, toKeep;
   private MutableClock clock;
-  private CleanTempDirTask task;
+  private FileDeletionTask task;
 
   @Before
   public void setUp() throws Exception {
@@ -52,15 +49,13 @@ public class CleanTempDirTaskTest {
     toKeep   = new File("toKeep");
     
     clock = new MutableClock();
-    task  = new CleanTempDirTask();
+    task  = new FileDeletionTask("Test", tmpDir, TimeUnit.HOURS.toMillis(1));
     task.setClock(clock);
     clock.increaseCurrentTimeMillis(TimeUnit.HOURS.toMillis(1));
     
     serviceContext = new InternalServiceContext();
     serviceContext.rebind(FileSystemModule.class, fs);
-    serviceContext.rebind(Deployer.class, deployer);
     
-    when(deployer.getConfiguration()).thenReturn(conf);
     when(conf.getTempFileTimeoutHours()).thenReturn(1);
     when(taskContext.getServerContext()).thenReturn(serverContext);
     when(serverContext.getServices()).thenReturn(serviceContext);
@@ -83,5 +78,4 @@ public class CleanTempDirTaskTest {
     verify(fs).deleteFile(toDelete);
     verify(fs, never()).deleteFile(toKeep);
   }
-
 }

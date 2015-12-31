@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist.docker;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNull;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -7,8 +9,6 @@ import java.io.ObjectOutput;
 
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;
-
-import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.*;
 
 /**
  * Holds port mapping configuration. 

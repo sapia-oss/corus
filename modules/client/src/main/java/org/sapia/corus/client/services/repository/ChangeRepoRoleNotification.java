@@ -5,8 +5,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import org.sapia.corus.client.services.cluster.ClusterNotification;
-import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+import org.sapia.corus.client.services.cluster.Endpoint;
 
 /**
  * An instance of this class is sent to repository clients, in order to force
