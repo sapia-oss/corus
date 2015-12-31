@@ -29,7 +29,7 @@ import org.sapia.ubik.util.TimeValue;
  * @author Yanick Duchesne
  */
 @Bind(moduleInterface = { TaskManager.class, CorusTaskManager.class })
-@Remote(interfaces = CorusTaskManager.class)
+@Remote(interfaces = {CorusTaskManager.class})
 public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager {
 
   private static final int  CORE_POOL_SIZE      = 5;

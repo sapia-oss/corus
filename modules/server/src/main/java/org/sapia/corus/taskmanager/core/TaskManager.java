@@ -1,11 +1,13 @@
 package org.sapia.corus.taskmanager.core;
 
+import java.rmi.Remote;
+
 /**
  * This interface specifies task execution behavior.
  * 
  * @author yduchesne
  */
-public interface TaskManager {
+public interface TaskManager extends Remote {
 
   /**
    * Executes the given task in a separate thread. The calling wait returns as
