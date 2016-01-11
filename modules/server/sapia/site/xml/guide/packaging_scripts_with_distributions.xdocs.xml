@@ -1,0 +1,209 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Packaging Scripts with Distributions" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Packaging Scripts with Distributions">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="packaging scripts with distributions"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				As of release 4.6, Corus allows packaging scripts that are executed on the server-side (that is, at the Corus node) to further automate application lifecycle.
+			</p>
+			<p>
+				These scripts are expected to have a file name that is predefined, and must be packaged under the <tt>META-INF/scripts</tt> directory of the distribution. Each script is meant to be invoked at specific points in time. Execution of these scripts is not automatic: it must be triggered by the system administrator using the CLI - or programmatically through the REST API.
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Supported Scripts">
+			<p>
+				Three types of scripts are supported (the only one that is <b>mandatory</b> is <tt>pre-deploy.corus</tt>):
+			</p>
+			<ul>
+				<li><tt><b>pre-deploy.corus</b></tt>: this script is invoked by Corus prior to the distribution being deployed. Typically, such a script is meant to do archiving, delete old configuration (process properities, etc.), undeploy the current version of an application prior to deploying the new one, etc.</li>
+				<li><tt><b>post-deploy.corus</b></tt>: this script is executed after the distribution has been successfully deployed. Processes corresponding to the "new" distribution would typically be started in this script.</li>
+				<li><tt><b>rollback.corus</b></tt>: this script is executed if an error occurs at deployment time. It also can be invoked at any time after deployment, through the <tt>rollback</tt> command. This script is meant to allow cleaning up all traces of the current version - logic should be present in the script that allows switching back to the previous version - such as unarchiving the previous configuration.</li>
+			</ul>
+			<sapia:note>
+				The fact that the <tt>pre-deploy.corus</tt> script is mandatory does not mean one must be present in all distributions. Only when the execution of such packaged scripts by sysadmins is performed should the script be there. For a distribution in the context of which that feature is not used, no script needs being present.
+			</sapia:note>
+		</sapia:sect2>
+		<sapia:sect2 title="Call Sequence">
+			<p>
+				As was mentioned previously, execution of the scripts is not automatic. It must be triggered at deployment time, through the CLI or using the REST API. In the CLI, the deploy command takes a <tt>-r</tt> option, which stands for "run scripts". Here's an example:
+			</p>
+			<sapia:code>deploy mypackage.zip -r -cluster</sapia:code>
+			<p>
+				When script execution is triggered this way, Corus will proceed to running the scripts upon receiving the distribution:
+			</p>
+			<ol>
+				<li>It unzips the distribution as it does normally.</li>
+				<li>It loads the <tt>pre-deploy.corus</tt> script and executes it (that script is mandatory).</li>
+				<li>If execution of the <tt>pre-deploy.corus</tt> script fails, Corus attempts executing the <tt>rollback.corus</tt> script. If the rollback script is absent, Corus does not attempt executing it. At that point, the deployment has failed and remediation by system administrators should ensue.</li>
+				<li>It loads the <tt>post-deploy.corus</tt> script (if present) and executes it. Again here, if execution of that script fails, Corus will attempt executing the <tt>rollback.corus</tt> script (if it exists).</li>
+			</ol>
+			
+			<p>If deployment proceeds normally (that is, no error occurs), a rollback can always be invoked later on. To that end, the <tt>rollback</tt> command is provided, and its syntax is as follows:</p>
+			<sapia:code><![CDATA[rollback -d <distribution_name> -v <distribution_version> -rev <rev_id>]]></sapia:code>
+			<p>
+				Simply, this command will run the rollback script (<tt>rollback.corus</tt>) packaged with the given distribution. See the <a href="#putting_it_together">Putting It Together</a> section for more details.
+			</p>
+		</sapia:sect2>
+		<sapia:sect2 title="Script Environment">
+			<sapia:sect-desct>
+			  <p>
+                  The <tt>pre-deploy.corus</tt>, <tt>post-deploy.corus</tt>, and <tt>rollback.corus</tt> scripts are expected to be packaged under the <tt>META-INF/scripts</tt> directory of the distribution being deployed.
+			  </p>
+            </sapia:sect-desct>
+			<sapia:sect3 tile="File System Access">
+				<p>
+				When either of the above scripts is executed, it is assigned the directory corresponding to the root of the distribution as a base directory. If the commands in the scripts attempt accessing file resources that were packaged in the distribution, they can use relative paths, and assume that such paths will be resolved relatively to the root of the distribution.
+				</p>
+				<p>For example, say we have the following:</p>
+				<sapia:code>/META-INF
+/scripts
+    /pre-deploy.corus
+    /post-deploy.corus
+    /rolback.corus
+/conf
+    /application.properties</sapia:code>
+    		<p>
+    		Our pre-deploy script can push the <tt>application.properties</tt> file using the following command:
+    		</p>
+    		<sapia:code>conf add -p conf/application.propertie</sapia:code>
+			</sapia:sect3>
+			<sapia:sect3 title="Variables">
+				<p>
+					It is common to parametrize scripts with variables. These parameters are available to be used in such a context:
+				</p>
+				<ol>
+					<li><tt>user.dir</tt>: corresponds to the directory that is the root of the unzipped distribution (the "base directory" assigned to the script, as explained previously).</li>
+					<li><tt>corus.distribution.name</tt>: the name of the distribution being deployed.</li>
+					<li><tt>corus.distribution.version</tt>: the version of the distribution being deployed.</li>
+					<li>Corus' system properties.</li>
+					<li>Corus' environment variables.</li>
+				</ol>
+			</sapia:sect3>
+			
+			<sapia:sect3 title="Clustering">
+				<p>
+					Simply put: command clustering is disabled when scripts are executed within Corus. That is, even if your use the <tt>-cluster</tt> option with your commands, it will have no effect.
+				</p>
+			</sapia:sect3>
+		</sapia:sect2>
+		<sapia:sect2 title="Putting It Together" alias="putting_it_together">
+		  <sapia:sect-desc>
+				<p>
+					To better put things into perspective, here's an example: let's take into consideration an application packaged according to the following structure - we're omitting the parts that are non-essential to this exercise:
+				</p>
+				<sapia:code>/META-INF
+		/scripts
+			/pre-deploy.corus
+			/post-deploy.corus
+			/rollback.corus
+		/conf 
+			/exec.xml</sapia:code>
+				<p>The next sub-sections explain the scripts appearing in the above layout.</p>
+				<sapia:note>The sources for the samples provided in this section can be <a href="https://github.com/sapia-oss/corus/tree/develop/samples/corus_workshop/dist/scripts">found in Github</a></sapia:note>
+			</sapia:sect-desc>
+			
+			<sapia:sect3 title="pre-deploy.corus">
+				<p>Here's the content of the pre-deploy.corus file:</p>
+				<sapia:code><![CDATA[echo "=> Killing current processes..."
+kill all -w
+echo "=> Cleaning up current configs - and archiving for eventual rollback"
+archive previous
+port del -n *	
+conf del -p *
+
+echo "=> Undeploying current distribution (archiving previous distribution for eventual rollback)"
+undeploy all -rev previous
+undeploy -e *]]></sapia:code>
+				<p>
+					The first command kills all currently running processes. Then, we're archiving the current configuration kept in Corus (process properties, port ranges, tags, execution configurations) in case  we need to do a rollback (which is explained further below).
+				</p>
+				<p>
+					Also we're undeploying all previous distributions, but leaving the latest as backup, also in case we roll back.
+				</p>
+				<p>
+					As a last step, we're cleaning the field for the distribution being deployed: we're undeploying all current execution configurations, and deleting the current port ranges, process properties, and tags (remember these have been archived, so they're not lost and we can unarchive them later if needed).
+				</p>
+			</sapia:sect3>
+			
+			<sapia:sect3 title="post-deploy.corus">
+				<p>
+				The <tt>post-deploy.corus</tt> file goes as follows (these steps could be in the pre-deploy file as well, but we've left the pre-deploy to cleaning up the "previous" distribution):
+				</p>
+				<sapia:code><![CDATA[echo "=> Deploying config"
+port add -n http -min 8100 -max 8105
+conf add -p app.xms=32m
+conf add -p app.xmx=128m
+conf add -p app.xms=64m -c taggedServer
+conf add -p app.xmx=256m -c taggedServer
+conf add -p app.gc.log.type=PrintGCDetails
+conf add -p app.gc.log.file=${corus.process.dir}/gc.log
+deploy -e exec.xml
+exec -e servers
+echo "=> Proceeding to sanity check"
+http check -p http -m 10 -t 6 -c /ping -cluster ${corus.server.host}:${corus.server.port}]]></sapia:code>
+			
+				<p>When this script executes, our distribution has already been added to Corus automatically. We're only left with pushing our complimentary configuration (process properties, tags, port ranges, and execution configurations).</p>
+				
+				<p>As a last step, we're triggering the startup of the processes corresponding to the execution configuration.</p>
+		  </sapia:sect3>
+		  <sapia:sect3 title="rollback.corus">
+		  	<p>
+		  	Now, the content of our <tt>rollback.corus</tt> file: the goal is to set things to what they were prior to deployment, including starting the processes corresponding to the "previous" distribution.
+		  	</p>
+		  	<sapia:code><![CDATA[echo "=> Killing processes..."
+kill all -w
+echo "removing config"
+port del -n *
+conf del -p *
+undeploy -e *
+
+echo "=> Unarchiving previous state"
+unarchive previous
+deploy -rev previous
+
+echo "=> Starting process(es)"
+exec -e servers]]></sapia:code>
+				<p>
+				After having killed the new processes, and undeployed our distribution and execution configuration (corresponding the version being rolled back), we're re-enabling the "previous" configuration (using the <tt>unarchive</tt> command), and executing the "previous" processes.
+				</p>
+				<sapia:note>
+				Note that the <tt>undeploy</tt> command used above, which undeploys the distribution being rolled back, is not necessary: as part of the rollback, Corus will automatically insure that the distribution is removed.
+				</sapia:note>
+		  </sapia:sect3>
+			
+		</sapia:sect2>
+		<sapia:sect2 title="Rollback">
+			<p>
+				The <tt>rollback.corus</tt> script is executed at deployment time, if a problem occurs deploying the new distribution. But it can also be invoked at any time after deployment, both through the CLI and the REST API. Using the CLI, one can invoke the rollback for a given distribution in the following manner:
+			</p>
+			<sapia:code><![CDATA[rollback -d <distribution_name> -v <distribution_version> -rev <rev_id>]]></sapia:code>
+			<p>
+				If there's no distribution for the given name and version at the node(s) you're targeting, the command will result in an error. As a workaround, you can use rollback in conjunction with the match command  - for example:
+			</p>
+			<sapia:code>match apply trigger_rollback.corus 2.0 ls -d myapp -v 1.0 -cluster</sapia:code>
+		</sapia:sect2>
+
+  </sapia:sect1>
+</sapia:page>

@@ -6,7 +6,7 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
     <sapia:vsection name="In 2 minutes" href="overview.html"/>    
     <sapia:vsection name="Interop Spec" href="CorusInterop.pdf"/>  
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
@@ -41,7 +41,7 @@
       </p>
       
       <div style="margin-left: 3px">
-        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+        <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
           <div class="content-box-title">Starting Guide</div>
           <span class="text">
             The first step in order to learn about how to use the API: provides general guidelines,
@@ -58,8 +58,13 @@
             <br/><a href="rest/core.html">more...</a>
           </span>
         </div>
+     </div>
+     
+     <div style="clear: both;" />
+
+     <div style="margin-left: 3px">
         
-        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+        <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
           <div class="content-box-title">Diagnostic API</div>
           <span class="text">
             Describes the diagnostic API, which is used to determine the state of processes
@@ -67,8 +72,15 @@
             <br/><a href="rest/diagnostic.html">more...</a>
           </span>
         </div>
+        
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">Docker Integration API</div>
+          <span class="text">
+            Documents the API provided in the context of Corus' <a href="guide/docker_integration.html">Docker Integration</a>.
+            <br/><a href="rest/docker.html">more...</a>
+          </span>
+        </div>
       </div> 
-      
     </sapia:sect-desc>
          
   </sapia:sect1>

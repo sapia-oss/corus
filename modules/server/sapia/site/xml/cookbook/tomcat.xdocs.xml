@@ -174,7 +174,7 @@ sudo chown corus /var/log/tomcat</sapia:code>
         <p>The Corus descriptor (<tt>corus.xml</tt>) holds the configuration required by Corus:</p>
         
         <sapia:code>&lt;distribution name=&quot;greetings&quot; version=&quot;1.0&quot;
-  xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-4.0.xsd&quot;&gt;
+  xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd&quot;&gt;
 
   &lt;process name=&quot;server&quot; maxKillRetry=&quot;3&quot; shutdownTimeout=&quot;300000&quot;
     invoke=&quot;true&quot;&gt;

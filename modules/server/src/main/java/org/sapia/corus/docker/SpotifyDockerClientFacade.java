@@ -436,7 +436,7 @@ public class SpotifyDockerClientFacade implements DockerClientFacade {
     if (starter.getUser().isSet()) {
       containerBuilder.user(substitutor.replace(starter.getUser().get()));
     }
-
+    
     // image
     String image = null;
     if (starter.getImage().isSet()) {

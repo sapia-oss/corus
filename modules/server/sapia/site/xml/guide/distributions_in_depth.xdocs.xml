@@ -1,0 +1,1010 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Distributions in Depth" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Distributions in Depth">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="distributions in depth"/>
+    </sapia:section>
+
+    <toc/>
+
+    <sapia:sect-desc>
+      <p>
+      	This page delves into the details of Corus distributions: everything starts with the Corus descriptor...
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:toc/>
+
+    <sapia:sect2 title="The Corus Descriptor" alias="corus_descriptor">
+      <p>
+        The Corus descriptor is the XML file (named <tt>corus.xml</tt>) which must be packaged as part of Corus distributions, under the <tt>META-INF</tt> directory (which itself must be present under the root of the distribution .zip).</p>
+      <p>
+        Here is an elaborate Corus descriptor (all elements are formally explained in the table further below):
+      </p>
+      <sapia:code><![CDATA[<distribution
+	xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" 
+	name="demo" 
+	version="1.0" tags="someTag" >
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           deleteOnKill="false"
+           invoke="true"
+           pollInterval="15"
+           statusInterval="45"
+           tags="someOtherTag"
+           propertyCategories="echoApp">
+    <port name="test" />
+    <magnet magnetFile="echoServerMagnet.xml" 
+            profile="test"
+            javaCmd="java">
+	   <!-- Alternate standard Java configuration: 
+	        simpler, but less powerful than Magnet -->
+    <!-- java mainClass="org.sapia.corus.examples.EchoServer" 
+            profile="test"
+            javaCmd="java">
+      <xoption  name="ms" value="16M" />
+                <dependency dist="testDist" 
+                version="1.0"
+	 process="testApp"
+	 profile="prod" />
+    </magnet>
+  </process>  
+</distribution>]]></sapia:code>
+      <p>
+        The Corus descriptor's XML schema can be dowloaded <a href="http://www.sapia-oss.org/xsd/corus/" target="coru_descriptor_xsd_dir">from the website</a>. You can find below documentation for the schema's elements and attributes.
+      </p>
+      <sapia:sect3 title="distribution">
+        <p>
+          At the root, there is the <tt>&lt;distribution&gt;</tt> element, which has the following attributes/elements:
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>name</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the distribution (the name and version of a distribution must be unique in the context of a given Corus instance).</td>
+          </tr>
+          <tr>
+            <td><tt>version</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The version of the distribution.</td>
+          </tr>
+          <tr>
+            <td><tt>tags</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>A comma-delimited list of tags used to determine if the configured processes should be started (based on the tags of the current Corus server) – see the Tagging section.</td>
+          </tr>
+          <tr>
+            <td><tt>propertyCategories</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>A comma-delimited list of property categories, determining which process property sets to use and it what order (the global, default property set is always used, and looked up first).</td>
+          </tr>
+          <tr>
+            <td><tt>process</tt></td>
+            <td>Element</td>
+            <td>Yes (1 - *)</td>
+            <td>One more, each defining a so-called process configuration</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="process" alias="process_element">
+        <p>
+          Each <tt>&lt;process&gt;</tt> element corresponds to a so-called "process configuration": it holds, among others, information about how a process should be handled at runtime by Corus.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>maxKillRetry</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The number of times Corus should attempt to kill processes corresponding to this process configuration that are deemed stalled or “down" (defaults to 3).</td>
+          </tr>
+          <tr>
+            <td><tt>shutdownTimeout</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The number of milliseconds that is given to processes to confirm their clean shutdown (defaults to 30000).</td>
+          </tr>
+          <tr>
+            <td><tt>deleteOnKill</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates if processes corresponding to this process configuration should have their process directory deleted after shutdown (defaults to false).</td>
+          </tr>
+          <tr>
+            <td><tt>invoke</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates if processes corresponding to this distribution will be started automatically when invoking exec for the distribution without indicating which process configuration to create processes from (if true, the value of this attribute indicates that processes corresponding to this process configuration must be invoked explicitly by passing the -n option to the exec command) – defaults to false.</td>
+          </tr>
+          <tr>
+            <td><tt>pollInterval</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The interval (in seconds) at which processes corresponding to this configuration are expected to poll their Corus server (defaults to 10).</td>
+          </tr>
+          <tr>
+            <td><tt>statusInterval</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The interval (in seconds) at which processes corresponding to this configuration are expected to provided their runtime status to the Corus server (defaults to 30).s</td>
+          </tr>
+          <tr>
+            <td><tt>tags</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>A comma-delimited list of tags used to determine if the process should be started (based on the tags of the current Corus server) – see the <a href="tagging.html">Tagging</a> section for more information.</td>
+          </tr>
+          <tr>
+            <td><tt>propertyCategories</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>A comma-delimited list of property categories, determining which process property sets to use and in what order (the global, default property set is always used, and looked up first). The set resulting from this list is additive to the one defined at the &lt;distribution&gt; level.</td>
+          </tr>
+          <tr>
+            <td><tt>interpolationPasses</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The number of variable interpolation passes to do when rendering variables defined as part of this &lt;process&gt; element. This is used to make sure variables whose value results from the interpolation of other variables, and so on, get substituted properly. This strategy was chosen, as opposed to risking interpolating.</td>
+          </tr>
+          <tr>
+            <td><tt><a href="#port_element">port</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Indicates that a port (corresponding to a given Corus port range) should be passed to the process.</td>          
+          </tr> 
+          <tr>
+            <td><tt><a href="#pre_exec_element">preExec</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Used to hold multiple Corus CLI commands that are executed on the Corus side (see the <tt><a href="#cmd_element">cmd</a></tt> element). See the <a href="#process_pre_execution">Process Pre-Execution</a> section for more details.</td>          
+          </tr> 
+          <tr>
+            <td><tt><a href="#java_element">java</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - 1)</td>
+            <td>Encapsulates information required by the underlying Java when starting up JVMs.</td>          
+          </tr>   
+          <tr>
+            <td><tt><a href="#magnet_element">magnet</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - 1)</td>
+            <td>Encapsulates information required by the underlying Magnet starter when starting up JVMs.</td>          
+          </tr>
+          <tr>
+            <td><tt>docker</tt></td>
+            <td>Element</td>
+            <td>No (0 - 1)</td>
+            <td>Encapsulates information required by the underlying Docker starter when starting up Docker containers.</td>          
+          </tr>
+        </sapia:table>
+        
+        <p>
+          Corus used so-called "starters" to actually launch native OS processes (or to start containers). The starter abstraction hides the details of how a given process is started.
+        </p>
+        <p>
+          As hinted by the documentation above, such starters are configured under the <tt>&lt;process&gt;</tt> element. 
+          They correspond to the <tt><a href="#java_element">&lt;java&gt;</a></tt>, <tt><a href="#magnet_element">&lt;magnet&gt;</a></tt> and <tt><a href="#docker_element">&lt;docker&gt;</a></tt> elements, which are more fully described in the next sections.
+         </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="port" alias="port_element">
+        <p>
+         Used to indicate that network port number (corresponding to a pre-configured Corus port range) should be passed to the insances of the process.
+        </p>
+        
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>name</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of a port range, as configured in the Corus server (see the <a href="port_management.html">Port Management</a> section for futher information).</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="preExec" alias="pre_exec_element">
+        <p>
+          Allows specifiying multiple <tt><a href="#cmd">cmd</a></tt> child elements, each corresponding to a Corus CLI command. Each such command will be executed on the server-side (that is, at the Corus node) prior to the process itself being executed
+          (see the <a href="#process_pre_execution">Process Pre-Execution</a> section for more information).
+        </p>
+        
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt><a href="cmd_element">cmd</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Multiple such elements can be specified, each holding a CLI command.</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="cmd" alias="cmd_element">
+        <p>
+          The element's content is meant to hold a Corus command-line which will be executed on the server-side (at the Corus node)
+        </p>
+        <sapia:sect4 title="Example">
+          <sapia:code><![CDATA[<cmd>deploy ${user.dir}/conf/exec.xml</cmd>]]></sapia:code>
+        </sapia:sect4> 
+      </sapia:sect3>
+      <sapia:sect3 title="java" alias="java_element">
+        <p>
+          The <tt>&lt;java&gt;</tt> element configures the basic Java "starter", which supports a single-classloader scheme (as opposed to <a href="http://www.sapia-oss.org/projects/magnet">Magnet</a>).
+          It generates the Java command line required to start the JVM corresponding to the configured process (i.e: the process corresponding
+          to the <tt>&lt;process&gt;</tt> element under which it is configured):
+        </p>
+        
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>mainClass</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the application class (class with a <tt>main</tt> method) to invoke upon JVM startup.</td>
+          </tr>
+          <tr>
+            <td><tt>profile</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the profile under which processes are to be started.</td>
+          </tr>
+          <tr>
+            <td><tt>javaHome</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Allows specifying usage of a different JVM by specifiying the home of the JDK or JRE installation directory that is desired (defaults to the same Java home as the Corus server by which processes are executed).</td>
+          </tr>
+          <tr>
+            <td><tt>javaCmd</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Allows specifying the name of the Java executable that is to be invoked when starting JVMs (defaults to java).</td>
+          </tr>
+          <tr>
+            <td><tt>vmType</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates the type of JVM that is to be started. Value can be either <tt>client</tt> or <tt>server</tt> for Java Hotspot)</td>
+          </tr>
+          <tr>
+            <td><tt>libDirs</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>
+              <p>
+              Allows overridding the default <tt>lib</tt> directory expected to contain the libraries with which the JVM's classpath will be built.
+              </p>
+              <p>
+              The value must be a semicolon or colon-delimited list of directories (interpreted relatively to the distribution's root – that is, the root of its .zip file). The libraries (.jar files) in these directories will then instead be used to build the JVM's classpath.
+              </p>
+              <p>
+              To include directories directly so that their resources are available to the classloader, these must end with a forward-slash. See the <a href="packaging_applications.html#direct_java_distributions">Direct Java Distributions</a> section for an example.</p>
+            </td>
+          </tr>
+          <tr>
+            <td><tt>interopEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>false</tt>)</td>
+            <td>A boolean flag Indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
+            also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
+          </tr> 
+          <tr>
+            <td><tt><a href="#dependency_element">dependency</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Use to configure dependency on one or more other processes.</td>          
+          </tr>          
+          <tr>
+            <td><tt><a href="#arg_element">arg</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a JVM argument, such as <tt>-javaagent</tt></td>          
+          </tr> 
+          <tr>
+            <td><tt><a href="#option_element">option</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a JVM option, such as <tt>-cp</tt></td>          
+          </tr>         
+          <tr>
+            <td><tt><a href="#xoption_element">xoption</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Can conveniently be used in place of the <a href="arg_element">arg</a> of arguments starting with <tt>-X</tt>.</td>          
+          </tr>         
+          <tr>
+            <td><tt><a href="#property_element">property</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Allows defining system properties that are passed at the command-line, using <tt>-D</tt>.</td>          
+          </tr>   
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="magnet" alias="magnet_element">
+        <p>
+          The <tt>&lt;magnet&gt;</tt> element configures the <a href="http://www.sapia-oss.org/projects/magnet">Magnet</a> "starter", which then will be used to generate the application commmand line necessary for starting that application through Magnet:
+        </p>
+        
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>magnetFile</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The path to the Magnet configuration file, relatively to the root of the Corus distribution archive.</td>
+          </tr>
+          <tr>
+            <td><tt>profile</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the profile under which processes are to be started.</td>
+          </tr>
+          <tr>
+            <td><tt>javaHome</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Allows specifying usage of a different JVM by specifiying the home of the JDK or JRE installation directory that is desired (defaults to the same Java home as the Corus server by which processes are executed).</td>
+          </tr>
+          <tr>
+            <td><tt>javaCmd</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Allows specifying the name of the Java executable that is to be invoked when starting JVMs (defaults to java).</td>
+          </tr>
+          <tr>
+            <td><tt>vmType</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates the type of JVM that is to be started. Value can be either <tt>client</tt> or <tt>server</tt> for Java Hotspot)</td>
+          </tr>
+          <tr>
+            <td><tt>interopEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>false</tt>)</td>
+            <td>A boolean flag Indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
+            also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
+          </tr> 
+          <tr>
+            <td><tt><a href="#dependency_element">dependency</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Use to configure dependency on one or more other processes.</td>          
+          </tr>          
+          <tr>
+            <td><tt><a href="#arg_element">arg</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a JVM argument, such as <tt>-javaagent</tt></td>          
+          </tr> 
+          <tr>
+            <td><tt><a href="#option_element">option</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a JVM option, such as <tt>-cp</tt></td>          
+          </tr>         
+          <tr>
+            <td><tt><a href="#xoption_element">xoption</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Can conveniently be used in place of the <a href="arg_element">arg</a> of arguments starting with <tt>-X</tt>.</td>          
+          </tr>         
+          <tr>
+            <td><tt><a href="#property_element">property</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Allows defining system properties that are passed at the command-line, using <tt>-D</tt>.</td>          
+          </tr>   
+        </sapia:table>
+      </sapia:sect3>
+ 
+      <sapia:sect3 title="docker" alias="docker_element">
+        <p>
+          The <tt>&lt;docker&gt;</tt> element configures the Docker "starter", as its name implies. It is used in the context of <a href="docker_integration.html">Docker Integration</a>.
+        </p>
+        
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>image</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The name of the image for which to start a container. If not specified, the name of the image will be inferred from the distribution information, according to the following format: <tt>&lt;distribution_name&gt;:&lt;distribution_version&gt;</tt>.</td>
+          </tr>
+          <tr>
+            <td><tt>profile</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the profile under which processes are to be started.</td>
+          </tr>
+          <tr>
+            <td><tt>interopEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>false</tt>)</td>
+            <td>A boolean flag Indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
+            also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
+          </tr>          
+          <tr>
+            <td><tt>autoRemoveEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (<tt>true</tt> by default)</td>
+            <td>Indicates if the Docker image corresponding to this starter should be removed from the Docker daemon upon undeployment of this
+            distributiion.</td>
+          </tr>
+          <tr>
+            <td><tt>user</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Allows overriding the user under which the Docker container will run (Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#user"><tt>-u</tt> command-line switch</a>).</td>
+          </tr>          
+          <tr>
+            <td><tt>command</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The actual command line to execute when the Docker container starts.</td>
+          </tr>
+          <tr>
+            <td><tt>networkMode</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>host</tt>)</td>
+            <td>Configures the Docker container's network mode (can be either <tt>host</tt>, <tt>bridge</tt>, or <tt>none</tt>). Please consult Docker's own documentation for more details about the different modes.</td>
+          </tr>
+          <tr>
+            <td><tt>macAddress</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The MAC address to assign to the container.</td>
+          </tr>
+          <tr>
+            <td><tt>memory</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--memory</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>memorySwap</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--memory-swap</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>cpuShares</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--cpu-shares</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>cpuPeriod</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--cpu-period</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>cpuSetCpus</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--cpuset-cpus</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>cpuQuota</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--cpu-quota</tt> command-line switch</a>.</td>
+          </tr>
+          <tr>
+            <td><tt>blkioWeight</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#runtime-constraints-on-resources"><tt>--blkio-weight</tt> command-line switch</a>.</td>
+          </tr>          
+          <tr>
+            <td><tt>cgroupParent</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Corresponds to Docker's <a href="https://docs.docker.com/engine/reference/run/#specifying-custom-cgroups"><tt>--cgroup-parent</tt> command-line switch</a>.</td>
+          </tr> 
+          <tr>
+            <td><tt><a href="#dependency_element">dependency</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Use to configure dependency on one or more other processes.</td>          
+          </tr>          
+          <tr>
+            <td><tt><a href="#port_mapping_element">portMapping</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a Docker container port mapping.</td>          
+          </tr> 
+          <tr>
+            <td><tt><a href="#volume_mapping_element">volumeMapping</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Corresponds to a Docker container volume mapping.</td>          
+          </tr>         
+          <tr>
+            <td><tt><a href="#env_element">env</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Allows specifiying one or more environment variables to pass to the Docker container.</td>          
+          </tr>         
+        </sapia:table>
+      </sapia:sect3>      
+      
+      <sapia:sect3 title="dependency" alias="dependency_element">
+        <p>
+          The <tt>&lt;dependency&gt;</tt> element is meant to indicate that a given process depends on another (multiple such elements can be configured, thus indicating that a given process depends on multiple other ones).
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>distribution</tt> or <tt>dist</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The name of the distribution to which the other process belongs (if not specified, the current distribition is assumed).</td>
+          </tr>
+          <tr>
+            <td><tt>process</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The name of the process on which the current process depends.</td>
+          </tr>
+          <tr>
+            <td><tt>version</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>The version of the distribution to which the other process belongs. If not specified, the version of the current distribution will be assumed.</td>
+          </tr>
+          <tr>
+            <td><tt>profile</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>If not specified, the profile of the parent <tt><a href="#java_element">java</a></tt> or <tt><a href="#magnet_element">magnet</a></tt> element is used.</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="arg" alias="arg_element">
+        <p>
+          The <tt>&lt;arg&gt;</tt> element is used to specify a JVM argument, such as <tt>-javaagent</tt>, <tt>-Xms</tt>, etc.
+        </p>
+        <sapia:table witdh="100%">
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>value</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Any value (the hyphen must be provided if one is required).</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="option" alias="option_element">
+        <p>
+          The <tt>&lt;option&gt;</tt> element corresponds to a JVM option, such as  <tt>-cpt</tt>, <tt>-jar</tt>, etc.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>name</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the name of the option (the hyphen should be ommitted - it will be added at runtime).</td>
+          </tr>
+          <tr>
+            <td><tt>value</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the value of the option (if none is expected, an empty string should be specified).</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="xoption" alias="xoption_element">
+        <p>
+          The <tt>&lt;xoption&gt;</tt> element can be used as a convenience, in place of the <tt><a href="#arg_element">arg</a></tt> element, in the case of JVM arguments starting with <tt>-X</tt>, such as <tt>-Xms</tt>, <tt>-Xmx</tt>, etc. The present element allows ommitting the <tt>-X</tt> part in the option name (the part will inserted automatically at runtime.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>name</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the name of the option (the hyphen and <tt>X</tt> should be ommitted - they will be added at runtime).</td>
+          </tr>
+          <tr>
+            <td><tt>value</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the value of the option (if none is expected, an empty string should be specified).</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="property" alias="property_element">
+        <p>
+          The <tt>&lt;property&gt;</tt> element corresponds to a JVM system property. At runtime, a command-line option of the form <tt>-D&lt;name&gt;=&lt;value&gt;</tt> will be generated for such an element.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>name</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the name of the system property (the hyphen should be ommitted - it will be added at runtime).</td>
+          </tr>
+          <tr>
+            <td><tt>value</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Provides the value of the option (if none is expected, an empty string should be specified).</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3>
+      <sapia:sect3 title="env" alias="env_element">
+        <p>
+          The <tt>&lt;env&gt;</tt> element allows specifying one or more environment variables to pass to a Docker container.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt><a href="#property_element">property</a></tt></td>
+            <td>Element</td>
+            <td>No (0 - *)</td>
+            <td>Allows specifying one or more properties that will be treated as an environment variable to pass to the container being started.</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3> 
+      <sapia:sect3 title="portMapping" alias="port_mapping_element">
+        <p>
+          The <tt>&lt;portMapping&gt;</tt> element allows mapping a host port to a container port.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>hostPort</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Specifies the host port to map to the given container port.</td>
+          </tr>
+          <tr>
+            <td><tt>containerPort</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Specifies the container port to which the host port should be mapped.</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3> 
+      <sapia:sect3 title="volumeMapping" alias="volume_mapping_element">
+        <p>
+          The <tt>&lt;volumeMapping&gt;</tt> is used to map a host volume to a container volume, along with the permissions
+          to assign to the container on the said volume.
+        </p>
+        <sapia:table>
+          <sapia:th>Name</sapia:th><sapia:th>Type</sapia:th><sapia:th>Required</sapia:th><sapia:th>Description</sapia:th>
+          <tr>
+            <td><tt>hostVolume</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>The path of the host volume, to which to map the given container volume.</td>
+          </tr>
+          <tr>
+            <td><tt>containerVolume</tt></td>
+            <td>Attribute</td>
+            <td>Yes</td>
+            <td>Specifies the container volume to which the host volume should be mapped.</td>
+          </tr>
+          <tr>
+            <td><tt>permission</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Specifies the permissions to grant to the container on the mapped volume. Defaults to <tt>rw</tt> (for read-write). Also supports <tt>ro</tt> for read-only.</td>
+          </tr>
+        </sapia:table>
+      </sapia:sect3> 
+      
+    </sapia:sect2>
+    <sapia:sect2 title="Profiles" alias="profiles">
+      <p>
+        Corus supports the concept of “profile". A profile is simply a character string that identifies the “type" of execution of a process. To be more precise, imagine that you have a distribution (in the Corus  sense) containing multiple process configurations corresponding to applications that are deployed in different environments, or used under different conditions. For example, you could deploy a distribution to a Corus server in your development environment, and deploy that same distribution in QA or pre-prod. By the same token, you could connect to some server simulator in a development environment, but to the real one in pre-prod or QA. A common problem is also the database, which could have different addresses across environments, and even be of a different brand (HSQLDB, Postgres) in these different environments.
+      </p>
+      <p>
+        The notion of profile is a simple way to work around the configuration problems that arise when working in different environments or using applications under different conditions. Based on the profile (passed around as a string, remember...) you could use different configuration files.
+      </p>
+      <p>
+        Therefore, Corus makes no assumption with regards to the profile; it just passes it to executed processes as a system property (the <tt>corus.process.profile</tt> system property).  In addition, the Magnet starter (used by Corus to start Magnet processes) passes the profile to the JVM through the <tt>magnet.profile.name</tt> system property (this is because Magnet also supports the notion of profile and uses that system property to identify the current profile – having a look at the Magnet web site will enlighten you).
+      </p>
+      <p>
+        So from your application, you only need "interpreting" that system property (i.e.: implement code that acts based on the value of that system property).
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Process Properties" alias="process_properties">
+
+      <p>When executing a process, Corus passes to it process properties (in fact, JVM system properties as supported in Java). Theses properties consist of all the ones specified as part of:</p>
+      <ul>
+        <li>The process configuration in the Corus descriptor (<tt>corus.xml</tt>);</li>
+        <li>the <tt>corus_process.properties</tt> file under <tt>$CORUS_HOME/config</tt>;</li>
+        <li>the process properties stored in the Corus server, which can be administered through the command line – see the Corus Properties section further below.</li>
+      </ul>
+      <p>In addition, Corus will pass the following properties to new processes:</p>
+
+      <sapia:table>
+        <sapia:th>Name</sapia:th>
+        <sapia:th>Description</sapia:th>
+        <sapia:th>Value</sapia:th>
+        <tr>
+          <td><tt>corus.server.host</tt>
+          </td>
+          <td>The address of the Corus server that started the process.</td>
+          <td>A character string correspond to an IP address.</td>
+        </tr>
+        <tr>
+          <td><tt>corus.server.host.name</tt>
+          </td>
+          <td>The host name of the Corus server that started the process.</td>
+          <td>The name of the host on which Corus is running</td>
+        </tr>
+        <tr>
+          <td><tt>corus.server.port</tt>
+          </td>
+          <td>The port of the Corus server that started the process.</td>
+          <td>A port.</td>
+        </tr>
+        <tr>
+          <td><tt>corus.server.domain</tt>
+          </td>
+          <td>The name of the domain of the Corus server that started the process.</td>
+          <td>A domain name.</td>
+        </tr>
+        <tr>
+          <td><tt>corus.distribution.name</tt>
+          </td>
+          <td>The name of the distribution to which the process corresponds.</td>
+          <td>A character string correspond to the distribution name.</td>
+        </tr>
+        <tr>
+          <td>
+            <tt>corus.process.id</tt>
+          </td>
+          <td>
+            The unique identifier of the process that was started.
+          </td>
+          <td>
+            A character string correspond to the Corus process identifier.
+          </td>
+        </tr>
+        <tr>
+          <td><tt>corus.process.name</tt>
+          </td>
+          <td>The name of the process that was started.</td>
+          <td>A character string correspond to the process name</td>
+        </tr>
+        <tr>
+          <td><tt>corus.process.dir</tt>
+          </td>
+          <td>The directory of the process.</td>
+          <td>An absolute path, corresponding to <tt>$CORUS_HOME/deploy/&lt;instance_dir&gt; /&lt;distribution_name&gt;/&lt;distribution_version&gt; /process/&lt;process_id&gt;</tt>
+          </td>
+        </tr>
+        <tr>
+          <td><tt>corus.process.poll.interval</tt>
+          </td>
+          <td>The interval at which the process is expected to poll its Corus server.</td>
+          <td>A given number of seconds.</td>
+        </tr>
+        <tr>
+          <td><tt>corus.process.status.interval</tt>
+          </td>
+          <td>The interval at which the process is expected to send its status to its Corus server.</td>
+          <td>A given number of seconds.</td>
+        </tr>
+        <tr>
+          <td><tt>corus.process.profile</tt>
+          </td>
+          <td>The name of the profile under which the process was started.</td>
+          <td>A character string corresponding to the  process' profile name.</td>
+        </tr>
+        <tr>
+          <td><tt>user.dir</tt>
+          </td>
+          <td>The “common" directory of all processes of the distribution of which the process is part.</td>
+          <td>An absolute path, corresponding to <tt>$CORUS_HOME/deploy /&lt;instance_dir&gt;/&lt;distribution_name&gt; /&lt;distribution_version&gt;/common</tt>
+          </td>
+        </tr>
+      </sapia:table>
+    </sapia:sect2>
+    <sapia:sect2 title="Process Pre-Execution" alias="process_pre_execution">
+      <sapia:sect-desc>
+        <p>
+          It is possible to have Corus commands executed prior to the execution of a process. Commands executed in this manner are processed by a command interpreter embedded within the Corus instance: their execution is meant to be strictly in-JVM, the <tt>-cluster</tt> option is not supported in their case; and some commands make no sense in embedded mode, their use having potentially unpredictable effects (such as deploy, for example).
+        </p>
+      </sapia:sect-desc>
+      <sapia:sect3 title="Typical Usage">
+        <p>
+          "Pre-executable" commands (the same ones that are typically typed in the Corus CLI) are specified in the <a href="#pre_exec_element"><tt>preExec</tt></a> element of the Corus descriptor (which is itself under the process element). A <tt>preExec</tt> element can have any number of <tt>cmd</tt> elements as children. The snippet below illustrates such an element.
+        </p>
+        <sapia:code><![CDATA[<process ...>
+  <preExec>
+    <cmd>conf export -f ${corus.process.dir}/conf/app.properties</cmd>
+  </preExec>
+  <java ... libDirs="${corus.process.dir}/conf/;lib">
+     ...
+  </java>
+</process>]]></sapia:code>
+
+        <p>
+          In the above, prior to execution, Corus process properties are exported to the given file (<tt>${corus.process.dir}/conf/app.properties</tt>). Then, in the <tt>libDirs</tt> attribute of the <tt>java</tt> element, the directory containing that file is inserted in the classpath (note that the ending with a forward-slash is required if the whole directory is to be included in the classpath. If the directory does not end with a forward-slash, Corus will look for .jar files in that directory, and these will be added to the classpath – the <a href="corus_descriptor">Corus Descriptor</a> section, further above, has a note to that effect).
+        </p>
+        <p>
+          The intent above is to make process properties available to the application being deployed, which can then load the properties file through its classloader.  It is recommended to export properties in a process-specific directory, so that different processes do not overwrite each other's properties. The best guarantee then is to store such files under the folder corresponding to the one created specifically for the process – to which the <tt>corus.process.dir</tt> property is mapped.
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Using conf merge">
+        <p>
+          A more advanced use could be the following:
+        </p>
+        <sapia:code><![CDATA[<process ...>
+  <preExec>
+    <cmd>conf merge -r -b ${user.dir}/conf/apps.properties -f ${corus.process.dir}/conf/app.properties</cmd>
+  </preExec>
+  <java ... libDirs="${corus.process.dir}/conf/;lib">
+     ...
+  </java>
+</process>]]></sapia:code>
+        <p>
+          The above uses the conf merge command, which proceeds as follows:
+        </p>
+        <ol>
+          <li>Loads the properties specified by the <tt>-b</tt> option (the properties are considered the "base").</li>
+          <li>Adds the Corus process properties to properties thus loaded in memory (the process properties will override any identically-named properties in the base properties).</li>
+          <li>Saves the resulting properties to the file (know as the "target") specified by the <tt>-f</tt> option.</li>
+          <li>
+            The <tt>-r</tt> option triggers the replacement of variables in the propertie loaded from the base file, using the process properties (in a bit more, as explained just below) for looking up their corresponding value. Meaning: given such a property in the base properties: <tt>app.environment=${env}</tt>, and the following process property: <tt>env=qa</tt>, then the resulting property will be <tt>app.environment=qa</tt>.
+          </li>
+        </ol>
+        <p>
+          The process properties are used for variable values, but the properties passed to the  process by Corus (<tt>corus.process.id</tt>, <tt>corus.process.dir</tt>, etc.) and Corus' own system properties as well. The lookup order is as follows:
+          <ol>
+            <li>The properties that are dynamically created and passed to the process by Corus (<tt>corus.process.id</tt>...).</li>
+            <li>The process properties stored in Corus.</li>
+            <li>Corus' own system properties.</li>
+          </ol>
+        </p>
+        <p>
+          If some variables cannot be replaced (due to having no match in terms of their name in neither of the above-define properties), then they are left as is and will be saved in  this manner in the resulting target file.
+        </p>
+        <p> 
+          The same variable resolution rules apply when processing the command-lines specified by the cmd element in the descriptor.
+       </p>
+      </sapia:sect3>
+    </sapia:sect2>
+    <sapia:sect2 title="Invoking Ant">
+      <p>
+      Ant scripts may be invoked from the CLI, through the ant command. The following illustrates such an invocation (type man ant in the CLI for more details):
+     </p>
+      <sapia:code><![CDATA[<process ...>
+  <preExec>
+    <cmd>ant -f ${user.dir}/scripts/copy_files.xml</cmd>
+  </preExec>
+  <java ... libDirs="${corus.process.dir}/conf/;lib">
+     ...
+  </java>
+</process>]]></sapia:code>
+      <p>
+        Say the content of <tt>copy_files.xml</tt> is as follows:
+      </p>
+      <sapia:code><![CDATA[<project name="copy_files" default="run"> 
+<target name="run"> 
+  <mkdir dir="${corus.process.dir}/conf" />
+  <copy todir="${corus.process.dir}/conf">
+    <fileset dir="${user.dir}/${corus.process.profile}">
+      <include name="**/*.properties"/>
+    </fileset>
+  </copy>
+</target> 
+</project>]]></sapia:code>
+      <p>
+        In the above example, a set of Java properties files is copied from a sub-directory under the root of the current Corus distribution. For the sake of the example, that directory is made to correspond to the current process' profile (note that the root directory of the Corus distribution is available through the <tt>user.dir</tt> property). The destination directory here corresponds to the directory assigned by Corus to the process (through the <tt>corus.process.dir</tt> property).
+      </p>
+      <p>
+        This example illustrates that an Ant script invoked this way has access to all the variables passed to a process at runtime.
+      </p>
+
+    </sapia:sect2>
+    <sapia:sect2 title="Process Dependencies">
+      <p>
+        It may occur that some processes depend on other processes, and that these processes themselves depend on other ones, and so on. The Corus descriptor supports declaring such dependencies, through dependency elements.
+      </p>
+      <p>
+        When such dependencies are detected, Corus will process them so that processes are started in the appropriate order. This will startup multiple processes consecutively, in such a case the <tt>corus.process.start-interval</tt> property should be set properly in order to not bottleneck the CPU while applications complete their initialization phase.
+      </p>
+      <p>
+        The excerpt below (corresponding to a Corus descriptor) shows a dependencies can be declared on a per-process basis:
+      </p>
+      <sapia:code><![CDATA[<distribution  
+xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" 
+	name="demo" version="1.0">
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true">
+    <java mainClass="org.sapia.corus.examples.EchoServer" profile="test" vmType="server">
+      <xoption name="ms" value="16M" />
+      <dependency dist="demo" version="1.0" process="configurator" />    
+    </java>
+  </process>  
+</distribution>]]></sapia:code>
+      <p>
+        Dependencies (processes on which other processes depend) are executed first, in the order in which they are declared: if process A depends on process B, and process B depends on process C, the execution order will be as such: C, B, A.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Execution Configurations">
+      <p>
+        It may become tedious to start multiple processes manually. The process dependency feature may help work around this hassle, but what if some processes have no other processes that depend on them ? In such a case, if not started explicitly, they will never execute.
+      </p>
+      <p>
+        Corus allows defining so-called “execution configuration". These configurations consist of XML files that are uploaded (through the deploy command) to a Corus server (or to multiple servers, in cluster mode). 
+      </p>
+      <p>An example process configuration is given below:</p>
+      <sapia:code><![CDATA[
+<exec xmlns="http://www.sapia-oss.org/xsd/corus/exec-3.0.xsd" 	  
+  name="test" startOnBoot="true"> 
+  <process dist="web" version="1.0" name="httpServer" profile="prod" instances="1"/> 
+</exec>]]></sapia:code>
+      <p>
+        The <tt>&lt;exec&gt;</tt> element takes the following attributes:
+      </p>
+      <ul>
+        <li><tt><b>name</b></tt> (mandatory): an arbitrary name used to refer to the configuration later on.</li>
+        <li><tt><b>startOnBoot (defaults to false)</b></tt>: indicates if the configured processes are to be started when the Corus server itself boots up.</li>
+      </ul>
+      <p>
+        In addition, the exec element contains one to many process elements, each indicating which processes should be started. Each process element takes the following attributes:
+      </p>
+      <ul>
+        <li><tt><b>dist</b></tt> (mandatory): the distribution to which the process belongs.</li>
+        <li><tt><b>version</b></tt> (mandatory): the distribution's version.</li>
+        <li><tt><b>name</b></tt> (mandatory): the name of the process.</li>
+        <li><tt><b>profile</b></tt> (mandatory): the profile under which to start the process.</li>
+        <li><tt><b>instances (defaults to 1)</b></tt>: the number of process instances that should be started.</li>
+      </ul>
+      <p>
+        Execution configurations can be deployed, listed, undeployed, and “executed", all through the command line. The following shows example commands – see the command line help of the appropriate command for more information.
+      </p>
+      <p><b>1) To deploy</b></p>
+      <sapia:code>deploy -e myTestConfig.xml</sapia:code>
+      
+      <p><b>2) To list the currently deployed execution configurations</b></p>
+      <sapia:code>ls -e</sapia:code>
+      
+      <p><b>3) To undeploy</b></p>
+      <sapia:code>undeploy -e test</sapia:code>
+      
+      <p><b>4) To execute</b></p>
+      <sapia:code>exec -e test</sapia:code>
+      
+      <sapia:note>
+        The processes corresponding to an execution configuration are treated the same way as if they had been started manually: process dependencies are resolved, and processed are started in the appropriate order. Thus, if all dependencies are declared appropriately, there is no need to specify processes on which other process depends as part of execution configurations: these will be started through the normal dependency resolution mechanisms.
+      </sapia:note>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

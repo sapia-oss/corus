@@ -1,0 +1,157 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Archiving" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Archiving">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="archiving"/>
+    </sapia:section>
+
+    <toc/>
+
+    <sapia:sect-desc>
+      <p>
+        Corus allows "archiving" its current state, for certain types of objects. This functionality can be used in the context of rollbacks, for example, where we'd then "unarchive" the previous state (which is the case in the context of a rollback).
+      </p>
+      <p>
+        The objects that can be archived are the following:
+      </p>
+      <ul>
+        <li>Process properties;</li>
+        <li>tags;</li>
+        <li>execution configurations;</li>
+        <li>port ranges;</li>
+        <li>distributions.</li>
+      </ul>
+    </sapia:sect-desc>
+
+    <sapia:sect2 title="Commands">
+    	<sapia:sect-desc>
+          <p>
+    		Before delving into the details of archival, let us provide an overview of the available commands:
+          </p>
+    	</sapia:sect-desc>
+    	<sapia:sect3 title="For process properties and tags (respectively):">
+    		<p>
+    			<ul>
+    				<li><tt>conf archive -p -rev &lt;rev_id&gt;</tt></li>
+    				<li><tt>conf archive -t -rev&lt;rev_id&gt;</tt></li>
+    				<li><tt>conf unarchive -p -rev &lt;rev_id&gt;</tt></li>
+    				<li><tt>conf unarchive -t -rev &lt;rev_id&gt;</tt></li>			
+    			</ul>
+    		</p>
+    	</sapia:sect3>
+    	
+     	<sapia:sect3 title="For port ranges:">
+     		<p>
+     			<ul>
+     				<li><tt>port archive -rev &lt;rev_id&gt;</tt></li>
+     				<li><tt>port unarchive -rev &lt;rev_id&gt;</tt></li>
+     			</ul>
+     		</p>
+    	</sapia:sect3>
+    	
+     	<sapia:sect3 title="For execution configurations:">
+     		<p>
+     			<ul>
+     				<li><tt>exec archive -e -rev &lt;rev_id&gt;</tt></li>
+     				<li><tt>exec unarchive -e -rev &lt;rev_id&gt;</tt></li>
+     			</ul>
+     		</p>	
+    	</sapia:sect3>
+    	
+    	<sapia:sect3 title="For performing multiple archivals at once">
+     		<p>
+     		There are also two commands that bundle all operations above:
+     		</p>
+				<ul>
+					<li><tt>archive -rev &lt;rev_id&gt;</tt></li>
+					<li><tt>unarchive -rev &lt;rev_id&gt;</tt></li>
+				</ul>
+				<p>
+					These do what the previous commands do, in one shot, for archiving and unarchiving respectively (<tt>archive</tt> will trigger the archiving of process properties, tags, port ranges, and execution configurations, while <tt>unarchive</tt> will do the same for unarchiving).
+				</p>
+    	</sapia:sect3>
+    </sapia:sect2>
+    <sapia:sect2 title="Distribution Archiving">
+    	<p>	
+    		In addition to the above-mentioned commands pertaining to the archival of configuration, it is also possible to archive distributions. This aims at supporting the following scenario:
+    	</p>
+    	<ol>
+    		<li>A new distribution version is deployed.</li>
+    		<li>The current version is undeployed, but in fact kept on the Corus side in case it should be revived due to a rollback.</li>
+    		<li>Rolling back would involve (among others): undeploying the latest distribution, and redeploying the previous one.</li>
+    	</ol>
+    	<p>
+    		There is no special command for archiving distributions. Rather, archival is done through the undeploy command, and "unarchival" is performed with deploy. 
+    	</p>
+    	<p>	
+    		The idea is that when undeploying, we'd want to keep a copy of the distribution on the side of Corus, to make sure we can quickly redeploy the exact same distribution package if need be. The undeploy command therefore supports the <tt>-rev</tt> option, for passing in the revision "under" which the distribution being undeployed should be archived, as illustrated by the example below:
+    	</p>
+    	<sapia:code>undeploy -d * -v * -rev previous</sapia:code>
+    	
+    	<p>
+    		We've chosen "previous" as a revision identifier, to illustrate that relatively to the new distribution version that will be deployed, the one being undeployed is in fact the previous version. Revision IDs however are completely arbitrary, and it is up to users to pick the ones they see fit.
+    	</p>
+    	<p>
+    		Now in the context of a rollback, we would: undeploy the new distribution, redeploy the previous one. That is reflected by the commands below:
+      </p>
+      <sapia:code>undeploy -d * -v *
+deploy -rev previous
+</sapia:code>
+			<p>
+				Note two things: first, the undeploy above is not provided with the -rev option: our intent is indeed to completely remove the new distribution, since at this point it is probably faulty.
+			</p>
+			<p>
+				Second, we are actually not deploying a distribution package: we're just indicating Corus that it should deploy the distribution it has archived - under the "previous" revision.
+			</p>
+    </sapia:sect2>
+    <sapia:sect2 title="Revisions in Detail">
+    	<p>
+    		When archiving, the current state of objects being archived is kept in a bucket called a "revision". As was mentioned previously, a revision is tagged with a user-supplied identifier. Here's an example:
+    	</p>
+    	<sapia:code>conf -p archive -rev previous</sapia:code>
+    	<p>
+    		In this case, we're archiving process properties under a revision called "previous" - there's no imposed conventions on revision identifiers, other than that they can only contain alpha-numeric characters, dashes (-), underscores (_) and periods. In our case, using "previous" makes it clearer, when unarchiving, that we're doing the operation to restore the "previous" state, as shown below:
+      </p>
+      <sapia:code>conf unarchive -rev previous</sapia:code>
+      <p>
+      	Also, If an archival is performed using a given revision identifier, and re-archive later on using that same identifier, object state kept as part of the preceding revision is lost, and the new object state takes over.
+      </p>
+      <p>
+      	For example, consider the following sequence:
+      </p>
+      <ol>
+      	<li><tt>conf add -t tag1,tag2</tt></li>
+      	<li><tt>conf archive -rev previous</tt></li>
+      	<li><tt>conf del -t *</tt></li>
+      	<li><tt>conf add -t tag3,tag4</tt></li>
+      	<li><tt>conf archive -rev previous</tt></li>
+      	<li><tt>conf del -t *</tt></li>
+      	<li><tt>conf unarchive -rev previous</tt></li>
+      	<li><tt>conf ls -t</tt></li>
+      </ol>
+      <p>
+      	The last command (<tt>conf ls -t</tt>) will return tags tag3 and tag4: even though tag1 and tag2 had been previously archived (#2), they have been overwritten by the archiving of tag3 and tag4, (#5) under the same revision identifier.
+      </p>
+      <p>
+      	A more comprehensive picture of how to use the archiving functionality is provided in the <a href="packaging_scripts_with_distributions.html">Packaging Scripts with Distributions</a>  section.
+      </p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

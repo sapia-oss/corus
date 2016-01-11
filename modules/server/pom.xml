@@ -211,6 +211,7 @@
   <build>
     <finalName>${project.artifactId}-${project.version}</finalName>
     <plugins>
+    
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <configuration>

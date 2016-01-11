@@ -6,9 +6,10 @@
   
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
  	  <sapia:vsection name="In 2 minutes" href="overview.html"/>
- 	  <sapia:vsection name="REST API" href="rest.html"/>    
+ 	  <sapia:vsection name="REST API" href="rest.html"/>
+ 	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
  	  <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
    </sapia:vmenu>
 
@@ -61,7 +62,7 @@
     </sapia:sect3>
     
     
-    <sapia:sect3 title="Application Process HA">
+    <sapia:sect3 title="Application Process HA" alias="application_process_ha">
       <p>
         When Corus starts a JVM, that JVM process embeds an agent that 
         implements the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a>.
@@ -71,7 +72,7 @@
       
       <p>
         Among other interactions, we're finding that a process must poll its 
-        Corus daemon at a predefined interval (the <a href="Corus">Corus Guide</a>
+        Corus daemon at a predefined interval (the <a href="guide/index.html">Corus Guide</a>
         describes in more details how the various runtime parameters are passed
         by the Corus daemon to the process, upon startup).
       </p>
@@ -85,6 +86,11 @@
         we're not talking about an OS kill, but a process termination event as 
         specified in the Corus Interop Protocol.
       </p>
+      <sapia:note>
+      	If processes have <a href="rest/diagnostic.html">diagnostics</a> configured, then that support is also
+      	used internally for determining process health. Since interop is disabled for Docker containers, corresponding process configurations
+      	should have diagnostic check configured to insure auto-restart by Corus at runtime.
+      </sapia:note>
       
       <p>
         It is then the responsibility of the process to handle that termination 
@@ -171,11 +177,13 @@
     
     <p>
       The first step is to publish application status data through the Corus
-      interop API, in the application's code. Todo so, you need the <a href="http://download.java.net/maven/2/org/sapia/sapia_corus_iop_api/">sapia_corus_iop_api</a>
-      dependency that matches your Corus installation (look in the Corus classpath, under the
-      <sapia:command>lib/vm-boot</sapia:command> directory of the Corus server,
-      to see what version of the dependency corresponds to your installation).
+      interop API, in the application's code. Todo so, you need the following dependency:
     </p>
+				<sapia:code><![CDATA[<dependency>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_iop_api</artifactId>
+  <version>2.8.2</version>
+</dependency>]]></sapia:code>    
     
     <p>
       The code snippet below, taken from the source that's part of the
@@ -245,7 +253,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
   <sapia:sect2 title="Repository" alias="repo">
     <p>
       The repository functionality has been introduced as of version 4.0. The
-      <a href="CorusGuide.pdf">Corus Guide</a> provides exhaustive documentation as
+      <a href="guide/index.html">Corus Guide</a> provides exhaustive documentation as
       to what the functionality consists of, and how to configure Corus in order to
       activate it. We'll nevertheless cover the basics here.
     </p>
@@ -300,7 +308,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
     <p>
       Corus has advanced features that you'll come to appreciate as you work
       with them. The <a href="tutorials/index.html">tutorials</a> and the 
-      <a href="CorusGuide.pdf">Corus Guide</a> provide additional information.
+      <a href="guide/index.html">Corus Guide</a> provide additional information.
     </p>                                                
   </sapia:sect2>
   

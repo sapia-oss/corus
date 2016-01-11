@@ -211,7 +211,7 @@ public class DockerWriteResource extends DeploymentResourceSupport {
   
   private ProgressResult doRemoveImagesForCluster(RequestContext context, ClusterInfo targets) throws Exception {
 
-    final ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("f").notNull().asString());
+    final ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("n").notNull().asString());
     
     Value batchSize = context.getRequest().getValue("batchSize", "0");
     Value minHosts  = context.getRequest().getValue("minHosts", "1");
@@ -256,7 +256,7 @@ public class DockerWriteResource extends DeploymentResourceSupport {
   @DefaultContentLevel(ContentLevel.MINIMAL)
   public ProgressResult removeImagesForHost(RequestContext context) throws Exception {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    final ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("f").notNull().asString());
+    final ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("n").notNull().asString());
     
     Value async = context.getRequest().getValue("async", "false");
     

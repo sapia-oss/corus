@@ -1,0 +1,226 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Repository" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Repository">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="repository"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				As of release 4.0, Corus has been enriched with a repository functionality: this allows some Corus nodes (configured as “repository clients") to synchronize their state with other nodes (which are themselves configured as “repository servers"). 
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Rationale">
+			<p>
+				The functionality has been introduced in order to facilitate installation of new Corus nodes: newly installed nodes configured as repository clients will automatically end up having the same distributions, execution configurations, shell scripts, file uploads, port ranges, process properties, and tags, as the repository servers with which they synchronize themselves. This for of replication can also be forced at any later stage, through a so-called "pull" - by which a pull from repo clients to repo servers is triggered.
+			</p>
+			<p>
+				In addition, the functionality proves handy when running Corus in the cloud: new Corus instances configured as repo clients have their distributions automatically copied to them, and the application processes configured as part of these distributions may then be automatically launched.
+			</p>
+		</sapia:sect2>
+		<sapia:sect2 title="Mechanism">
+			<p>
+				The synchronization between repository clients and servers occurs when a repository client node starts up: upon appearing in the domain, it will detect which nodes in the domain act as repository servers. The repo client node will then notify the repo servers it has discovered that it wishes to synchronize its state with them. 
+			</p>
+			<p>
+				Exchanges follow between the repo client and the repo servers, in the context of which the latter send to the repo client their distributions, execution configurations, shell scripts, file uploads, port ranges, process properties, and tags. Upon completion of this synchronization, a repo client node ends up having the same state as the whole of its repo servers.
+			</p>
+			<p>
+				The diagram below illustrates the explanations above:
+			</p>
+			<center><img src="img/repository.png" /></center>
+			<p>
+				The way replication is done follows Corus' cascading scheme (a deployment "cascade" is created for all client nodes that required replication at relatively the same moment). 
+			</p>
+			
+
+			<p>
+				Synchronization is restricted to the domain (or cluster). That is: repo clients will not “see" repo servers outside of their own domain. For a given domain, it is recommended to have one repo server node at the most, to make things simpler.
+			</p>
+			<p>
+				In addition to the synchronization of state, any execution configuration that has its <tt>startOnBoot</tt> property set to true will have the corresponding processes automatically started upon completion of the synchronization phase.
+			</p>
+			<p>
+				The synchronization mechanism has been optimized to avoid redundant transfers between repository servers and clients: a client will request from the repo servers that it discovers which artifacts (distributions, shell scripts, etc.) these have. It will compare these artifacts with the ones it already has, and only request from the  repo servers the artifacts it does not already have.
+			</p>
+			<sapia:note>
+				There can be than one node identified as a repo server in a Corus cluster. A node configured as a repo client will not request the same things from all repo server nodes: communication will be limited to a single one. Thus, having more than one repo server nodes eliminates single-points-of-failures and has no negative consequences.
+			</sapia:note>
+		</sapia:sect2>
+		<sapia:sect2 title="Configuration">
+			<p>
+				Enabling the repository functionality, is done through configuration. The property to set is <tt>corus.server.repository.node.type</tt> in the <tt>corus.properties</tt> file – under the <tt>$CORUS_HOME/config</tt> directory. It is by default set to <tt>none</tt>, meaning that the Corus instance will act as neither a respository client or server – and thus that will will not take part in any repository interaction. This is the default value.
+			</p>
+			<p>
+				To configure a Corus instance as a repo client, the value of the above property should be set to client. To configure it as a server, it should be set to server.
+			</p>
+			<p>
+				Also, in addition, by default, the push of state from servers to clients applies by default to all synchronizable elements, that is:
+			</p>
+			<ul>
+				<li>distributions and execution configurations</li>
+				<li>shell scripts</li>
+				<li>file uploads</li>
+				<li>port ranges</li>
+				<li>process properties</li>
+				<li>tags</li>
+				<li>application keys</li>
+				<li>security roles</li>
+			</ul>
+			<p>
+				It is possible to fine-tune both the push of synchronizable elements from servers to clients, and the pull of such elements by clients from servers.
+			</p>
+			<p>
+				Such customization as been introduced in order to guarantee maximum control over synchronization behavior. For example, it might be desirable to configure a repo client as having the pull of tags disabled, because one wishes to only run certain types of processes on that node. In this case then, one wants to make sure that only the tags for these processes will be set on that node, and none other.
+			</p>
+			<sapia:table>
+				<sapia:th>Property</sapia:th><sapia:th>Description</sapia:th><sapia:th>Default</sapia:th>
+				<tr>
+					<td><tt>corus.server.repository.node.type</tt></td>
+					<td>
+						Indicates the repository role of the Corus instance:
+						<ul>
+							<li><tt><b>none</b></tt>: means that the Corus node will not take part in repository operations.</li>
+							<li><tt><b>client</b></tt>: means that the Corus node will act as a repository client.</li>
+							<li><tt><b>server</b></tt>: means that this Corus node will act as a repository server.</li>
+						</ul>
+					</td>
+					<td><tt>none</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.tags.push.enabled</tt></td>
+					<td>
+						Indicates if the push of tags from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.properties.push.enabled</tt></td>
+					<td>
+						Indicates if the push of process properties from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.uploads.push.enabled</tt></td>
+					<td>
+						Indicates if the push of file uploads from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.scripts.push.enabled</tt></td>
+					<td>
+						Indicates if the push of shell scripts from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.port-ranges.push.enabled</tt></td>
+					<td>
+						Indicates if the push of port ranges from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				<tr>
+					<td><tt>corus.server.repository.security.push.enabled</tt></td>
+					<td>
+						Indicates if the push of security roles and application keys from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository server).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+			  <tr>
+					<td><tt>corus.server.repository.tags.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of tags by the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+			  <tr>
+					<td><tt>corus.server.repository.properties.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of process properties by the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+			  <tr>
+					<td><tt>corus.server.repository.uploads.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of file uploads by the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+			  <tr>
+					<td><tt>corus.server.repository.scripts.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of shell scripts by the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+			  <tr>
+					<td><tt>corus.server.repository.port-ranges.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of port ranges by the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>
+				  <tr>
+					<td><tt>corus.server.repository.security.pull.enabled</tt></td>
+					<td>
+						Indicates if the pull of security roles and application keys from the Corus instance is enabled (this property is taken into account only if the Corus instance is configured as a repository client).
+					</td>
+					<td><tt>true</tt></td>
+				</tr>			
+			</sapia:table>	
+		</sapia:sect2>
+		<sapia:sect2 title="Using the Pull Command">
+			<p>
+				The pull command may be used to trigger the synchronization mechanism – automatic pull is done at Corus startup only, and it must be explicitly triggered at other times. The pull command is only executed by Corus nodes configured as repo clients (it will simply be ignored by others).
+			</p>
+			<p>
+				You can invoke the command from the Corus CLI. Just type:
+			</p>
+			<sapia:code>pull</sapia:code>
+			<p>or</p>
+			<sapia:code>pull -cluster</sapia:code>
+			<p>
+				The above command is executed by repo clients: upon executing it, these will initiate state replication in the same manner as they would
+				have done automatically at startup.
+			</p>
+		</sapia:sect2>
+		<sapia:sect2 title="Dynamic Repository Role Change">
+			<p>
+				The repository role of a Corus instance (or of a whole cluster) can be dynamically modified, without having to restart Corus. Here's an example:
+			</p>
+			<sapia:code>cluster repo my-new-role -cluster</sapia:code>
+				<p>
+					When the repository role of a Corus cluster is changed this way, Corus saves it in a file named <tt>.corus-readonly-&lt;corus-server-port&gt;.properties</tt>, under the <tt>$HOME/.corus</tt> directory (where <tt>$HOME</tt> corresponds to the home directory of the user under which the Corus server process runs, and  &lt;corus-server-port&gt; to the port of the current Corus instance).
+				</p>
+				<p>
+					Corus always looks for the presence of that file at startup, and the properties it contains will supplement/override all other server properties.
+				</p>
+				<sapia:note>
+					As its name implies, this file should ideally not be manually edited.
+				</sapia:note>
+		</sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

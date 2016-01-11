@@ -2,7 +2,7 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="../index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
     <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
     <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
     <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
@@ -78,7 +78,7 @@
 	          <sapia:note>How the three statuses above map to HTTP status codes is explained <a href="#spec">further below</a>.</sapia:note>
 	      </p>
 	      <p>
-	        The functionality relies largely on Corus' port management feature: for each port configured in the <tt>corus.xml</tt> descriptor, it is possible to
+	        The functionality relies largely on Corus' <a href="../guide/port_management.html">port management</a> feature: for each port configured in the <tt>corus.xml</tt> descriptor, it is possible to
 	        add a diagnostic configuration that is used at runtime by a Corus node to check the status of corresponding processes.
 	      </p>
 	      <p>
@@ -90,6 +90,10 @@
 	        To top this off, when tags are configured in the the <tt>corus.xml</tt> descriptor, Corus is able to determine if a process should be running or not on a give node.
 	        It will therefore not flag a process as being down (or even attempt checking it) if such a process is not expected to run.
 	      </p>
+	      <sapia:note>
+	      	The diagnostic functionality is also used internally by Corus in the context of process health-check, and the <a href="../advanced.html#application_process_ha">auto-restart</a> of processes
+	      	that are deemed unhealthy.
+	      </sapia:note>
 	    </sapia:sect3>
 	    
 	    <!-- ======================      APP DIAGNOSTIC     ====================== -->
@@ -97,10 +101,10 @@
 	    <sapia:sect3 title="Application Diagnostic">
 	      <sapia:sect-desc>
 		      <p>
-		        The first thing to do in order for applications to be diagnosed by Corus is to configure them with a port (using a &lt;port&gt; element in the <tt>corus.xml</tt>
+		        The first thing to do in order for applications to be diagnosed by Corus is to configure them with a port (using a <tt>&lt;port&gt;</tt> element in the <tt>corus.xml</tt>
 		        descriptor) that will be checked at runtime. Currently, only HTTP/HTTPS-based checks are supported.
 		      </p>
-		      <sapia:note>For more detailed information regarding port management in Corus, please refer to the <i>Port Management</i> section of the <a href="../CorusGuide.pdf">Corus Guide</a>.</sapia:note>
+		      <sapia:note>For more detailed information regarding port management in Corus, please refer to the <a href="../guide/port_management.html">Port Management</a> page.</sapia:note>
 	
 		    </sapia:sect-desc>
 	      
@@ -110,7 +114,7 @@
 	         how the <tt>corus.xml</tt> file has to be modified to take advantage of this functionality.
 	        </p>
 	      
-		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-4.8.xsd&quot;&gt;
+		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd&quot;&gt;
   &lt;process name=&quot;httpServer&quot; maxKillRetry=&quot;3&quot; shutdownTimeout=&quot;30000&quot; invoke=&quot;true&quot; tags=&quot;http-server&quot;&gt;
     &lt;port name=&quot;http.server&quot;&gt;
       &lt;http-diagnostic portPrefix=&quot;8&quot; /&gt;
@@ -120,10 +124,10 @@
   ...
 &lt;/distribution&gt;</sapia:code>
 		      <p>
-		        The  &lt;port&gt; element supports both a &lt;http-diagnostic&gt; and a &lt;https-diagnostic&gt; element for connecting to processes over either HTTP or HTTPS, respectively.
-		        Only one such diagnostic element is supported under the &lt;port&gt; element. Using the provided configuration, Corus is able to recreate URLs that will be used to connect
+		        The  <tt>&lt;port&gt;</tt> element supports both a <tt>&lt;http-diagnostic&gt;</tt> and a <tt>&lt;https-diagnostic&gt;</tt> element for connecting to processes over either HTTP or HTTPS, respectively.
+		        Only one such diagnostic element is supported under the <tt>&lt;port&gt;</tt> element. Using the provided configuration, Corus is able to recreate URLs that will be used to connect
 		        to the corresponding application processes and perform the HTTP/HTTPS <tt>GET</tt> call required to determine their status. 
-		        Both &lt;http-diagnostic&gt; and a &lt;https-diagnostic&gt; support the same attributes, documented below:
+		        Both <tt>&lt;http-diagnostic&gt;</tt> and a <tt>&lt;https-diagnostic&gt;</tt> support the same attributes, documented below:
 		      </p>
 		      <ul>
 		        <li><b><tt>gracePeriod</tt></b> (optional, defaults to 45 seconds): the number of seconds given to the process to boot up and respond to health checks, after being started.</li>
@@ -140,7 +144,7 @@
           
           <p>For this behavior to yield the expected results, application must provide an endpoint for health check purposes, over HTTP or HTTPS. Such an endpoint is will be invoked
           using the <tt>GET</tt> method, and success will be inferred from the endpoint returning a HTTP 200 - or a status corresponding to what has been configured as part of either
-          the &lt;http-diagnostic&gt; or &lt;https-diagnostic&gt; element (as documented above).
+          the <tt>&lt;http-diagnostic&gt;</tt> or <tt>&lt;https-diagnostic&gt;</tt> element (as documented above).
           </p>		    
           
           <sapia:note>An important point to remember is that Corus knows which processes are supposed to run or not on given hosts, based on their tags. Therefore, it will
@@ -153,7 +157,7 @@
 		        To better clarify the example above, let's expand it a bit and examine how the configuration will be interpreted at runtime to build a URL. For starters, here's
 		        an upgraded &lt;port&gt; configuration:
 		      </p>  
-		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-4.8.xsd&quot;&gt;
+		      <sapia:code>&lt;distribution name=&quot;demo&quot; version=&quot;1.0&quot; xmlns=&quot;http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd&quot;&gt;
   &lt;process name=&quot;httpServer&quot; maxKillRetry=&quot;3&quot; shutdownTimeout=&quot;30000&quot; invoke=&quot;true&quot; tags=&quot;http-server&quot;&gt;
     &lt;port name=&quot;http.server&quot;&gt;
       &lt;http-diagnostic portPrefix=&quot;8&quot; path=&quot;/ping&quot; successCode=&quot;200&quot;  readTimeout=&quot;1000&quot; connectionTimeout=&quot;2000&quot; gracePeriod=&quot;30&quot; /&gt;
