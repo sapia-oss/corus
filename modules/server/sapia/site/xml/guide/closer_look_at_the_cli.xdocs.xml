@@ -1,0 +1,217 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - A Closer Look at the CLI" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="A Closer Look at the CLI">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="a closer look at the cli"/>
+    </sapia:section>
+
+    <toc/>
+
+    <sapia:sect-desc>
+      <p>
+        In order to be able to tailor a Corus installation to specific needs, one needs understanding the file layout, and the main configuration 
+        elements.
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:toc/>
+
+    <sapia:sect2 title="Managing in Batch" alias="managing_in_batch">
+      <sapia:sect-desc>
+        <p>
+          If you are handling a relatively large number of processes/distributions/hosts, you have an interest in using features of the CLI that allow for batch manipulation.
+        </p>
+      </sapia:sect-desc>
+      <sapia:sect3 title="Pattern Matching" alias="pattern_matching">
+        <p>
+          Many commands support pattern-matching (<tt>ls</tt>, <tt>undeploy</tt>, <tt>exec</tt>, <tt>ps</tt>, etc.). Here are a few example:
+        </p>
+        <sapia:code><![CDATA[ls -d * -v *
+exec -d * -v * -n * -p test 
+undeploy -d * -v *
+ps -d * -v *]]></sapia:code>
+      </sapia:sect3>
+      <sapia:sect3 title="Aggregate Commands" alias="aggregate_commands">
+        <sapia:sect-desc>
+          <p>
+            For lack of a better term, we have classified some commands under the "aggregate" category. These commands are <tt>match</tt> and <tt>count</tt>: they work on the results of other commands, performing filtering and counting, respectively.
+          </p>
+        </sapia:sect-desc>
+        <sapia:sect4 title="Count">
+          <p>
+            The count command is used to count the number of results returned by given commands - which are expected to return lists (such as <tt>ls</tt>, <tt>port ls</tt>, <tt>conf ls</tt>, etc.). The syntax goes as follows:
+          </p>
+          <sapia:code><![CDATA[count <command>]]></sapia:code>
+          <p>
+            The following all make sense in the context of count:
+          </p>
+          <sapia:code><![CDATA[count hosts
+count ls -d * -v *  -cluster
+count ps -d * -v * ]]></sapia:code>
+          <p>
+            The <tt>count</tt> command also supports the <tt>-a</tt> option - which stands for "assertion". This is used to assert that the number of items returned by the subsequent command corresponds to the one specified by the <tt>-a</tt> option. For example, to assert that the cluster as a certain number of hosts, you can do the following:
+          </p>
+          <sapia:code>count -a 10 hosts</sapia:code>
+          
+          <p>
+            If the assertion fails, it generates an error and execution aborts. This can be useful in the context of sanity checks prior to deployment.
+          </p>
+        </sapia:sect4>
+        <sapia:sect4 title="Match">
+          <p>
+            When managing large clusters, it can happen that commands listing information (such as <tt>ls</tt>, <tt>conf ls</tt>, <tt>port ls</tt>, <tt>ps</tt>, and the likes) return too much data at once to be easily viewable by system administrators. This is where the <tt>match</tt> command comes handy (working somehow like grep in Unix/Linux). In the same manner as count, match takes a subsequent command as an argument, applying filtering to that command's output, based on a specified pattern (Ant-like patterns are supported, not regexes).
+          </p>
+          <p>
+            In addition, match also can be provided with a Corus script to be executed against the hosts for which the matching was successful - in this case, the command is actually match apply. The syntax of the command is given below:
+          </p>
+          <sapia:code><![CDATA[match [apply <script_path>] <pattern> <command>]]></sapia:code>
+          <p>
+            Here are a few examples:
+          </p>
+          <sapia:table>
+            <tr>
+              <td>
+                <tt>match act. ps -cluster</tt>
+              </td>
+              <td>
+              Displays the currently active processes, cluster-wide.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <tt>match 192.**.10* hosts</tt>
+              </td>
+              <td>
+              Displays the hosts whose IP address corresponds to the given pattern.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <tt>match apply restart.corus stal* ps -cluster</tt>
+              </td>
+              <td>
+              Applies the restart.corus script to the hosts returning processes that are stale.
+              </td>
+            </tr>
+          </sapia:table>
+          
+          <sapia:note>
+            When using <tt>match apply</tt>, if a script contains commands with the <tt>-cluster</tt> option, the value of the option is internally "hijacked" so that the commands only target the hosts for which a match occurred.
+          </sapia:note>
+          
+          <p>
+            Using <tt>match</tt> in conjunction with <tt>count</tt> can be quite convenient:
+          </p>
+          <sapia:code>count match stal. ps -cluster</sapia:code>
+          
+          </sapia:sect4>
+        </sapia:sect3>
+        <sapia:sect3 title="The 'all' Shortcut">
+          <p>
+            When performing <tt>undeploy</tt>, <tt>kill</tt>, etc., it can be annoying to have to provide all the options when we want to match everything (such as in <tt>kill -d * -v * -n *</tt>).
+          </p>
+          <p>
+            As a convenience, many commands support the all keyword, as illustrated by the following examples:
+          </p>
+          <sapia:code><![CDATA[undeploy all -cluster
+kill -all -cluster
+restart -all]]></sapia:code>
+        </sapia:sect3>
+    </sapia:sect2>
+    <sapia:sect2 title="Productivity">
+      <p>The CLI supports a few productivity features that make using it more convenient</p>
+      <sapia:sect3 title="Sorting">
+        <p>
+          Corus supports sorting the output using predefined so-called flags - used in the context of the <tt>sort</tt> command.
+        </p>
+        <p>
+          This section provides an overview of output sorting - for a complete list of the sort flags that are available, type man sort in the CLI. The following are available in terms sorting features:
+        </p>
+        <ul>
+          <li>Turning specified sort flags on or off.</li>
+          <li>Pushing sort flag configuration to Corus, and clearing such a configuration from Corus.</li>
+          <li>Listing the available sort flags.</li>
+        </ul>
+        <p> 
+          To sort output by host name and IP address (in that order), type:
+        </p>
+        <sapia:code>sort on hn,hi</sapia:code>
+        
+        <p>
+          Multiple sort flags can be specified, through a comma-delimited list (without spaces). Sorting can be turned off. For example, to turn off sorting by IP, type:
+        </p>
+        <sapia:code>sort off hi</sapia:code>
+        <p>
+          Sort flag configuration can be pushed to the Corus node to which the CLI is currently connected (or to all nodes in the cluster), as follows:
+        </p>
+        <sapia:code>sort push hn,hi -cluster</sapia:code>
+        <p>
+          Flags pushed to a Corus node are automatically loaded when the CLI connects to that node. As a corollary, sort flags can be cleared from the current Corus node, or from the whole cluster:
+        </p>
+        <sapia:code>sort clear -cluster</sapia:code>
+        <p>
+          The sort clear command deletes all flags - it does not support clearing only specific flags. To view the flags that are currently specified, type:
+        </p>
+        <sapia:code>sort ls</sapia:code>
+      </sapia:sect3>
+      <sapia:sect3 title="Aliases">
+        <p>
+          It may be convenient to create aliases for commands, especially when those are used repetitively and take multiple arguments.
+        </p>
+        <p>
+          The alias command is intented just for creating such aliases. These aliases are then interpreted as "normal" commands by the CLI. The following creates an alias named ka, which will  act as a synonym for the kill all -cluster command:
+        </p>
+        <sapia:code>alias -n ka -c "kill all -cluster"</sapia:code>
+        <p>
+          If an alias is specified with no arguments/options, then such arguments and options can be passed to it at invocation time. For example, let's redefine our <tt>ka</tt> alias:
+        </p>
+        <sapia:code>alias -n ka -c "kill"</sapia:code>
+        <p>
+          It can then be invoked as follows:
+        </p>
+        <sapia:code>ka all -cluster</sapia:code>
+        <p>
+          If both the alias and the aliased command have arguments/options, those of the alias will override those passed at the command line.
+        </p>
+        <p>
+          For example, say we define our ka alias as in our first example:
+        </p>
+        <sapia:code>alias -n ka -c "kill all -cluster"</sapia:code>
+        <p>
+          If we invoke the alias as follows:
+        </p>
+        <sapia:code>ka -d * -v * -n * -cluster</sapia:code>
+        <p>
+          Then the options and arguments passed to the command will be ignored, since the alias has such options and arguments defined already. So these will override the ones of the command. Therefore, that actually executed command will be <tt>kill all -cluster</tt>. 
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Executing Commands at CLI Startup">
+        <p>
+          Linux/Unix and other OSes support loading a user-specific script that sets up the environment when the user launches a terminal session. Similarly, when the CLI starts up, it searches for a Corus script at:
+        </p>
+        <sapia:code>$HOME/.corus/.profile.corus</sapia:code> 
+        
+        <p>
+          The content of the <tt>.profile.corus</tt> script is expected to consist of Corus commands - it is a plain-vanilla Corus script, which may hold any command that the user sees fit. It is a convenient place to define aliases, sorting (see the two previous sections), etc.
+        </p>
+      </sapia:sect3>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

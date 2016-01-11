@@ -106,8 +106,31 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   }
   
   @Test
-  public void testStaleVmCheck_diagnostic_failure() throws Exception {   
+  public void testStaleVmCheck_diagnostic_failure_interop_disabled() throws Exception {   
     proc.setInteropEnabled(false);
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
+      .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_FAILED, "failure", proc));
+    
+    ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
+    ctx.getProc().getConfigurationImpl().setKillInterval(1);
+    
+    LockOwner owner = LockOwner.createInstance().nonExclusive();
+    proc.getLock().acquire(owner);
+    proc.save();
+    Thread.sleep(1100);
+    ProcessCheckTask task = new ProcessCheckTask();
+    ctx.getTm().executeAndWait(task, null).get();
+    
+    proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
+    
+    assertFalse(
+        "Process should have been removed from active process list", 
+        ctx.getServices().getProcesses().containsProcess(proc.getProcessID())
+    );
+  }
+  
+  @Test
+  public void testStaleVmCheck_diagnostic_failure_interop_enabled() throws Exception {   
     when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_FAILED, "failure", proc));
     

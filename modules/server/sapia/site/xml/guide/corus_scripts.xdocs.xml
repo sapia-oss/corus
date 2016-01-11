@@ -1,0 +1,105 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Corus Scripts" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Corus Scripts">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="corus scripts"/>
+    </sapia:section>
+
+    <toc/>
+
+    <sapia:sect2 title="Basics">
+			<p>
+				All the commands provided as part of the Corus command-line interface can also be executed as part of scripts (which are simply text files containing Corus commands).
+	    </p>
+	    <p>
+	    	There are three ways to execute a script:
+	    </p>
+	    <ol>
+	    	<li>Through the script command available as part of the Corus CLI.</li>
+	    	<li>By specifying the -s option when invoking the CLI; the option is expected to consist of the path to the script to execute.</li>
+	    	<li>Through the Corus Maven plugin (which is the subject of a specific section of this guide).</li>
+	    </ol>
+	    <p>
+				Here's an example of such a script:
+			</p>
+			<sapia:code>kill all -w -cluster 
+undeploy all -cluster
+deloy myapp-*.zip -cluster
+exec -e myapp -cluster</sapia:code>
+			<p>
+				The content of the script above could be saved in a plain text file and executed from the CLI like this:
+			</p>
+			<sapia:code><![CDATA[coruscli -s <path_to_script>]]></sapia:code>
+			<p>
+				The <tt>kill</tt>, <tt>exec</tt> and <tt>restart</tt> commands all support a <tt>-w</tt> option, meaning “wait", which forces the command-line to block until the command has completed on the server-side prior to moving on to the next command. This is convenient in the case of scripted deployments.
+			</p>
+			<p>
+				For example, in the above, it is necessary to wait that the kill has completed prior to invoking undeploy, since that command will result in an error if processes corresponding to the distribution to undeploy are still running.
+			</p>
+			<p>
+				Furthermore, a script can be invoked from another, using the script command (the match and ripple command also support invoking scripts):
+			</p>
+			<sapia:code><![CDATA[undeploy all
+script deploy.corus
+echo "deployment completed"]]></sapia:code>
+		</sapia:sect2>
+		<sapia:sect2 title="Using variables">
+			<p>
+				Note that scripts can take variables of the form ${&lt;variable_name&gt;}, as shown below:
+			</p>
+			<sapia:code>undeploy all
+deploy ${user.dir}/package/mydistribution.zip
+echo "deployment completed"</sapia:code>
+
+		</sapia:sect2>
+		<sapia:sect2 title="Loading properties kept in Corus to use as variables">
+			<p>
+				As of release 4.5, properties added to Corus with conf add can be loaded on the client-side in Corus scripts, and used in such scripts to perform variable interpolation.
+			</p>
+			<p>
+				Imagine that you've pushed a property to Corus, as such:
+			</p>
+			<sapia:code>conf add -p app.env=prod -cluster</sapia:code>
+			<p>
+				In order to be able to use that property has a variable on the client-side (that is, when executing script from the CLI), you need to use <tt>conf load</tt>:
+		  </p>
+		  <sapia:code>conf load 
+conf add ${user.dir}/${app.env}/app.properties</sapia:code>
+			<p>
+				Note our use of the <tt>${app.env}</tt> variable, whose value will correspond to the matching property  previously loaded from the Corus instance to which the CLI is currently connected.
+			</p>
+			<p>
+				Commands following conf load can use the properties that were loaded as variable values (that is, the properties just loaded are immediately available in the current script, for subsequent commands).
+			</p>
+			<p>
+				To load properties corresponding to a given category, use the <tt>-c</tt> option. Say for example we've associated the app.env property with the environment category:
+			</p>
+			<sapia:code>conf add -p app.env=prod -c environment -cluster</sapia:code>
+			<p>
+				We can then load properties corresponding to a given category like so:
+			</p>
+			<sapia:code>conf load -c environment</sapia:code>
+			<p>
+				You can also match properties with a name pattern:
+			</p>
+			<sapia:code>conf load -p app.* -c environment</sapia:code>
+		</sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

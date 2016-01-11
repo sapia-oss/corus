@@ -1,0 +1,218 @@
+<sapia:page title="Docker Integration API" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
+    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="REST API" href="../rest.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Docker integration API">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="rest" href="../rest.html" />
+      <sapia:path name="docker integration api" />
+    </sapia:section>
+  
+    <toc/>
+  
+    <sapia:sect-desc>
+      <p>
+        The Docker Integration API extends the <a href="core.html">core REST API</a>, adding interactions that are required in the context of 
+        the <a href="../guide/docker_integration.html">Corus/Docker integration</a>.
+      </p>
+    </sapia:sect-desc>
+ 
+    <sapia:sect2 title="Listing Images">
+          <p>
+          This call is similar to the <tt>docker ls</tt> command in the Corus CLI. Note that it takes optional <tt>n</tt> parameters for filtering images by name, just like the CLI.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/docker/images
+  /clusters/{clusterName}/hosts/{host}/docker/images
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/docker/images
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+  - partitionIndex: the index of the partition in the targeted partition set.    
+  
+- Parameters:
+  - n (optional): an image name (pattern matching supported).</sapia:code>
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/docker/images
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/docker/images 
+http://saturn:33000/rest/clusters/app-01/docker/images?n=**memcached
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/docker/images</sapia:code>
+        
+        <p><b>Sample response</b></p>
+        <sapia:code>[
+  {
+    "cluster": "app-01",
+    "host": "192.168.0.103:33000",
+    "dataType": "dockerImage",
+    "data": {
+      "id": "1d073211c4981d073211c4981d073211c4981d073211c498",
+      "creationTimeStamp": "12883778929",
+      "tags": ["latest"]
+    }
+  }
+]</sapia:code>      
+
+		 	<sapia:note>
+		 		Note that name patterns are shown as taking double-asterisks (**): that is because Docker image name can contain forward-slashes (/) and the pattern format conforms to glob patterns. Therefore: * would match <tt>memcached</tt>, but not <tt>mini/memcached</tt>. In turn, either <tt>*/*</tt> or <tt>**</tt> would match <tt>mini/memcached</tt>.
+		 	</sapia:note>
+		 	
+		</sapia:sect2>
+		
+    <sapia:sect2 title="Downloading Image Tarballs">
+          <p>
+          This call is similar to the <tt>docker save</tt> command in the Corus CLI. It only suppports interaction with a single host (evidently). The resource will return the content (the bytes of a tarball) of a requested Docker image.
+          </p>
+          <sapia:code>GET
+- Permission.....: READ
+- Behavior.......: SYNC
+- Request headers:
+  - Accept......: application/octet-stream
+
+- Resources:
+  /clusters/{clusterName}/hosts/{host}/docker/images/{imageName}/payload
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - imageName.....: the name of the image whose payload (tarball content) should be returned.
+  - host..........: a host literal (taking the form: ip_address:port).</sapia:code>
+          <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/docker/images/[mini/memcached:latest]/payload</sapia:code>
+        
+          <sapia:note>Note that image names containing a forward-slash (/) must be enclosed within square brackets, in order to avoid
+          such names being confused with paths to REST resources.</sapia:note>
+   </sapia:sect2>
+				
+		
+    <sapia:sect2 title="Deploying Images">
+			<p>
+			This call is similar to the CLI's <tt>deploy -docker</tt> command.
+			</p>
+			<sapia:code>PUT
+- Permission......: DEPLOY
+- Behavior........: SYNC/ASYNC with polling
+- Request headers:
+  - Accept........: application/json
+  - Content-Type..: application/octet-stream
+  - Content-Length: &lt;payload_size_in_bytes&gt;
+
+- Resources:
+  /clusters/{clusterName}/docker/images/{imageName}
+  /clusters/{clusterName}/hosts/{host}/docker/images/{imageName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/docker/images/{imageName}
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - imageName.....: the name to assign to the uploaded image payload.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+  - partitionIndex: the index of the partition in the targeted partition set.
+  
+- Parameters:
+  - async (optional).........: If the value is set to true, execution will be performed asynchronously. 
+  - batchSize (optional).....: If specified, indicates that graceful deployment should be performed. More 
+                               precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional)......: Used in the context of graceful deployment (see previous param): indicates
+    							             at least how many hosts should be present in the cluster for the given
+                               batch size to apply. If that minimum is not observed, the batch size internally
+                               used will then be 1 (meaning deployment will be done to one host at a time).
+  - maxErrors (optional).....: The maximum number of batch errors to tolerate before the operation is aborted.</sapia:code>
+        
+        <p>The request's body is expected to be a stream of bytes corresponding to the tarball of the image to deploy</p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Pulling Images">
+			<p>
+			This call is similar to the CLI's <tt>docker pull</tt> command (it triggers the pull of a given image from the Docker registry).
+			</p>
+			<sapia:code>POST
+- Permission......: DEPLOY
+- Behavior........: SYNC/ASYNC with polling
+- Request headers:
+  - Accept........: application/json
+
+- Resources:
+  /clusters/{clusterName}/docker/images/{imageName}
+  /clusters/{clusterName}/hosts/{host}/docker/images/{imageName}
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/docker/images/{imageName}
+
+- Path variables:
+  - clusterName...: the name of the cluster to access.
+  - imageName.....: the name of the image to pull.
+  - host..........: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+  - partitionIndex: the index of the partition in the targeted partition set.
+  
+- Parameters:
+  - async (optional).........: If the value is set to true, execution will be performed asynchronously. 
+  - batchSize (optional).....: If specified, indicates that graceful deployment should be performed. More 
+                               precisely: tells to how many hosts at a time deployment should be done.
+  - minHosts (optional)......: Used in the context of graceful deployment (see previous param): indicates
+    							             at least how many hosts should be present in the cluster for the given
+                               batch size to apply. If that minimum is not observed, the batch size internally
+                               used will then be 1 (meaning deployment will be done to one host at a time).
+  - maxErrors (optional).....: The maximum number of batch errors to tolerate before the operation is aborted.</sapia:code>
+        
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/docker/images/[mini/memcached:latest]
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/docker/images/[mini/memcached:latest]
+http://saturn:33000/rest/clusters/app-01/distributions?n=**
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/docker/images/[mini/memcached:latest]</sapia:code>   
+
+          <sapia:note>Note that image names containing a forward-slash (/) must be enclosed within square brackets, in order to avoid
+          such names being confused with paths to REST resources.</sapia:note></sapia:sect2>
+        
+		<sapia:sect2 title="Undeploying Images">
+			<p>
+			This call is similar to the CLI's <tt>docker rm</tt> command (it forces the removal of an image from the Docker daemon).
+			</p>
+			<sapia:code>DELETE
+- Permission.....: DEPLOY
+- Behavior.......: SYNC/ASYNC with pollling
+- Request headers:
+  - Accept......: application/json
+
+- Resources:
+  /clusters/{clusterName}/docker/images
+  /clusters/{clusterName}/hosts/{host}/docker/images
+  /clusters/{clusterName}/partitionsets/{partitionSetId}/partitions/{partitionIndex}/docker/images  
+
+- Path variables:
+  - clusterName: the name of the cluster to access.
+  - host.......: a host literal (taking the form: ip_address:port).
+  - partitionSetId: the ID of the partition set to target.
+  - partitionIndex: the index of the partition in the targeted partition set.
+  
+- Parameters:
+  - async (optional)........: If the value is set to true, execution will be performed asynchronously. 
+  - maxErrors (optional)....: The maximum number of batch errors to tolerate before the operation is aborted. 
+  - n.......................: The name of the image to undeploy (pattern matching supported)</sapia:code>
+            <p><b>Sample requests</b></p>
+          <sapia:code>http://saturn:33000/rest/clusters/app-01/docker/images?n=**memcached
+http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/docker/images?n=mini/memcached
+http://saturn:33000/rest/clusters/app-01/distributions?n=**
+http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-ab7a0966042a/partitionIndex/0/docker/images?n=mini/memcached</sapia:code>
+
+		 	<sapia:note>
+		 		Note that name patterns are shown as taking double-asterisks (**): that is because Docker image name can contain forward-slashes (/) and the pattern format conforms to glob patterns. Therefore: * would match <tt>memcached</tt>, but not <tt>mini/memcached</tt>. In turn, either <tt>*/*</tt> or <tt>**</tt> would match <tt>mini/memcached</tt>.
+		 	</sapia:note>
+  	</sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

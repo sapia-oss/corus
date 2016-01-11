@@ -1,0 +1,528 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Introduction"
+  xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css" />
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html" />
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf" />
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html" />
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Introduction">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="introduction" />
+    </sapia:section>
+
+    <toc />
+
+    <sapia:sect-desc>
+      <p>
+        This section introduces Corus basics.
+      </p>
+    </sapia:sect-desc>
+
+    <sapia:toc />
+
+    <sapia:sect2 title="What is Corus?" alias="what_is_corus">
+      <p>
+        Corus is an infrastructure that allows centrally controlling
+        application processes in distributed environments. In a short
+        list, here are Corus' features:
+        <ul>
+          <li>Centralized, remote, replicated application
+            deployment/undeployment across multiple hosts.</li>
+          <li>Centralized, remote, replicated execution/termination of
+            application processes across multiple hosts.</li>
+          <li>Monitoring of running processes to detect crashes (and
+            restart crashed processes automatically).</li>
+          <li>A REST API
+            (http://www.sapia-oss.org/projects/corus/rest.html) allowing
+            for fine-grained control from automation frameworks and
+            scripts.</li>
+          <li>Repository functionality: automatic synchronization
+            between Corus nodes so that newly appearing nodes become
+            exact copies of existing ones.</li>
+          <li>Possibility for processes to publish status information at
+            the application level, through the Corus infrastructure.
+            Status information can then be monitored centrally.</li>
+          <li>Possibility for processes to trigger their own restart.
+          </li>
+          <li>Replicated, JNDI-compliant naming service: based on
+            Sapia's Ubik distributed computing framework (guaranteeing
+            fail-over and load-balancing), the naming service can be
+            used by deployed Java applications.</li>
+          <li>Container support (seamless integration with Docker),
+            allowing distributed control of non-Java apps.</li>
+          <li>Allows centralized distribution of «standard» Java
+            applications (Java classes with a «main» method), and remote
+            control of corresponding JVMs.</li>
+          <li>Allows multiple Java applications per-JVM, through the use
+            of Magnet (http://www.sapia-oss.org/projects/magnet).</li>
+          <li>Support for gracefull deployment across a cluster of
+            machines (allows for avoiding service degradation when
+            performing application upgrades or performing server
+            restarts).</li>
+          <li>Free and open source with mixed Apache 2.0 and GPL v3
+            licenses – see the Licensing section (next) for more
+            details.</li>
+          <li>etc.</li>
+        </ul>
+        In short, what Corus gives you is full, centralized control of
+        distributed applications and application processes.
+      </p>
+    </sapia:sect2>
+    <sapia:sect2 title="Architecture" alias="architecture">
+      <sapia:sect-desc>
+        <p>This section gives a high-level view of the Corus
+        architecture.</p>
+      </sapia:sect-desc>
+      <sapia:sect3 title="Components">
+        <p>
+          From the user's point of view, Corus comes as three
+          components:
+          <ul>
+            <li>A lightweight Java server that is installed on a host in
+              order to allow remote deployment and remote execution of
+              processes on that host.</li>
+            <li>
+              A Java command-line interface (CLI) that gives centralized
+              control over multiple Corus servers (note that each Corus
+              server also
+              publishes
+              <a href="../rest.html">REST APIs</a>
+              that provide functionality equivalent to the CLI).
+            </li>
+            <li>A Java monitoring tool that helps users/administrators
+              see what is happening in a remote Corus server at runtime.
+            </li>
+          </ul>
+        </p>
+      </sapia:sect3>
+
+      <sapia:sect3 title="Topology" alias="topology">
+        <p>
+          A Corus server is typically installed on a given host (such hosts
+          are identified in the diagram above by the larger green
+          circles with the “Corus" label in them). Corus servers are
+          grouped by domains (or clusters). A cluster of Corus servers
+          can be centrally managed through the command-line interface
+          (illustrated by the figure with the “CLI" label, in the
+          diagram below). Each Corus server monitors/controls processes
+          on the host on which it is installed.
+        </p>
+        <center>
+          <img src="img/topology.png" />
+        </center>
+
+        <p>
+          Corus servers discover each other through a broadcast mechanism (either IP
+          multicast, or relying on a TCP-based multicast mechanism - as explained in the 
+          <a href="discovery.html">Discovery</a> section). The following describes how 
+          Corus servers are grouped into domains:
+          <ol>
+            <li>At startup, Corus servers are given a domain name
+              through the command-line, or through their configuration
+              file.</li>
+            <li>When a new Corus server appears in the network, it
+              broadcasts an event stating the domain it is part of.</li>
+            <li>Existing Corus servers will trap the event. If their
+              domain name corresponds to the domain name that is part of
+              the received event, they then in turn broadcast an event
+              stating their existence.</li>
+          </ol>
+        </p>
+        <p>
+          The newly started Corus server will in turn trap the events coming
+          from existing servers. It will add these servers (or, rather,
+          their corresponding addresses) in its internal sibling list. A
+          typical Corus topology is illustrated below:
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Controlling Processes" alias="controlling_processes">
+        <sapia:sect-desc>
+          <p>
+            As explained throughout the documentation, Corus is all about
+            controlling processes in a distributed manner.
+          </p>
+        </sapia:sect-desc>
+        <sapia:sect4 title="The Command-Line Interface">
+          <p>
+            Corus offers a powerful command-line interface (named "CLI"). Although
+            it a pure devops way, it is preferrable to use the API,
+            explaining the CLI and showing some examples of commands
+            provides the best illustration.
+          </p>
+          <p>
+            The command-line interface is used to:
+            <ul>
+              <li>Deploy application distributions into Corus servers
+                that are part of a given domain - when targeted at more
+                than one Corus server, a deployment is replicated (the
+                distribution is simultaneously deployed to all Corus
+                servers).</li>
+              <li>Start processes from the given distributions. Process
+                execution can be replicated also: processes
+                corresponding to given deployed distributions can be
+                started on multiple hosts simultaneously.</li>
+              <li>Undeploy applications from a single Corus server, or
+                from multiple Corus servers in a domain.</li>
+              <li>Stop running processes at a single Corus server, or at
+                multiple Corus servers in a domain.</li>
+              <li>Obtain status information from processes in a domain.
+              </li>
+              <li>View what distributions have been deployed.</li>
+              <li>View what processes are running.</li>
+              <li>Deploy shell scripts and execute them remotely, on the
+                Corus nodes.</li>
+            </ul>
+          </p>
+          <p>
+            To ease its use, the CLI emulates Unix commands (ls lists deployed
+            distributions, ps and kill respectively list and stop
+            running processes, etc.).
+          </p>
+          <p>
+            The CLI in addition supports pattern matching operations. The
+            following examples illustrate typical use cases:
+          </p>
+          <sapia:table>
+            <sapia:th>Command</sapia:th>
+            <sapia:th>Description</sapia:th>
+            <tr>
+              <td>deploy dist/*.zip</td>
+              <td>Deploys all distribution archives ending with the .zip
+                extension, under the dist directory.</td>
+            </tr>
+            <tr>
+              <td>exec -d myapp -v 1.* -n echoServer -p test</td>
+              <td>Starts the echoServer process corresponding to all
+                1.xx versions of the myapp distribution under the test
+                profile</td>
+            </tr>
+            <tr>
+              <td>exec -d * -v * -n * -p test -cluster</td>
+              <td>Starts the processes corresponding to all versions of
+                all distributions under the test profile, on all Corus
+                hosts in the cluster.</td>
+            </tr>
+            <tr>
+              <td>kill -d myapp -v 1.* -n echoServer -p test</td>
+              <td>Kill all echoServer processes corresponding to all
+                1.xx versions of the myapp distribution under the test
+                profile.</td>
+            </tr>
+            <tr>
+              <td>kill -d myapp -v 1.* -n * -p test</td>
+              <td>Kills all processes corresponding to all 1.xx versions
+                of the myapp distribution under the test profile.</td>
+            </tr>
+            <tr>
+              <td>kill -d * -v * -n * -p test -cluster</td>
+              <td>Kills all processes under the test profile, on all
+                Corus hosts in the cluster.</td>
+            </tr>
+            <tr>
+              <td>kill all -p test -cluster</td>
+              <td>A shortcut that amounts to the same thing as the
+                above.</td>
+            </tr>
+          </sapia:table>
+
+          <p>Help on the available commands can be obtained through the
+            man command in the CLI. Typing man will display all
+            available commands; typing man &lt;command_name&gt; will
+            display help on the specified command.</p>
+
+        </sapia:sect4>
+
+        <sapia:sect4 title="Processes">
+          <p>
+            Process execution occurs upon request of Corus
+            administrators. Concretely: the exec command is typed at the
+            CLI (with required command-line arguments), and a
+            corresponding command object is sent to the Corus server to
+            which the user is connected. If performed in clustered mode
+            (if the -cluster switch has been entered at the
+            command-line), the command is replicated to other Corus
+            servers.
+          </p>
+          <p>
+            Upon receiving the command, the Corus server will start the
+            specified process. From then on, processes executed by Corus
+            servers are required to poll their respective Corus server,
+            according to the protocol explained by the
+            <a
+              href="http://www.sapia-oss.org/projects/corus/CorusInterop.pdf">Corus Interoperability Specification</a>
+            .
+          </p>
+          <p>
+            All communications between Corus-controlled processes and
+            their server indeed follow that specification, which details
+            a SOAP/HTTP-based protocol (where processes are in fact
+            clients). The following diagram illustrates a Corus server
+            and the processes it controls:
+          </p>
+          <center>
+            <img src="img/processes.png" />
+          </center>
+
+          <sapia:note>
+            The above is partly true for container-based processes (such as
+            Docker container that are controlled by Corus): in their
+            case, interaction between Corus processes and the Corus
+            server is disabled - such that a Corus server will not
+            attempt restarting an unresponsive Docker container by
+            default. That is because container-based processes do not
+            have to be in Java, and the interop spec only has a Java
+            implementation currently.
+          </sapia:note>
+
+          <p>
+            The interoperability protocol specifies a series of
+            commands, corresponding to the life-cycle of processes
+            started by a Corus server. That life-cycle can be summed up
+            as follows:
+          </p>
+          <ol>
+            <li>Processes are started following an exec command.</li>
+            <li>After startup, processes poll their Corus server at a
+              predefined interval to signal that they are up and
+              running. At a predefined interval also, processes send
+              status information to their server (application-code
+              within the process can take part in status generation).
+            </li>
+            <li>When polling, processes eventually get back their list
+              of pending events (the server keeps an object
+              representation of each process, and within these objects,
+              a queue of pending commands targeted at the «real»
+              process).</li>
+            <li>Processes are eventually killed using the kill command
+              (not the one of the OS, but the one emulated by the CLI).
+              The object corresponding to the kill command is sent to
+              the desired Corus servers. Internally, the servers
+              introspect the kill command to figure out what processes
+              must be stopped; the objects representing the processes
+              that must be killed have a «kill» event queued up in them.
+              At the next poll, that signal is «recuperated» (sent as
+              part of a SOAP response) to polling processes.</li>
+            <li>Processes that are shutting down following a «kill»
+              event must confirm their shutdown to their Corus server.
+              As a matter of precaution, processes that fail doing so
+              are eventually killed using an «OS» kill by their Corus
+              server.</li>
+            <li>Processes that do not poll their Corus server within the
+              predefined interval are deemed crashed or unstable, and
+              thus automatically killed (and optionally restarted,
+              depending configuration information provided at
+              deployment).</li>
+            <li>The fact that interoperability between Corus servers and
+              their corresponding processes is implemented using SOAP
+              over HTTP means that even if Corus is implemented in Java,
+              potentially any type of application processes can be
+              controlled with it (C++, Python, Perl, etc.). As was
+              mentioned, currently though, the only implementation of
+              the Corus Interoperability Specification is in Java.</li>
+          </ol>
+        </sapia:sect4>
+      </sapia:sect3>
+    </sapia:sect2>
+
+    <sapia:sect2 title="Installation" alias="installation">
+      <sapia:sect-desc>
+        <p>
+          Installing Corus is straightforward. Concise instructions can be
+          found on the <a href="../../install.html">on the web site</a>.
+          You will also find OS-specific installation procedures on the
+          <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure">old Google Code wiki</a>.
+        </p>
+      </sapia:sect-desc>
+      <sapia:sect3 title="General Steps" alias="general_steps">
+        <p>
+          We advise that you look at the wiki for the latest
+          instructions. Nevertheless, here is a summary:
+          <ol>
+            <li>
+              Download the latest Corus distribution from
+              <a href="https://www.mediafire.com/folder/v55q0gaqvvbda/corus">Mediafire</a>. 
+              The distribution comes as a .gzip or .zip file,
+              depending on your target platform.
+            </li>
+            <li>
+              On the host where Corus will be installed, create a
+              directory where the distribution will be “unzipped".
+              <b>Make sure that the full path to the directory you have
+                chose does not contain spaces</b>.
+            </li>
+            <li>On Unix/Linux, create a user (by convention, it is named
+              corus) that will own the above-created directory.</li>
+            <li>Create the $CORUS_HOME environment variable on the Corus
+              host; the variable should correspond to the full path of
+              the directory that has been created in the previous step
+              (under Linux/Unix, you can also define that variable in a
+              file that is loaded when users log in – such as in
+              /etc/profile on some Linux distributions).</li>
+            <li>Add the bin directory under $CORUS_HOME to your PATH
+              environment variable. That's it. You can start corus by
+              typing corus in a terminal.</li>
+          </ol>
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Installing as a Service" alias="install_as_a_service">
+        <sapia:sect-desc>
+          <p>
+            The Corus wiki contains instructions describing how to
+            install Corus as a service on your target platform. See the
+            documentation on the
+            <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure">old Google Code wiki</a>.
+          </p>
+          <p>
+            Also, you may look at the
+            <a href="configuration.html">Corus Configuration</a>
+            section for more information about how to configure Corus.
+            The
+            <tt>corus.properties</tt>
+            file under Corus'
+            <tt>config</tt>
+            directory also contains instructive comments.
+          </p>
+          <p>All of the links below appear on the Corus wiki, and are
+            provide as shortcuts to relevant sections of the wiki:</p>
+        </sapia:sect-desc>
+        <sapia:sect4 title="Linux">
+          <p>
+            If your Linux flavor does not appear below, you may base
+            yourself on a distribution that supports Corus as a service
+            through init.d (such as Fedora).
+          </p>
+          <p>
+            <ol>
+              <li>
+                <a
+                  href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_Ubuntu">Ubuntu</a>
+              </li>
+              <li>
+                <a
+                  href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_Fedora">Fedora</a>
+              </li>
+              <li>
+                <a
+                  href=" http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_OpenSUSE">OpenSUSE</a>
+              </li>
+              <li>
+                <a
+                  href=" http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_Mandriva">Mandriva</a>
+              </li>
+            </ol>
+          </p>
+        </sapia:sect4>
+        <sapia:sect4 title="Mac">
+          <p>
+            We're supporting Mac through launchd. See:
+            <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_SnowLeopard">http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_SnowLeopard
+           </a>.
+          </p>
+        </sapia:sect4>
+        <sapia:sect4 title="Windows">
+          <p>
+            <li>
+              <a
+                href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_WindowsXP">XP</a>
+            </li>
+            <li>
+              <a
+                href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure_WindowsVista">Vista</a>
+            </li>
+          </p>
+          <sapia:note>Keep in mind Windows is not our preferred OS for
+            production and we're not dedicating all our energy to
+            supporting it. We advise using a Linux flavor for
+            production.</sapia:note>
+        </sapia:sect4>
+      </sapia:sect3>
+      <sapia:sect3 title="Corus Network Address" alias="corus_network_address">
+        <p>
+          As mentioned in other sections of this document, Corus is
+          built upon Sapia's Ubik distributed computing framework. A
+          special Ubik property may be used to specify on which network
+          address Corus should listen, That address will also be
+          returned as part of the remote stubs that Corus generates in
+          the course of communicating with clients (which is the case in
+          the context of JNDI lookups for example, or when using the
+          CLI). The property to set (in the corus.properties file) is as
+          follows:
+        </p>
+        <sapia:code>ubik.rmi.address-pattern=192\\.168\\.\\d+\\.\\d+
+        </sapia:code>
+        <p>
+          The value of the property is expected to be a regexp that
+          will be matched against the network interfaces that Corus
+          detects. Note the double-backslashes; the single-backslash is
+          an escape character in Java, but in this case we want it to be
+          interpreted literally so that it is processed by the regexp
+          evaluation.
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Testing the Server" alias="testing_the_server">
+        <p>
+          You are ready to start a Corus server. To test your
+          installation, go to the command-line of your OS and type:
+        </p>
+        <sapia:code>corus</sapia:code>
+        <p>
+          Typing the above with no arguments should display the Corus
+          server help. Read it for further information. Typically, to
+          start a Corus server, you provide the name of the domain
+          “under" which the server should start, and the port on which
+          it should listen (by default, the port is 33000, and the
+          domain is simply “default"). Hence:
+        </p>
+        <sapia:code>corus -d mercury -p 33100</sapia:code>
+        <p>
+          Will start the server in the foreground under the “mercury"
+          domain, on port 33100.
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Testing the Client" alias="testing_the_client">
+        <p>
+          To connect to the above server using the command-line
+          interface, type:
+        </p>
+        <sapia:code>coruscli -h localhost -p 33100</sapia:code>
+        <p>
+          As you might have guessed, the arguments passed at the
+          command-line specify the host of the server we wish to connect
+          to, as well as the port of that server (for help, type the
+          command without any arguments). As for the server, the -h and
+          -p options are optional and will default to localhost and
+          33000 respectively.
+        </p>
+        <p>Once you are in the CLI, you can see the list of available
+          commands by typing:</p>
+        <sapia:code>man</sapia:code>
+        <p>Yes, you are right: just like Unix. You should see the list
+          of available commands then. To read help about one of them,
+          type:</p>
+        <sapia:code>man &lt;name_of_command&gt;</sapia:code>
+        <p>And off you go: help about the specified command is
+          displayed.</p>
+        <p>To exist the CLI, type:</p>
+        <sapia:code>exit</sapia:code>
+        <sapia:note>Reading the help of every command, as explained
+          above, should give you a pretty clear idea of what you can
+          concretely do with Corus. It is very much recommended doing
+          that before going further.</sapia:note>
+      </sapia:sect3>
+    </sapia:sect2>
+
+  </sapia:sect1>
+</sapia:page>

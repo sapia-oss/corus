@@ -1,0 +1,268 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Packaging Applications" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Packaging Applications">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="packaging applications"/>
+    </sapia:section>
+
+    <toc/>
+
+    <sapia:sect-desc>
+      <p>
+        In order to control processes with Corus, one needs to package so-called "distributions", and deploy them in Corus. Once that is done, processes "from" these distributions can be started using Corus.
+      </p>
+
+    </sapia:sect-desc>
+    
+    <sapia:toc/>
+   
+    <sapia:sect2 title="The Corus Descriptor" alias="corus_descriptor">
+      <p>
+        Corus distributions are simply .zip files, containing application resources (libraries, configuration files, etc.), and holding one specific
+        file that provides Corus with the meta-information pertaining to the distribution. That file is dubbed the "Corus descriptor", and must be provided for any type of application run with Corus.
+      </p>
+      <p>
+        The Corus descriptor is expected under the <tt>META-INF</tt> directory of the the archive that will be generated and deployed. In the case of this example, the <tt>META-INF</tt> directory is created under the current directory (since the distribution will be generated from that directory). Below is such a descriptor, provided as an example (it is discussed in more details further below):
+      </p>
+      <sapia:code><![CDATA[<distribution name="demo" version="1.0" 
+xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true">
+    <port name="test" />
+    <magnet magnetFile="echoServerMagnet.xml" vmType="server" profile="test">
+      <xoption name="ms" value="16M" />
+    </magnet>
+  </process>  
+</distribution>]]></sapia:code>
+      <p>
+        One thing to note is that the <tt>corus.xml</tt> file contains a name and version (speficied as attributes of the <tt>distribution</tt> element): every distribution deployed to Corus is uniquely identified by the value of its name and version. This also means that you can have multiple distributions with the same name, but that in this case the versions must differ.
+      </p>
+    </sapia:sect2>
+
+    <sapia:sect2 title="Deploying Java Apps" alias="deploying_java_apps">
+      <p>
+         With Corus, you deploy J2SE applications (meaning: Java classes with a <tt>main</tt> method) packaged in .zip files.
+         Corus does not force a programming model upon the programmer: learning and using a bloated API (such as EJB) is out of the question. With Corus, you deploy standard Java apps, period.
+      </p>
+      <p>
+        Corus complements the lightweight-container approach very neatly: you can embed your lightweight-container in a main() method and deploy your application within Corus; you can use Corus' JNDI implementation to publish your “lightweight" services on the network, in a scalable and robust manner.
+      </p>
+      <p>
+        The .zip file that you deploy within Corus (dubbed a “distribution" in Corus' jargon) is only mandated to provide a Corus descriptor under the <tt>META-INF</tt> directory (under the root of the archive). An example of that file is given below:
+      </p>
+<sapia:code><![CDATA[<distribution name="demo" version="1.0"
+xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">  
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" invoke="true">
+    <port name="test" />
+    <java mainClass="org.sapia.corus.examples.EchoServer" 
+            profile="test"
+            vmType="server">
+      <xoption name="ms" value="16M" />
+    </java>
+  </process>  
+</distribution>]]></sapia:code>
+      <p>
+        Before delving into the details of the configuration format, we will discuss it at large:
+        <ol>
+          <li>In Corus, a distribution is the deployment unit. As was mentioned previously, Corus allows only managing Java applications for now, and thus a distribution consists of a set of Java process definitions.</li>
+          <li>Process definitions are in fact blue prints for Java virtual machines: these Java virtual machines are started up by the Corus server, upon request by the user.</li>
+          <li>
+            The Java virtual machines started by Corus may optionally be configured with <a href="http://www.sapia-oss.org/projects/magnet">Magnet</a>. Magnet is simply a tool that is used to start multiple Java applications (Java classes with a main method) within the same VM; it allows configuring the classpath of each application (and much more) through a convenient XML format. Thus, what happens really is that Corus starts a Magnet process, which in turn invokes the main() method of each of its configured Java applications. Each application in turn has its own classloader, independent from the classloader of other applications (see Magnet's documentation for more information).
+          </li>
+          <li>
+            Without the Java applications “knowing" it, Magnet starts a lightweight client that implements the Corus Interoperability Specification. That client polls the Corus server at a regular interval to let Corus know that the process in which it “lives “ is still up and running. This is where Corus' process management functionality kicks in: a Corus server is aware of which processes it has started and will monitor them, making sure that they are polling at their predefined interval.
+          </li>
+        </ol>
+     </p>
+     <sapia:sect3 title="Direct Java Distributions" alias="direct_java_distributions">
+       <p>
+        The simplest way to deploy Java apsps is throught the "direct Java distribution" approach (that is, without using Magnet). In such a case, you must create a Corus archive that will have the following structure:
+       </p>
+       <sapia:code>classes/
+lib/
+META-INF/corus.xml</sapia:code>
+
+      <p>
+        Upon startup, the JVM corresponding to your application will be assigned the classes directory and all the archives under the lib directory as part of its classpath.
+      </p>
+      <p>
+        The <tt>classes</tt> directory is meant to contain resources (Java classes, arbitrary files) that are not packaged as libraries (in .jar files). The <tt>lib</tt> directory, for its part, is meant to hold libraries (.jar files).
+      </p>
+      <p>
+        The content of the lib directory (and subdirectories) must consist of archives with either the .jar or .zip extension – and supporting the zip format. The archives will be "inserted" in the classpath in alphabetical order. Corus will include archives in subdirectories, but will only sort based on the names of the files (excluding the path). Note also that the content of the classes directory will be inserted into the classpath first.
+      </p>
+      <p>
+        The content of the <tt>corus.xml</tt> file will in this case consist of the following:
+      </p>
+      <sapia:code><![CDATA[<distribution name="demo" version="1.0" 
+xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true">
+    <port name="test" />
+    <java mainClass="org.sapia.corus.examples.EchoServer"
+	profile="test" vmType="server">
+      <xoption name="ms" value="16M" />
+    </java>
+  </process>  
+</distribution>]]></sapia:code>
+        <p>
+          Note that the location of libraries may be chosen to be something else than the <tt>lib</tt> directory. The descriptor supports a <tt>libDirs</tt> attribute to that end, which takes a semicolon-delimited of directories (relative to the root of the distribution zip) to include in the classpath. For example:
+        </p>
+        <sapia:code><![CDATA[<distribution name="demo" version="1.0" 
+    xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+      <process name="echoServer" 
+               maxKillRetry="3" 
+               shutdownTimeout="30000" 
+               invoke="true">
+        <port name="test" />
+        <java mainClass="org.sapia.corus.examples.EchoServer"
+      profile="test" vmType="server" libDirs="patches/;lib">
+          <xoption name="ms" value="16M" />
+        </java>
+      </process>  
+    </distribution>]]></sapia:code>
+        <p>
+          The <tt>patches</tt> directory given in the above example <b>ends with a forward-slash (the '/' character)</b>: this will have the effect of adding that directory itself to the classpath (otherwise, Corus attempts finding .jar files under the directory, and adds those to the classpath). If you have directories that contain resources which must be available to classloading, then use that method.
+        </p>
+        <p>
+          Again, if a classes directory is present under the root, the file it contains will be inserted in the classpath, and will have precedence over the library directories.       
+        </p>
+        <sapia:note>Note that either colons or semicolons can be used as path separators: Corus converts the separator to be proper OS-specific one at runtime.</sapia:note>
+      </sapia:sect3>
+      <sapia:sect3 title="Magnet Distributions" alias="magnet_distributions">
+        <p>
+          <a href="http://sapia-oss.org/projects/magnet/index.html">Magnet</a> has been originally written to provide a multi-platform way of describing runtime parameters for Java applications that are typically started with os-specific startup scripts (such as .sh or .bat scripts, for example). In the case of Java applications, runtime parameters generally consist of system properties, the name of the Java application class, command-line arguments, and classpath information. Magnet's powerful XML format allows specifying all of that in a convenient and portable way (refer to Magnet's web site for more information). Here is the Magnet file for our echo server:
+        </p>
+
+<sapia:code><![CDATA[<magnet xmlns="http://schemas.sapia-oss.org/magnet/core/"
+        name="EchoServer" description="A basic echo server">
+  <launcher type="java" name="echoServer" 
+            mainClass="org.sapia.corus.examples.EchoServer"
+            default="test" isDaemon="false" waitTime="2000"
+            args="5656">
+    <profile name="test">
+      <classpath>
+        <path directory="lib">
+          <include pattern="*.jar" />
+        </path>
+      </classpath>
+    </profile>
+  </launcher>
+</magnet>]]></sapia:code>
+
+        <p>
+          In the above example,  file resources (namely, the libraries that are part of the classpath) are resolved relatively to the “current directory", (available in Java under the <tt>user.dir</tt> system property). In terms of directory structure, the application is therefore organized in the following way:
+        </p>
+        <sapia:code>${user.dir}/echoServerMagnet.xml
+${user.dir}/lib
+        </sapia:code>
+        <p>
+          The <tt>echoServerMagnet.xml</tt> file contains the above Magnet configuration. Of course required libraries (if any) would appear under the <tt>lib</tt> directory. At development time, the <tt>user.dir</tt> variable corresponds to the “working" directory of your IDE.
+        </p>
+        <p>
+          One convenient way to work with Corus is to test the application prior to deploying it. Making sure that everything works properly prior to deployment allows sparing the dreadful deploy-test-redeploy cycle that is so common with EJB applications and consumes a lot of development time. In this case, we would invoke Magnet from the command-line (after compiling and generating a .jar for our echo server under the lib directory):
+        </p>
+        <sapia:code>sh magnet.sh -magnetfile echoServer.xml -p test</sapia:code>
+        <p>
+          The first command-line option consists of the name of our Magnet configuration file (if not specified, Magnet expects a magnet.xml file under the current directory). The second option consists of the name of the profile under which the Magnet VM should be started (for more information on the concept of profile, have a look at the Magnet web site).
+        </p>
+        <p>
+          If everything works fine, we are ready to write our Corus descriptor (there is a client  for the server as part of Corus but we won't show it here; have a look in the package to see the source if you feel like it).
+        </p>
+        <sapia:note>
+          The great strength of Corus in terms of application development is the absence of a rigid programming model that forbids starting applications from a simple command-line; it does not force deployment into a bloated container prior to be able to use and test applications.
+        </sapia:note>
+        
+        <p>
+          The Corus descriptor is expected under the <tt>META-INF</tt> directory of the the archive that will be generated and deployed. In the case of this example, the <tt>META-INF</tt> directory is created under the current directory (since the distribution will be generated from that directory). The content of the <tt>corus.xml</tt> file for the echo server is provided below:
+        </p>
+<sapia:code><![CDATA[<distribution name="demo" version="1.0" 
+xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+  <process name="echoServer" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true">
+    <port name="test" />
+    <magnet magnetFile="echoServerMagnet.xml" vmType="server" profile="test">
+      <xoption name="ms" value="16M" />
+    </magnet>
+  </process>  
+</distribution>]]></sapia:code>
+        <p>
+          One thing to note is that the <tt>corus.xml</tt> file contains a magnet element. Since Corus' architecture was thought to eventually allow different types of processes to be started (for example, Python or Perl applications), the magnet element is a side- effect of that intent (eventually, a python element could be introduced): it is meant to indicate that a Magnet VM should be invoked; more concretely: a Magnet bridge instantiated within Corus is invoked and triggers the execution of the Magnet command-line, consistently with the parameters that are configured in the <tt>corus.xml</tt> file.
+        </p>
+        <p>
+          As can be noted, the <tt>magnetFile</tt> attribute indicates which Magnet configuration file should be used; the file's location should be given as a path that is relative to the root of the eventual Corus distribution (i.e.: the root of the .jar file). This is because as part of the deployment procedure, Magnet distributions are extracted under a predefined directory under Corus: the directory where a given distribution was extracted is the directory relatively to which Magnet configuration files of that distribution are resolved.
+        </p>
+      </sapia:sect3>
+      <sapia:sect3 title="Zipping the Distribution" alias="zipping_the_distribution">
+        <p>
+          All distributions deployed in Corus present themselves as .zip files. A mandatory requirement is to have your Corus descriptor present under the <tt>META-INF</tt> directory, which is right under the root of the .zip:
+        </p>
+        <sapia:code>META-INF/corus.xml</sapia:code>
+        <p>
+          For the direct Java approach, the structure would further look like this:
+        </p>
+        <sapia:code>META-INF/corus.xml
+lib/&lt;your_libraries&gt;
+classes/&lt;your_classes_and_resources&gt;</sapia:code>
+        
+        <p>
+          Similarly, using Magnet, the structure would resemble to one below:
+        </p>
+        <sapia:code>META-INF/corus.xml
+lib/&lt;your_libraries&gt;
+echoServerMagnet.xml</sapia:code>
+
+        <sapia:note>Keep in mind the <tt>lib</tt> directory above is expected by the Magnet script as we have provided it in the
+        <a href="#magnet_distributions">Magnet Distributions</a> section. The Java libraries could be in another directory, based 
+        on your own convention.</sapia:note>
+      </sapia:sect3>
+      <sapia:sect3 title="Executing Applications">
+        <p>
+          Once a distribution has been successfully deployed, processes described as part of the distribution can be started. In the case of our example, we would invoke the exec command from the Corus client console:
+        </p>
+        <sapia:code>exec -d demo -v 1.0 -n echoServer -p test</sapia:code>
+        <p>
+          The above command will start a Java virtual machine “containing" anƒ instance of our echo server (more precisely: a Magnet VM is invoked, with the configuration corresponding to the process that we want to execute). In the above case, we are indicating to Corus that we want to start a VM corresponding to the demo distribution, version 1.0. We indicate the name of the process configuration (-n) since many such configurations could be part of a Corus descriptor. The last option tells Corus under which profile the process will be started (the notion of profile is fully explained in the Distributions and Processes in Detail section, later on).
+        </p>
+        <p>
+          Note that we could also have passed the -cluster option to the command:
+        </p>
+        <sapia:code>exec -d demo -v 1.0 -n echoServer -p test -cluster</sapia:code>
+        <p>
+          This would actually start the process on all Corus servers in the domain that have the corresponding distributions. Furthermore, we could have started more than one process, by specifying the -i option, indicating to Corus how many instances of the processes are to be started:
+        </p>
+        <sapia:code>exec -d demo -v 1.0 -n echoServer -p test -i 3</sapia:code>
+        <p>or</p>
+        <sapia:code>exec -d demo -v 1.0 -n echoServer -p test -i 3 -cluster</sapia:code>
+        <p>
+          In the latter case, we are requesting the startup of 3 echo servers at all Corus servers in the domain (note that this would result in port conflicts, since our echo servers on the same host all listen to the same port). It is important to understand that processes are executed by a Corus server on the host machine of that Corus server; meaning: a process (a JVM in the case of our example) is started by a Corus server on its own host for each invocation of the exec command it receives.
+        </p>
+      </sapia:sect3>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

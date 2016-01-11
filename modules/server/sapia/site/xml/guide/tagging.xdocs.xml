@@ -1,0 +1,85 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Tagging" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Tagging">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="tagging"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				It might be desirable to start given processes on specific hosts, and not on others. For example, imagine a process that scans a database table periodically, performs an action based on the data that is retrieved, and then deletes that data. Multiple such processes acting in parallel will pose a concurrency issue: the action will be performed redundantly. Thus, in such a case, one would want to make sure that this process is executed on a single host. 
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Basics">
+			<p>
+			To support executing processes on a subset of hosts in a cluster, Corus has a so-called “tagging" feature: a tag is an arbitrary string that is used to determine if a process can be executed by a given corus instance. Concretely, it works has follows:
+			</p>
+			<ol>
+				<li>The Corus descriptor may be enriched with tags: both the distribution and process elements of the descriptor support a tags attribute: the value of the attribute takes a comma-delimited  list of tokens, each corresponding to an actual tag.</li>
+				<li>A Corus server itself may be attributed with given tags: the conf command of the command-line interface may be used to add, list, and remove tags to/from a Corus server.</li>
+				<li>Prior to starting a process, the Corus server will determine if the tags of that process match the ones it has configured: if the process and its distribution have no tags, the process is started; if all the tags assigned to a process and its distribution are contained in the set of tags of the server, the process is started; if all the tags assign to a process and its distribution are not contained in the set of tags of the server, the process is NOT started.</li>
+			</ol>
+			<p>The example descriptor below shows how to configure tags: they can be specified as a comma-separated list on the &lt;distribution&gt; element:</p>
+			<sapia:code><![CDATA[<distribution xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" 
+  name="id-generator" version="1.0" tags="singleton">
+  <process name="server" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true">
+    <java mainClass="org.myapp.IDGenerator"
+	profile="test" vmType="server">
+      <xoption name="ms" value="16M" />    
+    </java>
+  </process>  
+</distribution>]]></sapia:code>
+			<p>The can also be specified on a per-process basis:</p>
+			<sapia:code><![CDATA[<distribution xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" name="id-generator" version="1.0">
+  <process name="server" 
+           maxKillRetry="3" 
+           shutdownTimeout="30000" 
+           invoke="true" tags="singleton">
+    <java mainClass="org.myapp.IDGenerator"
+	profile="test" vmType="server">
+      <xoption name="ms" value="16M" />    
+    </java>
+  </process>  
+</distribution>]]></sapia:code>
+			<p>
+				At runtime, the Corus server will determine the tags of a process by merging the tags at the process level with the ones at the distribution level: it is thus the union of these tags that is used for validating against the server's own tags, according to the previously defined algorithm.
+			</p>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Remote Tag Update">
+			<p>
+				The Corus command-line can be used to add, remove and list the tags of a Corus server. The following provides examples (see the documentation of the conf command – by typing <tt>man conf</tt>) for more details.
+			</p>
+			<p><b>1) Adding tags</b></p>
+			<sapia:code>conf add -t someTag,someOtherTag</sapia:code>
+			
+			<p><b>2) Listing tags</b></p>
+			<sapia:code>conf ls -t</sapia:code>
+			
+			<p><b>3) Removing tags</b></p>
+			<sapia:code>conf del -t *</sapia:code>
+		</sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

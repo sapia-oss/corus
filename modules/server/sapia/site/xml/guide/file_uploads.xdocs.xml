@@ -1,0 +1,77 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - File Uploads" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="File Uploads">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="file uploads"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				As part of Corus 4.0, the ability to deploy arbitrary files to Corus has been introduced. This feature is meant as a convenience, whereby the distributed management facility of Corus can be used to deploy files across multiple hosts at once.
+			</p>
+			<p>
+				When files are deployed in such a manner, Corus makes no attempt to determine what these files are about (it will not attempt, for example, that such a deployed file may consist of a Corus application distribution).
+			</p>
+			<p>
+				By default, such files are kept under the <tt>$CORUS_HOME/files/uploads</tt> directory. This location is configurable, by modifying the <tt>corus.server.uploads.dir</tt> in the <tt>corus.properties</tt> configuration file (itself under <tt>$CORUS_HOME/config</tt> directory).
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Deploying Files">
+			<p>
+				To deploy a file, simply type the deploy command in the CLI, together with the -f option, whose value should be set to the path of the file to deploy.
+			</p>
+			<sapia:code>deploy -f myArchive.zip</sapia:code>
+			<p>
+				The <tt>-cluster</tt> option works its magic for this command also, triggering the deployment of the file across all hosts in the cluster:
+			</p>
+			<sapia:code>deploy -f myArchive.zip -cluster</sapia:code>
+			<p>
+				In addition the, the command also takes a -d option. The option can be used to provide a user-defined directory where the file is to be uploaded on the Corus node:
+			</p>
+			<sapia:code>deploy -f myArchive.zip -d /opt/uploads</sapia:code>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Listing Deployed Files">
+			<p>
+				To list the currently deployed files, use the ls command with the -f option:
+			</p>
+			<sapia:code>ls -f -cluster</sapia:code>
+			<sapia:note>
+				Note that this will only list the files present under Corus' uploads directory. If you have deployed files with the <tt>-d</tt> option set to another directory, it will not be magically remembered by Corus.
+			</sapia:note>
+			
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Undeploying Files">
+			<p>
+				To undeploy, just use undeploy, with the -f option also. Here are examples:
+			</p>
+			<sapia:code>undeploy -f myArchive.zip
+undeploy -f myArchive.zip -cluster
+undeploy -f *.zip</sapia:code>
+			<sapia:note>
+				Similarly to the ls command, the files deployed to user-defined directories will not be seen by Corus, and thus you will not be able to undeploy files from under such directories.
+			</sapia:note>
+		</sapia:sect2>
+
+  </sapia:sect1>
+</sapia:page>

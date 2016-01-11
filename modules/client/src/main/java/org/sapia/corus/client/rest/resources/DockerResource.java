@@ -106,7 +106,7 @@ public class DockerResource {
   // Restricted methods
   
   private String doGetImages(RequestContext context, ClusterInfo cluster) throws Exception {
-    ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("f", "*").asString());
+    ArgMatcher criterion = ArgMatchers.parse(context.getRequest().getValue("n", "*").asString());
     
     Results<List<DockerImage>> results = context.getConnector()
         .getDockerManagementFacade()

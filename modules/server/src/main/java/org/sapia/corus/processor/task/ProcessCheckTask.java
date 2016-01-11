@@ -60,11 +60,12 @@ public class ProcessCheckTask extends Task<Void, Void> {
       long configuredTimeout = proc.getPollTimeout() > 0 ? 
           TimeUnit.MILLISECONDS.convert(proc.getPollTimeout(), TimeUnit.SECONDS) : 
           processor.getConfiguration().getProcessTimeoutMillis();
-      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) && proc.isTimedOut(configuredTimeout)) {
+      ProcessDiagnosticResult diag = diagnostics.acquireProcessDiagnostics(proc, OptionalValue.of(lockOwner));
+      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) 
+          && (proc.isTimedOut(configuredTimeout) || (diag.getStatus().isProblem() && diag.getStatus().isFinal()))) {
         
         // if interop is not enabled: proceeding to diagnostic
         if (!proc.isInteropEnabled()) {
-          ProcessDiagnosticResult diag = diagnostics.acquireProcessDiagnostics(proc, OptionalValue.of(lockOwner));
           if (diag.getStatus().isFinal() && diag.getStatus().isProblem()) {
             proc.incrementStaleDetectionCount();
           } else {

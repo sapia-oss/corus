@@ -14,7 +14,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="../index.html"/>
     <sapia:vsection name="Tutorials" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
   </sapia:vmenu>
   
   <sapia:sect1 title="The Corus Descriptor">
@@ -76,7 +76,7 @@
         This becomes obvious when looking at the Corus descriptor:
       </p>
       
-      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
   <process  name="server" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 
@@ -188,7 +188,7 @@
           <li><a href="advanced-management.html#storedproperties">Process properties</a></li>
        </ul>
        
-      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+      <sapia:code><![CDATA[<distribution name="basic-sample-jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
   <process  name="server" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 
