@@ -2,7 +2,6 @@ package org.sapia.corus.processor.hook;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.sapia.corus.client.common.log.LogCallback;
@@ -49,7 +48,8 @@ public class DefaultProcessStartHook implements ProcessStartHook {
   @Override
   public void start(ProcessContext context, StarterResult starterResult,
       LogCallback callback) throws IOException {
-    String pid = os.executeProcess(callback, new File(context.getProcess().getProcessDir()), starterResult.getCommand(), new HashMap<String, String>());
+    String pid = os.executeProcess(callback,
+            new File(context.getProcess().getProcessDir()), starterResult.getCommand(), context.getProcess().getNativeProcessOptions());
     context.getProcess().setOsPid(pid);
   }
 

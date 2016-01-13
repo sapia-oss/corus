@@ -29,7 +29,7 @@ import org.sapia.ubik.util.Collects;
 public class Ps extends CorusCliCommand {
 
   private static final int OS_PID_LEN = 10;
-  
+
   private final TableDef PROC_TBL = TableDef.newInstance()
       .createCol("dist", 15).createCol("version", 7).createCol("profile", 8)
       .createCol("name", 11).createCol("pid", 14).createCol("ospid", 6).createCol("status", 9);
@@ -171,7 +171,7 @@ public class Ps extends CorusCliCommand {
     if (displayPorts) {
       row.getCellAt(PROC_PORTS_TBL.col("ports").index()).append(proc.getActivePorts().toString());
     } else if (displayNumaNode) {
-      row.getCellAt(PROC_NUMA_TBL.col("numanode").index()).append(proc.getNumaNode() == null? "": String.valueOf(proc.getNumaNode()));
+      row.getCellAt(PROC_NUMA_TBL.col("numanode").index()).append(proc.getNumaNode().isNull()? "": String.valueOf(proc.getNumaNode().get()));
     } else {
       row.getCellAt(PROC_TBL.col("ospid").index()).append(proc.getOsPid() == null ? "n/a" : ToStringUtil.abbreviate(proc.getOsPid(), OS_PID_LEN));
       row.getCellAt(PROC_TBL.col("status").index()).append(proc.getStatus().abbreviation());

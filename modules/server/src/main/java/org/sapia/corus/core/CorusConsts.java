@@ -170,18 +170,21 @@ public interface CorusConsts {
   // NUMA
 
   /** Indicates if NUMA integration is enabled. */
-  public static final String PROPERTY_CORUS_NUMA_ENABLED       = "corus.server.numa.enabled";
+  public static final String PROPERTY_CORUS_NUMA_ENABLED             = "corus.server.numa.enabled";
+
+  /** Indicates if the auto-detection of NUMA is enabled or not. */
+  public static final String PROPERTY_CORUS_NUMA_AUTO_DETECT_ENABLED = "corus.server.numa.auto-detection.enabled";
 
   /** Indicates if corus should bind process to numa cpu nodes or not. */
-  public static final String PROPERTY_CORUS_NUMA_BIND_CPU      = "corus.server.numa.bind.cpu";
+  public static final String PROPERTY_CORUS_NUMA_BIND_CPU            = "corus.server.numa.bind.cpu";
 
   /** Indicates if corus should bind process to numa memory slot or not. */
-  public static final String PROPERTY_CORUS_NUMA_BIND_MEMORY   = "corus.server.numa.bind.memory";
+  public static final String PROPERTY_CORUS_NUMA_BIND_MEMORY         = "corus.server.numa.bind.memory";
 
   /** Indicates the number of numa nodes available on the current host. */
-  public static final String PROPERTY_CORUS_NUMA_NODE_COUNT    = "corus.server.numa.node.count";
+  public static final String PROPERTY_CORUS_NUMA_NODE_COUNT          = "corus.server.numa.node.count";
 
   /** Indicates the starting numa node id from which corus should start doing process binding. */
-  public static final String PROPERTY_CORUS_NUMA_FIRST_NODE_ID = "corus.server.numa.first.node.id";
+  public static final String PROPERTY_CORUS_NUMA_FIRST_NODE_ID       = "corus.server.numa.first.node.id";
 
 }
