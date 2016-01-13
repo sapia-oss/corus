@@ -74,7 +74,7 @@ public class TestServerContext extends ServerContextImpl{
     created._tm    = new TestTaskManager(created);
     created._fs    = new TestFileSystemModule();
     created._os    = new TestOsModule();
-    created._numa  = new TestNumaModule(created._internalConfig, created._proc);
+    created._numa  = new TestNumaModule(created._internalConfig, created._proc, created._os);
     created._diagnostics  = Mockito.mock(DiagnosticModule.class);
     created._publisher    = Mockito.mock(ProcessPublisher.class);
     created._processHooks = Mockito.mock(ProcessHookManager.class);

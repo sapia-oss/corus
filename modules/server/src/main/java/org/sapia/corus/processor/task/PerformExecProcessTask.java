@@ -130,7 +130,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       startResult = conf.toCmdLine(env);
     } catch (Exception e) {
       process.releasePorts(ports);
-      ctx.error(e);
+      ctx.error("Error assinging numa binding", e);
       return false;
     }
 

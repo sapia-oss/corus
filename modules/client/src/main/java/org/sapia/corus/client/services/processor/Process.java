@@ -188,7 +188,7 @@ public class Process extends AbstractPersistent<String, Process>
   private ProcessStartupInfo                       startupInfo     = new ProcessStartupInfo();
   private boolean                                  interopEnabled  = true;
   private StarterType                              starterType     = StarterType.UNDEFINED;
-  private Integer                                  numaNode;
+  private OptionalValue<Integer>                   numaNode        = OptionalValue.none();
   private final Map<String, String>           nativeProcessOptions = new HashMap<>();
 
   /**
@@ -390,7 +390,7 @@ public class Process extends AbstractPersistent<String, Process>
   /**
    * @return the assigned numa node of this process.
    */
-  public Integer getNumaNode() {
+  public OptionalValue<Integer> getNumaNode() {
     return numaNode;
   }
 
@@ -400,7 +400,7 @@ public class Process extends AbstractPersistent<String, Process>
    * @param nodeId The new numa node value.
    */
   public void setNumaNode(Integer nodeId) {
-    numaNode = nodeId;
+    numaNode = OptionalValue.of(nodeId);
   }
 
   /**
@@ -804,8 +804,8 @@ public class Process extends AbstractPersistent<String, Process>
 
     // V4
     if (level == ContentLevel.DETAIL) {
-      if (numaNode != null) {
-        stream.field("numaNode").value(numaNode.intValue());
+      if (numaNode.isSet()) {
+        stream.field("numaNode").value(numaNode.get());
       }
       if (nativeProcessOptions.size() > 0) {
         stream.field("nativeProcessOptions").beginArray();
@@ -988,7 +988,7 @@ public class Process extends AbstractPersistent<String, Process>
       }
       if (inputVersion >= VERSION_4) {
         if (in.readBoolean()) {
-          numaNode = in.readInt();
+          numaNode = OptionalValue.of(in.readInt());
         }
         int nativeProcessOptionCount = in.readInt();
         for (int i = 0; i < nativeProcessOptionCount; i++) {
@@ -1024,9 +1024,9 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeBoolean(interopEnabled);
     out.writeObject(starterType);
     // V4
-    if (numaNode != null) {
+    if (numaNode.isSet()) {
       out.writeBoolean(true);
-      out.writeInt(numaNode);
+      out.writeInt(numaNode.get());
     } else {
       out.writeBoolean(false);
     }
