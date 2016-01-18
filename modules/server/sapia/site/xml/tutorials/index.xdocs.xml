@@ -8,7 +8,6 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="../index.html"/>
-    <sapia:vsection name="Tutorials" href="index.html"/>
     <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
   </sapia:vmenu>
 
