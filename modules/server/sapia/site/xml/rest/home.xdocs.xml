@@ -3,10 +3,8 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="../index.html"/>
     <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
-    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
-    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
-    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
     <sapia:vsection name="REST API" href="../rest.html"/>        
+ 	  <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
   </sapia:vmenu>
   
   <sapia:sect1 title="Starting Guide">

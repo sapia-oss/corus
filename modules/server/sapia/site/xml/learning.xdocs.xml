@@ -91,11 +91,11 @@
         </div>
 
         <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
-          <div class="content-box-title">Cookbook</div>
+          <div class="content-box-title">How-Tos</div>
           <span class="text">
-            Check our applied Corus recipes, discover the features through concrete
+            Check our applied Corus how-tos, discover the features through concrete
             examples. 
-            <br/><a href="cookbook/home.html">more...</a>
+            <br/><a href="how-tos/home.html">more...</a>
           </span>
         </div>
    	  

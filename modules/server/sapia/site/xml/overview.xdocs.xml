@@ -172,7 +172,7 @@ exec -d * -v * -n * -p dev -cluster</sapia:code>
     		they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
     		<li>Trigger JVM restart from your application.</li>
     		<li>Have newly deployed Corus nodes in a cluster <a href="guide/repository.html">automatically download distributions from existing nodes</a> and execute the corresponding processes.</li>
-    		<li>Manage Docker images and containers <a href="guide/docker_integration.html">through Corus</a>.</li>.
+    		<li>Manage Docker images and containers <a href="guide/docker_integration.html">through Corus</a>.</li>
     		<li>etc.</li>
     	</ul>
     </sapia:sect2>

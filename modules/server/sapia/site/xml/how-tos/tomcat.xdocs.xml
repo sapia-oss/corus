@@ -2,7 +2,7 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="../index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
  	  <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
     <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>    
   </sapia:vmenu>
@@ -12,15 +12,15 @@
       <sapia:path name="home" href="../../home.html" />
       <sapia:path name="projects" />
       <sapia:path name="corus" href="../home.html" />
-      <sapia:path name="cookbook" href="home.html" />
+      <sapia:path name="how-tos" href="home.html" />
       <sapia:path name="tomcat" />
     </sapia:section>
   
     <sapia:sect-desc>
       <p>
-		  This recipe explains how to run Tomcat with Corus. A sample module which demonstrates how to package a Corus-enabled Tomcat app
+		  This how-to explains how to run Tomcat with Corus. A sample module which demonstrates how to package a Corus-enabled Tomcat app
 		  with Maven is <a href="https://github.com/sapia-oss/corus/tree/develop/samples/corus_sample_tomcat/" target="tomcat_sample_github">available on Github</a>. 
-		  The content of this recipe is based on that work.
+		  The content of this how-to is based on that work.
       </p>
       <p>
       The approach suggested below can be used as a blueprint for packaging any Tomcat-enabled app with Corus. As you'll soon see, we're deploying
@@ -29,7 +29,7 @@
       in the distribution picked up by Tomcat at startup.
       </p>
       <p>
-      This recipe shows how Corus' port management support allows starting multiple servers on the same host.</p>
+      This how-to shows how Corus' port management support allows starting multiple servers on the same host.</p>
     </sapia:sect-desc>
     
     <toc/>
@@ -387,7 +387,7 @@ echo "Deployment completed"</sapia:code>
     </sapia:sect2>
     <sapia:sect2 title="Conclusion">
       <p>
-        This recipe aimed at illustrating how to deploy a Tomcat-enabled web app to Corus, and how to run multiple Tomcat instances on the same us - using Corus' port management feature.
+        This how-to aimed at illustrating how to deploy a Tomcat-enabled web app to Corus, and how to run multiple Tomcat instances on the same us - using Corus' port management feature.
         Here are the steps, as a summary:
       </p>
       <ol>
