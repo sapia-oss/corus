@@ -26,11 +26,11 @@ public class NumaModuleImpl implements NumaModule {
 
   private final Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(getClass().getName());
 
-  private final DynamicProperty<Boolean> enabled         = new DynamicProperty<Boolean>();
-  private final DynamicProperty<Boolean> bindCpu         = new DynamicProperty<Boolean>();
-  private final DynamicProperty<Boolean> bindMemory      = new DynamicProperty<Boolean>();
-  private final DynamicProperty<Integer> firstNumaNodeId = new DynamicProperty<Integer>();
-  private final DynamicProperty<Integer> numaNodeCount   = new DynamicProperty<Integer>();
+  private final DynamicProperty<Boolean> enabled         = new DynamicProperty<Boolean>(false);
+  private final DynamicProperty<Boolean> bindCpu         = new DynamicProperty<Boolean>(true);
+  private final DynamicProperty<Boolean> bindMemory      = new DynamicProperty<Boolean>(true);
+  private final DynamicProperty<Integer> firstNumaNodeId = new DynamicProperty<Integer>(new Integer(0));
+  private final DynamicProperty<Integer> numaNodeCount   = new DynamicProperty<Integer>(new Integer(0));
 
   private final InternalConfigurator configurator;
 
@@ -58,6 +58,11 @@ public class NumaModuleImpl implements NumaModule {
     enabled.addListener(new DynamicPropertyListener<Boolean>() {
       @Override
       public void onModified(DynamicProperty<Boolean> property) {
+        if (property.getValueNotNull()) {
+          log.info("NUMA integration enabled");
+        } else {
+          log.info("NUMA integration disabled");
+        }
       }
     });
 

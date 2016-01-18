@@ -3,6 +3,7 @@ package org.sapia.corus.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -44,7 +45,8 @@ public class DynamicProperty<T> {
   /**
    * Creates a new instance of this class, without a value.
    */
-  public DynamicProperty() {
+  public DynamicProperty(Class<T> type) {
+    this.type = type;
   }
   
   /**
@@ -52,7 +54,9 @@ public class DynamicProperty<T> {
    * 
    * @param value this instance's value.
    */
+  @SuppressWarnings("unchecked")
   public DynamicProperty(T value) {
+    this((Class<T>) value.getClass());
     this.value = value;
   } 
   
@@ -77,6 +81,10 @@ public class DynamicProperty<T> {
    * @param value a value.
    */
   public void setValue(T value) {
+    Assertions.isTrue(
+        type.isAssignableFrom(value.getClass()), "Expected instance of %s, got %s (instance of %s)", 
+        type.getName(), value, value.getClass().getName()
+    );
     this.value = value;
     for (DynamicPropertyListener<T> l : listeners) {
       l.onModified(this);

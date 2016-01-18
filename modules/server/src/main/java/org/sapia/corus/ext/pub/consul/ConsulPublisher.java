@@ -57,9 +57,9 @@ public class ConsulPublisher extends ModuleHelper implements ProcessPublishingPr
   private TaskManager tasks;
   
   private DynamicProperty<Boolean> publishingEnabled      = new DynamicProperty<Boolean>(false);
-  private DynamicProperty<String>  agentUrl               = new DynamicProperty<String>();
-  private DynamicProperty<Integer> publishIntervalSeconds = new DynamicProperty<Integer>();
-  private DynamicProperty<Integer> publishTtlSeconds      = new DynamicProperty<Integer>();
+  private DynamicProperty<String>  agentUrl               = new DynamicProperty<String>(String.class);
+  private DynamicProperty<Integer> publishIntervalSeconds = new DynamicProperty<Integer>(Integer.class);
+  private DynamicProperty<Integer> publishTtlSeconds      = new DynamicProperty<Integer>(Integer.class);
   
   private volatile Task<Void, Void> publishTask;
   
