@@ -61,15 +61,15 @@ public class SpotifyDockerFacade implements DockerFacade, Interceptor {
   @SuppressWarnings("unused")
   private DockerHandler dockerHandler;
 
-  private DynamicProperty<Boolean> enabled             = new DynamicProperty<Boolean>();
-  private DynamicProperty<Boolean> registrySyncEnabled = new DynamicProperty<Boolean>();
-  private DynamicProperty<Boolean> autoRemoveEnabled   = new DynamicProperty<Boolean>();
-  private DynamicProperty<String>  email               = new DynamicProperty<String>();
-  private DynamicProperty<String>  username            = new DynamicProperty<String>();
-  private DynamicProperty<String>  password            = new DynamicProperty<String>();
-  private DynamicProperty<String>  serverAddress       = new DynamicProperty<String>();
-  private DynamicProperty<String>  daemonUrl           = new DynamicProperty<String>();
-  private DynamicProperty<String>  certificatesPath    = new DynamicProperty<String>();
+  private DynamicProperty<Boolean> enabled             = new DynamicProperty<Boolean>(Boolean.class);
+  private DynamicProperty<Boolean> registrySyncEnabled = new DynamicProperty<Boolean>(Boolean.class);
+  private DynamicProperty<Boolean> autoRemoveEnabled   = new DynamicProperty<Boolean>(Boolean.class);
+  private DynamicProperty<String>  email               = new DynamicProperty<String>(String.class);
+  private DynamicProperty<String>  username            = new DynamicProperty<String>(String.class);
+  private DynamicProperty<String>  password            = new DynamicProperty<String>(String.class);
+  private DynamicProperty<String>  serverAddress       = new DynamicProperty<String>(String.class);
+  private DynamicProperty<String>  daemonUrl           = new DynamicProperty<String>(String.class);
+  private DynamicProperty<String>  certificatesPath    = new DynamicProperty<String>(String.class);
 
   private final Object lock = new Object();
   private volatile DockerClient dockerClient;

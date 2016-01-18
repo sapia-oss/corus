@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.console.CmdLine;
+import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.numa.NumaProcessOptions;
 
 import com.google.common.collect.ImmutableMap;
@@ -19,31 +20,34 @@ import com.google.common.collect.Maps;
 public class UnixProcessTest {
 
   private UnixProcess sut;
+  
+  private FilePath userBinJava;
 
   @Before
   public void setUp() throws Exception {
     sut = new UnixProcess();
+    userBinJava = FilePath.newInstance().addDir("/usr").addDir("bin").addDir("java");
   }
 
   @Test
   public void testDoGenerateJavaCommandLine_noProcessOption() throws Exception {
     System.setProperty("corus.home", System.getProperty("user.dir"));
     File tmpFile = File.createTempFile(UnixProcessTest.class.getSimpleName(), "test");
-    CmdLine command = CmdLine.parse("/usr/bin/java -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
+    CmdLine command = CmdLine.parse(userBinJava.createFilePath() + " -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
     CmdLine actual = sut.doGenerateJavaCommandLine(tmpFile.getParentFile(), command, new HashMap<String, String>());
 
     assertThat(actual).isNotNull();
     assertThat(actual.toString()).isEqualTo("sh "
-          + System.getProperty("corus.home") + "/bin/javastart.sh"
-          + " -o " + tmpFile.getParentFile().getAbsolutePath() + "/process.out"
-          + " /usr/bin/java -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
+          + System.getProperty("corus.home") + FilePath.newInstance().addDir("/bin").setRelativeFile("javastart.sh").createFilePath()
+          + " -o " + tmpFile.getParentFile().getAbsolutePath() + FilePath.newInstance().addDir("/").setRelativeFile("process.out").createFilePath()
+          + " " +  userBinJava.createFilePath() + " -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
   }
 
   @Test
   public void testDoGenerateJavaCommandLine_withNumaProcessOptions() throws Exception {
     System.setProperty("corus.home", System.getProperty("user.dir"));
     File tmpFile = File.createTempFile(UnixProcessTest.class.getSimpleName(), "test");
-    CmdLine command = CmdLine.parse("/usr/bin/java -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
+    CmdLine command = CmdLine.parse(userBinJava.createFilePath() + " -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
     CmdLine actual = sut.doGenerateJavaCommandLine(tmpFile.getParentFile(), command, ImmutableMap.of(
             NumaProcessOptions.NUMA_CORE_ID, "2",
             NumaProcessOptions.NUMA_BIND_CPU, "true",
@@ -51,9 +55,9 @@ public class UnixProcessTest {
 
     assertThat(actual).isNotNull();
     assertThat(actual.toString()).isEqualTo("sh "
-          + System.getProperty("corus.home") + "/bin/javastart.sh "
-          + "-o " + tmpFile.getParentFile().getAbsolutePath() + "/process.out "
-          + "numactl --cpunodebind=2 --membind=2 -- /usr/bin/java -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
+          + System.getProperty("corus.home") + FilePath.newInstance().addDir("/bin").setRelativeFile("javastart.sh").createFilePath()
+          + " -o " + tmpFile.getParentFile().getAbsolutePath() + FilePath.newInstance().addDir("/").setRelativeFile("process.out").createFilePath()
+          + " numactl --cpunodebind=2 --membind=2 -- " + userBinJava.createFilePath() + " -server -Xmx4g -Dmyapp.property=snafoo my.app.MainClass debug");
   }
 
   @Test
