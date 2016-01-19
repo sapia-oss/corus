@@ -19,6 +19,8 @@ public class ByteArrayDeployOutputStream extends ByteArrayOutputStream implement
 
   @Override
   public ProgressQueue commit() throws IOException {
-    return new ProgressQueueImpl();
+    ProgressQueueImpl progress = new ProgressQueueImpl();
+    progress.close();
+    return progress;
   }
 }

@@ -39,7 +39,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
   private File artifactFile;
   private Func<DeploymentMetadata, Boolean> metadataFunc;
   private Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>> deployOutputStreamFunc = 
-      new Func<DeployOutputStream, PairTuple<DeploymentMetadata,ServerAddress>>() {
+      new Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>>() {
         @Override
         public DeployOutputStream call(PairTuple<DeploymentMetadata, ServerAddress> targetInfo) {
           try {
@@ -64,15 +64,16 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
         context().debug("Deploying to: " + targets);
         doDeploy();
       } catch (Exception e) {
+        e.printStackTrace();
         context().error("Problem performing deployment", e);
       }
     }
   }
 
   // --------------------------------------------------------------------------
-  // Restricted visibility methods - for unit testing
+  // Visible for testing
   
-  void setDeployOutputStreamFunc(Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>> func) {
+  public void setDeployOutputStreamFunc(Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>> func) {
     this.deployOutputStreamFunc = func;
   }
 
