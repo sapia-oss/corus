@@ -85,6 +85,8 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
     } finally {
       if (context.getLockOwner().isNull()) {
         toDiagnose.getLock().release(lockOwner);
+      } else {
+        toDiagnose.getLock().release(context.getLockOwner().get());
       }
     }
     

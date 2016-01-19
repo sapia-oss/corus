@@ -16,16 +16,21 @@ import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.common.reference.DefaultReference;
 import org.sapia.corus.client.common.reference.Reference;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.Starter;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
+import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
+import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.deployer.processor.DeploymentContext;
 import org.sapia.corus.deployer.processor.ImageDeploymentReplicationProcessor;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.util.CompositeTask;
+import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Func;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -46,6 +51,10 @@ public class DockerImageDeploymentReplicationProcessor implements ImageDeploymen
   
   @Autowired
   private DockerFacade dockerFacade;
+  
+  // Not set in a normal context (only set in the context of unit testing)
+  private OptionalValue<Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>>> deployOutputStreamFunc =
+        OptionalValue.none();
 
   // --------------------------------------------------------------------------
   // Visible for testing
@@ -56,6 +65,10 @@ public class DockerImageDeploymentReplicationProcessor implements ImageDeploymen
   
   void setConfiguration(DeployerConfiguration configuration) {
     this.configuration = configuration;
+  }
+  
+  void setDeployOutputStreamFunc(Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>> func) {
+    this.deployOutputStreamFunc = OptionalValue.of(func);
   }
   
   // --------------------------------------------------------------------------
@@ -94,7 +107,11 @@ public class DockerImageDeploymentReplicationProcessor implements ImageDeploymen
           }
           File imageFile = new File(imageDir, imageFileName);
           transferImageLocally(imageName, imageFile);
-          tasks.add(new DockerImageRequestHandlerTask(imageName, imageFile, endpoints));
+          DockerImageRequestHandlerTask task = new DockerImageRequestHandlerTask(imageName, imageFile, endpoints);
+          if (deployOutputStreamFunc.isSet()) {
+            task.setDeployOutputStreamFunc(deployOutputStreamFunc.get());
+          }
+          tasks.add(task);
         }
       }
     }

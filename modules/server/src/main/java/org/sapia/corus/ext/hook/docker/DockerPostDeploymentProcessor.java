@@ -56,6 +56,12 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
 
   @Override
   public void onPostDeploy(final DeploymentContext context, final LogCallback callback) {
+    if (dockerFacade.isEnabled()) {
+      doOnPostDeploy(context, callback);
+    }
+  }
+  
+  private void doOnPostDeploy(final DeploymentContext context, final LogCallback callback) {
     if (dockerFacade.isRegistrySyncEnabled()) {
       onPostProcess(context, callback, new Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>>() {
         @Override
@@ -109,6 +115,12 @@ public class DockerPostDeploymentProcessor implements DeploymentPostProcessor, U
 
   @Override
   public void onPostUndeploy(final DeploymentContext context, final LogCallback callback)
+      throws Exception {
+    if (dockerFacade.isEnabled()) {
+      doOnPostUndeploy(context, callback);
+    }
+  }
+  private void doOnPostUndeploy(final DeploymentContext context, final LogCallback callback)
       throws Exception {
     if (dockerFacade.isAutoRemoveEnabled()) {
       onPostProcess(context, callback, new Func<Void, TripleTuple<String, DockerStarter, DockerClientFacade>>() {

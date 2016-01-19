@@ -67,6 +67,14 @@ public class DockerPostDeploymentProcessorTest {
   }
   
   @Test
+  public void testOnPostDeploy_facade_disabled() throws Exception {
+    when(dockerFacade.isEnabled()).thenReturn(false);
+    when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
+    processor.onPostDeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient, never()).pullImage(eq("test-img"), any(LogCallback.class));
+  }
+  
+  @Test
   public void testOnPostDeploy_distribution_image() throws Exception {
     image = OptionalValue.none();
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
@@ -92,9 +100,18 @@ public class DockerPostDeploymentProcessorTest {
   
   @Test
   public void testOnPostUndeploy() throws Exception {
+    
     when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
     processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
     verify(dockerClient).removeImage(eq("test-img"), any(LogCallback.class));
+  }
+  
+  @Test
+  public void testOnPostUndeploy_facade_disabled() throws Exception {
+    when(dockerFacade.isEnabled()).thenReturn(false);
+    when(configurator.getTags()).thenReturn(Tag.asTags(Collects.arrayToSet("dt1", "dt2", "pct1", "pct2")));
+    processor.onPostUndeploy(new DeploymentContext(createDistribution(image)), mock(LogCallback.class));
+    verify(dockerClient, never()).removeImage(eq("test-img"), any(LogCallback.class));
   }
   
   @Test

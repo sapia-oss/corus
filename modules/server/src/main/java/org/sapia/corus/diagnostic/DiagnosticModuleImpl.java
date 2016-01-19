@@ -513,8 +513,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       return processResults.get(0);
     } catch (DistributionNotFoundException e) {
       throw new IllegalStateException("Distribution not found for process: " + ToStringUtil.toString(process));
-    }
-    
+    } 
   }
   
   int getExpectedInstancesFor(ProcessConfig config) {

@@ -13,7 +13,10 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,12 +31,20 @@ import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.IOUtil;
+import org.sapia.corus.client.common.ProgressQueue;
+import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.log.LogCallback;
+import org.sapia.corus.client.common.tuple.PairTuple;
+import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
+import org.sapia.corus.client.services.deployer.transport.ByteArrayDeployOutputStream;
+import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
+import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
+import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.deployer.processor.DeploymentContext;
 import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
@@ -42,6 +53,7 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.util.Func;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DockerImageDeploymentReplicationProcessorTest {
@@ -59,7 +71,13 @@ public class DockerImageDeploymentReplicationProcessorTest {
   private TaskExecutionContext taskContext;
   
   @Mock
+  private ServerContext serverContext;
+  
+  @Mock
   private TaskManager taskManager;
+  
+  @Mock
+  private Func<DeployOutputStream, PairTuple<DeploymentMetadata, ServerAddress>> deployOuputStreamSupplier;
   
   private DockerImageDeploymentReplicationProcessor processor;
   
@@ -83,10 +101,20 @@ public class DockerImageDeploymentReplicationProcessorTest {
     processor = new DockerImageDeploymentReplicationProcessor();
     processor.setConfiguration(configuration);
     processor.setDockerFacade(dockerFacade);
+    processor.setDeployOutputStreamFunc(deployOuputStreamSupplier);
     
     when(taskContext.getTaskManager()).thenReturn(taskManager);
+    when(taskContext.getServerContext()).thenReturn(serverContext);
+    when(serverContext.getCorusHost()).thenReturn(CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "test-os", "test-jvm", mock(PublicKey.class)));
     when(configuration.getRepoDir()).thenReturn(repoDir.getAbsolutePath());
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
+    doAnswer(new Answer<DeployOutputStream>() {
+      @Override
+      public DeployOutputStream answer(InvocationOnMock invocation) throws Throwable {
+        return new ByteArrayDeployOutputStream();
+      }
+    }).when(deployOuputStreamSupplier).call(any(PairTuple.class));
+    
     doAnswer(new Answer<InputStream>() {
       @Override
       public InputStream answer(InvocationOnMock invocation) throws Throwable {
