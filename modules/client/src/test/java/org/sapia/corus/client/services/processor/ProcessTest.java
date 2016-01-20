@@ -168,6 +168,7 @@ public class ProcessTest {
     p.setNativeProcessOption("test.option2", "true");
     p.toJson(stream, ContentLevel.DETAIL);
 
+    System.err.println(writer.toString());
     Process copy = Process.fromJson(JsonObjectInput.newInstance(writer.toString()));
 
     assertEquals(p.isDeleteOnKill(), copy.isDeleteOnKill());

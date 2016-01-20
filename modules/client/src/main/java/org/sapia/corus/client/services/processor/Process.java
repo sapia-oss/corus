@@ -808,14 +808,11 @@ public class Process extends AbstractPersistent<String, Process>
         stream.field("numaNode").value(numaNode.get());
       }
       if (nativeProcessOptions.size() > 0) {
-        stream.field("nativeProcessOptions").beginArray();
+        stream.field("nativeProcessOptions").beginArray().beginObject();
         for (Map.Entry<String, String> entry: nativeProcessOptions.entrySet()) {
-          stream.beginObject()
-              .field(entry.getKey())
-              .value(entry.getValue())
-              .endObject();
+          stream.field(entry.getKey()).value(entry.getValue());
         }
-        stream.endArray();
+        stream.endObject().endArray();
       }
     }
 
