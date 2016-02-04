@@ -143,6 +143,7 @@ public class DockerImageDeploymentReplicationProcessor implements ImageDeploymen
       try (InputStream is = new BufferedInputStream(dockerFacade.getDockerClient().saveImage(imageName, callback))) {
         try (FileOutputStream os = new FileOutputStream(imageFile)) {
           IOUtil.transfer(is, os, BUFSZ);
+          os.flush();
         }
       } catch (IOException e) {
         throw new IllegalStateException("Could not transfer image locally from Docker daemon", e);

@@ -29,7 +29,6 @@ public class Java extends BaseJavaStarter implements ObjectCreationCallback {
   protected String args;
   protected String mainArgs;
   protected String libDirs;
-  private boolean interopEnabled = true;
 
   /**
    * Sets the name of the class to execute - class must have a main() method.
@@ -61,17 +60,6 @@ public class Java extends BaseJavaStarter implements ObjectCreationCallback {
     libDirs = dirs;
   }
   
-  /**
-   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
-   */
-  public void setInteropEnabled(boolean interopEnabled) {
-    this.interopEnabled = interopEnabled;
-  }
-  
-  public boolean isInteropEnabled() {
-    return interopEnabled;
-  }
-
   @Override
   public StarterResult toCmdLine(Env env) throws MissingDataException {
 
@@ -105,7 +93,7 @@ public class Java extends BaseJavaStarter implements ObjectCreationCallback {
       }
     }
 
-    return new StarterResult(StarterType.JAVA, result.command, interopEnabled);
+    return new StarterResult(StarterType.JAVA, result.command, isInteropEnabled());
   }
   
   @Override

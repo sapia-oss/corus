@@ -20,7 +20,6 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
-import org.sapia.corus.interop.Status;
 
 public class TestProcessor implements Processor{
   
@@ -78,8 +77,8 @@ public class TestProcessor implements Processor{
   }
   
   @Override
-  public List<Status> getStatus(ProcessCriteria criteria) {
-    return new ArrayList<Status>();
+  public List<ProcStatus> getStatus(ProcessCriteria criteria) {
+    return new ArrayList<ProcStatus>();
   }
 
   @Override

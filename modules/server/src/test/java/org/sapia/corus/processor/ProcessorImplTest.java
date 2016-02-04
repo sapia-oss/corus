@@ -47,7 +47,8 @@ import org.sapia.corus.core.InternalServiceContext;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.database.InMemoryArchiver;
 import org.sapia.corus.database.InMemoryDbMap;
-import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.soap.message.Context;
+import org.sapia.corus.interop.soap.message.Status;
 import org.sapia.corus.processor.task.PublishConfigurationChangeTask;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -187,7 +188,12 @@ public class ProcessorImplTest {
   public void testGetStatus() throws Exception {
     Process proc = proc("1");
     processes.put(proc.getProcessID(), proc);
-    proc.status(new Status());
+    proc.status(new Status.StatusBuilder()
+        .commandId("1")
+        .context(
+            new Context.ContextBuilder().name("testConext").build()
+        )
+        .build());
     
     processor.getStatus(ProcessCriteria.builder().all());
   }

@@ -203,5 +203,6 @@ public class IOUtil {
     while ((read = from.read(buf, 0, buf.length)) > -1) {
       to.write(buf, 0, read);
     }
+    to.flush();
   }
 }

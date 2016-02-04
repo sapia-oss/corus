@@ -18,8 +18,8 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.processor.ProcStatus;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.sort.Sorting;
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.ParamMessagePart;
 import org.sapia.ubik.util.Collects;
 
 /**
@@ -123,24 +123,24 @@ public class Status extends CorusCliCommand {
 
     Row row = procTable.newRow();
     row.getCellAt(STAT_TBL.col("pid").index()).append(stat.getProcessID());
-    List<Context> contexts = stat.getContexts();
+    List<ContextMessagePart> contexts = stat.getContexts();
     if (contexts.size() == 0) {
       row.flush();
       return;
     }
-    Context context;
+    ContextMessagePart context;
     for (int i = 0; i < contexts.size(); i++) {
-      context = (Context) contexts.get(i);
+      context = (ContextMessagePart) contexts.get(i);
       row.getCellAt(STAT_TBL.col("context").index()).append(context.getName());
-      List<Param> params = context.getParams();
+      List<ParamMessagePart> params = context.getParams();
       if (params.size() == 0) {
         row.flush();
         row = procTable.newRow();
         continue;
       }
-      Param param;
+      ParamMessagePart param;
       for (int j = 0; j < params.size(); j++) {
-        param = (Param) params.get(j);
+        param = (ParamMessagePart) params.get(j);
         row.getCellAt(STAT_TBL.col("name").index()).append(param.getName());
         row.getCellAt(STAT_TBL.col("value").index()).append(param.getValue());
         row.flush();

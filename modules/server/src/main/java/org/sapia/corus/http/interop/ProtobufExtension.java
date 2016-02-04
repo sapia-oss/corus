@@ -9,14 +9,14 @@ import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
  * <p>
  * 
  * <pre>
- * http://localhost:33000/interoap/soap
+ * http://localhost:33000/interoap/protobuf
  * </pre>
  * 
  * @author Yanick Duchesne
  */
-public class SoapExtension extends BaseInteropExtension {
+public class ProtobufExtension extends BaseInteropExtension {
 
-  public SoapExtension(ServerContext serverContext) {
-    super(InteropWireFormat.SOAP, serverContext);
+  public ProtobufExtension(ServerContext serverContext) {
+    super(InteropWireFormat.PROTOBUF, serverContext);
   }
 }

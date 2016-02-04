@@ -69,6 +69,16 @@
 			<artifactId>sapia_utils</artifactId>
 		</dependency>
 
+        <dependency>
+          <groupId>org.sapia</groupId>
+          <artifactId>sapia_corus_iop</artifactId>
+        </dependency>
+  
+        <dependency>
+          <groupId>org.sapia</groupId>
+          <artifactId>sapia_corus_iop_api</artifactId>
+        </dependency>   
+
 		<dependency>
 			<groupId>org.simpleframework</groupId>
 			<artifactId>simple</artifactId>

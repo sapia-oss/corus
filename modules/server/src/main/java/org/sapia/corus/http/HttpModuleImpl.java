@@ -6,6 +6,7 @@ import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.http.filesystem.FileSystemExtension;
+import org.sapia.corus.http.interop.ProtobufExtension;
 import org.sapia.corus.http.interop.SoapExtension;
 import org.sapia.corus.http.jmx.JmxExtension;
 import org.sapia.corus.http.ping.PingExtension;
@@ -62,6 +63,8 @@ public class HttpModuleImpl extends ModuleHelper implements HttpModule {
     addHttpExtension(new FileSystemExtension(serverContext));
     addHttpExtension(new JmxExtension(serverContext));
     addHttpExtension(new SoapExtension(serverContext));
+    addHttpExtension(new ProtobufExtension(serverContext));
+
     if (apiSSLOnly) {
       logger().debug("Publishing REST extension over SSL only");
       addHttpsExtension(new RestExtension(serverContext));

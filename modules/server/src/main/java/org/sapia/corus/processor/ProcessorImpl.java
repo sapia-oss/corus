@@ -50,7 +50,6 @@ import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.deployer.DistributionDatabase;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.processor.task.BootstrapExecConfigStartTask;
 import org.sapia.corus.processor.task.EndUserExecConfigStartTask;
 import org.sapia.corus.processor.task.KillTask;
@@ -537,7 +536,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public List<Status> getStatus(ProcessCriteria criteria) {
+  public List<ProcStatus> getStatus(ProcessCriteria criteria) {
     return copyStatus(getProcesses(criteria));
   }
 
@@ -545,7 +544,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public ProcStatus getStatusFor(String corusPid) throws ProcessNotFoundException {
     Process proc = getProcess(corusPid);
 
-    return copyStatus(proc);
+    return new ProcStatus(proc);
   }
 
   @Override
@@ -616,20 +615,16 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     }
   }
 
-  private List<Status> copyStatus(List<Process> processes) {
-    List<Status> stat = new ArrayList<Status>(processes.size());
+  private List<ProcStatus> copyStatus(List<Process> processes) {
+    List<ProcStatus> stat = new ArrayList<ProcStatus>(processes.size());
     for (Process p : processes) {
       if (log.isDebugEnabled()) {
         log.debug(String.format("Returning status %s", p.getProcessStatus()));
       }
-      stat.add(copyStatus(p));
+      stat.add(new ProcStatus(p));
     }
 
     return stat;
-  }
-
-  private ProcStatus copyStatus(Process p) {
-    return new ProcStatus(p);
   }
 
   /**

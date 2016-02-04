@@ -27,8 +27,6 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable, Obj
   private String magnetFile;
   private String magnetOptions;
   private String libDirs;
-  private boolean interopEnabled = true;
-
   
   /**
    * Sets the name of the magnet file that will be used to start the VM.
@@ -57,17 +55,6 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable, Obj
     libDirs = dirs;
   }
   
-  /**
-   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
-   */
-  public void setInteropEnabled(boolean interopEnabled) {
-    this.interopEnabled = interopEnabled;
-  }
-  
-  public boolean isInteropEnabled() {
-    return interopEnabled;
-  }
-
   /**
    * Returns a "command-line" representation of this instance.
    * 
@@ -99,7 +86,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable, Obj
       result.command.addArg(magnetOptions);
     }
 
-    return new StarterResult(StarterType.MAGNET, result.command, interopEnabled);
+    return new StarterResult(StarterType.MAGNET, result.command, isInteropEnabled());
   }
   
   @Override
