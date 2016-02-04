@@ -27,10 +27,14 @@ import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.deployer.dist.Starter;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.port.PortManager;
-import org.sapia.corus.interop.AbstractCommand;
-import org.sapia.corus.interop.ConfigurationEvent;
-import org.sapia.corus.interop.ConfigurationEvent.ConfigurationEventBuilder;
-import org.sapia.corus.interop.Shutdown;
+import org.sapia.corus.interop.InteropCodec;
+import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
+import org.sapia.corus.interop.InteropCodecFactory;
+import org.sapia.corus.interop.api.message.ConfigurationEventMessageCommand;
+import org.sapia.corus.interop.api.message.MessageCommand;
+import org.sapia.corus.interop.api.message.ShutdownMessageCommand;
+import org.sapia.corus.interop.api.message.ShutdownMessageCommand.Requestor;
+import org.sapia.corus.interop.api.message.StatusMessageCommand;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Strings;
 
@@ -161,8 +165,10 @@ public class Process extends AbstractPersistent<String, Process>
   private static final int VERSION_2 = 2;
   private static final int VERSION_3 = 3;
   private static final int VERSION_4 = 4;
+  private static final int VERSION_5 = 5;
+  
   private static final Set<Integer> SUPPORTED_VERSIONS = Collects.arrayToSet(
-      VERSION_1, VERSION_2, VERSION_3, VERSION_4
+      VERSION_1, VERSION_2, VERSION_3, VERSION_4, VERSION_5
   );
   private static final int CURRENT_VERSION = VERSION_4;
 
@@ -181,15 +187,17 @@ public class Process extends AbstractPersistent<String, Process>
   private int                                      pollTimeout     = -1;
   private int                                      maxKillRetry    = DEFAULT_KILL_RETRY;
   private LifeCycleStatus                          status          = LifeCycleStatus.ACTIVE;
-  private transient List<AbstractCommand>          commands        = new ArrayList<AbstractCommand>();
+  private transient List<MessageCommand>           commands        = new ArrayList<MessageCommand>();
   private transient int                            staleDeleteCount;
   private List<ActivePort>                         activePorts     = new ArrayList<ActivePort>();
-  private transient org.sapia.corus.interop.Status processStatus;
   private ProcessStartupInfo                       startupInfo     = new ProcessStartupInfo();
   private boolean                                  interopEnabled  = true;
   private StarterType                              starterType     = StarterType.UNDEFINED;
   private OptionalValue<Integer>                   numaNode        = OptionalValue.none();
-  private final Map<String, String>           nativeProcessOptions = new HashMap<>();
+  private final Map<String, String>                nativeProcessOptions = new HashMap<>();
+  private InteropWireFormat                        interopWireFormat      = InteropWireFormat.PROTOBUF;
+
+  private transient OptionalValue<StatusMessageCommand> processStatus = OptionalValue.none();
 
   /**
    * Meant for externalization only.
@@ -537,11 +545,11 @@ public class Process extends AbstractPersistent<String, Process>
    *
    * @return the {@link List} of pending commands for the process.
    */
-  public synchronized List<AbstractCommand> poll() {
+  public synchronized List<MessageCommand> poll() {
     staleDeleteCount = 0;
     touch();
 
-    List<AbstractCommand> commands = new ArrayList<AbstractCommand>(getCommands());
+    List<MessageCommand> commands = new ArrayList<MessageCommand>(getCommands());
     getCommands().clear();
 
     return commands;
@@ -553,11 +561,11 @@ public class Process extends AbstractPersistent<String, Process>
    *
    * @return the <code>List</code> of pending commands for the process.
    */
-  public synchronized List<AbstractCommand> status(org.sapia.corus.interop.Status stat) {
+  public synchronized List<MessageCommand> status(StatusMessageCommand stat) {
     touch();
-    processStatus = stat;
+    processStatus = OptionalValue.of(stat);
 
-    List<AbstractCommand> commands = new ArrayList<AbstractCommand>(getCommands());
+    List<MessageCommand> commands = new ArrayList<MessageCommand>(getCommands());
     getCommands().clear();
 
     return commands;
@@ -574,10 +582,10 @@ public class Process extends AbstractPersistent<String, Process>
    * This process' "interoperability" status: corresponds to the "status"
    * message defined by the Corus Interop Spec.
    *
-   * @return the <code>Status</code> of this process instance.
+   * @return an optional {@link StatusMessageCommand} corresponding to the status of this process instance.
    */
   @Transient
-  public synchronized org.sapia.corus.interop.Status getProcessStatus() {
+  public synchronized OptionalValue<StatusMessageCommand> getProcessStatus() {
     return processStatus;
   }
 
@@ -590,9 +598,11 @@ public class Process extends AbstractPersistent<String, Process>
   public synchronized void configurationUpdated(Collection<Property> updatedProperties) {
     // Propagation of config change on appropriate process statuses
     if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
-      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+      ConfigurationEventMessageCommand.Builder builder = getInteropCodec()
+          .getMessageBuilderFactory()
+          .newConfigurationEventMessageBuilder()
           .commandId(CyclicIdGenerator.newCommandId())
-          .type(ConfigurationEvent.TYPE_UPDATE);
+          .type(ConfigurationEventMessageCommand.TYPE_UPDATE);
       for (Property property: updatedProperties) {
         builder.param(property.getName(), property.getValue());
       }
@@ -610,9 +620,11 @@ public class Process extends AbstractPersistent<String, Process>
   public synchronized void configurationDeleted(Collection<Property> deletedProperties) {
     // Propagation of config change on appropriate process statuses
     if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
-      ConfigurationEventBuilder builder = ConfigurationEvent.builder()
+      ConfigurationEventMessageCommand.Builder builder = getInteropCodec()
+          .getMessageBuilderFactory()
+          .newConfigurationEventMessageBuilder()
           .commandId(CyclicIdGenerator.newCommandId())
-          .type(ConfigurationEvent.TYPE_DELETE);
+          .type(ConfigurationEventMessageCommand.TYPE_DELETE);
       for (Property property: deletedProperties) {
         builder.param(property.getName(), "");
       }
@@ -634,11 +646,12 @@ public class Process extends AbstractPersistent<String, Process>
      */
     if (status == LifeCycleStatus.ACTIVE || status == LifeCycleStatus.STALE) {
       status = LifeCycleStatus.KILL_REQUESTED;
-
-      Shutdown shutdown = new Shutdown();
-      shutdown.setCommandId(CyclicIdGenerator.newRequestId());
-      shutdown.setRequestor(requestor.getType());
-      getCommands().add(shutdown);
+      ShutdownMessageCommand.Builder builder = getInteropCodec()
+          .getMessageBuilderFactory()
+          .newShutdownMessageBuilder()
+          .commandId(CyclicIdGenerator.newRequestId())
+          .requestor(Requestor.fromType(requestor.getType()));
+      getCommands().add(builder.build());
       lastAccess = System.currentTimeMillis();
     }
   }
@@ -709,8 +722,8 @@ public class Process extends AbstractPersistent<String, Process>
   }
 
   @Transient
-  public List<AbstractCommand> getCommands() {
-    return commands == null ? commands = new ArrayList<AbstractCommand>(5) : commands;
+  public List<MessageCommand> getCommands() {
+    return commands == null ? commands = new ArrayList<MessageCommand>(5) : commands;
   }
 
   /**
@@ -744,6 +757,19 @@ public class Process extends AbstractPersistent<String, Process>
     lastAccess   = System.currentTimeMillis();
     status       = LifeCycleStatus.ACTIVE;
   }
+  
+  public void setInteropWireFormat(InteropWireFormat interopWireFormat) {
+    this.interopWireFormat = interopWireFormat;
+  }
+  
+  public InteropWireFormat getInteropWireFormat() {
+    return interopWireFormat;
+  }
+  
+  @Transient
+  public InteropCodec getInteropCodec() {
+    return InteropCodecFactory.getByType(interopWireFormat.type());
+  }
 
   @Override
   public Map<String, Object> asMap() {
@@ -759,6 +785,9 @@ public class Process extends AbstractPersistent<String, Process>
     toReturn.put("process.shutdownTimeout", shutdownTimeout);
     toReturn.put("process.pollTimeout", pollTimeout);
     toReturn.put("process.maxKillRetry", maxKillRetry);
+    toReturn.put("process.starterType", starterType.name());
+    toReturn.put("process.iopWireFormat", interopWireFormat.name());
+
     return toReturn;
   }
 
@@ -786,7 +815,8 @@ public class Process extends AbstractPersistent<String, Process>
       .field("staleDetectionCount").value(staleDeleteCount)
       .field("processDir").value(processDir)
       .field("interopEnabled").value(interopEnabled)
-      .field("starterType").value(starterType.name());
+      .field("starterType").value(starterType.name())
+      .field("iopWireFormat").value(interopWireFormat.name());
     }
 
     stream.field("activePorts").beginArray();
@@ -867,6 +897,11 @@ public class Process extends AbstractPersistent<String, Process>
           }
         }
       }
+      if (inputVersion >= VERSION_4) {
+        if (input.containsField("iopWireFormat")) {
+          p.interopWireFormat = InteropWireFormat.valueOf(input.getString("iopWireFormat"));
+        }
+      }
 
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
@@ -909,7 +944,6 @@ public class Process extends AbstractPersistent<String, Process>
     }
     return true;
   }
-
 
   // --------------------------------------------------------------------------
   // Comparable
@@ -974,7 +1008,6 @@ public class Process extends AbstractPersistent<String, Process>
       pollTimeout      = in.readInt();
       maxKillRetry     = in.readInt();
       status           = (LifeCycleStatus) in.readObject();
-      commands         = (List<AbstractCommand>) in.readObject();
       activePorts      = (List<ActivePort>) in.readObject();
       if (inputVersion >= VERSION_2) {
         startupInfo = ObjectUtil.safeNonNull((ProcessStartupInfo) in.readObject(), ProcessStartupInfo.forSingleProcess());
@@ -1013,7 +1046,6 @@ public class Process extends AbstractPersistent<String, Process>
     out.writeInt(pollTimeout);
     out.writeInt(maxKillRetry);
     out.writeObject(status);
-    out.writeObject(commands);
     out.writeObject(activePorts);
     // V2
     out.writeObject(startupInfo);

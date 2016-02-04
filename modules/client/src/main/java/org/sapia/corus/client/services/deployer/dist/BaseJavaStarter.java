@@ -21,6 +21,8 @@ import org.sapia.corus.client.common.FileUtil.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
+import org.sapia.corus.interop.api.Consts;
 import org.sapia.ubik.util.Strings;
 import org.sapia.util.xml.confix.ConfigurationException;
 
@@ -39,12 +41,14 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected String vmType;
   protected String profile;
   
-  protected String         corusHome    = System.getProperty("corus.home");
-  protected List<VmArg>    vmArgs       = new ArrayList<VmArg>();
-  protected List<Property> vmProps      = new ArrayList<Property>();
-  protected List<Option>   options      = new ArrayList<Option>();
-  protected List<XOption>  xoptions     = new ArrayList<XOption>();
-  private List<Dependency> dependencies = new ArrayList<Dependency>();
+  protected String          corusHome         = System.getProperty("corus.home");
+  protected List<VmArg>     vmArgs            = new ArrayList<VmArg>();
+  protected List<Property>  vmProps           = new ArrayList<Property>();
+  protected List<Option>    options           = new ArrayList<Option>();
+  protected List<XOption>   xoptions          = new ArrayList<XOption>();
+  private List<Dependency>  dependencies      = new ArrayList<Dependency>();
+  private boolean           interopEnabled    = true;
+  private InteropWireFormat interopWireFormat = InteropWireFormat.PROTOBUF;
 
   /**
    * Sets the Corus home.
@@ -54,6 +58,28 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    */
   public void setCorusHome(String home) {
     corusHome = home;
+  }
+  
+  /**
+   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
+   */
+  public void setInteropEnabled(boolean interopEnabled) {
+    this.interopEnabled = interopEnabled;
+  }
+  
+  public boolean isInteropEnabled() {
+    return interopEnabled;
+  }
+  
+  /**
+   * @param interopWireFormat the interop wire format type to use for the process.
+   */
+  public void setInteropWireFormat(String interopWireFormat) {
+    this.interopWireFormat = InteropWireFormat.forType(interopWireFormat);
+  }
+  
+  public InteropWireFormat getInteropWireFormat() {
+    return interopWireFormat;
   }
 
   /**
@@ -228,12 +254,16 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       cmdLineVars.put(copy.getName(), value);
       cmd.addElement(copy.convert());
     }
-
+    
     for (Property prop : envProperties) {
       if (propContext.lookup(prop.getName()) != null) {
         cmd.addElement(prop.convert());
       }
     }
+    
+    // adding interop option
+    Property interopWireFormatProp = new Property(Consts.CORUS_PROCESS_INTEROP_PROTOCOL, interopWireFormat.type());
+    cmd.addElement(interopWireFormatProp.convert());
 
     CmdLineBuildResult ctx = new CmdLineBuildResult();
     ctx.command = cmd;

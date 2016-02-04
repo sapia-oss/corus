@@ -21,8 +21,8 @@ public class ProcessStartupInfo implements Externalizable, JsonStreamable {
   static final int VERSION_1       = 1;
   static final int CURRENT_VERSION = VERSION_1;
   
-  private long   requestedAt     = System.currentTimeMillis();
-  private String id              = UUID.randomUUID().toString();
+  private long   requestedAt                  = System.currentTimeMillis();
+  private String id                           = UUID.randomUUID().toString();
   private int    requestedInstances;
   
   /**
@@ -47,6 +47,7 @@ public class ProcessStartupInfo implements Externalizable, JsonStreamable {
     return requestedInstances;
   }
   
+ 
   public static ProcessStartupInfo forSingleProcess() {
     return new ProcessStartupInfo(1);
   }

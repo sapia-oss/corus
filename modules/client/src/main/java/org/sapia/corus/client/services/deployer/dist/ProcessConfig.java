@@ -19,6 +19,7 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
 import org.sapia.ubik.util.Collects;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;

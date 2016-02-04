@@ -4,11 +4,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 
 public class EmbeddedServer implements StatusRequestListener{
 
@@ -48,28 +48,24 @@ public class EmbeddedServer implements StatusRequestListener{
   }
 
   @Override
-  public void onStatus(Status status) {
-    Context context = new Context("org.sapia.corus.sample.jetty");
-    context.addParam(createParam("dispatched", stats.getDispatched()));        
-    context.addParam(createParam("dispatchedActive", stats.getDispatchedActive()));
-    context.addParam(createParam("dispatchedActiveMax", stats.getDispatchedActiveMax()));        
-    context.addParam(createParam("dispatchedTimeMax", stats.getDispatchedTimeMax()));
-    context.addParam(createParam("dispatchedTimeTotal", stats.getDispatchedTimeTotal()));
-    context.addParam(createParam("dispatchedTimeMean", stats.getDispatchedTimeMean()));
-    context.addParam(createParam("requests", stats.getRequests()));        
-    context.addParam(createParam("requestsActive", stats.getRequestsActive()));        
-    context.addParam(createParam("requestsActiveMax", stats.getRequestsActiveMax()));        
-    context.addParam(createParam("requestsTimeMax", stats.getRequestTimeMax()));        
-    context.addParam(createParam("requestsTimeMean", stats.getRequestTimeMean()));
-    context.addParam(createParam("requestsTimeTotal", stats.getRequestTimeTotal()));
-    context.addParam(createParam("suspends", stats.getSuspends()));        
-    context.addParam(createParam("suspendsActive", stats.getSuspendsActive()));        
-    context.addParam(createParam("suspendsActiveMax", stats.getSuspendsActiveMax()));
-    status.addContext(context);
+  public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
+    ContextMessagePart.Builder contextBuilder = factory.newContextBuilder().name("org.sapia.corus.sample.jetty");
+    contextBuilder
+      .param("dispatched", String.valueOf(stats.getDispatched()))
+      .param("dispatchedActive", String.valueOf(stats.getDispatchedActive()))
+      .param("dispatchedActiveMax", String.valueOf(stats.getDispatchedActiveMax()))
+      .param("dispatchedTimeMax", String.valueOf(stats.getDispatchedTimeMax()))
+      .param("dispatchedTimeTotal", String.valueOf(stats.getDispatchedTimeTotal()))
+      .param("dispatchedTimeMean", String.valueOf(stats.getDispatchedTimeMean()))
+      .param("requests", String.valueOf(stats.getRequests()))
+      .param("requestsActive", String.valueOf(stats.getRequestsActive()))
+      .param("requestsActiveMax", String.valueOf(stats.getRequestsActiveMax()))
+      .param("requestsTimeMax", String.valueOf(stats.getRequestTimeMax()))
+      .param("requestsTimeMean", String.valueOf(stats.getRequestTimeMean()))
+      .param("requestsTimeTotal", String.valueOf(stats.getRequestTimeTotal()))
+      .param("suspends", String.valueOf(stats.getSuspends()))
+      .param("suspendsActive", String.valueOf(stats.getSuspendsActive()))
+      .param("suspendsActiveMax", String.valueOf(stats.getSuspendsActiveMax()));
+    statusBuilder.context(contextBuilder.build());        
   }
-  
-  private Param createParam(String name, Object value){
-    return new Param(name, value.toString());
-  }
-  
 }

@@ -13,11 +13,11 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 import org.sapia.corus.tomcat.util.UriPattern;
 
 /**
@@ -176,12 +176,10 @@ public class JmxMonitorAdapter {
 	    public StatusListener(JmxMonitorAdapter aParent) {
 	      _parent = aParent;
 	    }
-	    
-	    /* (non-Javadoc)
-	     * @see org.sapia.corus.interop.api.StatusRequestListener#onStatus(org.sapia.corus.interop.Status)
-	     */
-	    public void onStatus(Status aStatus) {
-	      Context context = null;
+
+	    @Override
+	    public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
+        ContextMessagePart.Builder contextBuilder = null;
 	      try {
 	        if (_server == null) {
 	          _server     = ManagementFactory.getPlatformMBeanServer();
@@ -191,19 +189,18 @@ public class JmxMonitorAdapter {
 	        for (Iterator<ObjectName> it = _mbeanNames.iterator(); it.hasNext(); ) {
 	          ObjectName mbeanName = it.next();
 	          try {
+	            contextBuilder = factory.newContextBuilder().name(generatedContextNameFor(mbeanName));
 	  
 	            // Create the context for the mbean name
-	            context = new Context();
-	            aStatus.addContext(context);
-	            context.setName(generatedContextNameFor(mbeanName));
 	            
 	            MBeanInfo mbeanInfo = _server.getMBeanInfo(mbeanName);
 	            MBeanAttributeInfo[] mbeanAttributes = mbeanInfo.getAttributes();
 	            
 	            if (_parent.getAppendMbeanInfo()) {
-	              context.addParam(new Param("jmx.mbean.domain", mbeanName.getDomain()));
-	              context.addParam(new Param("jmx.mbean.properties", mbeanName.getKeyPropertyListString()));
-	              context.addParam(new Param("jmx.mbean.type", mbeanInfo.getClassName()));
+	              contextBuilder
+	                .param("jmx.mbean.domain", mbeanName.getDomain())
+	                .param("jmx.mbean.properties", mbeanName.getKeyPropertyListString())
+	                .param("jmx.mbean.type", mbeanInfo.getClassName());
 	            }
 	  
 	            for (int i = 0; i < mbeanAttributes.length; i++) {
@@ -212,37 +209,42 @@ public class JmxMonitorAdapter {
 	              if (value != null && value.getClass().isArray()) {
 	                Object[] valueArray = (Object[]) value;
                     for (int j = 0; j < valueArray.length; j++) {
-                        context.addParam(new Param(mbeanAttributes[i].getName()+"."+j, (valueArray[j] == null? "": valueArray[j].toString())));
+                        contextBuilder.param(mbeanAttributes[i].getName()+"."+j, (valueArray[j] == null? "": valueArray[j].toString()));
                     }
 	                
 	              } else {
-	            	  context.addParam(new Param(mbeanAttributes[i].getName(), (value == null? "": value.toString())));
+	            	  contextBuilder.param(mbeanAttributes[i].getName(), (value == null? "": value.toString()));
 	              }
 	            }
-	            
+	            statusBuilder.context(contextBuilder.build());
+	 
 	          } catch (Exception e) {
-	            if (context == null) {
-	              context = new Context();
-	              context.setName("JMX/" + _parent.getDomain() + "/" + mbeanName.getCanonicalKeyPropertyListString());
-	              aStatus.addContext(context);
+	            if (contextBuilder == null) {
+	              contextBuilder = factory.newContextBuilder().name(
+	                  "JMX/" + _parent.getDomain() + "/" + mbeanName.getCanonicalKeyPropertyListString()
+	              );
 	            }
 	            
-	            context.addParam(new Param(JMX_MONITOR_ERROR, "true"));
-	            context.addParam(new Param(JMX_MONITOR_ERROR_CLASS, e.getClass().getName()));
-	            context.addParam(new Param(JMX_MONITOR_ERROR_MSG, e.getLocalizedMessage()));
+	            contextBuilder
+	              .param(JMX_MONITOR_ERROR, "true")
+	              .param(JMX_MONITOR_ERROR_CLASS, e.getClass().getName())
+	              .param(JMX_MONITOR_ERROR_MSG, e.getLocalizedMessage());
+	            
+	            statusBuilder.context(contextBuilder.build());
 	          }
 	        }
 	        
 	      } catch (Exception e) {
-	        if (context == null) {
-	          context = new Context();
-	          context.setName("JMX:" + _parent.getDomain());
-	          aStatus.addContext(context);
+	        if (contextBuilder == null) {
+            contextBuilder = factory.newContextBuilder().name("JMX:" + _parent.getDomain());
 	        }
 	        
-	        context.addParam(new Param(JMX_MONITOR_ERROR, "true"));
-	        context.addParam(new Param(JMX_MONITOR_ERROR_CLASS, e.getClass().getName()));
-	        context.addParam(new Param(JMX_MONITOR_ERROR_MSG, e.getLocalizedMessage()));
+	        contextBuilder
+	          .param(JMX_MONITOR_ERROR, "true")
+	          .param(JMX_MONITOR_ERROR_CLASS, e.getClass().getName())
+	          .param(JMX_MONITOR_ERROR_MSG, e.getLocalizedMessage());
+	        
+	        statusBuilder.context(contextBuilder.build());
 	      }
 	    }
 	    

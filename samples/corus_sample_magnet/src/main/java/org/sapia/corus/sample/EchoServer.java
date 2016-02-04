@@ -2,11 +2,11 @@ package org.sapia.corus.sample;
 
 import java.sql.Timestamp;
 
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 
 public class EchoServer implements StatusRequestListener {
 
@@ -108,19 +108,16 @@ public class EchoServer implements StatusRequestListener {
       }
     }
   }
-  
-  /* (non-Javadoc)
-   * @see org.sapia.corus.interop.api.StatusRequestListener#onStatus(org.sapia.corus.interop.Status)
-   */
+
   @Override
-  public void onStatus(Status aStatus) {
-    Context context = new Context("org.sapia.corus.sample.EchoServer#"+_name);
-    context.addParam(new Param("initialWaitDelayMillis", String.valueOf(_initialWaitDelayMillis)));
-    context.addParam(new Param("loopIntervalMillis", String.valueOf(_loopIntervalMillis)));
-    context.addParam(new Param("isRunning", String.valueOf(_task != null)));
-    context.addParam(new Param("loopCount", String.valueOf(_loopCount)));
-    
-    aStatus.addContext(context);
+  public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
+    ContextMessagePart.Builder contextBuilder = factory.newContextBuilder().name("org.sapia.corus.sample.EchoServer#"+_name);
+    contextBuilder
+      .param("initialWaitDelayMillis", String.valueOf(_initialWaitDelayMillis))
+      .param("loopIntervalMillis", String.valueOf(_loopIntervalMillis))
+      .param("isRunning", String.valueOf(_task != null))
+      .param("loopCount", String.valueOf(_loopCount));
+    statusBuilder.context(contextBuilder.build());
   }
 
 

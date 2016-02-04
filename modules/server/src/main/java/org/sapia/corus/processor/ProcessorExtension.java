@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.exceptions.processor.ProcessNotFoundException;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
@@ -18,9 +19,9 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ServerContext;
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.ParamMessagePart;
+import org.sapia.corus.interop.api.message.StatusMessageCommand;
 import org.sapia.ubik.net.TCPAddress;
 
 /**
@@ -122,18 +123,18 @@ public class ProcessorExtension implements HttpExtension {
       if (status) {
         ps.println(">");
         ps.println();
-        Status stat = proc.getProcessStatus();
+        OptionalValue<StatusMessageCommand> stat = proc.getProcessStatus();
         ps.println("    <status>");
-        if (stat != null) {
-          List<Context> contexts = stat.getContexts();
+        if (stat.isSet()) {
+          List<ContextMessagePart> contexts = stat.get().getContexts();
           for (int j = 0; j < contexts.size(); j++) {
-            Context statusCtx = (Context) contexts.get(j);
+            ContextMessagePart statusCtx = contexts.get(j);
             ps.print("      <context name=\"");
             ps.print(statusCtx.getName());
             ps.println("\">");
-            List<Param> params = statusCtx.getParams();
+            List<ParamMessagePart> params = statusCtx.getParams();
             for (int k = 0; k < params.size(); k++) {
-              Param p = (Param) params.get(k);
+              ParamMessagePart p = params.get(k);
 
               if (containsIllegalXmlCharacter(p.getValue())) {
                 ps.print("        <param ");

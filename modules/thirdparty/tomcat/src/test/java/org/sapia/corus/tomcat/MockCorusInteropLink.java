@@ -3,12 +3,13 @@ package org.sapia.corus.tomcat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.ConfigurationChangeListener;
 import org.sapia.corus.interop.api.Implementation;
 import org.sapia.corus.interop.api.ProcessEventListener;
 import org.sapia.corus.interop.api.ShutdownListener;
 import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand;
 
 public class MockCorusInteropLink implements Implementation {
 
@@ -85,11 +86,9 @@ public class MockCorusInteropLink implements Implementation {
 		}
 	}
 
-	public void status() {
+	public void status(StatusMessageCommand.Builder statusBuilder, InteropMessageBuilderFactory factory) {
 		for (StatusRequestListener listener: _statusListeners) {
-			Status s = new Status();
-			listener.onStatus(s);
-			System.out.println(s);
+			listener.onStatus(statusBuilder, factory);
 		}
 	}
 	
