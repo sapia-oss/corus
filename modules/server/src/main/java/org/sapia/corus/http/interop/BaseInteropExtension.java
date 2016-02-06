@@ -98,7 +98,7 @@ abstract class BaseInteropExtension implements HttpExtension, RequestListener {
     }
 
     if (logger.isDebugEnabled()) {
-      logger.debug("Process: " + header.getCorusPid() + " polling...");
+      logger.debug("Process: " + header.getCorusPid() + " polling... ");
     }
     Processor processor = serverContext.getServices().getProcessor();
     Process corusProcess = processor.getProcess(header.getCorusPid());

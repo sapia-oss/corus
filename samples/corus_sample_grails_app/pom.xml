@@ -10,7 +10,7 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<name>Corus Grails App Sample</name>
+	<name>Sapia Corus Grails App Sample</name>
 	<description>A Grails application to be deployed in corus</description>
 	<url>http://www.sapia-oss.org</url>
 
