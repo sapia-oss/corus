@@ -1,6 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -55,10 +56,50 @@ public class BaseJavaStarterTest {
     starter.addArg(arg);
     when(env.getProperties()).thenReturn(new Property[] { new Property("testAgent", "test") });
     CmdLine cmd = starter.toCmdLine(env).getCommand();
+    
+    assertEquals(4, cmd.size());
     Arg a = (Arg) cmd.get(1);
     assertEquals("-javaaagent:test", a.getName());
   }
 
+  @Test
+  public void testArg_empty() throws Exception {
+    VmArg arg = new VmArg();
+    arg.setValue("-javaaagent:${testAgent}");
+    starter.addArg(arg);
+    VmArg emptyArg = new VmArg();
+    emptyArg.setValue("${emptyValue}");
+    starter.addArg(emptyArg);
+    
+    when(env.getProperties()).thenReturn(new Property[] { new Property("testAgent", "test"), new Property("emptyValue", "") });
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
+    
+    assertEquals(5, cmd.size());
+    Arg a1 = (Arg) cmd.get(1);
+    assertEquals("-javaaagent:test", a1.getName());
+    Arg a2 = (Arg) cmd.get(1);
+    assertNotEquals("", a2.getName());
+  }
+  
+  @Test
+  public void testArg_not_empty() throws Exception {
+    VmArg arg = new VmArg();
+    arg.setValue("-javaaagent:${testAgent}");
+    starter.addArg(arg);
+    VmArg emptyArg = new VmArg();
+    emptyArg.setValue("${otherArg}");
+    starter.addArg(emptyArg);
+    
+    when(env.getProperties()).thenReturn(new Property[] { new Property("testAgent", "test"), new Property("otherArg", "test") });
+    CmdLine cmd = starter.toCmdLine(env).getCommand();
+    
+    assertEquals(6, cmd.size());
+    Arg a1 = (Arg) cmd.get(1);
+    assertEquals("-javaaagent:test", a1.getName());
+    Arg a2 = (Arg) cmd.get(2);
+    assertEquals("test", a2.getName());
+  }
+  
   @Test
   public void testAddProperty() {
     Property prop = new Property();
@@ -218,7 +259,7 @@ public class BaseJavaStarterTest {
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
     String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
-    assertEquals(path + " -Dtest.property=test.property.value", result.command.toString());
+    assertEquals(path + " -Dtest.property=test.property.value -Dcorus.process.iop.protocol=protobuf", result.command.toString());
   }
   
   @Test
@@ -231,7 +272,7 @@ public class BaseJavaStarterTest {
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
     String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
-    assertEquals(path + " -server -Dtest.property=test.property.value", result.command.toString());
+    assertEquals(path + " -server -Dtest.property=test.property.value -Dcorus.process.iop.protocol=protobuf", result.command.toString());
   }
   
   @Test
@@ -255,7 +296,7 @@ public class BaseJavaStarterTest {
     CmdLineBuildResult result = starter.buildCommandLine(env);
     System.out.println(result.command.toString());
     String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
-    assertEquals(path + " -XXarg0 -XXarg1 -Dtest.arg0=-XXarg0 -Dtest.arg1=-XXarg1 -Dtest.property=test.property.value", result.command.toString());
+    assertEquals(path + " -XXarg0 -XXarg1 -Dtest.arg0=-XXarg0 -Dtest.arg1=-XXarg1 -Dtest.property=test.property.value -Dcorus.process.iop.protocol=protobuf", result.command.toString());
   }
   
   @Test
@@ -280,7 +321,7 @@ public class BaseJavaStarterTest {
 
     CmdLineBuildResult result = starter.buildCommandLine(env);
     String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
-    assertEquals(path + " -Xmx5g -Xms1g -Dtest.xmx=5g -Dtest.xms=1g -Dtest.property=test.property.value", result.command.toString());
+    assertEquals(path + " -Xmx5g -Xms1g -Dtest.xmx=5g -Dtest.xms=1g -Dtest.property=test.property.value -Dcorus.process.iop.protocol=protobuf", result.command.toString());
   }
   
   @Test
@@ -305,7 +346,7 @@ public class BaseJavaStarterTest {
     
     CmdLineBuildResult result = starter.buildCommandLine(env);
     String path = FilePath.newInstance().addDir("test-path").addDir("bin").setRelativeFile("java").createFilePath();
-    assertEquals(path + " -o0 o0-value -o1 o1-value -Dtest.opt0=o0-value -Dtest.opt1=o1-value -Dtest.property=test.property.value", result.command.toString());
+    assertEquals(path + " -o0 o0-value -o1 o1-value -Dtest.opt0=o0-value -Dtest.opt1=o1-value -Dtest.property=test.property.value -Dcorus.process.iop.protocol=protobuf", result.command.toString());
   }
 
   static class TestJavaStarter extends BaseJavaStarter {

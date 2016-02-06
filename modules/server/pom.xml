@@ -323,7 +323,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_corus_iop,sapia_corus_iop_api</includeArtifactIds>
+              <includeArtifactIds>sapia_corus_iop,sapia_corus_iop_api,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 
@@ -371,7 +371,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
+              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 
@@ -387,7 +387,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
+              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 

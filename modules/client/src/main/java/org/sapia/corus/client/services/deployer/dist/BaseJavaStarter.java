@@ -219,9 +219,11 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
 
     for (VmArg arg : vmArgs) {
       String value = render(propContext, arg.getValue());
-      VmArg copy = new VmArg();
-      copy.setValue(value);
-      cmd.addElement(copy.convert());
+      if (!Strings.isBlank(value)) {
+        VmArg copy = new VmArg();
+        copy.setValue(value);
+        cmd.addElement(copy.convert());
+      }
     }
 
     for (XOption opt : xoptions) {
