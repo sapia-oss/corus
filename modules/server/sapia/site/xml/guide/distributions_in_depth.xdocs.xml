@@ -551,8 +551,8 @@
             <td>Allows specifiying one or more environment variables to pass to the Docker container.</td>          
           </tr>         
         </sapia:table>
-      </sapia:sect3>      
-      
+      </sapia:sect3>  
+          
       <sapia:sect3 title="dependency" alias="dependency_element">
         <p>
           The <tt>&lt;dependency&gt;</tt> element is meant to indicate that a given process depends on another (multiple such elements can be configured, thus indicating that a given process depends on multiple other ones).
