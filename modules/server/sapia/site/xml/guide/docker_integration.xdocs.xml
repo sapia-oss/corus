@@ -272,32 +272,6 @@
     		<p>This section provides a few Docker-related Corus descriptor tips. The full spec is available in the <a href="distributions_in_depth.html#docker_element">Corus Descriptor</a> section of this guide.</p>
     	</sapia:sect-desc>
     	
-    	<sapia:sect3 title="Docker Container Health Check">
-    		<p>
-    			In order to benefit from the Corus' <a href="../advanced.html#application_process_ha">high-availability</a> support for application processes, the Docker containers started with Corus should have the proper <a href="../rest/diagnostic.html">diagnostic</a> configuration
-    			defined.
-    		</p>
-    		<p>
-    			Currently, the only support available is for HTTP/HTTPS endpoints (that is, processes are expected to expose a HTTP or HTTPS URL for pinging. The following provides an example illustrating how this would look like for Docker-based processes:
-    		</p>
-      <sapia:code><![CDATA[<distribution name="http-service" version="1.0"
-  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
-
-  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
-
-    <port name="http">
-    	<http-diagnostic path="/system/ping" />
-    </port>
-    
-    <docker image="mini/memcached" profile="default">
-      <portMapping hostPort="${corus.process.port.memcached}" containerPort="80" />
-    </docker>
-
-  </process>
-</distribution>]]></sapia:code>
-    		
-    	</sapia:sect3>
-    	
       <sapia:sect3 title="Configuring Port Mappings">
         <p>
         	Corus' <a href="port_management.html">port management</a> feature can be put to good use in the context of assigning host ports to container ports. The following demonstrates how this is done:
@@ -320,7 +294,33 @@
         <sapia:code>port add -n memcached -min 11210 -max 11215</sapia:code>
         
       </sapia:sect3>
-     
+      
+    	<sapia:sect3 title="Docker Container Health Check">
+    		<p>
+    			In order to benefit from the Corus' <a href="../advanced.html#application_process_ha">high-availability</a> support for application processes, the Docker containers started with Corus should have the proper <a href="../rest/diagnostic.html">diagnostic</a> configuration
+    			defined.
+    		</p>
+    		<p>
+    			Currently, the only support available is for HTTP/HTTPS endpoints (that is, processes are expected to expose a HTTP or HTTPS URL for pinging. The following provides an example illustrating how this would look like for Docker-based processes:
+    		</p>
+      <sapia:code><![CDATA[<distribution name="http-service" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+
+    <port name="http">
+    	<http-diagnostic path="/system/ping" />
+    </port>
+    
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.http}" containerPort="80" />
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>
+    		
+    	</sapia:sect3>
+    	
       <sapia:sect3 title="Volume Mappings">
         <p>
         	Docker supports mapping directories on the host to paths that have been configured at the Docker image level. Such directories and paths are called "volumes" in Docker's terminology. The notion of mapping a directory path at the image level to a directory on the host is dubbed "volume mapping". The Corus descriptor supports the configuration of such volume mappings (as most values in the descriptor, such mappings can be dynamically configured through process property variables):

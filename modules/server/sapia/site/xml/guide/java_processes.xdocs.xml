@@ -29,7 +29,7 @@
 				As was mentioned earlier, Corus allows starting any type of process (provided it interacts with Corus according to the <a href="http://www.sapiaoss.org/projects/corus/CorusInterop.pdf">Corus Interoperability Specification</a>). As far as Java processes are concerned, there are a few things to know..
 			</p>
 		</sapia:sect-desc>
-		<sapia:sect2 title="Corus Interoperability Specification in Java">
+		<sapia:sect2 title="Corus Interoperability Specification in Java" alias="java-interop">
 			<p>
 				The Corus interop spec implementation in Java is another Sapia project. The implementation consists of a small .jar file named <tt>sapia_corus_iop.jar</tt>. That library consists of a small XML/HTTP client (as required by the spec).
 			</p>

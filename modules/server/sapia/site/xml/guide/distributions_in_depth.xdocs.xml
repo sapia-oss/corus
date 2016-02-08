@@ -55,17 +55,18 @@
     <magnet magnetFile="echoServerMagnet.xml" 
             profile="test"
             javaCmd="java">
-	   <!-- Alternate standard Java configuration: 
-	        simpler, but less powerful than Magnet -->
+      <xoption  name="ms" value="16M" />
+      <dependency dist="testDist" version="1.0" process="testApp" profile="prod" />
+    </magnet>
+	<!-- Alternate standard Java configuration: 
+	     simpler, but less powerful than Magnet -->
     <!-- java mainClass="org.sapia.corus.examples.EchoServer" 
             profile="test"
             javaCmd="java">
-      <xoption  name="ms" value="16M" />
-                <dependency dist="testDist" 
-                version="1.0"
-	 process="testApp"
-	 profile="prod" />
-    </magnet>
+      <arg value="-Xms16M" />
+      <dependency dist="testDist" version="1.0" process="testApp" profile="prod" />
+    -->   
+    
   </process>  
 </distribution>]]></sapia:code>
       <p>
@@ -313,6 +314,13 @@
             also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
           </tr> 
           <tr>
+            <td><tt>interopWireFormat</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates which interop wire format to use has part of communication between <a href="java_processes.html#java-interop">Corus and JVM-based processes 
+                (values can be either <tt>protobuf</tt> or <tt>interop</tt>. Defaults to <tt>protobuf</tt>)</a>.</td>
+          </tr>
+          <tr>
             <td><tt><a href="#dependency_element">dependency</a></tt></td>
             <td>Element</td>
             <td>No (0 - *)</td>
@@ -388,6 +396,13 @@
             <td>A boolean flag Indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
             also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
           </tr> 
+          <tr>
+            <td><tt>interopWireFormat</tt></td>
+            <td>Attribute</td>
+            <td>No</td>
+            <td>Indicates which interop wire format to use has part of communication between <a href="java_processes.html#java-interop">Corus and JVM-based processes 
+                (values can be either <tt>protobuf</tt> or <tt>interop</tt>. Defaults to <tt>protobuf</tt>)</a>.</td>
+          </tr>
           <tr>
             <td><tt><a href="#dependency_element">dependency</a></tt></td>
             <td>Element</td>
