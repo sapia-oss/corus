@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>develop-SNAPSHOT</version>
+    <version>5.0-RC1</version>
     <relativePath>../..</relativePath>
   </parent>
 
