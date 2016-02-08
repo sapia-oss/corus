@@ -72,7 +72,7 @@
 				<sapia:code><![CDATA[<dependency>
   <groupId>org.sapia</groupId>
   <artifactId>sapia_corus_iop_api</artifactId>
-  <version>2.8.2</version>
+  <version>3.0</version>
 </dependency>]]></sapia:code>
 				<p>The API provided by the library allows you to hook your application to the lifecycle of the JVM, as it's managed by Corus.</p>
 			</sapia:sect3>
