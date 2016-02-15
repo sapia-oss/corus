@@ -163,7 +163,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public ClusterStatus getClusterStatus() {
-    return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
+    return new ClusterStatus(this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
   }
 
   @Override
@@ -285,7 +285,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
           channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
         }
       } catch (IOException e) {
-        log.error("Error sending publish event", e);
+        log.debug("Error sending publish event", e);
       }
     }
   }

@@ -1,4 +1,4 @@
-package org.sapia.corus.ftest.rest;
+package org.sapia.corus.ftest.rest.core;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -316,6 +317,7 @@ public class ProcessResourcesFuncTest {
           .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
           .accept(MediaType.APPLICATION_JSON) 
           .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
+    
     assertEquals(200, response.asObject().getInt("status"));
     waitUntilDiagnostic(INTERVAL_SECONDS, 1);
   }
@@ -691,10 +693,14 @@ public class ProcessResourcesFuncTest {
     int status = 0;
     
     do {
-      status = client.resource("/clusters/ftest/diagnostic")
+      Response r  = client.resource("/clusters/ftest/diagnostic")
         .request()
         .accept(MediaType.APPLICATION_JSON)
-        .get().getStatus();
+        .get();
+      status = r.getStatus();
+      System.out.println("----------------> " + r.getStatusInfo());
+      System.out.println("----------------> " + r.getEntity());
+
       if (status != HttpStatus.SC_SERVICE_UNAVAILABLE) {
         break;
       }

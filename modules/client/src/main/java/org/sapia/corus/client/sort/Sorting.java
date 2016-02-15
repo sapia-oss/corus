@@ -157,8 +157,6 @@ public class Sorting {
         cmp.add(s.order(ClusterStatusComparators.forHostIp()));
       } else if (s.getSwitch() == SortSwitch.HOST_NAME) {
         cmp.add(s.order(ClusterStatusComparators.forHostName()));
-      } else if (s.getSwitch() == SortSwitch.HOST_ROLE) {
-        cmp.add(s.order(ClusterStatusComparators.forHostRole()));
       }
     }
     return cmp;   

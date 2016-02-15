@@ -44,13 +44,11 @@ public class Cluster extends CorusCliCommand {
 
   
   private final TableDef STATUS_TBL = TableDef.newInstance()
-      .createCol("host", 30)
-      .createCol("role", 32)
+      .createCol("host", 70)
       .createCol("nodeCount", 6);
   
   private final TableDef CHECK_TBL = TableDef.newInstance()
-      .createCol("host", 30)
-      .createCol("role", 32)
+      .createCol("host", 68)
       .createCol("status", 8);
   
   // --------------------------------------------------------------------------
@@ -117,7 +115,6 @@ public class Cluster extends CorusCliCommand {
       Result<ClusterStatus> status = results.next();
       Row row = table.newRow();
       row.getCellAt(STATUS_TBL.col("host").index()).append(status.getOrigin().getFormattedAddress());
-      row.getCellAt(STATUS_TBL.col("role").index()).append(status.getData().getRole().name());
       row.getCellAt(STATUS_TBL.col("nodeCount").index()).append(Integer.toString(status.getData().getNodeCount()));
       row.flush();
     }
@@ -180,7 +177,6 @@ public class Cluster extends CorusCliCommand {
     for (CorusHost h : upHosts) {
       Row row = table.newRow();
       row.getCellAt(CHECK_TBL.col("host").index()).append(h.getFormattedAddress());
-      row.getCellAt(CHECK_TBL.col("role").index()).append(h.getRepoRole().name());
       row.getCellAt(CHECK_TBL.col("status").index()).append("UP");
       row.flush(); 
     }
@@ -189,7 +185,6 @@ public class Cluster extends CorusCliCommand {
     for (CorusHost h : downHosts) {
       Row row = table.newRow();
       row.getCellAt(CHECK_TBL.col("host").index()).append(h.getFormattedAddress());
-      row.getCellAt(CHECK_TBL.col("role").index()).append(h.getRepoRole().name());
       row.getCellAt(CHECK_TBL.col("status").index()).append("DOWN");
       row.flush(); 
     }
@@ -200,7 +195,6 @@ public class Cluster extends CorusCliCommand {
     Table table = STATUS_TBL.createTable(ctx.getConsole().out());
     Row headers = table.newRow();
     headers.getCellAt(STATUS_TBL.col("host").index()).append("Host");
-    headers.getCellAt(STATUS_TBL.col("role").index()).append("Role");
     headers.getCellAt(STATUS_TBL.col("nodeCount").index()).append("View");
     headers.flush();
   }
@@ -209,7 +203,6 @@ public class Cluster extends CorusCliCommand {
     Table table = CHECK_TBL.createTable(ctx.getConsole().out());
     Row headers = table.newRow();
     headers.getCellAt(CHECK_TBL.col("host").index()).append("Host");
-    headers.getCellAt(CHECK_TBL.col("role").index()).append("Role");
     headers.getCellAt(CHECK_TBL.col("status").index()).append("Status");
     headers.flush();
   }

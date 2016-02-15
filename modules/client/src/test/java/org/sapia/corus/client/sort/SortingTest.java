@@ -1,6 +1,7 @@
 package org.sapia.corus.client.sort;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import java.security.PublicKey;
@@ -16,16 +17,14 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
-import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.sort.Sorting.SortSwitch;
-import org.sapia.ubik.mcast.EventChannel;
-import org.sapia.ubik.mcast.EventChannel.Role;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 
@@ -301,8 +300,8 @@ public class SortingTest {
 
   @Test
   public void testGetClusterStatusComparatorFor_Name_Ascending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.MASTER, "h2", 1000);
+    ClusterStatus s1 = status("h1", 1000);
+    ClusterStatus s2 = status("h2", 1000);
     
     Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_NAME).build());
     
@@ -313,8 +312,8 @@ public class SortingTest {
   
   @Test
   public void testGetClusterStatusComparatorFor_Name_Descending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.MASTER, "h2", 1000);
+    ClusterStatus s1 = status("h1", 1000);
+    ClusterStatus s2 = status("h2", 1000);
     
     Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().descending(SortSwitch.HOST_NAME).build());
     
@@ -325,8 +324,8 @@ public class SortingTest {
   
   @Test
   public void testGetClusterStatusComparatorFor_IP_Ascending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.MASTER, "h2", 1000);
+    ClusterStatus s1 = status("h1", 1000);
+    ClusterStatus s2 = status("h2", 1000);
     
     Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_IP).build());
     
@@ -337,8 +336,8 @@ public class SortingTest {
   
   @Test
   public void testGetClusterStatusComparatorFor_IP_Descending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.MASTER, "h2", 1000);
+    ClusterStatus s1 = status("h1", 1000);
+    ClusterStatus s2 = status("h2", 1000);
     
     Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().descending(SortSwitch.HOST_IP).build());
     
@@ -347,30 +346,6 @@ public class SortingTest {
     assertTrue(c.compare(s1, s1) == 0);  
   }
   
-  @Test
-  public void testGetClusterStatusComparatorFor_Role_Ascending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.SLAVE, "h1", 1000);
-    
-    Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().ascending(SortSwitch.HOST_ROLE).build());
-    
-    assertTrue(c.compare(s1, s2) < 0);
-    assertTrue(c.compare(s2, s1) > 0);
-    assertTrue(c.compare(s1, s1) == 0);  
-  }
-  
-  @Test
-  public void testGetClusterStatusComparatorFor_Role_Descending() {
-    ClusterStatus s1 = status(EventChannel.Role.MASTER, "h1", 1000);
-    ClusterStatus s2 = status(EventChannel.Role.SLAVE, "h1", 1000);
-    
-    Comparator<ClusterStatus> c = Sorting.getClusterStatusComparatorFor(SortSwitchInfo.Builder.newInstance().descending(SortSwitch.HOST_ROLE).build());
-    
-    assertTrue(c.compare(s2, s1) < 0);
-    assertTrue(c.compare(s1, s2) > 0);
-    assertTrue(c.compare(s1, s1) == 0);  
-  }
-
   @Test
   public void testGetExecConfigComparatorFor_Name_Ascending() {
     ExecConfig c1 = config("c1", "p1");
@@ -423,7 +398,7 @@ public class SortingTest {
   public void testSortSingle_ClusterStatus() {
     Results<ClusterStatus> results = new Results<ClusterStatus>();
     for (int i = 4; i >= 0; i--) {
-      Result<ClusterStatus> r = new Result<ClusterStatus>(host(RepoRole.CLIENT, "h" + i, i), status(Role.SLAVE, "h" + i, i), Result.Type.ELEMENT);
+      Result<ClusterStatus> r = new Result<ClusterStatus>(host(RepoRole.CLIENT, "h" + i, i), status("h" + i, i), Result.Type.ELEMENT);
       results.addResult(r);
     }
     
@@ -543,10 +518,10 @@ public class SortingTest {
     return h;
   }
   
-  private ClusterStatus status(EventChannel.Role role, String host, int port) {
+  private ClusterStatus status(String host, int port) {
     CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
     h.setHostName(host);
-    return new ClusterStatus(role, h, 0);
+    return new ClusterStatus(h, 0);
   }
   
   private ExecConfig config(String name, String profile) {

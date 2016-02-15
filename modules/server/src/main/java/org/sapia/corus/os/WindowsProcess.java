@@ -77,7 +77,7 @@ public class WindowsProcess implements NativeProcess {
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
+        log.info("Error killing the process: " + anOutput.toString("UTF-8"));
       }
     }
 
@@ -112,7 +112,7 @@ public class WindowsProcess implements NativeProcess {
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
+        log.info("Error killing the process: " + anOutput.toString("UTF-8"));
       }
     }
 
@@ -417,7 +417,7 @@ public class WindowsProcess implements NativeProcess {
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error getting the process id: " + anOutput.toString("UTF-8"));
+        log.info("Error getting the process id: " + anOutput.toString("UTF-8"));
       }
 
       return anOsPid;

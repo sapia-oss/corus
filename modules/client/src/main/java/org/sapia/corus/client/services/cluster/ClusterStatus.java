@@ -8,8 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.sapia.corus.client.common.Mappable;
-import org.sapia.ubik.mcast.EventChannel;
-import org.sapia.ubik.mcast.EventChannel.Role;
 
 /**
  * Encapsulates the status in the cluster for a given Corus host.
@@ -21,7 +19,6 @@ public class ClusterStatus implements Externalizable, Mappable {
 
   static final long serialVersionUID = 1L;
 
-  private Role role;
   private CorusHost host;
   private int nodeCount;
   
@@ -29,17 +26,9 @@ public class ClusterStatus implements Externalizable, Mappable {
   public ClusterStatus() {
   }
 
-  public ClusterStatus(Role role, CorusHost host, int nodeCount) {
-    this.role      = role;
+  public ClusterStatus(CorusHost host, int nodeCount) {
     this.host      = host;
     this.nodeCount = nodeCount;
-  }
-
-  /**
-   * @return the Corus instance's role.
-   */
-  public Role getRole() {
-    return role;
   }
 
   /**
@@ -62,7 +51,6 @@ public class ClusterStatus implements Externalizable, Mappable {
   @Override
   public Map<String, Object> asMap() {
     Map<String, Object> toReturn = new HashMap<>();
-    toReturn.put("host.role", role.name());
     toReturn.put("host.formattedAddress", host.getFormattedAddress());
     toReturn.put("host.address", host.getEndpoint().getServerTcpAddress().getHost());
     toReturn.put("host.port", host.getEndpoint().getServerTcpAddress().getPort());
@@ -75,14 +63,12 @@ public class ClusterStatus implements Externalizable, Mappable {
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    role = (EventChannel.Role) in.readObject();
     host = (CorusHost) in.readObject();
     nodeCount = in.readInt();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeObject(role);
     out.writeObject(host);
     out.writeInt(nodeCount);
   }
