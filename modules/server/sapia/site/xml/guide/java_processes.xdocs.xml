@@ -135,6 +135,8 @@ import org.sapia.corus.interop.api.message.ContextMessagePart;
 import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
 import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 
+...
+
   public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
     ContextMessagePart.Builder contextBuilder = factory.newContextBuilder().name("org.sapia.corus.sample.jetty");
     contextBuilder
@@ -154,7 +156,9 @@ import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
       .param("suspendsActive", String.valueOf(stats.getSuspendsActive()))
       .param("suspendsActiveMax", String.valueOf(stats.getSuspendsActiveMax()));
     statusBuilder.context(contextBuilder.build());        
-  }</sapia:code>
+  }
+  
+...</sapia:code>
 				<p>
 					In the above code, the listener creates a <sapia:class>ContextMessagePart</sapia:class> instance, adding status parameters to it. Lastly, the <sapia:class>ContextMessagePart</sapia:class> is added to the status builder that is passed to the method. 
 				</p>
