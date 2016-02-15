@@ -114,12 +114,12 @@ InteropLink.getImpl().addShutdownListener(listener);</sapia:code>
 					In order to publish status information, you must register a <sapia:class>StatusRequestListener</sapia:class>:
 				</p>
 				<sapia:code>import org.sapia.corus.interop.api.InteropLink;
-
-import org.sapia.corus.interop.Status; 
-import org.sapia.corus.interop.api.StatusRequestListener; 
+import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 
 public class MyListener implements StatusRequestListener { 
-  public void onStatus(Status status) {    
+  public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
     ...
   } 
 } 
@@ -129,27 +129,34 @@ InteropLink.getImpl().addStatusRequestListener(listener);</sapia:code>
 		
 				<p>Since listeners are kept as <sapia:class>SoftRerence</sapia:class>s, you must keep a hard reference on them in your code.</p>
 				<p>The listener will be invoked periodically (at the interval at which the process will poll the Corus server). It will be passed a <sapia:class>Status</sapia:class> instance, to which the listener can then add status information, as follows:</p>
-<sapia:code>public void onStatus(Status status) { 
-  Context context = new Context("org.sapia.corus.sample.jetty"); 
-  context.addParam(createParam("dispatched", stats.getDispatched()));
-  context.addParam(createParam("dispatchedActive", stats.getDispatchedActive())); 
-  context.addParam(createParam("dispatchedActiveMax", stats.getDispatchedActiveMax()));
-  context.addParam(createParam("dispatchedTimeMax", stats.getDispatchedTimeMax())); 
-  context.addParam(createParam("dispatchedTimeTotal", stats.getDispatchedTimeTotal())); 
-  context.addParam(createParam("dispatchedTimeMean", stats.getDispatchedTimeMean())); 
-  context.addParam(createParam("requests", stats.getRequests()));
-  context.addParam(createParam("requestsActive", stats.getRequestsActive()));        
-  context.addParam(createParam("requestsActiveMax", stats.getRequestsActiveMax()));        
-  context.addParam(createParam("requestsTimeMax", stats.getRequestTimeMax()));        
-  context.addParam(createParam("requestsTimeMean", stats.getRequestTimeMean())); 
-  context.addParam(createParam("requestsTimeTotal", stats.getRequestTimeTotal())); 
-  context.addParam(createParam("suspends", stats.getSuspends()));        
-  context.addParam(createParam("suspendsActive", stats.getSuspendsActive()));        
-  context.addParam(createParam("suspendsActiveMax", stats.getSuspendsActiveMax())); 
-  status.addContext(context); 
-}</sapia:code>
+<sapia:code>import org.sapia.corus.interop.api.InteropLink;
+import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.ContextMessagePart;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
+
+  public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
+    ContextMessagePart.Builder contextBuilder = factory.newContextBuilder().name("org.sapia.corus.sample.jetty");
+    contextBuilder
+      .param("dispatched", String.valueOf(stats.getDispatched()))
+      .param("dispatchedActive", String.valueOf(stats.getDispatchedActive()))
+      .param("dispatchedActiveMax", String.valueOf(stats.getDispatchedActiveMax()))
+      .param("dispatchedTimeMax", String.valueOf(stats.getDispatchedTimeMax()))
+      .param("dispatchedTimeTotal", String.valueOf(stats.getDispatchedTimeTotal()))
+      .param("dispatchedTimeMean", String.valueOf(stats.getDispatchedTimeMean()))
+      .param("requests", String.valueOf(stats.getRequests()))
+      .param("requestsActive", String.valueOf(stats.getRequestsActive()))
+      .param("requestsActiveMax", String.valueOf(stats.getRequestsActiveMax()))
+      .param("requestsTimeMax", String.valueOf(stats.getRequestTimeMax()))
+      .param("requestsTimeMean", String.valueOf(stats.getRequestTimeMean()))
+      .param("requestsTimeTotal", String.valueOf(stats.getRequestTimeTotal()))
+      .param("suspends", String.valueOf(stats.getSuspends()))
+      .param("suspendsActive", String.valueOf(stats.getSuspendsActive()))
+      .param("suspendsActiveMax", String.valueOf(stats.getSuspendsActiveMax()));
+    statusBuilder.context(contextBuilder.build());        
+  }</sapia:code>
 				<p>
-					In the above code, the listener creates a <sapia:class>Context</sapia:class> instance, adding status parameters to it. Lastly, the <sapia:class>Context</sapia:class> is added to the Status instance that's passed in. 
+					In the above code, the listener creates a <sapia:class>ContextMessagePart</sapia:class> instance, adding status parameters to it. Lastly, the <sapia:class>ContextMessagePart</sapia:class> is added to the status builder that is passed to the method. 
 				</p>
 			</sapia:sect3>
 			<sapia:sect3 title="Hot Config">
@@ -161,11 +168,11 @@ InteropLink.getImpl().addStatusRequestListener(listener);</sapia:code>
 				</p>
 				<sapia:code>public interface ConfigurationChangeListener {
   
-  public void onConfigurationChange(ConfigurationEvent event);
+  public void onConfigurationChange(ConfigurationEventMessageCommand event);
 
 }</sapia:code>
 				<p>
-					A <sapia:class>ConfigurationEvent</sapia:class> encapsulates <sapia:class>Param</sapia:class> objects, each in fact corresponding to a process property that's been either added or removed. The event also has a <sapia:command>getType()</sapia:command> method, indicating  the type of operation (add, update, delete) that caused the event. The return value of the method can be one of the following:
+					A <sapia:class>ConfigurationEventMessageCommand</sapia:class> encapsulates <sapia:class>ParamMessagePart</sapia:class> objects, each in fact corresponding to a process property that's been either added or removed. The event also has a <sapia:command>getType()</sapia:command> method, indicating  the type of operation (add, update, delete) that caused the event. The return value of the method can be one of the following:
 				</p>
 				<ul>
 					<li><tt><b>update</b></tt>: indicates that the property has been added to Corus, or updated.</li>
@@ -175,14 +182,14 @@ InteropLink.getImpl().addStatusRequestListener(listener);</sapia:code>
 					To register your listener, proceed as follows:
 				</p>
 				<sapia:code><![CDATA[ConfigurationChangeListener configListener = new ConfigurationChangeListener() {
-  public void onConfigurationChange(ConfigurationEvent event) {
+  public void onConfigurationChange(ConfigurationEventMessageCommand event) {
     log.debug("Received config change: {}", event.getType());
     
     // get the modified properties as a Map
     Map<String, String> properties = event.toMap()
     
     // or you can also get them as Param objects:
-    for(Param p : event.getParams()) {
+    for(ParamMessagePart p : event.getParams()) {
       if (event.getType().equals(ConfigurationEvent.TYPE_UPDATE)) {
         log.debug("Property {} was added/modified", p.getName());
       } else {
