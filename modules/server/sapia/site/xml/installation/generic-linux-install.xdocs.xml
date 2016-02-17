@@ -1,0 +1,152 @@
+<sapia:page cssPath="../css/sapia.css" title="Generic Linux Installtion" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../index.html"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
+    <sapia:vsection name="In 2 minutes" href="../overview.html"/> 
+    <sapia:vsection name="REST API" href="../rest.html"/>    
+    <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Generic Linux Installation">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="installation" href="../install.html" />
+      <sapia:path name="generic linux installation" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <sapia:note>
+      Corus is preferrably installed using the <a href="https://supermarket.chef.io/cookbooks/corus">Chef cookbook</a>. We're still providing 
+      instructions for manual installation below.
+      </sapia:note>
+    </sapia:sect-desc>
+    
+    <sapia:sect2 title="Preparing the Environment">
+	    <sapia:sect-desc>
+	     <p>There is a bit of preparation to do before actually extracting the Corus package.</p>
+	    </sapia:sect-desc>
+
+      <sapia:sect3 title="Java">
+	      <p>
+	        Before installing Corus you need to have Java installed on your machine. Corus requires at least Java 7. Also, Corus requires 
+	        the presence of the <tt>$JAVA_HOME</tt> environment variable that points to the Java runtime you want to use (JRE or JDK).
+	      </p>
+      
+      </sapia:sect3>    
+      
+      <sapia:sect3 title="Corus User">
+        <p>
+        Since Corus is mainly a background process, we strongly suggest that the Corus server be installed and executed with the privileges of a restricted user.
+        Using the <tt>useradd</tt>, create a new system user named <tt>corus</tt>:
+        </p>
+        <sapia:code>sudo useradd corus</sapia:code>
+        
+        <p>
+        Using the groupadd command, create a group to which the corus user will belong (or you may simply prefer to associate the corus user to an already existing group). 
+        For example, creating an <tt>ops</tt> groups:
+        </p>
+        <sapia:code>sudo groupadd ops</sapia:code>
+      
+        <p>
+        Associate the <tt>corus</tt> user to the group:
+        </p>
+        <sapia:code>sudo usermod -G ops corus</sapia:code>  
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Installation Directory">
+        <p>
+        Next, you need to create a directory on your system in which you will install Corus. For example:
+        </p>
+        <sapia:code>sudo mkdir /opt/corus</sapia:code>
+      </sapia:sect3>
+      
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Extract the Corus Package">
+      <p>
+        Extract the Corus distribution file into the Corus installation directory created above (adjust the Corus version number to match yours):
+      </p>
+      <sapia:code>sudo tar --directory=/opt/corus -xvf sapia_corus_server_package-5.0-linux64.tar.gz</sapia:code>
+      
+      <p>
+        You should now have the <code>/opt/corus/sapia_corus_server_package-5.0</code> directory. A good practice is to create a <tt>current</tt> symlink, and point
+        it to the newly created directory:
+      </p>
+      <sapia:code>sudo ln -s /opt/corus/sapia_corus_server_package-5.0-linux64 /opt/corus/current</sapia:code>
+    
+      <p>
+        Make sure you assign the ownership to the <tt>corus</tt> user:
+      </p>
+      <sapia:code>chown -R corus /opt/corus/current </sapia:code>
+    </sapia:sect2>
+
+    <sapia:sect2 title="Configure the Environment">
+      <p>
+        Corus requires a <tt>CORUS_HOME</tt> environment variable, which should point to the installation directory. 
+        You must also add the <tt>bin</tt> directory under <tt>CORUS_HOME</tt> to the <tt>PATH</tt> environment variable. A good practice on Linux
+        is to do all of this in a shell script (say, <tt>corus.sh</tt>) that you put under <tt>/etc/profile.d</tt>). The <tt>corus.sh</tt> script would 
+        contain the following:
+      </p>
+      <sapia:code>export CORUS_HOME=/opt/corus/current
+export PATH=$CORUS_HOME/bin:$PATH</sapia:code>
+    
+      <p>With the above setup, you should be able to run Corus manually, by simply typing <tt>corus</tt> in the terminal.</p>
+   
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Configure Discovery">
+      <p>Corus uses IP multicast for cluster discovery by default. But that method can be faulty (multicast might not be allowed in your network, or configured to
+      go through routers), and it is typically not available in the cloud.</p>
+      
+      <p>Corus supports TCP-based discovery: the different supported mechanisms (and their respective configuration) is explained in the <a href="../guide/discovery.html">Discovery</a>
+      section. Please consult that section for the details.</p>
+    
+    </sapia:sect2>
+      
+    <sapia:sect2 title="Running as a Daemon">
+      <p>
+       A script is available to register Corus as a system service. It is found under the following path: <tt>$CORUS_HOME/bin/corus.init.d-nowrapper</tt>
+       and copy it under the  <tt>/etc/init.d</tt> directory and name it <tt>corus</tt>:
+      </p>
+      <sapia:code>sudo cp $CORUS_HOME/current/bin/corus.init.d-nowrapper /etc/init.d/corus</sapia:code>
+      
+      <p>The use your editor (vi, vim, etc.) to set the <tt>JAVA_HOME</tt>, <tt>CORUS_HOME</tt> and <tt>CORUS_GROUP</tt> variables 
+      (set the group to the one to which you've assigned the <tt>corus</tt> user).</p>
+    </sapia:sect2> 
+    
+    <sapia:sect2 title="Register with the Run Levels">
+      <p>
+        This part of the procedure may vary according to the Linux flavor you're using. We're describing the steps for RedHat flavors (RedHat, Centos, Fedora).
+      </p>
+      <p>Execute the <tt>chkconfig</tt> command:</p>
+      
+      <sapia:code>sudo chkconfig --add /etc/init.d/corus</sapia:code>
+      
+      <p>You can validate the run level registration as follows:</p>
+      
+      <sapia:code>sudo chkconfig --list | grep corus
+corus 0:off 1:off 2:on 3:on 4:on 5:on 6:off</sapia:code>
+      
+      <p>
+      As you can see upon installation, the Corus service is not running. You can start it using the <tt>service</tt> command, as follows:
+      </p>
+      
+      <sapia:code>sudo service corus start</sapia:code>
+    
+      <p>Once you start the Corus service, you can validate its proper execution by looking at the Corus log files under the <tt>$CORUS_HOME/logs</tt>
+        directory.</p>
+        
+      <p>You can also start the Corus CLI (Command Line Interface) to connect to the server. Simply type <tt>coruscli</tt> in a terminal window: 
+      this will connect you to the Corus instance running locally.</p>
+      
+     </sapia:sect2> 
+  </sapia:sect1>
+</sapia:page>
