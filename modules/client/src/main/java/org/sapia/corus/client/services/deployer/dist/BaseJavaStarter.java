@@ -48,6 +48,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected List<XOption>   xoptions          = new ArrayList<XOption>();
   private List<Dependency>  dependencies      = new ArrayList<Dependency>();
   private boolean           interopEnabled    = true;
+  private boolean           numaEnabled       = true;
   private InteropWireFormat interopWireFormat = InteropWireFormat.PROTOBUF;
 
   /**
@@ -58,6 +59,18 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    */
   public void setCorusHome(String home) {
     corusHome = home;
+  }
+
+  /**
+   * @param numaEnabled if <code>ttue</code>, indicates that NUMA is enabled for process corresponding to this instance.
+   */
+  public void setNumaEnabled(boolean numaEnabled) {
+    this.numaEnabled = numaEnabled;
+  }
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return numaEnabled;
   }
   
   /**

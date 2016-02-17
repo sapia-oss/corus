@@ -106,23 +106,23 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     }
 
     // Assign numa options
-    try {
-      if (numaModule.isEnabled()) {
-        int numaNodeId = numaModule.getNextNumaNode();
-        process.setNumaNode(numaNodeId);
-        ctx.info(String.format("Binding process to numa node %s with policy setting: cpuBind=%s memoryBind=%s",
-            String.valueOf(numaNodeId), String.valueOf(numaModule.isBindingCpu()), String.valueOf(numaModule.isBindingMemory())));
-
-        NumaProcessOptions.appendProcessOptions(
-            numaNodeId,
-            numaModule.isBindingCpu(),
-            numaModule.isBindingMemory(),
-            process.getNativeProcessOptions());
+    if (conf.isNumaEnabled(env) && numaModule.isEnabled()) {
+      try {
+          int numaNodeId = numaModule.getNextNumaNode();
+          process.setNumaNode(numaNodeId);
+          ctx.info(String.format("Binding process to numa node %s with policy setting: cpuBind=%s memoryBind=%s",
+              String.valueOf(numaNodeId), String.valueOf(numaModule.isBindingCpu()), String.valueOf(numaModule.isBindingMemory())));
+  
+          NumaProcessOptions.appendProcessOptions(
+              numaNodeId,
+              numaModule.isBindingCpu(),
+              numaModule.isBindingMemory(),
+              process.getNativeProcessOptions());
+      } catch (Exception e) {
+        process.releasePorts(ports);
+        ctx.error(e);
+        return false;
       }
-    } catch (Exception e) {
-      process.releasePorts(ports);
-      ctx.error(e);
-      return false;
     }
 
     OptionalValue<StarterResult> startResult;
@@ -130,7 +130,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       startResult = conf.toCmdLine(env);
     } catch (Exception e) {
       process.releasePorts(ports);
-      ctx.error("Error assinging numa binding", e);
+      ctx.error(e);
       return false;
     }
 

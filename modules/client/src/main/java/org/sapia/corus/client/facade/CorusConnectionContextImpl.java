@@ -204,6 +204,7 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       otherHosts.clear();
       cachedStubs.clear();
       modules.clear();
+      CurrentAuditInfo.unset();
 
       ClusterManager mgr = (ClusterManager) corus.lookup(ClusterManager.ROLE);
       for (CorusHost host : mgr.getHosts()) {

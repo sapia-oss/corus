@@ -9,7 +9,6 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
-import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
@@ -343,11 +342,8 @@ public class SpotifyDockerFacade implements DockerFacade, Interceptor {
     synchronized (lock) {
       if (dockerClient == null) {
         log.info("Creating new docker client with configuration:"
-            + "\n\temail=" + ToStringUtil.abbreviate(email.getValue(), email.getValue().length(), 1, 4)
-            + "\n\tusername=" + ToStringUtil.abbreviate(username.getValue(), username.getValue().length(), 1, 1) 
             + "\n\tregistryServer=" + serverAddress.getValue()
-            + "\n\tdaemonUri=" + daemonUrl.getValue()
-            + "\n\tcertificatesPath=" + certificatesPath.getValue());
+            + "\n\tdaemonUri=" + daemonUrl.getValue());
 
         AuthConfig auth = AuthConfig.builder()
             .email(email.getValueNotNull())

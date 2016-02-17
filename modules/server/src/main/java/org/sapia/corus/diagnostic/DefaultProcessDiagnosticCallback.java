@@ -43,7 +43,7 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
       ProcessConfigDiagnosticEvaluationContext context, Process toDiagnose) {
     List<ProcessDiagnosticResult> results = new ArrayList<ProcessDiagnosticResult>();
     try {
-      if (log.isInfoEnabled()) log.info("Performing diagnostic acquisition for process " + toDiagnose);
+      if (log.isDebugEnabled()) log.debug("Performing diagnostic acquisition for process " + toDiagnose);
       if (context.getLockOwner().isSet()) {
         toDiagnose.getLock().acquire(context.getLockOwner().get());
       } else {

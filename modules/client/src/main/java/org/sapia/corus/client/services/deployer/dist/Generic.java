@@ -34,7 +34,17 @@ public class Generic implements Starter, Serializable, ObjectCreationCallback {
   private List<Dependency>   dependencies   = new ArrayList<Dependency>();
   private List<CmdGenerator> args           = new ArrayList<CmdGenerator>();
   private boolean            interopEnabled = true;
+  private boolean            numaEnabled    = true;
   
+  public void setNumaEnabled(boolean numaEnabled) {
+    this.numaEnabled = numaEnabled;
+  }
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return numaEnabled;
+  }
+
   @Override
   public void setProfile(String profile) {
     this.profile = profile;

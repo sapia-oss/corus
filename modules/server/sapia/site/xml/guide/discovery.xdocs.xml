@@ -45,7 +45,7 @@
 					If your network does not support IP multicast, then you may use <a href="http://avis.sourceforge.net/">Avis</a> as a discovery mechanism. This means you must setup an Avis router (or multiple federated ones), and configure your Corus instances as clients of this router (here, "message broker" can be used as a synonym for "router").
 				</p>
 				<p>
-					The properties you have to configure to enable Avis-based discovery are the following:
+					The properties you have to configure to enable Avis-based discovery are the following (in <tt>$CORUS_HOME/config/corus.properties</tt>):
 				</p>
 				<sapia:code><![CDATA[ubik.rmi.naming.broadcast.provider=ubik.rmi.naming.broadcast.avis
 ubik.rmi.naming.broadcast.avis.url=elvin://<host>:<port>]]></sapia:code>

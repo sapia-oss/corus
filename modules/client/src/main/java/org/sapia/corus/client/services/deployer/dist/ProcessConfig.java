@@ -19,7 +19,6 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
-import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
 import org.sapia.ubik.util.Collects;
 import org.sapia.util.xml.confix.ConfigurationException;
 import org.sapia.util.xml.confix.ObjectCreationCallback;
@@ -402,6 +401,13 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
     }
 
     return OptionalValue.of(st.toCmdLine(env));
+  }
+  
+  /**
+   * @return <code>true</code> if NUMA support is enabled for the process to be started.
+   */
+  public boolean isNumaEnabled(Env env) {
+    return findFor(env.getProfile()).isNumaEnabled();
   }
 
   /**
