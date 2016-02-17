@@ -11,7 +11,7 @@
 	 	<sapia:vsection name="REST API" href="rest.html"/>    
 	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
-    <sapia:vsection name="Chef Cookbook" href="https://supermarket.chef.io/cookbooks/corus"/>        
+    <sapia:vsection name="Chef Cookbook" href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus"/>        
     
   </sapia:vmenu>
   
@@ -26,7 +26,8 @@
     <sapia:sect-desc>
       <sapia:note>
       	<p>The latest Corus packages are uploaded to <a href="https://www.mediafire.com/folder/v55q0gaqvvbda/corus">Mediafire</a>. You can also
-      	install Corus with Chef, using the <a href="https://supermarket.chef.io/cookbooks/corus">cookbook</a> developed to that end.</p>
+      	install Corus with Chef, using the <a href="https://supermarket.chef.io/cookbooks/corus">cookbook</a> developed to that end (see the 
+      	<a href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus">relevant documentation</a> for the details).</p>
       </sapia:note>
      
       <p>

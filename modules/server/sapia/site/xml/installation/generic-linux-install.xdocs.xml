@@ -24,8 +24,9 @@
     
     <sapia:sect-desc>
       <sapia:note>
-      Corus is preferrably installed using the <a href="https://supermarket.chef.io/cookbooks/corus">Chef cookbook</a>. We're still providing 
-      instructions for manual installation below.
+      Corus is preferrably installed using the <a href="https://supermarket.chef.io/cookbooks/corus">Chef cookbook</a> (there is 
+      <a href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus">exhaustive documentation</a> for the cookbook). 
+      We're still providing instructions for manual installation below.
       </sapia:note>
     </sapia:sect-desc>
     
@@ -111,7 +112,7 @@ export PATH=$CORUS_HOME/bin:$PATH</sapia:code>
     
     </sapia:sect2>
       
-    <sapia:sect2 title="Running as a Daemon">
+    <sapia:sect2 title="Run as a Daemon">
       <p>
        A script is available to register Corus as a system service. It is found under the following path: <tt>$CORUS_HOME/bin/corus.init.d-nowrapper</tt>
        and copy it under the  <tt>/etc/init.d</tt> directory and name it <tt>corus</tt>:
