@@ -9,7 +9,7 @@
   	<sapia:vsection name="REST API" href="../rest.html"/>
     <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
     <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
-    
+    <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
   </sapia:vmenu>
   
   <sapia:sect1 title="The Corus Guide">
@@ -70,6 +70,11 @@
       			Describes how the distribution and process abstraction in Corus is adapted to the management of Docker containers. Also documents how Corus' peer-to-peer achitecture can be leveraged to eliminate dependency on the Docker registry as a single point of failure.
       		</td>
       	</tr>    	
+        
+        <tr>
+            <td><a href="numa_integration.html">NUMA integration</a></td>
+            <td>Explains how Corus can improve performance of processes on servers supporting the NUMA hardware architecture.</td>
+        </tr>
       	
       	<tr>
       		<td><a href="closer_look_at_the_cli.html">A Closer Look at the CLI</a></td>
