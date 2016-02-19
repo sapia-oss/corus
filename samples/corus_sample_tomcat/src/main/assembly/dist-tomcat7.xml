@@ -1,5 +1,5 @@
 <assembly>
-  <id>dist</id>
+  <id>dist-tomcat7</id>
   <formats>
     <format>zip</format>
   </formats>
@@ -36,7 +36,7 @@
     
     <fileSet>
        <outputDirectory>/conf</outputDirectory>    
-       <directory>${basedir}/conf/</directory>
+       <directory>${basedir}/conf-tomcat7/</directory>
        <includes>
           <include>*.*</include>
        </includes>
@@ -64,7 +64,7 @@
        <outputDirectory>/META-INF/scripts</outputDirectory>
        <directory>${basedir}/scripts</directory>
        <includes>
-          <include>pre-deploy.corus</include>
+          <include>*.corus</include>
        </includes>
     </fileSet>
 

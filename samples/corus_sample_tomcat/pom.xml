@@ -49,14 +49,26 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>make-dist</id>
+            <id>make-dist-tomcat7</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
             <configuration>
               <descriptors>
-                <descriptor>src/main/assembly/dist.xml</descriptor>
+                <descriptor>src/main/assembly/dist-tomcat7.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>make-dist-tomcat8</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/dist-tomcat8.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>
