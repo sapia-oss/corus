@@ -25,9 +25,10 @@
     <sapia:sect-desc>
       <p>
         Starting with release 5, Corus supports integration with the <a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access">NUMA</a> hardware architecture. 
-        NUMA, which stands for "Non Uniform Memory Access", is a design of computer memory on multiprocessor computers which consists of segmenting memory slots into 
-        colocated nodes, in order to provide local access to CPU cores. This local affinity of CPU with memory reduces the latency involved in accessing it, and may
-        provide a significant increase for memory-bound applications (although each application should be tested, and no wide-ranging positive impact can be assumed).
+        NUMA, which stands for "Non Uniform Memory Access", is a design of computer memory on multiprocessor computers consisting of segmenting memory slots into 
+        colocated nodes, in order to provide local access to CPU cores. This "local affinity" is meant to reduce the latency involved in accessing memory, 
+        and may provide a significant performance increase for memory-bound applications (although each application should be tested, and no wide-ranging 
+        assumptions should be made).
       </p>
       <p>
         Here are the highlights of the NUMA integration:
@@ -49,29 +50,31 @@
     	<p>
           NUMA integration is provided in Corus via the <tt>numactl</tt> command on Linux to manage process policies. When
           this feature is enabled, Corus will start assigning each executed process to the next available NUMA node. The assignment 
-          algorithm follows a very simple round-robbin strategy in order to load balance the processes on all the nodes available
+          algorithm follows a simple round-robbin strategy in order to load balance the processes on all the nodes available
           on the machine.
     	</p>
         <sapia:note>
-          The current interation can only assign a single NUMA node for each running process.
+          The current interation can only assign a single NUMA node for each running process (that is: one process will be "pinned" to
+          a single node).
         </sapia:note>
     </sapia:sect2>
     
     
     <sapia:sect2 title="Node Assignment">
       <p>
-        The main functionnality of the NUMA integration is the ability for Corus to perform processor and memory assignation of
-        running processes. The assignation is performed in a way to evenly distribute the processes over the available NUMA nodes. This
-        load-balancing strategy is made dynamically upon execution of new processes, thus ensuring a deterministic behavior during
-        the lifespan of a Corus sevrer runtime.   
+        The main functionality if Corus' NUMA integration consists dynamic assignment of memory and CPU core, at process startup. 
+        Assignment follows a round-robbin strategy in order to evenly distribute the processes over the available NUMA nodes: Corus
+        keeps track of which nodes processes are currently assigned to, and is thus able to determine the node to which the next started
+        process should be pinned.   
       </p>
       
       <sapia:note>
-        The usage of the JVM argument <tt>-XX:+UseNUMA</tt> conflicts with the current Corus/NUMA integration as the JVM is overriding
-        any policies that could be applied by the <tt>numactl</tt> command. The JVM argument will create segment of memory to spread
-        memory accros the NUMA nodes and it will also trigger special GC behavior to minimize cross-node communication. The
+        Usage of the <tt>-XX:+UseNUMA</tt> JVM argument conflicts with the current Corus/NUMA integration as the JVM is overriding
+        any policies that could be applied by the <tt>numactl</tt> command. The JVM argument will cause the creation of a memory segment 
+        that will spread accross NUMA nodes. It will also trigger special GC behavior to minimize cross-node communication. The
         <tt>numactl</tt> command allows for the assignment of processes to a single NUMA node, thus eliminating any cross-node communication and
-        leveraging the optimal performance of the host server.<b>Use the best option that applies to you use case, but don't use both</b>.
+        maximizing the performance obtained from the host machine. It is recommended that you test your application with both options, and 
+        <b>use the best option for your use-case, not both</b>.
       </sapia:note>
       
       <p>
@@ -84,7 +87,7 @@
       
       <sapia:sect3 title="Automatic Node Discovery">
         <p>
-          Corus provides an automatic discovery mechanism which detects, on startup, the available NUMA nodes on the host. This 
+          Corus provides an automatic discovery mechanism that detects, on startup, the available NUMA nodes on the host. This 
           behavior is activated by the <tt>corus.server.numa.auto-detection.enabled</tt> configuration property. In this mode (which is the default) 
           you have nothing more to do: Corus will automatically pin started processes over the available NUMA nodes.
         </p>
@@ -92,7 +95,7 @@
       
       <sapia:sect3 title="Manual Node Definition">
         <p>
-          For advanced use-cases, Corus supports resticting the NUMA nodes on to load-balance running
+          For advanced use-cases, Corus supports resticting the NUMA nodes on which to load-balance running
           processes. The <tt>corus.server.numa.first.node.id</tt> property defines the lower bound of the NUMA node range to use. 
           By the same token, the <tt>corus.server.numa.node.count</tt> property is also available to define the
           total number of NUMA nodes managed by Corus. These properties dictate the range within which Corus will pin processes to NUMA nodes. 
@@ -104,7 +107,7 @@
 
     <sapia:sect2 title="Viewing Node Assignment">
       <p>
-        As described above, Corus will assign new processes to NUMA nodes. It two ways to visualize such assignements:
+        As described above, Corus will assign new processes to NUMA nodes. It offers two ways to visualize such assignements:
         <ul>
           <li>The <b><tt>ps</tt></b> command of the Corus CLI now provides a <b><tt>-numa</tt></b> option that will list the NUMA node identifier assigned to each process.</li>
           <li>The same information is also available through the <a href="../rest/core.html">REST API</a> using the <tt>get processes</tt> request.</li>
@@ -115,8 +118,9 @@
     
     <sapia:sect2 title="Configuration">
    		<p>
-   			The behavior of the NUMA integration in Corus is determined by configuration properties in the <tt>corus.properties</tt> file (found under <tt>$CORUS_HOME/config</tt>). The following
-   			table lists these properties and provides a description for each:
+   			As partially explained previously, the behavior of the NUMA integration in Corus is determined by configuration properties 
+            in the <tt>corus.properties</tt> file (found under <tt>$CORUS_HOME/config</tt>). The following table lists these properties 
+            and provides a description for each:
    		</p>
       
       <sapia:table>
