@@ -26,7 +26,7 @@
     <sapia:sect2 title="Highlights">
       <ul style="color: black; font-size: 16px; list-style: square outside none;" >
         <li>
-          Scale <a href="guide/java_processes.html">JVM-based</a> or <a href="guide/docker_integration.html">container-based</a> applications as is, without conforming to a complex programming model.
+          Scale <a href="guide/java_processes.html">JVM-based</a> or <a href="guide/docker_integration.html">Docker-based</a> applications as is, without conforming to a complex programming model.
         </li>
         <li>
           Centrally manage distributed JVMs/containers on commodity hardware, using 
