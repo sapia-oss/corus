@@ -1,4 +1,4 @@
-<sapia:page cssPath="../css/sapia.css" title="Generic Linux Installtion" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+<sapia:page cssPath="../css/sapia.css" title="Generic Linux Installation" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
 
   <head>
     <link rel="stylesheet" href="css/corus.css" type="text/css"/>
@@ -19,7 +19,7 @@
       <sapia:path name="projects" />
       <sapia:path name="corus" href="../home.html" />
       <sapia:path name="installation" href="../install.html" />
-      <sapia:path name="generic linux installation" />
+      <sapia:path name="linux" />
     </sapia:section>
     
     <sapia:sect-desc>
@@ -73,7 +73,7 @@
     
     <sapia:sect2 title="Extract the Corus Package">
       <p>
-        Extract the Corus distribution file into the Corus installation directory created above (adjust the Corus version number to match yours):
+        Extract the Corus package tarball into the Corus installation directory created above (adjust the Corus version number to match yours):
       </p>
       <sapia:code>sudo tar --directory=/opt/corus -xvf sapia_corus_server_package-5.0-linux64.tar.gz</sapia:code>
       

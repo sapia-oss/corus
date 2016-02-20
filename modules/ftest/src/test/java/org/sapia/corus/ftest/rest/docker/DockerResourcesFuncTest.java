@@ -103,7 +103,7 @@ public class DockerResourcesFuncTest {
     waitPulled(CHECK_TIMEOUT, CHECK_INTERVAL, client.getHostCount());
     
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -125,7 +125,7 @@ public class DockerResourcesFuncTest {
     waitPulled(CHECK_TIMEOUT, CHECK_INTERVAL, client.getHostCount());
     
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -148,7 +148,7 @@ public class DockerResourcesFuncTest {
     waitPulled(CHECK_TIMEOUT, CHECK_INTERVAL, client.getHostCount());
   
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-      .queryParam("f", MEMCACHED)
+      .queryParam("n", MEMCACHED)
       .request()
         .accept(MediaType.APPLICATION_JSON)
         .get(JSONValue.class)
@@ -163,7 +163,7 @@ public class DockerResourcesFuncTest {
     consumeProgress(client.getConnector().getDockerManagementFacade().pullImage(MEMCACHED, ClusterInfo.clustered()), true);
     
     JSONValue response = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED_ENCODED)
+        .queryParam("n", MEMCACHED_ENCODED)
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
           .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
@@ -174,7 +174,7 @@ public class DockerResourcesFuncTest {
     waitRemoved(CHECK_TIMEOUT, CHECK_INTERVAL, 0);
     
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -217,7 +217,7 @@ public class DockerResourcesFuncTest {
     waitPulled(CHECK_TIMEOUT, CHECK_INTERVAL, 1);
     
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -239,7 +239,7 @@ public class DockerResourcesFuncTest {
     waitPulled(CHECK_TIMEOUT, CHECK_INTERVAL, 1);
     
     JSONArray images = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -253,7 +253,7 @@ public class DockerResourcesFuncTest {
     consumeProgress(client.getConnector().getDockerManagementFacade().pullImage(MEMCACHED, ClusterInfo.clustered()), true);
     
     JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral()  + "/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
           .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
@@ -264,7 +264,7 @@ public class DockerResourcesFuncTest {
     waitRemoved(CHECK_TIMEOUT, CHECK_INTERVAL, client.getHostCount() - 1);
     
     JSONArray dists = client.resource("/clusters/ftest/docker/images")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .accept(MediaType.APPLICATION_JSON)
           .get(JSONValue.class)
@@ -278,7 +278,7 @@ public class DockerResourcesFuncTest {
     consumeProgress(client.getConnector().getDockerManagementFacade().pullImage(MEMCACHED, clustered), true);
 
     Response  response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral()  + "/docker/images/[mini/memcached:latest]/payload")
-        .queryParam("f", MEMCACHED)
+        .queryParam("n", MEMCACHED)
         .request()
           .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
           .header(FtestClient.HEADER_APP_KEY, client.getAppkey())

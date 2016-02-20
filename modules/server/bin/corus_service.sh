@@ -26,11 +26,11 @@ fi
 
 # Application
 APP_NAME="corus_service"
-APP_LONG_NAME="Sapia Corus Server"
+APP_LONG_NAME="Corus"
 
 # Wrapper
 WRAPPER_CMD="$CORUS_HOME/bin/wrapper"
-WRAPPER_CONF="$CORUS_HOME/config/corus_service.wrapper.properties"
+WRAPPER_CONF="$CORUS_HOME/config/corus_service_base.wrapper.properties"
 
 # Process second argument (used to specify specific corus server port)
 if [ -n "${2}" ]
