@@ -68,6 +68,7 @@ import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Pause;
 import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -216,7 +217,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       log.warn("Automatic startup of processes at boot time is disabled for this node");
     }
 
-    ProcessCheckTask check = new ProcessCheckTask();
+    ProcessCheckTask check = new ProcessCheckTask(new Pause(configuration.getProcessDiagnosticCheckIntervalMillis()));
     taskman.executeBackground(check, null,
         BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getProcessCheckIntervalMillis()));
 

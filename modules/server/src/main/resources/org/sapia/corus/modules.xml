@@ -192,6 +192,7 @@
     scope="singleton" 
     class="org.sapia.corus.processor.ProcessorConfigurationImpl">
     <property name="processCheckInterval" value="${corus.process.check-interval}" />
+    <property name="processDiagnosticCheckInterval" value="${corus.process.check-diagnostic-interval}" />
     <property name="killInterval"         value="${corus.process.kill-interval}" />
     <property name="startInterval"        value="${corus.process.start-interval}" />
     <property name="restartInterval"      value="${corus.process.restart-interval}" />

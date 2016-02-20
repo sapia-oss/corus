@@ -22,6 +22,12 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   public static final int DEFAULT_CHECK_INTERVAL = 15;
 
   /**
+   * This constant specifies the default interval (in seconds) at which process
+   * diagnostic is done as part of process health check.
+   */
+  public static final int DEFAULT_DIAGNOSTIC_CHECK_INTERVAL = 30;
+  
+  /**
    * This constant specifies the default interval (in seconds) at which kill
    * attempts occur.
    */
@@ -50,6 +56,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   
   private int processTimeout = DEFAULT_PROCESS_TIMEOUT;
   private int processCheckInterval = DEFAULT_CHECK_INTERVAL;
+  private int processDiagnosticCheckInterval = DEFAULT_DIAGNOSTIC_CHECK_INTERVAL;
   private int killInterval = DEFAULT_KILL_INTERVAL;
   private int startInterval = DEFAULT_START_INTERVAL;
   private int restartInterval = DEFAULT_RESTART_INTERVAL;
@@ -59,6 +66,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   private boolean bootExecEnabled = true;
   private boolean autoRestart = true;
 
+  @Override
   public long getProcessTimeoutMillis() {
     return TimeUnit.SECONDS.toMillis(processTimeout);
   }
@@ -74,7 +82,21 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
   public void setProcessCheckInterval(int processCheckInterval) {
     this.processCheckInterval = processCheckInterval;
   }
+  
+  @Override
+  public long getProcessDiagnosticCheckIntervalMillis() {
+    return TimeUnit.SECONDS.toMillis(processDiagnosticCheckInterval);
+  }
+  
+  public int getProcessDiagnosticCheckInterval() {
+    return processDiagnosticCheckInterval;
+  }
+  
+  public void setProcessDiagnosticCheckInterval(int processDiagnosticCheckInterval) {
+    this.processDiagnosticCheckInterval = processDiagnosticCheckInterval;
+  }
 
+  @Override
   public long getProcessCheckIntervalMillis() {
     return TimeUnit.SECONDS.toMillis(processCheckInterval);
   }
@@ -83,6 +105,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
     return killInterval;
   }
 
+  @Override
   public long getKillIntervalMillis() {
     return TimeUnit.SECONDS.toMillis(killInterval);
   }
@@ -95,6 +118,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
     return startInterval;
   }
 
+  @Override
   public long getStartIntervalMillis() {
     return TimeUnit.SECONDS.toMillis(startInterval);
   }
@@ -107,6 +131,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
     return restartInterval;
   }
 
+  @Override
   public long getRestartIntervalMillis() {
     return TimeUnit.SECONDS.toMillis(restartInterval);
   }
@@ -119,6 +144,7 @@ public class ProcessorConfigurationImpl implements ProcessorConfiguration {
     return bootExecDelay;
   }
 
+  @Override
   public long getBootExecDelayMillis() {
     return TimeUnit.SECONDS.toMillis(bootExecDelay);
   }

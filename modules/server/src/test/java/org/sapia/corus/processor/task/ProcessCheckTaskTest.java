@@ -29,6 +29,8 @@ import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
+import org.sapia.ubik.util.Pause;
+import org.sapia.ubik.util.SysClock.MutableClock;
 
 /**
  * @author Yanick Duchesne
@@ -36,6 +38,8 @@ import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessCheckTaskTest extends TestBaseTask {
 
+  private MutableClock clock = new MutableClock();
+  
   @Mock
   private OsModule os;
   
@@ -70,7 +74,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -94,7 +98,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -118,7 +122,8 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
+    clock.increaseCurrentTimeMillis(30001);
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -141,7 +146,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -160,7 +165,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
 
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     assertTrue(
@@ -183,7 +188,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
 
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     assertTrue(
