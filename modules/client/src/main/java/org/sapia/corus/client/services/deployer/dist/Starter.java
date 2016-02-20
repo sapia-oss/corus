@@ -31,6 +31,10 @@ public interface Starter {
    */
   public List<Dependency> getDependencies();
   
+  /**
+   * @return <code>true</code> if NUMA support is enabled.
+   */
+  public boolean isNumaEnabled();
 
   /**
    * @param env

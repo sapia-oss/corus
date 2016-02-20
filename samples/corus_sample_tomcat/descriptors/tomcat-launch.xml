@@ -2,6 +2,11 @@
 
 <magnet xmlns="http://schemas.sapia-oss.org/magnet/" name="Tomcat" description="Tomcat 7 Server">
 
+    <script type="bsh" isAbortingOnError="true">
+        File tmpDir = new File(System.getProperty("catalina.base")+"/"+System.getProperty("corus.process.port.tomcat.http")+"/temp");
+        tmpDir.mkdirs();
+    </script>
+    
     <!-- Parameters -->
     <parameters>
         <!-- Tomcat specific configuration (catalina.home is set in the corus.xml)-->

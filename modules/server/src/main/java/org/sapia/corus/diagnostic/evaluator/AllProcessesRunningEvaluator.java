@@ -23,8 +23,8 @@ public class AllProcessesRunningEvaluator implements ProcessConfigDiagnosticEval
       context.getResultsBuilder().results(context.getDiagnosticCallback().invoke(context, p));
     }
     String processConfigInfo = ToStringUtil.toString(context.getDistribution(), context.getProcessConfig());
-    if (context.getLog().isInfoEnabled()) {
-      context.getLog().info(String.format(
+    if (context.getLog().isDebugEnabled()) {
+      context.getLog().debug(String.format(
           "Found %s process(es) for %s (expected %s) - all processes are found running", 
           context.getProcesses().size(), processConfigInfo , context.getExpectedInstanceCount())
       );

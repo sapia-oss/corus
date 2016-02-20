@@ -39,12 +39,12 @@
         <li>
           Conditionally start processes on subset of hosts, through <a href="guide/tagging.html">tagging</a>.
         </li>
+        <li>
+          Benefit from native <a href="guide/numa_integration.html">NUMA integration</a> for memory-bound
+          applications.
+        </li>
 	      <li>
-	        Minimize deployment time, and thus downtime, leveraging Corus' graceful deployment characteristics.
-	      </li>
-	      <li>
-	        Install on OS of choice (Corus has been deployed and tested on 
-	        multiple Linux/Unix distributions: Ubuntu, CentOS, Solaris, etc.).
+	        Minimize deployment time and downtime by leveraging Corus' graceful deployment characteristics.
 	      </li>
 	    </ul>
 	  </sapia:sect2>

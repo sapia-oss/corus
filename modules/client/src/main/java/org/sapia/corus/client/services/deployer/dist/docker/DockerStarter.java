@@ -86,6 +86,12 @@ public class DockerStarter implements Starter, Serializable {
   private List<DockerVolumeMapping> volumeMappings = new ArrayList<DockerVolumeMapping>();
   private DockerEnv                 environment    = new DockerEnv();
 
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return false;
+  }
+  
   @Override
   public void setProfile(String profile) {
     this.profile = profile;

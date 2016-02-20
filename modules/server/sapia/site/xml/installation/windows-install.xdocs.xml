@@ -1,0 +1,192 @@
+<sapia:page cssPath="../css/sapia.css" title="Windows Installation"
+	xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+	<head>
+		<link rel="stylesheet" href="css/corus.css" type="text/css" />
+	</head>
+
+	<sapia:vmenu>
+		<sapia:vsection name="Corus Home" href="../index.html" />
+		<sapia:vsection name="Corus Guide" href="../guide/index.html" />
+		<sapia:vsection name="In 2 minutes" href="../overview.html" />
+		<sapia:vsection name="REST API" href="../rest.html" />
+		<sapia:vsection name="Docker" href="../guide/docker_integration.html" />
+		<sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html" />
+	</sapia:vmenu>
+
+	<sapia:sect1 title="Windows Installation">
+		<sapia:section>
+			<sapia:path name="home" href="../../../home.html" />
+			<sapia:path name="projects" />
+			<sapia:path name="corus" href="../home.html" />
+			<sapia:path name="installation" href="../install.html" />
+			<sapia:path name="windows" />
+		</sapia:section>
+
+		<sapia:sect-desc>
+			<sapia:note>
+				Corus is preferrably installed using the
+				<a href="https://supermarket.chef.io/cookbooks/corus">Chef cookbook</a>
+				(there is
+				<a
+					href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus">exhaustive documentation</a>
+				for the cookbook).
+				We're still providing instructions for manual installation below.
+			</sapia:note>
+		</sapia:sect-desc>
+
+		<sapia:sect2 title="Preparing the Environment">
+			<sapia:sect-desc>
+				<p>There is a bit of preparation to do before actually extracting
+					the Corus package.</p>
+			</sapia:sect-desc>
+
+			<sapia:sect3 title="Java">
+				<p>
+					Before installing Corus you need to have Java installed on your
+					machine. Corus requires at least Java 7. Also, Corus requires
+					the presence of the
+					<tt>$JAVA_HOME</tt>
+					environment variable that points to the Java runtime you want to
+					use (JRE or JDK).
+				</p>
+
+			</sapia:sect3>
+
+			<sapia:sect3 title="Installation Directory">
+				<p>
+					You need to create a directory on your system in which you will
+					install Corus (that directory must contain
+					<b>NO SPACE</b>
+					in its path).
+					For the purpose of this demonstration, we create the
+					<tt>C:\opt\corus</tt>
+					directory.
+				</p>
+			</sapia:sect3>
+
+		</sapia:sect2>
+
+		<sapia:sect2 title="Extract the Corus Package">
+			<p>
+				Extract the Corus package .zip file into the Corus installation
+				directory created above (adjust the Corus version number to match
+				yours).
+				Rename the created root directory of the archive if you need. For example,
+				with the 5.0 package, the root of Corus' installation
+				would correspond to the following path:
+				<tt>C:\opt\corus\sapia_corus_server_package-5.0</tt>
+				.
+			</p>
+		</sapia:sect2>
+
+		<sapia:sect2 title="Configure the Environment">
+			<p>
+				Corus requires a
+				<tt>CORUS_HOME</tt>
+				environment variable, which should point to the installation
+				directory - that is: given version 5.0 and our deployment
+				steps thus far, the following directory:
+				<tt>
+					<tt>C:\opt\corus\sapia_corus_server_package-5.0</tt>
+				</tt>
+				. Also add the following to your
+				<tt>PATH</tt>
+				variable:
+			</p>
+			<sapia:code>%CORUS_HOME%/bin</sapia:code>
+
+			<p>
+				Once that is done, you should be able to run Corus manually, by
+				simply typing
+				<tt>corus</tt>
+				in a DOS window.
+			</p>
+
+		</sapia:sect2>
+
+		<sapia:sect2 title="Configure Discovery">
+			<p>Corus uses IP multicast for cluster discovery by default. But that
+				method can be faulty (multicast might not be allowed in your
+				network, or configured to
+				go through routers), and it is typically not available in the cloud.
+			</p>
+
+			<p>
+				Corus supports TCP-based discovery: the different supported
+				mechanisms (and their respective configuration) is explained in the
+				<a href="../guide/discovery.html">Discovery</a>
+				section. Please consult that section for the details.
+			</p>
+
+		</sapia:sect2>
+
+		<sapia:sect2 title="Windows Service Integration">
+			<sapia:sect-desc>
+				<p>
+					With the installation of Corus as a Windows service, you will be
+					able to automatically start Corus at the startup of your machine.
+					Windows provides a simple service management user interface to
+					stop, start and restart services. The
+					<a href="http://sourceforge.net/projects/wrapper/files/">Java Service Wrapper</a>
+					is used to run Corus as a service under Windows. The steps below indicate how
+					to proceed.
+				</p>
+			</sapia:sect-desc>
+
+			<sapia:sect3 title="Define a Corus Configuration File">
+				<p>
+					First, define a Corus configuration file that will be used when the
+					service starts. We provide a default configuration file to help
+					you: it is
+					located under
+					<tt>%CORUS_HOME%\config\corus_service_33000.wrapper.properties</tt>
+					. You can have a look at the configuration
+				</p>
+
+			</sapia:sect3>
+
+			<sapia:sect3 title="Execute the Installation Script">
+				<p>
+					A script is available to register Corus as a Windows Service, found
+					at the following location:
+					<tt>%CORUS_HOME%\bin\win32\InstallCorusService.bat</tt>. By default, the
+					<tt>InstallCorusService.bat</tt> script is configured to use the
+					<tt>%CORUS_HOME%\config\corus_service_33000.wrapper.properties</tt>
+					config file.
+					We recommend you leave everything in the default state, unless you
+					have specific needs.
+				</p>
+				<p>
+					To proceed to the installation, just double-click on the
+					above-mentioned batch file. To validate the installation, look at
+					the Services management window to see that
+					a new service called "Corus" is installed.
+				</p>
+				<p>
+					Once you start the Corus service, you can validate its proper
+					execution by looking at the Corus log files under the
+					<tt>$CORUS_HOME/logs</tt>
+					directory.
+				</p>
+				<p>
+					You can also start the Corus CLI (Command Line Interface) to
+					connect to the server. Simply type
+					<tt>coruscli</tt>
+					in a terminal window:
+					this will connect you to the Corus instance running locally.
+				</p>
+			</sapia:sect3>
+			
+			<sapia:sect3 title="Managing the Corus Service">
+			  <p>
+			     From the service management window you can start, stop and restart the Corus service.
+			     If you ever need to remove the Corus service, there is another script provided in the 
+			     <tt>%CORUS_HOME%\bin\win32</tt> directory: it is called <tt>UninstallCorusService.bat</tt>. 
+			     You can use this script the same way you previously installed the Corus service.
+			  </p>
+			</sapia:sect3>
+
+		</sapia:sect2>
+	</sapia:sect1>
+</sapia:page>

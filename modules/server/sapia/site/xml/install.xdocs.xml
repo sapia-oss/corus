@@ -11,6 +11,8 @@
 	 	<sapia:vsection name="REST API" href="rest.html"/>    
 	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
+    <sapia:vsection name="Chef Cookbook" href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus"/>        
+    
   </sapia:vmenu>
   
   <sapia:sect1 title="Installation">
@@ -23,19 +25,19 @@
     
     <sapia:sect-desc>
       <sapia:note>
-      	<b>IMPORTANT</b>: given the upload service on Google Code has been discontinued, the latest Corus packages are
-      	uploaded to <a href="https://www.mediafire.com/folder/v55q0gaqvvbda/corus">Mediafire</a>, from where they can
-      	be downloaded. You can still get the earlier packages from Google code.
-      	<p/>
-      	Please see the Corus wiki for <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure">complete installation instructions</a> - 
-      	this page only provides an overview.
+      	<p>The latest Corus packages are uploaded to <a href="https://www.mediafire.com/folder/v55q0gaqvvbda/corus">Mediafire</a>. You can also
+      	install Corus with Chef, using the <a href="https://supermarket.chef.io/cookbooks/corus">cookbook</a> developed to that end (see the 
+      	<a href="https://github.com/sapia-oss/corus/tree/master/modules/thirdparty/chef/corus">relevant documentation</a> for the details).</p>
       </sapia:note>
-      <p/>
-      <p>We've packaged a Corus distribution for most of the popular operating systems out there: Linux (main flavors thereof), Mac, Windows.
+     
+      <p>
+        We've packaged a Corus distribution for most of the popular operating systems out there: Linux (main flavors thereof), Mac, Windows.
       </p>
     </sapia:sect-desc>
     
-    <sapia:sect2 title="Supported Operating Systems">
+    <toc/>
+    
+    <sapia:sect2 title="Supported Operating Systems" alias="os-specific">
       <p>
         Technically speaking, Corus should run on any platform that supports Java. However, manually starting Java
         programs using custom scripts is kind of cumbersome. That's why we've packaged Corus so it can be started
@@ -44,6 +46,31 @@
       <p>
         The following subsections list the characteristics of the Corus installation, for each major OS. 
       </p>
+
+      <sapia:sect3 title="Linux">
+        <p>
+          <ul>
+            <li><tt>init.d</tt> like script to integrate Corus to the Linux run levels (using special features like chkconfig when available)</li>
+            <li>Various shell scripts to manually execute the Corus server runtime and associated tools (CLI, Monitor, ...)</li>
+            <li>32 bits and 64 bits versions available</li>
+            <li>Tested on many flavours of Linux: CentOS, Ubuntu, Fedora, Mandriva, OpenSUSE</li>
+          </ul>
+          <a href="installation/generic-linux-install.html">Click here</a> for instructions.
+        </p>
+      </sapia:sect3>
+
+      <sapia:sect3 title="Mac OS">
+        <p>
+          <ul>
+            <li>Integration with Mac <tt>launchd</tt> manager to run Corus as a LaunchDaemon or a LaunchAgent (based on your specific needs)</li>
+            <li>Various shell scripts to manually execute the Corus server and associated tools (CLI, Monitor, ...)</li>
+            <li>32 bits version available for OS X 10.5 (leopard) and above</li>
+            <li>64 bits version available for OS X 10.6 (snow leopard)</li>
+            <li>Tested on both Leopard (OS X 10.5) and Snow Leopard (OS X 10.6)</li>
+          </ul>
+          <a href="installation/mac-install.html">Click here</a> for instructions.
+        </p>
+      </sapia:sect3>
       
       <sapia:sect3 title="Windows">
         <p>
@@ -55,31 +82,11 @@
           </ul>
           
           <sapia:note>
-            Understandably we're not going to overstretch ourselves trying to support this OS in an optimal fashion.
+            Understandably we're not going to over-stretch ourselves trying to support this OS in an optimal fashion.
           </sapia:note>
-        </p>
-      </sapia:sect3>
-      
-      <sapia:sect3 title="Mac OS">
-        <p>
-          <ul>
-            <li>Integration with Mac <tt>launchd</tt> manager to run Corus as a LaunchDaemon or a LaunchAgent (based on your specific needs)</li>
-            <li>Various shell scripts to manually execute the Corus server and associated tools (CLI, Monitor, ...)</li>
-            <li>32 bits version available for OS X 10.5 (leopard) and above</li>
-            <li>64 bits version available for OS X 10.6 (snow leopard)</li>
-            <li>Tested on both Leopard (OS X 10.5) and Snow Leopard (OS X 10.6)</li>
-          </ul>
-        </p>
-      </sapia:sect3>
-      
-      <sapia:sect3 title="Linux">
-        <p>
-          <ul>
-            <li><tt>init.d</tt> like script to integrate Corus to the Linux run levels (using special features like chkconfig when available)</li>
-            <li>Various shell scripts to manually execute the Corus server runtime and associated tools (CLI, Monitor, ...)</li>
-            <li>32 bits and 64 bits versions available</li>
-            <li>Tested on many flavours of Linux: CentOS, Ubuntu, Fedora, Mandriva, OpenSUSE</li>
-          </ul>
+          <p/>
+          <a href="installation/windows-install.html">Click here</a> for instructions.
+          
         </p>
       </sapia:sect3>
       
@@ -102,11 +109,10 @@
       </p>
     </sapia:sect2>
     
-    <sapia:sect2 title="Setup">
+    <sapia:sect2 title="General Instructions">
       <p>
         Because the configuration differs from one operating system to another, we will only provide an overview of the setup
-        process. We have an <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure" target="install_section">installation section</a> in our wiki,
-        where step-by-step instructions are given on a per-OS basis.  
+        process.  
       </p>
       <p>
         The first three steps described below are common to installations on all operating systems. The last one is OS-specific.
@@ -173,16 +179,8 @@
       </p>
       
       <p>
-      But for production use, we suggest starting Corus as a native OS service, which we explain in the next section.
+      But for production use, we suggest starting Corus as a native OS service (see the <a href="#os-specific">OS-specific</a> instructions above).
       </p>
-      
-      
-
-      <p><b>4. OS integration</b><p/>
-        This last step is OS-specific: it consists of configuring your OS to tell it
-        how to run Corus as a native service. Go to our <a href="http://code.google.com/p/sapia/wiki/CorusInstallationProcedure" target="install_section">wiki</a> 
-        to pick the part corresponding to your OS.
-      </p>      
       
     </sapia:sect2>
     
