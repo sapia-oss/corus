@@ -10,7 +10,6 @@ import org.sapia.corus.client.exceptions.processor.TooManyProcessInstanceExcepti
 import org.sapia.corus.client.services.Dumpable;
 import org.sapia.corus.client.services.ModuleState;
 import org.sapia.corus.client.services.database.RevId;
-import org.sapia.corus.interop.Status;
 
 /**
  * This interface specifies remote process administration behavior.
@@ -143,7 +142,7 @@ public interface Processor extends java.rmi.Remote, Module, Dumpable {
    *          restarted.
    * @return a {@link List} of {@link Status} instances.
    */
-  public List<Status> getStatus(ProcessCriteria criteria);
+  public List<ProcStatus> getStatus(ProcessCriteria criteria);
 
   /**
    * Returns all processes that have acquired one or more ports.

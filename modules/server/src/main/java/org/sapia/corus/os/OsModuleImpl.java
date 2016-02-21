@@ -3,20 +3,21 @@ package org.sapia.corus.os;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.CliUtils;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.CliUtil;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.core.ModuleHelper;
 
 /**
  * Implements the {@link OsModule} interface.
- * 
+ *
  * @author yduchesne
- * 
+ *
  */
 @Bind(moduleInterface = OsModule.class)
 public class OsModuleImpl extends ModuleHelper implements OsModule {
@@ -40,14 +41,15 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
 
   // ///////////// OsModule interface
 
+  @Override
   public String getRoleName() {
     return OsModule.ROLE;
   }
 
   @Override
-  public String executeProcess(LogCallback log, File rootDirectory, CmdLine commandLine) throws IOException {
+  public String executeProcess(LogCallback log, File rootDirectory, CmdLine commandLine, Map<String, String> processOptions) throws IOException {
     NativeProcess proc = NativeProcessFactory.newNativeProcess();
-    return proc.exec(log, rootDirectory, commandLine);
+    return proc.exec(log, rootDirectory, commandLine, processOptions);
   }
 
   @Override
@@ -58,13 +60,13 @@ public class OsModuleImpl extends ModuleHelper implements OsModule {
 
     // Extract the output stream of the process
     ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-    CliUtils.extractUntilAvailable(processHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+    CliUtil.extractUntilAvailable(processHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
 
     log.debug(anOutput.toString("UTF-8").trim());
 
     // Extract the error stream of the process
     anOutput.reset();
-    CliUtils.extractAvailable(processHandle.getErrStream(), anOutput);
+    CliUtil.extractAvailable(processHandle.getErrStream(), anOutput);
     if (anOutput.size() > 0) {
       log.error("Error starting the process: " + anOutput.toString("UTF-8").trim());
     }

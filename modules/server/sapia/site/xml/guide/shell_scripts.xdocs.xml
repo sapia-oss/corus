@@ -1,0 +1,77 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Shell Scripts" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Shell Scripts">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="shell scripts"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				The ability to deploy shell scripts into Corus and execute them remotely from the CLI has been introduced as of version 4.0. This feature is meant to further extend the centrally controlled execution of distributed processes offered by Corus.
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Basics">
+			<p>The functionality allows:</p>
+			<ul>
+				<li>Deploying a shell script into a Corus node (or multiple Corus nodes).</li>
+				<li>Triggering the execution of the shell script from the CLI (either in clustered or non-clustered mode).</li>
+			</ul>
+			<p>
+				There is no restriction on what the shell scripts do, their nature being left entirely to system administrators. One thing to note though is that the scripts are run under whichever user the Corus instance is itself being run. So if the scripts require specific permissions, it is important that these be granted to the Corus user.
+			</p>
+			<p>
+				Deployed shell scripts are kept under the <tt>$CORUS_HOME/files/scripts</tt> directory. This location is configurable, by modifying the <tt>corus.server.scripts.dir</tt> in the <tt>corus.properties</tt> configuration file (itself under <tt>$CORUS_HOME/config</tt> directory).
+			</p>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Deploying Shell Scripts">
+			<p>A shell script is deployed to a Corus instance using the using the deploy command in the CLI, in conjunction with the following options:</p>
+			<ul>
+				<li><tt><b>s</b></tt>: the path to the shell script to deploy.</li>
+				<li><tt><b>a</b></tt>: the script's alias, which is used to refer to the script later on, when executing it.</li>
+				<li><tt><b>a</b></tt>: the description to associate to the script. That description is used for display purposes – not that this option is not required.</li>
+			</ul>
+			<p>Here's an example:</p>
+			<sapia:code>deploy -s /home/jdoe/restart_memcached.sh -a restart-memcached -d “Restarts memcached"</sapia:code>
+			<p>Of course, as with any Corus command, using the -cluster option will have the effect of deploying the shell script across all nodes in the cluster:</p>
+			<sapia:code>deploy -s /home/jdoe/restart_memcached.sh -a restart-memcached -d “Restarts memcached" -cluster</sapia:code>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Listing Deployed Shell Scripts">
+			<p>To view the currently deployed shell scripts, use the <tt>ls</tt> command in conjunction with the <tt>-s</tt> option:</p>
+			<sapia:code>ls -s</sapia:code>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Executing a Shell Script">
+			<p>To execute a shell script, type the exec command with the <tt>-s</tt> option – the value to assign to the option should correspond to the alias of the script to execute:</p>
+			<sapia:code>exec -s restart-memcached</sapia:code>
+		</sapia:sect2>
+
+		<sapia:sect2 title="Undeploying Shell Scripts">
+			<p>To undeploy a shell script, type the undeploy command with the <tt>-s</tt> option specifying the alias of the script to undeploy:</p>
+			<sapia:code>undeploy -s restart-memcached</sapia:code>
+			<p>You call also use pattern matching to undeploy multiple scripts at once:</p>
+			<sapia:code>undeploy -s restart* -cluster</sapia:code>		
+		</sapia:sect2>
+		
+  </sapia:sect1>
+</sapia:page>

@@ -21,6 +21,7 @@ import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Collects;
 import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 import org.sapia.util.xml.confix.ObjectHandlerIF;
 
 /**
@@ -29,7 +30,7 @@ import org.sapia.util.xml.confix.ObjectHandlerIF;
  * 
  * @author Yanick Duchesne
  */
-public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheable {
+public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheable, ObjectCreationCallback {
 
   static final long serialVersionUID = 1L;
 
@@ -401,6 +402,13 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
 
     return OptionalValue.of(st.toCmdLine(env));
   }
+  
+  /**
+   * @return <code>true</code> if NUMA support is enabled for the process to be started.
+   */
+  public boolean isNumaEnabled(Env env) {
+    return findFor(env.getProfile()).isNumaEnabled();
+  }
 
   /**
    * Returns the profiles that this instance contains.
@@ -452,11 +460,16 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
   // ObjectHandlerIF
   
   public void handleObject(String elementName, Object obj) throws ConfigurationException {
-    if (obj instanceof Starter) {
-      addStarter((Starter) obj);
-    } else {
-      throw new ConfigurationException(obj.getClass().getName() + " unexpected. Expected " + Starter.class.getName() + " instance");
-    }
+    ConfigAssertions.elementExpectsInstanceOf("process", Starter.class, obj);
+    addStarter((Starter) obj);
+  }
+  
+  // --------------------------------------------------------------------------
+  // ObjectCreationCallback
+  
+  public Object onCreate() throws ConfigurationException {
+    ConfigAssertions.attributeNotNullOrEmpty("process", "name", name);
+    return this;
   }
   
   // --------------------------------------------------------------------------

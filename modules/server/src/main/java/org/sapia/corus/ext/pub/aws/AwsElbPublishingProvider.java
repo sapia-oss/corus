@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.sapia.corus.aws.AwsConfiguration;
 import org.sapia.corus.aws.AwsConfiguration.AwsConfigChangeListener;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.deployer.dist.AwsElbPublisherConfig;
 import org.sapia.corus.client.services.deployer.dist.ProcessPubConfig;
 import org.sapia.corus.client.services.pub.ProcessPubContext;
@@ -122,7 +122,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
 
     if (logger().isDebugEnabled()) {
       logger().debug(String.format("Registering process %s with elastic load-balancer %s", 
-          ToStringUtils.toString(context.getProcess()), elbConf.getElbName()));
+          ToStringUtil.toString(context.getProcess()), elbConf.getElbName()));
     }
     
     try {
@@ -146,7 +146,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
       );
       logger().debug(
           String.format("Completed registration of process %s with elastic load-balancer %s", 
-          ToStringUtils.toString(context.getProcess()), elbConf.getElbName())
+          ToStringUtil.toString(context.getProcess()), elbConf.getElbName())
       );
       
     } catch (Exception e) {
@@ -159,7 +159,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
     AwsElbPublisherConfig elbConf = (AwsElbPublisherConfig) context.getPubConfig();
     if (logger().isDebugEnabled()) {
       logger().debug(String.format("Unregistering process %s from elastic load-balancer %s", 
-          ToStringUtils.toString(context.getProcess()), elbConf.getElbName()));
+          ToStringUtil.toString(context.getProcess()), elbConf.getElbName()));
     }
     callback.unpublishingStarted(context);
     try {
@@ -180,7 +180,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
       );
       logger().debug(
           String.format("Completed unregistration of process %s from elastic load-balancer %s", 
-          ToStringUtils.toString(context.getProcess()), elbConf.getElbName())
+          ToStringUtil.toString(context.getProcess()), elbConf.getElbName())
       );
 
       callback.unpublishingSuccessful(context);
@@ -205,7 +205,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
     do {
       if (log.isDebugEnabled())
         log.debug(String.format("Checking ELB %s state for process %s (attempt: %s)...", 
-            elbConf.getElbName(), ToStringUtils.toString(ctx.getProcess()), (attempts + 1)));
+            elbConf.getElbName(), ToStringUtil.toString(ctx.getProcess()), (attempts + 1)));
       
       DescribeLoadBalancersResult result = elbClient.get().describeLoadBalancers(new DescribeLoadBalancersRequest(Arrays.asList(elbConf.getElbName())));
       Assertions.illegalState(result.getLoadBalancerDescriptions().isEmpty(), "No ELB found for: %s", elbConf.getElbName());
@@ -226,7 +226,7 @@ public class AwsElbPublishingProvider extends ModuleHelper implements ProcessPub
     Assertions.illegalState(
         shouldContinue, 
         "Publishing/unpublishing to/from ELB %s not completed within allocated attempts for process %s", 
-        elbConf.getElbName(), ToStringUtils.toString(ctx.getProcess())
+        elbConf.getElbName(), ToStringUtil.toString(ctx.getProcess())
     );
   }
   

@@ -39,21 +39,21 @@ public class Ls extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
 
-  private  TableDef DIST_TBL = TableDef.newInstance()
+  private static TableDef DIST_TBL = TableDef.newInstance()
       .createCol("dist", 18).createCol("version", 8)
       .createCol("processes", 23).createCol("profiles", 23);
   
-  private TableDef EXE_TBL = TableDef.newInstance()
+  private static TableDef EXE_TBL = TableDef.newInstance()
       .createCol("name", 17).createCol("on", 3).createCol("boot", 4).createCol("dist", 18)
       .createCol("version", 8).createCol("process", 9).createCol("profile", 9);
   
-  private TableDef SCRIPT_TBL = TableDef.newInstance()
+  private static TableDef SCRIPT_TBL = TableDef.newInstance()
       .createCol("alias", 25).createCol("file", 20).createCol("desc", 31);
   
-  private TableDef FILE_TBL   = TableDef.newInstance()
+  private static TableDef FILE_TBL   = TableDef.newInstance()
       .createCol("file", 25).createCol("len", 20).createCol("date", 31);
   
-  private TableDef TITLE_TBL  = TableDef.newInstance()
+  private static TableDef TITLE_TBL  = TableDef.newInstance()
       .createCol("val", 78);
 
   // --------------------------------------------------------------------------

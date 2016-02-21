@@ -2,8 +2,9 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
  	  <sapia:vsection name="REST API" href="rest.html"/>    
+	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
   </sapia:vmenu>
 
@@ -21,8 +22,14 @@
         far the only one available under the JVM for scaling applications.
       </p>
       <p>
-      	Witch Corus, you deploy plain-vanilla Java apps (that is, Java classes with
-      	a <sapia:command>main()</sapia:command> method).</p>
+      	With Corus, you deploy plain-vanilla Java apps (that is, Java classes with
+      	a <sapia:command>main()</sapia:command> method).
+      </p>
+      <p>
+      	In addition, as of version 5, Corus supports cluster-wide deployment of Docker images and execution of Docker containers, through the same
+      	mechanisms that it offers for JVM-based applications.
+      </p>
+      	
     </sapia:sect-desc>         
     <sapia:sect2 title="Write a Descriptor">
       <p>
@@ -33,7 +40,7 @@
       </p>
       
         <sapia:code><![CDATA[
-<distribution name="myapp" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+<distribution name="myapp" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
   <process  name="myapp-web" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 
@@ -163,9 +170,9 @@ exec -d * -v * -n * -p dev -cluster</sapia:code>
     		<li>Automate assignment of network ports, through the built-in <a href="tutorials/corus-domain.html#portrange">port management</a> feature.</li>
     		<li><a href="tutorials/advanced-management.html#storedproperties">Store JVM properties</a> in Corus - 
     		they will be passed at runtime to your JVMs through <sapia:command>-D</sapia:command> options.</li>
-    		<li>Receive email notifications when Corus restarts unresponsive processes.</li>
     		<li>Trigger JVM restart from your application.</li>
-    		<li>Have newly deployed Corus nodes in a cluster automatically download distributions from existing nodes and execute the corresponding processes.</li>
+    		<li>Have newly deployed Corus nodes in a cluster <a href="guide/repository.html">automatically download distributions from existing nodes</a> and execute the corresponding processes.</li>
+    		<li>Manage Docker images and containers <a href="guide/docker_integration.html">through Corus</a>.</li>
     		<li>etc.</li>
     	</ul>
     </sapia:sect2>

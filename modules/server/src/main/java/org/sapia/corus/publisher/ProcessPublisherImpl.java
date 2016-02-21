@@ -6,8 +6,8 @@ import java.util.List;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.PairTuple;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
@@ -156,7 +156,7 @@ public class ProcessPublisherImpl extends ModuleHelper implements ProcessPublish
         }
       }
     } catch (DistributionNotFoundException e) {
-      throw new IllegalStateException("Distribution was not found for process: " + ToStringUtils.toString(process), e);
+      throw new IllegalStateException("Distribution was not found for process: " + ToStringUtil.toString(process), e);
     }    
   }
   

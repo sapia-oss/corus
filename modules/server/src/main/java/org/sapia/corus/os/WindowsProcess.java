@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.hyperic.sigar.ProcExe;
@@ -15,12 +16,12 @@ import org.javasimon.callback.logging.LoggingCallback;
 import org.sapia.console.CmdLine;
 import org.sapia.console.ExecHandle;
 import org.sapia.console.Option;
-import org.sapia.corus.client.common.CliUtils;
+import org.sapia.corus.client.common.CliUtil;
 import org.sapia.corus.client.common.FilePath;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.IOUtil;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.sigar.SigarSupplier;
-import org.sapia.corus.util.IOUtil;
 
 /**
  * Windows implementation of the {@link NativeProcess} interface.
@@ -29,28 +30,28 @@ import org.sapia.corus.util.IOUtil;
  *
  */
 public class WindowsProcess implements NativeProcess {
-  
+
   /**
    * Abstracts how the process is killed.
-   * 
+   *
    * @author yduchesne
    *
    */
   public interface KillProcessFunction {
-    
+
     /**
      * @param log the {@link LoggingCallback} instance to log to.
      * @param pid the OS pid of the process to kill.
      */
     public void call(LogCallback log, String pid) throws IOException;
-    
+
   }
-  
+
   // --------------------------------------------------------------------------
-  
+
   /**
    * Kills using the <code>pv.exe</code> executable
-   * 
+   *
    * @author yduchesne
    *
    */
@@ -58,35 +59,35 @@ public class WindowsProcess implements NativeProcess {
 
     @Override
     public void call(LogCallback log, String pid) throws IOException {
-  
+
       // Generate the kill command
       CmdLine aKillCommand = createPVCmdLine();
       aKillCommand.addOpt("-kill", null).addOpt("-id", pid).addOpt("-force", null);
-  
+
       // Execute the kill command
       log.debug("--> Executing: " + aKillCommand.toString());
       ExecHandle pvHandle = aKillCommand.exec();
-  
+
       // Extract the output stream of the process
       ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
-  
+
       // Extract the error stream of the process
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
-      }   
+        log.info("Error killing the process: " + anOutput.toString("UTF-8"));
+      }
     }
-    
+
   }
-  
+
   // --------------------------------------------------------------------------
-  
+
   /**
    * Kills using the <code>taskkill</code> executable
-   * 
+   *
    * @author yduchesne
    *
    */
@@ -94,39 +95,39 @@ public class WindowsProcess implements NativeProcess {
 
     @Override
     public void call(LogCallback log, String pid) throws IOException {
-  
+
       // Generate the kill command
       CmdLine aKillCommand = CmdLine.parse(String.format("cmd /c taskkill /PID %s", pid));
-  
+
       // Execute the kill command
       log.debug("--> Executing: " + aKillCommand.toString());
       ExecHandle pvHandle = aKillCommand.exec();
-  
+
       // Extract the output stream of the process
       ByteArrayOutputStream anOutput = new ByteArrayOutputStream(BUFSZ);
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
-  
+
       // Extract the error stream of the process
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error killing the process: " + anOutput.toString("UTF-8"));
-      }   
+        log.info("Error killing the process: " + anOutput.toString("UTF-8"));
+      }
     }
-    
+
   }
-  
+
   // --------------------------------------------------------------------------
-  
+
   /**
    * Kills using <code>SIGAR</code>.
-   * 
+   *
    * @author yduchesne
    *
    */
   public class KillWithSigarFunction implements KillProcessFunction {
-    
+
     @Override
     public void call(LogCallback log, String pid) throws IOException {
       try {
@@ -138,19 +139,19 @@ public class WindowsProcess implements NativeProcess {
       }
     }
   }
-  
+
   // --------------------------------------------------------------------------
-  
+
   /**
    * Chains a series {@link KillProcessFunction}.
-   * 
+   *
    * @author yduchesne
    *
    */
   public class CompositeKillFunction implements KillProcessFunction {
-    
+
     private List<KillProcessFunction> funcs = new ArrayList<WindowsProcess.KillProcessFunction>();
-    
+
     @Override
     public void call(LogCallback log, String pid) throws IOException {
       for (KillProcessFunction f : funcs) {
@@ -173,9 +174,9 @@ public class WindowsProcess implements NativeProcess {
         }
       }
     }
-    
+
   }
-  
+
   // ==========================================================================
 
   private static final long PAUSE_AFTER_START = 1000;
@@ -198,19 +199,19 @@ public class WindowsProcess implements NativeProcess {
         .addDir("bin")
         .addDir("win")
         .addDir("pv.exe").createFile();
-    
+
     File win32Path = FilePath.newInstance()
         .addDir(System.getProperty("corus.home"))
         .addDir("bin")
         .addDir("win32")
         .addDir("pv.exe").createFile();
-    
+
     File win64Path = FilePath.newInstance()
         .addDir(System.getProperty("corus.home"))
         .addDir("bin")
         .addDir("win64")
-        .addDir("pv.exe").createFile();      
-  
+        .addDir("pv.exe").createFile();
+
     // Validate the presence and accessibility of the process viewer tool
     if (winPath.exists()) {
       return new CmdLine().addArg(winPath.getAbsolutePath());
@@ -219,9 +220,9 @@ public class WindowsProcess implements NativeProcess {
     } if (win64Path.exists()) {
       return new CmdLine().addArg(win64Path.getAbsolutePath());
     } else {
-      throw new IOException(String.format("Unable to find process viewer executable at either %s, %s or %s", 
+      throw new IOException(String.format("Unable to find process viewer executable at either %s, %s or %s",
           winPath.getAbsolutePath(), win32Path.getAbsolutePath(), win64Path.getAbsolutePath()));
-    }      
+    }
   }
 
   /**
@@ -257,12 +258,8 @@ public class WindowsProcess implements NativeProcess {
     return aBuffer.append("\"").toString();
   }
 
-  /**
-   * Returns <code>null</code>
-   *
-   */
   @Override
-  public String exec(LogCallback log, File baseDir, CmdLine cmd) throws IOException {
+  public String exec(LogCallback log, File baseDir, CmdLine cmd, Map<String, String> processOptions) throws IOException {
     // Generate the call to the javastart.bat script
     CmdLine javaCmd = new CmdLine();
     String cmdStr = System.getProperty("corus.home") + File.separator + "bin" + File.separator + "javastart.bat";
@@ -293,9 +290,9 @@ public class WindowsProcess implements NativeProcess {
 
     try {
       // Extract the output stream of the process
-      CliUtils.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(vmHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
-  
+
       // Extract the error stream of the process
       anOutput.reset();
       IOUtil.extractAvailable(vmHandle.getErrStream(), anOutput);
@@ -310,7 +307,7 @@ public class WindowsProcess implements NativeProcess {
         } catch (InterruptedException e2) {
           throw new IOException("Thread was interrupted while pausing after process exec", e);
         }
-        
+
         String startedPid = extractPidUsingSigar(log, baseDir);
         if (startedPid != null) {
           log.debug("Got PID despite process output having closed prematurely. PID is: " + startedPid);
@@ -343,7 +340,7 @@ public class WindowsProcess implements NativeProcess {
     if (SigarSupplier.isSet() && SigarSupplier.get() instanceof Sigar) {
       try {
         log.debug(String.format("Killing process %s with SIGAR", pid));
-        
+
         CompositeKillFunction func = new CompositeKillFunction();
         func.funcs.add(new KillWithSigarFunction());
         func.funcs.add(new KillWithTaskKillFunction());
@@ -356,7 +353,7 @@ public class WindowsProcess implements NativeProcess {
       killWithPv(log, pid);
     }
   }
-  
+
   private String extractPidUsingSigar(LogCallback log, File baseDir)
       throws IOException {
     try {
@@ -380,12 +377,12 @@ public class WindowsProcess implements NativeProcess {
       throw new IOException("Could not load Sigar native lib", e);
     }
   }
-  
+
   private void killWithPv(LogCallback log, String pid) throws IOException {
     KillWithPvFunction func = new KillWithPvFunction();
-    func.call(log, pid); 
+    func.call(log, pid);
   }
-  
+
   private String extractPidUsingPV(LogCallback log, CmdLine cmd, ByteArrayOutputStream anOutput, File baseDir)
       throws IOException {
       // Retrieve the OS pid using the process viewer tool
@@ -396,7 +393,7 @@ public class WindowsProcess implements NativeProcess {
 
       // Extract the output stream of the process
       anOutput.reset();
-      CliUtils.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
+      CliUtil.extractUntilAvailable(pvHandle.getInputStream(), anOutput, COMMAND_TIME_OUT);
       log.debug(anOutput.toString("UTF-8"));
 
       // Generates a string of the format "\njavaw.exe       (284)\n"
@@ -420,7 +417,7 @@ public class WindowsProcess implements NativeProcess {
       anOutput.reset();
       IOUtil.extractAvailable(pvHandle.getErrStream(), anOutput);
       if (anOutput.size() > 0) {
-        log.error("Error getting the process id: " + anOutput.toString("UTF-8"));
+        log.info("Error getting the process id: " + anOutput.toString("UTF-8"));
       }
 
       return anOsPid;

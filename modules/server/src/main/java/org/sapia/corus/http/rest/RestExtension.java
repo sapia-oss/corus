@@ -30,12 +30,13 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorImpl;
 import org.sapia.corus.client.rest.ConnectorPool;
 import org.sapia.corus.client.rest.PartitionServiceImpl;
-import org.sapia.corus.client.rest.ProgressResult;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.ResourceNotFoundException;
 import org.sapia.corus.client.rest.RestContainer;
 import org.sapia.corus.client.rest.RestContainer.ResourceInvocationResult;
 import org.sapia.corus.client.rest.RestResponseFacade;
+import org.sapia.corus.client.rest.resources.ProgressResult;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
@@ -50,7 +51,9 @@ import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.util.LoggerLogCallback;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Streams;
 import org.sapia.ubik.util.Strings;
 import org.sapia.ubik.util.TimeValue;
 import org.sapia.ubik.util.pool.Pool;
@@ -66,6 +69,7 @@ public class RestExtension implements HttpExtension, Interceptor {
   private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
   private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);
   private static final TimeValue DEFAULT_TASK_TIMEOUT              = TimeValue.createSeconds(30);
+  private static final int       TRANSFER_BUFSZ                    = 8082;
   
   private static HttpExtensionInfo INFO = HttpExtensionInfo.newInstance()
    .setContextPath("/rest")
@@ -83,7 +87,8 @@ public class RestExtension implements HttpExtension, Interceptor {
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
     connectors = new CorusConnectorPool(DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
-    container  = RestContainer.Builder.newInstance().buildDefaultInstance();
+    Auditor auditor = serverContext.getServices().getAuditor();
+    container  = RestContainer.Builder.newInstance().auditor(auditor).buildDefaultInstance();
     
     String authRequired = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_AUTH_REQUIRED);
     if (authRequired != null && authRequired.equalsIgnoreCase("true")) {
@@ -96,6 +101,7 @@ public class RestExtension implements HttpExtension, Interceptor {
         new TaskManagerExecutionProvider(serverContext.getServices().getTaskManager()), DEFAULT_TASK_TIMEOUT
     );
     partitionImpl = new PartitionServiceImpl();
+    partitionImpl.setLogCallback(new LoggerLogCallback(logger));
     
     serverContext.getServices().getTaskManager().executeBackground(new Task<Void, Void>() {
       @Override
@@ -268,6 +274,8 @@ public class RestExtension implements HttpExtension, Interceptor {
           logger.debug(content);
         }
         sendOkResponse(ctx, HttpResponseFacade.STATUS_OK, responseStatusMessage.get(), OptionalValue.of(content));
+      } else if (invocationResult.getReturnValue().get() instanceof InputStream) {
+        sendReponse(ctx, (InputStream) invocationResult.getReturnValue().get()); 
       } else {
         throw new IllegalStateException("Illegal payload type: " + invocationResult.getReturnValue().get().getClass().getName());
       }
@@ -341,6 +349,26 @@ public class RestExtension implements HttpExtension, Interceptor {
     }
   }
   
+  private void sendReponse(HttpContext ctx, InputStream is) throws IOException {
+    ctx.getResponse().setHeader("Access-Control-Allow-Origin", "*");
+    ctx.getResponse().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    ctx.getResponse().setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    ctx.getResponse().setHeader("Allow", "GET, POST, PUT, DELETE, OPTIONS");
+    ctx.getResponse().setStatusCode(HttpStatus.SC_OK);
+    BufferedOutputStream bos = new BufferedOutputStream(ctx.getResponse().getOutputStream(), TRANSFER_BUFSZ);
+    byte[] buf = new byte[TRANSFER_BUFSZ];
+    int read;
+    try {
+      while ((read = is.read(buf)) > -1) {
+        bos.write(buf, 0, read);
+        bos.flush();
+      }
+    } finally {
+      Streams.closeSilently(bos);
+      Streams.closeSilently(is);
+    }
+  }
+  
   /**
    * @param event
    *          a {@link PropertyChangeEvent}.
@@ -367,6 +395,11 @@ public class RestExtension implements HttpExtension, Interceptor {
     
     ServerRestRequest(HttpContext delegate) {
       this.delegate = delegate;
+    }
+    
+    @Override
+    public String getRemoteHost() {
+      return delegate.getRequest().getRemoteHost();
     }
     
     @Override

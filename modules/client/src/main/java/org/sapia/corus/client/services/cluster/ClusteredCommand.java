@@ -3,9 +3,14 @@ package org.sapia.corus.client.services.cluster;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.encryption.DecryptionContext;
+import org.sapia.corus.client.services.audit.AuditInfo;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.transport.CorusModuleOID;
 import org.sapia.corus.client.transport.CorusOID;
 import org.sapia.ubik.net.ServerAddress;
@@ -15,14 +20,19 @@ import org.sapia.ubik.rmi.server.oid.OID;
 import org.sapia.ubik.util.Assertions;
 
 /**
+ * Inherits from the {@link InvokeCommand} class in order to implement a clustered command: in this 
+ * case, what is meant is a command targeted at multiple hosts, and whose execution will cascade
+ * from one host to the other.
+ * 
  * @author Yanick Duchesne
  */
-public class ClusteredCommand extends InvokeCommand {
+public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapable {
 
   private Set<ServerAddress> targeted = new HashSet<ServerAddress>();
   private Set<ServerAddress> visited = new HashSet<ServerAddress>();
   private transient CorusCallback callback;
   private boolean disable;
+  private OptionalValue<AuditInfo> auditInfo = OptionalValue.none();
 
   /* Do not call; used for externalization only */
   public ClusteredCommand() {
@@ -39,9 +49,34 @@ public class ClusteredCommand extends InvokeCommand {
   public void exclude(Set<ServerAddress> excludedSet) {
     visited.addAll(excludedSet);
   }
+  
+  public Set<ServerAddress> getTargeted() {
+    return Collections.unmodifiableSet(targeted);
+  }
+  
+  public Set<ServerAddress> getVisited() {
+    return Collections.unmodifiableSet(visited);
+  }
 
-  public void setCallback(CorusCallback callback) {
+  @Override
+  public void setCorusCallback(CorusCallback callback) {
     this.callback = callback;
+  }
+  
+  public void setAuditInfo(AuditInfo auditInfo) {
+    Assertions.illegalState(!auditInfo.isEncrypted(), "Expected AuditInfo to be encrypted at this point");
+    this.auditInfo = OptionalValue.of(auditInfo);
+  }
+  
+  public void decrypt(DecryptionContext dc) {
+    if (auditInfo.isSet()) {
+      Assertions.illegalState(!auditInfo.get().isEncrypted(), "Expected AuditInfo to be encrypted at this point");
+      auditInfo = OptionalValue.of(auditInfo.get().decryptWith(dc));
+    }
+  }
+  
+  public OptionalValue<AuditInfo> getAuditInfo() {
+    return auditInfo;
   }
 
   @Override
@@ -60,7 +95,6 @@ public class ClusteredCommand extends InvokeCommand {
     // not clustering if command does not target a module.
     disable = !(getOID() instanceof CorusModuleOID);
 
-    
     callback.debug(String.format("Received clustered command %s. Targets: %s", getMethodName(), targeted));
 
     try {
@@ -81,6 +115,13 @@ public class ClusteredCommand extends InvokeCommand {
         if (callback.isDebug()) {
           callback.debug(String.format("Command %s will be executed on this host", getMethodName()));
         }
+        Auditor auditor = (Auditor) callback.getCorus().lookup(Auditor.ROLE);
+        if (auditInfo.isSet()) {
+          AuditInfo decrypted = auditInfo.get().decryptWith(callback.getDecryptionContext());
+          this.auditInfo = OptionalValue.of(decrypted);
+          auditor.audit(auditInfo.get(), getConnection().getServerAddress(), ((CorusModuleOID) getOID()).getModuleName(), getMethodName());
+        }
+
         returnValue = super.execute();
         visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
         ServerAddress nextAddress = selectNextAddress();
@@ -96,6 +137,10 @@ public class ClusteredCommand extends InvokeCommand {
         }
         visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
         ServerAddress nextAddress = selectNextAddress();
+        if (auditInfo.isSet()) {
+          AuditInfo decrypted = auditInfo.get().decryptWith(callback.getDecryptionContext());
+          this.auditInfo = OptionalValue.of(decrypted);
+        }
         if (nextAddress != null) {
           returnValue = cascade(nextAddress);
         }
@@ -137,6 +182,7 @@ public class ClusteredCommand extends InvokeCommand {
     super.readExternal(in);
     visited = (Set<ServerAddress>) in.readObject();
     targeted = (Set<ServerAddress>) in.readObject();
+    auditInfo = (OptionalValue<AuditInfo>) in.readObject();
   }
 
   @Override
@@ -144,5 +190,6 @@ public class ClusteredCommand extends InvokeCommand {
     super.writeExternal(out);
     out.writeObject(visited);
     out.writeObject(targeted);
+    out.writeObject(auditInfo);
   }
 }

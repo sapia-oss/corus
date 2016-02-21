@@ -16,9 +16,9 @@ import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.database.TestDbModule;
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
+import org.sapia.corus.interop.api.message.StatusMessageCommand;
+import org.sapia.corus.interop.soap.message.Status.StatusBuilder;
+import org.sapia.corus.interop.soap.message.Context.ContextBuilder;
 
 public class PersistentProcessRepositoryTest {
 
@@ -95,14 +95,15 @@ public class PersistentProcessRepositoryTest {
     
     repo.addProcess(proc);
     
-    Status stat = new Status();
-    Context ctx = new Context("aContext");
-    ctx.addParam(new Param("aName", "aValue"));
+    StatusMessageCommand stat = new StatusBuilder()
+        .commandId("test")
+        .context(new ContextBuilder().name("testContext").param("p", "v").build())
+        .build();
     proc.status(stat);
     proc.save();
     
     Process withStatus = repo.getProcess(proc.getProcessID());
-    assertTrue(withStatus.getProcessStatus() != null);
+    assertTrue(withStatus.getProcessStatus().isSet());
     
     boolean found = false;
     for(Process p: repo.getProcesses(ProcessCriteria.builder().all())){

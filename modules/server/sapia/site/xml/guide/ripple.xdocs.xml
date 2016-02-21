@@ -1,0 +1,90 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Ripple" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Ripple">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="ripple"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				When domains (or clusters) have many hosts, it may be impractical to perform some operations on all these hosts at once. We're thinking about the restart of  processes, or the deployment of new distributions, for example: in such cases, it involves performing a shutdown of all application processes at the same time, which is something that obviously should be avoided in the context of 24/7 live traffic operations: losing the processing power of, say, 10 hosts at once is probably not desirable.
+			</p>
+			<p>
+				As of the 4.1 release, there exists a feature in Corus which allows applying commands gradually to a whole cluster, allowing for graceful deployment schemes. The feature as been dubbed “rippling",   for it implies a kind of ripple effect, as commands are applied to successive cluster subsets, until the whole cluster has been touched. The feature is supported through the ripple command, which allows:
+			</p> 
+			<ul>
+				<li>Applying a single (or a few) command(s) to the cluster, to a given number of nodes at a time;</li>
+				<li>applying multiple commands (specified in a Corus script), to a given number of nodes at a time.</li>
+			</ul>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Common Options">
+			<p>
+				The command takes options that are common to both usage types:
+		  </p>
+		  <ul>
+		  	<li><tt><b>-b</b></tt>: the batch size – that is, the number of nodes at a time to which rippling is to be performed.</li>
+		  	<li><tt><b>-m</b></tt>: the minimum number of nodes required in the cluster for the specified batch size to be applied (defaults to 1).</li>
+		  </ul>
+		  <p>
+		  	The <tt>-m</tt> option is provided in order to ensure that the specified batch size will not defeat the intent of the command: say for example you have a cluster of 3 nodes, and you specify a batch size of 3: all nodes will then be impacted at the same time.
+		  </p>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Ripple with a Single or a Few Commands">
+			<p>
+				The command allows rippling one or a few commands, which must be specified with the <tt>-c</tt> option, as shown below:
+			</p>
+			<sapia:code>ripple -b 2 –c "restart all -w | diags"</sapia:code>
+			<p>
+				The commands must be enclosed in quotes.  In the above example, the restart is applied to the whole cluster 2 nodes at a time. As the example above shows, the option allows specifying multiple successive commands: in this case, these must be separated by the pipe (“|") character.
+			</p>
+			<p>
+				In the above example, it makes sense to pause for a given amount of seconds prior to moving on to the next batch of nodes: the intent is obviously to give time to the applications to boot completely.
+			</p>			
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Ripple with a Corus Script">
+			<p>
+				Typically, a deployment procedure involves many steps, and therefore many commands. It is more convenient, in such contexts, to use a script. The ripple command supports a -s option, whose value must correspond to the path of the script to execute.
+			</p>
+			<p>
+				Here's an example of such a script:
+			</p>
+			<sapia:code>kill all -w -cluster 
+undeploy all -cluster 
+deloy myapp-*.zip -cluster 
+exec -e myapp -w -cluster 
+diags -cluster</sapia:code>
+			<p>
+				As you can see, the script is not different than one you would normally write in a non-ripple context. The only difference here is that when the <tt>-cluster</tt> option is specified, clustering will be targeted to the batch of hosts as currently determined by the ripple logic: the <tt>-cluster</tt> option is “hijacked" by the ripple command and made to correspond to the current batch of nodes that are targeted.
+			</p>
+			<p>
+				Here's how invocation of the command would look like:
+			</p>
+			<sapia:code>ripple -s deployment.corus -b 2</sapia:code>
+			<p>
+				So the above means that the deployment script would be executed on 2 nodes at a time. Given the script's contents, a diagnostic is performed at the end of each script invocation (ensuring that processes have fully started up prior to moving on to the next batch of nodes).
+			</p>
+		</sapia:sect2>
+		
+  </sapia:sect1>
+</sapia:page>

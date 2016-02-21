@@ -1,0 +1,140 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Cloud Integration" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Cloud Integration">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="cloud integration"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				As of 4.1, Corus supports “cloud integration", that is: a Corus instance can be configured through "user data", which makes it easy to start Corus nodes and assign to them configuration parameters dynamically.
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Basics">
+			<p>
+				When setting up Corus for cloud deployment, the basic configuration elements that are required are the following:
+			</p>
+			<ul>
+				<li>The domain name of the Corus node being started.</li>
+				<li>The discovery parameters (since IP multicast is usually not available in the cloud, usage of Avis or RabbitMQ must be configured – see the <a href="discovery.html#intra_cluster_discovery">Discovery</a> section for more details).</li>
+			</ul>
+			<p>
+				A preferred way to deploy Corus in the cloud is to configure an instance as a repository server (see the <a href="repository.html">Repository</a> section for more details), and the others as repository clients: newly appearing repo clients will thus automatically synchronize themselves with the repo server instance at startup.
+			</p>
+			<sapia:note>
+			The advantage of using Corus in the cloud in such  a manner is that you only need configuring a single machine image with a Corus installation, and decide thereafter, through custom user data configuration, what their actual startup parameters will be.
+			</sapia:note>
+			<p>
+				Corus expects user data to be available at a predefined URL. In the case of AWS for example, user data can be fetched from the following:
+			</p>
+			<sapia:code>http://169.254.169.254/latest/user-data</sapia:code>
+			<p>
+				The content that is available at that endpoint is configurable through the AWS admin tools.
+			</p>
+			<p>Corus, for its part, expects a JSON document corresponding to the following structure:</p>
+			<sapia:code>{
+  "corus": {
+    "server": {
+      "properties": [
+        {
+          "name": "corus.server.domain",
+          "value": "prod-01"
+        },
+        {
+          "name": "ubik.rmi.naming.broadcast.provider",
+          "value": "ubik.rmi.naming.broadcast.avis "
+        },
+        {
+          "name": "ubik.rmi.naming.broadcast.avis.url",
+          "value": "elvin:\/\/10.0.1.11"
+        }
+      ],
+      "tags": [
+        "scheduler",
+        "read-write"
+      ]
+    },
+    "processes": {
+      "properties": [
+        {
+          "name": "jdbc.connections.max",
+          "value": "50"
+        }
+      ]
+    }
+  }
+}</sapia:code>
+			<p>
+				The above shows that the following can be configured:
+			</p>
+			<ul>
+				<li>Corus server configuration properties</li>
+				<li>Corus server tags</li>
+				<li>Process properties</li>
+			</ul>
+			
+			<p>
+				In order for the fetching of user data to be enabled, the <tt>-u</tt> option must be specified as part of the Corus server command-line. If you start Corus as a daemon process, this involves either modifying the Corus configuration for the Java Service Wrapper, or the Corus init.d script (if you're not using the Java Service Wrapper).
+			</p>
+			<sapia:note>
+				<p>
+					Note that the <tt>-u</tt> option does not have to have a value. In such a case, Corus will  attempt fetch the user data JSON document from the following endpoints by default (in the specified order):
+				</p>
+				<ol>
+					<li>http://169.254.169.254/latest/user-data</li>
+					<li>http://169.254.169.254/openstack/latest/user-data</li>
+				</ol>
+				<p>
+					The first endpoint corresponds to AWS' user data endpoint, the second to Open Stack's.
+				</p>
+			</sapia:note>
+
+		</sapia:sect2>
+		<sapia:sect2 title="Modifying the JSW Configuration">
+			<p>
+				If you're starting Corus with the Java Service Wrapper, you have to modify your corus.service.wrapper.properties file. The file holds configuration parameters that are used to configure command-line arguments and options that are passed to the Corus server command-line. Look for the section corresponding holding the following parameters:
+			</p>
+			<sapia:code>wrapper.app.parameter.1=-c
+wrapper.app.parameter.2=%CORUS_CONFIG_FILE% 
+wrapper.app.parameter.3=-v 
+wrapper.app.parameter.4=INFO 
+wrapper.app.parameter.5=-f</sapia:code>
+
+			<p>Add the following parameter:</p>
+			<sapia:code>wrapper.app.parameter.6=-u</sapia:code>
+			<p>If you want to explicitly specify the enpoint from which to fetch user data, add it as another parameter. For example:</p>
+			<sapia:code>wrapper.app.parameter.6=-u 
+wrapper.app.parameter.7=http://169.254.169.254/latest/user-data</sapia:code>
+
+		</sapia:sect2>
+		<sapia:sect2 title="Modifying the init.d Script">
+			<p>
+				If you're not using the Java Service Wrapper, but are rather using the plain-vanilla init.d script that's provided as part of the Corus distribution, then modify it by adding the -u option to the <tt>javaArgs</tt> parameter:
+			</p>
+			<sapia:code>javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir -u"</sapia:code>
+			
+			<p>Or if you want to specify the URL explicitly:</p>
+			<sapia:code>javaArgs="-Dcorus_instance=$javaCommandLineKeyword $CORUS_OPTS -cp $CLASSPATH org.sapia.corus.core.CorusServer -p $CORUS_PORT -v $CORUS_LOG_LEVEL -f $serviceLogDir -u http://169.254.169.254/latest/user-data"</sapia:code>
+		</sapia:sect2>
+		
+  </sapia:sect1>
+</sapia:page>

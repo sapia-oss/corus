@@ -13,6 +13,13 @@
   <!-- Register Annotation-based Post Processing Beans -->
   <context:annotation-config />
   <bean name="extModulePostProcessor" class="org.sapia.corus.core.ModulePostProcessor" />
+
+
+  <bean name="org.sapia.corus.client.services.audit.Auditor"
+        class="org.sapia.corus.audit.AuditorImpl" 
+        scope="singleton" 
+        autowire="autodetect">
+  </bean> 
   
   <!-- ============ CLUSTER ============ -->
 
@@ -52,17 +59,28 @@
 
   <bean name="org.sapia.corus.docker.DockerFacade" 
         scope="singleton" 
-        class="org.sapia.corus.docker.DockerFacadeImpl">
-    <property name="enabled"       value="${corus.server.docker.enabled}" />
-    <property name="email"         value="${corus.server.docker.client.email}" />
-    <property name="username"      value="${corus.server.docker.client.username}" />
-    <property name="password"      value="${corus.server.docker.client.password}" />
-    <property name="serverAddress" value="${corus.server.docker.registry.address}" />
+        class="org.sapia.corus.docker.SpotifyDockerFacade"
+        autowire="constructor">
+    <property name="enabled"             value="${corus.server.docker.enabled}" />
+    <property name="email"               value="${corus.server.docker.client.email}" />
+    <property name="username"            value="${corus.server.docker.client.username}" />
+    <property name="password"            value="${corus.server.docker.client.password}" />
+    <property name="serverAddress" 		 value="${corus.server.docker.registry.address}" />
+    <property name="registrySyncEnabled" value="${corus.server.docker.registry.sync-enabled}" />          
+    <property name="autoRemoveEnabled"   value="${corus.server.docker.image-auto-remove-enabled}" />    
+    <property name="daemonUrl"           value="${corus.server.docker.daemon.url}" />
   </bean>
 
   <bean name="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor" 
         scope="singleton" 
-        class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor">
+        class="org.sapia.corus.ext.hook.docker.DockerPostDeploymentProcessor"
+        autowire="constructor">
+  </bean>
+  
+    <bean name="org.sapia.corus.ext.hook.docker.DockerImageDeploymentReplicationProcessor" 
+        scope="singleton" 
+        class="org.sapia.corus.ext.hook.docker.DockerImageDeploymentReplicationProcessor"
+        autowire="constructor">
   </bean>
 
   <bean name="org.sapia.corus.ext.hook.docker.DockerProcessKillHook" 
@@ -73,6 +91,11 @@
   <bean name="org.sapia.corus.ext.hook.docker.DockerProcessStartHook" 
         scope="singleton" 
         class="org.sapia.corus.ext.hook.docker.DockerProcessStartHook">
+  </bean>
+  
+  <bean name="org.sapia.corus.client.services.docker.DockerManager"
+        scope="singleton"
+        class="org.sapia.corus.docker.DockerManagerImpl">
   </bean>
   
 
@@ -111,6 +134,7 @@
   <bean name="fileDeploymentHandler"         class="org.sapia.corus.deployer.handler.FileDeploymentHandler" />
   <bean name="distributionDeploymentHandler" class="org.sapia.corus.deployer.handler.DistributionDeploymentHandler" />
   <bean name="scriptDeploymentHandler"       class="org.sapia.corus.deployer.handler.ScriptDeploymentHandler" />
+  <bean name="dockerImageDeploymentHandler"  class="org.sapia.corus.deployer.handler.DockerImageDeploymentHandler" />
   
   <bean name="org.sapia.corus.client.services.deployer.Deployer" 
         class="org.sapia.corus.deployer.DeployerImpl" 
@@ -122,8 +146,25 @@
             <ref bean="fileDeploymentHandler" />
             <ref bean="distributionDeploymentHandler" />
             <ref bean="scriptDeploymentHandler" />
+            <ref bean="dockerImageDeploymentHandler" />
         </list>
     </property>
+  </bean>
+  
+  <!-- ============== NUMA ============== -->
+  
+  <bean name="org.sapia.corus.numa.NumaModule" 
+        scope="singleton" 
+        class="org.sapia.corus.numa.NumaModuleImpl">
+      <constructor-arg ref="org.sapia.corus.client.services.configurator.Configurator"/>
+      <constructor-arg ref="org.sapia.corus.client.services.processor.Processor"/>
+      <constructor-arg ref="org.sapia.corus.client.services.os.OsModule"/>
+      <property name="enabled"              value="${corus.server.numa.enabled}" />
+      <property name="bindingCpu"           value="${corus.server.numa.bind.cpu}" />
+      <property name="bindingMemory"        value="${corus.server.numa.bind.memory}" />
+      <property name="firstNumaNodeId"      value="${corus.server.numa.first.node.id}" />
+      <property name="numaNodeCount"        value="${corus.server.numa.node.count}" />
+      <property name="autoDetectionEnabled" value="${corus.server.numa.auto-detection.enabled}" />
   </bean>
   
   <!-- ============ PROCESSOR ============ -->
@@ -151,6 +192,7 @@
     scope="singleton" 
     class="org.sapia.corus.processor.ProcessorConfigurationImpl">
     <property name="processCheckInterval" value="${corus.process.check-interval}" />
+    <property name="processDiagnosticCheckInterval" value="${corus.process.check-diagnostic-interval}" />
     <property name="killInterval"         value="${corus.process.kill-interval}" />
     <property name="startInterval"        value="${corus.process.start-interval}" />
     <property name="restartInterval"      value="${corus.process.restart-interval}" />
@@ -194,6 +236,8 @@
   
   <bean name="repository.configuration" class="org.sapia.corus.repository.RepositoryConfigurationImpl">
     <property name="maxConcurrentDeploymentRequests"      value="${corus.server.repository.max.concurrent-deployments}" />
+    <property name="repoFileTtlMinutes"                   value="${corus.server.repository.files.ttl}" />
+    <property name="repoFileCheckIntervalSeconds"         value="${corus.server.repository.files.check-interval}" />
     <property name="distributionDiscoveryMaxAttempts"     value="${corus.server.repository.dist.disco.max-attempts}" />    
     <property name="distributionDiscoveryIntervalSeconds" value="${corus.server.repository.dist.disco.interval}" />
     <property name="pushTagsEnabled"                      value="${corus.server.repository.tags.push.enabled}" />

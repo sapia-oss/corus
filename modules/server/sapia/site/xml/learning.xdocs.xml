@@ -6,9 +6,10 @@
   
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
  	  <sapia:vsection name="In 2 minutes" href="overview.html"/>
-	 	<sapia:vsection name="REST API" href="rest.html"/>     
+	 	<sapia:vsection name="REST API" href="rest.html"/>
+	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
   </sapia:vmenu>
 
@@ -23,19 +24,16 @@
     <sapia:sect-desc>
       <p>
       We've organized resources so that you can learn about Corus
-      in the most optimal manner. Have a look at what we have in store. Also
-      do not forget to read the <a href="CorusGuide.pdf">Corus Guide</a>.
+      in the most optimal manner.
       </p>
     
 
    	  <div style="margin-left: 3px">
         <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
-          <div class="content-box-title">Gallery</div>
+          <div class="content-box-title">The Corus Guide</div>
           <span class="text">
-            Screeshots, screencasts... Like they say
-            an image is worth a thousand words. Your time is scarce?
-            Have a look.
-            <br/><a href="gallery.html">more...</a>
+            The Corus Guide is the place to start: learn about core concepts and functionality.
+            <br/><a href="guide/home.html">more...</a>
           </span>
         </div>
 
@@ -62,8 +60,8 @@
         <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
           <div class="content-box-title">REST API</div>
           <span class="text">
-            Want automation? Need to control Corus using a non-Java programming language? As of version 4.5, 
-            Corus features a REST API. Integrate the API as part of your processes.
+            Want automation? Need to control Corus using a non-Java programming language? Since version 4.5, 
+            Corus features a REST API.
             <br/><a href="rest.html">more...</a>
           </span>
         </div>
@@ -71,7 +69,7 @@
           <div class="content-box-title">Diagnostic API</div>
           <span class="text">
             The Diagnostic API helps determining the 
-            state of applications processes following a deployment: obtain
+            state of application processes following a deployment: obtain
             diagnostic status for a whole cluster using a single API call.
             <br/><a href="rest/diagnostic.html">more...</a>
           </span>
@@ -82,12 +80,22 @@
       <div style="clear: both;" />
       
    	  <div style="margin-left: 3px">
-        <div class="content-box" style="width: 175; margin-left: 100px; margin-right: 5px">
-          <div class="content-box-title">Cookbook</div>
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">Gallery</div>
           <span class="text">
-            Check our applied Corus recipes, discover the features through concrete
+            Screeshots, screencasts... Like they say
+            an image is worth a thousand words. Your time is scarce?
+            Have a look.
+            <br/><a href="gallery.html">more...</a>
+          </span>
+        </div>
+
+        <div class="content-box" style="width: 175; margin-left: 5px; margin-right: 5px">
+          <div class="content-box-title">How-Tos</div>
+          <span class="text">
+            Check our applied Corus how-tos, discover the features through concrete
             examples. 
-            <br/><a href="cookbook/home.html">more...</a>
+            <br/><a href="how-tos/home.html">more...</a>
           </span>
         </div>
    	  

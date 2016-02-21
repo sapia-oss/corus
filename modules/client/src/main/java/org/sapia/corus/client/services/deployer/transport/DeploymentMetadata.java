@@ -4,9 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.VmId;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * Models meta-information about a given deployment.
@@ -31,7 +34,12 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
     /**
      * Indicates that the deployment consists of a file.
      */
-    FILE
+    FILE,
+    
+    /**
+     * Indicates that the deployment consists of a Docker image.
+     */
+    DOCKER_IMAGE
   }
 
   static final long serialVersionUID = 1L;
@@ -44,6 +52,7 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
   private ClusterInfo clusterInfo;
   private Type type;
   private DeployPreferences preferences;
+  private OptionalValue<AuditInfo> auditInfo = OptionalValue.none();
 
   /**
    * @param fileName
@@ -65,6 +74,7 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
     this.type        = type;
     this.preferences = prefs;
   }
+
 
   /**
    * @return this instance's {@link Type}.
@@ -133,5 +143,20 @@ public abstract class DeploymentMetadata implements java.io.Serializable {
    */
   public DeployPreferences getPreferences() {
     return preferences;
+  }
+  
+  /**
+   * @return the optional {@link AuditInfo}.
+   */
+  public OptionalValue<AuditInfo> getAuditInfo() {
+    return auditInfo;
+  }
+  
+  /**
+   * @param auditInfo the {@link AuditInfo} to use.
+   */
+  public void setAuditInfo(AuditInfo auditInfo) {
+    Assertions.illegalState(!auditInfo.isEncrypted(), "AuditInfo must be encrypted");
+    this.auditInfo = OptionalValue.of(auditInfo);
   }
 }

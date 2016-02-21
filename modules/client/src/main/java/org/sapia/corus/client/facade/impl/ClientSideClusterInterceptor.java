@@ -1,7 +1,13 @@
 package org.sapia.corus.client.facade.impl;
 
+import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.ClusterInfo;
+import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.services.cluster.ClusteredCommand;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
+import org.sapia.corus.client.services.cluster.NonClusteredCommand;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
@@ -13,30 +19,69 @@ import org.sapia.ubik.util.Assertions;
  * @author Yanick Duchesne
  */
 public class ClientSideClusterInterceptor implements Interceptor {
-
-  private static ThreadLocal<ClusterInfo> registration = new ThreadLocal<ClusterInfo>();
   
+  /**
+   * Abstracts details of the client's connection.
+   * 
+   * @author yduchesne
+   *
+   */
+  public interface ConnectionCallback {
+    
+    /**
+     * @return the {@link CorusHost} to which the Corus client is currently connected.
+     */
+    public CorusHost getCurrentHost();
+    
+  }
+  
+  // ==========================================================================
+
+  private static final ClientDebug              DEBUG        = ClientDebug.get(ClientSideClusterInterceptor.class);
+  private static final ThreadLocal<ClusterInfo> REGISTRATION = new ThreadLocal<ClusterInfo>();
+    
   public static void clusterCurrentThread(ClusterInfo cluster) {
-    registration.set(cluster);
+    REGISTRATION.set(cluster);
   }
 
   public static void unregister() {
-    registration.set(null);
+    REGISTRATION.set(null);
   }
 
   public void onClientPreInvokeEvent(ClientPreInvokeEvent evt) {
     if (isCurrentThreadClustered()) {
+      DEBUG.trace("Performing command: %s", evt.getCommand().getMethodName());
       ClusteredCommand command = new ClusteredCommand(evt.getCommand());
-      ClusterInfo cluster = registration.get();
+      if (CurrentAuditInfo.isSet()) {
+        AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+        command.setAuditInfo(
+          reg.getAuditInfo().encryptWith(
+            Encryption.getDefaultEncryptionContext(reg.getHost().getPublicKey())
+          )
+        );
+      }
+      ClusterInfo cluster = REGISTRATION.get();
       Assertions.illegalState(cluster == null, "ClusterInfo instance not set");
       command.exclude(cluster.getExcluded());
       command.addTargets(cluster.getTargets());
+      evt.setCommand(command);
+    } else {
+      DEBUG.trace("Performing command: %s", evt.getCommand().getMethodName());
+      NonClusteredCommand command = new NonClusteredCommand(evt.getCommand());
+      if (CurrentAuditInfo.isSet()) {
+        AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+        command.setAuditInfo(
+          reg.getAuditInfo().encryptWith(
+            Encryption.getDefaultEncryptionContext(reg.getHost().getPublicKey())
+          )
+        );
+      }
       evt.setCommand(command);
     }
   }
 
   private static boolean isCurrentThreadClustered() {
-    ClusterInfo clustered = registration.get();
+    ClusterInfo clustered = REGISTRATION.get();
 
     if (clustered == null) {
       return false;

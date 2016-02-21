@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.sapia.corus.client.common.Mappable;
-
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;

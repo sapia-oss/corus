@@ -149,10 +149,21 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public synchronized Set<CorusHost> getHosts() {
     return new HashSet<CorusHost>(hostsInfos);
   }
+  
+  @Override
+  public CorusHost resolveHost(ServerAddress hostAddress)
+      throws IllegalArgumentException {
+    for (CorusHost h : hostsInfos) {
+      if (h.getEndpoint().getServerAddress().equals(hostAddress)) {
+        return h;
+      }
+    }
+    throw new IllegalArgumentException("Could not find Corus host information for provided address: " + hostAddress);
+  }
 
   @Override
   public ClusterStatus getClusterStatus() {
-    return new ClusterStatus(channel.getRole(), this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
+    return new ClusterStatus(this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
   }
 
   @Override
@@ -274,7 +285,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
           channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
         }
       } catch (IOException e) {
-        log.error("Error sending publish event", e);
+        log.debug("Error sending publish event", e);
       }
     }
   }

@@ -1,0 +1,161 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Discovery" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Discovery">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="discovery"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+			<p>
+				Corus supports different mechanisms for so-called "intra-cluster" discovery. It also supports external discovery, through Consul (other mechanisms are envisioned).
+			</p>
+		</sapia:sect-desc>
+		<sapia:sect2 title="Intra-Cluster Discovery" alias="intra_cluster_discovery">
+			<sapia:sect-desc>
+				<p>Intra-cluster discovery designates the ability for Corus servers within a cluster to discover each other. Corus supports different middleware to enable this central functionality.</p>
+			</sapia:sect-desc>
+			
+			<sapia:sect3 title="IP Multicast">
+				<p>
+					By default, Corus uses IP multicast for intra-cluster discovery. Depending on how the network has been set up, IP multicast can be erratic, and is furthermore not supported in most cloud environments. Therefore, we recommend using it only for non-production setup (for example, when developping on a laptop).
+				</p>
+			</sapia:sect3>
+			
+			<sapia:sect3 title="Avis">
+				<p>
+					If your network does not support IP multicast, then you may use <a href="http://avis.sourceforge.net/">Avis</a> as a discovery mechanism. This means you must setup an Avis router (or multiple federated ones), and configure your Corus instances as clients of this router (here, "message broker" can be used as a synonym for "router").
+				</p>
+				<p>
+					The properties you have to configure to enable Avis-based discovery are the following (in <tt>$CORUS_HOME/config/corus.properties</tt>):
+				</p>
+				<sapia:code><![CDATA[ubik.rmi.naming.broadcast.provider=ubik.rmi.naming.broadcast.avis
+ubik.rmi.naming.broadcast.avis.url=elvin://<host>:<port>]]></sapia:code>
+				
+				<p>
+					As indicated, in the last property, you must provide the host and port of the Avis router to which to connect.
+				</p>
+				<sapia:note>Please consult the Avis documentation for more details about setting up Avis and the URL format it mandates.</sapia:note>
+				
+			</sapia:sect3>
+			
+			<sapia:sect3 title="RabbitMQ">
+				<p>
+				  As an alternative to Avis, you may use RabbitMQ for intra-cluster discovery. In order to enable connection to RabbitMQ, edit Corus' configuration, and uncomment the following entries,
+				  replacing the placeholders for the RabbitMQ <b>host</b> and <b>port</b>. Also edit the file to set the proper <b>username</b> and <b>password</b> to use when connecting to RabbitMQ:
+				</p>
+				<sapia:code><![CDATA[ubik.rmi.naming.broadcast.camel.endpoint.uri=rabbitmq://<host>:<port>/corus_cluster_channel
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.username=<username>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.password=<password>]]></sapia:code>
+
+        <p>
+          In addition, you will see that the file holds a not mentioning to uncomment the following properties (but to NOT modify them):
+        </p>
+        <sapia:code>ubik.rmi.naming.broadcast.provider=camel
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.exchangeType=topic
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoDelete=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.durable=false
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.routingKey=corus.cluster.${corus.server.domain}
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoAck=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.header.rabbitmq.ROUTING_KEY=corus.cluster.${corus.server.domain}</sapia:code>
+
+        <p>As can be inferred from the configuration, <a href="http://camel.apache.org/rabbitmq.html">Apache Camel</a> is used behind the scenes to enable integration with RabbitMQm and each
+        <tt>ubik.rmi.naming.broadcast.camel.rabbitmq.option</tt> entry found in Corus' configuration corresponds to a configuration option supported by Camel's RabbitMQ component 
+        (see that component's documentation for the details).</p>
+        
+        <sapia:note>You should not have to bother with Came's configuration intricacies: the above instructions should be enough to get you going.</sapia:note>
+
+			</sapia:sect3>
+		</sapia:sect2>
+		<sapia:sect2 title="External Corus Discovery">
+			<sapia:sect-desc>
+				<p>
+				External discovery is about third-party party applications being able to discover Corus instances present on the network, and potentially act remotely on them - through the REST API for example. This becomes handy in the context of large scale deployments: statically hard-coding the address of Corus nodes in configuration files for some monitoring application to consume (for example) is simply not practical.
+				</p>
+			</sapia:sect-desc>
+			<sapia:sect3 title="Consul">
+				<sapia:sect-desc>
+                  <p>
+					As of release 4.6, Corus supports publishing its presence to <a href="http://www.consul.io/docs/agent/services.htm">Consul</a> as a service, using <a href=" http://www.consul.io/docs/agent/http.html">Consul's REST API</a>.	The topology typically goes as follows: a Consul agent (a separate process) runs on each machine, and receives service registrations from processes on that machine. The agent is hooked to a set of centralized Consul servers, which in turn makes service information available to applications.
+				  </p>
+                </sapia:sect-desc>
+				<sapia:sect4 title="Service Definition">
+					<p>
+						Given the above, a Consul agent would run on each machine where Corus itself runs, and each Corus instance would publish its service description to its "local" Consul agent . The service definition registered with Consul for a Corus instance has the following format:
+					</p>
+					<sapia:code><![CDATA[{
+  "ID": "corus-<corus_host_name>:<corus_port>",
+  "Name": "Corus",
+  "Tags": [
+    "<corus_domain>"
+  ],
+  "Address": "<corus_ip_address>",
+  "Port": "<corus_port>",
+  "Checks": [
+    {
+      "id": "check-corus-<corus_host_name>:<corus_port>",
+      "name": "Health check for Corus node at: <corus_host_name>:<corus_port>",
+      "ttl": <ttl_seconds>
+    }
+  ]
+}]]></sapia:code>
+					<p>
+						The placeholders between angled brackets correspond to values that are set contextually. They are described below:
+					</p>
+					<ul>
+						<li><tt><b>corus_host_name</b></tt>: the host name of the Corus instance.</li>
+						<li><tt><b>corus_port</b></tt>: the port of the Corus instance.</li>
+						<li><tt><b>corus_domain</b></tt>: the domain to which the Corus instance corresponds.</li>
+						<li><tt><b>corus_ip_address</b></tt>: the IP address of the Corus instance.</li>
+						<li><tt><b>ttl_seconds</b></tt>: the number of seconds for which to keep the service definition before it is discarded (this value is configured in <tt>corus.properties</tt>, as explained in the next subsection)</li>.
+					</ul>
+				</sapia:sect4>
+				<sapia:sect4 title="Configuration">
+					<p>
+						There are different configuration properties to define in <tt>$CORUS_HOME/config/corus.properties</tt> for activating the integration with Consul. It is important to note that a Corus instance is responsible for refreshing its service definition periodically, since that definition must be assigned a time-to-live - Consul will remove all definitions that have not been refreshed within that given time-to-live.
+					</p>
+					<p>
+						The following properties are used to define how Corus interacts with Consul:
+					</p>
+					<sapia:table>
+						<sapia:th>Property</sapia:th><sapia:th>Description</sapia:th>
+						<tr>
+							<td><tt><b>corus.server.pub.consul.enabled</b></tt></td>
+							<td>Enables or disables Consul integration (false by default).</td>
+					  </tr>
+						<tr>
+							<td><tt><b>corus.server.pub.consul.agent-url</b></tt></td>
+							<td>The URL of the Consul agent to connect to (in a standard setup, on the same machine as the Corus instance (defaults to: http://localhost:8500).</td>
+					  </tr>
+						<tr>
+							<td><tt><b>corus.server.pub.consul.interval</b></tt></td>
+							<td>The interval at which the Corus instance republishes its service definition to Consul (defaults to 30 seconds).</td>
+						</tr>
+						<tr>
+							<td><tt><b>corus.server.pub.consul.ttl</b></tt></td>
+							<td>The time-to-live assigned to the service definition (defaults to 45 seconds). That value should be greater than the publication interval (set by the above property).</td>
+						</tr>
+					</sapia:table>
+				</sapia:sect4>
+			</sapia:sect3>
+		</sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

@@ -2,11 +2,9 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="../index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
-    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
-    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
-    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
     <sapia:vsection name="REST API" href="../rest.html"/>        
+    <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
   </sapia:vmenu>
   
   <sapia:sect1 title="Core API">
@@ -827,7 +825,8 @@ http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-a
       "deleteOnKill": false,
       "shutdownTimeout": 30000,
       "staleDetectionCount": 0,
-      "activePorts": [ ]
+      "activePorts": [ ],
+      "numaNode": 1
     }
   }
 ]</sapia:code>      

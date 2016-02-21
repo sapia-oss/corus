@@ -6,7 +6,7 @@ import java.util.List;
 import org.sapia.corus.client.common.ProgressException;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
-import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskLog;
 
 /**
@@ -17,13 +17,11 @@ import org.sapia.corus.taskmanager.core.TaskLog;
  */
 public class ProgressQueueTaskLog implements ProgressQueue {
 
-  private Task<?, ?> task;
-  private TaskLog log;
+  private TaskExecutionContext context;
   private volatile boolean closed;
 
-  public ProgressQueueTaskLog(Task<?, ?> task, TaskLog log) {
-    this.task = task;
-    this.log = log;
+  public ProgressQueueTaskLog(TaskExecutionContext context) {
+    this.context = context;
   }
 
   public void addMsg(ProgressMsg msg) {
@@ -45,23 +43,23 @@ public class ProgressQueueTaskLog implements ProgressQueue {
   }
 
   public void verbose(Object msg) {
-    log.debug(task, asString(msg));
+    context.debug(asString(msg));
   }
 
   public void debug(Object msg) {
-    log.debug(task, asString(msg));
+    context.debug(asString(msg));
   }
 
   public void info(Object msg) {
-    log.info(task, asString(msg));
+    context.info(asString(msg));
   }
 
   public void warning(Object msg) {
-    log.warn(task, asString(msg));
+    context.warn(asString(msg));
   }
 
   public void error(Object msg) {
-    log.error(task, asString(msg));
+    context.error(asString(msg));
   }
 
   public List<ProgressMsg> fetchNext() {

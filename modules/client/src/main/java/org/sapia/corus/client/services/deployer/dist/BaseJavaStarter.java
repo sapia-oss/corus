@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,12 +16,15 @@ import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.CompositeStrLookup;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.EnvVariableStrLookup;
-import org.sapia.corus.client.common.FileUtils;
-import org.sapia.corus.client.common.FileUtils.FileInfo;
+import org.sapia.corus.client.common.FileUtil;
+import org.sapia.corus.client.common.FileUtil.FileInfo;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
+import org.sapia.corus.interop.api.Consts;
 import org.sapia.ubik.util.Strings;
+import org.sapia.util.xml.confix.ConfigurationException;
 
 /**
  * This helper class can be inherited from to implement {@link Starter}s that
@@ -36,12 +41,15 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
   protected String vmType;
   protected String profile;
   
-  protected String         corusHome    = System.getProperty("corus.home");
-  protected List<VmArg>    vmArgs       = new ArrayList<VmArg>();
-  protected List<Property> vmProps      = new ArrayList<Property>();
-  protected List<Option>   options      = new ArrayList<Option>();
-  protected List<XOption>  xoptions     = new ArrayList<XOption>();
-  private List<Dependency> dependencies = new ArrayList<Dependency>();
+  protected String          corusHome         = System.getProperty("corus.home");
+  protected List<VmArg>     vmArgs            = new ArrayList<VmArg>();
+  protected List<Property>  vmProps           = new ArrayList<Property>();
+  protected List<Option>    options           = new ArrayList<Option>();
+  protected List<XOption>   xoptions          = new ArrayList<XOption>();
+  private List<Dependency>  dependencies      = new ArrayList<Dependency>();
+  private boolean           interopEnabled    = true;
+  private boolean           numaEnabled       = true;
+  private InteropWireFormat interopWireFormat = InteropWireFormat.PROTOBUF;
 
   /**
    * Sets the Corus home.
@@ -51,6 +59,40 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
    */
   public void setCorusHome(String home) {
     corusHome = home;
+  }
+
+  /**
+   * @param numaEnabled if <code>ttue</code>, indicates that NUMA is enabled for process corresponding to this instance.
+   */
+  public void setNumaEnabled(boolean numaEnabled) {
+    this.numaEnabled = numaEnabled;
+  }
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return numaEnabled;
+  }
+  
+  /**
+   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
+   */
+  public void setInteropEnabled(boolean interopEnabled) {
+    this.interopEnabled = interopEnabled;
+  }
+  
+  public boolean isInteropEnabled() {
+    return interopEnabled;
+  }
+  
+  /**
+   * @param interopWireFormat the interop wire format type to use for the process.
+   */
+  public void setInteropWireFormat(String interopWireFormat) {
+    this.interopWireFormat = InteropWireFormat.forType(interopWireFormat);
+  }
+  
+  public InteropWireFormat getInteropWireFormat() {
+    return interopWireFormat;
   }
 
   /**
@@ -178,7 +220,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (!javaHomeDir.exists()) {
       throw new MissingDataException("java.home not found");
     }
-    cmd.addArg(FileUtils.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
+    cmd.addArg(FileUtil.toPath(javaHomeDir.getAbsolutePath(), "bin", javaCmd));
 
     if (vmType != null) {
       if (!vmType.startsWith("-")) {
@@ -190,9 +232,11 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
 
     for (VmArg arg : vmArgs) {
       String value = render(propContext, arg.getValue());
-      VmArg copy = new VmArg();
-      copy.setValue(value);
-      cmd.addElement(copy.convert());
+      if (!Strings.isBlank(value)) {
+        VmArg copy = new VmArg();
+        copy.setValue(value);
+        cmd.addElement(copy.convert());
+      }
     }
 
     for (XOption opt : xoptions) {
@@ -225,12 +269,16 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
       cmdLineVars.put(copy.getName(), value);
       cmd.addElement(copy.convert());
     }
-
+    
     for (Property prop : envProperties) {
       if (propContext.lookup(prop.getName()) != null) {
         cmd.addElement(prop.convert());
       }
     }
+    
+    // adding interop option
+    Property interopWireFormatProp = new Property(Consts.CORUS_PROCESS_INTEROP_PROTOCOL, interopWireFormat.type());
+    cmd.addElement(interopWireFormatProp.convert());
 
     CmdLineBuildResult ctx = new CmdLineBuildResult();
     ctx.command = cmd;
@@ -249,7 +297,7 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     if (libDirs == null) {
       return "";
     } else {
-      baseDirs = FileUtils.splitFilePaths(render(envVars, libDirs));
+      baseDirs = FileUtil.splitFilePaths(render(envVars, libDirs));
     }
 
     StringBuffer buf = new StringBuffer();
@@ -257,13 +305,13 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     for (int dirIndex = 0; dirIndex < baseDirs.length; dirIndex++) {
       String baseDir = baseDirs[dirIndex];
       String currentDir;
-      if (FileUtils.isAbsolute(baseDir)) {
+      if (FileUtil.isAbsolute(baseDir)) {
         currentDir = baseDir;
       } else {
-        currentDir = FileUtils.toPath(processUserDir, baseDir);
+        currentDir = FileUtil.toPath(processUserDir, baseDir);
       }
 
-      FileInfo fileInfo = FileUtils.getFileInfo(currentDir);
+      FileInfo fileInfo = FileUtil.getFileInfo(currentDir);
       PathFilter filter = env.createPathFilter(fileInfo.directory);
       if (fileInfo.isClasses) {
         if (buf.length() > 0) {
@@ -315,6 +363,13 @@ public abstract class BaseJavaStarter implements Starter, Serializable {
     }
 
     return buf.toString();
+  }
+  
+  protected void doValidate(String elementName) throws ConfigurationException {
+    attributeNotNullOrEmpty(elementName, "corusHome", corusHome);
+    attributeNotNullOrEmpty(elementName, "javaCmd", javaCmd);
+    attributeNotNullOrEmpty(elementName, "javaHome", javaHome);
+    attributeNotNullOrEmpty(elementName, "profile", profile);
   }
 
   static final class CmdLineBuildResult {

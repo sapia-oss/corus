@@ -70,7 +70,7 @@ public class DockerStarter implements Starter, Serializable {
   private OptionalValue<String>   cpuPeriod      = OptionalValue.none();
   private OptionalValue<String>   cpuSetCpus     = OptionalValue.none();
   private OptionalValue<String>   cpuSetMems     = OptionalValue.none();
-  private OptionalValue<String>   cpuQuota       = OptionalValue.none();
+  private OptionalValue<Long>     cpuQuota       = OptionalValue.none();
 
   private OptionalValue<String>   cgroupParent     = OptionalValue.none();
   private OptionalValue<String>   blkioWeight      = OptionalValue.none();
@@ -78,12 +78,20 @@ public class DockerStarter implements Starter, Serializable {
   private OptionalValue<String>   memorySwappiness = OptionalValue.none();
   private OptionalValue<String>   user             = OptionalValue.none();
    
-  private boolean                 interopEnabled = false;
+  private boolean                 interopEnabled    = false;
+  private boolean                 autoRemoveEnabled = true;
 
   private List<Dependency>          dependencies   = new ArrayList<Dependency>();
   private List<DockerPortMapping>   portMappings   = new ArrayList<DockerPortMapping>();
   private List<DockerVolumeMapping> volumeMappings = new ArrayList<DockerVolumeMapping>();
+  private DockerEnv                 environment    = new DockerEnv();
 
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return false;
+  }
+  
   @Override
   public void setProfile(String profile) {
     this.profile = profile;
@@ -158,11 +166,11 @@ public class DockerStarter implements Starter, Serializable {
     return cpuPeriod;
   }
   
-  public void setCpuQuota(String cpuQuota) {
+  public void setCpuQuota(Long cpuQuota) {
     this.cpuQuota = OptionalValue.of(cpuQuota);
   }
   
-  public OptionalValue<String> getCpuQuota() {
+  public OptionalValue<Long> getCpuQuota() {
     return cpuQuota;
   }
   
@@ -252,6 +260,14 @@ public class DockerStarter implements Starter, Serializable {
     return portMappings;
   }
   
+  public DockerEnv getEnvironment() {
+    return environment;
+  }
+  
+  public DockerEnv createEnv() {
+    return environment;
+  }
+  
   public void addVolumeMapping(DockerVolumeMapping volMapping) {
     this.volumeMappings.add(volMapping);
   }
@@ -304,7 +320,19 @@ public class DockerStarter implements Starter, Serializable {
   public boolean isInteropEnabled() {
     return interopEnabled;
   }
-
+  
+  /**
+   * 
+   * @param autoRemoveEnabled if <code>true</code>, indicates that auto-removal of the corresponding Docker image should be 
+   * performed at undeployment.
+   */
+  public void setAutoRemoveEnabled(boolean autoRemoveEnabled) {
+    this.autoRemoveEnabled = autoRemoveEnabled;
+  }
+  
+  public boolean isAutoRemoveEnabled() {
+    return this.autoRemoveEnabled;
+  }
   
   @Override
   public StarterResult toCmdLine(Env env) throws MissingDataException {

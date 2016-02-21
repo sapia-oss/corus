@@ -14,7 +14,7 @@
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="../index.html"/>
     <sapia:vsection name="Tutorials" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
   </sapia:vmenu>
   
   <sapia:sect1 title="Building from Source">
@@ -44,8 +44,8 @@
       <center><img src="img/project-structure.png" /></center>
       
       <p>
-        The source code can be checked out anonymously from the Subversion 
-        repository <a target="google_code" href="http://code.google.com/p/sapia/source/checkout">at Google</a>,
+        The source code can be checked out anonymously from the Gitub 
+        repository <a href="https://github.com/sapia-oss/corus">Github repository</a>,
         and built with Maven.
       </p>
       
@@ -91,32 +91,16 @@
 
 <repositories>
   <repository>
-    <id>java.net-m2-repository</id>
-    <name>Java.net Repository for Maven</name>
-    <url>http://download.java.net/maven/2/</url>
-  </repository>    
-  <repository>
-    <id>sapia-m2-repository</id>
-    <name>Sapia Repository for Maven</name>
-    <url>http://www.sapia-oss.org/maven2</url>
-  </repository> 
+    <id>bintray-sapia</id>
+    <url>http://dl.bintray.com/sapiaoss/main</url>
+    <releases>
+      <enabled>true</enabled>
+    </releases>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </repository>
 </repositories>
-
-...
-
-<pluginRepositories>
-  <pluginRepository>
-    <id>java.net-m2-repository</id>
-    <name>Java.net Repository for Maven</name>
-    <url>http://download.java.net/maven/2/</url>
-  </pluginRepository>
-  <pluginRepository>
-    <id>sapia-m2-repository</id>
-    <name>Sapia Repository for Maven</name>
-    <url>http://www.sapia-oss.org/maven2</url>
-  </pluginRepository>
-</pluginRepositories>
-
 ...
 ]]>
       </sapia:code>

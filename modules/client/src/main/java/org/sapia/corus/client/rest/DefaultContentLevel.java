@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 
 /**
  * Allows defining the default {@link ContentLevel} for a resource that returns {@link ProgressResult} instances.

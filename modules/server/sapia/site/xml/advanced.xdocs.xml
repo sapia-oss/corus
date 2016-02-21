@@ -6,9 +6,10 @@
   
   <sapia:vmenu>
     <sapia:vsection name="Corus Home" href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
  	  <sapia:vsection name="In 2 minutes" href="overview.html"/>
- 	  <sapia:vsection name="REST API" href="rest.html"/>    
+ 	  <sapia:vsection name="REST API" href="rest.html"/>
+ 	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
  	  <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
    </sapia:vmenu>
 
@@ -61,7 +62,7 @@
     </sapia:sect3>
     
     
-    <sapia:sect3 title="Application Process HA">
+    <sapia:sect3 title="Application Process HA" alias="application_process_ha">
       <p>
         When Corus starts a JVM, that JVM process embeds an agent that 
         implements the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a>.
@@ -71,7 +72,7 @@
       
       <p>
         Among other interactions, we're finding that a process must poll its 
-        Corus daemon at a predefined interval (the <a href="Corus">Corus Guide</a>
+        Corus daemon at a predefined interval (the <a href="guide/index.html">Corus Guide</a>
         describes in more details how the various runtime parameters are passed
         by the Corus daemon to the process, upon startup).
       </p>
@@ -85,6 +86,11 @@
         we're not talking about an OS kill, but a process termination event as 
         specified in the Corus Interop Protocol.
       </p>
+      <sapia:note>
+      	If processes have <a href="rest/diagnostic.html">diagnostics</a> configured, then that support is also
+      	used internally for determining process health. Since interop is disabled for Docker containers, corresponding process configurations
+      	should have diagnostic check configured to insure auto-restart by Corus at runtime.
+      </sapia:note>
       
       <p>
         It is then the responsibility of the process to handle that termination 
@@ -171,11 +177,13 @@
     
     <p>
       The first step is to publish application status data through the Corus
-      interop API, in the application's code. Todo so, you need the <a href="http://download.java.net/maven/2/org/sapia/sapia_corus_iop_api/">sapia_corus_iop_api</a>
-      dependency that matches your Corus installation (look in the Corus classpath, under the
-      <sapia:command>lib/vm-boot</sapia:command> directory of the Corus server,
-      to see what version of the dependency corresponds to your installation).
+      interop API, in the application's code. Todo so, you need the following dependency:
     </p>
+				<sapia:code><![CDATA[<dependency>
+  <groupId>org.sapia</groupId>
+  <artifactId>sapia_corus_iop_api</artifactId>
+  <version>3.0</version>
+</dependency>]]></sapia:code>    
     
     <p>
       The code snippet below, taken from the source that's part of the
@@ -183,11 +191,10 @@
       to Corus:
     </p>
     <sapia:code>
-import org.sapia.corus.interop.Context;
-import org.sapia.corus.interop.Param;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.StatusRequestListener;
+import org.sapia.corus.interop.api.message.InteropMessageBuilderFactory;
+import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
 
 ...
 
@@ -199,29 +206,25 @@ import org.sapia.corus.interop.api.StatusRequestListener;
   }
 
   @Override
-  public void onStatus(Status status) {
-    Context context = new Context("org.sapia.corus.sample.jetty");
-    context.addParam(createParam("dispatched", stats.getDispatched()));        
-    context.addParam(createParam("dispatchedActive", stats.getDispatchedActive()));
-    context.addParam(createParam("dispatchedActiveMax", stats.getDispatchedActiveMax()));        
-    context.addParam(createParam("dispatchedTimeMax", stats.getDispatchedTimeMax()));
-    context.addParam(createParam("dispatchedTimeTotal", stats.getDispatchedTimeTotal()));
-    context.addParam(createParam("dispatchedTimeMean", stats.getDispatchedTimeMean()));
-    context.addParam(createParam("requests", stats.getRequests()));        
-    context.addParam(createParam("requestsActive", stats.getRequestsActive()));        
-    context.addParam(createParam("requestsActiveMax", stats.getRequestsActiveMax()));        
-    context.addParam(createParam("requestsTimeMax", stats.getRequestTimeMax()));        
-    context.addParam(createParam("requestsTimeMean", stats.getRequestTimeMean()));
-    context.addParam(createParam("requestsTimeTotal", stats.getRequestTimeTotal()));
-    context.addParam(createParam("suspends", stats.getSuspends()));        
-    context.addParam(createParam("suspendsActive", stats.getSuspendsActive()));        
-    context.addParam(createParam("suspendsActiveMax", stats.getSuspendsActiveMax())); 
-    status.addContext(context);
-  }
-  
-  
-  private Param createParam(String name, Object value){
-    return new Param(name, value.toString());
+  public void onStatus(Builder statusBuilder, InteropMessageBuilderFactory factory) {
+    ContextMessagePart.Builder contextBuilder = factory.newContextBuilder().name("org.sapia.corus.sample.jetty");
+    contextBuilder
+      .param("dispatched", String.valueOf(stats.getDispatched()))
+      .param("dispatchedActive", String.valueOf(stats.getDispatchedActive()))
+      .param("dispatchedActiveMax", String.valueOf(stats.getDispatchedActiveMax()))
+      .param("dispatchedTimeMax", String.valueOf(stats.getDispatchedTimeMax()))
+      .param("dispatchedTimeTotal", String.valueOf(stats.getDispatchedTimeTotal()))
+      .param("dispatchedTimeMean", String.valueOf(stats.getDispatchedTimeMean()))
+      .param("requests", String.valueOf(stats.getRequests()))
+      .param("requestsActive", String.valueOf(stats.getRequestsActive()))
+      .param("requestsActiveMax", String.valueOf(stats.getRequestsActiveMax()))
+      .param("requestsTimeMax", String.valueOf(stats.getRequestTimeMax()))
+      .param("requestsTimeMean", String.valueOf(stats.getRequestTimeMean()))
+      .param("requestsTimeTotal", String.valueOf(stats.getRequestTimeTotal()))
+      .param("suspends", String.valueOf(stats.getSuspends()))
+      .param("suspendsActive", String.valueOf(stats.getSuspendsActive()))
+      .param("suspendsActiveMax", String.valueOf(stats.getSuspendsActiveMax()));
+    statusBuilder.context(contextBuilder.build());        
   }
   
  ...
@@ -245,7 +248,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
   <sapia:sect2 title="Repository" alias="repo">
     <p>
       The repository functionality has been introduced as of version 4.0. The
-      <a href="CorusGuide.pdf">Corus Guide</a> provides exhaustive documentation as
+      <a href="guide/index.html">Corus Guide</a> provides exhaustive documentation as
       to what the functionality consists of, and how to configure Corus in order to
       activate it. We'll nevertheless cover the basics here.
     </p>
@@ -300,7 +303,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
     <p>
       Corus has advanced features that you'll come to appreciate as you work
       with them. The <a href="tutorials/index.html">tutorials</a> and the 
-      <a href="CorusGuide.pdf">Corus Guide</a> provide additional information.
+      <a href="guide/index.html">Corus Guide</a> provide additional information.
     </p>                                                
   </sapia:sect2>
   

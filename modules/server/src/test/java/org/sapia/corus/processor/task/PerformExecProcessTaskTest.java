@@ -4,6 +4,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.Properties;
 
 import org.assertj.core.api.Assertions;
@@ -44,7 +45,7 @@ public class PerformExecProcessTaskTest extends TestBaseTask {
       Configurator configurator = mock(Configurator.class);
       PortManager portManager = mock(PortManager.class);
 
-      CorusHost node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test");
+      CorusHost node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
       node.setRepoRole(RepoRole.CLIENT);
 
       when(taskContext.getServerContext()).thenReturn(serverContext);

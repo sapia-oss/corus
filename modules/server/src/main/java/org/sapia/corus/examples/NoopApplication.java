@@ -3,8 +3,11 @@ package org.sapia.corus.examples;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.sapia.corus.interop.api.ConfigurationChangeListener;
 import org.sapia.corus.interop.api.InteropLink;
 import org.sapia.corus.interop.api.ShutdownListener;
+import org.sapia.corus.interop.api.message.ConfigurationEventMessageCommand;
+import org.sapia.corus.interop.api.message.ParamMessagePart;
 
 /**
  * @author Yanick Duchesne
@@ -38,13 +41,25 @@ public class NoopApplication {
 
     System.out.println("=================================================");
 
-    ShutdownListener listener = new ShutdownListener() {
+    ShutdownListener shutdListener = new ShutdownListener() {
       public void onShutdown() {
         System.out.println("Shutting down...");
       }
     };
-
-    InteropLink.getImpl().addShutdownListener(listener);
+    
+    ConfigurationChangeListener cfgListener = new ConfigurationChangeListener() {
+      
+      @Override
+      public void onConfigurationChange(ConfigurationEventMessageCommand event) {
+        System.out.println("Config change detected:");
+        for (ParamMessagePart p : event.getParams()) {
+          System.out.println(String.format("%s = %s", p.getName(), p.getValue()));
+        }
+      }
+    };
+ 
+    InteropLink.getImpl().addShutdownListener(shutdListener);
+    InteropLink.getImpl().addConfigurationChangeListener(cfgListener);
 
     while (true) {
       try {

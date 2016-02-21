@@ -13,7 +13,6 @@ import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.command.Restart;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.services.processor.KillPreferences;
-import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.ubik.util.Collects;
 

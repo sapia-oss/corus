@@ -1,6 +1,7 @@
 package org.sapia.corus.core;
 
 import java.io.IOException;
+import java.security.KeyPair;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -41,17 +42,19 @@ public class ServerContextImpl implements ServerContext {
   private InternalServiceContext services;
   private String homeDir;
   private Properties properties;
+  private KeyPair keyPair;
 
   public ServerContextImpl(Corus corus, CorusTransport transport, ServerAddress serverAddress, EventChannel channel, String domain, String homeDir,
-      InternalServiceContext services, Properties props) {
+      InternalServiceContext services, Properties props, KeyPair keyPair) {
     this.corus = corus;
     this.transport = transport;
     this.eventChannel = channel;
-    this.hostInfo = CorusHost.newInstance(new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO);
+    this.hostInfo = CorusHost.newInstance(new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO, keyPair.getPublic());
     this.domain = domain;
     this.homeDir = homeDir;
     this.services = services;
     this.properties = props;
+    this.keyPair = keyPair;
     String repoRoleProp = properties.getProperty(CorusConsts.PROPERTY_REPO_TYPE, CorusHost.RepoRole.NONE.name());
     hostInfo.setRepoRole(RepoRole.valueOf(repoRoleProp.toUpperCase()));
   }
@@ -61,6 +64,11 @@ public class ServerContextImpl implements ServerContext {
     return corus;
   }
 
+  @Override
+  public KeyPair getKeyPair() {
+    return keyPair;
+  }
+  
   @Override
   public String getServerName() {
     return serverName;

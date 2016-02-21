@@ -27,6 +27,15 @@ public interface ProcessorConfiguration extends Remote {
    * @return the process check interval, in millis.
    */
   public long getProcessCheckIntervalMillis();
+  
+  
+  /**
+   * Returns the interval at which the Corus server does diagnostic checks on on processes,
+   * as part of the timeout check.
+   * 
+   * @return the process diagnostic check interval, in millis.
+   */
+  public long getProcessDiagnosticCheckIntervalMillis();
 
   /**
    * Returns the interval between process kill attempts.

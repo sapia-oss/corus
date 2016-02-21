@@ -1,0 +1,31 @@
+<sapia:page title="How-Tos" cssPath="../css/sapia.css" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="index.html"/>
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
+    <sapia:vsection name="In 2 minutes" href="overview.html"/>
+    <sapia:vsection name="REST API" href="rest.html"/>    
+  </sapia:vmenu>
+
+  <sapia:sect1 title="How-Tos">
+    <sapia:section>
+      <sapia:path name="home" href="../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="how-tos" />
+    </sapia:section>
+    
+    <sapia:sect-desc>
+      <p>
+      The how-to collection is a work-in-progress. It is meant to address specific Corus topics. You'll find below the 
+      different how-tos we've compiled.
+      </p>
+    </sapia:sect-desc>
+    <sapia:sect2 title="Tomcat">
+      <p>
+       This how-to describes how to deploy a Tomcat-based app in Corus.
+      </p>
+      <p><a href="tomcat.html">go...</a></p>
+    </sapia:sect2>
+  </sapia:sect1>
+</sapia:page>

@@ -1,6 +1,7 @@
 package org.sapia.corus.client.rest;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -12,15 +13,43 @@ import java.util.Set;
 import org.sapia.corus.client.ClientDebug;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.common.rest.PathTemplate;
 import org.sapia.corus.client.common.rest.PathTemplate.MatchResult;
 import org.sapia.corus.client.common.rest.PathTemplateTree;
+import org.sapia.corus.client.common.tuple.PairTuple;
+import org.sapia.corus.client.rest.resources.ApplicationKeyResource;
+import org.sapia.corus.client.rest.resources.ClusterResource;
+import org.sapia.corus.client.rest.resources.DiagnosticResource;
+import org.sapia.corus.client.rest.resources.DistributionResource;
+import org.sapia.corus.client.rest.resources.DistributionWriteResource;
+import org.sapia.corus.client.rest.resources.DockerResource;
+import org.sapia.corus.client.rest.resources.DockerWriteResource;
+import org.sapia.corus.client.rest.resources.ExecConfigResource;
+import org.sapia.corus.client.rest.resources.ExecConfigWriteResource;
+import org.sapia.corus.client.rest.resources.FileResource;
+import org.sapia.corus.client.rest.resources.FileWriteResource;
+import org.sapia.corus.client.rest.resources.MetadataResource;
+import org.sapia.corus.client.rest.resources.PartitionResource;
+import org.sapia.corus.client.rest.resources.PortResource;
+import org.sapia.corus.client.rest.resources.PortWriteResource;
+import org.sapia.corus.client.rest.resources.ProcessResource;
+import org.sapia.corus.client.rest.resources.ProcessWriteResource;
+import org.sapia.corus.client.rest.resources.ProgressResource;
+import org.sapia.corus.client.rest.resources.ProgressResult;
+import org.sapia.corus.client.rest.resources.PropertiesResource;
+import org.sapia.corus.client.rest.resources.PropertiesWriteResource;
+import org.sapia.corus.client.rest.resources.RoleResource;
+import org.sapia.corus.client.rest.resources.ScriptResource;
+import org.sapia.corus.client.rest.resources.TagResource;
+import org.sapia.corus.client.rest.resources.TagWriteResource;
+import org.sapia.corus.client.services.audit.Auditor;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.security.CorusSecurityException;
 import org.sapia.corus.client.services.security.CorusSecurityException.Type;
 import org.sapia.corus.client.services.security.Permission;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Condition;
@@ -41,7 +70,8 @@ public class RestContainer {
       void.class,
       String.class,
       ProgressResult.class,
-      JsonStreamable.class
+      JsonStreamable.class,
+      InputStream.class
   );
 
   /**
@@ -53,6 +83,7 @@ public class RestContainer {
   public static class Builder {
     
     private List<Object> resources = new ArrayList<Object>();
+    private Auditor      auditor;
     
     private Builder() {
     }
@@ -63,6 +94,15 @@ public class RestContainer {
      */
     public Builder resource(Object resource) {
       resources.add(resource);
+      return this;
+    }
+    
+    /**
+     * @param auditor the {@link Auditor} module.
+     * @return this instance.
+     */
+    public Builder auditor(Auditor auditor) {
+      this.auditor = auditor;
       return this;
     }
     
@@ -82,6 +122,8 @@ public class RestContainer {
      *  <li> {@link DiagnosticResource}
      *  <li> {@link DistributionResource}
      *  <li> {@link DistributionWriteResource}
+     *  <li> {@link DockerResource}
+     *  <li> {@link DockerWriteResource}
      *  <li> {@link ExecConfigResource}
      *  <li> {@link ExecConfigWriteResource}
      *  <li> {@link FileResource}
@@ -107,6 +149,8 @@ public class RestContainer {
       .resource(new DiagnosticResource())
       .resource(new DistributionResource())
       .resource(new DistributionWriteResource())
+      .resource(new DockerResource())
+      .resource(new DockerWriteResource())
       .resource(new ExecConfigResource())
       .resource(new ExecConfigWriteResource())
       .resource(new FileResource())
@@ -131,6 +175,7 @@ public class RestContainer {
      * @return a new {@link RestContainer} instances.
      */
     public RestContainer build() {
+      Assertions.illegalState(auditor == null, "Auditor not set");
       PathTemplateTree<RestResourceMetadata> tree = new PathTemplateTree<>();
       for (Object r : resources) {
         for (Method m : r.getClass().getDeclaredMethods()) {
@@ -152,7 +197,7 @@ public class RestContainer {
               }
             }
             
-            Assertions.isTrue(valid, "REST resource method must return either void, String, ProgressResult or JsonStreamable: %s", m);
+            Assertions.isTrue(valid, "REST resource method must return either void, String, ProgressResult, InputStream or JsonStreamable: %s", m);
             Assertions.isTrue(m.getParameterTypes().length == 1 || m.getParameterTypes().length == 2, 
                 "REST resource method %s must have either first parameter of type %s, and optionally second parameter of type %s if provided", 
                 m, RequestContext.class.getName(), RestResponseFacade.class);
@@ -200,7 +245,7 @@ public class RestContainer {
         }
       }
       
-      RestContainer container = new RestContainer(tree);
+      RestContainer container = new RestContainer(tree, auditor);
       return container;
     }
     
@@ -311,14 +356,16 @@ public class RestContainer {
   // --------------------------------------------------------------------------
   
   private PathTemplateTree<RestResourceMetadata> resources;
+  private Auditor auditor;
   
   private volatile boolean authRequired;
   
   /**
    * @param resources a {@link PathTemplateTree} of {@link RestResourceMetadata} instances.
    */
-  private RestContainer(PathTemplateTree<RestResourceMetadata> resources) {
+  private RestContainer(PathTemplateTree<RestResourceMetadata> resources, Auditor auditor) {
     this.resources  = resources;
+    this.auditor    = auditor;
   }
   
   /**
@@ -359,6 +406,14 @@ public class RestContainer {
         if (LOG.enabled()) {
           LOG.trace(String.format("Performing REST invocation on %s (method: %s) - resource: %s", r.target, r.method, r.template));
         }
+        auditor.audit(
+            context.getSubject().getAuditInfo(), 
+            new RemoteHostAddress(context.getRequest().getRemoteHost()), 
+            r.getTemplate().toString(), context.getRequest().getPath()
+        );
+        
+        CurrentAuditInfo.set(context.getSubject().getAuditInfo(), context.getConnector().getContext().getServerHost());
+        
         if (r.method.getParameterTypes().length == 1) {
           Assertions.illegalState(!RequestContext.class.isAssignableFrom(r.method.getParameterTypes()[0]), 
               "Method %s should have %s argument type", r.method, RequestContext.class.getName());
@@ -380,6 +435,23 @@ public class RestContainer {
       }
     } 
     throw new FileNotFoundException("Resource path not handled: " + context.getRequest().getPath());
+  }
+  
+  @SuppressWarnings("serial")
+  private static class RemoteHostAddress implements ServerAddress {
+    private static final String REST_TRANSPORT_TYPE = "REST";
+    private String remoteHost;
+    private RemoteHostAddress(String remoteHost) {
+      this.remoteHost = remoteHost;
+    }
+    @Override
+    public String getTransportType() {
+      return REST_TRANSPORT_TYPE;
+    }
+    @Override
+    public String toString() {
+      return remoteHost;
+    }
   }
 }
 

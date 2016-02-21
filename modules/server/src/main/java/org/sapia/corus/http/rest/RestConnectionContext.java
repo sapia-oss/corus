@@ -24,13 +24,18 @@ import org.sapia.corus.client.Results.ResultListener;
 import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.facade.HostSelectionContext;
 import org.sapia.corus.client.facade.HostSelectionContextImpl;
 import org.sapia.corus.client.facade.impl.ClientSideClusterInterceptor;
+import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
+import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
@@ -72,11 +77,11 @@ public class RestConnectionContext implements CorusConnectionContext {
    *          calls to targeted Corus instances.
    */
   public RestConnectionContext(Corus current, ClientFileSystem fileSys, int invokerThreads) {
-    this.corus          = current;
-    this.serverHost     = corus.getHostInfo();
-    this.domain         = corus.getDomain();
-    this.interceptor    = new ClientSideClusterInterceptor();
-    this.fileSys        = fileSys;
+    this.corus         = current;
+    this.serverHost  = corus.getHostInfo();
+    this.domain      = corus.getDomain();
+    this.interceptor = new ClientSideClusterInterceptor();
+    this.fileSys     = fileSys;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
     executor = Executors.newFixedThreadPool(invokerThreads);
   }
@@ -150,6 +155,23 @@ public class RestConnectionContext implements CorusConnectionContext {
   // --------------------------------------------------------------------------
   // Core functionality
 
+  @Override
+  public void connect(String host, int port) {
+    for (CorusHost h : getOtherHosts()) {
+      TCPAddress addr = h.getEndpoint().getServerTcpAddress();
+      if (addr.getHost().equals(host) && addr.getPort() == port) {
+        this.serverHost = h;
+      }
+    }
+    throw new IllegalArgumentException(String.format("No host found for host:port => %s:%s", host, port));
+  }
+  
+  @Override
+  public void connect(CorusHost host) {
+    TCPAddress addr = host.getEndpoint().getServerTcpAddress();
+    connect(addr.getHost(), addr.getPort());
+  }
+  
   @Override
   public Collection<CorusHost> getOtherHosts() {
     return ((ClusterManager) corus.lookup(ClusterManager.ROLE)).getHosts();
@@ -258,7 +280,15 @@ public class RestConnectionContext implements CorusConnectionContext {
             if (log.isDebugEnabled()) {
               log.debug("Chaining invocation to other hosts for: " + method);
             }
-            Corus  corus        = getRemoteCorus(this.getOtherHosts().iterator().next());
+            CorusHost nextHost  = this.getOtherHosts().iterator().next();
+            Corus     corus     = getRemoteCorus(nextHost);
+            if (CurrentAuditInfo.isSet()) {
+              AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+              CurrentAuditInfo.set(reg.getAuditInfo(), nextHost);
+            } else {
+              CurrentAuditInfo.set(AuditInfo.forCurrentUser(), nextHost);
+            }
+       
             Object remoteModule = corus.lookup(moduleInterface.getName());
             try {
               toReturn = method.invoke(remoteModule, params);
@@ -278,7 +308,15 @@ public class RestConnectionContext implements CorusConnectionContext {
           if (log.isDebugEnabled()) {
             log.debug("Other host(s) targeted for: " + method + " (" + info + ")");
           }
-          Corus  corus        = getRemoteCorus(this.getOtherHosts().iterator().next());
+          CorusHost nextHost = getOtherHosts().iterator().next();
+          Corus     corus    = getRemoteCorus(nextHost);
+          if (CurrentAuditInfo.isSet()) {
+            AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+            CurrentAuditInfo.set(reg.getAuditInfo(), nextHost);
+          } else {
+            CurrentAuditInfo.set(AuditInfo.forCurrentUser(), nextHost);
+          }
+          
           Object remoteModule = corus.lookup(moduleInterface.getName());
           try {
             toReturn = method.invoke(remoteModule, params);
@@ -310,6 +348,8 @@ public class RestConnectionContext implements CorusConnectionContext {
   @SuppressWarnings(value = "unchecked")
   void applyToCluster(final Results<?> results, final Class<?> moduleInterface, final Method method, final Object[] params, final ClusterInfo cluster) {
 
+    final OptionalValue<AuditInfoRegistration> auditInfo = CurrentAuditInfo.get();
+    
     List<CorusHost> hostList = new ArrayList<CorusHost>();
     if (log.isDebugEnabled()) {
       log.debug("==> Dispatching method invocation to cluster: " + method);
@@ -363,11 +403,20 @@ public class RestConnectionContext implements CorusConnectionContext {
 
           try {
             module = corus.lookup(moduleInterface.getName());
+            if (auditInfo.isSet()) {
+              CurrentAuditInfo.set(auditInfo.get(), addr);
+            } else {
+              CurrentAuditInfo.set(AuditInfo.forCurrentUser(), addr);
+            }
             returnValue = method.invoke(module, params);
             results.addResult(new Result(addr, returnValue, Result.Type.forClass(method.getReturnType())));
           } catch (Exception err) {
             log.debug("Error invoking on host: " + addr, err);
             results.decrementInvocationCount();
+          } finally {
+            if (auditInfo.isSet()) {
+              CurrentAuditInfo.unset();
+            }
           }
 
         }
@@ -392,10 +441,6 @@ public class RestConnectionContext implements CorusConnectionContext {
   public void reconnect() {
   }
   
-  @Override
-  public void reconnect(String host, int port) {
-  }
-  
   private Corus getRemoteCorus(CorusHost remoteHost) throws RemoteException {
     Corus corus = (Corus) cachedStubs.get(remoteHost.getEndpoint().getServerAddress());
     if (corus == null) {
@@ -404,4 +449,5 @@ public class RestConnectionContext implements CorusConnectionContext {
     }
     return corus;
   }
- }
+
+}

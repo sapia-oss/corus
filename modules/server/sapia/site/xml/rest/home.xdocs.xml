@@ -2,11 +2,9 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="../index.html"/>
-    <sapia:vsection name="Corus Guide" href="../CorusGuide.pdf"/>
-    <sapia:vsection name="In 2 minutes" href="../overview.html"/>    
-    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
-    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="Corus Guide" href="../guide/index.html"/>
     <sapia:vsection name="REST API" href="../rest.html"/>        
+ 	  <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
   </sapia:vmenu>
   
   <sapia:sect1 title="Starting Guide">
@@ -278,10 +276,10 @@ corus.server.ssl.enabled=true</sapia:code>
             be labeled <tt>SYNC</tt>. Note that some resources support both synchronous and asynchronous invocation. When such is the case, an <tt>async</tt>
             parameter must be passed to the resource, in the query string. Its value must be set to <tt>true</tt>.</p> 
             <p>Additionally, some resources may return a so-called completion token, which clients can use to poll for the completion of certain asynchronous 
-            calls and obtain information about the outcome of the operation (success/failure) - such resources are labeled with <tt>ASYNC with polling</tt>
+            calls and obtain information about the outcome of the operation (success/failure) - such resources are labeled with <a href="#async-polling"><tt>ASYNC with polling</tt></a>
             in the doc.
           </p>
-          <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>.</sapia:note>
+          <sapia:note>All <tt>GET</tt> resources can be considered <tt>SYNC</tt>, unless otherwise specified.</sapia:note>
       
       </sapia:sect3>
       
@@ -476,11 +474,14 @@ http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/partitionsets
       
       </sapia:sect3>
       
-      <sapia:sect3 title="Asynchronicity and Polling">
+      <sapia:sect3 title="Asynchronicity and Polling" alias="async-polling">
         <p>
-        Some resources offering an asynchronous behavior return a completion token (a string uniquely identifying an asynchronous operation).
-        That string may be used by clients to poll the server for obtaining progress information pertaining to the corresponding operation.
-        The sequence is as follows:
+        Some resources offering an asynchronous behavior return a completion token (a string uniquely identifying an asynchronous operation). 
+        Such behavior is marked as "Async with Polling" in the documentation, when implemented for the resource in question.
+        </p>
+        <p>
+        The completion token that's returned in such a context may be used by clients to poll the server for obtaining progress 
+        information for the corresponding operation. The sequence is as follows:
         </p>
         <ol>
           <li>A resource is invoked with the <tt>async</tt> query parameter set to <tt>true</tt>. The resource returns either HTTP status code

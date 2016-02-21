@@ -14,7 +14,7 @@
 
     <sapia:sect-desc title="Overview">
       <p>
-        JVM meets DevOps: Corus allows automated distribution of server-side applications 
+        Corus allows automated distribution of server-side applications 
         on a large scale - and without requiring conformance to a heavyweight programming model. 
         Package your app using your lightweight application framework of 
         choice, deploy it, and then let Corus execute and monitor multiple 
@@ -26,31 +26,25 @@
     <sapia:sect2 title="Highlights">
       <ul style="color: black; font-size: 16px; list-style: square outside none;" >
         <li>
-          Scale JVM-based applications as is, without conforming to a complex 
-          programming model.
+          Scale <a href="guide/java_processes.html">JVM-based</a> or <a href="guide/docker_integration.html">Docker-based</a> applications as is, without conforming to a complex programming model.
         </li>
         <li>
-          Centrally manage distributed JVMs on commodity hardware, using 
-          Linux-like commands, allowing for clustered deployment and process 
-          execution.
+          Centrally manage distributed JVMs/containers on commodity hardware, using 
+          Linux-like commands or a <a href="rest.html">REST API</a>.
         </li>
 	      <li>
 	        Rely on a robust runtime environment providing high-availability - 
 	        crashed or unresponsive processes are automatically restarted.
 	      </li>
+        <li>
+          Conditionally start processes on subset of hosts, through <a href="guide/tagging.html">tagging</a>.
+        </li>
+        <li>
+          Benefit from native <a href="guide/numa_integration.html">NUMA integration</a> for memory-bound
+          applications.
+        </li>
 	      <li>
-	        Minimize deployment time, and thus downtime, through batch deployment.
-	      </li>
-	      <li>
-	        Integrate cluster-wide process status data into monitoring
-	        infrastructure.
-	      </li>
-	      <li>
-	        Install on OS of choice (Corus has been deployed and tested on 
-	        multiple Linux/Unix distributions: Ubuntu, CentOS, Solaris, etc.).
-	      </li>
-	      <li>
-	        Implement language-agnosting automation through REST API.
+	        Minimize deployment time and downtime by leveraging Corus' graceful deployment characteristics.
 	      </li>
 	    </ul>
 	  </sapia:sect2>

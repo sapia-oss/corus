@@ -51,6 +51,26 @@ public interface DeployerFacade {
       DuplicateDistributionException, Exception;
 
   /**
+   * Proceeds to the deployment of the Docker image whose file name is provided.
+   * 
+   * @param imageName
+   *          the name to assign to the Docker image.
+   * @param fileName
+   *          the name of the Docker image tarball.
+   * @param prefs
+   *          the {@link DeployPreferences} to use.
+   * @param cluster
+   *          a {@link ClusterInfo} instance.
+   * @return a {@link ProgressQueue} instance.
+   * @throws java.io.IOException
+   *           if a IO error occurs.
+   * @throws Exception
+   *           if an undefined error occurs.
+   */
+  public ProgressQueue deployDockerImage(String imageName, String fileName, DeployPreferences prefs, ClusterInfo cluster) throws java.io.IOException, Exception;
+  
+  
+  /**
    * Proceeds to the deployment of the file whose name is given.
    * 
    * @param fileName

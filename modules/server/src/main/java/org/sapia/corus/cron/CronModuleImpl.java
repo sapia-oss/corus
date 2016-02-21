@@ -96,7 +96,7 @@ public class CronModuleImpl extends ModuleHelper implements CronModule {
       throw new ProcessConfigurationNotFoundException("Invalid process name: " + info.getProcessName());
     }
 
-    info.assignId(IDGenerator.makeId());
+    info.assignId(IDGenerator.makeSequentialId());
 
     CronJob job = new CronJob(info);
     job.init(this, serverContext());

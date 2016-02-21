@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.database.ArchiveStatus;
 import org.sapia.corus.client.services.database.Archiver;
 import org.sapia.corus.client.services.database.RevId;

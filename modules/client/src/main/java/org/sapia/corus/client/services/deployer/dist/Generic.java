@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
 import org.sapia.ubik.util.Assertions;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * A {@link Starter} implementation used to start any type of process (supports specifying the corresponding
@@ -22,7 +26,7 @@ import org.sapia.ubik.util.Assertions;
  * @author yduchesne
  *
  */
-public class Generic implements Starter, Serializable {
+public class Generic implements Starter, Serializable, ObjectCreationCallback {
   
   static final long serialVersionUID = 1L;
 
@@ -30,7 +34,17 @@ public class Generic implements Starter, Serializable {
   private List<Dependency>   dependencies   = new ArrayList<Dependency>();
   private List<CmdGenerator> args           = new ArrayList<CmdGenerator>();
   private boolean            interopEnabled = true;
+  private boolean            numaEnabled    = true;
   
+  public void setNumaEnabled(boolean numaEnabled) {
+    this.numaEnabled = numaEnabled;
+  }
+  
+  @Override
+  public boolean isNumaEnabled() {
+    return numaEnabled;
+  }
+
   @Override
   public void setProfile(String profile) {
     this.profile = profile;
@@ -128,6 +142,13 @@ public class Generic implements Starter, Serializable {
     
     return new StarterResult(StarterType.GENERIC, cmd, interopEnabled);
   }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    attributeNotNullOrEmpty("generic", "profile", profile);
+    return this;
+  }
+  
   
   private String render(StrLookup context, String value) {
     StrSubstitutor substitutor = new StrSubstitutor(context);

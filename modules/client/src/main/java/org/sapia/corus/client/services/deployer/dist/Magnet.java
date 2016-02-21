@@ -1,12 +1,16 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.File;
 
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * This class corresponds to the <code>magnet</code> element in the corus.xml
@@ -14,7 +18,7 @@ import org.sapia.corus.client.exceptions.misc.MissingDataException;
  * 
  * @author Yanick Duchesne
  */
-public class Magnet extends BaseJavaStarter implements java.io.Serializable {
+public class Magnet extends BaseJavaStarter implements java.io.Serializable, ObjectCreationCallback {
 
   static final long serialVersionUID = 1L;
 
@@ -23,8 +27,7 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   private String magnetFile;
   private String magnetOptions;
   private String libDirs;
-  private boolean interopEnabled = true;
-
+  
   /**
    * Sets the name of the magnet file that will be used to start the VM.
    * 
@@ -53,18 +56,6 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
   }
   
   /**
-   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
-   */
-  public void setInteropEnabled(boolean interopEnabled) {
-    this.interopEnabled = interopEnabled;
-  }
-  
-  public boolean isInteropEnabled() {
-    return interopEnabled;
-  }
-  
-
-  /**
    * Returns a "command-line" representation of this instance.
    * 
    * @return a {@link CmdLine} instance.
@@ -89,13 +80,19 @@ public class Magnet extends BaseJavaStarter implements java.io.Serializable {
     result.command.addArg(APP_STARTER_CLASS_NAME);
     result.command.addOpt("ascp", getAsCp(env));
     result.command.addArg("org.sapia.magnet.MagnetRunner");
-    result.command.addOpt("magnetfile", FileUtils.toPath(env.getCommonDir(), magnetFile));
+    result.command.addOpt("magnetfile", FileUtil.toPath(env.getCommonDir(), magnetFile));
     result.command.addOpt("p", profile);
     if (magnetOptions != null && magnetOptions.length() > 0) {
       result.command.addArg(magnetOptions);
     }
 
-    return new StarterResult(StarterType.MAGNET, result.command, interopEnabled);
+    return new StarterResult(StarterType.MAGNET, result.command, isInteropEnabled());
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    attributeNotNullOrEmpty("magnet", "magnetFile", magnetFile);
+    return this;
   }
 
   public String toString() {

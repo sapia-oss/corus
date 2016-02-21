@@ -1,7 +1,9 @@
 package org.sapia.corus.client;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ public class ResultTest {
  
   @Before
   public void setUp() {
-    host             = CorusHost.newInstance(new Endpoint(addr, addr), "osInfo", "jvmInfo");
+    host             = CorusHost.newInstance(new Endpoint(addr, addr), "osInfo", "jvmInfo", mock(PublicKey.class));
     elementResult    = new Result<MatcheableString>(host, string("test"), Result.Type.ELEMENT);
     collectionResult = new Result<List<MatcheableString>>(host, Collects.arrayToList(string("1"), string("2"), string("3")), Result.Type.COLLECTION);
     Map<Integer, MatcheableString> map = new HashMap<Integer, MatcheableString>();

@@ -1,0 +1,168 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="The Corus Guide">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" />
+    </sapia:section>
+  
+    <toc/>
+  
+    <sapia:sect-desc>
+      <p>
+      	Welcome to the Corus Guide, providing documentation about Corus'
+      	core functionality. The guide is a good logical starting place.
+      </p>
+      
+      <sapia:note>
+      	The guide is the online version of the original Corus Guide in PDF format. The PDF document will no longer be maintained.
+      </sapia:note>
+      <p/>
+
+      <sapia:table>
+      	<sapia:th>Topic</sapia:th><sapia:th>Description</sapia:th>
+      	<tr>
+      		<td><a href="introduction.html">Introduction</a></td>
+      		<td>Introduces key concepts (architecture, topology, overview of the CLI...)</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="packaging_applications.html">Packaging Applications</a></td>
+      		<td>Describes how to package applications (focusing on Java/JVM-based applications).</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="configuration.html">Configuration</a></td>
+      		<td>Explains Corus' configuration and file system layout.</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="distributions_in_depth.html">Distributions in Depth</a></td>
+      		<td>Discusses distributions in more detail (the Corus descriptor, execution configurations, invoking Ant, etc.)</td>
+      	</tr>
+  
+      	<tr>
+      		<td><a href="java_processes.html">Java Processes</a></td>
+      		<td>
+      			Explains in more details how Corus executes/manages Java (or JVM language-based) processes, and the tight integration that is supported
+      			(self process-restart, hot config, etc.).
+      		</td>
+      	</tr>    	
+      	
+      	<tr>
+      		<td><a href="docker_integration.html">Docker Integration</a></td>
+      		<td>
+      			Describes how the distribution and process abstraction in Corus is adapted to the management of Docker containers. Also documents how Corus' peer-to-peer achitecture can be leveraged to eliminate dependency on the Docker registry as a single point of failure.
+      		</td>
+      	</tr>    	
+        
+        <tr>
+            <td><a href="numa_integration.html">NUMA integration</a></td>
+            <td>Explains how Corus can improve performance of processes on servers supporting the NUMA hardware architecture.</td>
+        </tr>
+      	
+      	<tr>
+      		<td><a href="closer_look_at_the_cli.html">A Closer Look at the CLI</a></td>
+      		<td>Delves into more advanced usage of the Corus command-line interface.</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="archiving.html">Archiving</a></td>
+      		<td>Archiving can come handy in the context of managing rollbacks.</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="corus_scripts.html">Corus Scripts</a></td>
+      		<td>A more in-depth look at Corus scripts.</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="packaging_scripts_with_distributions.html">Packaging Scripts with Distributions</a></td>
+      		<td>
+      			Describes how Corus scripts can be executed on the server-side at deployment - this greatly simplifies the deployment process,
+      			and makes rollbacks a breeze.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="tagging.html">Tagging</a></td>
+      		<td>
+      			Tagging allows restricting the execution of given process to a subset of the Corus nodes in a cluster. It is a simple, yet powerful feature that greatly simplifies deployments.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="repository.html">Repository</a></td>
+      		<td>
+      			One or more Corus nodes in a cluster can act as so-called repositories for the other nodes: at start up, these other nodes will request that the state of the repo nodes be replicated to them.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="ripple.html">Ripple</a></td>
+      		<td>
+      			Stands for "ripple effect": the functionality can come handy in the context of graceful deployments.
+      		</td>
+      	</tr>
+  
+      	<tr>
+      		<td><a href="discovery.html">Discovery</a></td>
+      		<td>
+      			This section discusses all things discovery - integration with Consul is in the menu.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="port_management.html">Port Management</a></td>
+      		<td>
+      			Using Corus' port management feature solves the hassle of port allocation when running multiple processes on the same host.
+      		</td>
+      	</tr>
+  
+      	<tr>
+      		<td><a href="file_uploads.html">File Uploads</a></td>
+      		<td>
+      			Describes how to deploy arbitrary files to Corus.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="shell_scripts.html">Shell Scripts</a></td>
+      		<td>
+      			Describes how to deploy shell scripts to Corus, and invoke their remote execution cluster-wide.
+      		</td>
+      	</tr>
+      	
+      	<tr>
+      		<td><a href="alerting_and_external_logging.html">Alerting and external logging</a></td>
+      		<td>
+      			Explaines how Corus can be configured to send alerts through SMTP, and to send its internal log messages to Syslog.
+      		</td>
+      	</tr>
+  
+      	<tr>
+      		<td><a href="cloud_integration.html">Cloud Integration</a></td>
+      		<td>
+      			Describes the features that are meant to help deploy Corus to the cloud.
+      		</td>
+      	</tr>    	
+      	
+      </sapia:table>
+    </sapia:sect-desc>  
+  </sapia:sect1>
+</sapia:page>

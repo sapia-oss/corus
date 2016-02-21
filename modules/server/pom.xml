@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>4.8.2</version>
+    <version>5.0</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -57,6 +57,18 @@
     <dependency>
       <groupId>jdring</groupId>
       <artifactId>jdring</artifactId>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.10</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>1.7.10</version>
     </dependency>
 
     <dependency>
@@ -199,6 +211,7 @@
   <build>
     <finalName>${project.artifactId}-${project.version}</finalName>
     <plugins>
+    
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
         <configuration>
@@ -310,7 +323,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_corus_iop,sapia_corus_iop_api</includeArtifactIds>
+              <includeArtifactIds>sapia_corus_iop,sapia_corus_iop_api,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 
@@ -358,7 +371,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop</includeArtifactIds>
+              <includeArtifactIds>jdom,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 
@@ -374,7 +387,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop</includeArtifactIds>
+              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>
 

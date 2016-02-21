@@ -1,11 +1,15 @@
 package org.sapia.corus.client.services.deployer.dist.docker;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Holds volume mapping configuration.
@@ -13,7 +17,7 @@ import org.sapia.corus.client.common.OptionalValue;
  * @author yduchesne
  *
  */
-public class DockerVolumeMapping implements Externalizable {
+public class DockerVolumeMapping implements Externalizable, ObjectCreationCallback {
 
   private String hostVolume, containerVolume;
   private OptionalValue<String> permission = OptionalValue.none();
@@ -40,6 +44,13 @@ public class DockerVolumeMapping implements Externalizable {
   
   public OptionalValue<String> getPermission() {
     return permission;
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    attributeNotNullOrEmpty("volumeMapping", "hostVolume", hostVolume);
+    attributeNotNullOrEmpty("containerMapping", "containerVolume", containerVolume);
+    return this;
   }
   
   // --------------------------------------------------------------------------

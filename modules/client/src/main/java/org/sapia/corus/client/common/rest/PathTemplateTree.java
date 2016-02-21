@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.rest.PathTemplate.MatchResult;
 import org.sapia.corus.client.common.rest.PathTemplate.URLTemplatePart;
+import org.sapia.corus.client.common.tuple.PairTuple;
+import org.sapia.corus.client.rest.ResourcePathParser;
 import org.sapia.ubik.util.Condition;
 
 /**
@@ -30,7 +30,7 @@ public class PathTemplateTree<T> {
     private TreeNode() {
     }
     
-     private void bind(int partIndex, PathTemplate template, T value) {
+    private void bind(int partIndex, PathTemplate template, T value) {
       if (partIndex < template.getParts().size()) {
         TreeNode<T> node = nodes.get(template.getParts().get(partIndex));
         if (node == null) {
@@ -107,7 +107,7 @@ public class PathTemplateTree<T> {
    * @return the {@link MatchResult}, holding data corresponding to the outcome of this operation.
    */
   public PairTuple<MatchResult, OptionalValue<T>> matches(String path, Condition<T> selector) {
-    String[]            segments = StringUtils.split(path, '/');
+    String[]            segments = ResourcePathParser.parse(path);
     Map<String, String> params   = new HashMap<>();
     if (segments.length > 0) {
       int index = 0;

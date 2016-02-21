@@ -1,5 +1,7 @@
 package org.sapia.corus.client;
 
+import java.security.PublicKey;
+
 import org.sapia.corus.client.exceptions.core.ServiceNotFoundException;
 import org.sapia.corus.client.services.cluster.CorusHost;
 
@@ -20,6 +22,11 @@ public interface Corus extends java.rmi.Remote {
    */
   public String getDomain();
 
+  /**
+   * @return the public key of the Corus server, used for encrypting outside of SSL.
+   */
+  public PublicKey getPublicKey();
+  
   /**
    * 
    * @return the {@link CorusHost} instance which holds information about the

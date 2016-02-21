@@ -1,7 +1,7 @@
 package org.sapia.corus.processor.task;
 
 import org.sapia.corus.client.common.OptionalValue;
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
@@ -47,12 +47,15 @@ public class PublishProcessTask extends Task<Void, Process> {
     }
     
     if (process.getLock().isLocked() && !process.getLock().getOwner().equals(processLockOwner)) {
-      ctx.warn(String.format("Process currently locked, will try again: %s", ToStringUtils.toString(process)));
+      ctx.warn(String.format("Process currently locked, will try again: %s", ToStringUtil.toString(process)));
+    } else if (process.isDeleted()) {
+      ctx.warn(String.format("Process has %s been terminated by a separated task, aborting publishing", ToStringUtil.toString(process)));
+      abort(ctx);
     } else {
       try {
         process.getLock().acquire(processLockOwner);
       } catch (ProcessLockException ple) {
-        ctx.warn(String.format("Could not acquire lock on process: %s. Will try again", ToStringUtils.toString(process)));
+        ctx.warn(String.format("Could not acquire lock on process: %s. Will try again", ToStringUtil.toString(process)));
         ctx.warn("Details:", ple);
         return null;        
       } 
@@ -61,7 +64,7 @@ public class PublishProcessTask extends Task<Void, Process> {
       ProcessPublisher publisher = ctx.getServerContext().getServices().getProcessPublisher();
       
       try {
-        ProcessDiagnosticResult diagnosticResult = diag.acquireDiagnosticFor(process, processLockOwner);
+        ProcessDiagnosticResult diagnosticResult = diag.acquireProcessDiagnostics(process, OptionalValue.of(processLockOwner));
         if (diagnosticResult.getStatus().isFinal() && !diagnosticResult.getStatus().isProblem()) {
           if (callback == null) {
             callback = new PublishProcessTaskCallback(ctx);
@@ -70,11 +73,11 @@ public class PublishProcessTask extends Task<Void, Process> {
           }
         } else if (diagnosticResult.getStatus().isFinal() && diagnosticResult.getStatus().isProblem()){
           ctx.error(String.format("Diagnostic failed for process %s (got status: %s). Aborting publishing", 
-              ToStringUtils.toString(process), diagnosticResult.getStatus()));
+              ToStringUtil.toString(process), diagnosticResult.getStatus()));
           abort(ctx);
         } else {
           ctx.info(String.format("Diagnostic incomplete for process %s (got status: %s). Will try again.", 
-              ToStringUtils.toString(process), diagnosticResult.getStatus()));
+              ToStringUtil.toString(process), diagnosticResult.getStatus()));
         }
       } catch (RuntimeException e) {
         ctx.error("Error caught trying to publish process", e);
@@ -88,7 +91,7 @@ public class PublishProcessTask extends Task<Void, Process> {
   @Override
   protected synchronized void abort(TaskExecutionContext ctx) {
     try {
-      ctx.debug(String.format("Releasing lock on: %s", ToStringUtils.toString(process)));
+      ctx.debug(String.format("Releasing lock on: %s", ToStringUtil.toString(process)));
       process.getLock().release(processLockOwner);
     } catch (Exception err) {
       // noop
@@ -103,7 +106,7 @@ public class PublishProcessTask extends Task<Void, Process> {
     ctx.getServerContext().getServices().getEventDispatcher().dispatch(
         new ProcessPublishingCompletedEvent(process, PublishStatus.MAX_ATTEMPTS_REACHED)
     );
-    ctx.error("Max execution reached when trying to publish process " + ToStringUtils.toString(process));
+    ctx.error("Max execution reached when trying to publish process " + ToStringUtil.toString(process));
     abort(ctx);
   }
 
@@ -119,25 +122,25 @@ public class PublishProcessTask extends Task<Void, Process> {
     
     @Override
     public void publishingFailed(ProcessPubContext ctx, Exception err) {
-      taskContext.error("Error occurred trying to publish process " + ToStringUtils.toString(process), err);
+      taskContext.error("Error occurred trying to publish process " + ToStringUtil.toString(process), err);
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessPublishingCompletedEvent(ctx.getProcess(), err));
     }
     @Override
     public void publishingSuccessful(ProcessPubContext ctx) {
       taskContext.info(String.format("Publishing successful for process %s with publishing config: %s", 
-          ToStringUtils.toString(ctx.getProcess()), ctx.getPubConfig()));
+          ToStringUtil.toString(ctx.getProcess()), ctx.getPubConfig()));
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessPublishingCompletedEvent(ctx.getProcess(), PublishStatus.SUCCESS));
     }
     @Override
     public void publishingNotApplicable(Process process) {      
       taskContext.info(String.format("Publishing not applicable for process %s", 
-        ToStringUtils.toString(process)));
+        ToStringUtil.toString(process)));
       taskContext.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessPublishingCompletedEvent(process, PublishStatus.NOT_APPLICABLE));
     }
     
     @Override
     public void publishingStarted(ProcessPubContext ctx) {
-      taskContext.info(String.format("Attempting to publish process: %s for %s", ToStringUtils.toString(ctx.getProcess()), ctx.getPubConfig()));
+      taskContext.info(String.format("Attempting to publish process: %s for %s", ToStringUtil.toString(ctx.getProcess()), ctx.getPubConfig()));
     }
   }
 }

@@ -23,6 +23,7 @@ import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.CorusConnectorBuilder;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Localhost;
@@ -34,6 +35,10 @@ import org.sapia.ubik.util.Localhost;
  * 
  */
 public class FtestClient {
+  
+  static {
+    System.setProperty(HttpConsts.HTTP_CLIENT_JDK, "true");
+  }
   
   public static final String HEADER_APP_ID  = "X-corus-app-id";
   public static final String HEADER_APP_KEY = "X-corus-app-key";
@@ -140,10 +145,10 @@ public class FtestClient {
           .accept(MediaType.APPLICATION_JSON) 
           .put(Entity.entity("{}", MediaType.APPLICATION_JSON), JSONValue.class);
     
-    JSONObject partitionSet = response.asObject();
-    String partitionSetId = partitionSet.getString("id");
-    JSONArray  partitions = partitionSet.getJSONArray("partitions");
-    JSONObject partition  = partitions.getJSONObject(0);
+    JSONObject partitionSet   = response.asObject();
+    String     partitionSetId = partitionSet.getString("id");
+    JSONArray  partitions     = partitionSet.getJSONArray("partitions");
+    JSONObject partition     = partitions.getJSONObject(0);
     
     return new PartitionInfo(partitionSetId, partition.getInt("index"));
   }

@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.security;
 
 import java.util.Set;
 
+import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -43,6 +44,11 @@ public class AppSubject implements Subject {
   @Override
   public boolean isAnonymous() {
     return false;
+  }
+  
+  @Override
+  public AuditInfo getAuditInfo() {
+    return AuditInfo.forClientId(appId);
   }
   
   // --------------------------------------------------------------------------

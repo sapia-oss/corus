@@ -1,0 +1,218 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - NUMA Integration" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+    <sapia:vsection name="Docker" href="../guide/docker_integration.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="NUMA Integration">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="numa integration"/>
+    </sapia:section>
+  
+    <sapia:sect-desc>
+      <p>
+        Starting with release 5, Corus supports integration with the <a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access">NUMA</a> hardware architecture. 
+        NUMA, which stands for "Non Uniform Memory Access", is a design of computer memory on multiprocessor computers consisting of segmenting memory slots into 
+        colocated nodes, in order to provide local access to CPU cores. This "local affinity" is meant to reduce the latency involved in accessing memory, 
+        and may provide a significant performance increase for memory-bound applications (although each application should be tested, and no wide-ranging 
+        assumptions should be made).
+      </p>
+      <p>
+        Here are the highlights of the NUMA integration:
+        <ul>
+          <li>Automatic discovery of NUMA nodes available on the running server;</li>
+          <li>automatic processor and memory assignment;</li>
+          <li>automatic load-balancing of process execution among available NUMA nodes;</li>
+          <li>possibility of restricting process execution to a NUMA node subset.</li>
+        </ul>
+      </p>
+      <sapia:note>
+      Note that NUMA integration is disabled for Docker-based processes: that is because in this case Corus delegates execution of processes 
+      to the Docker daemon under its control (it does not invoke the command-line starting up these processes).
+      </sapia:note>
+      <p>
+      	<b>Contents:</b>
+      </p>
+    </sapia:sect-desc>
+ 
+    <toc/>
+
+    <sapia:sect2 title="Introduction">
+    	<p>
+          NUMA integration is provided in Corus via the <tt>numactl</tt> command on Linux to manage process policies. When
+          this feature is enabled, Corus will start assigning each executed process to the next available NUMA node. The assignment 
+          algorithm follows a simple round-robbin strategy in order to load balance the processes on all the nodes available
+          on the machine.
+    	</p>
+        <sapia:note>
+          The current interation can only assign a single NUMA node for each running process (that is: one process will be "pinned" to
+          a single node).
+        </sapia:note>
+    </sapia:sect2>
+    
+    
+    <sapia:sect2 title="Node Assignment">
+      <p>
+        The main functionality if Corus' NUMA integration consists dynamic assignment of memory and CPU core, at process startup. 
+        Assignment follows a round-robbin strategy in order to evenly distribute the processes over the available NUMA nodes: Corus
+        keeps track of which nodes processes are currently assigned to, and is thus able to determine the node to which the next started
+        process should be pinned.   
+      </p>
+      
+      <sapia:note>
+        Usage of the <tt>-XX:+UseNUMA</tt> JVM argument conflicts with the current Corus/NUMA integration as the JVM is overriding
+        any policies that could be applied by the <tt>numactl</tt> command. The JVM argument will cause the creation of a memory segment 
+        that will spread accross NUMA nodes. It will also trigger special GC behavior to minimize cross-node communication. The
+        <tt>numactl</tt> command allows for the assignment of processes to a single NUMA node, thus eliminating any cross-node communication and
+        maximizing the performance obtained from the host machine. It is recommended that you test your application with both options, and 
+        <b>use the best option for your use-case, not both</b>.
+      </sapia:note>
+      
+      <p>
+        Corus support two modes for defining the inventory of NUMA nodes available for assignment:
+        <ul>
+          <li>Automatic node discovery, for ease of use;</li>
+          <li>manual node definition, for specific needs.</li>
+        </ul> 
+      </p>
+      
+      <sapia:sect3 title="Automatic Node Discovery">
+        <p>
+          Corus provides an automatic discovery mechanism that detects, on startup, the available NUMA nodes on the host. This 
+          behavior is activated by the <tt>corus.server.numa.auto-detection.enabled</tt> configuration property. In this mode (which is the default) 
+          you have nothing more to do: Corus will automatically pin started processes over the available NUMA nodes.
+        </p>
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Manual Node Definition">
+        <p>
+          For advanced use-cases, Corus supports resticting the NUMA nodes on which to load-balance running
+          processes. The <tt>corus.server.numa.first.node.id</tt> property defines the lower bound of the NUMA node range to use. 
+          By the same token, the <tt>corus.server.numa.node.count</tt> property is also available to define the
+          total number of NUMA nodes managed by Corus. These properties dictate the range within which Corus will pin processes to NUMA nodes. 
+        </p>
+        <sapia:note>Note that any subset defined this way consist of a consecutive list of node ids</sapia:note>
+      </sapia:sect3>
+    </sapia:sect2>
+
+    <sapia:sect2 title="Viewing Node Assignment">
+      <p>
+        As described above, Corus will assign new processes to NUMA nodes. It offers two ways to visualize such assignements:
+        <ul>
+          <li>The <b><tt>ps</tt></b> command of the Corus CLI now provides a <b><tt>-numa</tt></b> option that will list the NUMA node identifier assigned to each process.</li>
+          <li>The same information is also available through the <a href="../rest/core.html">REST API</a> using the <tt>get processes</tt> request.</li>
+        </ul>
+      </p>
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Configuration">
+   		<p>
+   			As partially explained previously, the behavior of the NUMA integration in Corus is determined by configuration properties 
+        in the <tt>corus.properties</tt> file (found under <tt>$CORUS_HOME/config</tt>). The following table lists these properties 
+        and provides a description for each:
+   		</p>
+      
+      <sapia:table>
+      	<sapia:th>Name</sapia:th>
+      	<sapia:th>Description</sapia:th>
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.enabled</b></tt>
+      		</td>
+      		<td>
+      			Indicates if the NUMA integration is enabled or not (defaults to <tt>false</tt>). Attempting to activate NUMA on a host that does not
+                support this architecture will result in errors when starting processes.
+      		</td>
+      	</tr>
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.auto-detection.enabled</b></tt>
+      		</td>
+      		<td>
+      			This flag enables/disables auto discovery of available NUMA nodes on the running host server (defaults to <tt>true</tt>). If this property is
+            set to <tt>false</tt>, the definition of available NUMA nodes must be explicitly set with the appropriate properties (see below). 
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.bind.cpu</b></tt>
+      		</td>
+      		<td>
+      			This flag determines the processor assignment policy (defaults to <tt>true</tt>). When set to <tt>true</tt>, Corus will start new
+            processes to be executed only on the CPUs of the assigned NUMA node, otherwise the default CPU assignment policy will
+            be applied to the process.  
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.bind.memory</b></tt>
+      		</td>
+      		<td>
+            This flag determines the memory allocation policy (defaults to <tt>true</tt>). When set to <tt>true</tt>, Corus will start new
+            processes with memory allocated only from the assigned NUMA node - note that allocation will fail when there is not enough
+            memory available on the node. If the value is set to <tt>false</tt>, then the default memory allocation policy on the host
+            will be in effect.  
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.first.node.id</b></tt>
+      		</td>
+      		<td>
+      			Defines the fist NUMA node to use for process binding (defaults to <tt>0</tt>). This value is expected to be an integer that can be changed to restrict
+            the first NUMA node from which Corus will start assigning processes (by increasing the lower bound of node range). The value must be greater or equals
+            than 0 and lower than the highest NUMA node identifier on the host server (as implied by the "node count", configured with the next property, below). 
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.numa.node.count</b></tt>
+      		</td>
+      		<td>
+      			Defines the total number of NUMA nodes over which Corus will perform process assignment. This property will only be in effect
+            when auto-detection is disabled. The value must be an integer greater than 0 and must not exceed the total number
+            of NUMA nodes available on the host server.
+      		</td>
+      	</tr>   
+      </sapia:table>
+    </sapia:sect2>    
+    
+    <sapia:sect2 title="Disabling NUMA support for Specific Processes">
+      <p>
+        It is possible to disable NUMA support, in the Corus descriptor, for specific processes. Just set the <tt>numaEnabled</tt> attribute to false,
+        either for the &lt;java&gt; or &lt;magnet&gt; element, as illustrated below:
+      </p>
+      
+      <sapia:code><![CDATA[<distribution
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" 
+  name="grid" 
+  version="1.0">
+  <process name="compute-server">
+    <port name="test" />
+    <java mainClass="org.sapia.corus.examples.GridServer" 
+            profile="test"
+            javaCmd="java"
+            numaEnabled="false">
+    <java mainClass="org.sapia.corus.examples.GridServer" 
+            profile="prod"
+            javaCmd="java">
+  </process>  
+</distribution>]]></sapia:code>
+    </sapia:sect2>    
+
+         
+  </sapia:sect1>
+</sapia:page>

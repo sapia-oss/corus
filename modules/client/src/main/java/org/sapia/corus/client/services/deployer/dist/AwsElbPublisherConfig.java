@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -15,8 +17,9 @@ import org.sapia.util.xml.confix.ObjectCreationCallback;
  * @author yduchesne
  *
  */
-public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, ObjectCreationCallback {
+public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, ObjectCreationCallback  {
   
+  public static final String ELEMENT_NAME = "aws-elb-publisher";
   public static final int DEFAULT_MAX_UNPUBLISH_ATTEMPTS  = 20;
   public static final int DEFAULT_UNPUBLISH_INTERVAL      = 5;
   
@@ -73,9 +76,7 @@ public class AwsElbPublisherConfig implements ProcessPubConfig, Externalizable, 
   // ObjectCreationCallback interface
   
   public Object onCreate() throws ConfigurationException {
-    if (elbName == null) {
-      throw new ConfigurationException("ELB name not set");
-    }
+    attributeNotNullOrEmpty(ELEMENT_NAME, "elbName", elbName);
     return this;
   }
   

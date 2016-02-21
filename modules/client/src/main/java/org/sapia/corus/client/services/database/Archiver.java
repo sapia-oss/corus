@@ -2,9 +2,9 @@ package org.sapia.corus.client.services.database;
 
 import java.util.List;
 
-import org.sapia.corus.client.common.PairTuple;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.Record;
 import org.sapia.ubik.util.Func;

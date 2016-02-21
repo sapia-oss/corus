@@ -3,11 +3,13 @@ package org.sapia.corus.repository.task;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,11 +34,11 @@ public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
     
     emptyHosts     = new HashSet<CorusHost>();
     
-    CorusHost client = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test");
+    CorusHost client = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
     client.setRepoRole(RepoRole.CLIENT);
     clientHosts    = Collects.arrayToSet(client);
     
-    CorusHost server = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test");
+    CorusHost server = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
     server.setRepoRole(RepoRole.SERVER);
     serverHosts    = Collects.arrayToSet(server);
     

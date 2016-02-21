@@ -10,7 +10,7 @@ import org.sapia.corus.client.cli.Interpreter;
 import org.sapia.corus.client.common.Env;
 import org.sapia.corus.client.common.FileSystemFacade;
 import org.sapia.corus.client.common.FileSystemFacade.DefaultFileSystemFacade;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.services.deployer.dist.Property;
 import org.sapia.ubik.util.Condition;
@@ -101,27 +101,27 @@ public class EnvImpl implements Env {
 
   @Override
   public String getLibDir() {
-    return FileUtils.toPath(corusHome, "lib");
+    return FileUtil.toPath(corusHome, "lib");
   }
 
   @Override
   public String getServerLibDir() {
-    return FileUtils.toPath(getLibDir(), "server");
+    return FileUtil.toPath(getLibDir(), "server");
   }
 
   @Override
   public String getVmBootLibDir() {
-    return FileUtils.toPath(getLibDir(), "vm-boot");
+    return FileUtil.toPath(getLibDir(), "vm-boot");
   }
 
   @Override
   public String getJavaLibDir() {
-    return FileUtils.toPath(getLibDir(), "java");
+    return FileUtil.toPath(getLibDir(), "java");
   }
 
   @Override
   public String getMagnetLibDir() {
-    return FileUtils.toPath(getLibDir(), "magnet");
+    return FileUtil.toPath(getLibDir(), "magnet");
   }
 
   @Override

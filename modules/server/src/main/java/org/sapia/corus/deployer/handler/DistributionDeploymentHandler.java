@@ -56,7 +56,7 @@ public class DistributionDeploymentHandler extends DeploymentHandlerSupport {
 
   @Override
   public File getDestFile(DeploymentMetadata meta) {
-    return FilePath.newInstance().addDir(deployer.getConfiguration().getTempDir()).setRelativeFile(meta.getFileName() + "." + IDGenerator.makeId()).createFile();
+    return FilePath.newInstance().addDir(deployer.getConfiguration().getTempDir()).setRelativeFile(meta.getFileName() + "." + IDGenerator.makeSequentialId()).createFile();
   }
 
   @Override

@@ -11,5 +11,5 @@ port add -f -n tomcat.jmx -min 8400 -max 8405 -cluster
 conf add -p tomcat.mem.ms=512m -cluster
 conf add -p tomcat.mem.mx=1024m -cluster
 echo "--> Proceeding to deployment" 
-deploy target/corus_sample_tomcat*-dist.zip -cluster
+deploy target/corus_sample_tomcat*-dist-tomcat8.zip -cluster
 echo "Deployment completed"

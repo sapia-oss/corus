@@ -5,6 +5,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +21,7 @@ import org.sapia.corus.client.Result.Type;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.ProcessorFacade;
-import org.sapia.corus.client.rest.ProgressResult;
+import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
@@ -57,7 +58,7 @@ public class WaitForProcessesKilledTaskTest {
     Process process = new Process(new DistributionInfo("dist", "1.0", "test", "proc"), "1234");
   
     Result<List<Process>> result = new Result<List<Process>>(
-        CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm"),
+        CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm", mock(PublicKey.class)),
         Arrays.asList(process), Type.COLLECTION
     );
     results.addResult(result);
@@ -75,7 +76,7 @@ public class WaitForProcessesKilledTaskTest {
     Results<List<Process>> results = new Results<List<Process>>();
   
     Result<List<Process>> result = new Result<List<Process>>(
-        CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm"),
+        CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm", mock(PublicKey.class)),
         new ArrayList<Process>(), Type.COLLECTION
     );
     results.addResult(result);

@@ -26,13 +26,4 @@ public class ClusterStatusComparators {
       }
     };
   }
-  
-  public static Comparator<ClusterStatus> forHostRole() {
-    return new Comparator<ClusterStatus>() {
-      @Override
-      public int compare(ClusterStatus s1, ClusterStatus s2) {
-        return s1.getRole().name().compareTo(s2.getRole().name());
-      }
-    };
-  }
 }

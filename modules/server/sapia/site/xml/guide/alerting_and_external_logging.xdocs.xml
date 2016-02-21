@@ -1,0 +1,84 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Alerting and External Logging" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home" href="../home.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>
+  </sapia:vmenu>
+
+  <sapia:sect1 title="Alerting and External Logging">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="alerting and external logging"/>
+    </sapia:section>
+
+    <toc/>
+
+		<sapia:sect-desc>
+          <p>
+			 Corus supports sending alerts through SMTP when certain events occurs. It also can send its log messages to a Syslog daemon.
+		  </p>
+        </sapia:sect-desc>
+		
+		<sapia:sect2 title="Alerts">
+			<p>
+				Corus can be configured to send email alerts in three situations:
+			</p>
+			<ul>
+				<li>When it restarts an unresponsive process;</li>
+				<li>when a new distribution is deployed;</li>
+				<li>when a distribution is undeployed.</li>
+			</ul>
+			<p>
+				For this feature to be enabled, the following must be configured (in the <tt>corus.properties</tt> file - see the <a href="configuration.html">Configuration</a> section for more on the contents of that file):
+			</p>
+			<ul>
+				<li>The <tt>corus.server.alert.enabled</tt> property must be set to true.</li>
+				<li>The <tt>corus.server.alert.recipients</tt> property must correspond to list of recipients (email addresses) separated by a semicolon.</li>
+			</ul>
+			<p>
+				In addition, you should make sure that the following properties are properly configured (defaults are used which may be unsuitable for your setup):
+			</p>
+			<ul>
+				<li><tt><b>corus.server.alert.smtp.host</b></tt>: the host of the SMTP server to use for sending alerts - defaults to localhost.</li>
+				<li><tt><b>corus.server.alert.smtp.port</b></tt>: the port of the SMTP server to use for sending alerts - defaults to 25.</li>
+				<li><tt><b>corus.server.alert.smtp.password</b></tt>: the password to use when connecting tot he SMTP server - empty by default.</li>
+				<li><tt><b>corus.server.alert.sender</b></tt>: a default one is constructed using the SMTP host.</li>
+		  </ul>
+		  <sapia:note>
+		  	The <tt>corus.properties</tt> file that comes with Corus has complementary explanations regarding those properties.
+		  </sapia:note>
+		</sapia:sect2>
+		
+		<sapia:sect2 title="Syslog Integration">
+			<p>
+				It is possible to redirect the Corus server's internal task manager output to a Syslog daemon (the <a href="http://syslog4j.org/">Syslog4j</a> library is used to that end).
+			</p>
+			<p>
+				To activate integration with Syslog, the following properties must be confured in the <tt>$CORUS_HOME/config/corus.properties</tt> file (see the <a href="configuration.html">Configuration</a>section):
+			</p>
+			<ul>
+				<li><tt><b>corus.server.syslog.protocol</b></tt>: specifies which protocol to use (either <tt>udp</tt> or <tt>tcp</tt> can be specified (defaults to <tt>udp</tt>).</li>
+				<li><tt><b>corus.server.syslog.host</b></tt>: specifies the host of the Syslog daemon.</li>
+				<li><tt><b>corus.server.syslog.port</b></tt>: specifies the port of the Syslog daemon.</li>
+			</ul>
+			<p>
+				Here is an example configuration:
+			</p>
+			<sapia:code>corus.server.syslog.protocol=udp 
+corus.server.syslog.host=localhost 
+corus.server.syslog.port=5555</sapia:code>
+
+		</sapia:sect2>
+		
+  </sapia:sect1>
+</sapia:page>

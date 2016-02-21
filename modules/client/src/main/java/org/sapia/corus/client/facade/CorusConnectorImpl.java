@@ -6,6 +6,7 @@ import org.sapia.corus.client.facade.impl.ConfiguratorFacadeImpl;
 import org.sapia.corus.client.facade.impl.CronFacadeImpl;
 import org.sapia.corus.client.facade.impl.DeployerFacadeImpl;
 import org.sapia.corus.client.facade.impl.DiagnosticFacadeImpl;
+import org.sapia.corus.client.facade.impl.DockerManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.FileManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.PortManagementFacadeImpl;
 import org.sapia.corus.client.facade.impl.ProcessorFacadeImpl;
@@ -35,6 +36,7 @@ public class CorusConnectorImpl implements CorusConnector {
   private SecurityManagementFacade       security;
   private ApplicationKeyManagementFacade appKeys;
   private DiagnosticFacade               diagnostics;
+  private DockerManagementFacade         docker;
 
   public CorusConnectorImpl(CorusConnectionContext context) {
     this.context = context;
@@ -50,6 +52,7 @@ public class CorusConnectorImpl implements CorusConnector {
     security     = new SecurityManagementFacadeImpl(context);
     appKeys      = new ApplicationKeyManagementFacadeImpl(context);
     diagnostics  = new DiagnosticFacadeImpl(context);
+    docker       = new DockerManagementFacadeImpl(context);
   }
 
   @Override
@@ -115,6 +118,11 @@ public class CorusConnectorImpl implements CorusConnector {
   @Override
   public DiagnosticFacade getDiagnosticFacade() {
     return diagnostics;
+  }
+  
+  @Override
+  public DockerManagementFacade getDockerManagementFacade() {
+    return docker;
   }
 
 }

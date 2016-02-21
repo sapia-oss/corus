@@ -1,8 +1,14 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeAtLeast;
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeGreater;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Implements HTTP-based diagnostic configuration.
@@ -10,7 +16,9 @@ import java.io.ObjectOutput;
  * @author yduchesne
  *
  */
-public class HttpDiagnosticConfig extends DiagnosticConfig {
+public class HttpDiagnosticConfig extends DiagnosticConfig implements ObjectCreationCallback {
+  
+  public static final String ELEMENT_NAME = "http-diagnostic";
   
   public static final String PROTOCOL_HTTP = "http";
   
@@ -75,6 +83,22 @@ public class HttpDiagnosticConfig extends DiagnosticConfig {
   
   public int getReadTimeout() {
     return readTimeout;
+  }
+  
+  // --------------------------------------------------------------------------
+  // ObjectCreationCallback
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    doValidate(ELEMENT_NAME);
+    return this;
+  }
+  
+  protected void doValidate(String elementName) throws ConfigurationException {
+    attributeGreater(elementName, "successCode", 0, successCode);
+    attributeAtLeast(elementName, "portPrefix", 0, portPrefix);
+    attributeGreater(elementName, "connectionTimeout", 0, connectionTimeout);
+    attributeGreater(elementName, "readTimeout", 0, readTimeout);
   }
   
   // --------------------------------------------------------------------------

@@ -25,7 +25,7 @@
       <key>JAVA_HOME</key>
       <string>/Library/Java/Home</string>
       <key>CORUS_HOME</key>
-      <string>/opt/sapia-corus/current</string>
+      <string>/opt/corus/current</string>
       
       <!-- This is required to start wrapper in a non-daemon mode for proper integration with launchd -->
       <key>CORUS_SERVICE_DAEMONIZE</key>
@@ -34,7 +34,7 @@
   
     <key>ProgramArguments</key>
     <array>
-      <string>/opt/sapia-corus/current/bin/corus_service.sh</string>
+      <string>/opt/corus/current/bin/corus_service.sh</string>
       <string>start</string>
       <string>33000</string>
     </array>
@@ -46,13 +46,13 @@
     <true />
     
     <key>ServiceDescription</key>
-    <string>Sapia Corus</string>
+    <string>Corus</string>
     
     <key>StandardErrorPath</key>
-    <string>/opt/sapia-corus/current/bin/logs/corus-launchd.log</string>
+    <string>/opt/corus/current/logs/corus-launchd.log</string>
     
     <key>StandardOutPath</key>
-    <string>/opt/sapia-corus/current/bin/logs/corus-launchd.log</string>
+    <string>/opt/corus/current/logs/corus-launchd.log</string>
   
   </dict>
 </plist>

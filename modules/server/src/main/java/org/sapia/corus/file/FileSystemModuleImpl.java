@@ -24,8 +24,8 @@ import org.apache.tools.ant.types.selectors.TypeSelector;
 import org.apache.tools.ant.types.selectors.TypeSelector.FileType;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.FileFacade;
-import org.sapia.corus.client.common.ZipUtils;
 import org.sapia.corus.client.common.FileFacade.DefaultFileFacade;
+import org.sapia.corus.client.common.ZipUtil;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.core.ModuleHelper;
 import org.springframework.util.Assert;
@@ -94,7 +94,7 @@ public class FileSystemModuleImpl extends ModuleHelper implements FileSystemModu
 
   @Override
   public InputStream openZipEntryStream(File zipFile, String entryName) throws IOException {
-    return ZipUtils.readEntryStream(zipFile.getAbsolutePath(), entryName, ZIP_READ_CAPACITY, ZIP_READ_CAPACITY);
+    return ZipUtil.readEntryStream(zipFile.getAbsolutePath(), entryName, ZIP_READ_CAPACITY, ZIP_READ_CAPACITY);
   }
 
   @Override

@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.deployer.dist;
 
 import org.sapia.console.CmdElement;
 import org.sapia.ubik.util.Strings;
+import org.sapia.util.xml.confix.ConfigurationException;
 
 /**
  * This class corresponds to the <code>option</code> element in the corus.xml
@@ -10,7 +11,7 @@ import org.sapia.ubik.util.Strings;
  * 
  * @author Yanick Duchesne
  */
-public class Option extends Property implements java.io.Serializable {
+public class Option extends Property {
 
   static final long serialVersionUID = 1L;
 
@@ -23,6 +24,12 @@ public class Option extends Property implements java.io.Serializable {
     } else {
       return new org.sapia.console.Option(name, value);
     }
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    super.doValidate("option");
+    return this;
   }
 
   public String toString() {

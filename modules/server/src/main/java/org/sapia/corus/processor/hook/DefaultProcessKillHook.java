@@ -3,7 +3,7 @@ package org.sapia.corus.processor.hook;
 import java.io.IOException;
 import java.util.Set;
 
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;

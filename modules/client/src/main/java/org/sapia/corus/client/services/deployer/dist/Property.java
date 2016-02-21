@@ -1,10 +1,15 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNull;
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNullOrEmpty;
+
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.sapia.console.CmdElement;
 import org.sapia.console.Option;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * This class corresponds to the <code>property</code> element in the corus.xml
@@ -13,7 +18,7 @@ import org.sapia.console.Option;
  * 
  * @author Yanick Duchesne
  */
-public class Property implements Param, java.io.Serializable {
+public class Property implements Param, java.io.Serializable, ObjectCreationCallback {
 
   static final long serialVersionUID = 1L;
 
@@ -43,10 +48,8 @@ public class Property implements Param, java.io.Serializable {
   public String getValue() {
     return value;
   }
-
-  /**
-   * @see org.sapia.corus.client.services.deployer.dist.Param#convert()
-   */
+  
+  @Override
   public CmdElement convert() {
     if (value.indexOf(" ") == -1 || StringUtils.isBlank(value)) {
       return new Option("D" + name + "=" + value);
@@ -56,6 +59,17 @@ public class Property implements Param, java.io.Serializable {
     } else {
       return new Option("D" + name + "=\"" + value + "\"");
     }
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    doValidate("property");
+    return this;
+  }
+  
+  protected void doValidate(String elementName) throws ConfigurationException {
+    attributeNotNullOrEmpty(elementName, "name", name);
+    attributeNotNull(elementName, "value", value);    
   }
 
   @Override

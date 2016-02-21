@@ -1,0 +1,411 @@
+<sapia:page cssPath="../css/sapia.css" title="The Corus Guide - Docker Integration" xmlns:sapia="http://www.sapia-oss.org/2003/XSL/Transform">
+
+  <head>
+    <link rel="stylesheet" href="css/corus.css" type="text/css"/>
+  </head>
+
+  <sapia:vmenu>
+    <sapia:vsection name="Corus Home"  href="../index.html"/>
+  	<sapia:vsection name="REST API" href="../rest.html"/>
+    <sapia:vsection name="Interop Spec" href="../CorusInterop.pdf"/>  
+    <sapia:vsection name="Corus vs Chef" href="../corus_vs_chef.html"/>        
+  </sapia:vmenu>
+  
+  <sapia:sect1 title="Docker Integration">
+    <sapia:section>
+      <sapia:path name="home" href="../../../home.html" />
+      <sapia:path name="projects" />
+      <sapia:path name="corus" href="../home.html" />
+      <sapia:path name="learning" href="../learning.html" />
+      <sapia:path name="guide" href="home.html" />
+      <sapia:path name="docker integration"/>
+    </sapia:section>
+  
+    <sapia:sect-desc>
+      <p>
+        As of version 5, Corus offers Docker integration: Docker containers are managed through Corus' distribution 
+        and process management capabilities. Long story short: a Corus instance will control the Docker daemon on its host, and configure the 
+        launch of containers through the same way it does "native" processes. That is: containers are treated the same way as non-containerized 
+        processes, through a delegation mechanism that defers process lifecycle control to the Docker daemon.
+      </p>
+      <p>
+        To provide a better picture, here are capabilities presented by the Corus/Docker integration:
+        <ul>
+          <li>Configuration of port mappings - potentially hooked to Corus' <a href="port_management.html">port management</a> functionality.</li>
+          <li>Automatic synchronization of images with the Docker registry upon distribtion deployment and undeployment.</li>
+          <li>Integration with Corus' process properties: allows passing such properties as environment variables to Docker containers, 
+          or defining volume mappings, for example.</li>
+          <li>Control of containers through Corus' process abstraction: <tt>exec</tt>, <tt>kill</tt>, <tt>restart</tt>, etc.</li>
+          <li>Control of distributed Docker daemon instances through Corus' command-line interface and REST API.</li>
+          <li>Complete integration with <a href="tagging.html">Corus tags</a>: allows conditionally executing containers for given images, based on tagging.</li>
+          <li>Ability to eliminate dependency of the Docker registry as single point of failure, through the so-called <a href="#registry_less_mode">"registry-less"</a> mode.</li>
+          <li>A specfic <a href="../rest/docker.html">REST API</a> offering specific interactions useful in the context of the Corus/Docker integration.</li>
+        </ul>
+      </p>
+      <p>
+      	<b>Contents:</b>
+      </p>
+    </sapia:sect-desc>
+ 
+    <toc/>
+
+    <!-- ======================    INTRO    ====================== -->
+    
+    <sapia:sect2 title="Introduction">
+    	<p>
+    		Although, as explained further below, there are two "modes" that are supported in the context of the Corus/Docker integration, from a general vantage point, both amount to the same thing: the distribution abstraction (materialized through Corus' distribution descriptor) is used to parametrize the startup of Docker containers. At runtime, each container is represented within Corus as a process. This allows leveraging the entirety of Corus' distribution and process management capabilities, as if containers were native processes.
+    	</p>
+    	<p>
+    		The two integration modes alluded to previously are the following:
+    	</p>
+    	<ul>
+    		<li><b><a href="#standard_mode">Standard mode</a></b>: in this context, each Corus node is responsible for triggering the required pulls from the Docker registry when a Docker-enabled distribution is deployed. This interaction is transparent to the client performing the deployment.</li>
+    		<li><b><a href="#registry_less_mode">Registry-less mode</a></b>: under this mode, Docker images are pushed (i.e.: "loaded", in Docker's terminology) to each Docker daemon from the client performing the deployment. The deployment of images in this case relies on Corus' cascading deployment functionality, and the Docker registry is not involved. This mode is meant to minimize the dependency on the Docker registry, which in fact is a single point of failure and requires redundancy in production in order to guarantee up time and scalability (in the presence of a potentially large number of Docker daemons).</li>
+    	</ul>
+    </sapia:sect2>
+    
+    <!-- ======================      DISTRIBUTION      ====================== -->
+    
+    <sapia:sect2 title="Docker-Enabled Distributions">
+      <p>
+      The <tt>corus.xml</tt> descriptor sports a <tt><a href="distributions_in_depth.html#docker_element">&lt;docker&gt;</a></tt> element, which configures the startup parameters for a Docker  container corresponding to a given image. The sample below illustrates a typtical Docker-based configuration:
+      </p>
+      <sapia:code><![CDATA[<distribution name="memcached" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+
+    <port name="memcached" />
+    
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.memcached}" containerPort="11211" />
+      <env>
+      	<property name="MEMCACHED_MEMORY" value="${memcached.mem.size}" />
+      </env>
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>
+
+			<p>
+			 	Multiple attributes/nested elements <a href="distributions_in_depth.html#docker_element">are supported</a>, as shown above. For example:
+			</p>
+			<ul>
+				<li>Corus' <a href="port_management.html">port management</a> support can be leveraged in the context of Docker port mapping configuration.</li>
+				<li>Corus' <a href="configuration.html#remote_property_update">process properties</a> can be used as variables within the descriptor, as shown by usage of the &lt;env&gt; element in the above sample. In this case: a process property is used to set an environment variable that will be passed to the Docker container.</li>
+			</ul>
+			<p>
+				Given the above descriptor, a container for the <tt>mini/memcached</tt> image could be started as follows:
+			</p>
+			<sapia:code>exec -d memached -v 1.0 -n server -p default -cluster</sapia:code>
+			<p>
+				The above command would trigger the launch of a corresponding Docker container across all hosts in the cluster: upon receiving the command, a Corus node would detect the process as corresponding to a given Docker image (in the above case, <tt>mini/memcached</tt>), and simply interact with the Docker daemon on its host to start a container stemming from that image. Once that is done, Docker containers are managed through Corus' process abstraction, through commands such as <tt>ps</tt>, <tt>kill</tt>, <tt>restart</tt>, etc. (or through similar interactions offered by the <a href="../rest.html">REST API</a>). A Corus node therefore acts as a proxy, delegating the execution of these commands to the Docker daemon on its host.
+			</p>
+			<p>
+				One important point consists of how Docker images are deployed to the Docker daemon on each host in the cluster: this depends on the integration mode, as mentioned earlier. The details pertaining to each mode are covered in the next sections.
+			</p>
+			
+    </sapia:sect2>
+    
+    <sapia:sect2 title="Standard Mode" alias="standard_mode">
+    	<p>
+    		As was mentioned earlier, the "standard mode" involves synchronization between a Corus node and the Docker daemon running on its host. The diagram below provides hints as to the nature of the standard mode's interactions:
+    	</p>
+ 			<center><img src="img/docker-with-registry.png" /></center>
+     
+			<p>
+				When a distribution is deployed to Corus, it is introspected to detect the presence of <tt>&lt;docker&gt;</tt> elements. If at least one
+				such element is found, Corus automatically synchronizes the state of the local Docker daemon with the Docker registry (performing a "pull", in Docker's jargon). As illustrated in sample provided earlier, the  <tt>&lt;docker&gt;</tt> element supports an <tt>image</tt> attribute (among others). This attribute indicates which Docker image to pull from the Docker registry at deployment time.
+			</p>
+        
+			<p>
+				Conversely, upon undeployment of the distribution, the specified Docker image will be removed from the Docker daemon. This automatic removal can be disabled, as described in the <a href="distributions_in_depth.html#docker_element">relevant part</a> of the Corus descriptor documentation. Auto-removal can also be <a href="#configuration">configured at the Corus node level</a>: in such a case. If auto-removal is enabled at the level of the Corus node, setting to <tt>true</tt> at the level of the process will override the node-level setting. 
+			</p>
+			
+			<p>Therefore, Corus automatically performs upkeep of the local Docker daemon by synchronizing its own state with it, during deployment and
+			undeployment.</p>
+		 
+			<sapia:note>Keep in mind: the <tt>image</tt> attribute is optional. If not specified, Corus will attempt pulling an image corresponding to the
+			distribution's name and version according to the following format: <tt>${name}:${version}</tt>.
+			</sapia:note>
+			
+			<p>
+				When performing clustered deployment, the above behavior can be generalized to all hosts in the cluster, as shown below:
+			</p>
+ 			<center><img src="img/docker-deployment-with-registry.png" /></center>
+ 			<ol>
+ 				<li>The client initiates the deployment of a distribution.</li>
+ 				<li>As the distribution is deployed to each node in the cluster, it is analyzed to detect the presence of Docker-related configuration, and the "pull" of the required Docker images is issued accordingly - by each Corus node.</li>
+ 			</ol>
+ 			<sapia:note>
+ 				The diagram above does not illustrate the Docker daemon on each host, for simplicity, but you should assume that each Corus node above resides with its Docker daemon, on its host, and that the pull is in fact delegated to the Docker daemon.
+ 			</sapia:note>
+
+    </sapia:sect2>
+    
+    <!-- ======================      REGISTRY-LESS MODE      ====================== -->
+
+    
+    <sapia:sect2 title="Registry-Less Mode" alias="registry_less_mode">
+    	<p>
+    		The "registry-less mode", for its part, is meant to minimize the dependency on the Docker registry: rather than each Corus node triggering the pull from the registry to its Docker daemon, the client saves the Docker image (from the registry) locally, and then deploys it to the cluster, which has the effect of performing a "load" of the image (in Docker's jargon) into each Docker daemon. This interaction is illustrated by the diagram below, from the point of view of a single Corus node (and corresponding Docker daemon):
+    	</p>
+ 			<center><img src="img/docker-registryless.png" /></center>
+
+ 			<p>
+				From a macro-level, cluster-wide, the interactions in registry-less mode look as follows:
+			</p>
+ 			<center><img src="img/docker-deployment-without-registry.png" /></center>
+ 			<ol>
+ 			 	<li>The client saves locally the image(s) on which a given distribution depends.</li>
+ 			  <li>The client deploys the image(s) to the cluster (each Corus node will load the image(s) into its corresponding Docker daemon).</li>
+ 				<li>The client then initiates the deployment of the distribution.</li>
+ 				<li>As the distribution is deployed to each node in the cluster, it is analyzed to detect the presence of Docker-related configuration: if the <tt>corus.server.docker.registry.sync-enabled</tt> flag is set to false and the expected image(s) is/are not present, the deployment will result in an error - otherwise, Corus will trigger a pull of the missing image(s) from the Docker registry.</li>
+ 			</ol>
+ 			<p>
+ 				From the description above, one can observe that beyond the deployment of the Docker images, the ulterior steps are quite the same as in the standard mode.
+ 			</p>
+ 			<p>
+ 				For the registry-less mode to be enforced, you shoud set the <tt>corus.server.docker.registry.sync-enabled</tt> flag in <tt>corus.properties</tt> to <tt>false</tt> (it is set to <tt>true</tt> be default): if a required image for a distribution has not previously been deployed, Corus will then raise an exception, which should be the behavior one expects under the registry-less mode.
+ 			</p>
+ 			
+ 			<p>
+ 				In order to allow for the explicity management of Docker images (more importantly, their deployment as suggested by the steps above), Corus commands are provided (both through the CLI and the REST API) to manage the lifecyle of Docker images (which only makes sense it the context of the registry-less mode). For example, to deploy an image:
+ 			</p>
+ 			<sapia:code>deploy -docker -img mini/memached:latest -f memached.tar -cluster</sapia:code>
+ 			<p>
+ 				To remove an image:
+ 			</p>
+ 			<sapia:code>docker rm -n mini/memcached:* -cluster</sapia:code>
+ 			<sapia:note>Other commands, such as <tt>docker ls</tt>, <tt>docker ps</tt>, etc., are provided by the CLI. For more info, type <tt>man docker</tt> in the CLI.</sapia:note>
+
+    </sapia:sect2>
+    
+    <!-- ======================      CONFIGURATION      ====================== -->
+    
+    <sapia:sect2 title="Configuration">
+   		<p>
+   			The behavior of the Corus/Docker integration can be altered through a set of properties, in the <tt>corus.properties</tt> file. The following
+   			table lists these properties and provides a description for each:
+   		</p>
+      
+      <sapia:table>
+      	<sapia:th>Name</sapia:th>
+      	<sapia:th>Description</sapia:th>
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.enabled</b></tt>
+      		</td>
+      		<td>
+      			Indicates if the Corus/Docker integration should be enabled (defaults to <tt>false</tt>). Attempting to deploy Docker-enabled distributions when this flag is set to <tt>false</tt> will result in an error.
+      		</td>
+      	</tr>
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.registry.sync-enabled</b></tt>
+      		</td>
+      		<td>
+      			This flag enables/disables synchronization with the Docker registry (defaults to <tt>true</tt>): if it is set to <tt>false</tt>,
+      			deploying Docker-enabled distributions will result in an error when Corus attempts to perform a pull/remove upon deployment/undeployment (as it would do in <a href="#standard_mode">standard mode</a>). Therefore, setting this flag to <tt>false</tt> makes sense in <a href="#registry_less_mode">registry-less mode</a> only (it should indeed be set to <tt>false</tt> in such a context).
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.image-auto-remove-enabled</b></tt>
+      		</td>
+      		<td>
+      			This flag enables/disables the auto-removal of images upon undeployment of the distributions that depend on these images. The flag is set to <tt>true</tt> by default. Setting it to <tt>false</tt> will have the effect of leaving the images in the Docker daemon (such images can be removed explicitely at a later stage, cluster-wide, either through the CLI or the REST API - as explained above in the section pertaining to the  <a href="registry_less_mode">registry-less mode</a>).
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.client.email</b></tt>
+      		</td>
+      		<td>
+      			The email address internally used for authentication, when connecting with the Docker registry.
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.client.username</b></tt>
+      		</td>
+      		<td>
+      			The username internally used for authentication, when connecting with the Docker registry.
+      		</td>
+      	</tr>      	
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.client.password</b></tt>
+      		</td>
+      		<td>
+      			The password internally used for authentication, when connecting with the Docker registry.
+      		</td>
+      	</tr>   
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.registry.address</b></tt>
+      		</td>
+      		<td>
+      			The address of the Docker registry being used (defaults to <tt>https://hub.docker.com/v1/</tt>).
+      		</td>
+      	</tr>
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.daemon.url</b></tt>
+      		</td>
+      		<td>
+      			The address of the Docker daemon (defaults to <tt>unix:///var/run/docker.sock</tt>).
+      		</td>
+      	</tr>   
+      	<tr>
+      		<td>
+      			<tt><b>corus.server.docker.certificates.path</b></tt>
+      		</td>
+      		<td>
+      			The path to the certificates required to connect to the Docker daemon, if TLS authentication is used. See <a href="https://docs.docker.com/engine/articles/https/">Docker's documentation</a> for what this amounts to.
+      		</td>
+      	</tr>   
+      </sapia:table>
+    </sapia:sect2>
+    <sapia:sect2 title="Corus Descriptor Tips">
+    	<sapia:sect-desc>
+    		<p>This section provides a few Docker-related Corus descriptor tips. The full spec is available in the <a href="distributions_in_depth.html#docker_element">Corus Descriptor</a> section of this guide.</p>
+    	</sapia:sect-desc>
+    	
+      <sapia:sect3 title="Configuring Port Mappings">
+        <p>
+        	Corus' <a href="port_management.html">port management</a> feature can be put to good use in the context of assigning host ports to container ports. The following demonstrates how this is done:
+        </p>
+      <sapia:code><![CDATA[<distribution name="memcached" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+
+    <port name="memcached" />
+    
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.memcached}" containerPort="11211" />
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>
+        
+        <p>Of course the above means that the corresponding port range has been pre-configured:</p>
+        <sapia:code>port add -n memcached -min 11210 -max 11215</sapia:code>
+        
+      </sapia:sect3>
+      
+    	<sapia:sect3 title="Docker Container Health Check">
+    		<p>
+    			In order to benefit from the Corus' <a href="../advanced.html#application_process_ha">high-availability</a> support for application processes, the Docker containers started with Corus should have the proper <a href="../rest/diagnostic.html">diagnostic</a> configuration
+    			defined.
+    		</p>
+    		<p>
+    			Currently, the only support available is for HTTP/HTTPS endpoints (that is, processes are expected to expose a HTTP or HTTPS URL for pinging. The following provides an example illustrating how this would look like for Docker-based processes:
+    		</p>
+      <sapia:code><![CDATA[<distribution name="http-service" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+
+    <port name="http">
+    	<http-diagnostic path="/system/ping" />
+    </port>
+    
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.http}" containerPort="80" />
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>
+    		
+    	</sapia:sect3>
+    	
+      <sapia:sect3 title="Volume Mappings">
+        <p>
+        	Docker supports mapping directories on the host to paths that have been configured at the Docker image level. Such directories and paths are called "volumes" in Docker's terminology. The notion of mapping a directory path at the image level to a directory on the host is dubbed "volume mapping". The Corus descriptor supports the configuration of such volume mappings (as most values in the descriptor, such mappings can be dynamically configured through process property variables):
+        </p>
+      <sapia:code><![CDATA[<distribution name="postgres" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="postgres" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+    
+    <docker image="my/postgres" profile="server">
+      <volumeMapping hostVolume="${postgres.datadir}" containerVolume="/usr/local/pgsql/data" />
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>
+				<p>
+					In the above case, a command such as the following would be used to add the relevant process property to Corus:
+				</p>
+				<sapia:code>conf add -p postgres.datadir=/opt/postgres/data</sapia:code>
+
+      </sapia:sect3>
+      
+      <sapia:sect3 title="Environment Variables">
+        <p>
+          Docker containers accept environment variables at startup. Again, Corus process properties come handy as they can be passed 
+          to containers as environment variables, as follows:
+        </p>
+        
+      <sapia:code><![CDATA[<distribution name="memcached" version="1.0"
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true">
+
+    <port name="memcached" />
+    
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.memcached}" containerPort="11211" />
+      <env>
+        <property name="MEMCACHED_MEMORY" value="${memcached.mem.size}" />
+      </env>
+    </docker>
+
+  </process>
+</distribution>]]></sapia:code>  
+				<p>
+					The following command would add the corresponding process property to Corus:
+				</p>
+				
+				<sapia:code>conf add -p memcached.mem.size=1024</sapia:code>
+
+				<p>
+					The <tt>&lt;env&gt;</tt> element supports multiple <tt>&lt;property&gt;</tt> elements. Each such property element will be passed as an environment variable to the container being started.
+				</p>
+
+      </sapia:sect3>
+      
+    
+			<sapia:sect3 title="Controlling Container Execution through Corus Tags">
+				<p>
+					Corus' tagging feature can seamlessly be used in the context of running Docker containers. Taking our sample <tt>corus.xml</tt> configuration above and enriching it with tagging will provide a concrete example:
+				</p>
+				<sapia:code><![CDATA[<distribution name="memcached" version="1.0"
+		xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
+	
+  <process name="server" maxKillRetry="3" shutdownTimeout="300000" invoke="true" tags="memached-enabled">
+	
+    <port name="memcached" />
+			
+    <docker image="mini/memcached" profile="default">
+      <portMapping hostPort="${corus.process.port.memcached}" containerPort="11211" />
+    </docker>
+	
+  </process>
+</distribution>]]></sapia:code>
+				<p>
+					In the above, we've added the <tt>memcached-enabled</tt> tag (throug the <tt>tags</tt> attribute). This makes the execution of the corresponding process (and thus, Docker container) conditional to the tag specified at the process being matched, at runtime, by the tags set on the Corus instance.
+				</p>
+				<p>
+					Therefore, the command below would have to be executed on all nodes on which the given process would be intended to run:
+				</p>
+				<sapia:code>conf add -t memcached-enabled</sapia:code>
+	
+			</sapia:sect3>
+    
+    </sapia:sect2>
+         
+  </sapia:sect1>
+</sapia:page>

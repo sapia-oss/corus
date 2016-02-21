@@ -2,9 +2,10 @@
 
   <sapia:vmenu>
     <sapia:vsection name="Corus Home"  href="index.html"/>
-    <sapia:vsection name="Corus Guide" href="CorusGuide.pdf"/>
+    <sapia:vsection name="Corus Guide" href="guide/index.html"/>
     <sapia:vsection name="In 2 minutes" href="overview.html"/>  
  	  <sapia:vsection name="REST API" href="rest.html"/>    
+ 	  <sapia:vsection name="Docker" href="guide/docker_integration.html"/>
     <sapia:vsection name="Corus vs Chef" href="corus_vs_chef.html"/>        
     <sapia:vsection name="Interop Spec" href="CorusInterop.pdf"/>    
   </sapia:vmenu>
@@ -29,6 +30,8 @@
         A command-line client is provided in order to control multiple Corus 
         daemons remotely, in a centralized manner.
       </p>
+      <sapia:note>As of version 5, Corus supports <a href="guide/docker_integration.html">integration with Docker</a>. 
+      The fundamentals of Corus' architecture are the same, whether deploying with Docker apps or not.</sapia:note>
     </sapia:sect-desc>
 
     <sapia:sect2 title="The Corus Daemon">
@@ -72,7 +75,7 @@
       <p>
         Corus is used to manage the distribution of applications, and the 
         execution of application processes. Applications are deployed into Corus 
-        as “distributions”, which consist of zip files containing application 
+        as "distributions", which consist of zip files containing application 
         resources: classes, libraries, configuration files, etc. 
       </p>
       <p>
@@ -85,15 +88,15 @@
       <p>
         Currently, Corus supports the startup of standalone Java applications  
         (that is, it is capable of invoking the execution of Java classes with a 
-        <sapia:command>main</sapia:command> method). In order to be able to do 
-        so, one must include in a distribution a so-called Corus descriptor, 
-        that indicates which applications can be executed.
+        <sapia:command>main</sapia:command> method), as well as Docker-based application.
+        Applications meant for deployment with Corus are expected to be packaged with so-called 
+        Corus descriptor.
       </p>
       <p>
         For the sake of clarity, we are providing such a descriptor below:
       </p>
       <sapia:code><![CDATA[
-<distribution name="jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-3.0.xsd">
+<distribution name="jetty" version="1.0" xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd">
   <process  name="server" 
             maxKillRetry="3" 
             shutdownTimeout="30000" 
@@ -112,14 +115,14 @@
       <p>
         As can be seen, a distribution has a name, a version, and specifies one 
         to many processes, each with a name. It is quite clear in the above case
-        that a process corresponds to a Java application: one JVM process will 
-        be started for each application.
+        that the process being declared corresponds to a Java application: one JVM process will 
+        be started by Corus when execution of the application is invoked.
       </p>
       <p>
         Once a process is started by a Corus daemon (typically following a 
         command initiated by an administrator using the CLI), it maintains a 
-        link with that daemon, as specified by the Corus Interoperability 
-        Protocol. The protocol describes how a Corus instance and the processes 
+        link with that daemon, as specified by the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a>. 
+        The protocol describes how a Corus instance and the processes 
         that it starts interact. Among other interactions, the most notable is 
         the heartbeat that processes must provide: if a Corus instance has not 
         received a heartbeat from a process it manages after a predefined 
@@ -163,19 +166,19 @@
         may be completely oblivious to the fact that it is managed by Corus. 
         Currently, Corus supports deploying and starting stand-alone Java 
         applications, that is: applications that are bootstrapped by a Java 
-        class with a static <sapia:command>main</sapia:command> method. 
-        That's it. From then on, everything is up to the developer.
+        class with a static <sapia:command>main</sapia:command> method, and applications
+        deployed as Docker images.
       </p>
       <p>
-        The only thing that is relevant for applications to be aware of is that 
-        when it starts a process, Corus passes properties to the command-line 
-        (which are in fact JVM properties passed using the 
+        For straight JVM-based applications, the only thing that is relevant 
+        for applications to be aware of is that when it starts a process, Corus 
+        passes properties to the command-line (which are in fact JVM properties passed using the 
         <sapia:command>-Dname=value</sapia:command> notation). 
         The properties can be recuperated in Java using 
         <sapia:command>System.getProperty(...)</sapia:command>.
       </p>
       <p>
-        Furthermore, applications can add in their dependencies a jar file 
+        Furthermore, JVM-based applications can add in their dependencies a jar file 
         consisting of a library that allows "hooking up" to the Java agent
         that implements the <a href="CorusInterop.pdf">Corus Interoperability Protocol</a> 
         and resides within the application's JVM. The code snippet below illustrates how 
@@ -231,7 +234,7 @@ import org.sapia.corus.interop.api.StatusRequestListener;
       <p>
         We are explaining in further details application programming 
         considerations in the <a href="tutorials/index.html">tutorials</a> and 
-        in the <a href="CorusGuide.pdf">Corus manual</a>. But really, there is 
+        in the <a href="guide/index.html">Corus manual</a>. But really, there is 
         not much more to it than this.
       </p>
     </sapia:sect2>

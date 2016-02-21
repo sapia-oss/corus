@@ -1,6 +1,6 @@
 package org.sapia.corus.diagnostic.evaluator;
 
-import org.sapia.corus.client.common.ToStringUtils;
+import org.sapia.corus.client.common.ToStringUtil;
 
 /**
  * A {@link ProcessConfigDiagnosticEvaluator} that is invoked when no processes are running and the
@@ -19,7 +19,7 @@ public class NoProcessWithinGracePeriodEvaluator implements ProcessConfigDiagnos
   
   @Override
   public void evaluate(ProcessConfigDiagnosticEvaluationContext context) {
-    String processConfigInfo = ToStringUtils.toString(context.getDistribution(), context.getProcessConfig());
+    String processConfigInfo = ToStringUtil.toString(context.getDistribution(), context.getProcessConfig());
     if (context.getExpectedInstanceCount() == 0 && context.getLog().isDebugEnabled()) {
       context.getLog().debug(String.format("No process(es) expected for %s", processConfigInfo));
     } else {

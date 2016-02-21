@@ -1,7 +1,7 @@
 package org.sapia.corus.util;
 
-import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,7 @@ public class DynamicPropertyTest  {
 
   @Before
   public void setUp() {
-    prop = new DynamicProperty<String>();
+    prop = new DynamicProperty<String>(String.class);
   }
   
   @Test

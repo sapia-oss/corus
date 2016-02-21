@@ -2,6 +2,7 @@ package org.sapia.corus.client.services.deployer.dist;
 
 import org.sapia.console.CmdElement;
 import org.sapia.ubik.util.Strings;
+import org.sapia.util.xml.confix.ConfigurationException;
 
 /**
  * This class corresponds to the <code>xoption</code> element in the corus.xml
@@ -23,5 +24,11 @@ public class XOption extends Option implements java.io.Serializable {
     } else {
       return new org.sapia.console.Option("X" + name + value);
     }
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    super.doValidate("xoption");
+    return this;
   }
 }

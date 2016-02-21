@@ -1,8 +1,8 @@
 package org.sapia.corus.taskmanager.util;
 
 import org.sapia.corus.taskmanager.core.Task;
-import org.sapia.corus.taskmanager.core.TaskExecutionContextImpl;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.taskmanager.core.TaskExecutionContextImpl;
 
 /**
  * A {@link Task} that implements the {@link Runnable} interface. Inheriting

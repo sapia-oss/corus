@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.ArgMatchers;
@@ -19,6 +20,12 @@ public class DistributionTest {
 
   @Before
   public void setUp() throws Exception {
+    System.setProperty("corus.home", System.getProperty("user.dir"));
+  }
+  
+  @After
+  public void clear() {
+    System.clearProperty("corus.home");
   }
 
   @Test

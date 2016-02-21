@@ -117,6 +117,11 @@ public class RequestContext {
     }
     
     @Override
+    public String getRemoteHost() {
+      return delegate.getRemoteHost();
+    }
+    
+    @Override
     public Set<String> getAccepts() {
       return delegate.getAccepts();
     }

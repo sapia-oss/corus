@@ -16,7 +16,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -28,6 +29,8 @@ import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
+import org.sapia.ubik.util.Pause;
+import org.sapia.ubik.util.SysClock.MutableClock;
 
 /**
  * @author Yanick Duchesne
@@ -35,6 +38,8 @@ import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessCheckTaskTest extends TestBaseTask {
 
+  private MutableClock clock = new MutableClock();
+  
   @Mock
   private OsModule os;
   
@@ -69,7 +74,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -83,7 +88,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   @Test
   public void testStaleVmCheck_diagnostic_success() throws Exception {   
     proc.setInteropEnabled(false);
-    when(diagnostics.acquireDiagnosticFor(any(Process.class), any(LockOwner.class)))
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_SUCCESSFUL, "success", proc));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
@@ -93,7 +98,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -105,9 +110,9 @@ public class ProcessCheckTaskTest extends TestBaseTask {
   }
   
   @Test
-  public void testStaleVmCheck_diagnostic_failure() throws Exception {   
+  public void testStaleVmCheck_diagnostic_failure_interop_disabled() throws Exception {   
     proc.setInteropEnabled(false);
-    when(diagnostics.acquireDiagnosticFor(any(Process.class), any(LockOwner.class)))
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
       .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_FAILED, "failure", proc));
     
     ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
@@ -117,7 +122,31 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     proc.getLock().acquire(owner);
     proc.save();
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
+    clock.increaseCurrentTimeMillis(30001);
+    ctx.getTm().executeAndWait(task, null).get();
+    
+    proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
+    
+    assertFalse(
+        "Process should have been removed from active process list", 
+        ctx.getServices().getProcesses().containsProcess(proc.getProcessID())
+    );
+  }
+  
+  @Test
+  public void testStaleVmCheck_diagnostic_failure_interop_enabled() throws Exception {   
+    when(diagnostics.acquireProcessDiagnostics(any(Process.class), any(OptionalValue.class)))
+      .thenReturn(new ProcessDiagnosticResult(ProcessDiagnosticStatus.CHECK_FAILED, "failure", proc));
+    
+    ctx.getProc().getConfigurationImpl().setProcessTimeout(1);
+    ctx.getProc().getConfigurationImpl().setKillInterval(1);
+    
+    LockOwner owner = LockOwner.createInstance().nonExclusive();
+    proc.getLock().acquire(owner);
+    proc.save();
+    Thread.sleep(1100);
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     proc.getLock().awaitRelease(5, TimeUnit.SECONDS);
@@ -136,7 +165,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
 
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     assertTrue(
@@ -159,7 +188,7 @@ public class ProcessCheckTaskTest extends TestBaseTask {
     ctx.getProc().getConfigurationImpl().setKillInterval(1);
 
     Thread.sleep(1100);
-    ProcessCheckTask task = new ProcessCheckTask();
+    ProcessCheckTask task = new ProcessCheckTask(new Pause(clock, 30000));
     ctx.getTm().executeAndWait(task, null).get();
     
     assertTrue(

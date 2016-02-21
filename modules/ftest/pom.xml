@@ -1,80 +1,84 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<name>Sapia Corus Functional Tests</name>
-	<description>The Corus functional test module</description>
-	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
-	<artifactId>sapia_corus_ftest</artifactId>
- 
-	<parent>
-		<groupId>org.sapia</groupId>
-		<artifactId>sapia_corus_parent</artifactId>
-		<version>develop-SNAPSHOT</version>
-		<relativePath>../..</relativePath>
-	</parent>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Functional Tests</name>
+  <description>The Corus functional test module</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <artifactId>sapia_corus_ftest</artifactId>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_parent</artifactId>
+    <version>develop-SNAPSHOT</version>
+    <relativePath>../..</relativePath>
+  </parent>
 
-	<licenses>
-		<license>
-			<name>Apache 2</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-	</licenses>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
-	<packaging>jar</packaging>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
 
-	<dependencies>
-	  <dependency>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>6.1.1</version>
+      <version>6.9.10</version>
     </dependency>
-    
-		<dependency>
-		  <groupId>org.glassfish.jersey.core</groupId>
-		  <artifactId>jersey-client</artifactId>
-		</dependency>
-		
+
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>net.sf.json-lib</groupId>
       <artifactId>json-lib</artifactId>
       <classifier>jdk15</classifier>
-    </dependency>		
-      
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-		
+    </dependency>
+
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
     </dependency>
-    
-    <dependency>
-	    <groupId>org.sapia</groupId>
-	    <artifactId>sapia_corus_client</artifactId>
-    </dependency>
-    
-	</dependencies>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
-					 <skipTests>true</skipTests>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_server</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <skipTests>true</skipTests>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
   <profiles>
     <profile>
       <id>ftests</id>
@@ -83,22 +87,22 @@
       </activation>
       <build>
         <plugins>
-	        <plugin>
-	          <groupId>org.apache.maven.plugins</groupId>
-	          <artifactId>maven-failsafe-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <goals>
-		              <goal>integration-test</goal>
-		              <goal>verify</goal>
-		            </goals>
-		          </execution>
-		        </executions>
-	        </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
-  
+
   </profiles>
 
 </project>

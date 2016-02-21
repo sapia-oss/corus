@@ -19,7 +19,7 @@ import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
 import org.sapia.corus.client.common.NameValuePair;
-import org.sapia.corus.client.common.ObjectUtils;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
@@ -709,14 +709,14 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     
     @Override
     public int hashCode() {
-      return ObjectUtils.safeHashCode(name, category);
+      return ObjectUtil.safeHashCode(name, category);
     }
     
     @Override
     public boolean equals(Object other) {
       if (other instanceof NameCategoryKey) {
-        return ObjectUtils.safeEquals(name, ((NameCategoryKey) other).name) 
-            && ObjectUtils.safeEquals(category, ((NameCategoryKey) other).category);
+        return ObjectUtil.safeEquals(name, ((NameCategoryKey) other).name) 
+            && ObjectUtil.safeEquals(category, ((NameCategoryKey) other).category);
         
       } else {
         return false;

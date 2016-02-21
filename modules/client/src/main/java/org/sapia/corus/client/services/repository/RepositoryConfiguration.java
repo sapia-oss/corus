@@ -104,5 +104,16 @@ public interface RepositoryConfiguration extends Remote {
    * @return the maximum concurrent deployment requests that will be handled.
    */
   public int getMaxConcurrentDeploymentRequests();
+  
+  /**
+   * @return the interval at which the task deleting "old" repo files is run.
+   */
+  public int getRepoFileCheckIntervalSeconds();
+  
+  /**
+   * @return the number of minutes corresponding to the time-to-live of repo files (i.e.: distributions, images, etc.)
+   * that are cached locally.
+   */
+  public int getRepoFileTtlMinutes();
 
 }

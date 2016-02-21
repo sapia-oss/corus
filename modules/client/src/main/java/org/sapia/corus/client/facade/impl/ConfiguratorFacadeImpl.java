@@ -12,9 +12,9 @@ import org.sapia.corus.client.common.NameValuePair;
 import org.sapia.corus.client.facade.ConfiguratorFacade;
 import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.configurator.Configurator;
+import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.PropertyMasker;
-import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.RevId;
 

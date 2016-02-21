@@ -1,9 +1,9 @@
 package org.sapia.corus.ext.hook.docker;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,20 +14,17 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
-import org.sapia.corus.client.common.LogCallback;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Property;
 import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
 import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter;
+import org.sapia.corus.client.services.deployer.dist.docker.DockerStarter.DockerStarterAttachment;
 import org.sapia.corus.client.services.processor.DistributionInfo;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.core.ServerContext;
+import org.sapia.corus.docker.DockerClientFacade;
 import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.processor.hook.ProcessContext;
-
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DockerProcessStartHookTest {
@@ -36,19 +33,14 @@ public class DockerProcessStartHookTest {
   private DockerFacade dockerFacade;
   
   @Mock
-  private ServerContext serverContext;
-  
-  @Mock
-  private DockerClient dockerClient;
+  private DockerClientFacade dockerClient;
   
   @Mock
   private Env env;
   
   @Mock
   private LogCallback callback;
-  
-  private ContainerCreation creation;
-  
+    
   private DockerProcessStartHook hook;
   
   private DockerStarter starter;
@@ -59,15 +51,14 @@ public class DockerProcessStartHookTest {
   public void setUp() throws Exception {
     process   = new Process(new DistributionInfo("dist", "1.0", "test", "dockerProcesss"));
     process.setStarterType(StarterType.DOCKER);
-    creation  = new ContainerCreation("docker-process-id");
     starter   = new DockerStarter();
     
     hook = new DockerProcessStartHook();
     hook.setDockerFacade(dockerFacade);
-    hook.setServerContext(serverContext);
     
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
-    when(dockerClient.createContainer(any(ContainerConfig.class), anyString())).thenReturn(creation);
+    when(dockerClient.startContainer(any(ProcessContext.class), any(StarterResult.class), any(DockerStarterAttachment.class), any(LogCallback.class)))
+      .thenReturn("test-container-id");
     when(env.getProperties()).thenReturn(new Property[]{});
   }
 
@@ -89,9 +80,8 @@ public class DockerProcessStartHookTest {
     result.set(DockerStarter.DOCKER_STARTER_ATTACHMENT, new DockerStarter.DockerStarterAttachment(env, starter));
     hook.start(new ProcessContext(process), result, callback);
   
-    verify(dockerClient).createContainer(any(ContainerConfig.class), anyString());
-    verify(dockerClient).startContainer(anyString());
-    verify(dockerClient).close();
+    verify(dockerClient).startContainer(any(ProcessContext.class), any(StarterResult.class), any(DockerStarterAttachment.class), any(LogCallback.class));
+    assertEquals("test-container-id", process.getOsPid());
   }
 
 }

@@ -1,23 +1,27 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.attributeNotNull;
+
 import java.io.File;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.CmdLine;
 import org.sapia.corus.client.common.Env;
-import org.sapia.corus.client.common.FileUtils;
+import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.PathFilter;
 import org.sapia.corus.client.exceptions.misc.MissingDataException;
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Corresponds to the "java" element of the corus.xml file.
  * 
  * @author Yanick Duchesne
  */
-public class Java extends BaseJavaStarter {
+public class Java extends BaseJavaStarter implements ObjectCreationCallback {
 
   public static final String CORUS_JAVAPROC_MAIN_CLASS = "corus.process.java.main";
-  public static final String STARTER_CLASS = "org.sapia.corus.starter.Starter";
+  public static final String STARTER_CLASS             = "org.sapia.corus.starter.Starter";
 
   static final long serialVersionUID = 1L;
 
@@ -25,11 +29,6 @@ public class Java extends BaseJavaStarter {
   protected String args;
   protected String mainArgs;
   protected String libDirs;
-  private boolean interopEnabled = true;
-
-  public void setCorusHome(String home) {
-    corusHome = home;
-  }
 
   /**
    * Sets the name of the class to execute - class must have a main() method.
@@ -61,17 +60,6 @@ public class Java extends BaseJavaStarter {
     libDirs = dirs;
   }
   
-  /**
-   * @param interopEnabled if <code>true</code>, indicates that interop is enabled (<code>true</code> by default).
-   */
-  public void setInteropEnabled(boolean interopEnabled) {
-    this.interopEnabled = interopEnabled;
-  }
-  
-  public boolean isInteropEnabled() {
-    return interopEnabled;
-  }
-
   @Override
   public StarterResult toCmdLine(Env env) throws MissingDataException {
 
@@ -86,7 +74,7 @@ public class Java extends BaseJavaStarter {
     prop.setValue(mainClass);
     result.command.addElement(prop.convert());
     
-    String classpath = FileUtils.mergeFilePaths(
+    String classpath = FileUtil.mergeFilePaths(
         env.getCorusIopLibPath(), 
         getCp(env, env.getJavaLibDir()),
         env.getJavaStarterLibPath(),
@@ -105,7 +93,14 @@ public class Java extends BaseJavaStarter {
       }
     }
 
-    return new StarterResult(StarterType.JAVA, result.command, interopEnabled);
+    return new StarterResult(StarterType.JAVA, result.command, isInteropEnabled());
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    super.doValidate("java");
+    attributeNotNull("java", "mainClass", mainClass);
+    return this;
   }
 
   private String getMainCp(Env env) {

@@ -1,9 +1,8 @@
 package org.sapia.corus.diagnostic;
 
 import org.sapia.corus.client.services.deployer.dist.DiagnosticConfig;
-
-import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ActivePort;
+import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.core.ServerContext;
 
 public class DiagnosticContext {

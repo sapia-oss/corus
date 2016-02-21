@@ -28,63 +28,57 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
 
   static final long serialVersionUID = 1L;
 
-  private String _name;
-  private OptionalValue<? extends DiagnosticConfig> _diagnosticConfig = OptionalValue.none();
-  private OptionalValue<PublishingConfig> _publishing = OptionalValue.none();
+  private String name;
+  private OptionalValue<? extends DiagnosticConfig> diagnosticConfig = OptionalValue.none();
+  private OptionalValue<PublishingConfig>           publishing = OptionalValue.none();
 
   /** Creates a new instance of Port */
   public Port() {
   }
 
   public void setName(String name) {
-    _name = name;
+    this.name = name;
   }
 
   public String getName() {
-    return _name;
+    return name;
   }
   
   public OptionalValue<? extends DiagnosticConfig> getDiagnosticConfig() {
-    return _diagnosticConfig;
+    return diagnosticConfig;
   }
   
   public OptionalValue<PublishingConfig> getPublishing() {
-    return _publishing;
+    return publishing;
   }
   
   public PublishingConfig createPublishing() {
-    if (_publishing.isNull()) {
-      _publishing = OptionalValue.of(new PublishingConfig());
+    if (publishing.isNull()) {
+      publishing = OptionalValue.of(new PublishingConfig());
     }
-    return _publishing.get();
+    return publishing.get();
   }
   
   // --------------------------------------------------------------------------
   // Configuration unmarshalling
   
   public Object onCreate() throws ConfigurationException {
-    if (_name == null) {
-      throw new ConfigurationException("Port name not set");
-    }
+    ConfigAssertions.attributeNotNullOrEmpty("port", "name", name);
     return this;
   }
   
   @Override
   public void handleObject(String name, Object toHandle)
       throws ConfigurationException {
-    if (toHandle instanceof DiagnosticConfig) {
-      _diagnosticConfig = OptionalValue.of((DiagnosticConfig) toHandle);
-    } else {
-      throw new ConfigurationException(String.format("Expected instance of %s. Got %s", 
-          DiagnosticConfig.class.getName(), toHandle.getClass().getName()));
-    }
+    ConfigAssertions.elementExpectsInstanceOf("port", DiagnosticConfig.class, toHandle);
+    diagnosticConfig = OptionalValue.of((DiagnosticConfig) toHandle);
   }
  
   // --------------------------------------------------------------------------
   // Object overrides 
   
   public String toString() {
-    return new StringBuffer("[").append(_name).append("]").toString();
+    return new StringBuffer("[").append(name).append("]").toString();
   }
 
   // --------------------------------------------------------------------------
@@ -94,16 +88,16 @@ public class Port implements Externalizable, ObjectCreationCallback, ObjectHandl
   @Override
   public void readExternal(ObjectInput in) throws IOException,
       ClassNotFoundException {
-    _name = in.readUTF();
-    _diagnosticConfig = (OptionalValue<DiagnosticConfig>) in.readObject();
-    _publishing = (OptionalValue<PublishingConfig>) in.readObject();
+    name = in.readUTF();
+    diagnosticConfig = (OptionalValue<DiagnosticConfig>) in.readObject();
+    publishing = (OptionalValue<PublishingConfig>) in.readObject();
 
   }
   
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
-    out.writeUTF(_name);
-    out.writeObject(_diagnosticConfig);
-    out.writeObject(_publishing);
+    out.writeUTF(name);
+    out.writeObject(diagnosticConfig);
+    out.writeObject(publishing);
   }
 }

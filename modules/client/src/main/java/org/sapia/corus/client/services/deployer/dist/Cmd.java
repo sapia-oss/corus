@@ -1,6 +1,11 @@
 package org.sapia.corus.client.services.deployer.dist;
 
+import static org.sapia.corus.client.services.deployer.dist.ConfigAssertions.elementNotNull;
+
 import java.io.Serializable;
+
+import org.sapia.util.xml.confix.ConfigurationException;
+import org.sapia.util.xml.confix.ObjectCreationCallback;
 
 /**
  * Holds a server-side command-line to execute.
@@ -8,7 +13,7 @@ import java.io.Serializable;
  * @author yduchesne
  *
  */
-public class Cmd implements Serializable {
+public class Cmd implements Serializable, ObjectCreationCallback {
 
   private static final long serialVersionUID = 1L;
 
@@ -37,6 +42,12 @@ public class Cmd implements Serializable {
     } else {
       value = cmdLine;
     }
+  }
+  
+  @Override
+  public Object onCreate() throws ConfigurationException {
+    elementNotNull("cmd", value);
+    return this;
   }
   
 

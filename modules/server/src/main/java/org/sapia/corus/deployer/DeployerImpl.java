@@ -17,9 +17,13 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.StrLookups;
+import org.sapia.corus.client.common.encryption.DecryptionContext;
+import org.sapia.corus.client.common.encryption.Encryption;
+import org.sapia.corus.client.common.encryption.EncryptionContext;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.core.IORuntimeException;
@@ -27,8 +31,12 @@ import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RollbackScriptNotFoundException;
 import org.sapia.corus.client.exceptions.deployer.RunningProcessesException;
 import org.sapia.corus.client.services.ModuleState;
+import org.sapia.corus.client.services.audit.AuditInfo;
+import org.sapia.corus.client.services.audit.Auditor;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusteringHelper;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
@@ -50,8 +58,8 @@ import org.sapia.corus.cloud.CorusUserDataEvent;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.deployer.artifact.InternalArtifactManager;
+import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
-import org.sapia.corus.deployer.task.CleanTempDirTask;
 import org.sapia.corus.deployer.task.RollbackTask;
 import org.sapia.corus.deployer.task.UnarchiveAndDeployTask;
 import org.sapia.corus.deployer.task.UndeployAndArchiveTask;
@@ -61,11 +69,13 @@ import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskConfig;
 import org.sapia.corus.taskmanager.core.TaskLogProgressQueue;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
+import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
@@ -107,6 +117,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   
   @Autowired
   private InternalArtifactManager artifactManager;
+
+  @Autowired
+  private Auditor auditor;
+
+  @Autowired
+  private DeploymentProcessorManager processorManager;
 
   private List<DeploymentHandler> deploymentHandlers = new ArrayList<DeploymentHandler>();
   
@@ -257,12 +273,14 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   
   @Override
   public void start() throws Exception {
-    CleanTempDirTask clean = new CleanTempDirTask();
+    FileDeletionTask clean = new FileDeletionTask(
+        "CleanTempDirTask", 
+        serverContext().getServices().getFileSystem().getFileHandle(this.configuration.getTempDir()),
+        TimeUnit.HOURS.toMillis(configuration.getTempFileTimeoutHours())
+     );
     taskman.executeBackground(clean, null,
         BackgroundTaskConfig.create()
-          .setExecDelay(0)
           .setExecInterval(TimeUnit.MINUTES.toMillis(DEFAULT_CLEAN_TEMP_DIR_INTERVAL_MINUTES)));
-    
   }
  
   @Override 
@@ -297,7 +315,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
         String fileName = path[path.length - 1];
         File artifactFile = FilePath.newInstance()
           .addDir(configuration.getTempDir())
-          .setRelativeFile(fileName + "." + IDGenerator.makeId())
+          .setRelativeFile(fileName + "." + IDGenerator.makeSequentialId())
           .createFile();
 
         try {
@@ -412,6 +430,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   }
   
   @Override
+  public List<Task<Void, Void>> getImageDeploymentTasksFor(Distribution dist, List<Endpoint> endpoints) {
+    return processorManager.getImageDeploymentTasksFor(dist, endpoints);
+  }
+  
+  @Override
   public ProgressQueue rollbackDistribution(String name, String version)
       throws RollbackScriptNotFoundException, DistributionNotFoundException {
     Distribution dist = getDistributionStore().getDistribution(DistributionCriteria.builder().name(name).version(version).build());
@@ -459,6 +482,18 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
       return;
     }
+  
+    OptionalValue<AuditInfo> optionalDecryptedAuditInfo = OptionalValue.none();
+    if (meta.getAuditInfo().isSet()) {
+      DecryptionContext dc        = Encryption.getDefaultDecryptionContext(serverContext().getKeyPair().getPrivate());
+      AuditInfo         decrypted = meta.getAuditInfo().get().decryptWith(dc);
+      auditor.audit(
+          decrypted, 
+          new RemoteAddress(deployment.getConnection().getRemoteHost()), 
+          Deployer.class.getName(), "deploy_" + meta.getType().name().toLowerCase()
+      );
+      optionalDecryptedAuditInfo = OptionalValue.of(decrypted);
+    }
     
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
@@ -503,6 +538,12 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
             out = new DeployOutputStreamImpl(destFile, meta, handler);
           }
         } else {
+          if (optionalDecryptedAuditInfo.isSet()) {
+            CorusHost host = cluster.resolveHost(addr);
+            EncryptionContext ec = Encryption.getDefaultEncryptionContext(host.getPublicKey());
+            AuditInfo encryptedAuditInfo = optionalDecryptedAuditInfo.get().encryptWith(ec);
+            meta.setAuditInfo(encryptedAuditInfo);
+          }
           // chaining deployment to next host.
           if (!meta.isTargeted(current)) {
             log.info("This host is not targeted. Deployment is cascaded to the next host");
@@ -572,5 +613,27 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       }
     }
     throw new IllegalStateException("Could not find deployment handler for: " + meta);
+  }
+  
+  
+  // --------------------------------------------------------------------------
+  // Inner classes
+  
+  @SuppressWarnings("serial")
+  private static class RemoteAddress implements ServerAddress {
+    private static final String DEPLOYMENT_TRANSPORT_TYPE = "deploy";
+    private String remoteAddress;
+    
+    private RemoteAddress(String remoteAddress) {
+      this.remoteAddress = remoteAddress;
+    }
+    @Override
+    public String getTransportType() {
+      return DEPLOYMENT_TRANSPORT_TYPE;
+    }
+    @Override
+    public String toString() {
+      return remoteAddress;
+    }
   }
 }

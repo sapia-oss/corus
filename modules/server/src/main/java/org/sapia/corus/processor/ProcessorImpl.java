@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.annotations.Bind;
-import org.sapia.corus.client.common.LogCallback;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.common.reference.AutoResetReference;
 import org.sapia.corus.client.common.reference.Reference;
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
@@ -50,7 +50,6 @@ import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.deployer.DistributionDatabase;
-import org.sapia.corus.interop.Status;
 import org.sapia.corus.processor.task.BootstrapExecConfigStartTask;
 import org.sapia.corus.processor.task.EndUserExecConfigStartTask;
 import org.sapia.corus.processor.task.KillTask;
@@ -69,12 +68,13 @@ import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Pause;
 import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implements the {@link Processor} interface.
- * 
+ *
  * @author Yanick Duchesne
  */
 @Bind(moduleInterface = Processor.class)
@@ -82,7 +82,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProcessorImpl extends ModuleHelper implements Processor {
 
   private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
-  
+
   @Autowired
   private ProcessorConfiguration configuration;
   @Autowired
@@ -101,51 +101,52 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private OsModule        os;
 
   private ProcessorStateManager stateManager;
-  
+
   private ProcessRepository processes;
-  
+
   private ExecConfigDatabase execConfigs;
-  
+
   private boolean isPublishProcessConfigurationChangeEnabled = false;
-  
+
+  @Override
   public ProcessorConfiguration getConfiguration() {
     return configuration;
   }
-  
+
   // --------------------------------------------------------------------------
   // Visible for testing
-  
+
   protected void setDb(DbModule db) {
     this.db = db;
   }
-  
+
   protected void setDeployer(Deployer deployer) {
     this.deployer = deployer;
   }
-  
+
   protected void setTaskManager(TaskManager taskman) {
     this.taskman = taskman;
   }
-  
+
   protected void setConfiguration(ProcessorConfiguration configuration) {
     this.configuration = configuration;
   }
-  
+
   protected void setEvents(EventDispatcher events) {
     this.events = events;
   }
-  
+
   protected void setHttpModule(HttpModule http) {
     this.http = http;
   }
-  
+
   protected boolean isPublishProcessConfigurationChangeEnabled() {
     return this.isPublishProcessConfigurationChangeEnabled;
   }
 
   // --------------------------------------------------------------------------
   // Lifecycle
-  
+
   @Override
   public void init() throws Exception {
 
@@ -161,33 +162,33 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     );
     processes = new ProcessRepositoryImpl(processDb);
     services().bind(ProcessRepository.class, processes);
-    
+
     stateManager = new ProcessorStateManager(
         new AutoResetReference<ModuleState>(
-            ModuleState.IDLE, 
+            ModuleState.IDLE,
             TimeValue.createSeconds(DEFAULT_STATE_IDLE_DELAY_SECONDS)
-        ), 
+        ),
         events
     );
 
     // here we "touch" the process objects to prevent their automatic
     // termination (the Corus server might have been down for a period
     // of time that is longer then some process' tolerated idle delay).
-    List<Process> processes = (List<Process>) processDb.getProcesses(ProcessCriteria.builder().lifecycles(
+    List<Process> processes = processDb.getProcesses(ProcessCriteria.builder().lifecycles(
         LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING, LifeCycleStatus.KILL_CONFIRMED
     ).build());
     Process proc;
-    
+
     for (int i = 0; i < processes.size(); i++) {
-      proc = (Process) processes.get(i);
+      proc = processes.get(i);
       if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
         // making sure we're removing process that might not have been removed
         // before the last Corus shutdown.
         log.debug("Removing stale process object - is confirmed as killed");
         processDb.removeProcess(proc.getProcessID());
       } else if (proc.getStatus() == LifeCycleStatus.RESTARTING || proc.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
-        // set process in auto-restart to active. if it is down, 
-        // it will not poll and enter the shutdown procedure, 
+        // set process in auto-restart to active. if it is down,
+        // it will not poll and enter the shutdown procedure,
         // eventually being clean up definitively.
         proc.setStatus(LifeCycleStatus.ACTIVE);
         proc.save();
@@ -196,7 +197,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         proc.save();
       }
     }
-    
+
     if (!configuration.autoRestartStaleProcesses()) {
       log.warn("Process auto-restart is disabled. Stale processes will not automatically be restarted");
     }
@@ -216,16 +217,16 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       log.warn("Automatic startup of processes at boot time is disabled for this node");
     }
 
-    ProcessCheckTask check = new ProcessCheckTask();
+    ProcessCheckTask check = new ProcessCheckTask(new Pause(configuration.getProcessDiagnosticCheckIntervalMillis()));
     taskman.executeBackground(check, null,
         BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getProcessCheckIntervalMillis()));
 
     events.addInterceptor(UndeploymentCompletedEvent.class, new ProcessorInterceptor());
-    
+
     // Waiting for this service to be running before activating the process update feature (to avoid any startup mixed-up)
     isPublishProcessConfigurationChangeEnabled = Boolean.parseBoolean(
         serverContext().getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_PROCESS_CONFIG_UPDATE_ENABLED, "false"));
-    events.addInterceptor(PropertyChangeEvent.class, new PropertyChangeInterceptor()); 
+    events.addInterceptor(PropertyChangeEvent.class, new PropertyChangeInterceptor());
   }
 
   @Override
@@ -234,7 +235,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   // --------------------------------------------------------------------------
   // Module interface
-  
+
   @Override
   public String getRoleName() {
     return Processor.ROLE;
@@ -247,7 +248,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public Reference<ModuleState> getState() {
     return stateManager.getState();
   }
-  
+
   @Override
   public ProgressQueue execConfig(ExecConfigCriteria criteria) {
     ProgressQueue progress = new ProgressQueueImpl();
@@ -263,7 +264,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     return progress;
 
   }
-  
+
   @Override
   public void setExecConfigEnabled(ExecConfigCriteria criteria, boolean enabled) {
     List<ExecConfig> configs = this.execConfigs.getConfigsFor(criteria);
@@ -272,7 +273,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       c.save();
     }
   }
-  
+
   @Override
   public ProgressQueue exec(ProcessCriteria criteria, int instances) throws TooManyProcessInstanceException {
     try {
@@ -356,7 +357,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING
     ).build();
     List<Process> procs = processes.getProcesses(killCriteria);
- 
+
     for (Process proc : procs) {
       if (pref.isSuspend()) {
         SuspendTask susp = new SuspendTask(proc.getMaxKillRetry());
@@ -425,11 +426,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     ProcessCriteria restartCriteria = ProcessCriteria.builder().copy(criteria).lifecycles(
         LifeCycleStatus.ACTIVE, LifeCycleStatus.STALE, LifeCycleStatus.RESTARTING
     ).build();
-    
+
     List<Process> procs = processes.getProcesses(restartCriteria);
 
     for (int i = 0; i < procs.size(); i++) {
-      Process proc = (Process) procs.get(i);
+      Process proc = procs.get(i);
       RestartTask restart = new RestartTask(proc.getMaxKillRetry());
       restart.setHardKill(prefs.isHard());
       taskman.executeBackground(restart, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN), BackgroundTaskConfig.create()
@@ -439,11 +440,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   private void doRestart(String pid, ProcessTerminationRequestor origin, KillPreferences prefs) throws ProcessNotFoundException {
     Process proc = processes.getProcess(pid);
-    
+
     if (proc.getStatus() == LifeCycleStatus.ACTIVE || proc.getStatus() == LifeCycleStatus.STALE || proc.getStatus() == LifeCycleStatus.RESTARTING) {
       RestartTask restart = new RestartTask(proc.getMaxKillRetry());
       restart.setHardKill(prefs.isHard());
-  
+
       taskman.executeBackground(restart, TaskParams.createFor(proc, origin),
           BackgroundTaskConfig.create().setExecDelay(0).setExecInterval(configuration.getKillIntervalMillis()));
     }
@@ -470,7 +471,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     int restartCount = 0;
 
     while (procs.hasNext()) {
-      proc = (Process) procs.next();
+      proc = procs.next();
       DistributionCriteria criteria = DistributionCriteria.builder().name(proc.getDistributionInfo().getName())
           .version(proc.getDistributionInfo().getVersion()).build();
       try {
@@ -536,7 +537,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   }
 
   @Override
-  public List<Status> getStatus(ProcessCriteria criteria) {
+  public List<ProcStatus> getStatus(ProcessCriteria criteria) {
     return copyStatus(getProcesses(criteria));
   }
 
@@ -544,20 +545,20 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   public ProcStatus getStatusFor(String corusPid) throws ProcessNotFoundException {
     Process proc = getProcess(corusPid);
 
-    return copyStatus(proc);
+    return new ProcStatus(proc);
   }
-  
+
   @Override
   public void clean() {
     ProcessCriteria criteria = ProcessCriteria.builder().lifecycles(
-        LifeCycleStatus.SUSPENDED, 
-        LifeCycleStatus.STALE, 
+        LifeCycleStatus.SUSPENDED,
+        LifeCycleStatus.STALE,
         LifeCycleStatus.KILL_CONFIRMED,
         LifeCycleStatus.KILL_REQUESTED
     ).build();
-    
+
     List<Process> toClean = processes.getProcesses(criteria);
-    
+
     for (Process p : toClean) {
       // trying to kill stale process, just it case it is zombie
       if (p.getStatus() == LifeCycleStatus.STALE || p.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
@@ -581,59 +582,55 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       p.releasePorts(portManager);
     }
   }
-  
+
   @Override
   public void archiveExecConfigs(RevId revId) {
     execConfigs.archiveExecConfigs(revId);
   }
-  
+
   @Override
   public void unarchiveExecConfigs(RevId revId) {
     execConfigs.unarchiveExecConfigs(revId);
   }
-  
+
   @Override
   public void dump(JsonStream stream) {
     stream.field("processes").beginObject();
     processes.dump(stream);
     stream.endObject();
-    
+
     stream.field("execConfigs").beginObject();
     execConfigs.dump(stream);
     stream.endObject();
   }
-  
+
   @Override
   public void load(JsonInput dump) {
     processes.load(dump.getObject("processes"));
     execConfigs.load(dump.getObject("execConfigs"));
-    
-    // touching the processes to that they're not deemed timed out in between 
+
+    // touching the processes to that they're not deemed timed out in between
     // the dump/load operations
     for (Process p : processes.getProcesses(ProcessCriteria.builder().all())) {
       p.touch();
     }
   }
 
-  private List<Status> copyStatus(List<Process> processes) {
-    List<Status> stat = new ArrayList<Status>(processes.size());
+  private List<ProcStatus> copyStatus(List<Process> processes) {
+    List<ProcStatus> stat = new ArrayList<ProcStatus>(processes.size());
     for (Process p : processes) {
       if (log.isDebugEnabled()) {
         log.debug(String.format("Returning status %s", p.getProcessStatus()));
       }
-      stat.add(copyStatus(p));
+      stat.add(new ProcStatus(p));
     }
 
     return stat;
   }
 
-  private ProcStatus copyStatus(Process p) {
-    return new ProcStatus(p);
-  }
-  
   /**
    * Internal method that handles property change events.
-   * 
+   *
    * @param event The property change event to process.
    */
   protected void doHandlePropertyChangeEvent(PropertyChangeEvent event) {
@@ -652,19 +649,19 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         log.info("Process configuration update functionality is now " + (isPublishProcessConfigurationChangeEnabled? "activated": "disabled"));
       }
     }
-    
+
     // Publication of configuration changes to processes (if enabled)
     if (PropertyScope.PROCESS == event.getScope() && isPublishProcessConfigurationChangeEnabled) {
       List<Property> updatedProps = new ArrayList<>();
       if (EventType.ADD == event.getEventType()) {
         updatedProps.addAll(event.getProperties());
       }
-      
+
       List<Property> deletedProps = new ArrayList<>();
       if (EventType.REMOVE == event.getEventType()) {
         deletedProps.addAll(event.getProperties());
       }
-     
+
       taskman.execute(new PublishConfigurationChangeTask(),
           TaskParams.createFor(updatedProps, deletedProps));
     }
@@ -675,11 +672,11 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
       execConfigs.removeProcessesForDistribution(evt.getDistribution());
     }
   }
-  
+
   public class PropertyChangeInterceptor implements Interceptor {
     public void onPropertyChangeEvent(PropertyChangeEvent event) {
       doHandlePropertyChangeEvent(event);
     }
   }
-  
+
 }

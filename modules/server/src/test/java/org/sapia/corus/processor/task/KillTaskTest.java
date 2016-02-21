@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -14,12 +15,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sapia.corus.client.common.LogCallback;
+import org.mockito.stubbing.Answer;
+import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.deployer.dist.StarterResult;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
@@ -69,6 +73,15 @@ public class KillTaskTest extends TestBaseTask {
     int portNumber = ctx.getPorts().aquirePort(port.getName());
     final ActivePort ap = new ActivePort(port.getName(), portNumber);
     proc.addActivePort(ap);
+    
+    doAnswer(new Answer<Void>() {
+      @Override
+      public Void answer(InvocationOnMock invocation) throws Throwable {
+        ProcessContext processContext = invocation.getArgumentAt(0, ProcessContext.class);
+        processContext.getProcess().setOsPid("" + System.nanoTime());
+        return null;
+      }
+    }).when(processHooks).start(any(ProcessContext.class), any(StarterResult.class), any(LogCallback.class));
   }
 
   @Test

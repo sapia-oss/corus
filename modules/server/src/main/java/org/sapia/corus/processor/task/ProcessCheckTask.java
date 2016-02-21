@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.processor.LockOwner;
@@ -18,6 +20,7 @@ import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
+import org.sapia.ubik.util.Pause;
 
 /**
  * This task ensures that all external processes are up and running. It
@@ -39,6 +42,12 @@ public class ProcessCheckTask extends Task<Void, Void> {
 
   private LockOwner lockOwner = LockOwner.createInstance();
   
+  private Pause diagnosticInterval;
+  
+  public ProcessCheckTask(Pause diagnosticInterval) {
+    this.diagnosticInterval = diagnosticInterval;
+  }
+  
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
     ctx.debug("Checking for stale processes...");
@@ -59,23 +68,11 @@ public class ProcessCheckTask extends Task<Void, Void> {
       long configuredTimeout = proc.getPollTimeout() > 0 ? 
           TimeUnit.MILLISECONDS.convert(proc.getPollTimeout(), TimeUnit.SECONDS) : 
           processor.getConfiguration().getProcessTimeoutMillis();
-      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) && proc.isTimedOut(configuredTimeout)) {
+
+      if ((proc.getStatus() == Process.LifeCycleStatus.ACTIVE) 
+          && (isTimedOut(proc, configuredTimeout) || isDown(diagnostics, ctx, proc))) {
         
-        // if interop is not enabled: proceeding to diagnostic
-        if (!proc.isInteropEnabled()) {
-          ProcessDiagnosticResult diag = diagnostics.acquireDiagnosticFor(proc, lockOwner);
-          if (diag.getStatus().isFinal() && diag.getStatus().isProblem()) {
-            proc.incrementStaleDetectionCount();
-          } else {
-            // all OK
-            // faking poll to clear stale detection count
-            proc.poll();
-            // moving on to next process
-            continue;
-          }
-        } else {
-          proc.incrementStaleDetectionCount();
-        }
+        proc.incrementStaleDetectionCount();
         
         if (!processorConf.autoRestartStaleProcesses()) {
           ctx.warn(String.format("Stale process detected. Auto-restart disabled (process will not be restarted): %s. Last poll: %s." 
@@ -102,14 +99,39 @@ public class ProcessCheckTask extends Task<Void, Void> {
                   .setExecInterval(processorConf.getKillIntervalMillis()));
         }
       } else {
-        ctx.debug(String.format("Process %s is alive. Last poll: %s", 
-            proc, new Date(proc.getLastAccess()))
-        );
+        if (proc.isInteropEnabled()) {
+          ctx.debug(String.format("Process %s is alive. Last poll: %s", 
+              proc, new Date(proc.getLastAccess()))
+          );
+        } else {
+          // faking poll to clear stale detection count
+          proc.poll();        
+        }
       }
     }
 
     ctx.debug("Stale process check finished");
 
     return null;
+  }
+  
+  private boolean isTimedOut(Process proc, long timeout) {
+    return proc.isInteropEnabled() && proc.isTimedOut(timeout);
+  }
+  
+  private boolean isDown(DiagnosticModule diagnostics, TaskExecutionContext context, Process proc) {
+    if (this.diagnosticInterval.isOver()) {
+      try {
+        ProcessDiagnosticResult diag = diagnostics.acquireProcessDiagnostics(proc, OptionalValue.of(lockOwner));
+        if(diag.getStatus().isProblem() && diag.getStatus().isFinal()) {
+          context.error(String.format("Detected down process %s (diagnostic: %s - %s)", ToStringUtil.toString(proc), diag.getStatus(), diag.getMessage()));
+          return true;
+        }
+        return false;
+      } finally {
+        diagnosticInterval.reset();
+      }
+    }
+    return false;
   }
 }
