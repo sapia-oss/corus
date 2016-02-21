@@ -193,6 +193,7 @@
       <xs:attribute name="args" type="xs:string" use="optional"></xs:attribute>
       <xs:attribute name="interopEnabled" type="xs:boolean" use="optional"></xs:attribute>
       <xs:attribute name="interopWireFormat" type="xs:string" use="optional"></xs:attribute>
+      <xs:attribute name="numaEnabled" type="xs:boolean" use="optional"></xs:attribute>
     </xs:complexType>
   </xs:element>
 
@@ -212,6 +213,8 @@
       <xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
       <xs:attribute name="interopEnabled" type="xs:boolean"
         use="optional"></xs:attribute>
+      <xs:attribute name="interopWireFormat" type="xs:string" use="optional"></xs:attribute>
+      <xs:attribute name="numaEnabled" type="xs:boolean" use="optional"></xs:attribute>
     </xs:complexType>
   </xs:element>
 
@@ -232,14 +235,14 @@
         </xs:element>
       </xs:sequence>
       <xs:attribute name="profile" type="xs:string" use="required"></xs:attribute>
-      <xs:attribute name="interopEnabled" type="xs:boolean"
-        use="optional"></xs:attribute>
+      <xs:attribute name="interopEnabled" type="xs:boolean" use="optional"></xs:attribute>
+      <xs:attribute name="interopWireFormat" type="xs:string" use="optional"></xs:attribute>
+
       <xs:attribute name="autoRemoveEnabled" type="xs:boolean"
         use="optional"></xs:attribute>
       <xs:attribute name="user" type="xs:string" use="optional"></xs:attribute>
       <xs:attribute name="command" type="xs:string" use="optional"></xs:attribute>
-      <xs:attribute name="networkMode" type="xs:string"
-        use="optional"></xs:attribute>
+      <xs:attribute name="networkMode" type="xs:string" use="optional"></xs:attribute>
       <xs:attribute name="macAddress" type="xs:string" use="optional"></xs:attribute>
       <xs:attribute name="memory" type="xs:string" use="optional"></xs:attribute>
       <xs:attribute name="memorySwap" type="xs:string" use="optional"></xs:attribute>

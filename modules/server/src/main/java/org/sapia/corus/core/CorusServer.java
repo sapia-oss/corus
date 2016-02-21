@@ -287,7 +287,7 @@ public class CorusServer {
       Priority p = Priority.DEBUG;
 
       if (cmd.containsOption(LOG_VERBOSITY_OPT, true)) {
-        p = Priority.getPriorityForName(cmd.assertOption(LOG_VERBOSITY_OPT, true).getValue());
+        p = Priority.getPriorityForName(cmd.assertOption(LOG_VERBOSITY_OPT, true).getValue().toUpperCase());
 
         if (p == null) {
           p = Priority.DEBUG;

@@ -1,6 +1,7 @@
 package org.sapia.corus.client.rest;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,10 +12,10 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.log.ExtendedLogCallback;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.configurator.Tag;
-import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.SysClock;
 import org.sapia.ubik.util.SysClock.RealtimeClock;
@@ -27,10 +28,15 @@ import org.sapia.ubik.util.TimeValue;
  *
  */
 public class PartitionServiceImpl implements PartitionService {
-  
+    
   private ConcurrentHashMap<String, PartitionSet> partitionSets = new ConcurrentHashMap<>();
   
-  private SysClock clock = RealtimeClock.getInstance();
+  private ExtendedLogCallback log   = new ExtendedLogCallback.NullExtendedLogCallback();
+  private SysClock    clock = RealtimeClock.getInstance();
+  
+  public void setLogCallback(ExtendedLogCallback log) {
+    this.log = log;
+  }
   
   public void setClock(SysClock clock) {
     this.clock = clock;
@@ -72,8 +78,11 @@ public class PartitionServiceImpl implements PartitionService {
       partitions.add(p);
     }
     
-    PartitionSet set = new PartitionSet(UUID.randomUUID().toString(), timeout, batchSize, partitions);
+    PartitionSet set = new PartitionSet(clock, UUID.randomUUID().toString(), timeout, batchSize, partitions);
     partitionSets.put(set.getId(), set);
+    if (log.isInfoEnabled()) {
+      log.info(String.format("Created partition set: %s", set.getId()));
+    }
     return set;
   }
   
@@ -81,7 +90,14 @@ public class PartitionServiceImpl implements PartitionService {
   public PartitionSet getPartitionSet(String partitionSetId)
       throws IllegalArgumentException {
     PartitionSet ps = partitionSets.get(partitionSetId);
-    Assertions.notNull(ps, "No partition set found for: %s", partitionSetId);
+    if (ps == null) {
+      String msg = String.format("No partition set found for: %s", partitionSetId);
+      log.error(msg);
+      for (Map.Entry<String, PartitionSet> e : partitionSets.entrySet()) {
+        log.error(String.format("Got partitions set: %s = %s", e.getKey(), e.getValue()));
+      }
+      throw new IllegalArgumentException(msg);
+    }
     ps.touch(clock);
     return ps;
   }
@@ -95,6 +111,14 @@ public class PartitionServiceImpl implements PartitionService {
     List<String> toFlush = new ArrayList<String>();
     for (Map.Entry<String, PartitionSet> e : partitionSets.entrySet()) {
       if (clock.currentTimeMillis() - e.getValue().getLastAccess() > e.getValue().getTimeout().getValueInMillis()) {
+        if (log.isInfoEnabled()) {
+          log.info(String.format(
+              "Flushing partition %s. Current time = %s, last access time = %s", 
+              e.getKey(), 
+              new Date(clock.currentTimeMillis()), 
+              new Date(e.getValue().getTimeout().getValueInMillis()))
+          );
+        }
         toFlush.add(e.getKey());
       }
     }

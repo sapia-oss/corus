@@ -1,6 +1,7 @@
 package org.sapia.corus.util;
 
 import org.apache.log.Logger;
+import org.sapia.corus.client.common.log.ExtendedLogCallback;
 import org.sapia.corus.client.common.log.LogCallback;
 
 /**
@@ -9,7 +10,7 @@ import org.sapia.corus.client.common.log.LogCallback;
  * @author yduchesne
  *
  */
-public class LoggerLogCallback implements LogCallback {
+public class LoggerLogCallback implements ExtendedLogCallback {
   
   private Logger log;
   
@@ -30,6 +31,16 @@ public class LoggerLogCallback implements LogCallback {
   @Override
   public void debug(String msg) {
     log.debug(msg);
+  }
+  
+  @Override
+  public boolean isDebugEnabled() {
+    return log.isDebugEnabled();
+  }
+  
+  @Override
+  public boolean isInfoEnabled() {
+    return log.isInfoEnabled();
   }
 
 }

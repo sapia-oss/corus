@@ -51,6 +51,7 @@ import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
+import org.sapia.corus.util.LoggerLogCallback;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Streams;
 import org.sapia.ubik.util.Strings;
@@ -100,6 +101,7 @@ public class RestExtension implements HttpExtension, Interceptor {
         new TaskManagerExecutionProvider(serverContext.getServices().getTaskManager()), DEFAULT_TASK_TIMEOUT
     );
     partitionImpl = new PartitionServiceImpl();
+    partitionImpl.setLogCallback(new LoggerLogCallback(logger));
     
     serverContext.getServices().getTaskManager().executeBackground(new Task<Void, Void>() {
       @Override

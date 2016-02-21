@@ -75,11 +75,17 @@ public interface PartitionService {
     private List<Partition> partitions;
     private long            lastAccess;
     
-    public PartitionSet(String id, TimeValue timeout, int partitionSize, List<Partition> partitions) {
+    public PartitionSet(
+        SysClock clock,
+        String id, 
+        TimeValue timeout, 
+        int partitionSize, 
+        List<Partition> partitions) {
       this.id            = id;
       this.timeout       = timeout;
       this.partitionSize = partitionSize;
       this.partitions    = partitions;
+      this.lastAccess    = clock.currentTimeMillis();
     }
     
     /**

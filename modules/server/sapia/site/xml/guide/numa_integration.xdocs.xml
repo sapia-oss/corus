@@ -39,6 +39,10 @@
           <li>possibility of restricting process execution to a NUMA node subset.</li>
         </ul>
       </p>
+      <sapia:note>
+      Note that NUMA integration is disabled for Docker-based processes: that is because in this case Corus delegates execution of processes 
+      to the Docker daemon under its control (it does not invoke the command-line starting up these processes).
+      </sapia:note>
       <p>
       	<b>Contents:</b>
       </p>
@@ -103,7 +107,6 @@
         <sapia:note>Note that any subset defined this way consist of a consecutive list of node ids</sapia:note>
       </sapia:sect3>
     </sapia:sect2>
-    
 
     <sapia:sect2 title="Viewing Node Assignment">
       <p>
@@ -115,12 +118,11 @@
       </p>
     </sapia:sect2>
     
-    
     <sapia:sect2 title="Configuration">
    		<p>
    			As partially explained previously, the behavior of the NUMA integration in Corus is determined by configuration properties 
-            in the <tt>corus.properties</tt> file (found under <tt>$CORUS_HOME/config</tt>). The following table lists these properties 
-            and provides a description for each:
+        in the <tt>corus.properties</tt> file (found under <tt>$CORUS_HOME/config</tt>). The following table lists these properties 
+        and provides a description for each:
    		</p>
       
       <sapia:table>
@@ -187,6 +189,30 @@
       	</tr>   
       </sapia:table>
     </sapia:sect2>    
+    
+    <sapia:sect2 title="Disabling NUMA support for Specific Processes">
+      <p>
+        It is possible to disable NUMA support, in the Corus descriptor, for specific processes. Just set the <tt>numaEnabled</tt> attribute to false,
+        either for the &lt;java&gt; or &lt;magnet&gt; element, as illustrated below:
+      </p>
+      
+      <sapia:code><![CDATA[<distribution
+  xmlns="http://www.sapia-oss.org/xsd/corus/distribution-5.0.xsd" 
+  name="grid" 
+  version="1.0">
+  <process name="compute-server">
+    <port name="test" />
+    <java mainClass="org.sapia.corus.examples.GridServer" 
+            profile="test"
+            javaCmd="java"
+            numaEnabled="false">
+    <java mainClass="org.sapia.corus.examples.GridServer" 
+            profile="prod"
+            javaCmd="java">
+  </process>  
+</distribution>]]></sapia:code>
+    </sapia:sect2>    
+
          
   </sapia:sect1>
 </sapia:page>

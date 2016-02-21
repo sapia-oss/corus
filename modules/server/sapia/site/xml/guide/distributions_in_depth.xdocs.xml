@@ -310,7 +310,7 @@
             <td><tt>interopEnabled</tt></td>
             <td>Attribute</td>
             <td>No (defaults to <tt>false</tt>)</td>
-            <td>A boolean flag Indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
+            <td>A boolean flag indicating if Corus should check for process polling or not (based on the Corus interop mechanism). Note that Corus
             also the <a href="../rest/diagnostic.html">diagnostic</a> functionality to internally check process health.</td>
           </tr> 
           <tr>
@@ -320,6 +320,12 @@
             <td>Indicates which interop wire format to use has part of communication between <a href="java_processes.html#java-interop">Corus and JVM-based processes 
                 (values can be either <tt>protobuf</tt> or <tt>interop</tt>. Defaults to <tt>protobuf</tt>)</a>.</td>
           </tr>
+          <tr>
+            <td><tt>numaEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>true</tt>)</td>
+            <td>A boolean flag indicating if <a href="numa_integration.html">NUMA</a> support should be enabled for the JVM process.</td>
+          </tr> 
           <tr>
             <td><tt><a href="#dependency_element">dependency</a></tt></td>
             <td>Element</td>
@@ -403,6 +409,12 @@
             <td>Indicates which interop wire format to use has part of communication between <a href="java_processes.html#java-interop">Corus and JVM-based processes 
                 (values can be either <tt>protobuf</tt> or <tt>interop</tt>. Defaults to <tt>protobuf</tt>)</a>.</td>
           </tr>
+          <tr>
+            <td><tt>numaEnabled</tt></td>
+            <td>Attribute</td>
+            <td>No (defaults to <tt>true</tt>)</td>
+            <td>A boolean flag indicating if <a href="numa_integration.html">NUMA</a> support should be enabled for the JVM process.</td>
+          </tr> 
           <tr>
             <td><tt><a href="#dependency_element">dependency</a></tt></td>
             <td>Element</td>
