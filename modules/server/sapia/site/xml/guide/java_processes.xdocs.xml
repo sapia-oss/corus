@@ -194,7 +194,7 @@ import org.sapia.corus.interop.api.message.StatusMessageCommand.Builder;
     
     // or you can also get them as Param objects:
     for(ParamMessagePart p : event.getParams()) {
-      if (event.getType().equals(ConfigurationEvent.TYPE_UPDATE)) {
+      if (event.getType().equals(ConfigurationEventMessageCommand.TYPE_UPDATE)) {
         log.debug("Property {} was added/modified", p.getName());
       } else {
         log.debug("Property {} was deleted", p.getName());

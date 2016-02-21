@@ -51,14 +51,38 @@
 ubik.rmi.naming.broadcast.avis.url=elvin://<host>:<port>]]></sapia:code>
 				
 				<p>
-					As indicated, in the last property, you must provide the host and port of the Avis router to which to connect. Please consult the Avis documentation for more details about setting up Avis and the URL format it mandates.
+					As indicated, in the last property, you must provide the host and port of the Avis router to which to connect.
 				</p>
 				<sapia:note>Please consult the Avis documentation for more details about setting up Avis and the URL format it mandates.</sapia:note>
 				
 			</sapia:sect3>
 			
 			<sapia:sect3 title="RabbitMQ">
-				<p>TBD</p>
+				<p>
+				  As an alternative to Avis, you may use RabbitMQ for intra-cluster discovery. In order to enable connection to RabbitMQ, edit Corus' configuration, and uncomment the following entries,
+				  replacing the placeholders for the RabbitMQ <b>host</b> and <b>port</b>. Also edit the file to set the proper <b>username</b> and <b>password</b> to use when connecting to RabbitMQ:
+				</p>
+				<sapia:code><![CDATA[ubik.rmi.naming.broadcast.camel.endpoint.uri=rabbitmq://<host>:<port>/corus_cluster_channel
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.username=<username>
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.password=<password>]]></sapia:code>
+
+        <p>
+          In addition, you will see that the file holds a not mentioning to uncomment the following properties (but to NOT modify them):
+        </p>
+        <sapia:code>ubik.rmi.naming.broadcast.provider=camel
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.exchangeType=topic
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoDelete=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.durable=false
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.routingKey=corus.cluster.${corus.server.domain}
+ubik.rmi.naming.broadcast.camel.rabbitmq.option.autoAck=true
+ubik.rmi.naming.broadcast.camel.rabbitmq.header.rabbitmq.ROUTING_KEY=corus.cluster.${corus.server.domain}</sapia:code>
+
+        <p>As can be inferred from the configuration, <a href="http://camel.apache.org/rabbitmq.html">Apache Camel</a> is used behind the scenes to enable integration with RabbitMQm and each
+        <tt>ubik.rmi.naming.broadcast.camel.rabbitmq.option</tt> entry found in Corus' configuration corresponds to a configuration option supported by Camel's RabbitMQ component 
+        (see that component's documentation for the details).</p>
+        
+        <sapia:note>You should not have to bother with Came's configuration intricacies: the above instructions should be enough to get you going.</sapia:note>
+
 			</sapia:sect3>
 		</sapia:sect2>
 		<sapia:sect2 title="External Corus Discovery">
