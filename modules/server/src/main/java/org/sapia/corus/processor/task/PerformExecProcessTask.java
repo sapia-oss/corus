@@ -112,7 +112,7 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
           process.setNumaNode(numaNodeId);
           ctx.info(String.format("Binding process to numa node %s with policy setting: cpuBind=%s memoryBind=%s",
               String.valueOf(numaNodeId), String.valueOf(numaModule.isBindingCpu()), String.valueOf(numaModule.isBindingMemory())));
-  
+
           NumaProcessOptions.appendProcessOptions(
               numaNodeId,
               numaModule.isBindingCpu(),
@@ -262,6 +262,20 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     props.add(new Property("corus.process.profile", proc.getDistributionInfo().getProfile()));
     props.add(new Property("user.dir", dist.getCommonDir()));
 
+    // ------------------------------------------------------------------------
+    // Adding port values
+
+    List<Port> ports = conf.getPorts();
+    Set<String> added = new HashSet<String>();
+    for (int i = 0; i < ports.size(); i++) {
+      Port p = ports.get(i);
+      if (!added.contains(p.getName())) {
+        int portInt = portmgr.aquirePort(p.getName());
+        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(portInt)));
+        proc.addActivePort(new ActivePort(p.getName(), portInt));
+        added.add(p.getName());
+      }
+    }
 
     // ------------------------------------------------------------------------
     // Performing variable interpolation for process properties passed in
@@ -310,21 +324,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
           ctx.info("Passing process property: " + name + "=" + value);
           props.add(new Property(name, value));
         }
-      }
-    }
-
-    // ------------------------------------------------------------------------
-    // Adding port values
-
-    List<Port> ports = conf.getPorts();
-    Set<String> added = new HashSet<String>();
-    for (int i = 0; i < ports.size(); i++) {
-      Port p = ports.get(i);
-      if (!added.contains(p.getName())) {
-        int portInt = portmgr.aquirePort(p.getName());
-        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(portInt)));
-        proc.addActivePort(new ActivePort(p.getName(), portInt));
-        added.add(p.getName());
       }
     }
 
