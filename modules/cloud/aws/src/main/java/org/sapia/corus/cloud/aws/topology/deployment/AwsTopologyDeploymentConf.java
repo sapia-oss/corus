@@ -9,8 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.sapia.corus.cloud.platform.rest.CorusCredentials;
 import org.sapia.corus.cloud.platform.settings.ReflectionSettings;
 import org.sapia.corus.cloud.platform.settings.Settings;
+import org.sapia.corus.cloud.platform.util.Input;
 import org.sapia.corus.cloud.platform.util.RetryCriteria;
 import org.sapia.corus.cloud.platform.util.TimeMeasure;
 import org.sapia.corus.cloud.topology.Topology;
@@ -30,8 +32,16 @@ public class AwsTopologyDeploymentConf {
   public static final int DEFAULT_INSTANCES_RUN_CHECK_MAX_WAIT = 20;
 
   public static final int DEFAULT_CLOUDFORMATION_CREATION_MAX_WAIT = 20;
+  
+  public static final int DEFAULT_CORUS_INSTANCE_RUNNING_MAX_WAIT = 20;
+  
+  public static final int DEFAULT_POLLING_INTERVAL_SECONDS = 5;
 
-  public static final int POLLING_INTERVAL_SECONDS = 2;
+  public static final int DEFAULT_HTTP_CLIENT_TIMEOUT_SECONDS = 5;
+  
+  public static final int DEFAULT_CORUS_MAX_CONNECT_RETRY = 6;
+  
+  public static final int DEFAULT_CORUS_PORT = 33000;
   
   private Topology             topology;
   private String               topologyVersionOverride;
@@ -42,14 +52,33 @@ public class AwsTopologyDeploymentConf {
   private List<File>           sourceTemplateDirs      = new ArrayList<File>();
   private List<TemplateLoader> sourceTemplateLoaders   = new ArrayList<TemplateLoader>();
   private boolean              isCreateStack           = true;
+  private TimeMeasure          httpClientTimeout       = TimeMeasure.forSeconds(DEFAULT_HTTP_CLIENT_TIMEOUT_SECONDS);
+  private TimeMeasure          pollingInterval         = TimeMeasure.forSeconds(DEFAULT_POLLING_INTERVAL_SECONDS);
+  
+  private int                  corusRestMaxErrors;
+  
+  private int                  corusRestMinHosts;
+  
+  private int                  corusRestBatchSize;
+  
+  private CorusCredentials     corusCredentials;
+  
+  private int                  corusPort               = DEFAULT_CORUS_PORT;
+  private int                  corusMaxConnectRetry    = DEFAULT_CORUS_MAX_CONNECT_RETRY;
  
-  private RetryCriteria  cloudFormationCreationCheckRetry  = RetryCriteria.forMaxDuration(
-      TimeMeasure.forSeconds(POLLING_INTERVAL_SECONDS), TimeMeasure.forMinutes(DEFAULT_CLOUDFORMATION_CREATION_MAX_WAIT)
+  private RetryCriteria cloudFormationCreationCheckRetry  = RetryCriteria.forMaxDuration(
+      TimeMeasure.forSeconds(DEFAULT_POLLING_INTERVAL_SECONDS), TimeMeasure.forMinutes(DEFAULT_CLOUDFORMATION_CREATION_MAX_WAIT)
   );
   
-  private RetryCriteria    instancesRunningCheckRetry  = RetryCriteria.forMaxDuration(
-      TimeMeasure.forSeconds(POLLING_INTERVAL_SECONDS), TimeMeasure.forMinutes(DEFAULT_INSTANCES_RUN_CHECK_MAX_WAIT)
+  private RetryCriteria instancesRunningCheckRetry  = RetryCriteria.forMaxDuration(
+      TimeMeasure.forSeconds(DEFAULT_POLLING_INTERVAL_SECONDS), TimeMeasure.forMinutes(DEFAULT_INSTANCES_RUN_CHECK_MAX_WAIT)
   );
+  
+  private RetryCriteria corusInstanceCheckRetry  = RetryCriteria.forMaxDuration(
+      TimeMeasure.forSeconds(DEFAULT_POLLING_INTERVAL_SECONDS), TimeMeasure.forMinutes(DEFAULT_CORUS_INSTANCE_RUNNING_MAX_WAIT)
+  );
+  
+  private List<Input>  distributions = new ArrayList<>();
   
   public Settings asSettings() {
     validate();
@@ -60,6 +89,7 @@ public class AwsTopologyDeploymentConf {
     Preconditions.checkState(topology != null, "Topology not set");
     Preconditions.checkState(environment != null, "Environment not set");
     Preconditions.checkState(cloudFormationOutputDir != null, "Cloud formation output directory not set");
+    Preconditions.checkState(corusCredentials != null, "Corus credentials not set");
     
     if (cloudFormationFileName == null) {
       cloudFormationFileName =  String.format("%s-%s-%s-%s-%s.json", 
@@ -67,6 +97,96 @@ public class AwsTopologyDeploymentConf {
           new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date())
       );
     }
+  }
+  
+  public AwsTopologyDeploymentConf withCorusPort(int port) {
+    this.corusPort = port;
+    return this;
+  }
+  
+  public int getCorusPort() {
+    return corusPort;
+  }
+  
+  public AwsTopologyDeploymentConf withCorusMaxConnectRetry(int maxRetry) {
+    this.corusMaxConnectRetry = maxRetry;
+    return this;
+  }
+  
+  public int getCorusMaxConnectRetry() {
+    return corusMaxConnectRetry;
+  }
+  
+  public AwsTopologyDeploymentConf withCorusRestMaxErrors(int maxErrors) {
+    this.corusRestMaxErrors = maxErrors;
+    return this;
+  }
+  
+  public int getCorusRestMaxErrors() {
+    return corusRestMaxErrors;
+  }
+
+  public AwsTopologyDeploymentConf withCorusRestMinHosts(int minHosts) {
+    this.corusRestMinHosts = minHosts;
+    return this;
+  }
+  
+  public int getCorusRestMinHosts() {
+    return corusRestMinHosts;
+  }
+  
+  public AwsTopologyDeploymentConf withCorusRestBatchSize(int batchSize) {
+    this.corusRestBatchSize = batchSize;
+    return this;
+  }
+  
+  public int getCorusRestBatchSize() {
+    return corusRestBatchSize;
+  }
+  
+  public AwsTopologyDeploymentConf withCorusCredentials(CorusCredentials credentials) {
+    this.corusCredentials = credentials;
+    return this;
+  }
+  
+  public CorusCredentials getCorusCredentials() {
+    return corusCredentials;
+  }
+  
+  public AwsTopologyDeploymentConf withDistributions(List<Input> dists) {
+    this.distributions = dists;
+    return this;
+  }
+  
+  public List<Input> getDistributions() {
+    return distributions;
+  }
+  
+  public AwsTopologyDeploymentConf withInstancesRunningCheckRetry(RetryCriteria criteria) {
+    instancesRunningCheckRetry = criteria;
+    return this;
+  }
+  
+  public RetryCriteria getInstancesRunningCheckRetry() {
+    return instancesRunningCheckRetry;
+  }
+  
+  public AwsTopologyDeploymentConf withCorusInstanceCheckRetry(RetryCriteria criteria) {
+    corusInstanceCheckRetry = criteria;
+    return this;
+  }
+  
+  public RetryCriteria getCorusInstanceCheckRetry() {
+    return corusInstanceCheckRetry;
+  }
+  
+  public AwsTopologyDeploymentConf withHttpClientTimeout(TimeMeasure timeout) {
+    httpClientTimeout = timeout;
+    return this;
+  }
+  
+  public TimeMeasure getHttpClientTimeout() {
+    return httpClientTimeout;
   }
   
   public AwsTopologyDeploymentConf withTopology(Topology topology) {
@@ -155,5 +275,9 @@ public class AwsTopologyDeploymentConf {
   
   public RetryCriteria getCloudFormationCreationCheckRetry() {
     return cloudFormationCreationCheckRetry;
+  }
+  
+  public TimeMeasure getPollingInterval() {
+    return pollingInterval;
   }
 }

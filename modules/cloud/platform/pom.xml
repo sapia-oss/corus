@@ -1,56 +1,62 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<name>Sapia Corus Platform Lib</name>
-	<description>Specifies various cloud-related abstractions, to be implemented by different providers</description>
-	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
-	<artifactId>sapia_corus_cloud_platform</artifactId>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Sapia Corus Platform Lib</name>
+  <description>Specifies various cloud-related abstractions, to be implemented by different providers</description>
+  <url>http://www.sapia-oss.org/projects/corus/index.html</url>
+  <artifactId>sapia_corus_cloud_platform</artifactId>
 
-	<parent>
-		<groupId>org.sapia</groupId>
-		<artifactId>sapia_corus_cloud_parent</artifactId>
-		<version>develop-SNAPSHOT</version>
-		<relativePath>..</relativePath>
-	</parent>
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_cloud_parent</artifactId>
+    <version>develop-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
 
-	<licenses>
-		<license>
-			<name>Apache 2</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
-	</licenses>
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
 
-	<packaging>jar</packaging>
+  <packaging>jar</packaging>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.sapia</groupId>
-			<artifactId>sapia_console</artifactId>
-		</dependency>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_corus_cloud_topo</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sapia</groupId>
+      <artifactId>sapia_console</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
     </dependency>
-    
+
     <dependency>
       <groupId>net.sf.json-lib</groupId>
       <artifactId>json-lib</artifactId>
       <classifier>jdk15</classifier>
-    </dependency>    
-    
+    </dependency>
+
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.0.1</version>
     </dependency>
-    
+
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>18.0</version>
-    </dependency>		
-	</dependencies>
+    </dependency>
+  </dependencies>
 
 </project>

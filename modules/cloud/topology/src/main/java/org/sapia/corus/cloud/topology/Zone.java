@@ -14,6 +14,8 @@ public class Zone implements XmlStreamable, Validateable {
   private String name;
   
   private Set<Subnet> subnets = new HashSet<>();
+ 
+  private Region region;
   
   public Zone() {
   }
@@ -29,7 +31,7 @@ public class Zone implements XmlStreamable, Validateable {
   public void setName(String zoneName) {
     this.name = zoneName.trim();
   }
-
+  
   public void addSubnet(Subnet subnet) {
     subnets.add(subnet);
   }
@@ -40,6 +42,14 @@ public class Zone implements XmlStreamable, Validateable {
   
   public Set<Subnet> getSubnets() {
     return subnets;
+  }
+  
+  void setRegion(Region region) {
+    this.region = region;
+  }
+  
+  public Region getRegion() {
+    return region;
   }
   
   public static Zone of(String name) {

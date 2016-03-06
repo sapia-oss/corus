@@ -1,4 +1,4 @@
-package org.sapia.corus.cloud.platform.corus.rest;
+package org.sapia.corus.cloud.platform.rest;
 
 import java.io.IOException;
 import java.io.InputStream;

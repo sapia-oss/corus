@@ -14,7 +14,8 @@ public class MachineTemplate extends ParamContainer {
   public static final String REPO_ROLE_CLIENT = "client";
   public static final String REPO_ROLE_SERVER = "server";
   
-  private boolean publicIpEnabled = true;
+  private boolean publicIpEnabled;
+  private boolean isSeedNode;
   private String name, imageId, instanceType;
   
   private String repoRole = REPO_ROLE_CLIENT;
@@ -163,6 +164,14 @@ public class MachineTemplate extends ParamContainer {
   public UserData getUserData() {
     return userdata;
   }
+
+  public boolean isSeedNode() {
+    return isSeedNode;
+  }
+  
+  public void setSeedNode(boolean isSeedNode) {
+    this.isSeedNode = isSeedNode;
+  }
   
   public void copyFrom(MachineTemplate other) {
     this.processProperties.copyFrom(other.processProperties);
@@ -183,6 +192,9 @@ public class MachineTemplate extends ParamContainer {
     }
     if (instanceType == null) {
       this.instanceType = other.instanceType;
+    }
+    if (!this.isSeedNode) {
+      this.isSeedNode = other.isSeedNode;
     }
     addParams(other.getParams());
   }

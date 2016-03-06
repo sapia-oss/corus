@@ -11,6 +11,7 @@ import java.util.Set;
  */
 public abstract class ParamContainer {
 
+  private ParamContainer parent;
   private Set<Param> params = new HashSet<Param>();
   
   /**
@@ -28,10 +29,27 @@ public abstract class ParamContainer {
   }
   
   /**
+   * Returns the parameters of this instance, plus the ones of its ancestors. Identical parameters are overridden
+   * by this instance, and the nearest ancestor, up to the top of the hierarchy.
+   * 
+   * @return the {@link Set} of all of this instance's {@link Param}s, plus the ones
+   * of its ancestors (if any).
+   */
+  public Set<Param> getAllParams() {
+    if (parent != null) {
+      Set<Param> toAppendTo = new HashSet<>();
+      appendTo(toAppendTo);
+      return toAppendTo;
+    } else {
+      return params;
+    }
+  }
+  
+  /**
    * @param others a {@link Set} of other {@link Param}s to add to this instance.
    */
   public void addParams(Set<Param> others) {
-    params.addAll(params);
+    params.addAll(others);
   }
   
   /**
@@ -44,6 +62,9 @@ public abstract class ParamContainer {
       if (p.getName().equals(paramName)) {
         return p;
       }
+    }
+    if (parent != null) {
+      return parent.getParam(paramName);
     }
     throw new IllegalArgumentException("No parameter found for: " + paramName);
   }
@@ -59,6 +80,9 @@ public abstract class ParamContainer {
         return p;
       }
     }
+    if (parent != null) {
+      return parent.getParam(paramName, defaultVal);
+    }
     return Param.of(paramName, defaultVal);
   }
   
@@ -72,6 +96,22 @@ public abstract class ParamContainer {
         return true;
       }
     }
+    if (parent != null) {
+      return parent.existsParam(paramName);
+    }
     return false;
+  }
+  
+  // --------------------------------------------------------------------------
+
+  protected void setParent(ParamContainer parent) {
+    this.parent = parent;
+  }
+  
+  protected void appendTo(Set<Param> toAppendTo) {
+    toAppendTo.addAll(params);
+    if (parent != null) {
+      parent.appendTo(toAppendTo);
+    }
   }
 }

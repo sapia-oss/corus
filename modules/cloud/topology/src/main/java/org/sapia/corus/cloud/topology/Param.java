@@ -60,6 +60,15 @@ public class Param implements XmlStreamable, Validateable {
   
   // --------------------------------------------------------------------------
   // Object overrides
+
+  @Override
+  public String toString() {
+    return new StringBuilder()
+        .append("[")
+        .append(name).append("=").append(value)
+        .append("]")
+        .toString();
+  }
   
   @Override
   public int hashCode() {

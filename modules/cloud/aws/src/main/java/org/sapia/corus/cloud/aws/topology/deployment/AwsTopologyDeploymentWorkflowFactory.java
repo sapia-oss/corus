@@ -22,6 +22,9 @@ public class AwsTopologyDeploymentWorkflowFactory {
     steps.add(new GenerateCloudFormationFile());
     steps.add(new CreateStack());
     steps.add(new WaitForStackCreationCompleted());
+    steps.add(new WaitForInstancesStarted());
+    steps.add(new PerformCorusTopologyHealthCheck());
+    steps.add(new DeployDistributions());
     return new WorkflowImpl<AwsTopologyDeploymentContext>(log, steps);
   }
 

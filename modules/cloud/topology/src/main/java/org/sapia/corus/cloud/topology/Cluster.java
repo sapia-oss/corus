@@ -1,6 +1,5 @@
 package org.sapia.corus.cloud.topology;
 
-
 /**
  * Corresponds to the <code>cluster</code> element.
  * 
@@ -11,8 +10,19 @@ public class Cluster extends ClusterTemplate implements TopologyElement, XmlStre
   
   private String templateRef;
   
+  private Env env;
+  
   public void setTemplateRef(String templateRef) {
     this.templateRef = templateRef;
+  }
+  
+  void setEnv(Env env) {
+    setParent(env);
+    this.env = env;
+  }
+  
+  public Env getEnv() {
+    return env;
   }
   
   public String getTemplateRef() {
@@ -26,7 +36,25 @@ public class Cluster extends ClusterTemplate implements TopologyElement, XmlStre
       copyFrom(template);
       addParams(template.getParams());
     }
+    for (Machine m : getMachines()) {
+      m.render(context);
+    }
   }
+  
+  @Override
+  public void addMachine(Machine m) {
+    m.setCluster(this);
+    super.addMachine(m);
+  }
+  
+  @Override
+  public void copyFrom(ClusterTemplate other) {
+    super.copyFrom(other);
+    for (Machine m : getMachines()) {
+      m.setCluster(this);
+    }
+  }
+ 
   
   // --------------------------------------------------------------------------
   // Validateable

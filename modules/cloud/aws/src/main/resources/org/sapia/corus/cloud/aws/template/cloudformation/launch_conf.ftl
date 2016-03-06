@@ -1,5 +1,5 @@
 <#include "../common/aws.ftl">
-<#macro launch_conf topology environment region zone domainName globalTags machine suffix>
+<#macro launch_conf topology environment region zone cluster domainName globalTags machine suffix>
 "Launch${suffix}": {
   "Type":"AWS::AutoScaling::LaunchConfiguration",
   "Properties": {
@@ -21,17 +21,28 @@
     "UserData" : { 
       "Fn::Base64" :  {
           "Fn::Join" : ["", [
-          <@generate_user_data_file topology machine domainName></@generate_user_data_file>
+          <@generate_user_data_file topology domainName machine suffix></@generate_user_data_file>
           ]]              
       }
     },
-    <@assignTags 
-      topology=topology 
-      environment=environment 
-      region=region 
-      zone=zone 
-      domainName=domainName 
-      globalTags=globalTags/>
+    <#if (machine.seedNode)>
+   		<@assignTags 
+	      topology=topology 
+	      environment=environment 
+	      region=region 
+	      zone=zone 
+	      domainName=domainName 
+	      globalTags=globalTags
+	      specificTags={"seedNode" : "true"} />
+    <#else>
+	    <@assignTags 
+	      topology=topology 
+	      environment=environment 
+	      region=region 
+	      zone=zone 
+	      domainName=domainName 
+	      globalTags=globalTags />
+	</#if>
   }
 }
 </#macro>

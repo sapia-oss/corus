@@ -57,6 +57,11 @@ public class ServerTag implements XmlStreamable, Validateable {
   // Object overrides
   
   @Override
+  public String toString() {
+    return value == null ? "null" : value;
+  }
+  
+  @Override
   public boolean equals(Object obj) {
     if (obj instanceof ServerTag) {
       ServerTag other = (ServerTag) obj;

@@ -19,10 +19,10 @@
         <#assign clusterIndex = 0>
         <#list environment.clusters as cluster>
           <#if (clusterIndex > 0)>,</#if>
-          <#assign domainName = environment.name + "-" + zone.name + "-" + clusterIndex>
+          <#assign domainName = environment.name + "-" + zone.name + "-" + cluster.name + "-" + clusterIndex>
           <#assign machineIndex = 0>
-          <#list cluster.machines as machine>
-            <#assign machineSuffix = regionIndex + "" + zoneIndex + "" + clusterIndex + "" + machineIndex>
+          <#list cluster.sortedMachines as machine>
+            <#assign machineSuffix = regionIndex + "" + zoneIndex + "" + cluster.alphaNumericName + "" + clusterIndex + "" + machineIndex>
             <#if (machineIndex > 0)>,</#if>
             <@scale_up suffix="${machine.alphaNumericName}${machineSuffix}"/>,
             <@scale_down suffix="${machine.alphaNumericName}${machineSuffix}"/>,
@@ -41,6 +41,7 @@
               environment=environment 
               region=region 
               zone=zone 
+              cluster=cluster
               domainName=domainName 
               globalTags=globalTags 
               machine=machine 

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.logging.LogManager;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log.Hierarchy;
@@ -51,8 +52,10 @@ import org.sapia.corus.util.CorusTimestampOutputStream;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.EventChannel;
+import org.sapia.ubik.mcast.GroupMembershipBootstrap;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.Consts;
 import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Conf;
 
@@ -90,6 +93,9 @@ public class CorusServer {
     
     try {
 
+      LogManager.getLogManager().reset();
+      java.util.logging.Logger globalLogger = java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
+      globalLogger.setLevel(java.util.logging.Level.OFF);
       org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
       
       if (System.getProperty("corus.home") == null) {
@@ -398,9 +404,33 @@ public class CorusServer {
       IOUtil.createLockFile(lockFile);
 
       // Initialize Corus, export it and start it
-      EventChannel channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
-      channel.start();
-
+      final EventChannel channel;
+      // optionally instantiated
+      final GroupMembershipBootstrap bootstrap;
+      Conf ubikConf = Conf.newInstance().addProperties(corusProps).addSystemProperties();
+      
+      // checking if group membership provider is set.
+      if (ubikConf.getProperty(Consts.GROUP_MEMBERSHIP_PROVIDER, "NONE").equals("NONE")) {
+        serverLog.warn("Using group membership for establishing cluster");
+        channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
+        channel.start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+          public void run() {
+            channel.close();
+          };
+        });
+      } else {
+        bootstrap = new GroupMembershipBootstrap(domain, ubikConf);
+        bootstrap.start();
+        channel = bootstrap.getEventChannel();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+          @Override
+          public void run() {
+            bootstrap.close();
+          }
+        });
+      }
+    
       TCPAddress corusAddr = (TCPAddress) transport.getServerAddress();
       corusProps.setProperty("corus.server.host", corusAddr.getHost());
       corusProps.setProperty("corus.server.port", "" + corusAddr.getPort());

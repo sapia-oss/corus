@@ -5,9 +5,10 @@ import static org.sapia.corus.cloud.aws.topology.deployment.AwsTopologyDeploymen
 import static org.sapia.corus.cloud.aws.topology.deployment.AwsTopologyDeploymentConsts.TOPOLOGY_VERSION_TAG_NAME;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
-import org.apache.commons.codec.Charsets;
+import org.apache.commons.io.IOUtils;
 import org.sapia.corus.cloud.platform.settings.Setting;
 import org.sapia.corus.cloud.platform.workflow.WorkflowStep;
 import org.sapia.corus.cloud.topology.Topology;
@@ -16,7 +17,6 @@ import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.OnFailure;
 import com.amazonaws.services.cloudformation.model.Tag;
-import com.google.common.io.Files;
 
 /**
  * Implements stack creation, based on a given topology.
@@ -69,7 +69,9 @@ public class CreateStack implements WorkflowStep<AwsTopologyDeploymentContext> {
   }
   
   protected String readCloudFormationFor(AwsTopologyDeploymentContext context) throws IOException {
-    return Files.toString(context.getGeneratedCloudFormationFile(), Charsets.UTF_8);
+    try (InputStream is = context.getGeneratedCloudFormationFile().getInputStream()) {
+      return IOUtils.toString(is);
+    }
   }
   
   private Tag createTag(String key, String value) {

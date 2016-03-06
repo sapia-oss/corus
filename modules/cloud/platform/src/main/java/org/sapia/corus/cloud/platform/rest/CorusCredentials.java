@@ -1,15 +1,19 @@
-package org.sapia.corus.cloud.platform.corus.rest;
+package org.sapia.corus.cloud.platform.rest;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
- * Models credentials - to use with the {@link CorusRestClient}.
+ * Models credentials - to use with the {@link DefaultCorusRestClient}.
  * 
  * @author yduchesne
  *
  */
 public class CorusCredentials {
+  
+  public static String HEADER_APP_ID  = "X-corus-app-id";
+  public static String HEADER_APP_KEY = "X-corus-app-key";
+
   
   private String appId, appKey;
   

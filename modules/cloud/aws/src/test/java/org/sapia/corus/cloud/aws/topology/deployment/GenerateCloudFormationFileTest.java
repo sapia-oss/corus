@@ -5,6 +5,7 @@ import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.sapia.corus.cloud.platform.rest.CorusCredentials;
 import org.sapia.corus.cloud.topology.Topology;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
@@ -30,6 +31,7 @@ public class GenerateCloudFormationFileTest {
     topology = Topology.newInstance(new File("etc/basic_topology.xml"));
         
     conf = new AwsTopologyDeploymentConf();
+    conf.withCorusCredentials(new CorusCredentials("test-app-id", "test-app-key"));
     conf.withTopology(topology);
     conf.withCloudFormationFileName("test-cloud-formation.json");
     conf.withCloudFormationOutputDir(new File("target"));

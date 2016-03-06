@@ -1,4 +1,4 @@
-<#macro assignTags topology environment region zone domainName globalTags>
+<#macro assignTags topology environment region zone domainName globalTags specificTags={}>
 "Tags": [
   {
     "Key": "corus.environment",
@@ -35,6 +35,32 @@
     "Value": "${zone.name}",
     "PropagateAtLaunch" : true
   }  
+  <#if (globalTags?size > 0)>
+  	<#assign keys = globalTags?keys>
+ 	<#list keys as k>
+ 	  <#if (k != "corus.topology.version")>
+ 	  	,
+ 		{
+		  "Key": "${k}",
+		  "Value": "${globalTags[k]}",
+		  "PropagateAtLaunch" : true
+ 		}
+ 	  </#if>
+ 	</#list>
+  </#if>
+  <#if (specificTags?size > 0)>
+  	<#assign keys = specificTags?keys>
+ 	<#list keys as k>
+ 	  <#if (k != "corus.topology.version")>
+ 	  	,
+ 		{
+		  "Key": "${k}",
+		  "Value": "${specificTags[k]}",
+		  "PropagateAtLaunch" : true
+ 		}
+ 	  </#if>
+ 	</#list>
+  </#if>
 ]
 
 </#macro>

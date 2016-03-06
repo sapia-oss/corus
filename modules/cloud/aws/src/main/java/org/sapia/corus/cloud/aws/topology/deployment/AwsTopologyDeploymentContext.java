@@ -1,8 +1,21 @@
 package org.sapia.corus.cloud.aws.topology.deployment;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import org.sapia.corus.cloud.platform.domain.CorusInstance;
+import org.sapia.corus.cloud.platform.domain.DeploymentJournal;
+import org.sapia.corus.cloud.platform.http.HttpClientFactory;
+import org.sapia.corus.cloud.platform.http.JdkHttpClientFactory;
+import org.sapia.corus.cloud.platform.rest.CorusRestClientFactory;
+import org.sapia.corus.cloud.platform.rest.DefaultCorusRestClientFactory;
 import org.sapia.corus.cloud.platform.settings.Settings;
+import org.sapia.corus.cloud.platform.util.Input;
 import org.sapia.corus.cloud.platform.workflow.WorkflowContext;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
@@ -17,10 +30,14 @@ import com.google.common.base.Preconditions;
  */
 public class AwsTopologyDeploymentContext extends WorkflowContext {
 
-  private AmazonCloudFormation cloudFormationClient;
-  private AmazonEC2            ec2Client;
-  private String               stackId;
-  private File                 generatedCloudFormationFile;
+  private AmazonCloudFormation   cloudFormationClient;
+  private AmazonEC2              ec2Client;
+  private String                 stackId;
+  private Input                  generatedCloudFormationFile;
+  private List<CorusInstance>    corusInstances = new ArrayList<>();
+  private DeploymentJournal      deploymentJournal = new DeploymentJournal();
+  private CorusRestClientFactory restClientFactory = new DefaultCorusRestClientFactory();
+  private HttpClientFactory      httpClientFactory = new JdkHttpClientFactory();
   
   public AwsTopologyDeploymentContext(Settings settings, 
       AmazonCloudFormation cloudFormationClient,
@@ -50,11 +67,68 @@ public class AwsTopologyDeploymentContext extends WorkflowContext {
     return ec2Client;
   }
   
-  public void assignGeneratedCloudFormationFile(File file) {
-    this.generatedCloudFormationFile = file;
+  /**
+   * @return this instance's {@link DeploymentJournal}.
+   */
+  public DeploymentJournal getDeploymentJournal() {
+    return deploymentJournal;
+  }  
+  
+  /**
+   * @param factory the {@link CorusRestClientFactory} to use.
+   * @return this instance.
+   */
+  public AwsTopologyDeploymentContext withRestClientFactory(CorusRestClientFactory factory) {
+    this.restClientFactory = factory;
+    return this;
   }
   
-  public File getGeneratedCloudFormationFile() {
+  /**
+   * @return the {@link CorusRestClientFactory} to use.
+   */
+  public CorusRestClientFactory getRestClientFactory() {
+    return restClientFactory;
+  }
+  
+  /**
+   * @param factory the {@link HttpClientFactory} to use.
+   * @return this instance.
+   */
+  public AwsTopologyDeploymentContext withHttpClientFactory(HttpClientFactory factory) {
+    this.httpClientFactory = factory;
+    return this;
+  }
+  
+  /**
+   * @return a new {@link HttpClientFactory}.
+   */
+  public HttpClientFactory getHttpClientFactory() {
+    return httpClientFactory;
+  }
+  
+  public void assignGeneratedCloudFormationFile(final File file) {
+    this.generatedCloudFormationFile = new Input() {
+      @Override
+      public InputStream getInputStream() throws IOException {
+        return new FileInputStream(file);
+      }
+      
+      @Override
+      public String getInfo() {
+        try {
+          return file.getCanonicalPath();
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not obtain canonical path for file: " + file.getName(), e);
+        }
+      }
+    };
+  }
+  
+  public void assignGeneratedCloudFormationFile(Input input) {
+    this.generatedCloudFormationFile = input;
+  }
+  
+  public Input getGeneratedCloudFormationFile() {
     Preconditions.checkState(generatedCloudFormationFile != null, "Generated CloudFormation file not set");
     return generatedCloudFormationFile;
   }
@@ -68,4 +142,11 @@ public class AwsTopologyDeploymentContext extends WorkflowContext {
     return stackId;
   }
   
+  public void addCorusInstance(CorusInstance instance) {
+    corusInstances.add(instance);
+  }
+  
+  public List<CorusInstance> getCorusInstances() {
+    return Collections.unmodifiableList(corusInstances);
+  }
 }

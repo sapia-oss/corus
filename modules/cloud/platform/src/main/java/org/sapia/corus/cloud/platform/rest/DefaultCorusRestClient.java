@@ -1,4 +1,4 @@
-package org.sapia.corus.cloud.platform.corus.rest;
+package org.sapia.corus.cloud.platform.rest;
 
 import java.io.IOException;
 
@@ -9,6 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.glassfish.jersey.client.ClientConfig;
+import org.sapia.corus.cloud.platform.domain.CorusAddress;
 
 import com.google.common.base.Preconditions;
 
@@ -18,13 +19,9 @@ import com.google.common.base.Preconditions;
  * @author yduchesne
  * 
  */
-public class CorusRestClient {
+public class DefaultCorusRestClient implements CorusRestClient {
   
-  public static final String HEADER_APP_ID  = "X-corus-app-id";
-  public static final String HEADER_APP_KEY = "X-corus-app-key";
-  
-  private String           corusAddress;
-  private int              corusPort;
+  private CorusAddress     corusAddress;
   private CorusCredentials credentials;
   private Client           client;
   
@@ -33,22 +30,15 @@ public class CorusRestClient {
    * @param corusPort the port of the Corus host to connect to.
    * @param creds the {@link CorusCredentials} to use for authenticating.
    */
-  private CorusRestClient(String corusAddress, int corusPort, CorusCredentials creds) {
-    this.corusAddress = corusAddress;
-    this.corusPort    = corusPort;
+  public DefaultCorusRestClient(CorusAddress address, CorusCredentials creds) {
+    this.corusAddress = address;
     this.credentials  = creds;
     
     ClientConfig conf = new ClientConfig();
     client = ClientBuilder.newClient(conf);
   }
   
-  /**
-   * Invoke in order to execute a HTTP PUT.
-   *
-   * @param path a resource path.
-   * @return a new {@link WebTarget} instance.
-   * @throws IOException if an I/O error occurs.
-   */
+  @Override
   public WebTarget resource(String path) throws IOException {
     Preconditions.checkState(client != null, "Client not initialized");
     WebTarget target = client.target(UriBuilder.fromUri(url(path)));
@@ -60,15 +50,17 @@ public class CorusRestClient {
     return target;
   }
   
-  /**
-   * @param path a resource path.
-   * @return the URL string for the given path.
-   */
+  @Override
   public String url(String path) {
     Preconditions.checkState(client != null, "Client not initialized");
-    String url = "https://" + corusAddress + ":" + corusPort + "/rest" 
+    String url = corusAddress.asHttpsUrl() +  "/rest" 
         + (path.startsWith("/") ? path : "/" + path);
     return url;
+  }
+  
+  @Override
+  public void close() {
+    client.close();
   }
 
 }
