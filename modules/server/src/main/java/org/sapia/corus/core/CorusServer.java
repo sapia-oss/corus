@@ -559,8 +559,8 @@ public class CorusServer {
     System.out.println();
     System.out.println("  -u      specifies the user data URL to load Corus user data from.");
     System.out.println();
-    System.out.println("  -g      specifies the number of seconds to wait for, in the context");
-    System.out.println("          of group membership, when it is used for cluster discovery.");
+    System.out.println("  -g      specifies the number of seconds to wait for successful group");
+    System.out.println("          membership, when it is used for cluster discovery.");
     System.out.println();
     System.out.println("  -help   displays this help and exits immediately.");
     System.out.println();
