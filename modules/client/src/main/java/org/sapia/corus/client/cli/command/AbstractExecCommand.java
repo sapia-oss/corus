@@ -94,8 +94,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
   protected final void waitForProcessStartup(CliContext ctx, ProcessCriteria criteria, int instancesPerHost, int seconds, ClusterInfo cluster) {
     Delay delay = new Delay(seconds, TimeUnit.SECONDS);
 
-    // determining which hosts may have the running processes: they must have
-    // the
+    // determining which hosts may have the running processes: they must have the
     // distribution, and the tags corresponding to these processes
     Results<List<Distribution>> distResults = ctx.getCorus().getDeployerFacade().getDistributions(criteria.getDistributionCriteria(), cluster);
     Set<Distribution> dists = new HashSet<Distribution>();
@@ -103,6 +102,29 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Map<ServerAddress, Set<Tag>> hostsWithDist = new HashMap<ServerAddress, Set<Tag>>();
     while (distResults.hasNext()) {
       Result<List<Distribution>> distResult = distResults.next();
+      // >> HACK START: added to NPE that could not be reproduced
+      // retrying the operation on the problematic host directly
+      if (distResult.isError() || distResult.isNull()) {
+        ClusterInfo specificHost = ClusterInfo.clustered().addTarget(distResult.getOrigin().getEndpoint().getServerAddress());
+        Results<List<Distribution>> specificResults = ctx.getCorus().getDeployerFacade().getDistributions(criteria.getDistributionCriteria(), specificHost);
+        if (specificResults.hasNext()) {
+          distResult = specificResults.next();
+          if (distResult.isError() || distResult.isNull()) {
+            ctx.getConsole().println("Abnormal response received from host: " + distResult.getOrigin().getFormattedAddress());
+            ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+            if (distResult.isError()) {
+              ctx.getConsole().println("Host error details:");
+              ctx.getConsole().printStackTrace(distResult.getError());
+            }
+            continue;
+          }
+        } else {
+          ctx.getConsole().println("Abnormal response received from host: " + distResult.getOrigin().getFormattedAddress());
+          ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+          continue;
+        }
+      }
+      // << HACK END
       if (!distResult.getData().isEmpty()) {
         dists.addAll(distResult.getData());
       }
@@ -164,7 +186,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
         if (currentCount < totalExpectedInstances) {
           throw new IllegalStateException("Expected number of processes not started. Got: " + currentCount + ", expected: " + totalExpectedInstances);
         } else {
-          ctx.getConsole().println(String.format("Completed startup of %s process(es) on: %s", totalExpectedInstances, targets));
+          ctx.getConsole().println(String.format("Completed startup of %s process(es) on %s hosts", totalExpectedInstances, targets.size()));
         }
       }
     }

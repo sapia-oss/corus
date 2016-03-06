@@ -386,7 +386,8 @@ public class RestConnectionContext implements CorusConnectionContext {
         @SuppressWarnings("rawtypes")
         @Override
         public void run() {
-          Corus corus = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
+          Corus       corus      = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
+          Result.Type resultType = Result.Type.forClass(method.getReturnType());
           if (log.isDebugEnabled()) {
             log.debug("Invoking on host: " + addr);
           }
@@ -396,7 +397,8 @@ public class RestConnectionContext implements CorusConnectionContext {
               cachedStubs.put(addr.getEndpoint().getServerAddress(), corus);
             } catch (java.rmi.RemoteException e) {
               log.debug("Error invoking on host: " + addr, e);
-              results.decrementInvocationCount();
+              Result errorResult = new Result(addr, e, resultType);
+              results.addResult(errorResult);
               return;
             }
           }
@@ -409,10 +411,11 @@ public class RestConnectionContext implements CorusConnectionContext {
               CurrentAuditInfo.set(AuditInfo.forCurrentUser(), addr);
             }
             returnValue = method.invoke(module, params);
-            results.addResult(new Result(addr, returnValue, Result.Type.forClass(method.getReturnType())));
+            results.addResult(new Result(addr, returnValue, resultType));
           } catch (Exception err) {
             log.debug("Error invoking on host: " + addr, err);
-            results.decrementInvocationCount();
+            Result errorResult = new Result(addr, err, resultType);
+            results.addResult(errorResult);
           } finally {
             if (auditInfo.isSet()) {
               CurrentAuditInfo.unset();

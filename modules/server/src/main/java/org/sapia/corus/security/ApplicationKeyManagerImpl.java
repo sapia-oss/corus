@@ -82,6 +82,9 @@ public class ApplicationKeyManagerImpl extends ModuleHelper implements Applicati
     AppKeyConfig config = appKeys.get(appId);
     if (config == null) {
       throw new CorusSecurityException("Invalid application ID or application key", Type.INVALID_APP_ID_OR_KEY);
+    } 
+    if (!appKey.equals(config.getApplicationKey())) {
+      throw new CorusSecurityException("Invalid credentials", Type.INVALID_APP_ID_OR_KEY);
     }
     return new AppSubject(appId, config.getRole(), securityModule.getPermissionsFor(config.getRole()));
   }  

@@ -70,6 +70,11 @@ public class ResultsTest {
     assertEquals(vals.size(), count);
 
   }
+  
+  @Test(expected = IllegalArgumentException.class)
+  public void testAddingNullResult() {
+    results.addResult(null);
+  }
 
   @Test
   public void testFilter() {
