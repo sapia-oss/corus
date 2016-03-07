@@ -46,9 +46,11 @@ public class ClusterInfo implements Serializable {
   /**
    * @param target
    *          the {@link ServerAddress} of a target.
+   * @return this instance.
    */
-  public void addTarget(ServerAddress target) {
+  public ClusterInfo addTarget(ServerAddress target) {
     targets.add(target);
+    return this;
   }
 
   /**

@@ -11,6 +11,7 @@ import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.AnyPattern;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -59,6 +60,13 @@ public class Result<T> {
    *         the invocation returned nothing.
    */
   public T getData() {
+    if (isError()) {
+      Throwable err = getError();
+      err.fillInStackTrace();
+      throw new IllegalStateException("Error occurred while performing operation on host: " + origin.getEndpoint().getServerAddress(), err);
+    } else if (data == null) {
+      throw new IllegalStateException("Null resulted from operation on host: " + origin.getEndpoint().getServerAddress());
+    }
     return data;
   }
   
@@ -75,6 +83,28 @@ public class Result<T> {
    */
   public CorusHost getOrigin() {
     return origin;
+  }
+  
+  /**
+   * @return <code>true</code> if this instance holds a {@link Throwable} instance as data.
+   */
+  public boolean isError() {
+    return data instanceof Throwable;
+  }
+  
+  /**
+   * @return <code>true</code> if this instance's data is <code>null</code>.
+   */
+  public boolean isNull() {
+    return data == null;
+  }
+  
+  /**
+   * @return the error that resulted from the invocation corresponding to this instance.
+   */
+  public Throwable getError() {
+    Assertions.illegalState(!isError(), "Data not an instance of Throwable");
+    return (Throwable) data;
   }
   
   /**

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Func;
 
 /**
@@ -57,6 +58,7 @@ public class Results<T> implements Iterable<Result<T>> {
    *          a {@link Result}.
    */
   public synchronized void addResult(Result<T> result) {
+    Assertions.isFalse(result == null, "Cannot add null result");
     results.add(result);
     completedCount++;
     if (completedCount >= invocationCount) {

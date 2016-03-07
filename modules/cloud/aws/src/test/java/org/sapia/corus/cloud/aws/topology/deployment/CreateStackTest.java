@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.cloud.platform.rest.CorusCredentials;
 import org.sapia.corus.cloud.topology.Topology;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
@@ -34,7 +35,7 @@ public class CreateStackTest {
   @Before
   public void setUp() throws Exception {
     conf     = new AwsTopologyDeploymentConf();
-    
+    conf.withCorusCredentials(new CorusCredentials("test-app-id", "test-app-key"));
     topology = new Topology();
     topology.setApplication("app");
     topology.setOrg("org");

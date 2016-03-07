@@ -55,6 +55,11 @@ public class ApplicationKeyManagerImplTest {
   }
   
   @Test(expected = CorusSecurityException.class)
+  public void testAuthenticate_invalid_key() {
+    manager.authenticate("test-app", "1235");
+  }
+  
+  @Test(expected = CorusSecurityException.class)
   public void testAuthenticate_app_id_invalid() {
     manager.authenticate("test-app2", "1234");
   }

@@ -10,6 +10,8 @@ public class Machine extends MachineTemplate implements TopologyElement, XmlStre
   
   private String templateRef;
   
+  private Cluster cluster;
+  
   public void setTemplateRef(String templateRef) {
     this.templateRef = templateRef;
   }
@@ -24,6 +26,15 @@ public class Machine extends MachineTemplate implements TopologyElement, XmlStre
       MachineTemplate template = context.resolveMachineTemplate(templateRef);
       copyFrom(template);
     }
+  }
+  
+  void setCluster(Cluster cluster) {
+    setParent(cluster);
+    this.cluster = cluster;
+  }
+  
+  public Cluster getCluster() {
+    return cluster;
   }
   
   // --------------------------------------------------------------------------

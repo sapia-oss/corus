@@ -206,6 +206,22 @@ InteropLink.getImpl().add(configListener);]]></sapia:code>
 				<sapia:note>
 					As mentioned earlier and for the sake of insisting: listeners are kept as <sapia:class>SoftRerence</sapia:class>s, so you must keep a hard reference on them in your code.
 				</sapia:note>
+                <sapia:sect4 title="System Properties Synchronization">
+                    <p>
+                        For java processes, Corus offers a default implementation of the <sapia:class>ConfigurationChangeListener</sapia:class> interface that
+                        <b>automatically</b> synchronizes the system properties of the JVM from the configuration events received from Corus. This implementation
+                        fully supports both <tt>update</tt> and <tt>delete</tt> event types and can be easily activated by defining the following system
+                        propery of the executed process:  
+                    </p>
+                    <sapia:code>
+                        corus.client.configuration.synchronizeSystemProperties=true
+                    </sapia:code>
+                    <p>
+                        When activated, the Corus interop agent that runs within the application process will automatically register a configuration change
+                        listener to process the configuration events. If turned on you can always register additionnal custom listeners, but be cautious not
+                        to perform any logic that could interfere with the system properties.  
+                    </p>
+                </sapia:sect4>
 			</sapia:sect3>
 		</sapia:sect2>
   </sapia:sect1>

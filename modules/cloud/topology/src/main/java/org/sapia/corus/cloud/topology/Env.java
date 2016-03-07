@@ -10,6 +10,8 @@ public class Env extends EnvTemplate implements TopologyElement, XmlStreamable, 
   
   private String templateRef;
   
+  private Topology topology;
+  
   public String getTemplateRef() {
     return templateRef;
   }
@@ -18,11 +20,51 @@ public class Env extends EnvTemplate implements TopologyElement, XmlStreamable, 
     this.templateRef = templateRef;
   }
   
+  void setTopology(Topology topology) {
+    setParent(topology);
+    this.topology = topology;
+  }
+  
+  public Topology getTopology() {
+    return topology;
+  }
+  
   @Override
   public void render(TopologyContext context) {
     if (templateRef != null) {
       EnvTemplate template = context.resolveEnvTemplate(templateRef);
       copyFrom(template);
+    }
+    
+    for (Region r : getRegions()) {
+      r.render(context);
+    }
+    
+    for (Cluster c : getClusters()) {
+      c.render(context);
+    }
+  }
+  
+  @Override
+  public void addRegion(Region r) {
+    r.setEnv(this);
+    super.addRegion(r);
+  }
+  
+  @Override
+  public void addCluster(Cluster c) {
+    super.addCluster(c);
+    c.setEnv(this);
+  }
+  
+  @Override
+  public void copyFrom(EnvTemplate other) {
+    super.copyFrom(other);
+    for (Region r : getRegions()) {
+      r.setEnv(this);
+    }
+    for (Cluster c : getClusters()) {
+      c.setEnv(this);
     }
   }
   

@@ -104,6 +104,7 @@ public class Topology extends ParamContainer implements XmlStreamable, Validatea
     if (!environments.add(env)) {
       throw new IllegalArgumentException(String.format("Duplicate <env> child element %s under <topology> element %s", env.getName(), application));
     }
+    env.setTopology(this);
   }
   
   public Set<Env> getEnvs() {

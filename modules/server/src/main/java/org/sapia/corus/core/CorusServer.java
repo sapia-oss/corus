@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.LogManager;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.log.Hierarchy;
@@ -50,9 +52,14 @@ import org.sapia.corus.log.SyslogTarget;
 import org.sapia.corus.util.CorusTimestampOutputStream;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
+import org.sapia.ubik.concurrent.BlockingRef;
+import org.sapia.ubik.concurrent.Spawn;
 import org.sapia.ubik.mcast.EventChannel;
+import org.sapia.ubik.mcast.GroupMembershipBootstrap;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.rmi.Consts;
+import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
 import org.sapia.ubik.util.Conf;
 
@@ -63,7 +70,9 @@ import org.sapia.ubik.util.Conf;
  */
 public class CorusServer {
   
-  public static final int DEFAULT_PORT            = 33000;
+  public static final int DEFAULT_PORT                 = 33000;
+  public static final int DEFAULT_GROUP_MEMBER_TIMEOUT = 10;
+
   public static final String CONFIG_FILE_OPT      = "c";
   public static final String PORT_OPT             = "p";
   public static final String DOMAIN_OPT           = "d";
@@ -71,6 +80,7 @@ public class CorusServer {
   public static final String LOG_VERBOSITY_OPT    = "v";
   public static final String LOG_FILE_OPT         = "f";
   public static final String USER_DATA            = "u";
+  public static final String GROUP_MEMBER_TIMEOUT = "g";
   public static final String PROP_SYSLOG_HOST     = "corus.server.syslog.host";
   public static final String PROP_SYSLOG_PORT     = "corus.server.syslog.port";
   public static final String PROP_SYSLOG_PROTOCOL = "corus.server.syslog.protocol";
@@ -90,6 +100,9 @@ public class CorusServer {
     
     try {
 
+      LogManager.getLogManager().reset();
+      java.util.logging.Logger globalLogger = java.util.logging.Logger.getLogger(java.util.logging.Logger.GLOBAL_LOGGER_NAME);
+      globalLogger.setLevel(java.util.logging.Level.OFF);
       org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
       
       if (System.getProperty("corus.home") == null) {
@@ -398,9 +411,57 @@ public class CorusServer {
       IOUtil.createLockFile(lockFile);
 
       // Initialize Corus, export it and start it
-      EventChannel channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
-      channel.start();
-
+      final EventChannel channel;
+      // optionally instantiated
+      final GroupMembershipBootstrap bootstrap;
+      Conf ubikConf = Conf.newInstance().addProperties(corusProps).addSystemProperties();
+      
+      // checking if group membership provider is set.
+      if (ubikConf.getProperty(Consts.GROUP_MEMBERSHIP_PROVIDER, "NONE").equals("NONE")) {
+        serverLog.warn("Using group membership for establishing cluster");
+        channel = new EventChannel(domain, Conf.newInstance().addProperties(corusProps).addSystemProperties());
+        channel.start();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+          public void run() {
+            channel.close();
+          };
+        });
+      } else {
+        bootstrap = new GroupMembershipBootstrap(domain, ubikConf);
+        final BlockingRef<Object> started = new BlockingRef<>();
+        Spawn.run(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              bootstrap.start();
+              started.set(true);
+            } catch (IOException e) {
+              started.set(e);
+            }
+          }
+        });
+        long groupMemberTimeout = cmd.getOptOrDefault(GROUP_MEMBER_TIMEOUT, "" + DEFAULT_GROUP_MEMBER_TIMEOUT).asInt();
+        Object groupMembershipResult = started.await(TimeUnit.SECONDS.toMillis(groupMemberTimeout));
+        if (groupMembershipResult instanceof Exception) {
+          Hub.shutdown();
+          Exception err = (Exception) groupMembershipResult;
+          serverLog.error("Startup aborting: error joining group in the context of cluster discovery", err);
+          System.exit(1);
+        } else if (groupMembershipResult == null) {
+          Hub.shutdown();
+          serverLog.error("Startup aborting: cluster discovery based on group membership could not be completed in a timely manner");
+          serverLog.error("(Check that your Zookeeper host list is properly configured, and that you have at least one ZK node up)");
+          System.exit(1);
+        }
+        channel = bootstrap.getEventChannel();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+          @Override
+          public void run() {
+            bootstrap.close();
+          }
+        });
+      }
+    
       TCPAddress corusAddr = (TCPAddress) transport.getServerAddress();
       corusProps.setProperty("corus.server.host", corusAddr.getHost());
       corusProps.setProperty("corus.server.port", "" + corusAddr.getPort());
@@ -457,8 +518,10 @@ public class CorusServer {
       help();
     } catch (InterruptedException e) {
       System.out.println("Interrupted, exiting.");
+      System.exit(1);
     } catch (Throwable e) {
       e.printStackTrace();
+      System.exit(1);
     }
   }
   
@@ -495,6 +558,9 @@ public class CorusServer {
     System.out.println("          ${f_option_value}/<domain>_<port>.log.");
     System.out.println();
     System.out.println("  -u      specifies the user data URL to load Corus user data from.");
+    System.out.println();
+    System.out.println("  -g      specifies the number of seconds to wait for successful group");
+    System.out.println("          membership, when it is used for cluster discovery.");
     System.out.println();
     System.out.println("  -help   displays this help and exits immediately.");
     System.out.println();

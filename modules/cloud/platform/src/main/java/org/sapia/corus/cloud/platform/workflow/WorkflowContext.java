@@ -27,15 +27,17 @@ public class WorkflowContext {
     return log;
   }
   
-  public void setLog(WorkflowLog log) {
+  public WorkflowContext withLog(WorkflowLog log) {
     this.log = log;
+    return this;
   }
   
   public TimeSupplier getTimeSupplier() {
     return timeSupplier;
   }
   
-  public void setTimeSupplier(TimeSupplier supplier) {
+  public WorkflowContext withTimeSupplier(TimeSupplier supplier) {
     this.timeSupplier = supplier;
+    return this;
   }
 }

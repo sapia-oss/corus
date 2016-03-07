@@ -76,6 +76,44 @@ public class ResultTest {
     assertEquals(string("1"), filtered.getData().get(new Integer(1)));
   }
   
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @Test
+  public void testIsError() {
+    Result<Integer> result = new Result(host, new Exception("Error"), Result.Type.ELEMENT);
+    assertTrue(result.isError());
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @Test(expected = IllegalStateException.class)
+  public void testGetData_error() {
+    Result<Integer> result = new Result(host, new Exception("Error"), Result.Type.ELEMENT);
+    result.getData();
+  }
+  
+  @Test
+  public void testIsFalse() {
+    Result<Integer> result = new Result<Integer>(host, 1, Result.Type.ELEMENT);
+    assertFalse(result.isError());
+  }
+  
+  @Test
+  public void testIsNull() {
+    Result<Integer> result = new Result<Integer>(host, null, Result.Type.ELEMENT);
+    assertTrue(result.isNull());
+  }
+  
+  @Test
+  public void testIsNull_false() {
+    Result<Integer> result = new Result<Integer>(host, 1, Result.Type.ELEMENT);
+    assertFalse(result.isNull());
+  }
+  
+  @Test(expected = IllegalStateException.class)
+  public void testGetData_null() {
+    Result<Integer> result = new Result<Integer>(host, null, Result.Type.ELEMENT);
+    result.getData();
+  }
+  
   private MatcheableString string(String value) {
     return new MatcheableString(value);
   }

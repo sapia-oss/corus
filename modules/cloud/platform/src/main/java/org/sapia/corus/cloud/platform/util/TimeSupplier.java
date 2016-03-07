@@ -19,7 +19,21 @@ public interface TimeSupplier {
    * @return the current time, in nanos.
    */
   public long currentTimeNanos();
-
+  
+  /**
+   * @param duration a sleep duration.
+   * @throws InterruptedException if the calling thread is interrupted while sleeping.
+   */
+  public void sleep(TimeMeasure duration) throws InterruptedException;
+  
+  /**
+   * @param duration a sleep duration.
+   * @param condition if <code>true</code>, sleeping will occur.
+   * @throws InterruptedException if the calling thread is interrupted while sleeping.
+   */
+  public boolean sleepConditionally(TimeMeasure duration, boolean condition) throws InterruptedException;
+  
+  
   // ==========================================================================
   
   /**
@@ -40,6 +54,19 @@ public interface TimeSupplier {
     @Override
     public long currentTimeNanos() {
       return System.nanoTime();
+    }
+    
+    @Override
+    public void sleep(TimeMeasure duration) throws InterruptedException {
+      Thread.sleep(duration.getMillis());
+    }
+    
+    @Override
+    public boolean sleepConditionally(TimeMeasure duration, boolean condition) throws InterruptedException {
+      if (condition) {
+        sleep(duration);
+      }
+      return condition;
     }
     
     /**
@@ -87,6 +114,16 @@ public interface TimeSupplier {
     @Override
     public long currentTimeMillis() {
       return timeValue;
+    }
+    
+    @Override
+    public void sleep(TimeMeasure duration) throws InterruptedException {
+      // noop
+    }
+    
+    @Override
+    public boolean sleepConditionally(TimeMeasure duration, boolean condition) throws InterruptedException {
+      return condition;
     }
     
     public long currentTimeNanos() {
