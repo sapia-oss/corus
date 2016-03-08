@@ -68,9 +68,13 @@ public class ExecProcessesByConfig extends AbstractExecCommand {
             for (ProcessDef pd : e.getProcesses()) {
               ProcessCriteria criteria = ProcessCriteria.builder().distribution(pd.getDist()).name(pd.getName()).profile(e.getProfile())
                   .version(pd.getVersion()).build();
-
-              waitForProcessStartup(ctx, criteria, pd.getInstances(), waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(),
+              try {  
+                waitForProcessStartup(ctx, criteria, pd.getInstances(), waitOpt.getValue() == null ? Exec.DEFAULT_EXEC_WAIT_TIME_SECONDS : waitOpt.asInt(),
                   cluster);
+              } catch (NullPointerException npe) {
+                // HACK: handle NPE that could not be reproduced
+                ctx.getConsole().println("Unexpected runtime error occurred on the client side: NOT aborting (check server state)");
+              }
             }
             ctx.getConsole().println("Process startup completed on all nodes");
           }

@@ -34,6 +34,7 @@ import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
+import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
@@ -320,28 +321,28 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
     Iterator<CorusHost> itr = hostList.iterator();
     List<Runnable> invokers = new ArrayList<Runnable>(hostList.size());
     while (itr.hasNext()) {
-      final CorusHost addr = itr.next();
+      final CorusHost currentHost = itr.next();
 
       Runnable invoker = new Runnable() {
-        Object module;
-        Object returnValue;
-
+        private Object module;
+        private Object returnValue;
+        private CorusHost host = currentHost;
         @SuppressWarnings("rawtypes")
         @Override
         public void run() {
           
-          DEBUG.trace("Invoking %s on %s", method.getName(), addr.getFormattedAddress());
+          DEBUG.trace("Invoking %s on %s", method.getName(), host.getFormattedAddress());
           
-          Corus       corus      = (Corus) cachedStubs.get(addr.getEndpoint().getServerAddress());
+          Corus       corus      = (Corus) cachedStubs.get(host.getEndpoint().getServerAddress());
           Result.Type resultType = Result.Type.forClass(method.getReturnType());
 
           if (corus == null) {
             try {
-              corus = (Corus) Hub.connect(addr.getEndpoint().getServerAddress());
-              cachedStubs.put(addr.getEndpoint().getServerAddress(), corus);
+              corus = (Corus) Hub.connect(host.getEndpoint().getServerAddress());
+              cachedStubs.put(host.getEndpoint().getServerAddress(), corus);
             } catch (java.rmi.RemoteException e) {
-              DEBUG.trace("Adding error from %", addr.getFormattedAddress());
-              Result errorResult = new Result(addr, e, resultType);
+              DEBUG.trace("Adding error from %", host.getFormattedAddress());
+              Result errorResult = new Result(host, e, resultType);
               results.addResult(errorResult);
               return;
             }
@@ -350,23 +351,23 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
           try {
             module = corus.lookup(moduleInterface.getName());
             if (auditInfo.isSet()) {
-              DEBUG.trace("AuditInfo was set, tranferring to invoker thread for %s - invocation: %s", addr.getFormattedAddress(), method.getName());
-              CurrentAuditInfo.set(auditInfo.get(), addr);
+              DEBUG.trace("AuditInfo was set, tranferring to invoker thread for %s - invocation: %s", host.getFormattedAddress(), method.getName());
+              CurrentAuditInfo.set(auditInfo.get(), host);
             }
             returnValue = method.invoke(module, params);
-            DEBUG.trace("Invocation of %s completed for host %s", method.getName(), addr.getFormattedAddress());
+            DEBUG.trace("Invocation of %s completed for host %s", method.getName(), host.getFormattedAddress());
             
-            Result newResult = new Result(addr, returnValue, resultType).filter(getResultFilter());
+            Result newResult = new Result(host, returnValue, resultType).filter(getResultFilter());
             if (!getResultFilter().getClass().equals(Matcheable.AnyPattern.class) && newResult.size() == 0) {
-              DEBUG.trace("Ignoring result from %s (%s elements were returned)", addr.getFormattedAddress(), newResult.size());
+              DEBUG.trace("Ignoring result from %s (%s elements were returned)", host.getFormattedAddress(), newResult.size());
               results.decrementInvocationCount();
             } else {
-              DEBUG.trace("Adding result from %s (%s elements were returned)", addr.getFormattedAddress(), newResult.size());
+              DEBUG.trace("Adding result from %s (%s elements were returned)", host.getFormattedAddress(), newResult.size());
               results.addResult(newResult);
             }
           } catch (Exception err) {
-            DEBUG.trace("Adding error from invocation on %", addr.getFormattedAddress());
-            Result errorResult = new Result(addr, err, resultType);
+            DEBUG.trace("Adding error from invocation on %", host.getFormattedAddress());
+            Result errorResult = new Result(host, err, resultType);
             results.addResult(errorResult);
           } finally {
             if (auditInfo.isSet()) {
