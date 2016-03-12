@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.client.Result.Type;
+import org.sapia.corus.client.common.Delay;
+import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Func;
 
@@ -19,11 +23,11 @@ public class Results<T> implements Iterable<Result<T>> {
 
   private List<Result<T>> results = new ArrayList<Result<T>>();
 
-  private long timeout = DEFAULT_INVOCATION_TIMEOUT;
-  private boolean invocationFinished;
-  private int invocationCount;
-  private int completedCount;
-  private List<ResultListener<T>> listeners = new ArrayList<Results.ResultListener<T>>();
+  private long                    timeout              = DEFAULT_INVOCATION_TIMEOUT;
+  private volatile boolean        invocationFinished;
+  private volatile int            invocationCount;
+  private volatile int            completedCount;
+  private List<ResultListener<T>> listeners            = new ArrayList<Results.ResultListener<T>>();
 
   /**
    * @param listener
@@ -82,31 +86,16 @@ public class Results<T> implements Iterable<Result<T>> {
    */
   public synchronized boolean hasNext() {
     if (!invocationFinished) {
-      while (results.size() == 0) {
-        if (invocationFinished) {
-          return false;
-        }
-        long start = System.currentTimeMillis();
+      Delay delay = new Delay(timeout, TimeUnit.MILLISECONDS);
+      while (results.isEmpty() && delay.isNotOver() && !invocationFinished) {
         try {
-          wait(timeout);
+          wait(delay.remainingMillisNotZero());
         } catch (InterruptedException e) {
-          return false;
-        }
-
-        if (results.size() == 0) {
-          if (invocationFinished ||
-          // is timed out ?
-              (System.currentTimeMillis() - start > timeout)) {
-            break;
-          } else {
-            continue;
-          }
-        } else {
-          break;
+          throw new ThreadInterruptedException();
         }
       }
     }
-    return results.size() > 0;
+    return !results.isEmpty();
   }
 
   /**
@@ -114,6 +103,7 @@ public class Results<T> implements Iterable<Result<T>> {
    *         removed from this instance).
    */
   public Result<T> next() {
+    Assertions.illegalState(results.isEmpty(), "No more results");
     return results.remove(0);
   }
 
@@ -153,7 +143,7 @@ public class Results<T> implements Iterable<Result<T>> {
     List<Object> toReturn = new ArrayList<>();
     while (hasNext()) {
       Result<T> result = next();
-      if (result.getData() instanceof Collection) {
+      if (result.getType() == Type.COLLECTION) {
         for (Object o : ((Collection) result.getData())) {
           toReturn.add(o);
         }

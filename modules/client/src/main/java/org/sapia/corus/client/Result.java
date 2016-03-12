@@ -50,6 +50,8 @@ public class Result<T> {
   private Type type;
 
   public Result(CorusHost origin, T data, Type type) {
+    Assertions.notNull(origin, "Origin must be specified");
+    Assertions.notNull(type, "Type must be specified");
     this.origin = origin;
     this.data = data;
     this.type = type;

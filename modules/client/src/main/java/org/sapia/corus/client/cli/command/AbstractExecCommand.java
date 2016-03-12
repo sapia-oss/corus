@@ -138,6 +138,27 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       Results<Set<Tag>> tagResults = ctx.getCorus().getConfigFacade().getTags(cluster);
 
       for (Result<Set<Tag>> t : tagResults) {
+        // >> HACK BEGIN (see above explanation)
+        if (t.isError() || t.isNull()) {
+          Results<Set<Tag>> specificResults = ctx.getCorus().getConfigFacade().getTags(ClusterInfo.clustered().addTarget(t.getOrigin().getEndpoint().getServerAddress()));
+          if (specificResults.hasNext()) {
+            t = specificResults.next();
+            if (t.isError() || t.isNull()) {
+              ctx.getConsole().println("Abnormal response received from host: " + t.getOrigin().getFormattedAddress());
+              ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+              if (t.isError()) {
+                ctx.getConsole().println("Host error details:");
+                ctx.getConsole().printStackTrace(t.getError());
+              }
+              continue;
+            }
+          } else {
+            ctx.getConsole().println("Abnormal response received from host: " + t.getOrigin().getFormattedAddress());
+            ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+            continue;
+          }
+        }
+        // << HACK END
         Set<Tag> hostTags = hostsWithDist.get(t.getOrigin());
         if (hostTags != null) {
           hostTags.addAll(t.getData());
@@ -174,6 +195,33 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
           Results<List<Process>> processes = ctx.getCorus().getProcessorFacade().getProcesses(criteria, targetInfo);
           while (processes.hasNext()) {
             Result<List<Process>> proc = processes.next();
+            
+            // >> HACK BEGIN (see above explanation)
+            if (proc.isError() || proc.isNull()) {
+              Results<List<Process>> specificResults = ctx.getCorus().getProcessorFacade().getProcesses(
+                  criteria, 
+                  ClusterInfo.clustered().addTarget(proc.getOrigin().getEndpoint().getServerAddress())
+              );
+              if (specificResults.hasNext()) {
+                proc = specificResults.next();
+                if (proc.isError() || proc.isNull()) {
+                  ctx.getConsole().println("Abnormal response received from host: " + proc.getOrigin().getFormattedAddress());
+                  ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+                  if (proc.isError()) {
+                    ctx.getConsole().println("Host error details:");
+                    ctx.getConsole().printStackTrace(proc.getError());
+                  }
+                  continue;
+                }
+              } else {
+                ctx.getConsole().println("Abnormal response received from host: " + proc.getOrigin().getFormattedAddress());
+                ctx.getConsole().println("Check host state individually (for now, assuming process execution completed successfully for that host)");
+                continue;
+              }
+            }
+            // << HACK END
+            
+            
             currentCount += proc.getData().size();
           }
           if (currentCount < totalExpectedInstances) {

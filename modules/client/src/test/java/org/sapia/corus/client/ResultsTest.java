@@ -2,20 +2,30 @@ package org.sapia.corus.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Func;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ResultsTest {
 
   private Results<Integer> results;
+  private CorusHost origin;
 
   @Before
   public void setUp() throws Exception {
+    origin = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm", mock(PublicKey.class));
     results = new Results<Integer>();
     results.setTimeout(1000);
   }
@@ -29,7 +39,7 @@ public class ResultsTest {
     }
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
+      results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
     }
 
     assertTrue(results.isFinished());
@@ -43,6 +53,59 @@ public class ResultsTest {
     assertEquals(vals.size(), count);
 
   }
+  
+  @Test
+  public void testNormalUsage_async() {
+    final List<Integer> vals = new ArrayList<Integer>();
+    for (int i = 0; i < 5; i++) {
+      vals.add(new Integer(i));
+    }
+    results.setInvocationCount(vals.size());
+    
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        for (Integer v : vals) {
+          results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
+        }        
+      }
+    }).start();
+    
+    int count = 0;
+    while (results.hasNext()) {
+      results.next();
+      count++;
+    }
+
+    assertEquals(vals.size(), count);
+  }
+  
+  @Test
+  public void testNormalUsage_iterate() {
+    final List<Integer> vals = new ArrayList<Integer>();
+    for (int i = 0; i < 5; i++) {
+      vals.add(new Integer(i));
+    }
+    results.setInvocationCount(vals.size());
+    
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        for (Integer v : vals) {
+          results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
+        }        
+      }
+    }).start();
+    
+    int count = 0;
+    
+    for (Result<Integer> r : results) {
+      count++;
+    }
+
+    assertEquals(vals.size(), count);
+  }
+
 
   @Test
   public void testErrorUsage() {
@@ -56,7 +119,7 @@ public class ResultsTest {
     results.incrementInvocationCount();
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
+      results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
     }
 
     assertTrue(!results.isFinished());
@@ -85,7 +148,7 @@ public class ResultsTest {
     }
 
     for (Integer v : vals) {
-      results.addResult(new Result<Integer>(null, v, Result.Type.forClass(Integer.class)));
+      results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
     }
 
     Results<Integer> filtered = results.filter(new Func<Integer, Integer>() {
