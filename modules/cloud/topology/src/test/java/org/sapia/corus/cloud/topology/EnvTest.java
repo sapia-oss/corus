@@ -7,11 +7,14 @@ import org.junit.Test;
 
 public class EnvTest {
 
+  private Topology topo;
   private Env env;
   private EnvTemplate template;
   
   @Before
   public void setUp() {
+    topo = new Topology();
+    
     env = new Env();
     env.setName("test");
     env.setTemplateRef("template");
@@ -26,6 +29,22 @@ public class EnvTest {
     Region r = new Region();
     r.setName("region");
     template.addRegion(r);
+    
+    topo.addEnv(env);
+  }
+  
+  @Test
+  public void testParam() {
+    env.addParam("n1", "v1");
+    
+    assertTrue(env.existsParam("n1"));
+  }
+  
+  @Test
+  public void testParam_topo() {
+    topo.addParam("n1", "v1");
+    
+    assertTrue(env.existsParam("n1"));
   }
   
   @Test

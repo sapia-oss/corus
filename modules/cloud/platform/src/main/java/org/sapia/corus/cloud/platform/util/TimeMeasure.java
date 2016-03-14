@@ -2,6 +2,8 @@ package org.sapia.corus.cloud.platform.util;
 
 import java.util.concurrent.TimeUnit;
 
+import org.sapia.corus.cloud.platform.util.TimeSupplier.SystemTime;
+
 /**
  * Encapsulates an time value, and the {@link TimeUnit} in which it is expressed.
  * 
@@ -17,10 +19,22 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
   /**
    * @param unit the {@link TimeUnit} in which the given time value is expressed.
    * @param value a time value.
+   * @param supplier the {@link TimeSupplier} to internally use.
+   */
+  public TimeMeasure(TimeUnit unit, long value, TimeSupplier supplier) {
+    this.unit     = unit;
+    this.value    = value;
+    this.supplier = supplier;
+  }
+  
+  /**
+   * Constructs an instance of this class, internally using the {@link SystemTime} supplier.
+   * 
+   * @param unit the {@link TimeUnit} in which the given time value is expressed.
+   * @param value a time value.
    */
   public TimeMeasure(TimeUnit unit, long value) {
-    this.unit  = unit;
-    this.value = value;
+    this(unit, value, TimeSupplier.SystemTime.getInstance());
   }
   
   /**
@@ -58,7 +72,7 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
    * larger than the one given, a negative value if it is smaller, and 0 if it is the same).
    */
   public TimeMeasure diff(TimeMeasure other) {
-    return new TimeMeasure(TimeUnit.MILLISECONDS, getMillis() - other.getMillis());
+    return new TimeMeasure(TimeUnit.MILLISECONDS, getMillis() - other.getMillis(), other.getSupplier());
   }
   
   /**
@@ -69,7 +83,7 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
    * and this instance (this instance is assumed to be a "start" time).
    */
   public TimeMeasure elapsed(TimeUnit unit) {
-    return new TimeMeasure(unit, forCurrentTime(supplier).convertTo(unit).getValue() - this.convertTo(unit).getValue());
+    return new TimeMeasure(unit, forCurrentTime(supplier).convertTo(unit).getValue() - this.convertTo(unit).getValue(), supplier);
   }
   
   /**
@@ -81,7 +95,7 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
     if (unit == newUnit) {
       return this;
     }
-    return new TimeMeasure(newUnit, newUnit.convert(value, unit));
+    return new TimeMeasure(newUnit, newUnit.convert(value, unit), supplier);
   }
   
   /**
@@ -122,17 +136,17 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
    */
   public TimeMeasure approximate() {
     if (getMillis() >= TimeUnit.DAYS.toMillis(1)) {
-      return new TimeMeasure(TimeUnit.DAYS, TimeUnit.DAYS.convert(value, unit));
+      return new TimeMeasure(TimeUnit.DAYS, TimeUnit.DAYS.convert(value, unit), supplier);
     } else if (getMillis() >= TimeUnit.HOURS.toMillis(1)) {
-      return new TimeMeasure(TimeUnit.HOURS, TimeUnit.HOURS.convert(value, unit));
+      return new TimeMeasure(TimeUnit.HOURS, TimeUnit.HOURS.convert(value, unit), supplier);
     } else if (getMillis() >= TimeUnit.MINUTES.toMillis(1)) {
-      return new TimeMeasure(TimeUnit.MINUTES, TimeUnit.MINUTES.convert(value, unit));
+      return new TimeMeasure(TimeUnit.MINUTES, TimeUnit.MINUTES.convert(value, unit), supplier);
     } else if (getMillis() >= TimeUnit.SECONDS.toMillis(1)) {
-      return new TimeMeasure(TimeUnit.SECONDS, TimeUnit.SECONDS.convert(value, unit));
+      return new TimeMeasure(TimeUnit.SECONDS, TimeUnit.SECONDS.convert(value, unit), supplier);
     } else if (getMillis() >= TimeUnit.MILLISECONDS.toMillis(1)) {
-      return new TimeMeasure(TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS.convert(value, unit));
+      return new TimeMeasure(TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS.convert(value, unit), supplier);
     } else {
-      return new TimeMeasure(TimeUnit.NANOSECONDS, TimeUnit.NANOSECONDS.convert(value, unit));
+      return new TimeMeasure(TimeUnit.NANOSECONDS, TimeUnit.NANOSECONDS.convert(value, unit), supplier);
     }
   }
   
@@ -148,12 +162,16 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
   }
   
   /**
-   * @param supplier the {@link TimeSupplier} to use.
-   * @return this instance.
+   * @param supplier a {@link TimeSupplier}.
+   * @return a copy of this instance, but encapsulating the given {@link TimeSupplier}.
    */
   public TimeMeasure withTimeSupplier(TimeSupplier supplier) {
-    this.supplier = supplier;
-    return this;
+    if (supplier == null) {
+      throw new IllegalArgumentException("TimeSupplier is null");
+    }
+    TimeMeasure copy = new TimeMeasure(unit, value, supplier);
+    copy.supplier = supplier;
+    return copy;
   }
 
   // --------------------------------------------------------------------------
@@ -198,22 +216,22 @@ public class TimeMeasure implements Comparable<TimeMeasure> {
   // Factory methods
   
   public static TimeMeasure forMillis(long millis) {
-    return new TimeMeasure(TimeUnit.MILLISECONDS, millis);
+    return new TimeMeasure(TimeUnit.MILLISECONDS, millis, TimeSupplier.SystemTime.getInstance());
   }
   
   public static TimeMeasure forSeconds(int seconds) {
-    return new TimeMeasure(TimeUnit.SECONDS, seconds);
+    return new TimeMeasure(TimeUnit.SECONDS, seconds, TimeSupplier.SystemTime.getInstance());
   }
   
   public static TimeMeasure forMinutes(int minutes) {
-    return new TimeMeasure(TimeUnit.MINUTES, minutes);
+    return new TimeMeasure(TimeUnit.MINUTES, minutes, TimeSupplier.SystemTime.getInstance());
   }
   
   public static TimeMeasure forValue(TimeUnit unit, long value) {
-    return new TimeMeasure(unit, value);
+    return new TimeMeasure(unit, value, TimeSupplier.SystemTime.getInstance());
   }
   
   public static TimeMeasure forCurrentTime(TimeSupplier supplier) {
-    return new TimeMeasure(TimeUnit.MILLISECONDS, supplier.currentTimeMillis()).withTimeSupplier(supplier);
+    return new TimeMeasure(TimeUnit.MILLISECONDS, supplier.currentTimeMillis(), supplier);
   }
 }

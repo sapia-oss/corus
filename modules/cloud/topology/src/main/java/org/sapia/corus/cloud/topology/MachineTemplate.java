@@ -11,6 +11,7 @@ import java.util.Set;
  */
 public class MachineTemplate extends ParamContainer {
   
+  public static final String REPO_ROLE_NONE   = "none";
   public static final String REPO_ROLE_CLIENT = "client";
   public static final String REPO_ROLE_SERVER = "server";
   
@@ -18,7 +19,7 @@ public class MachineTemplate extends ParamContainer {
   private boolean isSeedNode;
   private String name, imageId, instanceType;
   
-  private String repoRole = REPO_ROLE_CLIENT;
+  private String repoRole;
   
   private Set<ServerTag>              serverTags = new HashSet<>();
   private Set<Artifact>               artifacts  = new HashSet<>();
@@ -28,7 +29,8 @@ public class MachineTemplate extends ParamContainer {
   private PropertyCollection serverProperties  = new PropertyCollection();
   private PropertyCollection processProperties = new PropertyCollection();
   
-  private int minInstances, maxInstances = -1;
+  private int minInstances = -1;
+  private int maxInstances = -1;
 
   public void setName(String name) {
     this.name = name;
@@ -184,18 +186,28 @@ public class MachineTemplate extends ParamContainer {
     if (minInstances < 0) {
       minInstances = other.minInstances;
     }
+    if (minInstances < 0) {
+      minInstances = 0;
+    }
     if (maxInstances < 0) {
       maxInstances = other.maxInstances;
+    }
+    if (maxInstances < 0) {
+      maxInstances = 0;
     }
     if (imageId == null) {
       this.imageId = other.imageId;
     }
     if (instanceType == null) {
-      this.instanceType = other.instanceType;
+      instanceType = other.instanceType;
     }
-    if (!this.isSeedNode) {
-      this.isSeedNode = other.isSeedNode;
+    if (!isSeedNode) {
+      isSeedNode = other.isSeedNode;
     }
+    if (repoRole == null) {
+      repoRole = other.repoRole;
+    }
+    
     addParams(other.getParams());
   }
   

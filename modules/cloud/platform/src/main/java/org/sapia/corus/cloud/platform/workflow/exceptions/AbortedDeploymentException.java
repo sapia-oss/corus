@@ -5,7 +5,7 @@ package org.sapia.corus.cloud.platform.workflow.exceptions;
  * 
  * @author yduchesne
  */
-public class AbortedDeploymentException extends RuntimeException {
+public class AbortedDeploymentException extends IllegalStateException {
   
   public AbortedDeploymentException(String msg) {
     super(msg);

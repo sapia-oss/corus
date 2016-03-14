@@ -1,5 +1,6 @@
 package org.sapia.corus.cloud.topology;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,9 +23,19 @@ public abstract class ParamContainer {
   }
   
   /**
-   * @return the {@link Set} of {@link Param}s held by this instance.
+   * Internally adds a {@link Param} to this instance, with the given name and value.
+   * 
+   * @param name the name of the parameter.
+   * @param value the parameter's value.
    */
-  public Set<Param> getParams() {
+  public void addParam(String name, String value) {
+    addParam(Param.of(name, value));
+  }
+  
+  /**
+   * @return the {@link Set} of {@link Param}s held by this instance strictly (not the ones of its ancestors).
+   */
+  public Set<Param> getSpecificParams() {
     return params;
   }
   
@@ -35,7 +46,7 @@ public abstract class ParamContainer {
    * @return the {@link Set} of all of this instance's {@link Param}s, plus the ones
    * of its ancestors (if any).
    */
-  public Set<Param> getAllParams() {
+  public Set<Param> getParams() {
     if (parent != null) {
       Set<Param> toAppendTo = new HashSet<>();
       appendTo(toAppendTo);
@@ -46,9 +57,9 @@ public abstract class ParamContainer {
   }
   
   /**
-   * @param others a {@link Set} of other {@link Param}s to add to this instance.
+   * @param others a {@link Collection} of other {@link Param}s to add to this instance.
    */
-  public void addParams(Set<Param> others) {
+  public void addParams(Collection<Param> others) {
     params.addAll(others);
   }
   
@@ -108,7 +119,7 @@ public abstract class ParamContainer {
     this.parent = parent;
   }
   
-  protected void appendTo(Set<Param> toAppendTo) {
+  private void appendTo(Set<Param> toAppendTo) {
     toAppendTo.addAll(params);
     if (parent != null) {
       parent.appendTo(toAppendTo);

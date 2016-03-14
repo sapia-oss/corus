@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
 public class WaitForInstancesStarted implements
     WorkflowStep<AwsTopologyDeploymentContext> {
 
-  private static final String RESOURCE_TYPE_EC2_INSTANCE = "AWS::EC2::Instance";
+  public static final String RESOURCE_TYPE_EC2_INSTANCE = "AWS::EC2::Instance";
   
   private static final String DESC = "waiting for EC2 instances to be in running state";
   
@@ -44,7 +44,7 @@ public class WaitForInstancesStarted implements
     String   envName  = context.getSettings().getNotNull("environment").get(String.class);
     Env      env      = topology.getEnvByName(envName);
 
-    RetryCriteria criteria   = context.getSettings().get("instancesRunningCheckRetry").get(RetryCriteria.class);
+    RetryCriteria criteria   = context.getSettings().getNotNull("instancesRunningCheckRetry").get(RetryCriteria.class);
     RetryLatch    latch      = new RetryLatch(criteria);
     int expectedInstances    = 0;
     int runningInstances     = 0;
@@ -52,14 +52,14 @@ public class WaitForInstancesStarted implements
 
     for (Cluster cluster : env.getClusters()) {
       for (Machine m : cluster.getMachines()) {
-        expectedInstances = m.getMinInstances();
+        expectedInstances += m.getMinInstances();
       }
     }
     
-    Preconditions.checkState(
-        expectedInstances > 0, 
-        "Invalid number of expected instances determined %s. Topology must be fixed", expectedInstances
-    );
+    if (expectedInstances == 0) {
+      context.getLog().info("Expected 0 instances to run. Aborting this step (make sure this is what you expect)");
+      return;
+    }
 
     context.getLog().info(
         "Checking that minimum number of instances (%s) is running across CloudFormation (%s)...", 
@@ -99,13 +99,16 @@ public class WaitForInstancesStarted implements
     } while (runningInstances < expectedInstances && latch.incrementAndPause().shouldContinue());
     
     context.getLog().info("Got %s instances running (expected at least %s).", runningInstances, expectedInstances);
+    if (runningInstances == expectedInstances) {
+      context.getLog().info("All expected instances are running (check was successful)");
+    }
     if (nonRunningInstances > 0) {
-      context.getLog().info("Also: got %s instances in non-running (undetermined) state", nonRunningInstances);
+      context.getLog().info("Also: got %s instances in non-running state", nonRunningInstances);
     }
     
     Preconditions.checkState(
         runningInstances >= expectedInstances, 
-        "%s/%s instances running for CloudFormation %s", 
+        "Only %s instances running, while a minimum of %s instances were/was expected in CloudFormation stack '%s'", 
         runningInstances, expectedInstances, context.getStackId()
     );
   }

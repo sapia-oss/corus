@@ -15,15 +15,17 @@ public class PropertyCollection implements Iterable<Property> {
   
   private Set<Property> properties = new HashSet<>();
   
-  public void addProperty(Property property) {
+  public PropertyCollection addProperty(Property property) {
     this.properties.add(property);
+    return this;
   }
   
-  public void addProperty(String name, String value) {
+  public PropertyCollection addProperty(String name, String value) {
     Property p = new Property();
     p.setName(name);
     p.setValue(value);
     properties.add(p);
+    return this;
   }
   
   public Set<Property> getProperties() {
@@ -37,6 +39,10 @@ public class PropertyCollection implements Iterable<Property> {
   @Override
   public Iterator<Property> iterator() {
     return properties.iterator();
+  }
+  
+  public int size() {
+    return properties.size();
   }
   
 }

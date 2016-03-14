@@ -1,6 +1,5 @@
 package org.sapia.corus.cloud.platform.util;
 
-
 /**
  * Encapsulates data defining so-called retry criteria: how many times an operation should be retried upon failure, and the amount
  * of time to wait between each attempt.
@@ -12,10 +11,12 @@ public class RetryCriteria {
 
   private TimeMeasure  retryInterval, maxRetryDuration;
   private int          maxAttempts;
+  private Sleeper      sleeper = Sleeper.SystemSleeper.getInstance();
   
   public RetryCriteria(TimeMeasure retryInterval, int maxAttempts) {
     this.retryInterval         = retryInterval;
     this.maxAttempts           = maxAttempts;
+    this.maxRetryDuration      = TimeMeasure.forMillis(maxAttempts * retryInterval.getMillis()).withTimeSupplier(retryInterval.getSupplier());
   }
   
   public RetryCriteria(TimeMeasure retryInterval, TimeMeasure maxRetryDuration) {
@@ -41,7 +42,7 @@ public class RetryCriteria {
    * @throws InterruptedException if the calling thread is interrupted while pausing.
    */
   public void pause() throws InterruptedException {
-    Thread.sleep(retryInterval.getMillis());
+    sleeper.sleep(retryInterval.getMillis());
   }
   
   /**
@@ -57,7 +58,18 @@ public class RetryCriteria {
     }
     return false;
   }
-
+  
+  /**
+   * @param sleeper a {@link Sleeper} to use.
+   * @return a copy of this instance, but encapsulating the given {@link Sleeper}.
+   */
+  public RetryCriteria withSleeper(Sleeper sleeper) {
+    RetryCriteria copy = new RetryCriteria(retryInterval, maxRetryDuration);
+    copy.sleeper = sleeper;
+    copy.maxAttempts = maxAttempts;
+    return copy;
+  }
+  
   // --------------------------------------------------------------------------
   // Factory methods
   

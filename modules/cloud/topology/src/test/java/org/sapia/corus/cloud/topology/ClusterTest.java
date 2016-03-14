@@ -1,20 +1,39 @@
 package org.sapia.corus.cloud.topology;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class ClusterTest {
 
+  private Env     env;
   private Cluster cluster;
   
   @Before
   public void setUp() {
+    env     = new Env();
+    env.setName("test-env");
+    
     cluster = new Cluster();
     cluster.setInstances(10);
     cluster.setName("test");
     cluster.setTemplateRef("template");
+    
+    env.addCluster(cluster);
+  }
+  
+  @Test
+  public void testParam_cluster() {
+    cluster.addParam("n1", "v1");
+    assertTrue(cluster.existsParam("n1"));
+  }
+  
+  @Test
+  public void testParam_env() {
+    env.addParam("n1", "v1");
+    assertTrue(cluster.existsParam("n1"));
   }
   
   @Test

@@ -10,6 +10,13 @@ public class LoadBalancerAttachment implements XmlStreamable, Validateable {
 
   private String name;
   
+  public LoadBalancerAttachment() {
+  }
+  
+  public LoadBalancerAttachment(String name) {
+    this.name = name;
+  }
+  
   public void setName(String name) {
     this.name = name;
   }

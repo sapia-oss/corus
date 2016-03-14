@@ -54,7 +54,7 @@ public class Machine extends MachineTemplate implements TopologyElement, XmlStre
       throw new IllegalArgumentException("attribute 'minInstances' not valid on <machine> element: " + getName() + ". Must be > 0");
     }
     
-    if (getMaxInstances() < 0) {
+    if (getMaxInstances() <= 0) {
       throw new IllegalArgumentException("attribute 'maxInstances' not valid on <machine> element: " + getName() + ". Must be > 0");
     }
     
@@ -84,9 +84,9 @@ public class Machine extends MachineTemplate implements TopologyElement, XmlStre
     
     if (getRepoRole() == null) {
       throw new IllegalArgumentException("attribute 'repoRole' not specified on <machine> element: " + getName());
-    } else if (!getRepoRole().equals(REPO_ROLE_CLIENT) && !getRepoRole().equals(REPO_ROLE_SERVER)) {
+    } else if (!getRepoRole().equals(REPO_ROLE_CLIENT) && !getRepoRole().equals(REPO_ROLE_SERVER) &&!getRepoRole().equals(REPO_ROLE_NONE)) {
       throw new IllegalArgumentException("invalid value for attribute 'repoRole' on <machine> element " + getName() 
-          + ". Expected either " + REPO_ROLE_CLIENT + " or " + REPO_ROLE_SERVER + ". Got: " + getRepoRole());
+          + ". Expected either one of: " +  REPO_ROLE_CLIENT + ", " + REPO_ROLE_SERVER + ", " + REPO_ROLE_NONE + ". Got: " + getRepoRole());
     } else if (getRepoRole().equals(REPO_ROLE_SERVER) && getMinInstances() == 0) {
       throw new IllegalArgumentException("minInstances attribute on <machine> element " + getName()
           + " should be set to value larger than 0, since the repoRole attribute is set to " + REPO_ROLE_SERVER

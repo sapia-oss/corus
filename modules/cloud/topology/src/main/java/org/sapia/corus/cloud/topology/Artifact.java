@@ -10,6 +10,13 @@ public class Artifact implements Validateable, XmlStreamable {
 
   private String url;
   
+  public Artifact() {
+  }
+  
+  public Artifact(String url) {
+    this.url = url;
+  }
+  
   /**
    * @return the URL string of the artifact to deploy.
    */

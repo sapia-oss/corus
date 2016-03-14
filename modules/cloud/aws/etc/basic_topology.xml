@@ -4,7 +4,7 @@
   <param name="corus.cloud.instance.role" value="CorusEC2" />
 
   <machine-template name="request-server-template" imageId="ami-adbe909d" instanceType="t2.micro" minInstances="1"
-        maxInstances="5" serverTags="foo,bar">
+        maxInstances="5" serverTags="foo,bar" repoRole="none">
     <!-- this param takes a comma-delimited list of groups -->
     <param name="corus.cloud.instance.security.groups" value="sg-ddac92b8" />
     <param name="corus.cloud.instance.key.name" value="yanick-keys-uswest" />
