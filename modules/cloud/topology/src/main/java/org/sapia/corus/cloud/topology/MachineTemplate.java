@@ -21,13 +21,15 @@ public class MachineTemplate extends ParamContainer {
   
   private String repoRole;
   
-  private Set<ServerTag>              serverTags = new HashSet<>();
-  private Set<Artifact>               artifacts  = new HashSet<>();
-  private Set<LoadBalancerAttachment> lbs        = new HashSet<>();
-  private UserData                    userdata   = new UserData();
+  private Set<ServerTag>              serverTags  = new HashSet<>();
+  private Set<MachineTag>             machineTags = new HashSet<>();
+
+  private Set<Artifact>               artifacts   = new HashSet<>();
+  private Set<LoadBalancerAttachment> lbs         = new HashSet<>();
+  private UserData                    userdata    = new UserData();
   
-  private PropertyCollection serverProperties  = new PropertyCollection();
-  private PropertyCollection processProperties = new PropertyCollection();
+  private PropertyCollection serverProperties     = new PropertyCollection();
+  private PropertyCollection processProperties    = new PropertyCollection();
   
   private int minInstances = -1;
   private int maxInstances = -1;
@@ -151,6 +153,14 @@ public class MachineTemplate extends ParamContainer {
     lbs.add(lb);
   }
   
+  public void addMachineTag(MachineTag machineTag) {
+    machineTags.add(machineTag);
+  }
+  
+  public Set<MachineTag> getMachineTags() {
+    return machineTags;
+  }
+  
   public void setRepoRole(String repoRole) {
     this.repoRole = repoRole;
   }
@@ -179,6 +189,7 @@ public class MachineTemplate extends ParamContainer {
     this.processProperties.copyFrom(other.processProperties);
     this.serverProperties.copyFrom(other.serverProperties);
     this.serverTags.addAll(other.serverTags);
+    this.machineTags.addAll(other.getMachineTags());
     this.artifacts.addAll(other.artifacts);
     this.lbs.addAll(other.lbs);
     this.userdata.copyFrom(other.userdata);

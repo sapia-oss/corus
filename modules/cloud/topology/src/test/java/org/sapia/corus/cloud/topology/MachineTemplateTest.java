@@ -18,6 +18,7 @@ public class MachineTemplateTest {
     template.setMaxInstances(10);
     template.setName("testTemplate");
     template.setServerTags("tag1");
+    template.addMachineTag(new MachineTag("mt1", "mtv1"));
     template.createServerProperties().addProperty("svrProp1", "p1");
     template.createProcessProperties().addProperty("procProp1", "p1");
    
@@ -48,6 +49,7 @@ public class MachineTemplateTest {
     assertTrue(template.getServerTags().contains(ServerTag.of("tag1")));
     assertTrue(template.getServerTags().contains(ServerTag.of("tag2")));
     assertTrue(template.getServerTags().contains(ServerTag.of("tag3")));
+    assertTrue(template.getMachineTags().contains(new MachineTag("mt1", "mtv1")));
     
     assertEquals(1, template.getMinInstances());
     assertEquals(10, template.getMaxInstances());

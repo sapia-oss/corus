@@ -30,6 +30,7 @@ public class TopologyObjectFactory extends ReflectionFactory {
     register("cluster", Cluster.class);
     register("machine-template", MachineTemplate.class);
     register("machine", Machine.class);
+    register("machine-tag", MachineTag.class);
     register("load-balancer-attachment", LoadBalancerAttachment.class);
     register("user-data", UserData.class);
     register("artifact", Artifact.class);

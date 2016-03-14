@@ -34,7 +34,8 @@ public class MachineTest {
     template.addArtifact(new Artifact("test-artifact-1"));
     template.addParam("n1", "v1");
     template.addParam("n2", "v2");
-    
+    template.addMachineTag(new MachineTag("mt1", "mtv1"));
+
     machine = new Machine();
     machine.setTemplateRef("template");
     machine.setProcessProperties(new PropertyCollection().addProperty("n2", "v2"));
@@ -44,8 +45,19 @@ public class MachineTest {
     machine.addArtifact(new Artifact("test-artifact-2"));
     machine.addParam("n2", "v2-override");
     machine.addParam("n4", "v4-override");
+    machine.addMachineTag(new MachineTag("mt2", "mtv2"));
     
     cluster.addMachine(machine);
+  }
+  
+  @Test
+  public void testHasMachineTag_from_template() {
+    machine.getMachineTags().contains(new MachineTag("mt1", "mtv1"));
+  }
+  
+  @Test
+  public void testHasMachineTag() {
+    machine.getMachineTags().contains(new MachineTag("mt2", "mtv2"));
   }
   
   @Test
