@@ -596,18 +596,24 @@ public class Conf extends CorusCliCommand {
   
   private Results<List<Property>> doGetResults(CliContext ctx, PropertyScope scope) {
     if (ctx.getCommandLine().containsOption(OPT_PROPERTY.getName(), true)) {
-      CompositePattern pattern = CompositePattern.newInstance();
+      final CompositePattern pattern = CompositePattern.newInstance();
       String[] patternValues   = StringUtils.split(ctx.getCommandLine().getOpt(OPT_PROPERTY.getName()).getValue(), ",");
       for (String p : patternValues) {
         pattern.add(new Matcheable.DefaultPattern(ArgMatchers.parse(p)));
       }
-      ctx.getCorus().getContext().setResultFilter(pattern);
-      try {
-        Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
-        return Sorting.sortList(results, Property.class, ctx.getSortSwitches());
-      } finally {
-        ctx.getCorus().getContext().unsetResultFilter();
-      }
+      Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
+      results = results.filter(new Func<List<Property>, List<Property>>() {
+        @Override
+        public List<Property> call(List<Property> toFilter) {
+          return Collects.filterAsList(toFilter, new Condition<Property>() {
+            @Override
+            public boolean apply(Property property) {
+              return property.matches(pattern);
+            }
+          });
+        }
+      });
+      return Sorting.sortList(results, Property.class, ctx.getSortSwitches());
     } else {
       Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
       results = Sorting.sortList(results, Property.class, ctx.getSortSwitches());

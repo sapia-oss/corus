@@ -75,11 +75,11 @@ public class Match extends NoOptionCommand {
       
     } else if (arg.getName().equals(COMMAND)) {
       if (!cmd.hasNext() || !cmd.isNextArg()) {
-        throw new InputException("\"<command_line>\" expected after 'apply'");
+        throw new InputException("\"<command_line>\" expected after 'command'");
       }
       String command = cmd.assertNextArg().getName();
       if (!cmd.hasNext() || !cmd.isNextArg()) {
-        throw new InputException("<pattern> expected after 'apply'");
+        throw new InputException("<pattern> expected after 'command'");
       }
       patternArg = cmd.assertNextArg();
 
