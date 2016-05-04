@@ -20,6 +20,8 @@ import org.sapia.ubik.util.Streams;
  */
 public class HttpDeploymentClient extends AbstractDeploymentClient {
 
+  public static final int CHUNKED_CONTENT_LEN = 8000;
+  
   public static final String DEPLOYER_CONTEXT = "/corus/deployer";
 
   private URL url;
@@ -73,6 +75,7 @@ public class HttpDeploymentClient extends AbstractDeploymentClient {
       conn.setUseCaches(false);
       conn.setDoInput(true);
       conn.setDoOutput(true);
+      conn.setChunkedStreamingMode(CHUNKED_CONTENT_LEN);
     }
     return conn;
   }
