@@ -23,13 +23,13 @@ import org.sapia.ubik.util.Collects;
 
 /**
  * Kills running processes.
- * 
+ *
  * @author Yanick Duchesne
  */
 public class Kill extends CorusCliCommand {
 
   private static final long RETRY_PAUSE = 5000;
-  
+
   public static final OptionDef WAIT_COMPLETION_OPT = new OptionDef("w", false);
   public static final OptionDef HARD_KILL_OPT       = new OptionDef("hard", false);
 
@@ -37,23 +37,23 @@ public class Kill extends CorusCliCommand {
       OPT_PROCESS_ID, OPT_PROCESS_NAME, OPT_DIST, OPT_VERSION, OPT_PROFILE, OPT_OS_PID,
       OPT_PORT_RANGE, WAIT_COMPLETION_OPT, HARD_KILL_OPT, OPT_CLUSTER
   );
-  
+
   private static final long DEFAULT_WAIT_COMPLETION_TIMEOUT = 120000;
 
   private boolean suspend = false;
   private KillPreferences prefs;
-  
+
   protected Kill(boolean suspend) {
     this.suspend = suspend;
   }
 
   public Kill() {
   }
-  
+
   @Override
   protected void doInit(CliContext context) {
   }
-  
+
   @Override
   public List<OptionDef> getAvailableOptions() {
     return AVAIL_OPTIONS;
@@ -72,7 +72,7 @@ public class Kill extends CorusCliCommand {
     String  osPid        = null;
 
     CmdLine cmd = ctx.getCommandLine();
-    
+
     prefs.setSuspend(suspend);
     prefs.setHard(getOpt(ctx, HARD_KILL_OPT.getName()) != null);
 
@@ -134,7 +134,7 @@ public class Kill extends CorusCliCommand {
       if (cmd.containsOption(OPT_PORT_RANGE.getName(), true)) {
         portRange = cmd.assertOption(OPT_PORT_RANGE.getName(), true).getValue();
       }
-      
+
       if (portRange == null) {
         dist    = cmd.assertOption(OPT_DIST.getName(), true).getValue();
         version = cmd.assertOption(OPT_VERSION.getName(), true).getValue();
@@ -154,7 +154,7 @@ public class Kill extends CorusCliCommand {
       if (cmd.containsOption(OPT_PROCESS_NAME.getName(), true)) {
         vmName = cmd.assertOption(OPT_PROCESS_NAME.getName(), true).getValue();
       }
-      
+
       ProcessCriteria.Builder builder = ProcessCriteria.builder().name(vmName).profile(profile).distribution(dist).version(version);
       if (portRange != null) {
         builder.ports(PortCriteria.fromLiteral(portRange));
@@ -286,13 +286,13 @@ public class Kill extends CorusCliCommand {
         pids.add(pid);
     }
 
+    @Override
     public boolean isCompleted(CliContext ctx) {
       boolean completed = true;
       for (String vmId : pids) {
         try {
-          ctx.getCorus().getProcessorFacade().getProcess(vmId);
-          ctx.getCorus().getProcessorFacade().kill(vmId, prefs);
-          completed = false;
+          Process p = ctx.getCorus().getProcessorFacade().getProcess(vmId);
+          completed = (p == null);
         } catch (ProcessNotFoundException e) {
           completed = true;
         } catch (Exception e) {
@@ -311,6 +311,7 @@ public class Kill extends CorusCliCommand {
       this.criteria = criteria;
     }
 
+    @Override
     public boolean isCompleted(CliContext ctx) throws InputException {
       ClusterInfo cluster = getClusterInfo(ctx);
       ProcessorFacade processor = ctx.getCorus().getProcessorFacade();
