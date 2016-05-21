@@ -33,10 +33,19 @@
     </fileSet>
 
     <fileSet>
+       <outputDirectory>/META-INF/scripts</outputDirectory>
+       <directory>${basedir}/src/main/resources</directory>
+       <includes>
+          <include>*.corus</include>
+       </includes>
+    </fileSet>
+
+    <fileSet>
        <outputDirectory>/</outputDirectory>
        <directory>${basedir}/src/main/resources</directory>
        <includes>
           <include>*.magnet.xml</include>
+          <include>configure-*.txt</include>
        </includes>
     </fileSet>
 

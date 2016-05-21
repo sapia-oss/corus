@@ -32,9 +32,9 @@ import org.sapia.corus.client.sort.SortSwitchInfo;
 /**
  * This class implements a {@link Console} that may be embedded in applications
  * in order to interpret commands.
- * 
+ *
  * @author yduchesne
- * 
+ *
  */
 public class Interpreter extends Console implements CorusConsole {
 
@@ -46,7 +46,7 @@ public class Interpreter extends Console implements CorusConsole {
 
   /**
    * Creates an instance of this class that sends command output to the console.
-   * 
+   *
    * @param corus
    *          the {@link CorusConnector} to use.
    */
@@ -54,11 +54,11 @@ public class Interpreter extends Console implements CorusConsole {
     this(
         CorusConsoleOutput.DefaultCorusConsoleOutput.wrap(
             DefaultConsoleOutput.newInstance()
-        ), 
+        ),
         corus
     );
   }
-  
+
   /**
    * @param output
    *          the {@link ConsoleOutput} to which command output will be sent.
@@ -69,15 +69,15 @@ public class Interpreter extends Console implements CorusConsole {
     super(new InterpreterConsoleInput(), output);
     this.corus = corus;
   }
-  
+
   /**
    * @param autoCluster the {@link AutoClusterFlag} instance to use.
    */
   public void setAutoClusterInfo(AutoClusterFlag autoCluster) {
     this.autoCluster = autoCluster;
   }
-  
-  
+
+
   /**
    * @param parent
    *          the {@link Console} from which this instance is created.
@@ -96,12 +96,12 @@ public class Interpreter extends Console implements CorusConsole {
   public CorusConnector getCorus() {
     return corus;
   }
-  
+
   @Override
   public CorusCommandFactory getCommands() {
     return commandFactory;
   }
-  
+
   /**
    * @param commandFactory a {@link CorusCommandFactory} instance.
    */
@@ -112,9 +112,9 @@ public class Interpreter extends Console implements CorusConsole {
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
-   * 
+   *
    * This method closes the reader provided as input upon exiting.
-   * 
+   *
    * @param reader
    *          a {@link Reader} to read commands from.
    * @param vars
@@ -134,13 +134,13 @@ public class Interpreter extends Console implements CorusConsole {
   public void interpret(Reader reader, StrLookup vars) throws IOException, CommandNotFoundException, InputException, AbortException, Throwable {
     interpret(reader, new StrLookupState(vars));
   }
-  
+
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
-   * 
+   *
    * This method closes the reader provided as input upon exiting.
-   * 
+   *
    * @param reader
    *          a {@link Reader} to read commands from.
    * @param vars
@@ -164,7 +164,9 @@ public class Interpreter extends Console implements CorusConsole {
       BufferedReader bufReader = new BufferedReader(reader);
       String commandLine = null;
       while ((commandLine = bufReader.readLine()) != null) {
-        eval(commandLine.trim(), vars);
+        if (commandLine.trim().length() > 0) {
+          eval(commandLine.trim(), vars);
+        }
       }
     } finally {
       enableLogging(old);
@@ -179,7 +181,7 @@ public class Interpreter extends Console implements CorusConsole {
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
-   * 
+   *
    * @param commandLine
    *          the command-line to interpret.
    * @param vars
@@ -197,14 +199,14 @@ public class Interpreter extends Console implements CorusConsole {
   public Object eval(String commandLine, StrLookup vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
     return eval(commandLine, new StrLookupState(vars));
   }
-  
+
   /**
    * This method interprets the given command-line. That is: it parses it and
    * processes it into a command - executing the said command.
-   * 
+   *
    * @param commandLine
    *          the command-line to interpret.
-   * @param vars 
+   * @param vars
    *          a {@link StrLookupState} holding the values to use when performing variable interpolation.
    * @throws CommandNotFoundException
    *           if the command on the command-line is unknown.
@@ -217,16 +219,16 @@ public class Interpreter extends Console implements CorusConsole {
    * @return this instance.
    */
   public Object eval(String commandLine, StrLookupState vars) throws CommandNotFoundException, InputException, AbortException, Throwable {
-  
+
     Level old = Logger.getRootLogger().getLevel();
     disableLogging();
-    
+
     if (commandLine.startsWith(COMMENT_MARKER)) {
       FacadeInvocationContext.set(null);
       return null;
     }
-    
-    StrSubstitutor subs = new StrSubstitutor(vars.get());    
+
+    StrSubstitutor subs = new StrSubstitutor(vars.get());
     commandLine = subs.replace(commandLine);
 
     if (commandLine.isEmpty()) {
@@ -267,13 +269,13 @@ public class Interpreter extends Console implements CorusConsole {
   /**
    * Corus commands may return values that may then be acquired using this
    * method.
-   * 
+   *
    * @return the return value (if any) of the last interpreted command-line.
    */
   public Object get() {
     return FacadeInvocationContext.get();
   }
-  
+
   private CmdLine preprocess(Command command, CmdLine cmd) {
     if (command instanceof CorusCliCommand && autoCluster != null) {
       CorusCliCommand cliCmd = (CorusCliCommand) command;
@@ -309,18 +311,18 @@ public class Interpreter extends Console implements CorusConsole {
     }
     return cmd;
   }
-  
+
   // ==========================================================================
 
   static class InterpreterConsoleInput implements ConsoleInput {
-    
+
     private TerminalFacade terminal = new DefaultTerminalFacade();
 
     @Override
     public String readLine() throws IOException {
       throw new IllegalStateException("Cannot read command from input in interpreter mode");
     }
-    
+
     @Override
     public TerminalFacade getTerminal() {
       return terminal;
@@ -339,7 +341,7 @@ public class Interpreter extends Console implements CorusConsole {
     Logger.getRootLogger().setLevel(Level.OFF);
   }
 
-  
+
   /**
    * @param level {@link Level} the level reassign.
    */

@@ -17,6 +17,7 @@ import org.sapia.corus.client.cli.ClientFileSystem;
 import org.sapia.corus.client.common.Matcheable;
 import org.sapia.corus.client.common.Matcheable.Pattern;
 import org.sapia.corus.client.facade.CorusConnectionContext;
+import org.sapia.corus.client.facade.FacadeInvocationContext;
 import org.sapia.corus.client.facade.HostSelectionContext;
 import org.sapia.corus.client.facade.HostSelectionContextImpl;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -24,7 +25,7 @@ import org.sapia.ubik.net.ServerAddress;
 
 /**
  * An embedded {@link CorusConnectionContext} which allows running the Corus CLI "in-VM".
- * 
+ *
  * @author yduchesne
  *
  */
@@ -36,11 +37,11 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   private ClientFileSystem     fileSys;
   private Stack<Pattern>       resultFilter  = new Stack<Matcheable.Pattern>();
   private HostSelectionContext hostSelection = new HostSelectionContextImpl();
-  
+
   {
-    resultFilter.push(Matcheable.AnyPattern.newInstance()); 
+    resultFilter.push(Matcheable.AnyPattern.newInstance());
   }
-  
+
   /**
    * @param corus
    *          the local Corus instance.
@@ -66,29 +67,29 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
   public String getDomain() {
     return corus.getDomain();
   }
-  
+
   @Override
   public void setResultFilter(Pattern pattern) {
     resultFilter.push(pattern);
   }
-  
+
   @Override
   public Pattern getResultFilter() {
     return resultFilter.peek();
   }
-  
+
   @Override
   public void unsetResultFilter() {
     if (resultFilter.size() > 1) {
       resultFilter.pop();
     }
   }
-  
+
   @Override
   public Collection<CorusHost> getOtherHosts() {
     return Collections.emptyList();
   }
-  
+
   @Override
   public HostSelectionContext getSelectedHosts() {
     return hostSelection;
@@ -127,6 +128,7 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
         resultList.add(result);
       }
     });
+    FacadeInvocationContext.set(resultList);
 
     try {
       T returnValue = (T) method.invoke(lookup(moduleInterface), params);
@@ -161,14 +163,14 @@ public class EmbeddedCorusConnectionContext implements CorusConnectionContext {
     Object module = corus.lookup(moduleInterface.getName());
     return moduleInterface.cast(module);
   }
-  
+
   // --------------------------------------------------------------------------
   // Not implemented
-  
+
   @Override
   public void connect(String host, int port) {
   }
-  
+
   @Override
   public void connect(CorusHost host) {
   }
