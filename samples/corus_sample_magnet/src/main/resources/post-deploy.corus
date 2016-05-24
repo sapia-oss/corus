@@ -1,0 +1,3 @@
+match apply configure-small.txt small conf ls -p env.profile
+
+match apply configure-large.txt large conf ls -p env.profile

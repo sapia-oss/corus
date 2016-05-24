@@ -1,0 +1,3 @@
+kill -w -d sample-magnet -v * -n *
+
+undeploy -d sample-magnet -v *
