@@ -94,7 +94,7 @@ public class CircularBuffer<T> implements Iterable<T> {
   public synchronized Iterator<T> iterator() {
     return new ArrayList<T>(delegate).iterator();
   }
-  
+
   @Override
   public synchronized String toString() {
     return delegate.toString();
