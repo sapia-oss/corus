@@ -76,13 +76,14 @@
     </magnet>
   </process>  
   
+  <!-- 
   <process name="memcached" maxKillRetry="3" shutdownTimeout="300000" tags="docker-test"
     invoke="true">
 
-    <!-- Server profile -->
     <docker image="mini/memcached" profile="server">
       <portMapping hostPort="11211" containerPort="11211" />
     </docker>
 
-  </process> 
+  </process>
+  --> 
 </distribution>
