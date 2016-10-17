@@ -105,7 +105,7 @@ public class DockerImageDeploymentReplicationProcessorTest {
     
     when(taskContext.getTaskManager()).thenReturn(taskManager);
     when(taskContext.getServerContext()).thenReturn(serverContext);
-    when(serverContext.getCorusHost()).thenReturn(CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "test-os", "test-jvm", mock(PublicKey.class)));
+    when(serverContext.getCorusHost()).thenReturn(CorusHost.newInstance("test-node", new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "test-os", "test-jvm", mock(PublicKey.class)));
     when(configuration.getRepoDir()).thenReturn(repoDir.getAbsolutePath());
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
     doAnswer(new Answer<DeployOutputStream>() {

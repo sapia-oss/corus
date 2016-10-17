@@ -71,6 +71,7 @@ public class RestContainerTest {
     when(connector.getContext()).thenReturn(connectionContext);
     when(connectionContext.getServerHost()).thenReturn(
         CorusHost.newInstance(
+            "test-node", 
             new Endpoint(address, address), "os", "jvm", 
             Encryption.generateDefaultKeyPair().getPublic()
         )

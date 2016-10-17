@@ -31,7 +31,7 @@ public class ClusterInvokerTest {
   @Before
   public void setUp() throws Exception {
     Endpoint ep = new Endpoint(new HttpAddress(Uri.parse("http://test")), channelAddress);
-    CorusHost host = CorusHost.newInstance(ep, "os", "vm", mock(PublicKey.class));
+    CorusHost host = CorusHost.newInstance("test-node", ep, "os", "vm", mock(PublicKey.class));
     TestInvocationDispatcher dispatcher = new TestInvocationDispatcher(host);
     dispatcher.add(TestInterface.class, new TestInterfaceImpl());
     invoker = new ClusterInvoker<TestInterface>(TestInterface.class, dispatcher);
