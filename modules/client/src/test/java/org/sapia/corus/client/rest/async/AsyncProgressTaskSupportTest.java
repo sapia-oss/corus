@@ -293,6 +293,7 @@ public class AsyncProgressTaskSupportTest {
   
   private CorusHost createHost() {
     return CorusHost.newInstance(
+        "test-node", 
         new Endpoint(Mockito.mock(ServerAddress.class), Mockito.mock(ServerAddress.class)), "testOs", "testJvm",
         mock(PublicKey.class)
     );

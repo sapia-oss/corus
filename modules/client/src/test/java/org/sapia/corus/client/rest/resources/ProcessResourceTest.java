@@ -76,6 +76,7 @@ public class ProcessResourceTest {
     int processCount = 0;
     for (int i = 0; i < 5; i++) {
       CorusHost host = CorusHost.newInstance(
+          "test-node", 
           new Endpoint(new TCPAddress("test", "host-" + i, i), mock(ServerAddress.class)), 
           "os-" + i, 
           "jvm-" + i,
@@ -136,6 +137,7 @@ public class ProcessResourceTest {
     when(request.getValue("corus:process_id")).thenReturn(new Value("corus:process_id", "" + 0));
     results = new Results<List<Process>>();
     CorusHost host = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(new TCPAddress("test", "host", 0), mock(ServerAddress.class)), 
         "os", 
         "jvm",

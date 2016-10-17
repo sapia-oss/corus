@@ -34,11 +34,11 @@ public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
     
     emptyHosts     = new HashSet<CorusHost>();
     
-    CorusHost client = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
+    CorusHost client = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
     client.setRepoRole(RepoRole.CLIENT);
     clientHosts    = Collects.arrayToSet(client);
     
-    CorusHost server = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
+    CorusHost server = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", 1000), new TcpSocketAddress("test", 1000)), "test", "test", mock(PublicKey.class));
     server.setRepoRole(RepoRole.SERVER);
     serverHosts    = Collects.arrayToSet(server);
     

@@ -86,7 +86,7 @@ public class ConsulPublisherTest {
   @Before
   public void setUp() throws Exception {
     
-    corusHost = CorusHost.newInstance(new Endpoint(new TCPAddress("test", "localhost", 33000), mock(ServerAddress.class)), "test", "test", mock(PublicKey.class));
+    corusHost = CorusHost.newInstance("test-node", new Endpoint(new TCPAddress("test", "localhost", 33000), mock(ServerAddress.class)), "test", "test", mock(PublicKey.class));
     publisher = new ConsulPublisher() {
       @Override
       ConsulResponseFacade doInvokeUrl(URL url, String httpMethod) throws IOException {

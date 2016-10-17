@@ -67,6 +67,7 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
   public static String localHostName;
   public static final String UNDEFINED_HOSTNAME = "N/A";
 
+  private String   node;
   private Endpoint endpoint;
   private String   osInfo;
   private String   javaVmInfo;
@@ -99,14 +100,22 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
    *          the Java VM info.
    * @return a new {@link CorusHost}.
    */
-  public static CorusHost newInstance(Endpoint endpoint, String anOsInfo, String aJavaVmInfo, PublicKey pubKey) {
+  public static CorusHost newInstance(String node, Endpoint endpoint, String anOsInfo, String aJavaVmInfo, PublicKey pubKey) {
     CorusHost created = new CorusHost();
+    created.node = node;
     created.endpoint = endpoint;
     created.osInfo = anOsInfo;
     created.javaVmInfo = aJavaVmInfo;
     created.hostName = localHostName;
     created.publicKey = pubKey;
     return created;
+  }
+  
+  /**
+   * @return this instance's node identifier.
+   */
+  public String getNode() {
+    return node;
   }
 
   /**
@@ -268,6 +277,7 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    this.node = in.readUTF();
     this.endpoint = (Endpoint) in.readObject();
     this.osInfo = (String) in.readObject();
     this.javaVmInfo = (String) in.readObject();
@@ -279,6 +289,7 @@ public class CorusHost implements Externalizable, JsonStreamable, Matcheable, Ma
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeUTF(node);
     out.writeObject(endpoint);
     out.writeObject(osInfo);
     out.writeObject(javaVmInfo);

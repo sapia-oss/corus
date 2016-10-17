@@ -62,6 +62,7 @@ public class ServerSideClusterInterceptorTest {
     cmd         = new ClusteredCommand(new TestCommand());
     KeyPair kp = Encryption.generateDefaultKeyPair();
     CorusHost host = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(nextAddress, nextAddress), 
         "osInfo", 
         "jvmInfo", 

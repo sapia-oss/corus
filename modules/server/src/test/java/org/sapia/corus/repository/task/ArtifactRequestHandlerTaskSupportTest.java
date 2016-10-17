@@ -73,6 +73,7 @@ public class ArtifactRequestHandlerTaskSupportTest {
   @Before
   public void setUp() throws Exception {
     currentHost = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(
             mock(ServerAddress.class), 
             mock(ServerAddress.class)
