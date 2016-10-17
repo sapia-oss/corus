@@ -45,19 +45,20 @@ import org.sapia.corus.http.HttpExtensionManager;
 import org.sapia.corus.http.helpers.AccessDeniedHelper;
 import org.sapia.corus.http.helpers.NotFoundHelper;
 import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Chrono;
 
 /**
- * This extension serves files from the corus.home dir. 
+ * This extension serves files from the corus.home dir.
  * It can be accessed with an URL similar as the following one:
  * <p>
- * 
+ *
  * <pre>
  * http://localhost:33000/files/
  * </pre>
- * 
- * 
+ *
+ *
  * @author yduchesne
- * 
+ *
  */
 public class FileSystemExtension implements HttpExtension, Interceptor {
 
@@ -104,15 +105,15 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName));
       }
     }
-    
+
     String hidePatterns = context.getCorusProperties().getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS);
     processHiddenFilePatterns(hidePatterns);
-    
+
     hidePatterns = context.getServices().getConfigurator()
           .getProperties(PropertyScope.SERVER, new ArrayList<String>(0))
           .getProperty(CorusConsts.PROPERTY_CORUS_FILE_HIDE_PATTERNS);
     processHiddenFilePatterns(hidePatterns);
-    
+
     for (String propName : serverProps.stringPropertyNames()) {
       if (propName.startsWith(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX)) {
         symlinks.put(propName.substring(CorusConsts.PROPERTY_CORUS_FILE_LINK_PREFIX.length()), serverProps.getProperty(propName));
@@ -150,7 +151,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       }
     }
   }
-  
+
   @Override
   public HttpExtensionInfo getInfo() {
     HttpExtensionInfo info = new HttpExtensionInfo();
@@ -189,11 +190,11 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       output(requested, ctx);
     }
   }
-  
+
   @Override
   public void destroy() {
   }
-  
+
   boolean isAccessAllowed(File f) {
     for (ArgMatcher pattern : hiddenFilePatterns) {
       if (pattern.matches(f.getAbsolutePath().toLowerCase())) {
@@ -202,15 +203,15 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
     }
     return true;
   }
-  
+
   void processHiddenFilePatterns(String hidePatterns) {
     if (hidePatterns != null) {
       StrSubstitutor sbs = new StrSubstitutor(StrLookups.merge(
-          PropertiesStrLookup.getInstance(context.getCorusProperties()), 
+          PropertiesStrLookup.getInstance(context.getCorusProperties()),
           PropertiesStrLookup.getSystemInstance())
        );
       String thePatterns = FileUtil.fixFileSeparators(sbs.replace(hidePatterns.toLowerCase()));
-      
+
       String[] patterns = StringUtils.split(thePatterns, ",");
       if (patterns.length > 0) {
         Set<ArgMatcher> newPatterns = new HashSet<>();
@@ -227,10 +228,10 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
     if (ACTION_COMPRESS_FILE.equals(action)) {
       compressFileContent(requested, ctx);
-      
+
     } else if (ACTION_COMPRESS_ALL_FILES.equals(action)) {
       compressDirContent(requested, false, ctx);
-      
+
     } else if (ACTION_COMPRESS_ALL_FILES_RECURSIVE.equals(action)) {
       compressDirContent(requested, true, ctx);
 
@@ -294,7 +295,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
           dirs.add(FileEntry.createNewLink(linkEntry.getKey(), new File(linkEntry.getValue())));
         }
       }
-      
+
       String sortBy    = ctx.getRequest().getParameter(PARAM_SORT_BY);
       String sortOrder = ctx.getRequest().getParameter(PARAM_SORT_ORDER);
       Comparator<FileEntry> sort;
@@ -302,33 +303,33 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         sort = FileEntry.sortByName();
       } else if (sortBy.equalsIgnoreCase(SORT_BY_DATE)) {
         sort = FileEntry.sortByDate();
-      } else if (sortBy.equalsIgnoreCase(SORT_BY_SIZE)) { 
+      } else if (sortBy.equalsIgnoreCase(SORT_BY_SIZE)) {
         sort = FileEntry.sortBySize();
       } else {
         sort = FileEntry.sortByName();
       }
       if (sortOrder != null && sortOrder.equalsIgnoreCase(SORT_ORDER_DESC)) {
         sort = new ReverseComparator<FileEntry>(sort);
-      } 
-      
+      }
+
       String newSortOrder = StringUtils.isBlank(sortOrder) || sortOrder.equalsIgnoreCase(SORT_ORDER_ASC) ? SORT_ORDER_DESC : SORT_ORDER_ASC;
-      
+
       Collections.sort(dirs, sort);
       Collections.sort(files, sort);
 
       ps.println("<p><b>Content:</b></p><ul>");
       ps.println("<table border=\"1\" cellspacing=\"0\" cellpadding=\"4\" width=\"80%\">");
       ps.println("<th width=\"5%\" style=\"background: #f0f0f0;\"></th>"
-          + "<th width=\"40%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=name&sortOrder=" + newSortOrder + "\">Name</a></th>" 
+          + "<th width=\"40%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=name&sortOrder=" + newSortOrder + "\">Name</a></th>"
           + "<th width=\"10%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=size&sortOrder=" + newSortOrder + "\">Size</a></th>"
           + "<th width=\"15%\" style=\"background: #f0f0f0;\"><a href=\"?sortBy=date&sortOrder=" + newSortOrder + "\">Last Modified</a></th>");
-      
+
       for (int i = 0; i < dirs.size(); i++) {
         printFileInfo(dirs.get(i), ps, ctx);
       }
       for (int i = 0; i < files.size(); i++) {
         FileEntry f = files.get(i);
-        if (isAccessAllowed(f.getFile())) 
+        if (isAccessAllowed(f.getFile()))
         printFileInfo(f, ps, ctx);
       }
       ps.println("</table></ul><br/>");
@@ -353,6 +354,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
       FileInputStream fis = new FileInputStream(file);
 
       log.info("Sending out file " + file.getName() + " (" + formatFileSize(file) + ") ...");
+      Chrono timer = new Chrono();
       OutputStream os = null;
       try {
         byte[] buf = new byte[BUFSZ];
@@ -375,9 +377,8 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
         } catch (IOException e) {
           // noop
         }
-        log.info("Streaming of file " + file.getName() + " is completed");
+        log.info("Streaming of file " + file.getName() + " is completed in " + timer.getElapsed() + " millis");
       }
-
     }
   }
 
@@ -418,7 +419,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
   private File doGetNewTemporaryZipFileFor(String aZipFileName) {
     String tmpDir = context.getServices().getDeployer().getConfiguration().getTempDir();
-    
+
     int counter = 0;
     File zipFile = new File(tmpDir, aZipFileName);
     while (zipFile.exists()) {
@@ -429,10 +430,10 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
 
       zipFile = new File(tmpDir, aZipFileName);
     }
-    
+
     return zipFile;
   }
-  
+
   private void compressFileContent(File file, HttpContext ctx) throws Exception {
     String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
     String hostName = context.getCorusHost().getHostName();
@@ -453,7 +454,7 @@ public class FileSystemExtension implements HttpExtension, Interceptor {
   private void compressDirContent(File file, boolean isRecursive, HttpContext ctx) throws Exception {
     String domainName = System.getProperty(CorusConsts.PROPERTY_CORUS_DOMAIN);
     String hostName = context.getCorusHost().getHostName();
-    
+
     File zipFile = doGetNewTemporaryZipFileFor(file.getName() + "-" + hostName + "@" + domainName + ".zip");
     FileSystemModule fsService = context.getServices().getFileSystem();
     try {

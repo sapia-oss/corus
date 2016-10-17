@@ -2,9 +2,10 @@ package org.sapia.corus.http;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log.Logger;
@@ -23,9 +24,9 @@ import org.simpleframework.http.Response;
 
 /**
  * An instance of this class manages {@link HttpExtension}s.
- * 
+ *
  * @author yduchesne
- * 
+ *
  */
 public class HttpExtensionManager implements Handler {
 
@@ -51,11 +52,11 @@ public class HttpExtensionManager implements Handler {
    * This method internally registers the given extension under the context path
    * that is provided. Then, the extension can be reached by typing a URL of the
    * following form in a browser:
-   * 
+   *
    * <pre>
    * &lt;http&gt;://&lt;corus_host&gt;:&lt;corus_port&gt;/corus/ext/&lt;contextPath&gt;
    * </pre>
-   * 
+   *
    * @param ext
    *          a {@link HttpExtension}.
    */
@@ -101,48 +102,51 @@ public class HttpExtensionManager implements Handler {
 
   private void doHandle(Request req, Response res) throws Exception {
 
+    // Avoid any synchronization by copying all extension infos
+    List<HttpExtensionInfo> extInfos = new ArrayList<>(extensions.keySet());
+
     if (req.getPath().getSegments().length == 0) {
-      synchronized (extensions) {
-        HomePageHelper helper = new HomePageHelper(context, extensions.keySet());
-        helper.print(req, res);
-      }
+      HomePageHelper helper = new HomePageHelper(context, extInfos);
+      helper.print(req, res);
+
     } else {
-      synchronized (extensions) {
-        Iterator<HttpExtensionInfo> infos = extensions.keySet().iterator();
-        Path path = req.getPath();
-        if (logger.isDebugEnabled()) {
-          logger.debug(String.format("Trying to find HTTP extension for %s", path.getPath()));
-        }
-        while (infos.hasNext()) {
-          HttpExtensionInfo info = infos.next();
-          if (path.getPath().startsWith(info.getContextPath())) {
-            HttpExtension ext = (HttpExtension) extensions.get(info);
-            HttpContext ctx = new HttpContext();
-            ctx.setRequest(new DefaultHttpRequestFacade(req));
-            ctx.setResponse(new DefaultHttpResponseFacade(res));
-            ctx.setContextPath(info.getContextPath());
-            if (path.getPath().equals(info.getContextPath())) {
-              ctx.setPathInfo("");
-            } else {
-              ctx.setPathInfo(req.getPath().getPath().substring(info.getContextPath().length()));
-            }
-            if (logger.isDebugEnabled()) {
-              logger.debug("Found extension for URI: " + path + "; path info = " + ctx.getPathInfo());
-            }
-            try {
-              ext.process(ctx);
-              return;
-            } catch (FileNotFoundException e) {
-              logger.error("URI not recognized: " + path);
-              NotFoundHelper out = new NotFoundHelper();
-              out.print(new DefaultHttpRequestFacade(req), new DefaultHttpResponseFacade(res));
-              return;
-            } catch (Exception e) {
-              logger.error("Error caught while handling request", e);
-              res.setCode(HttpResponseFacade.STATUS_SERVER_ERROR);
-              Streams.closeSilently(res.getOutputStream());
-              return;
-            }
+      Path path = req.getPath();
+      if (logger.isDebugEnabled()) {
+        logger.debug(String.format("Trying to find HTTP extension for %s", path.getPath()));
+      }
+      for (HttpExtensionInfo info: extInfos) {
+        if (path.getPath().startsWith(info.getContextPath())) {
+          HttpExtension ext = extensions.get(info);
+          if (ext == null) {
+            // edge case if extension was removed from the map since we got the list of extension infos
+            continue;
+          }
+
+          HttpContext ctx = new HttpContext();
+          ctx.setRequest(new DefaultHttpRequestFacade(req));
+          ctx.setResponse(new DefaultHttpResponseFacade(res));
+          ctx.setContextPath(info.getContextPath());
+          if (path.getPath().equals(info.getContextPath())) {
+            ctx.setPathInfo("");
+          } else {
+            ctx.setPathInfo(req.getPath().getPath().substring(info.getContextPath().length()));
+          }
+          if (logger.isDebugEnabled()) {
+            logger.debug("Found extension for URI: " + path + "; path info = " + ctx.getPathInfo());
+          }
+          try {
+            ext.process(ctx);
+            return;
+          } catch (FileNotFoundException e) {
+            logger.error("URI not recognized: " + path);
+            NotFoundHelper out = new NotFoundHelper();
+            out.print(new DefaultHttpRequestFacade(req), new DefaultHttpResponseFacade(res));
+            return;
+          } catch (Exception e) {
+            logger.error("Error caught while handling request", e);
+            res.setCode(HttpResponseFacade.STATUS_SERVER_ERROR);
+            Streams.closeSilently(res.getOutputStream());
+            return;
           }
         }
       }
