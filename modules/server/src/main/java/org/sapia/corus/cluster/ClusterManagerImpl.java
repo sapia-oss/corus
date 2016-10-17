@@ -18,6 +18,9 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ModuleHelper;
+import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
+import org.sapia.corus.taskmanager.core.Task;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
@@ -43,16 +46,17 @@ import org.sapia.ubik.util.Func;
 @Remote(interfaces = ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, AsyncEventListener, EventChannelStateListener {
 
-  private static final int START_UP_DELAY            = 15000;
-  private static final int RECONNECTION_DELAY        = 10000;
-  private static final int RECONNECTION_DELAY_OFFSET = 2000;
+  private static final int CLUSTER_STATE_CHECK_INTERVAL = 5000;
+  private static final int START_UP_DELAY               = 15000;
+  private static final int RECONNECTION_DELAY           = 10000;
+  private static final int RECONNECTION_DELAY_OFFSET    = 2000;
 
-  private EventChannel                 channel;
-  private Set<CorusHost>               hostsInfos        = Collections.synchronizedSet(new HashSet<CorusHost>());
-  private Map<String, CorusHost>       hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
-  private ServerSideClusterInterceptor interceptor;
-  private DeferredAsyncListener        deferredListeners = new DeferredAsyncListener();
-  private long                         startTime         = System.currentTimeMillis();
+  private EventChannel                  channel;
+  //private Map<ServerAddress, CorusHost> hostsByAddress    = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
+  private Map<String, CorusHost>        hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
+  private ServerSideClusterInterceptor  interceptor;
+  private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
+  private long                          startTime         = System.currentTimeMillis();
 
   /**
    * @see Service#init()
@@ -96,6 +100,27 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
+
+    BackgroundTaskConfig taskConf = BackgroundTaskConfig.create().setExecDelay(CLUSTER_STATE_CHECK_INTERVAL).setExecInterval(CLUSTER_STATE_CHECK_INTERVAL);
+    serverContext().getServices().getTaskManager().executeBackground(new Task<Void, Void>() {
+      @Override
+      public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
+        if (channel.getView().getNodeCount() != hostsByNode.size()) {
+          logger().info("Detected cluster desynchronization, refreshing view");
+          Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
+          channelNodes.removeAll(hostsByNode.keySet());
+          for (String channelNode : channelNodes) {
+            try {              
+              channel.send(channel.getView().getNodeInfo(channelNode).getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+            } catch (IOException e) {
+              log.error("Error caught trying refresh cluster view", e);
+            } 
+          }
+        }
+        return null;
+      }
+    }, null,taskConf);
+    
     publish();
   }
   
@@ -137,23 +162,23 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public synchronized Set<ServerAddress> getHostAddresses() {
-    return Collects.convertAsSet(this.hostsInfos, new Func<ServerAddress, CorusHost>() {
+    return Collects.convertAsSet(hostsByNode.values(), new Func<ServerAddress, CorusHost>() {
       @Override
-      public ServerAddress call(CorusHost arg) {
-        return arg.getEndpoint().getServerAddress();
+      public ServerAddress call(CorusHost host) {
+        return host.getEndpoint().getServerAddress();
       }
     });
   }
 
   @Override
   public synchronized Set<CorusHost> getHosts() {
-    return new HashSet<CorusHost>(hostsInfos);
+    return new HashSet<CorusHost>(hostsByNode.values());
   }
   
   @Override
   public CorusHost resolveHost(ServerAddress hostAddress)
       throws IllegalArgumentException {
-    for (CorusHost h : hostsInfos) {
+    for (CorusHost h : hostsByNode.values()) {
       if (h.getEndpoint().getServerAddress().equals(hostAddress)) {
         return h;
       }
@@ -163,7 +188,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public ClusterStatus getClusterStatus() {
-    return new ClusterStatus(this.serverContext.getCorus().getHostInfo(), this.hostsInfos.size());
+    return new ClusterStatus(this.serverContext.getCorus().getHostInfo(), this.hostsByNode.size());
   }
 
   @Override
@@ -214,19 +239,10 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
     if (event instanceof CorusPubEvent) {
       CorusPubEvent evt = (CorusPubEvent) event;
-
-      if (hostsInfos.add(evt.getOrigin())) {
-        log.info(String.format("Corus discovered at %s", evt.getOrigin().getEndpoint().getServerAddress()));
-        hostsInfos.add(evt.getOrigin());
-      } else {
-        log.info(String.format("Corus discovered at %s; already registered (that node probably was restarted): ", evt.getOrigin().getEndpoint()
-            .getServerAddress()));
+      addNode(evt.getOrigin());
+      if (log.isDebugEnabled()) {
+        log.debug(String.format("Current hosts: %s", hostsByNode.values()));
       }
-
-      log.debug(String.format("Current addresses: %s", hostsInfos));
-
-      hostsByNode.put(remote.getNode(), evt.getOrigin());
-
       try {
         channel.dispatch(remote.getUnicastAddress(), CorusDiscoEvent.class.getName(), new CorusDiscoEvent(serverContext().getCorusHost()));
       } catch (IOException e) {
@@ -238,55 +254,35 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
     } else if (event instanceof CorusDiscoEvent) {
       CorusDiscoEvent evt = (CorusDiscoEvent) event;
-      if (hostsInfos.add(evt.getOrigin())) {
-        log.debug(String.format("Existing corus discovered: %s", evt.getOrigin().getEndpoint().getServerAddress()));
-        hostsInfos.add(evt.getOrigin());
+      addNode(evt.getOrigin());
+      if (log.isDebugEnabled()) {
+        log.debug(String.format("Current hosts: %s", hostsByNode.values()));
       }
-      log.debug(String.format("Current addresses: %s", hostsInfos));
-      hostsByNode.put(remote.getNode(), evt.getOrigin());
     }
   }
 
   @Override
   public synchronized void onDown(final EventChannelEvent event) {
-    synchronized (hostsByNode) {
-      CorusHost host = hostsByNode.remove(event.getNode());
-      if (host != null) {
-        log.info(String.format("Corus server detected as down: %s. Removing from cluster view", host.getEndpoint()));
-        synchronized (hostsInfos) {
-          hostsInfos.remove(host);
-        }
-      }
-    }
+    removeNode(event.getNode());
   }
   
   @Override
   public void onLeft(EventChannelEvent event) {
-    synchronized (hostsByNode) {
-      CorusHost host = hostsByNode.remove(event.getNode());
-      if (host != null) {
-        log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host.getEndpoint()));
-        synchronized (hostsInfos) {
-          hostsInfos.remove(host);
-        }
-      }
-    }
+    removeNode(event.getNode());
   }
 
   @Override
   public void onUp(EventChannelEvent event) {
-    if (!hostsByNode.containsKey(event.getNode())) {
-      try {
-        // we want to make sure we're not sending a pub event prior to the
-        // discovery process triggered at
-        // startup having completed.
-        if (System.currentTimeMillis() - startTime >= START_UP_DELAY) {
-          log.debug("Corus appeared in cluster but not yet in host list; signaling presence to trigger discovery process");
-          channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-        }
-      } catch (IOException e) {
-        log.debug("Error sending publish event", e);
+    try {
+      // we want to make sure we're not sending a pub event prior to the
+      // discovery process triggered at
+      // startup having completed.
+      if (System.currentTimeMillis() - startTime >= START_UP_DELAY) {
+        log.debug("Corus appeared in cluster but not yet in host list; signaling presence to trigger discovery process");
+        channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
       }
+    } catch (IOException e) {
+      log.debug("Error sending publish event", e);
     }
   }
   
@@ -298,6 +294,20 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   @Override
   public void onHeartbeatResponse(EventChannelEvent event) {
     onUp(event);
+  }
+  
+  private void removeNode(String node) {
+    CorusHost host = hostsByNode.remove(node);
+    if (host != null) {
+      log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host));
+    }
+  }
+  
+  private void addNode(CorusHost host) {
+    log.info(String.format("Corus server discovered: %s. Removing from cluster view", host.getEndpoint()));
+    synchronized (hostsByNode) {   
+      hostsByNode.put(host.getNode(), host);
+    }
   }
 
 }

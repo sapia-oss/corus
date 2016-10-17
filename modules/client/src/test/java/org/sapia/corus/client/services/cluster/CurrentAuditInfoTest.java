@@ -30,6 +30,7 @@ public class CurrentAuditInfoTest {
     
     KeyPair kp = Encryption.generateDefaultKeyPair();
     host = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(address, address), 
         "osInfo", 
         "jvmInfo", 
@@ -37,6 +38,7 @@ public class CurrentAuditInfoTest {
     );
     
     host2 = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(address2, address2), 
         "osInfo", 
         "jvmInfo", 

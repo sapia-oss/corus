@@ -120,7 +120,7 @@ public class RepositoryImplTest {
   
   private CorusHost createCorusHost(RepoRole repoRole) {
     
-    CorusHost host = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", corusPort++), new TcpSocketAddress("test", corusPort++)), "testOsInfo", "testVMInfo", mock(PublicKey.class));
+    CorusHost host = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", corusPort++), new TcpSocketAddress("test", corusPort++)), "testOsInfo", "testVMInfo", mock(PublicKey.class));
     host.setRepoRole(repoRole);
     return host;
   }

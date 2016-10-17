@@ -49,7 +49,7 @@ public abstract class AbstractRepoTaskTest {
     security       = mock(SecurityModule.class);
     appkeys        = mock(ApplicationKeyManager.class);
     
-    node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
+    node = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
     node.setRepoRole(RepoRole.CLIENT);
     
     when(taskContext.getServerContext()).thenReturn(serverContext);

@@ -32,7 +32,7 @@ public class ResultTest {
  
   @Before
   public void setUp() {
-    host             = CorusHost.newInstance(new Endpoint(addr, addr), "osInfo", "jvmInfo", mock(PublicKey.class));
+    host             = CorusHost.newInstance("test-node", new Endpoint(addr, addr), "osInfo", "jvmInfo", mock(PublicKey.class));
     elementResult    = new Result<MatcheableString>(host, string("test"), Result.Type.ELEMENT);
     collectionResult = new Result<List<MatcheableString>>(host, Collects.arrayToList(string("1"), string("2"), string("3")), Result.Type.COLLECTION);
     Map<Integer, MatcheableString> map = new HashMap<Integer, MatcheableString>();

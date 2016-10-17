@@ -43,7 +43,7 @@ public class CliUtilTest {
     results.setInvocationCount(5);
     for (int i = 0; i < 5; i++) {
       Endpoint ep = new Endpoint(new HttpAddress(Uri.parse("http://test_" + i)), channelAddress);
-      CorusHost host = CorusHost.newInstance(ep, "os_" + i, "vm_" + i, mock(PublicKey.class));
+      CorusHost host = CorusHost.newInstance("test-node", ep, "os_" + i, "vm_" + i, mock(PublicKey.class));
       host.setRepoRole(RepoRole.NONE);
       
       Result<String> r = new Result<String>(host, "data_i", Result.Type.ELEMENT);

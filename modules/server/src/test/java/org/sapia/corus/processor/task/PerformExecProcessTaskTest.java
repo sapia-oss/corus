@@ -47,7 +47,7 @@ public class PerformExecProcessTaskTest extends TestBaseTask {
       Configurator configurator = mock(Configurator.class);
       portManager = mock(PortManager.class);
 
-      CorusHost node = CorusHost.newInstance(new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
+      CorusHost node = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", 1001), new TcpSocketAddress("test", 1001)), "test", "test", mock(PublicKey.class));
       node.setRepoRole(RepoRole.CLIENT);
 
       when(taskContext.getServerContext()).thenReturn(serverContext);

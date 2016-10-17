@@ -171,6 +171,7 @@ public class DiagnosticResourceTest {
   
   private Result<GlobalDiagnosticResult> createHostResult(int index, List<ProcessConfigDiagnosticResult> processResults, ProgressDiagnosticResult progressResult) {
     CorusHost host = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(new TCPAddress("test", "host-" + index, index), mock(ServerAddress.class)), 
         "os-" + index, 
         "jvm-" + index,
