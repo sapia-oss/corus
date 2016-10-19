@@ -49,7 +49,7 @@ public class ServerContextImpl implements ServerContext {
     this.corus = corus;
     this.transport = transport;
     this.eventChannel = channel;
-    this.hostInfo = CorusHost.newInstance(new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO, keyPair.getPublic());
+    this.hostInfo = CorusHost.newInstance(channel.getNode(), new Endpoint(serverAddress, channel.getUnicastAddress()), OS_INFO, JAVA_VM_INFO, keyPair.getPublic());
     this.domain = domain;
     this.homeDir = homeDir;
     this.services = services;

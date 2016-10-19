@@ -25,7 +25,7 @@ public class ResultsTest {
 
   @Before
   public void setUp() throws Exception {
-    origin = CorusHost.newInstance(new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm", mock(PublicKey.class));
+    origin = CorusHost.newInstance("test-node", new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "os", "jvm", mock(PublicKey.class));
     results = new Results<Integer>();
     results.setTimeout(1000);
   }

@@ -124,7 +124,7 @@ public class PartialDiagnosticTaskTest {
   
 
   private CorusHost corusHost(int i) {
-    return CorusHost.newInstance(new Endpoint(new TCPAddress("test", "host-" + i, i), new TCPAddress("test", "host-" + i, i)), "os", "jvm", mock(PublicKey.class));
+    return CorusHost.newInstance("test-node", new Endpoint(new TCPAddress("test", "host-" + i, i), new TCPAddress("test", "host-" + i, i)), "os", "jvm", mock(PublicKey.class));
   }
 
 }

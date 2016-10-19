@@ -66,6 +66,7 @@ public class ClusteredCommandTest {
     encryption = Encryption.getDefaultEncryptionContext(keypair.getPublic());
     decryption = Encryption.getDefaultDecryptionContext(keypair.getPrivate());
     host = CorusHost.newInstance(
+        "test-node", 
         new Endpoint(address, address), 
         "osInfo", 
         "jvmInfo", 

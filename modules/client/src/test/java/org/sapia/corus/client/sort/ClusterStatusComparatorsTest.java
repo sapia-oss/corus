@@ -42,7 +42,7 @@ public class ClusterStatusComparatorsTest {
   }
   
   private ClusterStatus status(String host, int port) {
-    CorusHost h = CorusHost.newInstance(new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
+    CorusHost h = CorusHost.newInstance("test-node", new Endpoint(new TCPAddress("test", host, port), channelAddress), "", "", mock(PublicKey.class));
     h.setHostName(host);
     return new ClusterStatus(h, 0);
   }

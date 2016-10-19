@@ -20,7 +20,7 @@ public class CorusHostTest {
   @Before
   public void setUp() {
     ep = new Endpoint(new TCPAddress("tcp", "host", 1), new TCPAddress("tcp", "host", 2));
-    host = CorusHost.newInstance(ep, "linux", "jvm", mock(PublicKey.class));
+    host = CorusHost.newInstance("test-node", ep, "linux", "jvm", mock(PublicKey.class));
   }
 
 

@@ -575,7 +575,7 @@ public class RepositoryImpl extends ModuleHelper
             PortRange current = currentRangesByName.get(r.getName());
             if (current != null) {
               if (current.getMin() == r.getMin() && current.getMax() == r.getMax()) {
-                logger().info("This node alreay has range, so not adding: " + r);
+                logger().info("This node already has range, so not adding: " + r);
               } else if (!current.getActive().isEmpty()) {
                 logger().warn("This node has range with same and ports currently active, so not adding: " + r);
               } else {

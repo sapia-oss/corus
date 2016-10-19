@@ -85,6 +85,7 @@ public class ApplicationKeyResourceTest {
     int count = 0;
     for (int i = 0; i < 5; i++) {
       CorusHost host = CorusHost.newInstance(
+          "test-node", 
           new Endpoint(new TCPAddress("test", "host-" + i, i), mock(ServerAddress.class)), 
           "os-" + i, 
           "jvm-" + i,
