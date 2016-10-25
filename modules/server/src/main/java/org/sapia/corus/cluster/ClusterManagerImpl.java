@@ -26,6 +26,7 @@ import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannelStateListener;
+import org.sapia.ubik.mcast.NodeInfo;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.Response;
 import org.sapia.ubik.mcast.TimeoutException;
@@ -110,8 +111,13 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
           Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
           channelNodes.removeAll(hostsByNode.keySet());
           for (String channelNode : channelNodes) {
-            try {              
-              channel.send(channel.getView().getNodeInfo(channelNode).getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+            try {        
+              NodeInfo info = channel.getView().getNodeInfo(channelNode);
+              if (info != null) {
+                channel.send(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+              } else {
+                log.warn("Not node info found for ID: " + channelNode);
+              }
             } catch (IOException e) {
               log.error("Error caught trying refresh cluster view", e);
             } 

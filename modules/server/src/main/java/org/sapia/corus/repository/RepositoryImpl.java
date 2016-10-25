@@ -93,8 +93,7 @@ public class RepositoryImpl extends ModuleHelper
     ConnectionStateListener,
     java.rmi.Remote {
 
-  private static final long MIN_BOOSTRAP_INTERVAL                   = TimeUnit.SECONDS.toMillis(5);
-  private static final int  MAX_BOOSTRAP_INTERVAL_OFFSET            = (int) TimeUnit.SECONDS.toMillis(5);
+
   private static final long DEFAULT_HANDLE_EXEC_CONFIG_DELAY        = TimeUnit.SECONDS.toMillis(1);
   private static final long DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL     = TimeUnit.SECONDS.toMillis(3);
   private static final int  DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS = 5;
@@ -329,8 +328,8 @@ public class RepositoryImpl extends ModuleHelper
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 
       taskManager.executeBackground(task, null,
-          BackgroundTaskConfig.create().setExecDelay(TimeUtil.createRandomDelay(MIN_BOOSTRAP_INTERVAL, MAX_BOOSTRAP_INTERVAL_OFFSET))
-              .setExecInterval(TimeUnit.MILLISECONDS.convert(repoConfig.getDistributionDiscoveryIntervalSeconds(), TimeUnit.SECONDS)));
+        BackgroundTaskConfig.create()
+          .setExecInterval(TimeUnit.MILLISECONDS.convert(repoConfig.getDistributionDiscoveryIntervalSeconds(), TimeUnit.SECONDS)));
     }
   }
 
@@ -395,7 +394,7 @@ public class RepositoryImpl extends ModuleHelper
       logger().debug("Node is a repo client: will request distributions from repository");
       Task<Void, Void> task = new ForcePullTask(this);
       task.executeOnce();
-      long delay = TimeUtil.createRandomDelay(MIN_BOOSTRAP_INTERVAL, MAX_BOOSTRAP_INTERVAL_OFFSET);
+      long delay = TimeUtil.createRandomDelay(repoConfig.getBootstrapDelay());
       taskManager.executeBackground(task, null, BackgroundTaskConfig.create().setExecInterval(delay).setExecDelay(delay));
     } else {
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));

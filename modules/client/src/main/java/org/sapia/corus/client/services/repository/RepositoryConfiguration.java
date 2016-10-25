@@ -2,6 +2,8 @@ package org.sapia.corus.client.services.repository;
 
 import java.rmi.Remote;
 
+import org.sapia.ubik.util.TimeRange;
+
 /**
  * Holds repository configuration.
  * 
@@ -115,5 +117,11 @@ public interface RepositoryConfiguration extends Remote {
    * that are cached locally.
    */
   public int getRepoFileTtlMinutes();
+  
+  /**
+   * @return the time range within to pick a random time to wait for, after startup, to start discovering repo servers 
+   * (this delay is observed by repo client nodes).
+   */
+  public TimeRange getBootstrapDelay();
 
 }
