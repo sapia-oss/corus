@@ -88,6 +88,7 @@ public abstract class ArtifactRequestHandlerTaskSupport extends RunnableTask {
 
       Endpoint first = targetsCopy.get(0);
       context().debug("Streaming deployment to first target in cascade: " + first.getServerAddress());
+      context().debug("Artifact length is: " + artifactFile.length());
       
       // making sure were not going to deploy in a circular manner: 'this' host 
       // initiates the deployment, so we want to make sure it's not receiving the 
