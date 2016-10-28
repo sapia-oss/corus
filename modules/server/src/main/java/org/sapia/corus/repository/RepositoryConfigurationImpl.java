@@ -14,12 +14,15 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
 
   static final long serialVersionUID = 1L;
 
-  private static final int DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS = 3;
-  private static final int DEFAULT_DIST_DISCO_INTERVAL_SECONDS        = 5;
-  private static final int DEFAULT_DIST_DISCO_MAX_ATTEMPTS            = 3;
-  private static final int DEFAULT_REPO_FILE_TTL_MINUTES              = 60;
-  private static final int DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS   = 120;
-  private static final TimeRange DEFAULT_BOOTSTRAP_DELAY              = new TimeRange(TimeValue.createSeconds(5), TimeValue.createSeconds(10));
+  private static final int DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS   = 3;
+  private static final int DEFAULT_DIST_DISCO_INTERVAL_SECONDS          = 5;
+  private static final int DEFAULT_DIST_DISCO_MAX_ATTEMPTS              = 3;
+  private static final int DEFAULT_REPO_FILE_TTL_MINUTES                = 60;
+  private static final int DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS     = 120;
+  private static final int DEFAULT_ARTIFACT_DEPLOYMENT_DELAY_SECONDS    = 5;
+  private static final int DEFAULT_ARTIFACT_DEPLOYMENT_TIMEOUT_SECONDS  = 15;
+
+  private static final TimeRange DEFAULT_BOOTSTRAP_DELAY = new TimeRange(TimeValue.createSeconds(5), TimeValue.createSeconds(10));
 
   private boolean pushTagsEnabled           = true;
   private boolean pullTagsEnabled           = true;
@@ -41,6 +44,28 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private int repoFileTtlMinutes                   = DEFAULT_REPO_FILE_TTL_MINUTES;
   private int repoFileCheckIntervalSeconds         = DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS;
   private TimeRange bootstrapDelay                 = DEFAULT_BOOTSTRAP_DELAY;
+  
+  private long artifactDeploymentRequestActivityDelaySeconds = DEFAULT_ARTIFACT_DEPLOYMENT_DELAY_SECONDS;
+  
+  private long artifactDeploymentRequestActivityTimeoutSeconds = DEFAULT_ARTIFACT_DEPLOYMENT_TIMEOUT_SECONDS;
+  
+  public void setArtifactDeploymentRequestActivityDelaySeconds(long artifactDeploymentRequestActivityDelaySeconds) {
+    this.artifactDeploymentRequestActivityDelaySeconds = artifactDeploymentRequestActivityDelaySeconds;
+  }
+  
+  @Override
+  public long getArtifactDeploymentRequestActivityDelaySeconds() {
+    return artifactDeploymentRequestActivityDelaySeconds;
+  }
+  
+  public void setArtifactDeploymentRequestActivityTimeoutSeconds(long artifactDeploymentRequestActivityTimeoutSeconds) {
+    this.artifactDeploymentRequestActivityTimeoutSeconds = artifactDeploymentRequestActivityTimeoutSeconds;
+  }
+  
+  @Override
+  public long getArtifactDeploymentRequestWaitTimeoutSeconds() {
+    return this.artifactDeploymentRequestActivityTimeoutSeconds;
+  }
   
   public void setRepoFileCheckIntervalSeconds(int repoFileCheckIntervalSeconds) {
     this.repoFileCheckIntervalSeconds = repoFileCheckIntervalSeconds;

@@ -66,6 +66,7 @@ import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
 import org.sapia.corus.util.Queue;
 import org.sapia.corus.util.TimeUtil;
+import org.sapia.corus.util.DelayedQueue;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.SyncEventListener;
@@ -98,6 +99,7 @@ public class RepositoryImpl extends ModuleHelper
   private static final long DEFAULT_HANDLE_EXEC_CONFIG_INTERVAL     = TimeUnit.SECONDS.toMillis(3);
   private static final int  DEFAULT_HANDLE_EXEC_CONFIG_MAX_ATTEMPTS = 5;
   private static final long DEFAULT_IDLE_DELAY_SECONDS              = 60;
+  private static final long DEFAULT_CHECK_INTERVAL_SECONDS          = 1;
   
   @Autowired
   private TaskManager taskManager;
@@ -121,7 +123,7 @@ public class RepositoryImpl extends ModuleHelper
   private ApplicationKeyManager applicationKeys;
 
   private Queue<ArtifactListRequest> listRequests = new Queue<ArtifactListRequest>();
-  private Queue<ArtifactDeploymentRequest> deployRequests = new Queue<ArtifactDeploymentRequest>();
+  private DelayedQueue<ArtifactDeploymentRequest> deployRequests;
 
   @Autowired
   private DeployerConfiguration   depoyerConfig;
@@ -172,7 +174,7 @@ public class RepositoryImpl extends ModuleHelper
     this.applicationKeys = applicationKeys;
   }
 
-  void setDeployRequestQueue(Queue<ArtifactDeploymentRequest> deployRequests) {
+  void setDeployRequestQueue(DelayedQueue<ArtifactDeploymentRequest> deployRequests) {
     this.deployRequests = deployRequests;
   }
 
@@ -185,6 +187,10 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public void init() throws Exception {
+    deployRequests = new DelayedQueue<>(
+        TimeValue.createSeconds(repoConfig.getArtifactDeploymentRequestActivityDelaySeconds()), 
+        TimeValue.createSeconds(DEFAULT_CHECK_INTERVAL_SECONDS)
+     );
     dispatcher.addInterceptor(ServerStartedEvent.class, this);
     clusterManager.getEventChannel().addConnectionStateListener(this);
     if (serverContext().getCorusHost().getRepoRole().isServer()) {
@@ -323,7 +329,6 @@ public class RepositoryImpl extends ModuleHelper
     state.set(ModuleState.BUSY);
     if (serverContext().getCorusHost().getRepoRole().isClient()) {
       logger().debug("Node is a repo client: will try to acquire distributions from repo server");
-      state.set(ModuleState.BUSY);
       GetArtifactListTask task = new GetArtifactListTask();
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 

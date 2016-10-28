@@ -1,6 +1,7 @@
 package org.sapia.corus.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -17,8 +18,9 @@ public class Queue<T> {
    * @param item
    *          an item to add to this instance.
    */
-  public synchronized void add(T item) {
-    items.add(item);
+  public synchronized Queue<T> add(T...item) {
+    items.addAll(Arrays.asList(item));
+    return this;
   }
 
   /**
@@ -54,10 +56,10 @@ public class Queue<T> {
   }
 
   /**
-   * The number of objects that this instance currently holds.
+   * @return the number of objects that this instance currently holds.
    */
-  public synchronized void size() {
-    items.size();
+  public synchronized int size() {
+    return items.size();
   }
 
 }

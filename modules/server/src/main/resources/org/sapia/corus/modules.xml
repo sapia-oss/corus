@@ -254,6 +254,10 @@
     <property name="pullSecurityConfigEnabled"            value="${corus.server.repository.security.pull.enabled}" />  
     <property name="bootExecEnabled"                      value="${corus.process.start-at-boot.enabled}" />
     <property name="bootstrapDelay"                       value="${corus.server.repository.dist.disco.delay}" />
+    
+    <property name="artifactDeploymentRequestActivityDelaySeconds" value="${corus.server.repository.deploy.request.delay}" />
+    <property name="artifactDeploymentRequestActivityTimeoutSeconds" value="${corus.server.repository.deploy.request.timeout}" />
+    
   </bean>
 
   <bean name="org.sapia.corus.client.services.repository.Repository" 

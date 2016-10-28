@@ -11,7 +11,7 @@ public interface TaskManager extends Remote {
 
   /**
    * Executes the given task in a separate thread. The calling wait returns as
-   * soon as the task is submitted - and not necessarily executed..
+   * soon as the task is submitted - and not necessarily executed.
    * 
    * @param task
    *          the {@link Task} to execute.

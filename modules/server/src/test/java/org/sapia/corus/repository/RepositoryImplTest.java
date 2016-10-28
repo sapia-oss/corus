@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,7 +18,6 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -45,15 +43,15 @@ import org.sapia.corus.client.services.repository.SecurityConfigNotification;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptListResponse;
 import org.sapia.corus.client.services.security.ApplicationKeyManager;
+import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.Permission;
 import org.sapia.corus.client.services.security.SecurityModule;
-import org.sapia.corus.client.services.security.ApplicationKeyManager.AppKeyConfig;
 import org.sapia.corus.client.services.security.SecurityModule.RoleConfig;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskManager;
-import org.sapia.corus.util.PropertiesUtil;
+import org.sapia.corus.util.DelayedQueue;
 import org.sapia.corus.util.Queue;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.rmi.server.transport.socket.TcpSocketAddress;
@@ -75,7 +73,7 @@ public class RepositoryImplTest {
   private RepositoryImpl        repo;
   private Set<CorusHost>        peers;
   private Queue<ArtifactListRequest>       listRequestQueue;
-  private Queue<ArtifactDeploymentRequest> deployRequestQueue;
+  private DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue;
   private RepositoryConfigurationImpl      repoConfig;
   private int                              corusPort;
   @Before
@@ -94,7 +92,7 @@ public class RepositoryImplTest {
     appCtx     = mock(ApplicationContext.class);
     serverCtx  = mock(ServerContext.class);
     listRequestQueue   = mock(Queue.class);
-    deployRequestQueue = mock(Queue.class);
+    deployRequestQueue = mock(DelayedQueue.class);
     
     host       = createCorusHost(RepoRole.SERVER);
     

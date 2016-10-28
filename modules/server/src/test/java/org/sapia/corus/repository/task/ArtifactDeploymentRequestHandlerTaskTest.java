@@ -2,6 +2,7 @@ package org.sapia.corus.repository.task;
 
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -23,13 +24,13 @@ import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.corus.repository.task.deploy.ArtifactDeploymentHandlerTaskHelper;
 import org.sapia.corus.taskmanager.util.CompositeTask;
-import org.sapia.corus.util.Queue;
+import org.sapia.corus.util.DelayedQueue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ArtifactDeploymentRequestHandlerTaskTest extends AbstractRepoTaskTest {
   
   @Mock
-  private Queue<ArtifactDeploymentRequest>         requests;
+  private DelayedQueue<ArtifactDeploymentRequest>  requests;
   
   private List<ArtifactDeploymentRequest>          requestList;
   
@@ -66,7 +67,7 @@ public class ArtifactDeploymentRequestHandlerTaskTest extends AbstractRepoTaskTe
       }
     };
 
-    when(requests.removeAll()).thenReturn(requestList);
+    when(requests.removeAllAfterInactivity(anyLong())).thenReturn(requestList);
   }
   
   @Test

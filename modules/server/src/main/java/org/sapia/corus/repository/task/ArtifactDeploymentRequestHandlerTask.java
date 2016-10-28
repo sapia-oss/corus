@@ -3,6 +3,7 @@ package org.sapia.corus.repository.task;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
@@ -18,6 +19,8 @@ import org.sapia.corus.taskmanager.core.DefaultThrottleKey;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.util.RunnableThrottleableTask;
 import org.sapia.corus.util.Queue;
+import org.sapia.corus.util.DelayedQueue;
+import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 
@@ -35,7 +38,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   public static final ThrottleKey DEPLOY_REQUEST_THROTTLE = new DefaultThrottleKey();
 
   private RepositoryConfiguration repoConfig;
-  private Queue<ArtifactDeploymentRequest> deployRequestQueue;
+  private DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue;
 
   /**
    * @param repoConfig
@@ -43,7 +46,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
    * @param deployRequestQueue
    *          a {@link Queue} of pending {@link ArtifactDeploymentRequest}.
    */
-  public ArtifactDeploymentRequestHandlerTask(RepositoryConfiguration repoConfig, Queue<ArtifactDeploymentRequest> deployRequestQueue) {
+  public ArtifactDeploymentRequestHandlerTask(RepositoryConfiguration repoConfig, DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue) {
     super(DEPLOY_REQUEST_THROTTLE);
     this.repoConfig = repoConfig;
     this.deployRequestQueue = deployRequestQueue;
@@ -51,8 +54,17 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
 
   @Override
   public void run() {
-
-    List<ArtifactDeploymentRequest> requests = deployRequestQueue.removeAll();
+    try {
+      doRun();
+    } catch (InterruptedException e) {
+      throw new ThreadInterruptedException();
+    }
+  } 
+  
+  private void doRun() throws InterruptedException {
+    context().info("Removing all pending artifact deployment requests from queue");
+    List<ArtifactDeploymentRequest> requests = deployRequestQueue.removeAllAfterInactivity(TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
+    context().info(String.format("Got %s artifact deployment requests to process", requests.size()));
     Set<Endpoint> allTargets = Collects.convertAsSet(requests, new Func<Endpoint, ArtifactDeploymentRequest>() {
       public Endpoint call(ArtifactDeploymentRequest req) {
         return req.getEndpoint();
@@ -86,7 +98,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   // ----------------------------------------------------------------------------
   // Provided for testing
 
-  public final void setDeployRequestQueue(Queue<ArtifactDeploymentRequest> deployRequestQueue) {
+  public final void setDeployRequestQueue(DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue) {
     this.deployRequestQueue = deployRequestQueue;
   }
 

@@ -124,4 +124,14 @@ public interface RepositoryConfiguration extends Remote {
    */
   public TimeRange getBootstrapDelay();
 
+  /**
+   * @return the amount of time to wait after the time at which the last artifact deployment request has been registered.
+   */
+  public long getArtifactDeploymentRequestActivityDelaySeconds();
+  
+  /**
+   * @return the maximum amount of time to wait for after the last artifact deployment request has been registered.
+   */
+  public long getArtifactDeploymentRequestWaitTimeoutSeconds();
+  
 }
