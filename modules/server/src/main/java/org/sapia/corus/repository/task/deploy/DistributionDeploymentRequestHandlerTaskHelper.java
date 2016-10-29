@@ -51,10 +51,10 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
 
     Map<RepoDistribution, Set<Endpoint>> distributionTargets = getDistributionTargets(requests);
 
-    context().info(String.format("Got %s targets to deploy to", distributionTargets.size()));
+    context().info(String.format("Got %s distributions to deploy", distributionTargets.size()));
     if (!distributionTargets.isEmpty()) {
       for (Map.Entry<RepoDistribution, Set<Endpoint>> entry : distributionTargets.entrySet()) {
-        context().info("Deploying " + entry.getValue() + " to:");
+        context().info("Deploying distribution " + entry.getKey() + " to:");
         for(Endpoint ep : entry.getValue()) {
           context().info("  => " + ep.getServerAddress());
         }

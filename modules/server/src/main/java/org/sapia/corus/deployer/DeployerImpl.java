@@ -546,7 +546,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
           }
           // chaining deployment to next host.
           if (!meta.isTargeted(current)) {
-            log.info("This host is not targeted. Deployment is cascaded to the next host");
+            log.info(String.format("This host is not targeted. Deployment is cascaded to the next host: %s", addr));
             out = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
           } else {
             log.info(String.format("Deploying to this host, and cascading deployment to the next host: %s", addr));

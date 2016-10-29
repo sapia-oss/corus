@@ -64,6 +64,14 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   private void doRun() throws InterruptedException {
     context().info("Removing all pending artifact deployment requests from queue");
     List<ArtifactDeploymentRequest> requests = deployRequestQueue.removeAllAfterInactivity(TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
+    if (requests.isEmpty()) {
+      context().info("Pending deployment requests have already been consumed, this task will abort");
+    } else {
+      doDeploy(requests);
+    }
+  }
+  
+  private void doDeploy(List<ArtifactDeploymentRequest> requests) {
     context().info(String.format("Got %s artifact deployment requests to process", requests.size()));
     Set<Endpoint> allTargets = Collects.convertAsSet(requests, new Func<Endpoint, ArtifactDeploymentRequest>() {
       public Endpoint call(ArtifactDeploymentRequest req) {
