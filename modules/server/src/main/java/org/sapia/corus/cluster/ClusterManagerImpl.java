@@ -326,7 +326,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   private void addNode(CorusHost host) {
     synchronized (hostsByNode) {
-      if(hostsByNode.put(host.getNode(), host) != null) {
+      if(hostsByNode.put(host.getNode(), host) == null) {
         log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
       }
     }
