@@ -82,10 +82,11 @@ public class ClusterHttpExtension implements HttpExtension {
 
     int count = 1;
     for (CorusHost h : hosts) {
+      String hostAddress = h.getEndpoint().getServerTcpAddress().getHost() + ":" + h.getEndpoint().getServerTcpAddress().getPort();
       output.println("<tr valign=\"top\">" +
           "<td>" + String.valueOf(count++) + "</td>" +
           "<td>" + h.getHostName() + "</td>" +
-          "<td align=\"center\">" + h.getEndpoint().getServerTcpAddress().getHost() + ":" + h.getEndpoint().getServerTcpAddress().getPort() + "</td>" +
+          "<td align=\"center\">" + (count > 2? "<a href=\"http://" + hostAddress + "/\" target=\"_blank\">" : "") + hostAddress + (count > 2? "</a>" : "") + "</td>" +
           "<td>" + h.getJavaVmInfo() + "</td>" +
           "<td>" + h.getOsInfo() + "</td>" +
           "<td align=\"center\">" + String.valueOf(h.getRepoRole()).toLowerCase() + "</td>" +
