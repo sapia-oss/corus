@@ -530,7 +530,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
         // no next host to deploy to; we have reached end of chain
         // - deployment stops here
-        if ((addr = ClusteringHelper.selectNextTarget(visited, siblings)) == null) {
+        if ((addr = ClusteringHelper.selectNextTarget(visited, siblings, meta.getClusterInfo().getTargets())) == null) {
           if (!meta.isTargeted(current)) {
             log.info("This host is not targeted and there are not more hosts to visit. Deployment is deemed finished");
             out = new NullDeployOutputStream();

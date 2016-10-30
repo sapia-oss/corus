@@ -1,5 +1,6 @@
 package org.sapia.corus.client.services.cluster;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.sapia.ubik.net.ServerAddress;
@@ -21,23 +22,24 @@ public final class ClusteringHelper {
    *          already been visited.
    * @param siblings
    *          the {@link Set} of {@link ServerAddress}es corresponding to the
-   *          hosts that are siblings of the currently visited one.
+   *          hosts that are siblings of the "current" host.
    * @return the {@link ServerAddress} of the next target host to which
    *         replication should be made. <code>null</code> is returned if there
    *         is no "next" host to which to replicate - all hosts have been
    *         visited. <b>Note</b>: if not null, the returned address is added to
    *         the set of visited ones.
    */
-  public static ServerAddress selectNextTarget(Set<ServerAddress> visited, Set<ServerAddress> siblings) {
+  public static ServerAddress selectNextTarget(Set<ServerAddress> visited, Set<ServerAddress> siblings, Set<ServerAddress> targeted) {
 
     ServerAddress toReturn;
-    siblings.removeAll(visited);
+    Set<ServerAddress> remaining = new HashSet<>(targeted.isEmpty() ? siblings : targeted);
+    remaining.removeAll(visited);
 
-    if (siblings.isEmpty()) {
+    if (remaining.isEmpty()) {
       return null;
     }
 
-    toReturn = siblings.iterator().next();
+    toReturn = remaining.iterator().next();
     visited.add(toReturn);
     return toReturn;
   }

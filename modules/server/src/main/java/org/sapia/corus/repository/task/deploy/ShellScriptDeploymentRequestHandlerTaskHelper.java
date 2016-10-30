@@ -40,8 +40,10 @@ public class ShellScriptDeploymentRequestHandlerTaskHelper extends ArtifactDeplo
 
     Map<ShellScript, Set<Endpoint>> scriptTargets = getScriptTargets(context(), requests);
 
-    context().info(String.format("Got %s targets to deploy to", scriptTargets));
-
+    if (!scriptTargets.isEmpty()) {
+      context().info(String.format("Got %s scripts to deploy", scriptTargets.size()));
+    }
+    
     for (final Map.Entry<ShellScript, Set<Endpoint>> entry : scriptTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
