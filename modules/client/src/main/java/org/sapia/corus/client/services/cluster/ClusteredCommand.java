@@ -173,7 +173,7 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
       callback.debug("Got siblings: " + siblings);
       callback.debug("Got visited: " + visited);
     }
-    return ClusteringHelper.selectNextTarget(visited, siblings);
+    return ClusteringHelper.selectNextTarget(visited, siblings, targeted);
   }
 
   @SuppressWarnings("unchecked")

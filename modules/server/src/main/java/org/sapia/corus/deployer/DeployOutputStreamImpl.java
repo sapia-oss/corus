@@ -81,7 +81,7 @@ public class DeployOutputStreamImpl extends FileOutputStream implements DeployOu
   @Override
   public ProgressQueue commit() throws IOException {
     close();
-    log.debug("Committing deployment");
+    log.info("Committing deployment");
     Assertions.illegalState(queue != null, "Deployment already committed");
     return handler.completeDeployment(meta, destFile);
   }

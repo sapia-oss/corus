@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.sapia.corus.client.services.deployer.transport.Connection;
+import org.sapia.ubik.util.Streams;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 
@@ -19,7 +20,7 @@ public class HttpConnection implements Connection {
   private Request req;
   private Response res;
   private OutputStream out;
-  private InputStream is;
+  private InputStream in;
 
   public HttpConnection(Request req, Response res) {
     this.req = req;
@@ -35,10 +36,10 @@ public class HttpConnection implements Connection {
    * @see Connection#getInputStream()
    */
   public InputStream getInputStream() throws IOException {
-    if (is == null) {
-      is = req.getInputStream();
+    if (in == null) {
+      in = req.getInputStream();
     }
-    return is;
+    return in;
   }
 
   /**
@@ -55,6 +56,8 @@ public class HttpConnection implements Connection {
    * @see Connection#close()
    */
   public void close() {
+    Streams.closeSilently(in);
+    Streams.closeSilently(out);
   }
 
 }

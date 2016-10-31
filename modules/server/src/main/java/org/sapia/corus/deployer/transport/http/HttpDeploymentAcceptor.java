@@ -11,7 +11,6 @@ import org.sapia.corus.deployer.transport.DeploymentAcceptor;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.ubik.rmi.server.transport.http.Handler;
 import org.sapia.ubik.rmi.server.transport.http.HttpTransportProvider;
-import org.sapia.ubik.util.Streams;
 import org.simpleframework.http.Request;
 import org.simpleframework.http.Response;
 
@@ -61,21 +60,21 @@ public class HttpDeploymentAcceptor implements Handler, DeploymentAcceptor {
 
   @Override
   public void handle(Request req, Response res) {
+    HttpConnection connection = null;
     try {
-      log.debug("Received deployment request with content length: " + req.getContentLength());
-      connector.connect(new Deployment(context, new HttpConnection(req, res)));
+      connection = new HttpConnection(req, res);
+      log.debug("Received deployment request");
+      connector.connect(new Deployment(context, connection));
+    } catch (Exception e) {
+      log.error("Undefined error caught performing deployment", e);
     } finally {
       try {
-        req.getInputStream().close();
-      } catch (IOException e) {
-        log.warn("Error closing incoming deployment request stream", e);
-      }
-
-      try {
         res.commit();
-        Streams.flushAndCloseSilently(res.getOutputStream());
       } catch (IOException e) {
         log.warn("Error closing incoming deployment response stream", e);
+      } 
+      if (connection != null) {
+        connection.close();          
       }
     }
   }

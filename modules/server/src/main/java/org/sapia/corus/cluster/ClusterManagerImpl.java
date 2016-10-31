@@ -16,6 +16,7 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
@@ -26,6 +27,7 @@ import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannelStateListener;
+import org.sapia.ubik.mcast.NodeInfo;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.Response;
 import org.sapia.ubik.mcast.TimeoutException;
@@ -36,10 +38,11 @@ import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implements the {@link ClusterManager} module.
- * 
+ *
  * @author Yanick Duchesne
  */
 @Bind(moduleInterface = ClusterManager.class)
@@ -52,26 +55,35 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private static final int RECONNECTION_DELAY_OFFSET    = 2000;
 
   private EventChannel                  channel;
+
+  @Autowired
+  private HttpModule      http;
+
   //private Map<ServerAddress, CorusHost> hostsByAddress    = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
   private Map<String, CorusHost>        hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
   private ServerSideClusterInterceptor  interceptor;
   private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
   private long                          startTime         = System.currentTimeMillis();
 
+  protected void setHttpModule(HttpModule http) {
+    this.http = http;
+  }
+
   /**
    * @see Service#init()
    */
+  @Override
   public void init() throws Exception {
     channel = serverContext().getEventChannel();
 
     channel.registerAsyncListener(CorusPubEvent.class.getName(), deferredListeners.add(CorusPubEvent.class.getName(), this));
     channel.registerAsyncListener(CorusDiscoEvent.class.getName(), deferredListeners.add(CorusDiscoEvent.class.getName(), this));
     channel.addEventChannelStateListener(deferredListeners.add(this));
-    
+
     channel.addConnectionStateListener(new ConnectionStateListener() {
         @Override
         public void onReconnected() {
-          
+
           try {
             log.warn("Reconnection to event channel detected");
             Thread.sleep(new Random().nextInt(RECONNECTION_DELAY) + RECONNECTION_DELAY_OFFSET);
@@ -80,23 +92,23 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
             log.debug("Thread interrupted: exiting");
           }
         }
-        
+
         @Override
         public void onDisconnected() {
           log.warn("Connection from event channel dropped: will attempt reconnecting");
         }
-        
+
         @Override
         public void onConnected() {
         }
       });
   }
-  
+
   @Override
   public void start() throws Exception {
     super.start();
     logger().info("Starting event channel");
-    channel.start();    
+    channel.start();
     interceptor = new ServerSideClusterInterceptor(log, serverContext());
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
@@ -110,20 +122,27 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
           Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
           channelNodes.removeAll(hostsByNode.keySet());
           for (String channelNode : channelNodes) {
-            try {              
-              channel.send(channel.getView().getNodeInfo(channelNode).getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+            try {
+              NodeInfo info = channel.getView().getNodeInfo(channelNode);
+              if (info != null) {
+                channel.send(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+              } else {
+                log.warn("Not node info found for ID: " + channelNode);
+              }
             } catch (IOException e) {
               log.error("Error caught trying refresh cluster view", e);
-            } 
+            }
           }
         }
         return null;
       }
     }, null,taskConf);
-    
+
+    http.addHttpExtension(new ClusterHttpExtension(serverContext, this));
+
     publish();
   }
-  
+
   private void publish() {
     if (log.isInfoEnabled()) {
       log.info("Signaling presence to cluster:");
@@ -137,12 +156,13 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
     } catch (IOException e) {
       log.error("Error caught trying to signal presence to cluster", e);
-    }    
+    }
   }
 
   /**
    * @see Service#dispose()
    */
+  @Override
   public void dispose() {
     channel.close();
   }
@@ -153,6 +173,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   /**
    * @see org.sapia.corus.client.Module#getRoleName()
    */
+  @Override
   public String getRoleName() {
     return ClusterManager.ROLE;
   }
@@ -174,7 +195,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public synchronized Set<CorusHost> getHosts() {
     return new HashSet<CorusHost>(hostsByNode.values());
   }
-  
+
   @Override
   public CorusHost resolveHost(ServerAddress hostAddress)
       throws IllegalArgumentException {
@@ -195,7 +216,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public void resync() {
     channel.resync();
   }
-  
+
   @Override
   public void changeCluster(String name) {
     log.info("Changing cluster to: " + name);
@@ -265,7 +286,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public synchronized void onDown(final EventChannelEvent event) {
     removeNode(event.getNode());
   }
-  
+
   @Override
   public void onLeft(EventChannelEvent event) {
     removeNode(event.getNode());
@@ -285,28 +306,29 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       log.debug("Error sending publish event", e);
     }
   }
-  
+
   @Override
   public void onHeartbeatRequest(EventChannelEvent event) {
     onUp(event);
   }
-  
+
   @Override
   public void onHeartbeatResponse(EventChannelEvent event) {
     onUp(event);
   }
-  
+
   private void removeNode(String node) {
     CorusHost host = hostsByNode.remove(node);
     if (host != null) {
       log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host));
     }
   }
-  
+
   private void addNode(CorusHost host) {
-    log.info(String.format("Corus server discovered: %s. Removing from cluster view", host.getEndpoint()));
-    synchronized (hostsByNode) {   
-      hostsByNode.put(host.getNode(), host);
+    synchronized (hostsByNode) {
+      if(hostsByNode.put(host.getNode(), host) == null) {
+        log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
+      }
     }
   }
 

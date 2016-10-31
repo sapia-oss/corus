@@ -39,8 +39,10 @@ public class FileDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHa
 
     Map<FileInfo, Set<Endpoint>> fileTargets = getFileTargets(context(), requests);
 
-    context().info(String.format("Got %s targets to deploy to", fileTargets));
-
+    if (!fileTargets.isEmpty()) {
+      context().info(String.format("Got %s files to deploy", fileTargets.size()));
+    }
+ 
     for (final Map.Entry<FileInfo, Set<Endpoint>> entry : fileTargets.entrySet()) {
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
