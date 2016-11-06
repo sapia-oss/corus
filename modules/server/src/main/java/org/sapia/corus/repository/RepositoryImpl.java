@@ -187,6 +187,7 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public void init() throws Exception {
+    serverContext().getServices().bind(RepositoryConfiguration.class, repoConfig);
     deployRequests = new DelayedQueue<>(
         TimeValue.createSeconds(repoConfig.getArtifactDeploymentRequestActivityDelaySeconds()), 
         TimeValue.createSeconds(DEFAULT_CHECK_INTERVAL_SECONDS)

@@ -134,4 +134,14 @@ public interface RepositoryConfiguration extends Remote {
    */
   public long getArtifactDeploymentRequestWaitTimeoutSeconds();
   
+  /**
+   * @return <code>true</code> if process execution at repo server nodes should be enabled, <code>false</code>
+   * otherwise.
+   */
+  public boolean isRepoServerExecProcessEnabled();
+ 
+  /**
+   * @return <code>true</code> if packaged deployment scripts are to be executed at repo client nodes.
+   */
+  public boolean isRepoClientDeployScriptEnabled();
 }

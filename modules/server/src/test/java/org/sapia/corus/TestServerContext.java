@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.mockito.Mockito;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.encryption.Encryption;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
@@ -63,6 +64,7 @@ public class TestServerContext extends ServerContextImpl{
 
   public static TestServerContext create() {
     TestServerContext created = new TestServerContext(mock(EventChannel.class));
+    created.getCorusHost().setRepoRole(RepoRole.NONE);
     created._disp  = mock(EventDispatcher.class);
     created._internalConfig = mock(InternalConfigurator.class);
     created._depl  = new TestDeployer();

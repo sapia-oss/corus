@@ -37,6 +37,7 @@ public class TestBaseTask {
     db            = ctx.getServices().getProcesses();
     tm            = ctx.lookup(TaskManager.class);
     processor     = ctx.lookup(Processor.class);
+
     processorConf = (ProcessorConfigurationImpl)processor.getConfiguration();
   }
   

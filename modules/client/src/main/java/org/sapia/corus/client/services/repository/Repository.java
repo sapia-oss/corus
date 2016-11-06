@@ -36,4 +36,5 @@ public interface Repository {
    * @param newRole the new {@link RepoRole}.
    */
   public void changeRole(RepoRole newRole);
+  
 }

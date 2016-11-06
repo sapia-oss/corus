@@ -16,11 +16,13 @@ import org.sapia.corus.client.common.PropertiesStrLookup;
 import org.sapia.corus.client.common.StrLookups;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
 import org.sapia.corus.client.exceptions.deployer.DuplicateDistributionException;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Distribution.State;
+import org.sapia.corus.client.services.deployer.event.DeploymentScriptExecutedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentFailedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentStartingEvent;
@@ -31,6 +33,7 @@ import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Typ
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.deployer.DeployerThrottleKeys;
 import org.sapia.corus.deployer.DistributionDatabase;
 import org.sapia.corus.deployer.processor.DeploymentContext;
@@ -94,6 +97,8 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     FileSystemModule     fs               = ctx.getServerContext().getServices().getFileSystem();
     EventDispatcher      dispatcher       = ctx.getServerContext().getServices().getEventDispatcher();
     DeploymentProcessorManager processor  = ctx.getServerContext().getServices().getDeploymentProcessorManager();
+    RepositoryConfiguration repoConf      = ctx.getServerContext().getServices().lookup(RepositoryConfiguration.class);
+
     
     String tmpBaseDirName = null;
     String baseDirName    = null;
@@ -116,7 +121,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     try {
 
       ctx.info(String.format("Unpackaging: %s", distFileName));
-      if (prefs.isExecuteDeployScripts()) {
+      if (shouldRunDeployScripts(ctx,  prefs, repoConf)) {
         ctx.info("Will run packaged deployment scripts");
       }
       baseDirName = FilePath.newInstance().addDir(deployer.getConfiguration().getDeployDir())
@@ -160,8 +165,8 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       
       fs.unzip(srcZip, commonDir);
 
-      if (prefs.isExecuteDeployScripts()) {
-        doRunDeployScript(fs, dist, commonDir, "pre-deploy.corus", true, ctx);
+      if (shouldRunDeployScripts(ctx,  prefs, repoConf)) {
+        doRunDeployScript(ctx, dispatcher, fs, dist, commonDir, "pre-deploy.corus", true);
       }
       
       dist.setTimestamp(baseDir.lastModified());
@@ -171,8 +176,8 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       processDir = FilePath.newInstance().addDir(baseDirName).addDir("processes").createFile();
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new DeploymentUnzippedEvent(dist));
       
-      if (prefs.isExecuteDeployScripts()) {
-        doRunDeployScript(fs, dist, commonDir, "post-deploy.corus", false, ctx);
+      if (shouldRunDeployScripts(ctx,  prefs, repoConf)) {
+        doRunDeployScript(ctx, dispatcher, fs, dist, commonDir, "post-deploy.corus", false);
       }
       dist.setState(State.DEPLOYED);
       processor.onPostDeploy(new DeploymentContext(dist), new TaskLogCallback(ctx));
@@ -188,14 +193,14 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
         } catch (Exception pe) {
           ctx.warn("Got non-critical error while undeploying (moving ahead with remaining undeployment steps)", pe);
         }
-        if (prefs.isExecuteDeployScripts()) {
+        if (shouldRunDeployScripts(ctx,  prefs, repoConf)) {
           ctx.info("Error occured while deploying. Will execute rollback.corus script if it is provided in the distribution");
           try {
             // tmpBaseDir might or might not have been renamed to point to baseDir at this point
             File   actualBaseDir = tmpBaseDir.exists() ? tmpBaseDir : baseDir;
             String scriptBaseDir = FilePath.newInstance().addDir(actualBaseDir.getAbsolutePath()).addDir("common").createFilePath();
             dispatcher.dispatch(new RollbackStartingEvent(dist));
-            if(doRunDeployScript(fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false, ctx)) {
+            if(doRunDeployScript(ctx, dispatcher, fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false)) {
               ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.AUTO, Status.SUCCESS));
             }
             ctx.error("Rollback completed. Was automatically performed due to error:", e);
@@ -225,8 +230,16 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     }
   }
   
-  private boolean doRunDeployScript(FileSystemModule fs, Distribution dist, File scriptBaseDir, String scriptName, boolean mandatory, final TaskExecutionContext ctx) 
+  private boolean doRunDeployScript(
+      final TaskExecutionContext ctx, 
+      EventDispatcher eventDispatcher, 
+      FileSystemModule fs, 
+      Distribution dist, 
+      File scriptBaseDir, 
+      String scriptName, 
+      boolean mandatory) 
       throws FileNotFoundException, IllegalStateException {
+    
     FilePath scriptDirPath = FilePath.newInstance()
         .addDir(scriptBaseDir.getAbsolutePath())
         .addDir("META-INF")
@@ -285,6 +298,9 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
           StrLookup.systemPropertiesLookup(),
           StrLookup.mapLookup(System.getenv())
       ));
+      
+      eventDispatcher.dispatch(new DeploymentScriptExecutedEvent(scriptName));
+      
       return true;
     } catch (Throwable e) {
       throw new IllegalStateException("Could not execute " + scriptName + " script", e);
@@ -296,6 +312,14 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       } catch (IOException e) {
         // noop
       }
+    }
+  }
+  
+  private boolean shouldRunDeployScripts(TaskExecutionContext context, DeployPreferences prefs, RepositoryConfiguration conf) {
+    if (context.getServerContext().getCorusHost().getRepoRole() == RepoRole.CLIENT) {
+      return  conf.isRepoClientDeployScriptEnabled();
+    } else {
+      return prefs.isExecuteDeployScripts();
     }
   }
 }

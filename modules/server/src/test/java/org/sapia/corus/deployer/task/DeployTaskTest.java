@@ -31,8 +31,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.sapia.corus.TestServerContext;
 import org.sapia.corus.client.common.log.LogCallback;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.deployer.DeployPreferences;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.deployer.event.DeploymentScriptExecutedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentFailedEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentStartingEvent;
@@ -41,6 +43,7 @@ import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
+import org.sapia.corus.client.services.repository.RepositoryConfiguration;
 import org.sapia.corus.deployer.processor.DeploymentContext;
 import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
@@ -56,6 +59,9 @@ public class DeployTaskTest {
   private FileSystemModule fs;
   
   @Mock
+  private RepositoryConfiguration conf;
+  
+  @Mock
   private EventDispatcher dispatcher;
   
   @Mock
@@ -67,7 +73,7 @@ public class DeployTaskTest {
   public void setUp() throws Exception {
     System.setProperty("corus.home", System.getProperty("user.dir"));
     ctx = TestServerContext.create();
-    
+    ctx.getServices().bind(RepositoryConfiguration.class, conf);
     processors = ctx.getServices().lookup(DeploymentProcessorManager.class);
     
     when(preDeploy.getName()).thenReturn("pre-deploy.corus");
@@ -155,6 +161,41 @@ public class DeployTaskTest {
   }
   
   @Test
+  public void testExecute_pre_deploy_script_for_repo_client() throws Exception{
+    ctx.getCorusHost().setRepoRole(RepoRole.CLIENT);
+    when(conf.isRepoClientDeployScriptEnabled()).thenReturn(true);
+    when(preDeploy.exists()).thenReturn(true);
+        
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
+    assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    verify(dispatcher).dispatch(isA(DeploymentScriptExecutedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
+  }
+  
+  @Test
+  public void testExecute_pre_deploy_script_disabled_for_repo_client() throws Exception{
+    ctx.getCorusHost().setRepoRole(RepoRole.CLIENT);
+    when(preDeploy.exists()).thenReturn(true);
+        
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
+    assertTrue("Distribution was not deployed", ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    verify(dispatcher, never()).dispatch(isA(DeploymentScriptExecutedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
+  }
+  
+  @Test
   public void testExecute_pre_deploy_script_not_found() throws Exception{
     when(preDeploy.exists()).thenReturn(false);
         
@@ -182,13 +223,60 @@ public class DeployTaskTest {
     
     assertTrue("Distribution was not deployed", 
         ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
-    
+
+    verify(preDeploy).exists();
     verify(postDeploy).exists();
     verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
     verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
     verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
   }
+  
+  @Test
+  public void testExecute_post_deploy_script_for_repo_client() throws Exception {
+    ctx.getCorusHost().setRepoRole(RepoRole.CLIENT);
+    when(conf.isRepoClientDeployScriptEnabled()).thenReturn(true);
+    when(preDeploy.exists()).thenReturn(true);
+    when(postDeploy.exists()).thenReturn(true);
+    
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    
+    assertTrue("Distribution was not deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+
+    verify(preDeploy).exists();
+    verify(postDeploy).exists();
+    verify(dispatcher, times(2)).dispatch(isA(DeploymentScriptExecutedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
+  }
+  
+  @Test
+  public void testExecute_post_deploy_script_disabled_for_repo_client() throws Exception {
+    ctx.getCorusHost().setRepoRole(RepoRole.CLIENT);
+    when(preDeploy.exists()).thenReturn(true);
+    when(postDeploy.exists()).thenReturn(true);
+    
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+    
+    assertTrue("Distribution was not deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+
+    verify(preDeploy, never()).exists();
+    verify(postDeploy, never()).exists();
+    verify(dispatcher, never()).dispatch(isA(DeploymentScriptExecutedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentCompletedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
+  }
+  
   
   @Test
   public void testExecute_rollback_script() throws Exception{
