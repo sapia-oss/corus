@@ -24,19 +24,21 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
 
   private static final TimeRange DEFAULT_BOOTSTRAP_DELAY = new TimeRange(TimeValue.createSeconds(5), TimeValue.createSeconds(10));
 
-  private boolean pushTagsEnabled           = true;
-  private boolean pullTagsEnabled           = true;
-  private boolean pushScriptsEnabled        = true;
-  private boolean pullScriptsEnabled        = true;
-  private boolean pushFilesEnabled          = true;
-  private boolean pullFilesEnabled          = true;
-  private boolean pushPropertiesEnabled     = true;
-  private boolean pullPropertiesEnabled     = true;
-  private boolean pushPortRangesEnabled     = true;
-  private boolean pullPortRangesEnabled     = true;
-  private boolean pushSecurityConfigEnabeld = true;
-  private boolean pullSecurityConfigEnabled = true;
-  private boolean bootExecEnabled           = true;
+  private boolean pushTagsEnabled               = true;
+  private boolean pullTagsEnabled               = true;
+  private boolean pushScriptsEnabled            = true;
+  private boolean pullScriptsEnabled            = true;
+  private boolean pushFilesEnabled              = true;
+  private boolean pullFilesEnabled              = true;
+  private boolean pushPropertiesEnabled         = true;
+  private boolean pullPropertiesEnabled         = true;
+  private boolean pushPortRangesEnabled         = true;
+  private boolean pullPortRangesEnabled         = true;
+  private boolean pushSecurityConfigEnabeld     = true;
+  private boolean pullSecurityConfigEnabled     = true;
+  private boolean bootExecEnabled               = true;
+  private boolean repoServerExecProcessEnabled  = false;
+  private boolean repoClientDeployScriptEnabled = true;
 
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
   private int distributionDiscoveryMaxAttempts     = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
@@ -48,6 +50,24 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private long artifactDeploymentRequestActivityDelaySeconds = DEFAULT_ARTIFACT_DEPLOYMENT_DELAY_SECONDS;
   
   private long artifactDeploymentRequestActivityTimeoutSeconds = DEFAULT_ARTIFACT_DEPLOYMENT_TIMEOUT_SECONDS;
+  
+  public void setRepoServerExecProcessEnabled(boolean repoServerExecProcessEnabled) {
+    this.repoServerExecProcessEnabled = repoServerExecProcessEnabled;
+  }
+  
+  @Override
+  public boolean isRepoServerExecProcessEnabled() {
+    return repoServerExecProcessEnabled;
+  }
+  
+  public void setRepoClientDeployScriptEnabled(boolean repoClientDeployScriptEnabled) {
+    this.repoClientDeployScriptEnabled = repoClientDeployScriptEnabled;
+  }
+  
+  @Override
+  public boolean isRepoClientDeployScriptEnabled() {
+    return repoClientDeployScriptEnabled;
+  }
   
   public void setArtifactDeploymentRequestActivityDelaySeconds(long artifactDeploymentRequestActivityDelaySeconds) {
     this.artifactDeploymentRequestActivityDelaySeconds = artifactDeploymentRequestActivityDelaySeconds;

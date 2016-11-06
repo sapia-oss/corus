@@ -255,9 +255,11 @@
     <property name="bootExecEnabled"                      value="${corus.process.start-at-boot.enabled}" />
     <property name="bootstrapDelay"                       value="${corus.server.repository.dist.disco.delay}" />
     
-    <property name="artifactDeploymentRequestActivityDelaySeconds" value="${corus.server.repository.deploy.request.delay}" />
+    <property name="artifactDeploymentRequestActivityDelaySeconds"   value="${corus.server.repository.deploy.request.delay}" />
     <property name="artifactDeploymentRequestActivityTimeoutSeconds" value="${corus.server.repository.deploy.request.timeout}" />
     
+    <property name="repoServerExecProcessEnabled"  value="${corus.server.repository.server.exec-enabled}" />
+    <property name="repoClientDeployScriptEnabled" value="${corus.server.repository.client.deploy-scripts-enabled}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.repository.Repository" 
