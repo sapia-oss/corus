@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_cloud_parent</artifactId>
-		<version>develop-SNAPSHOT</version>
+		<version>5.1.2</version>
 		<relativePath>..</relativePath>
 	</parent>
 
