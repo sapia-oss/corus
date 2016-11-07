@@ -6,12 +6,12 @@
   <description>Corus is a generic application process manager</description>
   <url>http://www.sapia-oss.org/projects/corus/index.html</url>
   <artifactId>sapia_corus_parent</artifactId>
-  <version>5.1.1</version>
+  <version>5.1.2</version>
 
   <properties>
     <springframework.version>4.1.3.RELEASE</springframework.version>
     <camel.version>2.15.0</camel.version>
-    <sapia-ubik.version>develop-SNAPSHOT</sapia-ubik.version>
+    <sapia-ubik.version>4.5.8</sapia-ubik.version>
     <sapia-corus-iop.version>3.0</sapia-corus-iop.version>
     <magnet.version>3.0</magnet.version>
   </properties>

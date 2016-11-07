@@ -17,7 +17,10 @@ import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.common.Delay;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.facade.ProcessorFacade;
+import org.sapia.corus.client.services.cluster.CorusHost;
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
@@ -34,8 +37,38 @@ import org.sapia.ubik.util.Collects;
  */
 public abstract class AbstractExecCommand extends CorusCliCommand {
 
+  private static class ProcessKey {
+    
+    private long creationTime;
+    private String processId;
+    
+    public ProcessKey(Process p) {
+      this(p.getCreationTime(), p.getProcessID());
+    }
+    
+    public ProcessKey(long creationTime, String processId) {
+      this.creationTime = creationTime;
+      this.processId    = processId;
+    }
+    
+    @Override
+    public int hashCode() {
+      return ObjectUtil.safeHashCode(creationTime, processId);
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof ProcessKey) {
+        ProcessKey other = (ProcessKey) obj;
+        return creationTime == other.creationTime && processId.equals(other.processId);
+      }
+      return false;
+    }
+  }
+  
   public static final int DEFAULT_EXEC_WAIT_TIME_SECONDS = 120;
-
+  
+  
   protected static final long WAIT_INTERVAL_MILLIS = 5000;
   protected static final OptionDef OPT_WAIT = new OptionDef("w", false);
   protected static final OptionDef OPT_HARD_KILL = new OptionDef("hard", false);
@@ -60,9 +93,9 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
   protected final void waitForProcessShutdown(CliContext ctx, ProcessCriteria criteria, int seconds, ClusterInfo cluster) {
     List<Process> currentProcesses = getProcessInstances(ctx.getCorus().getProcessorFacade(), criteria, cluster);
 
-    Set<String> existing = new HashSet<String>();
+    Set<ProcessKey> existing = new HashSet<ProcessKey>();
     for (Process p : currentProcesses) {
-      existing.add(p.getOsPid() + ":" + p.getProcessID());
+      existing.add(new ProcessKey(p));
     }
 
     Delay delay = new Delay(seconds, TimeUnit.SECONDS);
@@ -71,7 +104,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       currentProcesses = getProcessInstances(ctx.getCorus().getProcessorFacade(), criteria, cluster);
       oldProcessCount = 0;
       for (Process p : currentProcesses) {
-        if (existing.contains(p.getOsPid() + ":" + p.getProcessID())) {
+        if (existing.contains(new ProcessKey(p))) {
           oldProcessCount++;
         }
       }
@@ -99,7 +132,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
     Results<List<Distribution>> distResults = ctx.getCorus().getDeployerFacade().getDistributions(criteria.getDistributionCriteria(), cluster);
     Set<Distribution> dists = new HashSet<Distribution>();
 
-    Map<ServerAddress, Set<Tag>> hostsWithDist = new HashMap<ServerAddress, Set<Tag>>();
+    Map<CorusHost, Set<Tag>> hostsWithDist = new HashMap<CorusHost, Set<Tag>>();
     while (distResults.hasNext()) {
       Result<List<Distribution>> distResult = distResults.next();
       // >> HACK START: added to NPE that could not be reproduced
@@ -128,7 +161,7 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
       if (!distResult.getData().isEmpty()) {
         dists.addAll(distResult.getData());
       }
-      hostsWithDist.put(distResult.getOrigin().getEndpoint().getServerAddress(), new HashSet<Tag>());
+      hostsWithDist.put(distResult.getOrigin(), new HashSet<Tag>());
     }
 
     // distribution set should not be empty, but considering anyway
@@ -172,13 +205,13 @@ public abstract class AbstractExecCommand extends CorusCliCommand {
 
         List<ProcessConfig> procConfigs = dist.getProcesses(criteria.getName());
         for (ProcessConfig procConfig : procConfigs) {
-          for (ServerAddress host : hostsWithDist.keySet()) {
+          for (CorusHost host : hostsWithDist.keySet()) {
             Set<Tag> hostTags = hostsWithDist.get(host);
             Set<Tag> procTags = new HashSet<Tag>();
             procTags.addAll(Tag.asTags(dist.getTagSet()));
             procTags.addAll(Tag.asTags(procConfig.getTagSet()));
-            if (procTags.isEmpty() || hostTags.containsAll(procTags)) {
-              targets.add(host);
+            if (host.getRepoRole() != RepoRole.SERVER &&procTags.isEmpty() || hostTags.containsAll(procTags)) {
+              targets.add(host.getEndpoint().getServerAddress());
             }
           }
         }

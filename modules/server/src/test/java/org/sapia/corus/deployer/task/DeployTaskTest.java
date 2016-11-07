@@ -213,6 +213,24 @@ public class DeployTaskTest {
   }
   
   @Test
+  public void testExecute_pre_deploy_script_not_found_for_repo_client() throws Exception{
+    ctx.getCorusHost().setRepoRole(RepoRole.CLIENT);
+    when(preDeploy.exists()).thenReturn(false);
+        
+    DeployTask task = new DeployTask();
+    ctx.getTm().executeAndWait(task, TaskParams.createFor(distZip, DeployPreferences.newInstance().executeDeployScripts())).get();
+    DistributionCriteria criteria = DistributionCriteria.builder().name("test").version("1.0").build();
+
+    assertTrue("Distribution should have been deployed", 
+        ctx.getDepl().getDistributionDatabase().containsDistribution(criteria));
+    verify(fs).deleteDirectory(any(File.class));
+    verify(dispatcher).dispatch(isA(DeploymentStartingEvent.class));
+    verify(dispatcher).dispatch(isA(DeploymentUnzippedEvent.class));
+    verify(dispatcher, never()).dispatch(isA(DeploymentFailedEvent.class));
+    verify(processors).onPostDeploy(any(DeploymentContext.class), any(LogCallback.class));
+  }
+  
+  @Test
   public void testExecute_post_deploy_script() throws Exception {
     when(preDeploy.exists()).thenReturn(true);
     when(postDeploy.exists()).thenReturn(true);

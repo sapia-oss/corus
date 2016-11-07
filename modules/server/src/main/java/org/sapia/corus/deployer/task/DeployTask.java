@@ -166,7 +166,7 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
       fs.unzip(srcZip, commonDir);
 
       if (shouldRunDeployScripts(ctx,  prefs, repoConf)) {
-        doRunDeployScript(ctx, dispatcher, fs, dist, commonDir, "pre-deploy.corus", true);
+        doRunDeployScript(ctx, dispatcher, fs, dist, commonDir, "pre-deploy.corus", isPreDeployMandatory(ctx));
       }
       
       dist.setTimestamp(baseDir.lastModified());
@@ -315,11 +315,18 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
     }
   }
   
+  // --------------------------------------------------------------------------
+  // Restricted
+  
   private boolean shouldRunDeployScripts(TaskExecutionContext context, DeployPreferences prefs, RepositoryConfiguration conf) {
     if (context.getServerContext().getCorusHost().getRepoRole() == RepoRole.CLIENT) {
       return  conf.isRepoClientDeployScriptEnabled();
     } else {
       return prefs.isExecuteDeployScripts();
     }
+  }
+  
+  private boolean isPreDeployMandatory(TaskExecutionContext context) {
+    return context.getServerContext().getCorusHost().getRepoRole() != RepoRole.CLIENT;
   }
 }
