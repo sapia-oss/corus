@@ -35,8 +35,8 @@ public class GetArtifactListTask extends RunnableTask {
             try {
               EventChannel channel = context().getServerContext().getServices().getClusterManager().getEventChannel();
               channel.dispatch(h.getEndpoint().getChannelAddress(), ArtifactListRequest.EVENT_TYPE, new ArtifactListRequest(context()
-                  .getServerContext().getCorusHost().getEndpoint()));
-            } catch (IOException e) {
+                  .getServerContext().getCorusHost().getEndpoint())).get();
+            } catch (Exception e) {
               context().error("Could not dispatch distribution list request", e);
             }
           } else {

@@ -49,7 +49,7 @@ public class FileListResponseHandlerTask extends RunnableTask {
           toReceive));
 
       try {
-        channel.dispatch(filesRes.getEndpoint().getChannelAddress(), FileDeploymentRequest.EVENT_TYPE, request);
+        channel.dispatch(filesRes.getEndpoint().getChannelAddress(), FileDeploymentRequest.EVENT_TYPE, request).get();
       } catch (Exception e) {
         context().error(String.format("Could not send file list to %s", filesRes.getEndpoint()), e);
       }

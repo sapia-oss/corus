@@ -118,19 +118,19 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       @Override
       public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
         if (channel.getView().getNodeCount() != hostsByNode.size()) {
-          logger().info("Detected cluster desynchronization, refreshing view");
           Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
           channelNodes.removeAll(hostsByNode.keySet());
           for (String channelNode : channelNodes) {
             try {
               NodeInfo info = channel.getView().getNodeInfo(channelNode);
+              logger().debug("Node " + info + " is out of sync: trying to reconnect with it...");
               if (info != null) {
-                channel.send(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+                channel.dispatch(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
               } else {
                 log.warn("Not node info found for ID: " + channelNode);
               }
-            } catch (IOException e) {
-              log.error("Error caught trying refresh cluster view", e);
+            } catch (Exception e) {
+              log.warn("Error caught trying refresh cluster view with node " + channelNode, e);
             }
           }
         }
@@ -152,11 +152,8 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
         log.info(name + "=" + mcastProperties.getProperty(name));
       }
     }
-    try {
-      channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-    } catch (IOException e) {
-      log.error("Error caught trying to signal presence to cluster", e);
-    }
+    
+    channel.dispatch(CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
   }
 
   /**
@@ -264,11 +261,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       if (log.isDebugEnabled()) {
         log.debug(String.format("Current hosts: %s", hostsByNode.values()));
       }
-      try {
-        channel.dispatch(remote.getUnicastAddress(), CorusDiscoEvent.class.getName(), new CorusDiscoEvent(serverContext().getCorusHost()));
-      } catch (IOException e) {
-        log.debug("Event channel could not dispatch event", e);
-      }
+      channel.dispatch(remote.getUnicastAddress(), CorusDiscoEvent.class.getName(), new CorusDiscoEvent(serverContext().getCorusHost()));
 
       // ------------------------------------------------------------------------
       // discovery event
@@ -294,16 +287,12 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Override
   public void onUp(EventChannelEvent event) {
-    try {
-      // we want to make sure we're not sending a pub event prior to the
-      // discovery process triggered at
-      // startup having completed.
-      if (System.currentTimeMillis() - startTime >= START_UP_DELAY) {
-        log.debug("Corus appeared in cluster but not yet in host list; signaling presence to trigger discovery process");
-        channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-      }
-    } catch (IOException e) {
-      log.debug("Error sending publish event", e);
+    // we want to make sure we're not sending a pub event prior to the
+    // discovery process triggered at
+    // startup having completed.
+    if (System.currentTimeMillis() - startTime >= START_UP_DELAY) {
+      log.debug("Corus appeared in cluster but not yet in host list; signaling presence to trigger discovery process");
+      channel.dispatch(event.getAddress(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
     }
   }
 
