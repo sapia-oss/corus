@@ -50,7 +50,7 @@ public class ShellScriptListResponseHandlerTask extends RunnableTask {
           new ArrayList<ShellScript>(toReceive));
 
       try {
-        channel.dispatch(scriptsRes.getEndpoint().getChannelAddress(), ShellScriptDeploymentRequest.EVENT_TYPE, request);
+        channel.dispatch(scriptsRes.getEndpoint().getChannelAddress(), ShellScriptDeploymentRequest.EVENT_TYPE, request).get();
       } catch (Exception e) {
         context().error(String.format("Could not send script list to %s", scriptsRes.getEndpoint()), e);
       }

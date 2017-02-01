@@ -51,7 +51,7 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
     DistributionDeploymentRequest request = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
     request.addDistributions(toReceive);
     try {
-      channel.dispatch(distsRes.getEndpoint().getChannelAddress(), DistributionDeploymentRequest.EVENT_TYPE, request);
+      channel.dispatch(distsRes.getEndpoint().getChannelAddress(), DistributionDeploymentRequest.EVENT_TYPE, request).get();
     } catch (Exception e) {
       context().error(String.format("Could not send distribution list to %s", distsRes.getEndpoint()), e);
     }

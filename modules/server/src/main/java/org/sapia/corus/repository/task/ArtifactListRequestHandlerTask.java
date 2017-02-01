@@ -83,7 +83,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     DistributionListResponse response = new DistributionListResponse(ctx.getServerContext().getCorusHost().getEndpoint());
     response.addDistributions(dists);
     try {
-      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), DistributionListResponse.EVENT_TYPE, response);
+      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), DistributionListResponse.EVENT_TYPE, response).get();
     } catch (Exception e) {
       ctx.error(String.format("Could not send distribution list to %s", addr), e);
     }
@@ -98,7 +98,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     ShellScriptListResponse response = new ShellScriptListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), scripts);
 
     try {
-      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), ShellScriptListResponse.EVENT_TYPE, response);
+      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), ShellScriptListResponse.EVENT_TYPE, response).get();
     } catch (Exception e) {
       ctx.error(String.format("Could not send script list to %s", addr), e);
     }
@@ -113,7 +113,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     FileListResponse response = new FileListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), files);
 
     try {
-      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), FileListResponse.EVENT_TYPE, response);
+      cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), FileListResponse.EVENT_TYPE, response).get();
     } catch (Exception e) {
       ctx.error(String.format("Could not send files list to %s", addr), e);
     }

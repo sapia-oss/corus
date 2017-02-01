@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_samples_parent</artifactId>
-    <version>5.1.3</version>
+    <version>5.1.4</version>
     <relativePath>..</relativePath>
   </parent>
   
