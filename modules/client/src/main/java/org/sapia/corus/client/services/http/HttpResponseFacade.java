@@ -19,6 +19,7 @@ public interface HttpResponseFacade {
   public static final int STATUS_ACCESS_DENIED               = 403;
   public static final int STATUS_NOT_FOUND                   = 404;
   public static final int STATUS_SERVER_ERROR                = 500;
+  public static final int STATUS_SERVICE_UNAVAILABLE         = 503;
 
   /**
    * @param name

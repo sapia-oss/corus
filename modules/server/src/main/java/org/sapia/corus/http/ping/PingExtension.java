@@ -18,6 +18,7 @@ import org.sapia.corus.client.services.http.HttpContext;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
+import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ServerContext;
 
 /**
@@ -50,44 +51,52 @@ public class PingExtension implements HttpExtension {
   @Override
   public void process(HttpContext ctx) throws Exception, FileNotFoundException {
     StringWriter sw = new StringWriter();
-    ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_OK);
-    ctx.getResponse().setContentType("application/json");
-    JsonStream stream = new WriterJsonStream(sw);
-    
-    stream
-      .beginObject()
-        .field("corusVersion").value(CorusVersion.create().toString())
-        .field("upSinceTimestamp").value(upSince)
-        .field("upSinceDate").value(new Date(upSince))
-        .field("freeMemory").value(Runtime.getRuntime().freeMemory())
-        .field("maxMemory").value(Runtime.getRuntime().maxMemory())
-        .field("totalMemory").value(Runtime.getRuntime().totalMemory())
-        .field("availableProcessors").value(Runtime.getRuntime().availableProcessors());
+    if (!((InternalCorus) serverContext.getCorus()).isRunning()) {
+      ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_SERVICE_UNAVAILABLE);
+      ctx.getResponse().setContentType("application/json");
+      sw.write("{\"message\":\"Corus server is starting\"}\n");
+      sw.flush();
+    } else {
+      ctx.getResponse().setStatusCode(HttpResponseFacade.STATUS_OK);
+      ctx.getResponse().setContentType("application/json");
+      JsonStream stream = new WriterJsonStream(sw);
       
-    List<Property> serverProperties = serverContext
-        .getServices()
-        .getConfigurator()
-        .getAllPropertiesList(PropertyScope.SERVER, new HashSet<ArgMatcher>());
-    
-    stream.field("pingProperties").beginArray();
-    for (Property p : serverProperties) {
-      if (p.getName().startsWith(PING_PROPERTY_PREFIX)) {
-        stream.beginObject().field(p.getName().substring(PING_PROPERTY_PREFIX.length())).value(p.getValue()).endObject();
-      }
-    }
-    stream.endArray();
+      stream
+        .beginObject()
+          .field("corusVersion").value(CorusVersion.create().toString())
+          .field("upSinceTimestamp").value(upSince)
+          .field("upSinceDate").value(new Date(upSince))
+          .field("freeMemory").value(Runtime.getRuntime().freeMemory())
+          .field("maxMemory").value(Runtime.getRuntime().maxMemory())
+          .field("totalMemory").value(Runtime.getRuntime().totalMemory())
+          .field("availableProcessors").value(Runtime.getRuntime().availableProcessors());
         
-    stream.field("fileSystem").beginArray();
-    
-    for (File root : File.listRoots()) {
-      stream.beginObject()
-        .field("absolutePath").value(root.getAbsolutePath())
-        .field("totalSpace").value(root.getTotalSpace())
-        .field("freesSpace").value(root.getFreeSpace())
-        .field("usableSpace").value(root.getUsableSpace())
-      .endObject();
+      List<Property> serverProperties = serverContext
+          .getServices()
+          .getConfigurator()
+          .getAllPropertiesList(PropertyScope.SERVER, new HashSet<ArgMatcher>());
+      
+      stream.field("pingProperties").beginArray();
+      for (Property p : serverProperties) {
+        if (p.getName().startsWith(PING_PROPERTY_PREFIX)) {
+          stream.beginObject().field(p.getName().substring(PING_PROPERTY_PREFIX.length())).value(p.getValue()).endObject();
+        }
+      }
+      stream.endArray();
+          
+      stream.field("fileSystem").beginArray();
+      
+      for (File root : File.listRoots()) {
+        stream.beginObject()
+          .field("absolutePath").value(root.getAbsolutePath())
+          .field("totalSpace").value(root.getTotalSpace())
+          .field("freesSpace").value(root.getFreeSpace())
+          .field("usableSpace").value(root.getUsableSpace())
+        .endObject();
+      }
+      stream.endArray().endObject();
     }
-    stream.endArray().endObject();
+    
     byte[] payload = sw.toString().getBytes();
     ctx.getResponse().setContentLength(payload.length);
     try (OutputStream os = ctx.getResponse().getOutputStream()) {
