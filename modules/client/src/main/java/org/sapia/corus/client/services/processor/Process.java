@@ -26,7 +26,6 @@ import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.deployer.dist.Starter;
 import org.sapia.corus.client.services.deployer.dist.StarterType;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.interop.InteropCodec;
 import org.sapia.corus.interop.InteropCodec.InteropWireFormat;
 import org.sapia.corus.interop.InteropCodecFactory;
@@ -374,17 +373,6 @@ public class Process extends AbstractPersistent<String, Process>
    */
   public List<ActivePort> getActivePorts() {
     return activePorts;
-  }
-
-  /**
-   * @param ports
-   *          a <code>PortManager</code>.
-   */
-  public void releasePorts(PortManager ports) {
-    for (int i = 0; i < activePorts.size(); i++) {
-      ActivePort port = activePorts.remove(i--);
-      ports.releasePort(port.getName(), port.getPort());
-    }
   }
 
   /**

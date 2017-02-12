@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
@@ -28,7 +29,6 @@ import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.port.PortRangeInvalidException;
-import org.sapia.corus.client.exceptions.port.PortUnavailableException;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 
 /**
@@ -81,14 +81,6 @@ public class PortRange extends AbstractPersistent<String, PortRange>
     return name;
   }
 
-  public List<Integer> getAvailable() {
-    return available;
-  }
-
-  public List<Integer> getActive() {
-    return active;
-  }
-
   /**
    * @return the lowerbound port in this range.
    */
@@ -103,70 +95,55 @@ public class PortRange extends AbstractPersistent<String, PortRange>
     return max;
   }
 
+  public List<Integer> getAvailable() {
+    return available;
+  }
+
+  public List<Integer> getActive() {
+    return active;
+  }
+
   /**
-   * @param port
-   *          a port to release.
+   * Acquires the specified port from this range.
+   * 
+   * @param port port number to acquire.
+   * @return True if the port was acquired with success, false otherwise.
    */
-  public synchronized void release(int port) {
+  public synchronized boolean acquire(int port) {
     Integer portObj = new Integer(port);
-    active.remove(portObj);
-    if (!available.contains(portObj)) {
+    if (available.remove(portObj)) {
+      active.add(portObj);
+      Collections.sort(active);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * @param port a port to release.
+   * @return True if the port was released with success, false otherwise.
+   */
+  public synchronized boolean release(int port) {
+    Integer portObj = new Integer(port);
+    if (active.remove(portObj)) {
       available.add(portObj);
+      Collections.sort(available);
+      return true;
+    } else {
+      return false;
     }
-    Collections.sort(available);
-  }
-
-  /**
-   * acquires an available port from this instance.
-   */
-  public synchronized int acquire() throws PortUnavailableException {
-    if (available.size() == 0) {
-      throw new PortUnavailableException("No port available for range: " + name);
-    }
-    Integer portObj = (Integer) available.remove(0);
-    active.add(portObj);
-    Collections.sort(active);
-    return portObj.intValue();
-  }
-
-  /**
-   * @return <code>true</code> if this range has busy ports.
-   */
-  public boolean hasBusyPorts() {
-    return active.size() > 0;
-  }
-
-  /**
-   * releases all active ports.
-   */
-  public synchronized void releaseAll() {
-    for (int i = 0; i < active.size(); i++) {
-      Integer busy = (Integer) active.get(i);
-      if (!available.contains(busy)) {
-        available.add(busy);
-      }
-    }
-    Collections.sort(available);
-    active.clear();
-  }
-  
-  /**
-   * @return <code>true</code> if the given port range is conflicting with this
-   *         instance.
-   */
-  public boolean isConflicting(PortRange other) {
-    return (other.max <= max && other.max >= min) || (other.min >= min && other.min <= max);
   }
   
   @Override
   public synchronized void toJson(JsonStream stream, ContentLevel level) {
     stream.beginObject()
-      .field("classVersion").value(CURRENT_VERSION)
-      .field("name").value(name)
-      .field("min").value(min)
-      .field("max").value(max)
-      .field("availablePorts").numbers(available)
-      .field("activePorts").numbers(active)
+        .field("classVersion").value(CURRENT_VERSION)
+        .field("name").value(name)
+        .field("min").value(min)
+        .field("max").value(max)
+        .field("availablePorts").numbers(available)
+        .field("activePorts").numbers(active)
     .endObject();
   }
   
@@ -182,8 +159,11 @@ public class PortRange extends AbstractPersistent<String, PortRange>
         );
         pr.available.clear();
         pr.available.addAll(Arrays.asList(in.getIntObjectArray("availablePorts")));
+        pr.active.clear();
         pr.active.addAll(Arrays.asList(in.getIntObjectArray("activePorts")));
+
         return pr;
+
       } else {
         throw new IllegalStateException("Unhandled version: " + inputVersion);
       }
@@ -212,7 +192,11 @@ public class PortRange extends AbstractPersistent<String, PortRange>
   
   @Override
   public int compareTo(PortRange other) {
-    return getName().compareTo(other.getName());
+    if (StringUtils.equals(this.name, other.name)) {
+      return Integer.compare(this.min, other.min);
+    } else {
+      return this.name.compareTo(other.name);
+    }
   }
 
   @Override
@@ -235,6 +219,7 @@ public class PortRange extends AbstractPersistent<String, PortRange>
       max  = in.readInt();
       available = (List<Integer>) in.readObject();
       active    = (List<Integer>) in.readObject();
+      
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
@@ -251,4 +236,5 @@ public class PortRange extends AbstractPersistent<String, PortRange>
     out.writeObject(available);
     out.writeObject(active);
   }
+  
 }

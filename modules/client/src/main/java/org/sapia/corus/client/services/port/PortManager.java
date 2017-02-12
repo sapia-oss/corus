@@ -72,17 +72,15 @@ public interface PortManager extends java.rmi.Remote, Module, Dumpable {
   public void removePortRange(ArgMatcher name, boolean force) throws PortActiveException;
 
   /**
-   * Forces the release of all ports corresponding to the given name.
-   * 
-   * @param name
-   *          the name of a port range.
-   */
-  public void releasePortRange(ArgMatcher name);
-
-  /**
    * @return the {@link List} of {@link PortRange}s that this instance holds.
    */
   public List<PortRange> getPortRanges();
+
+  /**
+   * @param name the name of the port range to remove.
+   * @return the {@link List} of {@link PortRange}s that this instance holds.
+   */
+  public List<PortRange> getPortRanges(ArgMatcher name);
 
   /**
    * @param name
@@ -91,14 +89,6 @@ public interface PortManager extends java.rmi.Remote, Module, Dumpable {
    */
   public int aquirePort(String name) throws PortUnavailableException;
 
-  /**
-   * @param name
-   *          the name of a port range.
-   * @param port
-   *          a port that was acquired from this instance.
-   */
-  public void releasePort(String name, int port);
-  
   /**
    * Archives the currently set port ranges.
    * 

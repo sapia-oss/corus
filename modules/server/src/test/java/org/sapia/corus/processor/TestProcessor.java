@@ -2,6 +2,7 @@ package org.sapia.corus.processor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
@@ -73,7 +74,9 @@ public class TestProcessor implements Processor{
   
   @Override
   public List<Process> getProcessesWithPorts() {
-    return new ArrayList<Process>();
+    return db.getProcesses().stream().
+        filter(p -> p.getActivePorts().size() > 0).
+        collect(Collectors.toList());
   }
   
   @Override

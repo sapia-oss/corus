@@ -61,7 +61,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     ProcessConfig conf              = info.getConfig();
     Process       process           = info.getProcess();
     Distribution  dist              = info.getDistribution();
-    PortManager   ports             = ctx.getServerContext().getServices().getPortManager();
     ProcessHookManager processHook  = ctx.getServerContext().getServices().lookup(ProcessHookManager.class);
     NumaModule    numaModule        = ctx.getServerContext().getServices().getNumaModule();
 
@@ -100,7 +99,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
           getProcessProps(conf, process, dist, ctx, processProperties)
       );
     } catch (PortUnavailableException e) {
-      process.releasePorts(ports);
       ctx.error(e);
       return false;
     }
@@ -119,7 +117,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
               numaModule.isBindingMemory(),
               process.getNativeProcessOptions());
       } catch (Exception e) {
-        process.releasePorts(ports);
         ctx.error(e);
         return false;
       }
@@ -129,14 +126,12 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     try {
       startResult = conf.toCmdLine(env);
     } catch (Exception e) {
-      process.releasePorts(ports);
       ctx.error(e);
       return false;
     }
 
     if (startResult.isNull()) {
       ctx.warn(String.format("No executable found for profile: %s", env.getProfile()));
-      process.releasePorts(ports);
       return false;
     }
     process.setStarterType(startResult.get().getStarterType());
@@ -175,7 +170,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
       processHook.start(processContext, startResult.get(), callback(ctx));
     } catch (IOException e) {
       ctx.error("Process could not be started", e);
-      process.releasePorts(ports);
       return false;
     }
 
@@ -227,8 +221,6 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
   Property[] getProcessProps(ProcessConfig conf, Process proc, Distribution dist, TaskExecutionContext ctx, Properties processProperties)
       throws PortUnavailableException {
 
-    PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
-
     List<Property> props = new ArrayList<Property>();
     String host = null;
     String hostName = null;
@@ -264,6 +256,8 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     // ------------------------------------------------------------------------
     // Adding port values
+
+    PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
 
     List<Port> ports = conf.getPorts();
     Set<String> added = new HashSet<String>();

@@ -91,12 +91,4 @@
         <property name="apiSSLOnly" value="${corus.server.api.ssl.enforced}" />   
   </bean>
 
-  <!-- ============ PORTS ============ -->
-  
-  <bean name="org.sapia.corus.client.services.port.PortManager" 
-        class="org.sapia.corus.port.PortManagerImpl" 
-        scope="singleton"
-        autowire="autodetect">
-  </bean>
-
 </beans>

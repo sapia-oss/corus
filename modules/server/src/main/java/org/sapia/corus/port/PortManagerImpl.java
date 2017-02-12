@@ -1,11 +1,11 @@
 package org.sapia.corus.port;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.json.JsonInput;
@@ -21,8 +21,9 @@ import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
+import org.sapia.corus.client.services.processor.ActivePort;
+import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.ubik.rmi.Remote;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,18 +40,19 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   private DbModule db;
 
   @Autowired
-  private TaskManager taskMan;
+  private HttpModule httpModule;
 
   @Autowired
-  private HttpModule httpModule;
+  private Processor processor;
 
   private PortRangeStore store;
 
   public PortManagerImpl() {
   }
 
-  protected PortManagerImpl(PortRangeStore store) {
+  protected PortManagerImpl(PortRangeStore store, Processor processor) {
     this.store = store;
+    this.processor = processor;
   }
 
   public void init() throws Exception {
@@ -58,7 +60,7 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
   }
 
   protected PortRangeStore newPortRangeStore() throws Exception {
-    DbMap<String, PortRange> ports = db.getDbMap(String.class, PortRange.class, "ports");
+    DbMap<String, PortRangeDefinition> ports = db.getDbMap(String.class, PortRangeDefinition.class, "ports");
     return new PortRangeStore(ports);
   }
 
@@ -79,29 +81,33 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
     return ROLE;
   }
 
+  protected List<ActivePort> getActivePortsForName(String name) {
+    return processor.getProcessesWithPorts().stream()
+        .flatMap(p -> p.getActivePorts().stream())
+        .filter(p -> StringUtils.equals(name, p.getName()))
+        .sorted()
+        .collect(Collectors.toList());
+  }
+  
   @Override
   public synchronized int aquirePort(String name) throws PortUnavailableException {
-    if (!store.containsRange(name)) {
+    PortRangeDefinition range = store.readRange(name);
+    if (range == null) {
       throw new PortUnavailableException("Port range does not exist for: " + name);
     }
-    PortRange range = (PortRange) store.readRange(name);
-    int port = range.acquire();
-    store.writeRange(range);
-    logger().debug("Acquiring port: " + name + ":" + port);
-    return port;
-  }
 
-  @Override
-  public synchronized void releasePort(String name, int port) {
-    if (!store.containsRange(name)) {
-      return;
+    List<Integer> allocatedPorts = getActivePortsForName(range.getName()).stream().
+        map(ActivePort::getPort).
+        collect(Collectors.toList());
+
+    for (int i = range.getMin(); i <= range.getMax(); i++) {
+      if (!allocatedPorts.contains(i)) {
+        logger().debug("Acquiring port: " + name + ":" + i);
+        return i;
+      }
     }
-    PortRange range = (PortRange) store.readRange(name);
-    if (range.getMin() <= port && range.getMax() >= port) {
-      range.release(port);
-      store.writeRange(range);
-    }
-    logger().debug("Releasing port: " + name + ":" + port);
+
+    throw new PortUnavailableException("No port available for range: " + name);
   }
 
   @Override
@@ -110,86 +116,111 @@ public class PortManagerImpl extends ModuleHelper implements Service, PortManage
       store.clear();
     }
 
-    for (PortRange range : ranges) {
-      addPortRange(range);
+    for (PortRange pr: ranges) {
+      doValidateAndAddPortRangeDefinition(
+          new PortRangeDefinition(pr.getName(), pr.getMin(), pr.getMax()));
     }
   }
-
+  
   @Override
   public synchronized void addPortRange(String name, int min, int max) throws PortRangeInvalidException, PortRangeConflictException {
-    addPortRange(new PortRange(name, min, max));
+    doValidateAndAddPortRangeDefinition(
+        new PortRangeDefinition(name, min, max));
   }
 
   public synchronized void addPortRange(PortRange range) throws PortRangeInvalidException, PortRangeConflictException {
-    if (range.getMax() < range.getMin()) {
-      throw new PortRangeInvalidException("Max port must be greater than min port for: " + range);
+    doValidateAndAddPortRangeDefinition(
+        new PortRangeDefinition(range.getName(), range.getMin(), range.getMax()));
+  }
+
+  protected void doValidateAndAddPortRangeDefinition(PortRangeDefinition def) throws PortRangeInvalidException, PortRangeConflictException {
+    if (def.getMax() < def.getMin()) {
+      throw new PortRangeInvalidException("Max port must be greater than min port for: " + def.getName());
     }
-    if (store.containsRange(range.getName())) {
-      throw new PortRangeConflictException("Port range already exists for: " + range.getName());
+    if (store.containsRange(def.getName())) {
+      throw new PortRangeConflictException("Port range already exists for: " + def.getName());
     }
-    Iterator<PortRange> ranges = store.getPortRanges();
-    while (ranges.hasNext()) {
-      PortRange existing = (PortRange) ranges.next();
-      if (existing.isConflicting(range)) {
+    
+    for (PortRangeDefinition existing: store.getPortRanges()) {
+      if (areRangeConflicting(existing, def)) {
         throw new PortRangeConflictException("Existing port range (" + existing.getName() + ") conflicting with new range");
       }
     }
-    store.writeRange(range);
+
+    store.writeRange(def);
+  }
+  
+  protected boolean areRangeConflicting(PortRangeDefinition def, PortRangeDefinition anotherDef) {
+    return (anotherDef.getMax() <= def.getMax() && anotherDef.getMax() >= def.getMin()) ||
+           (anotherDef.getMin() >= def.getMin() && anotherDef.getMin() <= def.getMax()) ||
+           (anotherDef.getMin() <= def.getMin() && anotherDef.getMax() >= def.getMax());
   }
 
   @Override
   public synchronized void updatePortRange(String name, int min, int max) throws PortRangeInvalidException, PortRangeConflictException {
-    PortRange range = new PortRange(name, min, max);
+    PortRangeDefinition def = new PortRangeDefinition(name, min, max);
     if (max < min) {
-      throw new PortRangeInvalidException("Max port must be greater than min port for: " + range);
+      throw new PortRangeInvalidException("Max port must be greater than min port for: " + def);
     }
 
-    Iterator<PortRange> ranges = store.getPortRanges();
-    while (ranges.hasNext()) {
-      PortRange existing = (PortRange) ranges.next();
-
-      if (!existing.getName().equals(range.getName()) && existing.isConflicting(range)) {
-        throw new PortRangeConflictException("Existing port range (" + existing.getName() + ") conflicting with range");
+    for (PortRangeDefinition existing: store.getPortRanges()) {
+      if (!existing.getName().equals(def.getName()) && areRangeConflicting(existing, def)) {
+        throw new PortRangeConflictException("Existing port range (" + existing.getName() + ") conflicting with range " + def);
       }
     }
-    store.writeRange(range);
+
+    store.writeRange(def);
   }
 
   @Override
   public synchronized void removePortRange(ArgMatcher name, boolean force) throws PortActiveException {
-    Collection<PortRange> ranges = store.readRange(name);
+    List<PortRangeDefinition> ranges = store.readRange(name);
 
-    for (PortRange range : ranges) {
-      if (range.hasBusyPorts()) {
-        if (!force) {
-          throw new PortActiveException("Range has ports for which processes are running");
-        }
+    for (PortRangeDefinition existing: ranges) {
+      if (getActivePortsForName(existing.getName()).size() > 0 && !force) {
+        throw new PortActiveException("Range " + existing.getName() + " has ports for which processes are running");
       }
     }
-    for (PortRange range : ranges) {
-      store.deleteRange(range.getName());
-    }
-  }
-
-  @Override
-  public synchronized void releasePortRange(final ArgMatcher name) {
-    Collection<PortRange> ranges = store.readRange(name);
-    for (PortRange range : ranges) {
-      range.releaseAll();
-      store.writeRange(range);
+    
+    for (PortRangeDefinition existing: ranges) {
+      store.deleteRange(existing.getName());
     }
   }
 
   @Override
   public synchronized List<PortRange> getPortRanges() {
-    List<PortRange> lst = new ArrayList<PortRange>();
-    Iterator<PortRange> ranges = store.getPortRanges();
-    while (ranges.hasNext()) {
-      PortRange range = (PortRange) ranges.next();
-      lst.add(range);
+    try {
+      List<PortRange> created = new ArrayList<PortRange>();
+      for (PortRangeDefinition def: store.getPortRanges()) {
+        PortRange range = new PortRange(def.getName(), def.getMin(), def.getMax());
+        getActivePortsForName(def.getName()).stream().forEach(p -> range.acquire(p.getPort()));
+        created.add(range);
+      }
+      
+      Collections.sort(created);
+      return created;
+      
+    } catch (PortRangeInvalidException prie) {
+      throw new IllegalStateException("Caugh an invalid port range from the db store", prie);
     }
-    Collections.sort(lst);
-    return lst;
+  }
+
+  @Override
+  public synchronized List<PortRange> getPortRanges(ArgMatcher matcher) {
+    try {
+      List<PortRange> retrieved = new ArrayList<PortRange>();
+      for (PortRangeDefinition def: store.readRange(matcher)) {
+        PortRange range = new PortRange(def.getName(), def.getMin(), def.getMax());
+        getActivePortsForName(def.getName()).stream().forEach(p -> range.acquire(p.getPort()));
+        retrieved.add(range);
+      }
+      
+      Collections.sort(retrieved);
+      return retrieved;
+      
+    } catch (PortRangeInvalidException prie) {
+      throw new IllegalStateException("Caugh an invalid port range from the db store", prie);
+    }
   }
   
   @Override

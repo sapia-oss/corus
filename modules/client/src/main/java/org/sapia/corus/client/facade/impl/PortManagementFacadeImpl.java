@@ -42,12 +42,6 @@ public class PortManagementFacadeImpl extends FacadeHelper<PortManager> implemen
   }
 
   @Override
-  public void releasePortRange(String rangeName, ClusterInfo cluster) {
-    proxy.releasePortRange(ArgMatchers.parse(rangeName));
-    invoker.invokeLenient(void.class, cluster);
-  }
-
-  @Override
   public void removePortRange(String name, boolean force, ClusterInfo cluster) throws PortActiveException {
     proxy.removePortRange(ArgMatchers.parse(name), force);
     invoker.invokeLenient(void.class, cluster);

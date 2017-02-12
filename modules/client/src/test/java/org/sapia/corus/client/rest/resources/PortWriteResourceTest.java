@@ -20,7 +20,6 @@ import org.sapia.corus.client.rest.ConnectorPool;
 import org.sapia.corus.client.rest.PartitionService;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
-import org.sapia.corus.client.rest.resources.PortWriteResource;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PortWriteResourceTest {
@@ -87,18 +86,6 @@ public class PortWriteResourceTest {
   public void testDeletePortRangeForHost() throws Exception {
     resource.deletePortRangeForCluster(context);
     verify(facade).removePortRange(eq("test"), eq(true), any(ClusterInfo.class));
-  }
-
-  @Test
-  public void testReleasePortRangeForCluster() {
-    resource.releasePortRangeForCluster(context);
-    verify(facade).releasePortRange(eq("test"), any(ClusterInfo.class));
-  }
-
-  @Test
-  public void testReleasePortRangeForHost() {
-    resource.releasePortRangeForHost(context);
-    verify(facade).releasePortRange(eq("test"), any(ClusterInfo.class));
   }
 
 }

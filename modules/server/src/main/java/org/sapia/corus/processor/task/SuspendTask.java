@@ -3,7 +3,6 @@ package org.sapia.corus.processor.task;
 import java.io.IOException;
 
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.processor.ProcessRepository;
 import org.sapia.corus.processor.hook.ProcessContext;
@@ -25,7 +24,6 @@ public class SuspendTask extends KillTask {
   @Override
   protected void doKillConfirmed(boolean performOsKill, TaskExecutionContext ctx) {
     try {
-      PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ProcessRepository processes = ctx.getServerContext().getServices().getProcesses();
 
       try {
@@ -38,7 +36,6 @@ public class SuspendTask extends KillTask {
       }
 
       synchronized (processes) {
-        proc.releasePorts(ports);
         proc.setStatus(Process.LifeCycleStatus.SUSPENDED);
         proc.save();
       }

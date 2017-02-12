@@ -84,7 +84,7 @@ public class PortResourceTest {
       List<PortRange> ranges = new ArrayList<PortRange>();
       for (int j = 0; j < 5; j++) {
         PortRange pr = new PortRange(String.format("range-%s", rangeCount), rangeCount + 1, rangeCount + 2);
-        pr.acquire();
+        pr.acquire(rangeCount + 1);
         ranges.add(pr);
         rangeCount++;
       }

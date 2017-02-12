@@ -111,49 +111,7 @@ public class PortWriteResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doDeletePortRange(context, cluster);
   }
-  
-  // --------------------------------------------------------------------------
-  // release 
-
-  @Path({
-    "/clusters/{corus:cluster}/partitionsets/{corus:partitionSetId}/partitions/{corus:partitionIndex}/ports/ranges/{corus:rangeName}"
-  })
-  @HttpMethod(HttpMethod.POST)
-  @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.WRITE)
-  public void releasePortRangeForPartition(RequestContext context) {
-    ClusterInfo targets = context.getPartitionService()
-        .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
-        .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
-        .getTargets();
-    doReleasePortRange(context, targets);
-  }
-  
-  @Path({
-    "/clusters/{corus:cluster}/ports/ranges/{corus:rangeName}",
-    "/clusters/{corus:cluster}/hosts/ports/ranges/{corus:rangeName}"
-  })
-  @HttpMethod(HttpMethod.POST)
-  @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.WRITE)
-  public void releasePortRangeForCluster(RequestContext context) {
-    doReleasePortRange(context, ClusterInfo.clustered());
-  }
-  
-  @Path({
-    "/clusters/{corus:cluster}/hosts/{corus:host}/ports/ranges/{corus:rangeName}"
-  })
-  @HttpMethod(HttpMethod.POST)
-  @Output(ContentTypes.APPLICATION_JSON)
-  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
-  @Authorized(Permission.WRITE)
-  public void releasePortRangeForHost(RequestContext context) {
-    ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
-    doReleasePortRange(context, cluster);
-  }
-  
+    
   // --------------------------------------------------------------------------
   // archive/unarchive 
 
@@ -251,11 +209,6 @@ public class PortWriteResource {
     String name   = context.getRequest().getValue("corus:rangeName").notNull().asString();
     boolean force = context.getRequest().getValue("force", "false").asBoolean();
     context.getConnector().getPortManagementFacade().removePortRange(name, force, cluster);
-  }
-  
-  private void doReleasePortRange(RequestContext context, ClusterInfo cluster) {
-    String name   = context.getRequest().getValue("corus:rangeName").notNull().asString();
-    context.getConnector().getPortManagementFacade().releasePortRange(name, cluster);
   }
   
   private void doArchivePortRange(RequestContext context, ClusterInfo cluster) {

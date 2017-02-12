@@ -3,7 +3,6 @@ package org.sapia.corus.processor.task;
 import java.io.File;
 
 import org.sapia.corus.client.services.file.FileSystemModule;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.taskmanager.core.Task;
@@ -20,7 +19,6 @@ public class CleanupProcessTask extends Task<Void, Process> {
   @Override
   public Void execute(TaskExecutionContext ctx, Process proc) throws Throwable {
 
-    PortManager ports = ctx.getServerContext().lookup(PortManager.class);
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
 
     if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
@@ -45,7 +43,6 @@ public class CleanupProcessTask extends Task<Void, Process> {
     }
 
     ctx.debug(String.format("Releasing ports for %s", proc));
-    proc.releasePorts(ports);
 
     ctx.debug(String.format("Removing from active process list: %s", proc));
     proc.delete();

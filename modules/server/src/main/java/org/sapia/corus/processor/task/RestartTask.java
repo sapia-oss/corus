@@ -7,7 +7,6 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
@@ -44,7 +43,6 @@ public class RestartTask extends KillTask {
         ctx.warn("Error caught trying to kill process", e);
       }
 
-      PortManager ports = ctx.getServerContext().lookup(PortManager.class);
       DistributionDatabase dists = ctx.getServerContext().getServices().getDistributions();
 
       DistributionCriteria criteria = DistributionCriteria.builder()
@@ -57,7 +55,6 @@ public class RestartTask extends KillTask {
       synchronized (dists) {
         proc.setStatus(Process.LifeCycleStatus.RESTARTING);
         proc.clearCommands();
-        proc.releasePorts(ports);
         proc.save();
       }
 

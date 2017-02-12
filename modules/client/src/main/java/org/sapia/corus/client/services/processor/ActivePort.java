@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.apache.commons.lang.StringUtils;
 import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.services.port.PortRange;
 
@@ -24,7 +25,7 @@ import org.sapia.corus.client.services.port.PortRange;
  * 
  * @author yduchesne
  */
-public class ActivePort implements Externalizable {
+public class ActivePort implements Externalizable, Comparable<ActivePort> {
 
   static final long serialVersionUID = 1L;
 
@@ -90,6 +91,15 @@ public class ActivePort implements Externalizable {
     }
     return false;
   }
+
+  @Override
+  public int compareTo(ActivePort other) {
+    if (StringUtils.equals(this.name, other.name)) {
+      return Integer.compare(this.port, other.port);
+    } else {
+      return this.name.compareTo(other.name);
+    }
+  }
   
   // --------------------------------------------------------------------------
   // Externalizable
@@ -116,5 +126,4 @@ public class ActivePort implements Externalizable {
     }
     return portValue;
   }
-
 }
