@@ -111,6 +111,7 @@ public class RepositoryImplTest {
     repo.setServerContext(serverCtx);
     repo.setDeployRequestQueue(deployRequestQueue);
     repo.setArtifactListRequestQueue(listRequestQueue);
+    repo.setRepoStrategy(new DefaultRepoStrategy(host.getRepoRole()));
     
     when(serverCtx.getCorusHost()).thenReturn(host);
     when(cluster.getHosts()).thenReturn(peers);
@@ -126,6 +127,7 @@ public class RepositoryImplTest {
   @Test
   public void testPullForClientNode() {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     repo.pull();
     verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class)); 
   }
@@ -133,6 +135,7 @@ public class RepositoryImplTest {
   @Test
   public void testPullForServerNode() {
     host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
     repo.pull();
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class)); 
   }
@@ -140,6 +143,7 @@ public class RepositoryImplTest {
   @Test
   public void testPullForUndefinedNode() {
     host.setRepoRole(RepoRole.NONE);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.NONE));
     repo.pull();
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class)); 
   }
@@ -147,12 +151,14 @@ public class RepositoryImplTest {
   @Test
   public void testPushForClientNode() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     repo.push();
     verify(cluster, never()).send(any(ClusterNotification.class)); 
   }
   
   public void testPushForServerNode() throws Exception {
     host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
     repo.push();
     verify(cluster).send(any(ClusterNotification.class)); 
   }
@@ -160,6 +166,7 @@ public class RepositoryImplTest {
   @Test
   public void testPushForUndefinedNode() throws Exception {
     host.setRepoRole(RepoRole.NONE);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.NONE));
     repo.push();
     verify(cluster, never()).send(any(ClusterNotification.class)); 
   }
@@ -178,6 +185,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleDistributionListResponse() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     DistributionListResponse res = new DistributionListResponse(createCorusHost(RepoRole.SERVER).getEndpoint());
     RemoteEvent event = new RemoteEvent(DistributionListResponse.EVENT_TYPE, res);
     repo.onAsyncEvent(event);
@@ -198,6 +206,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleShellScriptListResponse() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<ShellScript> scripts = new ArrayList<ShellScript>();
     ShellScriptListResponse res = new ShellScriptListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), scripts);
     RemoteEvent event = new RemoteEvent(ShellScriptListResponse.EVENT_TYPE, res);
@@ -209,6 +218,7 @@ public class RepositoryImplTest {
   public void testHandleShellScriptListResponsePullDisabled() throws Exception {
     repoConfig.setPullScriptsEnabled(false);
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<ShellScript> scripts = new ArrayList<ShellScript>();
     ShellScriptListResponse res = new ShellScriptListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), scripts);
     RemoteEvent event = new RemoteEvent(ShellScriptListResponse.EVENT_TYPE, res);
@@ -232,6 +242,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleFileListResponse() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<FileInfo> files = new ArrayList<FileInfo>();
     FileListResponse res = new FileListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), files);
     RemoteEvent event = new RemoteEvent(FileListResponse.EVENT_TYPE, res);
@@ -243,6 +254,7 @@ public class RepositoryImplTest {
   public void testHandleFileListResponsePullDisabled() throws Exception {
     repoConfig.setPullFilesEnabled(false);    
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<FileInfo> files = new ArrayList<FileInfo>();
     FileListResponse res = new FileListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), files);
     RemoteEvent event = new RemoteEvent(FileListResponse.EVENT_TYPE, res);
@@ -265,6 +277,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleExecConfigNotification() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ExecConfig conf = new ExecConfig();
     conf.setName("test");
     conf.setStartOnBoot(true);
@@ -281,6 +294,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleExecConfigNotificationHostNotTargeted() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ExecConfig conf = new ExecConfig();
     conf.setName("test");
     ExecConfigNotification notif = new ExecConfigNotification(Collects.arrayToList(conf));
@@ -299,6 +313,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleConfigNotification() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ConfigNotification notif = new ConfigNotification();
     notif.addTarget(host.getEndpoint());
     
@@ -320,6 +335,7 @@ public class RepositoryImplTest {
   public void testHandleConfigNotificationTagsPullDisabled() throws Exception {
     repoConfig.setPullTagsEnabled(false);
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ConfigNotification notif = new ConfigNotification();
     notif.addTarget(host.getEndpoint());
     
@@ -341,6 +357,7 @@ public class RepositoryImplTest {
   public void testHandleConfigNotificationPropertiesPullDisabled() throws Exception {
     repoConfig.setPullPropertiesEnabled(false);
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ConfigNotification notif = new ConfigNotification();
     notif.addTarget(host.getEndpoint());
     
@@ -361,6 +378,7 @@ public class RepositoryImplTest {
   @Test
   public void testConfigNotificationHostNotTargeted() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     ConfigNotification notif = new ConfigNotification();
     notif.addTarget(createCorusHost(RepoRole.CLIENT).getEndpoint());
     
@@ -385,6 +403,7 @@ public class RepositoryImplTest {
   @Test
   public void testHandleSecurityConfigNotification() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
     List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
     SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
@@ -402,6 +421,7 @@ public class RepositoryImplTest {
   public void testHandleSecurityConfigPullDisabled() throws Exception {
     repoConfig.setPullSecurityConfigEnabled(false);
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
     List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
     SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
@@ -418,6 +438,7 @@ public class RepositoryImplTest {
   @Test
   public void testSecurityConfigNotificationHostNotTargeted() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
     List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
     SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);

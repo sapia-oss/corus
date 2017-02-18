@@ -259,6 +259,7 @@
     <property name="artifactDeploymentRequestActivityTimeoutSeconds" value="${corus.server.repository.deploy.request.timeout}" />
     
     <property name="repoServerExecProcessEnabled"  value="${corus.server.repository.server.exec-enabled}" />
+    <property name="repoServerSyncEnabled"         value="${corus.server.repository.server.synchronization.enabled}" />
     <property name="repoClientDeployScriptEnabled" value="${corus.server.repository.client.deploy-scripts-enabled}" />
   </bean>
 

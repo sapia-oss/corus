@@ -139,6 +139,11 @@ public interface RepositoryConfiguration extends Remote {
    * otherwise.
    */
   public boolean isRepoServerExecProcessEnabled();
+  
+  /**
+   * @return <code>true</code> if the repo server is meant to accept being synchronized by peers.
+   */
+  public boolean isRepoServerSyncEnabled();
  
   /**
    * @return <code>true</code> if packaged deployment scripts are to be executed at repo client nodes.

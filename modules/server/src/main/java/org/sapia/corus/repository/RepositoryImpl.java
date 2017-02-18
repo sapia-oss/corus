@@ -131,6 +131,8 @@ public class RepositoryImpl extends ModuleHelper
   @Autowired
   private RepositoryConfiguration repoConfig;
   
+  private volatile RepoStrategy strategy;
+  
   private Reference<ModuleState> state = new AutoResetReference<ModuleState>(
       ModuleState.IDLE, ModuleState.IDLE, TimeValue.createSeconds(DEFAULT_IDLE_DELAY_SECONDS)
   );
@@ -181,6 +183,10 @@ public class RepositoryImpl extends ModuleHelper
   void setArtifactListRequestQueue(Queue<ArtifactListRequest> listRequests) {
     this.listRequests = listRequests;
   }
+  
+  void setRepoStrategy(RepoStrategy strategy) {
+    this.strategy = strategy;
+  }
 
   // --------------------------------------------------------------------------
   // Lifecycle
@@ -194,6 +200,7 @@ public class RepositoryImpl extends ModuleHelper
      );
     dispatcher.addInterceptor(ServerStartedEvent.class, this);
     clusterManager.getEventChannel().addConnectionStateListener(this);
+    initStrategy();
     if (serverContext().getCorusHost().getRepoRole().isServer()) {
       logger().info("Node is repo server");
       taskManager.registerThrottle(ArtifactDeploymentRequestHandlerTask.DEPLOY_REQUEST_THROTTLE,
@@ -328,8 +335,8 @@ public class RepositoryImpl extends ModuleHelper
   @Override
   public void pull() throws IllegalStateException {
     state.set(ModuleState.BUSY);
-    if (serverContext().getCorusHost().getRepoRole().isClient()) {
-      logger().debug("Node is a repo client: will try to acquire distributions from repo server");
+    if (strategy.acceptsPull()) {
+      logger().debug("Node is a repo client or a repo server that accepts being coordinated: will try to acquire distributions from repo server");
       GetArtifactListTask task = new GetArtifactListTask();
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 
@@ -373,6 +380,7 @@ public class RepositoryImpl extends ModuleHelper
     );
     
     serverContext().getCorusHost().setRepoRole(newRole);
+    initStrategy();
         
     ChangeRepoRoleNotification notif = new ChangeRepoRoleNotification(thisEndpoint, newRole);
     for (CorusHost host : clusterManager.getHosts()) {
@@ -395,9 +403,9 @@ public class RepositoryImpl extends ModuleHelper
   }
   
   private void doFirstPull() {
-    if (serverContext().getCorusHost().getRepoRole().isClient()) {
+    if (strategy.acceptsPull()) {
       state.set(ModuleState.BUSY);
-      logger().debug("Node is a repo client: will request distributions from repository");
+      logger().debug("Node is a repo client or a repo server that accepts being coordinated: will request distributions from repository");
       Task<Void, Void> task = new ForcePullTask(this);
       task.executeOnce();
       long delay = TimeUtil.createRandomDelay(repoConfig.getBootstrapDelay());
@@ -412,39 +420,45 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public synchronized void onAsyncEvent(RemoteEvent evt) {
-    RepoRole role = serverContext().getCorusHost().getRepoRole();
     try {
-      if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE) && role.isServer()) {
+      if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.ARTIFACT_LIST_REQUEST)) {
         logger().debug("Got artifact list request");
         state.set(ModuleState.BUSY);
         handleArtifactListRequest((ArtifactListRequest) evt.getData());
 
       // Distribution (list response, deployment request)
-      } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE) && role.isClient()) {
+      } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.DISTRIBUTION_LIST_RESPONSE)) {
         logger().debug("Got distribution list response");
         state.set(ModuleState.BUSY);
         handleDistributionListResponse((DistributionListResponse) evt.getData());
-      } else if (evt.getType().equals(DistributionDeploymentRequest.EVENT_TYPE) && role.isServer()) {
+      } else if (evt.getType().equals(DistributionDeploymentRequest.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.DISTRIBUTION_DEPLOYMENT_REQUEST)) {
         logger().debug("Got distribution deployment request");
         state.set(ModuleState.BUSY);
         handleDistributionDeploymentRequest((DistributionDeploymentRequest) evt.getData());
 
       // Shell script (list response, deployment request)
-      } else if (evt.getType().equals(ShellScriptListResponse.EVENT_TYPE) && role.isClient()) {
+      } else if (evt.getType().equals(ShellScriptListResponse.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.SHELL_SCRIPT_LIST_RESPONSE)) {
         logger().debug("Got shell script list response");
         state.set(ModuleState.BUSY);
         handleShellScriptListResponse((ShellScriptListResponse) evt.getData());
-      } else if (evt.getType().equals(ShellScriptDeploymentRequest.EVENT_TYPE) && role.isServer()) {
+      } else if (evt.getType().equals(ShellScriptDeploymentRequest.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.SHELL_SCRIPT_DEPLOYMENT_REQUEST)) {
         logger().debug("Got shell script deployment request");
         state.set(ModuleState.BUSY);
         handleShellScriptDeploymentRequest((ShellScriptDeploymentRequest) evt.getData());
 
       // File (list response, deployment request)
-      } else if (evt.getType().equals(FileListResponse.EVENT_TYPE) && role.isClient()) {
+      } else if (evt.getType().equals(FileListResponse.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.FILE_LIST_RESPONSE)) {
         logger().debug("Got file list response");
         state.set(ModuleState.BUSY);
         handleFileListResponse((FileListResponse) evt.getData());
-      } else if (evt.getType().equals(FileDeploymentRequest.EVENT_TYPE) && role.isServer()) {
+      } else if (evt.getType().equals(FileDeploymentRequest.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.FILE_DEPLOYMENT_REQUEST)) {
         logger().debug("Got file deployment request");
         state.set(ModuleState.BUSY);
         handleFileDeploymentRequest((FileDeploymentRequest) evt.getData());
@@ -464,21 +478,27 @@ public class RepositoryImpl extends ModuleHelper
 
   @Override
   public Object onSyncEvent(RemoteEvent evt) {
-    RepoRole role = serverContext().getCorusHost().getRepoRole();
     try {
-      if (evt.getType().equals(ExecConfigNotification.EVENT_TYPE) && role.isClient()) {
+      if (evt.getType().equals(ExecConfigNotification.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.EXEC_CONFIG_NOTIFICATION)) {
         logger().debug("Got exec config notification");
         state.set(ModuleState.BUSY);
         handleExecConfigNotification((ExecConfigNotification) evt.getData());
-      } else if (evt.getType().equals(ConfigNotification.EVENT_TYPE) && role.isClient()) {
+        
+      } else if (evt.getType().equals(ConfigNotification.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.CONFIG_NOTIFICATION)) {
         logger().debug("Got config notification");
         state.set(ModuleState.BUSY);
         handleConfigNotification((ConfigNotification) evt.getData());
-      } else if (evt.getType().equals(PortRangeNotification.EVENT_TYPE) && role.isClient()) {
+        
+      } else if (evt.getType().equals(PortRangeNotification.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.PORT_RANGE_NOTIFICATION)) {
         logger().debug("Got port range notification");
         state.set(ModuleState.BUSY);
         handlePortRangeNotification((PortRangeNotification) evt.getData());
-      } else if (evt.getType().equals(SecurityConfigNotification.EVENT_TYPE) && role.isClient()) {
+        
+      } else if (evt.getType().equals(SecurityConfigNotification.EVENT_TYPE) 
+          && strategy.acceptsEvent(RepoEventType.SECURITY_CONFIG_NOTIFICATION)) {
         logger().debug("Got security config notification");
         state.set(ModuleState.BUSY);
         handleSecurityConfigNotification((SecurityConfigNotification) evt.getData());
@@ -638,6 +658,7 @@ public class RepositoryImpl extends ModuleHelper
       for (CorusHost h : clusterManager.getHosts()) {
         if (h.getEndpoint().equals(notif.getRepoEndpoint())) {
           h.setRepoRole(notif.getNewRole());
+          initStrategy();
         }
       }
     }
@@ -723,6 +744,14 @@ public class RepositoryImpl extends ModuleHelper
       taskManager.execute(new ArtifactDeploymentRequestHandlerTask(repoConfig, deployRequests), null);
     } else {
       logger().debug("Ignoring " + req + "; repo type is " + serverContext().getCorusHost().getRepoRole());
+    }
+  }
+  
+  private void initStrategy() {
+    if (this.repoConfig.isRepoServerSyncEnabled() && serverContext().getCorusHost().getRepoRole() == RepoRole.SERVER) {
+      strategy = new RepoServerSyncStrategy();
+    } else {
+      strategy = new DefaultRepoStrategy(serverContext().getCorusHost().getRepoRole());
     }
   }
 
