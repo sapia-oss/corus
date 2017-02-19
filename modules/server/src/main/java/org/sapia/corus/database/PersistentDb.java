@@ -17,17 +17,16 @@ import org.sapia.corus.database.DbMapImpl.TxFacade;
  * @author Yanick Duchesne
  */
 public class PersistentDb {
-  
-  private static final int CACHE_SIZE = 100;
-  
+    
   private DB db;
 
   private PersistentDb(DB db) {
     this.db = db;
   }
 
+  @SuppressWarnings("unchecked")
   <K, V> DbMap<K, V> getDbMap(Class<K> keyType, Class<V> valueType, String name) throws IOException {
-    ConcurrentNavigableMap<K, Record<V>> treeMap  = db.getTreeMap(name);
+    ConcurrentNavigableMap<K, Record<V>> treeMap  = (ConcurrentNavigableMap<K, Record<V>>) db.treeMap(name).createOrOpen();
     Archiver<K, V>                       archiver = new ArchiverImpl<K, V>(name, db);
     TxFacade txFacade = new TxFacade() {
       @Override
@@ -39,10 +38,8 @@ public class PersistentDb {
   }
 
   static PersistentDb open(String fName) throws IOException {
-    DB db = DBMaker.newFileDB(new File(fName))
+    DB db = DBMaker.fileDB(new File(fName))
         .closeOnJvmShutdown()
-        .cacheLRUEnable()
-        .cacheSize(CACHE_SIZE)
         .make();
     return new PersistentDb(db);
   }

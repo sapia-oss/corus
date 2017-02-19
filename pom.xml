@@ -106,9 +106,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.mapdb</groupId>
-        <artifactId>mapdb</artifactId>
-        <version>1.0.8</version>
+          <groupId>org.mapdb</groupId>
+          <artifactId>mapdb</artifactId>
+          <version>3.0.3</version>
       </dependency>
 
       <dependency>

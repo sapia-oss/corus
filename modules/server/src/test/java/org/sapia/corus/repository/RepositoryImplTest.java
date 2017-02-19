@@ -25,7 +25,7 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
@@ -645,7 +645,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.CLIENT);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
       
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.SERVER)));
     
     verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }
@@ -657,7 +657,7 @@ public class RepositoryImplTest {
       
     when(deployer.getDistributions(any())).thenReturn(Arrays.asList(new Distribution("test", "1.0")));
 
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.SERVER)));
     
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }
@@ -667,7 +667,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.CLIENT);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
   
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.CLIENT)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.CLIENT)));
     
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }
@@ -677,7 +677,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.SERVER);
     repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
     
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.SERVER)));
     
     verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }
@@ -689,7 +689,7 @@ public class RepositoryImplTest {
 
     when(deployer.getDistributions(any())).thenReturn(Arrays.asList(new Distribution("test", "1.0")));
 
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.SERVER)));
     
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }
@@ -699,7 +699,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.SERVER);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
 
-    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    repo.onCorusHostAddedEvent(new CorusHostAddedEvent(createCorusHost(RepoRole.SERVER)));
     
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
   }

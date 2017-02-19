@@ -18,14 +18,13 @@ import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddEvent;
-import org.sapia.corus.client.services.cluster.event.CorusHostRemoveEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
-import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
@@ -68,9 +67,9 @@ import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
+import org.sapia.corus.util.DelayedQueue;
 import org.sapia.corus.util.Queue;
 import org.sapia.corus.util.TimeUtil;
-import org.sapia.corus.util.DelayedQueue;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.SyncEventListener;
@@ -337,7 +336,7 @@ public class RepositoryImpl extends ModuleHelper
   // --------------------------------------------------------------------------
   // Event interceptor methods
   
-  public void onCorusHostAddEvent(CorusHostAddEvent event) {
+  public void onCorusHostAddedEvent(CorusHostAddedEvent event) {
     if (event.getHost().getRepoRole() == RepoRole.SERVER
         && strategy.acceptsPull() 
         && !state.get().isBusy() 
@@ -423,7 +422,7 @@ public class RepositoryImpl extends ModuleHelper
   // Interceptor interface
 
   public void onServerStartedEvent(ServerStartedEvent event) {
-    dispatcher.addInterceptor(CorusHostAddEvent.class, this);
+    dispatcher.addInterceptor(CorusHostAddedEvent.class, this);
     doFirstPull();
   }
   
