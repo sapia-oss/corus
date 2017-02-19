@@ -18,9 +18,13 @@ import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostRemoveEvent;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
+import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.port.PortManager;
@@ -114,6 +118,9 @@ public class RepositoryImpl extends ModuleHelper
   private EventDispatcher dispatcher;
 
   @Autowired
+  private Deployer deployer;
+  
+  @Autowired
   private PortManager portManager;
   
   @Autowired
@@ -166,6 +173,10 @@ public class RepositoryImpl extends ModuleHelper
 
   void setPortManager(PortManager portManager) {
     this.portManager = portManager;
+  }
+  
+  void setDeployer(Deployer deployer) {
+    this.deployer = deployer;
   }
 
   void setSecurityModule(SecurityModule securityModule) {
@@ -322,6 +333,18 @@ public class RepositoryImpl extends ModuleHelper
   public void onReconnected() {
     doFirstPull();
   }
+  
+  // --------------------------------------------------------------------------
+  // Event interceptor methods
+  
+  public void onCorusHostAddEvent(CorusHostAddEvent event) {
+    if (event.getHost().getRepoRole() == RepoRole.SERVER
+        && strategy.acceptsPull() 
+        && !state.get().isBusy() 
+        && deployer.getDistributions(DistributionCriteria.builder().all()).isEmpty()) {
+      doFirstPull();
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Repository interface
@@ -336,13 +359,14 @@ public class RepositoryImpl extends ModuleHelper
   public void pull() throws IllegalStateException {
     state.set(ModuleState.BUSY);
     if (strategy.acceptsPull()) {
-      logger().debug("Node is a repo client or a repo server that accepts being coordinated: will try to acquire distributions from repo server");
+      logger().debug("Node is a repo client or a repo server that accepts being synchronized: will try to acquire distributions from repo server");
       GetArtifactListTask task = new GetArtifactListTask();
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 
-      taskManager.executeBackground(task, null,
-        BackgroundTaskConfig.create()
-          .setExecInterval(TimeUnit.MILLISECONDS.convert(repoConfig.getDistributionDiscoveryIntervalSeconds(), TimeUnit.SECONDS)));
+      BackgroundTaskConfig taskConf = BackgroundTaskConfig.create()
+          .setExecInterval(TimeUnit.MILLISECONDS.convert(repoConfig.getDistributionDiscoveryIntervalSeconds(), TimeUnit.SECONDS));
+      
+      taskManager.executeBackground(task, null, taskConf);
     }
   }
 
@@ -399,17 +423,19 @@ public class RepositoryImpl extends ModuleHelper
   // Interceptor interface
 
   public void onServerStartedEvent(ServerStartedEvent event) {
+    dispatcher.addInterceptor(CorusHostAddEvent.class, this);
     doFirstPull();
   }
   
-  private void doFirstPull() {
-    if (strategy.acceptsPull()) {
+  private synchronized void doFirstPull() {
+    if (strategy.acceptsPull() && ! state.get().isBusy()) {
       state.set(ModuleState.BUSY);
-      logger().debug("Node is a repo client or a repo server that accepts being coordinated: will request distributions from repository");
+      logger().debug("Node is a repo client or a repo server that accepts being synchronized: will request distributions from repository");
       Task<Void, Void> task = new ForcePullTask(this);
       task.executeOnce();
       long delay = TimeUtil.createRandomDelay(repoConfig.getBootstrapDelay());
-      taskManager.executeBackground(task, null, BackgroundTaskConfig.create().setExecInterval(delay).setExecDelay(delay));
+      BackgroundTaskConfig taskConf = BackgroundTaskConfig.create().setExecInterval(delay).setExecDelay(delay);
+      taskManager.executeBackground(task, null, taskConf);
     } else {
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));
     }    
@@ -687,7 +713,7 @@ public class RepositoryImpl extends ModuleHelper
   // Distribution
 
   void handleDistributionListResponse(final DistributionListResponse distsRes) {
-    if (serverContext().getCorusHost().getRepoRole().isClient()) {
+    if (strategy.acceptsPull()) {
       taskManager.execute(new DistributionListResponseHandlerTask(distsRes), null);
     } else {
       logger().debug("Ignoring " + distsRes + "; repo type is " + serverContext().getCorusHost().getRepoRole());
@@ -709,7 +735,7 @@ public class RepositoryImpl extends ModuleHelper
   void handleShellScriptListResponse(final ShellScriptListResponse response) {
     if (!repoConfig.isPullScriptsEnabled()) {
       logger().debug("Ignoring " + response + "; script pull is disabled");
-    } else if (serverContext().getCorusHost().getRepoRole().isClient()) {
+    } else if (strategy.acceptsPull()) {
       taskManager.execute(new ShellScriptListResponseHandlerTask(response), null);
     } else {
       logger().debug("Ignoring " + response + "; repo type is " + serverContext().getCorusHost().getRepoRole());
@@ -731,7 +757,7 @@ public class RepositoryImpl extends ModuleHelper
   void handleFileListResponse(final FileListResponse response) {
     if (!repoConfig.isPullFilesEnabled()) {
       logger().debug("Ignoring " + response + "; file pull is disabled");
-    } else if (serverContext().getCorusHost().getRepoRole().isClient()) {
+    } else if (strategy.acceptsPull()) {
       taskManager.execute(new FileListResponseHandlerTask(response), null);
     } else {
       logger().debug("Ignoring " + response + "; repo type is " + serverContext().getCorusHost().getRepoRole());
@@ -747,12 +773,17 @@ public class RepositoryImpl extends ModuleHelper
     }
   }
   
-  private void initStrategy() {
+  // visible for testing
+  void initStrategy() {
     if (this.repoConfig.isRepoServerSyncEnabled() && serverContext().getCorusHost().getRepoRole() == RepoRole.SERVER) {
-      strategy = new RepoServerSyncStrategy();
+      strategy = new RepoServerSyncStrategy(serverContext().getCorusHost().getRepoRole());
     } else {
       strategy = new DefaultRepoStrategy(serverContext().getCorusHost().getRepoRole());
     }
+  }
+  
+  RepoStrategy getStrategy() {
+    return strategy;
   }
 
 }

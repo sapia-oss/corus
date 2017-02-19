@@ -1,5 +1,7 @@
 package org.sapia.corus.repository;
 
+import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
+
 /**
  * A strategy that is used in the context of repo servers that also
  * act as repo clients in order to be synchronized by their repo server peers.
@@ -13,13 +15,19 @@ package org.sapia.corus.repository;
  */
 public class RepoServerSyncStrategy implements RepoStrategy {
   
+  private RepoRole role;
+  
+  public RepoServerSyncStrategy(RepoRole role) {
+    this.role = role;
+  }
+  
   @Override
   public boolean acceptsEvent(RepoEventType eventType) {
-    return true;
+    return role == RepoRole.CLIENT || role == RepoRole.SERVER;
   }
 
   @Override
   public boolean acceptsPull() {
-    return true;
+    return role == RepoRole.CLIENT || role == RepoRole.SERVER;
   }
 }

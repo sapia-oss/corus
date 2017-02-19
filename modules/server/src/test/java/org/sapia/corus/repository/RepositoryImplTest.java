@@ -1,5 +1,6 @@
 package org.sapia.corus.repository;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySet;
 import static org.mockito.Matchers.anySetOf;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -23,11 +25,14 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddEvent;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
+import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.ShellScript;
+import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Processor;
@@ -66,6 +71,7 @@ public class RepositoryImplTest {
   private Processor             processor;
   private TaskManager           tasks;
   private SecurityModule        security;
+  private Deployer              deployer;
   private ApplicationKeyManager appkeys;
   private ApplicationContext    appCtx;
   private ServerContext         serverCtx;
@@ -88,6 +94,7 @@ public class RepositoryImplTest {
     processor  = mock(Processor.class);
     tasks      = mock(TaskManager.class);
     security   = mock(SecurityModule.class);
+    deployer   = mock(Deployer.class);
     appkeys    = mock(ApplicationKeyManager.class);
     appCtx     = mock(ApplicationContext.class);
     serverCtx  = mock(ServerContext.class);
@@ -106,6 +113,7 @@ public class RepositoryImplTest {
     repo.setDispatcher(dispatcher);
     repo.setTaskManager(tasks);
     repo.setSecurityModule(security);
+    repo.setDeployer(deployer);
     repo.setApplicationKeys(appkeys);
     repo.setApplicationContext(appCtx);
     repo.setServerContext(serverCtx);
@@ -118,7 +126,6 @@ public class RepositoryImplTest {
   }
   
   private CorusHost createCorusHost(RepoRole repoRole) {
-    
     CorusHost host = CorusHost.newInstance("test-node", new Endpoint(new TcpSocketAddress("test", corusPort++), new TcpSocketAddress("test", corusPort++)), "testOsInfo", "testVMInfo", mock(PublicKey.class));
     host.setRepoRole(repoRole);
     return host;
@@ -138,6 +145,14 @@ public class RepositoryImplTest {
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
     repo.pull();
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class)); 
+  }
+  
+  @Test
+  public void testPullForServerNode_server_sync() {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    repo.pull();
+    verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class)); 
   }
 
   @Test
@@ -191,6 +206,26 @@ public class RepositoryImplTest {
     repo.onAsyncEvent(event);
     verify(tasks).execute(any(Task.class), any(Void.class));
   }
+
+  @Test
+  public void testHandleDistributionListResponse_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    DistributionListResponse res = new DistributionListResponse(createCorusHost(RepoRole.SERVER).getEndpoint());
+    RemoteEvent event = new RemoteEvent(DistributionListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks, never()).execute(any(Task.class), any(Void.class));
+  }
+  
+  @Test
+  public void testHandleDistributionListResponse_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    DistributionListResponse res = new DistributionListResponse(createCorusHost(RepoRole.SERVER).getEndpoint());
+    RemoteEvent event = new RemoteEvent(DistributionListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks).execute(any(Task.class), any(Void.class));
+  }
   
   @Test
   public void testHandleDistributionDeploymentRequest() throws Exception {
@@ -213,6 +248,28 @@ public class RepositoryImplTest {
     repo.onAsyncEvent(event);
     verify(tasks).execute(any(Task.class), any(Void.class));
   }
+  
+  @Test
+  public void testHandleShellScriptListResponse_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    List<ShellScript> scripts = new ArrayList<ShellScript>();
+    ShellScriptListResponse res = new ShellScriptListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), scripts);
+    RemoteEvent event = new RemoteEvent(ShellScriptListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks).execute(any(Task.class), any(Void.class));
+  }
+  
+  @Test
+  public void testHandleShellScriptListResponse_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    List<ShellScript> scripts = new ArrayList<ShellScript>();
+    ShellScriptListResponse res = new ShellScriptListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), scripts);
+    RemoteEvent event = new RemoteEvent(ShellScriptListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks, never()).execute(any(Task.class), any(Void.class));
+  }
 
   @Test
   public void testHandleShellScriptListResponsePullDisabled() throws Exception {
@@ -225,7 +282,6 @@ public class RepositoryImplTest {
     repo.onAsyncEvent(event);
     verify(tasks, never()).execute(any(Task.class), any(Void.class));
   }
-
   
   @Test
   public void testHandleShellScriptDeploymentRequest() throws Exception {
@@ -248,6 +304,28 @@ public class RepositoryImplTest {
     RemoteEvent event = new RemoteEvent(FileListResponse.EVENT_TYPE, res);
     repo.onAsyncEvent(event);
     verify(tasks).execute(any(Task.class), any(Void.class));
+  }
+  
+  @Test
+  public void testHandleFileListResponse_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    List<FileInfo> files = new ArrayList<FileInfo>();
+    FileListResponse res = new FileListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), files);
+    RemoteEvent event = new RemoteEvent(FileListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks).execute(any(Task.class), any(Void.class));
+  }
+  
+  @Test
+  public void testHandleFileListResponse_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    List<FileInfo> files = new ArrayList<FileInfo>();
+    FileListResponse res = new FileListResponse(createCorusHost(RepoRole.SERVER).getEndpoint(), files);
+    RemoteEvent event = new RemoteEvent(FileListResponse.EVENT_TYPE, res);
+    repo.onAsyncEvent(event);
+    verify(tasks, never()).execute(any(Task.class), any(Void.class));
   }
   
   @Test
@@ -292,6 +370,40 @@ public class RepositoryImplTest {
   }
   
   @Test
+  public void testHandleExecConfigNotification_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    ExecConfig conf = new ExecConfig();
+    conf.setName("test");
+    conf.setStartOnBoot(true);
+    ExecConfigNotification notif = new ExecConfigNotification(Collects.arrayToList(conf));
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(ExecConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+
+    verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+    verify(cluster).send(any(ExecConfigNotification.class));
+  }
+  
+  @Test
+  public void testHandleExecConfigNotification_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    ExecConfig conf = new ExecConfig();
+    conf.setName("test");
+    conf.setStartOnBoot(true);
+    ExecConfigNotification notif = new ExecConfigNotification(Collects.arrayToList(conf));
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(ExecConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+
+    verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+    verify(cluster, never()).send(any(ExecConfigNotification.class));
+  }
+  
+  @Test
   public void testHandleExecConfigNotificationHostNotTargeted() throws Exception {
     host.setRepoRole(RepoRole.CLIENT);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
@@ -329,6 +441,48 @@ public class RepositoryImplTest {
     verify(config).addTags(anySet(), eq(false));
     
     verify(cluster).send(any(ExecConfigNotification.class));
+  }
+  
+  @Test
+  public void testHandleConfigNotification_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    ConfigNotification notif = new ConfigNotification();
+    notif.addTarget(host.getEndpoint());
+    
+    Properties props = new Properties();
+    props.setProperty("test", "val");
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
+    
+    RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(config).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
+    verify(config).addTags(anySet(), eq(false));
+    
+    verify(cluster).send(any(ExecConfigNotification.class));
+  }
+  
+  @Test
+  public void testHandleConfigNotification_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    ConfigNotification notif = new ConfigNotification();
+    notif.addTarget(host.getEndpoint());
+    
+    Properties props = new Properties();
+    props.setProperty("test", "val");
+    notif.addProperties(Collects.arrayToList(new Property("test", "val")));
+    notif.addTags(Collects.arrayToSet("tag1", "tag2"));
+    
+    RemoteEvent event = new RemoteEvent(ConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
+    verify(config, never()).addTags(anySet(), eq(false));
+    
+    verify(cluster, never()).send(any(ExecConfigNotification.class));
   }
   
   @Test
@@ -418,6 +572,40 @@ public class RepositoryImplTest {
   }
   
   @Test
+  public void testHandleSecurityConfigNotification_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
+    List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
+    SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(SecurityConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(security).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
+    verify(appkeys).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
+    verify(cluster).send(any(SecurityConfigNotification.class));
+  }
+
+  @Test
+  public void testHandleSecurityConfigNotification_no_server_sync() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    List<RoleConfig>   roles = Collects.arrayToList(new RoleConfig("admin", Collects.arrayToSet(Permission.values())));
+    List<AppKeyConfig> keys  = Collects.arrayToList(new AppKeyConfig("test-app", "test-role", "test-key"));
+    SecurityConfigNotification notif = new SecurityConfigNotification(roles, keys);
+    notif.addTarget(host.getEndpoint());
+    
+    RemoteEvent event = new RemoteEvent(SecurityConfigNotification.EVENT_TYPE, notif);
+    repo.onSyncEvent(event);
+    
+    verify(security, never()).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
+    verify(appkeys, never()).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
+    verify(cluster, never()).send(any(SecurityConfigNotification.class));
+  }
+  
+  @Test
   public void testHandleSecurityConfigPullDisabled() throws Exception {
     repoConfig.setPullSecurityConfigEnabled(false);
     host.setRepoRole(RepoRole.CLIENT);
@@ -450,6 +638,107 @@ public class RepositoryImplTest {
     verify(security, never()).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
     verify(appkeys, never()).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
     verify(cluster).send(any(SecurityConfigNotification.class));
-  }  
+  }
   
+  @Test
+  public void testOnCorusHostAddEvent_client() {
+    host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
+      
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    
+    verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+  
+  @Test
+  public void testOnCorusHostAddEvent_client_has_distributions() {
+    host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
+      
+    when(deployer.getDistributions(any())).thenReturn(Arrays.asList(new Distribution("test", "1.0")));
+
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    
+    verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+  
+  @Test
+  public void testOnCorusHostAddEvent_new_node_is_client() {
+    host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
+  
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.CLIENT)));
+    
+    verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+
+  @Test
+  public void testOnCorusHostAddEvent_server_sync() {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+    
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    
+    verify(tasks).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+  
+  @Test
+  public void testOnCorusHostAddEvent_server_sync_has_distributions() {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new RepoServerSyncStrategy(RepoRole.SERVER));
+
+    when(deployer.getDistributions(any())).thenReturn(Arrays.asList(new Distribution("test", "1.0")));
+
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    
+    verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+  
+  @Test
+  public void testOnCorusHostAddEvent_no_server_sync() {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+
+    repo.onCorusHostAddEvent(new CorusHostAddEvent(createCorusHost(RepoRole.SERVER)));
+    
+    verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
+  }
+  
+  @Test
+  public void testInitStrategy_client() {
+    host.setRepoRole(RepoRole.CLIENT);
+    
+    repo.initStrategy();
+    
+    assertTrue(repo.getStrategy() instanceof DefaultRepoStrategy);
+  }
+  
+  @Test
+  public void testInitStrategy_server_sync() {
+    host.setRepoRole(RepoRole.SERVER);
+    this.repoConfig.setRepoServerSyncEnabled(true);
+    
+    repo.initStrategy();
+    
+    assertTrue(repo.getStrategy() instanceof RepoServerSyncStrategy);
+  }
+  
+  @Test
+  public void testInitStrategy_no_server_sync() {
+    host.setRepoRole(RepoRole.SERVER);
+    
+    repo.initStrategy();
+    
+    assertTrue(repo.getStrategy() instanceof DefaultRepoStrategy);
+  }
+  
+  @Test
+  public void testChangeRole_to_server_sync() {
+    host.setRepoRole(RepoRole.CLIENT);
+    repoConfig.setRepoServerSyncEnabled(true);
+    
+    repo.changeRole(RepoRole.SERVER);
+    
+    assertTrue(repo.getStrategy() instanceof RepoServerSyncStrategy);
+  }
 }

@@ -16,6 +16,9 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostRemoveEvent;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ModuleHelper;
@@ -58,6 +61,9 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Autowired
   private HttpModule      http;
+  
+  @Autowired
+  private EventDispatcher dispatcher;
 
   //private Map<ServerAddress, CorusHost> hostsByAddress    = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
   private Map<String, CorusHost>        hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
@@ -310,6 +316,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     CorusHost host = hostsByNode.remove(node);
     if (host != null) {
       log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host));
+      dispatcher.dispatch(new CorusHostRemoveEvent(host));
     }
   }
 
@@ -317,6 +324,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     synchronized (hostsByNode) {
       if(hostsByNode.put(host.getNode(), host) == null) {
         log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
+        dispatcher.dispatch(new CorusHostAddEvent(host));
       }
     }
   }

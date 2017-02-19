@@ -20,4 +20,26 @@ public interface BackgroundTaskListener extends TaskListener {
    *          the {@link Task} whose execution was aborted.
    */
   public void executionAborted(Task<?, ?> task);
+  
+  // ==========================================================================
+  
+  public static class BackgroundTaskListenerAdapter implements BackgroundTaskListener {
+  
+    @Override
+    public void executionSucceeded(Task<?, ?> task, Object result) {
+    }
+    
+    @Override
+    public void executionFailed(Task<?, ?> task, Throwable err) {
+    }
+    
+    @Override
+    public void executionAborted(Task<?, ?> task) {
+    }
+    
+    @Override
+    public void maxExecutionReached(Task<?, ?> task) {
+    }
+    
+  }
 }

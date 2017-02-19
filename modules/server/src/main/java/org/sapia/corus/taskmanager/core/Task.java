@@ -95,7 +95,7 @@ public abstract class Task<R, P> {
    * @return <code>true</code> if the maximum number of executions has been
    *         reached.
    */
-  boolean isMaxExecutionReached() {
+  public boolean isMaxExecutionReached() {
     return maxExecution > 0 && executionCount >= maxExecution;
   }
 
@@ -104,8 +104,15 @@ public abstract class Task<R, P> {
    * 
    * @see #abort()
    */
-  boolean isAborted() {
+  public boolean isAborted() {
     return aborted;
+  }
+  
+  /**
+   * @return <code>true</code> if this task can be executed.
+   */
+  public boolean canExecute() {
+    return !isAborted() && ! isMaxExecutionReached();
   }
 
   /**
