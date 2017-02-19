@@ -417,14 +417,6 @@ public class RepositoryImpl extends ModuleHelper
       logger().error("Could not send change-role notification", e);
     }
   }
-
-  // -------------------------------------------------------------------------
-  // Interceptor interface
-
-  public void onServerStartedEvent(ServerStartedEvent event) {
-    dispatcher.addInterceptor(CorusHostAddedEvent.class, this);
-    doFirstPull();
-  }
   
   private synchronized void doFirstPull() {
     if (strategy.acceptsPull() && ! state.get().isBusy()) {
@@ -438,6 +430,14 @@ public class RepositoryImpl extends ModuleHelper
     } else {
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));
     }    
+  }
+  
+  // -------------------------------------------------------------------------
+  // Interceptor interface
+
+  public void onServerStartedEvent(ServerStartedEvent event) {
+    dispatcher.addInterceptor(CorusHostAddedEvent.class, this);
+    doFirstPull();
   }
   
   // --------------------------------------------------------------------------
