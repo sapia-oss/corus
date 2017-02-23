@@ -11,7 +11,7 @@ package org.sapia.corus.client.common;
  */
 public class ArgMatchers {
 
-  public static final String PATTERN           = "*";
+  public static final String ANY_PATTERN       = "*";
   public static final String ALTERNATE_PATTERN = "+";
 
   public static final String NOT     = "!";
@@ -22,8 +22,8 @@ public class ArgMatchers {
    * @return the corresponding {@link ArgMatcher} object.
    */
   public static ArgMatcher parse(String token) {
-    if (token == null) {
-      return new PatternArgMatcher(PATTERN);
+    if (token == null || ANY_PATTERN.equals(token)) {
+      return new MatchAnyMatcher();
     } else if (isPattern(token)) {
       return new PatternArgMatcher(token);
     } else {
@@ -35,7 +35,7 @@ public class ArgMatchers {
    * @return an {@link ArgMatcher} that matches any string.
    */
   public static ArgMatcher any() {
-    return new PatternArgMatcher(PATTERN);
+    return new MatchAnyMatcher();
   }
 
   /**
@@ -53,7 +53,7 @@ public class ArgMatchers {
    * @return <code>true</code> of the given token corresponds to a pattern.
    */
   public static boolean isPattern(String token) {
-    return token.indexOf(PATTERN) >= 0 || token.indexOf(ALTERNATE_PATTERN) >= 0 || token.startsWith(NOT);
+    return token.indexOf(ANY_PATTERN) >= 0 || token.indexOf(ALTERNATE_PATTERN) >= 0 || token.startsWith(NOT);
   }
 
   /**
