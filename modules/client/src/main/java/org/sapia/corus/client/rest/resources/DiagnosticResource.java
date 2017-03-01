@@ -20,6 +20,7 @@ import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.RestResponseFacade;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;
+import org.sapia.ubik.net.TCPAddress;
 
 /**
  * A REST resource providing diagnostic data.
@@ -66,7 +67,21 @@ public class DiagnosticResource {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     return doGetDiagnostics(context, cluster, responseFacade);
   }
-  
+
+  // --------------------------------------------------------------------------
+
+  @Path({
+      "/clusters/{corus:cluster}/hosts/localhost/diagnostic"
+  })
+  @HttpMethod(HttpMethod.GET)
+  @Output(ContentTypes.APPLICATION_JSON)
+  @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
+  public String getDiagnosticsForLocalHost(RequestContext context, RestResponseFacade responseFacade) {
+    TCPAddress localAddress = context.getConnector().getContext().getServerHost().getEndpoint().getServerTcpAddress();
+    ClusterInfo cluster = ClusterInfo.fromLiteralForm(localAddress.getHost()+":"+localAddress.getPort());
+    return doGetDiagnostics(context, cluster, responseFacade);
+  }
+
   // --------------------------------------------------------------------------
   // Restricted methods
   
