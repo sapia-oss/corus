@@ -264,9 +264,14 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     for (int i = 0; i < ports.size(); i++) {
       Port p = ports.get(i);
       if (!added.contains(p.getName())) {
-        int portInt = portmgr.aquirePort(p.getName());
-        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(portInt)));
-        proc.addActivePort(new ActivePort(p.getName(), portInt));
+        // The process might already contain an active port (in case of a restart)
+        ActivePort activePort = proc.getActivePortForName(p.getName());
+        if (activePort == null) {
+          int portInt = portmgr.aquirePort(p.getName());
+          activePort = new ActivePort(p.getName(), portInt);
+          proc.addActivePort(activePort);
+        }
+        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(activePort.getPort())));
         added.add(p.getName());
       }
     }

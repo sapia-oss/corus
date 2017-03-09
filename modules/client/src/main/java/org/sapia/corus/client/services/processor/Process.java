@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.sapia.corus.client.annotations.Transient;
 import org.sapia.corus.client.common.CyclicIdGenerator;
@@ -373,6 +374,11 @@ public class Process extends AbstractPersistent<String, Process>
    */
   public List<ActivePort> getActivePorts() {
     return activePorts;
+  }
+  
+  public ActivePort getActivePortForName(String portName) {
+    return activePorts.stream().filter(p -> p.getName().equals(portName)).
+        collect(Collectors.collectingAndThen(Collectors.toList(), l -> l.isEmpty() ? null : l.get(0)));
   }
 
   /**
