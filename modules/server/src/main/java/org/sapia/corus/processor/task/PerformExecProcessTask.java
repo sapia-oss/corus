@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrLookup;
@@ -86,9 +87,27 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     process.setProcessDir(processDir.getAbsolutePath());
     process.setDeleteOnKill(conf.isDeleteOnKill());
+    
+    // Assing active ports
+    PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
+
+    List<Port> ports = conf.getPorts();
+    Set<String> added = new HashSet<String>();
+    for (int i = 0; i < ports.size(); i++) {
+      Port p = ports.get(i);
+      if (!added.contains(p.getName())) {
+        // The process might already contain an active port (in case of a restart)
+        ActivePort activePort = process.getActivePortForName(p.getName());
+        if (activePort == null) {
+          int portInt = portmgr.aquirePort(p.getName());
+          activePort = new ActivePort(p.getName(), portInt);
+          process.addActivePort(activePort);
+        }
+        added.add(p.getName());
+      }
+    }
 
     EnvImpl env = null;
-
     try {
       env = new EnvImpl(
           ctx.getServerContext().getCorus(),
@@ -105,21 +124,24 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
 
     // Assign numa options
     if (conf.isNumaEnabled(env) && numaModule.isEnabled()) {
-      try {
+      // Make sure numa node is not already assigned (in case of a restart)
+      if (process.getNumaNode().isNull()) {
+        try {
           int numaNodeId = numaModule.getNextNumaNode();
           process.setNumaNode(numaNodeId);
-          ctx.info(String.format("Binding process to numa node %s with policy setting: cpuBind=%s memoryBind=%s",
-              String.valueOf(numaNodeId), String.valueOf(numaModule.isBindingCpu()), String.valueOf(numaModule.isBindingMemory())));
 
           NumaProcessOptions.appendProcessOptions(
               numaNodeId,
               numaModule.isBindingCpu(),
               numaModule.isBindingMemory(),
               process.getNativeProcessOptions());
-      } catch (Exception e) {
-        ctx.error(e);
-        return false;
+        } catch (Exception e) {
+          ctx.error(e);
+          return false;
+        }
       }
+      ctx.info(String.format("Binding process to numa node %s with policy setting: cpuBind=%s memoryBind=%s",
+          String.valueOf(process.getNumaNode().get()), String.valueOf(numaModule.isBindingCpu()), String.valueOf(numaModule.isBindingMemory())));
     }
 
     OptionalValue<StarterResult> startResult;
@@ -257,33 +279,14 @@ public class PerformExecProcessTask extends Task<Boolean, TaskParams<ProcessInfo
     // ------------------------------------------------------------------------
     // Adding port values
 
-    PortManager portmgr = ctx.getServerContext().getServices().lookup(PortManager.class);
-
-    List<Port> ports = conf.getPorts();
-    Set<String> added = new HashSet<String>();
-    for (int i = 0; i < ports.size(); i++) {
-      Port p = ports.get(i);
-      if (!added.contains(p.getName())) {
-        // The process might already contain an active port (in case of a restart)
-        ActivePort activePort = proc.getActivePortForName(p.getName());
-        if (activePort == null) {
-          int portInt = portmgr.aquirePort(p.getName());
-          activePort = new ActivePort(p.getName(), portInt);
-          proc.addActivePort(activePort);
-        }
-        props.add(new Property("corus.process.port." + p.getName(), Integer.toString(activePort.getPort())));
-        added.add(p.getName());
-      }
-    }
+    proc.getActivePorts().stream()
+        .forEach(p -> props.add(new Property("corus.process.port." + p.getName(), Integer.toString(p.getPort()))));
 
     // ------------------------------------------------------------------------
     // Performing variable interpolation for process properties passed in
     // from Corus
 
-    Map<String, String> coreProps = new HashMap<>();
-    for (Property p : props) {
-      coreProps.put(p.getName(), p.getValue());
-    }
+    Map<String, String> coreProps = props.stream().collect(Collectors.toMap(Property::getName, Property::getValue));
 
     // adding environment variables as fallback
     CompositeStrLookup vars = new CompositeStrLookup()
