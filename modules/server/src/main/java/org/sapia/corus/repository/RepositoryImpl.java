@@ -142,6 +142,8 @@ public class RepositoryImpl extends ModuleHelper
   private Reference<ModuleState> state = new AutoResetReference<ModuleState>(
       ModuleState.IDLE, ModuleState.IDLE, TimeValue.createSeconds(DEFAULT_IDLE_DELAY_SECONDS)
   );
+  
+  final private PullProcessState pullProcessState = new PullProcessState();
 
   public void setRepoConfig(RepositoryConfiguration repoConfig) {
     this.repoConfig = repoConfig;
@@ -359,7 +361,7 @@ public class RepositoryImpl extends ModuleHelper
     state.set(ModuleState.BUSY);
     if (strategy.acceptsPull()) {
       logger().debug("Node is a repo client or a repo server that accepts being synchronized: will try to acquire distributions from repo server");
-      GetArtifactListTask task = new GetArtifactListTask();
+      GetArtifactListTask task = new GetArtifactListTask(pullProcessState);
       task.setMaxExecution(repoConfig.getDistributionDiscoveryMaxAttempts());
 
       BackgroundTaskConfig taskConf = BackgroundTaskConfig.create()
@@ -713,7 +715,7 @@ public class RepositoryImpl extends ModuleHelper
 
   void handleDistributionListResponse(final DistributionListResponse distsRes) {
     if (strategy.acceptsPull()) {
-      taskManager.execute(new DistributionListResponseHandlerTask(distsRes), null);
+      taskManager.execute(new DistributionListResponseHandlerTask(distsRes, pullProcessState), null);
     } else {
       logger().debug("Ignoring " + distsRes + "; repo type is " + serverContext().getCorusHost().getRepoRole());
     }
@@ -735,7 +737,7 @@ public class RepositoryImpl extends ModuleHelper
     if (!repoConfig.isPullScriptsEnabled()) {
       logger().debug("Ignoring " + response + "; script pull is disabled");
     } else if (strategy.acceptsPull()) {
-      taskManager.execute(new ShellScriptListResponseHandlerTask(response), null);
+      taskManager.execute(new ShellScriptListResponseHandlerTask(response, pullProcessState), null);
     } else {
       logger().debug("Ignoring " + response + "; repo type is " + serverContext().getCorusHost().getRepoRole());
     }
@@ -757,7 +759,7 @@ public class RepositoryImpl extends ModuleHelper
     if (!repoConfig.isPullFilesEnabled()) {
       logger().debug("Ignoring " + response + "; file pull is disabled");
     } else if (strategy.acceptsPull()) {
-      taskManager.execute(new FileListResponseHandlerTask(response), null);
+      taskManager.execute(new FileListResponseHandlerTask(response, pullProcessState), null);
     } else {
       logger().debug("Ignoring " + response + "; repo type is " + serverContext().getCorusHost().getRepoRole());
     }
