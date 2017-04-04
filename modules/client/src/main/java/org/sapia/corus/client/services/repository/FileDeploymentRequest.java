@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,9 +41,9 @@ public class FileDeploymentRequest extends ArtifactDeploymentRequest {
    *          the {@link FileInfo} instances corresponding to the files that are
    *          requested.
    */
-  public FileDeploymentRequest(Endpoint endpoint, List<FileInfo> files) {
+  public FileDeploymentRequest(Endpoint endpoint, Collection<FileInfo> files) {
     super(endpoint);
-    this.files = files;
+    this.files.addAll(files);
   }
 
   /**

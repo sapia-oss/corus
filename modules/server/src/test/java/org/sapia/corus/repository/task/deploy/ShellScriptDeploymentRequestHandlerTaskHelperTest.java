@@ -57,11 +57,6 @@ public class ShellScriptDeploymentRequestHandlerTaskHelperTest extends AbstractR
     scripts = Collects.arrayToList(script1, script2);
     
     requests = new ArrayList<ShellScriptDeploymentRequest>();
-    ShellScriptDeploymentRequest request1 = new ShellScriptDeploymentRequest(endpoint1, scripts);
-    ShellScriptDeploymentRequest request2 = new ShellScriptDeploymentRequest(endpoint2, scripts);
-    
-    requests.add(request1);
-    requests.add(request2);
     
     helper = new ShellScriptDeploymentRequestHandlerTaskHelper(repoConfig, taskContext, requests);
     
@@ -71,16 +66,24 @@ public class ShellScriptDeploymentRequestHandlerTaskHelperTest extends AbstractR
 
   @Test
   public void testExecuteWithMultipleFiles() {
+    requests.add(new ShellScriptDeploymentRequest(endpoint1, scripts));
+    requests.add(new ShellScriptDeploymentRequest(endpoint2, scripts));
+
     CompositeTask task = new CompositeTask();
     helper.addTo(task);
+    
     assertEquals(2, task.getChildTasks().size());
   }
   
   @Test
   public void testExecuteWithSingleFile() {
     scripts.remove(0);
+    requests.add(new ShellScriptDeploymentRequest(endpoint1, scripts));
+    requests.add(new ShellScriptDeploymentRequest(endpoint2, scripts));
+
     CompositeTask task = new CompositeTask();
     helper.addTo(task);
+
     assertEquals(1, task.getChildTasks().size());
   }
   

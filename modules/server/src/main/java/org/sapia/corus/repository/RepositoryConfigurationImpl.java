@@ -34,11 +34,12 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private boolean pullPropertiesEnabled         = true;
   private boolean pushPortRangesEnabled         = true;
   private boolean pullPortRangesEnabled         = true;
-  private boolean pushSecurityConfigEnabeld     = true;
+  private boolean pushSecurityConfigEnabled     = true;
   private boolean pullSecurityConfigEnabled     = true;
   private boolean bootExecEnabled               = true;
   private boolean repoServerExecProcessEnabled  = false;
   private boolean repoClientDeployScriptEnabled = true;
+  private boolean repoServerSyncEnabled         = false;
 
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
   private int distributionDiscoveryMaxAttempts     = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
@@ -54,10 +55,19 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   public void setRepoServerExecProcessEnabled(boolean repoServerExecProcessEnabled) {
     this.repoServerExecProcessEnabled = repoServerExecProcessEnabled;
   }
-  
+    
   @Override
   public boolean isRepoServerExecProcessEnabled() {
     return repoServerExecProcessEnabled;
+  }
+  
+  public void setRepoServerSyncEnabled(boolean repoServerSyncEnabled) {
+    this.repoServerSyncEnabled = repoServerSyncEnabled;
+  }
+  
+  @Override
+  public boolean isRepoServerSyncEnabled() {
+    return repoServerSyncEnabled;
   }
   
   public void setRepoClientDeployScriptEnabled(boolean repoClientDeployScriptEnabled) {
@@ -224,11 +234,11 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   
   @Override
   public boolean isPushSecurityConfigEnabled() {
-    return pushSecurityConfigEnabeld;
+    return pushSecurityConfigEnabled;
   }
   
-  public void setPushSecurityConfigEnabled(boolean pushSecurityConfigEnabeld) {
-    this.pushSecurityConfigEnabeld = pushSecurityConfigEnabeld;
+  public void setPushSecurityConfigEnabled(boolean pushSecurityConfigEnabled) {
+    this.pushSecurityConfigEnabled = pushSecurityConfigEnabled;
   }
   
   @Override

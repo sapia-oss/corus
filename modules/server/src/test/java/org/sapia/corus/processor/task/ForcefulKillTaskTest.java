@@ -18,6 +18,7 @@ import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.processor.hook.ProcessContext;
 import org.sapia.corus.processor.hook.ProcessHookManager;
@@ -44,12 +45,10 @@ public class ForcefulKillTaskTest extends TestBaseTask{
   @Test
   public void testExecute() throws Exception{
     ForcefulKillTask task = new ForcefulKillTask();
-    assertEquals("Should not have available ports", 0, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
-    assertTrue(
-        "Kill should have been successful", 
-        ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get()
-    );
-    assertEquals("Should have available port", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    boolean actual = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get(); 
+
+    assertTrue("Kill should have been successful", actual); 
+    assertEquals(LifeCycleStatus.KILL_CONFIRMED, ctx.getProc().getProcess(proc.getProcessID()).getStatus());
   }
   
   @Test
@@ -60,11 +59,10 @@ public class ForcefulKillTaskTest extends TestBaseTask{
           any(KillSignal.class),
           any(LogCallback.class));
     ForcefulKillTask task = new ForcefulKillTask();
-    assertEquals("Should not have available ports", 0, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
-    assertFalse(
-        "Kill should not have been successful", 
-        ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get()
-    );
-    assertEquals("Should have available port", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    boolean actual = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get(); 
+
+    assertFalse("Kill should not have been successful", actual);
+    assertEquals(LifeCycleStatus.ACTIVE, ctx.getProc().getProcess(proc.getProcessID()).getStatus());
   } 
+  
 }

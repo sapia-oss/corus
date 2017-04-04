@@ -150,6 +150,14 @@
         </list>
     </property>
   </bean>
+
+  <!-- ============ PORTS ============ -->
+  
+  <bean name="org.sapia.corus.client.services.port.PortManager" 
+        class="org.sapia.corus.port.PortManagerImpl" 
+        scope="singleton"
+        autowire="autodetect">
+  </bean>
   
   <!-- ============== NUMA ============== -->
   
@@ -259,6 +267,7 @@
     <property name="artifactDeploymentRequestActivityTimeoutSeconds" value="${corus.server.repository.deploy.request.timeout}" />
     
     <property name="repoServerExecProcessEnabled"  value="${corus.server.repository.server.exec-enabled}" />
+    <property name="repoServerSyncEnabled"         value="${corus.server.repository.server.synchronization.enabled}" />
     <property name="repoClientDeployScriptEnabled" value="${corus.server.repository.client.deploy-scripts-enabled}" />
   </bean>
 

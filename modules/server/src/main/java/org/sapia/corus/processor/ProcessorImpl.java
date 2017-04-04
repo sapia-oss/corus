@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.common.ProgressQueue;
@@ -33,7 +34,6 @@ import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.os.OsModule;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.ExecConfigCriteria;
 import org.sapia.corus.client.services.processor.KillPreferences;
@@ -72,6 +72,8 @@ import org.sapia.ubik.util.Pause;
 import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 /**
  * Implements the {@link Processor} interface.
  *
@@ -95,8 +97,6 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
   private EventDispatcher events;
   @Autowired
   private HttpModule      http;
-  @Autowired
-  private PortManager     portManager;
   @Autowired
   private OsModule        os;
 
@@ -519,21 +519,14 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
   @Override
   public List<Process> getProcesses(ProcessCriteria criteria) {
-    List<Process> toReturn =  processes.getProcesses(criteria);
-    return toReturn;
+    return Lists.newArrayList(processes.getProcesses(criteria));
   }
 
   @Override
   public List<Process> getProcessesWithPorts() {
-    List<Process> toReturn = new ArrayList<Process>();
-    List<Process> processes = this.processes.getProcesses();
-    for (int i = 0; i < processes.size(); i++) {
-      Process p = processes.get(i);
-      if (p.getActivePorts().size() > 0) {
-        toReturn.add(p);
-      }
-    }
-    return toReturn;
+    return this.processes.getProcesses().stream().
+        filter(p -> p.getActivePorts().size() > 0).
+        collect(Collectors.toList());
   }
 
   @Override
@@ -579,7 +572,6 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         }
       }
       processes.removeProcess(p.getProcessID());
-      p.releasePorts(portManager);
     }
   }
 

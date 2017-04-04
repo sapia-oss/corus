@@ -56,16 +56,6 @@ public interface PortManagementFacade {
   public void removePortRange(String name, boolean force, ClusterInfo cluster) throws PortActiveException;
 
   /**
-   * Forces the releases of all ports of the given range.
-   * 
-   * @param rangeName
-   *          the name of an existing port range.
-   * @param cluster
-   *          a {@link ClusterInfo} instance.
-   */
-  public void releasePortRange(String rangeName, ClusterInfo cluster);
-
-  /**
    * Returns the {@link PortRange} instances that hold the pre-configured ports
    * of the specified Corus servers.
    * 

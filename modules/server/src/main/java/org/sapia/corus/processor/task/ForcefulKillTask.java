@@ -3,7 +3,6 @@ package org.sapia.corus.processor.task;
 import java.io.IOException;
 
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
@@ -29,7 +28,6 @@ public class ForcefulKillTask extends Task<Boolean, TaskParams<Process, ProcessT
     Process                     process   = params.getParam1();
     ProcessTerminationRequestor requestor = params.getParam2();
     
-    PortManager            ports        = ctx.getServerContext().lookup(PortManager.class);
     ProcessHookManager   processHooks = ctx.getServerContext().lookup(ProcessHookManager.class);
     
     boolean killSuccess = true;
@@ -52,8 +50,6 @@ public class ForcefulKillTask extends Task<Boolean, TaskParams<Process, ProcessT
       killSuccess = false;
     }
 
-    // releasing process ports right away as a precaution
-    process.releasePorts(ports);
     return killSuccess;
   }
 }

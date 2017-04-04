@@ -1,8 +1,9 @@
 package org.sapia.corus.repository.task.deploy;
 
-import static org.junit.Assert.*;
-
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,30 +54,33 @@ public class FileDeploymentRequestHandlerTaskHelperTest extends AbstractRepoTask
     files = Collects.arrayToList(file1, file2);
     
     requests = new ArrayList<FileDeploymentRequest>();
-    FileDeploymentRequest request1 = new FileDeploymentRequest(endpoint1, files);
-    FileDeploymentRequest request2 = new FileDeploymentRequest(endpoint2, files);
-    
-    requests.add(request1);
-    requests.add(request2);
     
     helper = new FileDeploymentRequestHandlerTaskHelper(repoConfig, taskContext, requests);
     
     when(super.serverContext.lookup(InternalFileManager.class)).thenReturn(fileMan);
     when(fileMan.getFile(any(FileInfo.class))).thenReturn(fileToReturn);
   }
-
+  
   @Test
   public void testExecuteWithMultipleFiles() {
+    requests.add(new FileDeploymentRequest(endpoint1, files));
+    requests.add(new FileDeploymentRequest(endpoint2, files));
+    
     CompositeTask task = new CompositeTask();
     helper.addTo(task);
+    
     assertEquals(2, task.getChildTasks().size());
   }
   
   @Test
   public void testExecuteWithSingleFile() {
     files.remove(0);
+    requests.add(new FileDeploymentRequest(endpoint1, files));
+    requests.add(new FileDeploymentRequest(endpoint2, files));
+    
     CompositeTask task = new CompositeTask();
     helper.addTo(task);
+    
     assertEquals(1, task.getChildTasks().size());
   }
   
@@ -84,8 +88,10 @@ public class FileDeploymentRequestHandlerTaskHelperTest extends AbstractRepoTask
   @Test
   public void testExecuteWithFileNotFound() throws Exception {
     when(fileMan.getFile(any(FileInfo.class))).thenThrow(new FileNotFoundException("File not found"));
+    
     CompositeTask task = new CompositeTask();
     helper.addTo(task);
+    
     assertEquals(0, task.getChildTasks().size());
   }  
   

@@ -16,6 +16,9 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
+import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostRemovedEvent;
+import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.core.InternalCorus;
 import org.sapia.corus.core.ModuleHelper;
@@ -58,6 +61,9 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   @Autowired
   private HttpModule      http;
+  
+  @Autowired
+  private EventDispatcher dispatcher;
 
   //private Map<ServerAddress, CorusHost> hostsByAddress    = Collections.synchronizedMap(new HashMap<ServerAddress, CorusHost>());
   private Map<String, CorusHost>        hostsByNode       = Collections.synchronizedMap(new HashMap<String, CorusHost>());
@@ -65,8 +71,12 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
   private long                          startTime         = System.currentTimeMillis();
 
-  protected void setHttpModule(HttpModule http) {
+  void setHttpModule(HttpModule http) {
     this.http = http;
+  }
+  
+  void setDispatcher(EventDispatcher dispatcher) {
+    this.dispatcher = dispatcher;
   }
 
   /**
@@ -306,17 +316,24 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     onUp(event);
   }
 
-  private void removeNode(String node) {
+  // --------------------------------------------------------------------------
+  // Visible for testing
+  
+  void removeNode(String node) {
     CorusHost host = hostsByNode.remove(node);
-    if (host != null) {
-      log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host));
+    synchronized (hostsByNode) {
+      if (host != null) {
+        log.info(String.format("Corus server left cluster: %s. Removing from cluster view", host));
+        dispatcher.dispatch(new CorusHostRemovedEvent(host));
+      }
     }
   }
 
-  private void addNode(CorusHost host) {
+  void addNode(CorusHost host) {
     synchronized (hostsByNode) {
       if(hostsByNode.put(host.getNode(), host) == null) {
         log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
+        dispatcher.dispatch(new CorusHostAddedEvent(host));
       }
     }
   }

@@ -11,9 +11,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
-import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
-import org.sapia.corus.client.exceptions.port.PortUnavailableException;
+import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
 
@@ -43,37 +42,54 @@ public class PortRangeTest {
   }
 
   @Test
-  public void testAcquire() throws Exception {
-    int port = range.acquire();
-    Assert.assertEquals(1, port);
+  public void testAcquire_success() throws Exception {
+    boolean result = range.acquire(1);
+    Assert.assertEquals(true, result);
     Assert.assertEquals(4, range.getAvailable().size());
     Assert.assertEquals(1, range.getActive().size());
   }
 
   @Test
-  public void testRelease() throws Exception {
-    int port = range.acquire();
-    range.release(port);
+  public void testAcquire_outOfRange() throws Exception {
+    boolean result = range.acquire(10);
+    Assert.assertEquals(false, result);
     Assert.assertEquals(5, range.getAvailable().size());
     Assert.assertEquals(0, range.getActive().size());
   }
 
-  @Test(expected = PortUnavailableException.class)
-  public void testAcquireUnavailable() throws Exception {
-    for (int i = 1; i <= 5; i++) {
-      range.acquire();
-    }
-    range.acquire();
+  @Test
+  public void testAcquire_alreadyAllocated() throws Exception {
+    range.acquire(1);
+    boolean result = range.acquire(1);
+    Assert.assertEquals(false, result);
+    Assert.assertEquals(4, range.getAvailable().size());
+    Assert.assertEquals(1, range.getActive().size());
+  }
+
+  @Test
+  public void testRelease_success() throws Exception {
+    range.acquire(1);
+    range.release(1);
+    Assert.assertEquals(5, range.getAvailable().size());
+    Assert.assertEquals(0, range.getActive().size());
+  }
+
+  @Test
+  public void testRelease_invalid() throws Exception {
+    range.acquire(1);
+    range.release(10);
+    Assert.assertEquals(4, range.getAvailable().size());
+    Assert.assertEquals(1, range.getActive().size());
   }
 
   @Test
   public void testPortOrdering() throws Exception {
-    int port = range.acquire();
-    range.release(port);
+    range.acquire(1);
+    range.release(1);
 
     List<Integer> available = range.getAvailable();
     for (int i = 1; i <= 5; i++) {
-      port = available.get(i - 1);
+      int port = available.get(i - 1);
       Assert.assertEquals(i, port);
     }
   }
@@ -82,8 +98,8 @@ public class PortRangeTest {
   public void testJson() throws Exception {
     StringWriter     writer = new StringWriter();
     WriterJsonStream stream = new WriterJsonStream(writer);
-    range.acquire();
-    range.acquire();
+    range.acquire(1);
+    range.acquire(2);
     range.toJson(stream, ContentLevel.DETAIL);
     PortRange copy = PortRange.fromJson(JsonObjectInput.newInstance(writer.toString()));
     

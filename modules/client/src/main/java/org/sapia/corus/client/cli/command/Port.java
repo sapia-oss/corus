@@ -50,7 +50,6 @@ public class Port extends CorusCliCommand {
 
   private static final String ADD       = "add";
   private static final String DELETE    = "del";
-  private static final String RELEASE   = "release";
   private static final String LIST      = "ls";
   private static final String ARCHIVE   = "archive";
   private static final String UNARCHIVE = "unarchive";
@@ -83,13 +82,11 @@ public class Port extends CorusCliCommand {
   @Override
   public void doExecute(CliContext ctx) throws InputException {
     CmdLine cmdLine = ctx.getCommandLine();
-    Arg arg = cmdLine.assertNextArg(new String[] { ADD, DELETE, LIST, RELEASE, ARCHIVE, UNARCHIVE });
+    Arg arg = cmdLine.assertNextArg(new String[] { ADD, DELETE, LIST, ARCHIVE, UNARCHIVE });
     if (arg.toString().equals(ADD)) {
       doAdd(ctx, cmdLine);
     } else if (arg.getName().equals(DELETE)) {
       doDelete(ctx, cmdLine);
-    } else if (arg.getName().equals(RELEASE)) {
-      doRelease(ctx, cmdLine);
     } else if (arg.getName().equals(ARCHIVE)) {
       String revId = ctx.getCommandLine().assertOption(OPT_REV.getName(), true).getValue();
       ctx.getCorus().getPortManagementFacade().archive(
@@ -191,11 +188,6 @@ public class Port extends CorusCliCommand {
       CliError err = ctx.createAndAddErrorFor(this, "Unable to delete a port range", e);
       ctx.getConsole().println(err.getSimpleMessage());
     }
-  }
-
-  void doRelease(CliContext ctx, CmdLine cmd) throws InputException {
-    String name = cmd.assertOption(OPT_NAME.getName(), true).getValue();
-    ctx.getCorus().getPortManagementFacade().releasePortRange(name, getClusterInfo(ctx));
   }
 
   void doList(CliContext ctx, CmdLine cmd) throws InputException {

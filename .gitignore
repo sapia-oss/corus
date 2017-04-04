@@ -53,3 +53,9 @@ files/
 db/
 tmp/
 test-output/
+
+# Intellij #
+############
+*.iml
+.idea/
+

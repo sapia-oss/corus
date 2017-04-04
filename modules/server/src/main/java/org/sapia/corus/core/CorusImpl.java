@@ -36,6 +36,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
   private ModuleLifeCycleManager lifeCycle;
   private volatile String domain;
   private KeyPair keyPair;
+  private volatile boolean isRunning;
 
   CorusImpl(Properties config, String domain, ServerAddress serverAddress, EventChannel channel, CorusTransport aTransport, String corusHome, KeyPair keyPair)
       throws IOException, Exception {
@@ -71,6 +72,11 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     System.setProperty(CorusConsts.PROPERTY_CORUS_DOMAIN, domain);
   }
 
+  @Override
+  public boolean isRunning() {
+    return this.isRunning;
+  }
+  
   public RemoteContext getRemoteContext() throws RemoteException {
     JndiModule module = (JndiModule) lookup(JndiModule.ROLE);
     return module.getRemoteContext();
@@ -131,6 +137,7 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
 
   public void start() throws Exception {
     lifeCycle.startServices();
+    isRunning = true;
   }
 
   public Object lookup(String module) throws ServiceNotFoundException {

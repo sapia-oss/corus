@@ -11,6 +11,11 @@ import org.sapia.corus.client.Corus;
 public interface InternalCorus extends Corus {
 
   /**
+   * @return True if this corus server is running (including all server-side bootstrapping), false otherwise.  
+   */
+  public boolean isRunning();
+  
+  /**
    * @param newDomainName the name of the domain to become a member of.
    */
   public void changeDomain(String newDomainName);

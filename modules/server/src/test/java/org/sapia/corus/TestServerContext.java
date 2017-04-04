@@ -71,7 +71,7 @@ public class TestServerContext extends ServerContextImpl{
 
     created._proc  = new TestProcessor();
 
-    created._ports = new TestPortManager();
+    created._ports = new TestPortManager(created._proc);
     created._tc    = new TestConfigurator();
     created._tm    = new TestTaskManager(created);
     created._fs    = new TestFileSystemModule();

@@ -1,10 +1,9 @@
 package org.sapia.corus.processor;
 
-import junit.framework.TestCase;
-
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.port.TestPortManager;
+
+import junit.framework.TestCase;
 
 
 /**
@@ -26,8 +25,6 @@ public class ProcessTest extends TestCase {
       p.addActivePort(new ActivePort("test" + i, i));
     }
     super.assertEquals(5, p.getActivePorts().size());
-    p.releasePorts(new TestPortManager());
-    super.assertEquals(0, p.getActivePorts().size());
   }
 
 }

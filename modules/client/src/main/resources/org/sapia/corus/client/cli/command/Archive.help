@@ -1,17 +1,17 @@
 <help>
   <section title="Description">
-   <p>Unarchive process properties, tags, port ranges, and execution configurations.</p>
+   <p>Archive process properties, tags, port ranges, and execution configurations.</p>
   </section>
   <section title="Syntax">
-    <p>unarchive &lt;rev_id&gt; [-cluster]</p>
+    <p>archive &lt;rev_id&gt; [-cluster]</p>
     <p/>    
     <p>Where:</p>
     <p/>
-    <p>- &lt;rev_id&gt;: corresponds to a revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
+    <p>- &lt;rev_id&gt;: a revision ID (must contain alpha-numeric, underscore, dash, and period only).</p>
   </section>
   <section title="Examples">
-    <p>unarchive v1.3</p>
-    <p>unarchive previous -cluster</p>
+    <p>archive v1.3</p>
+    <p>archive previous -cluster</p>
     <p/>
   </section>
 </help>

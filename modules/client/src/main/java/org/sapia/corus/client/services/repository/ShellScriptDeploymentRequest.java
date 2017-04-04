@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,9 +40,9 @@ public class ShellScriptDeploymentRequest extends ArtifactDeploymentRequest {
    *          the {@link ShellScript} instances corresponding to the scripts
    *          that are requested.
    */
-  public ShellScriptDeploymentRequest(Endpoint endpoint, List<ShellScript> scripts) {
+  public ShellScriptDeploymentRequest(Endpoint endpoint, Collection<ShellScript> scripts) {
     super(endpoint);
-    this.scripts = scripts;
+    this.scripts.addAll(scripts);
   }
 
   /**

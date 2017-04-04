@@ -21,21 +21,24 @@ public class ArchiverImpl<K, V> extends ArchiverSupport<K, V> {
   
   private String prefix;
   
+  private Set<String> revSet;
+  
+  @SuppressWarnings("unchecked")
   public ArchiverImpl(String prefix, DB db) {
     this.prefix = prefix;
     this.db     = db;
+    revSet = (Set<String>) db.treeSet(prefix + "-revisions").createOrOpen();
   }
   
   @Override
   protected Map<K, Revision<K, V>> revisions(String revId) {
-    db.getTreeSet(prefix + "-revisions").add(revId);
-    return db.getTreeMap(prefix + "." + revId);
+    revSet.add(revId);
+    return revMap(revId);
   }
   
   @Override
   protected Set<RevId> revisionIds() {
-    Set<String> revIds = db.getTreeSet(prefix + "-revisions");
-    return Collects.convertAsSet(revIds, new Func<RevId, String>() {
+    return Collects.convertAsSet(revSet, new Func<RevId, String>() {
       @Override
       public RevId call(String revId) {
         return RevId.valueOf(revId);
@@ -43,4 +46,8 @@ public class ArchiverImpl<K, V> extends ArchiverSupport<K, V> {
     });
   }
 
+  @SuppressWarnings("unchecked")
+  private Map<K, Revision<K, V>> revMap(String revId) {
+    return (Map<K, Revision<K, V>>) db.treeMap(prefix + "." + revId).createOrOpen();
+  }
 }

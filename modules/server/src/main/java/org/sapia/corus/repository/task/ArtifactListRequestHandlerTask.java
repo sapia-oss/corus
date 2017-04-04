@@ -9,7 +9,6 @@ import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.FileManager;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptManager;
-import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.FileListResponse;
@@ -19,8 +18,6 @@ import org.sapia.corus.client.services.repository.ShellScriptListResponse;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Func;
 
 /**
  * Internally removes {@link ArtifactListRequest}s from the passed in queue,
@@ -72,16 +69,11 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     Deployer deployer = ctx.getServerContext().getServices().getDeployer();
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
-    List<RepoDistribution> dists = Collects.convertAsList(deployer.getDistributions(DistributionCriteria.builder().all()),
-        new Func<RepoDistribution, Distribution>() {
-          @Override
-          public RepoDistribution call(Distribution dist) {
-            return new RepoDistribution(dist.getName(), dist.getVersion());
-          }
-        });
-
     DistributionListResponse response = new DistributionListResponse(ctx.getServerContext().getCorusHost().getEndpoint());
-    response.addDistributions(dists);
+    deployer.getDistributions(DistributionCriteria.builder().all()).stream().
+        map(dist -> new RepoDistribution(dist.getName(), dist.getVersion())).
+        forEach(rd -> response.addDistribution(rd));
+    
     try {
       cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), DistributionListResponse.EVENT_TYPE, response).get();
     } catch (Exception e) {

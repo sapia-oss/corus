@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.exceptions.processor.ProcessLockException;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
-import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
@@ -156,9 +155,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     if (ctx.getTaskManager().executeAndWait(new ForcefulKillTask(), TaskParams.createFor(proc, requestor)).get()) {
       doKillConfirmed(false, ctx);
     } else {
-      PortManager ports = ctx.getServerContext().getServices().lookup(PortManager.class);
       ctx.error(String.format("Process %s could not be killed forcefully; auto-restart is aborted", proc));
-      proc.releasePorts(ports);
       proc.save();
       ctx.getServerContext().getServices().getProcesses().removeProcess(proc.getProcessID());
       if (requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER) {
@@ -174,8 +171,6 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
 
       ProcessHookManager   processHooks = ctx.getServerContext().lookup(ProcessHookManager.class);
       ProcessorConfiguration procConfig   = ctx.getServerContext().getServices().lookup(Processor.class).getConfiguration();
-      PortManager            ports        = ctx.getServerContext().getServices().getPortManager();
-      proc.releasePorts(ports);
       
       try {
         if (performOsKill && proc.getOsPid() != null) {
