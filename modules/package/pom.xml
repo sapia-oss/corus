@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.sapia</groupId>
     <artifactId>sapia_corus_parent</artifactId>
-    <version>5.1.5</version>
+    <version>5.1.6</version>
     <relativePath>../..</relativePath>
   </parent>
 
@@ -170,7 +170,7 @@
               <overWriteReleases>false</overWriteReleases>
               <overWriteSnapshots>false</overWriteSnapshots>
               <overWriteIfNewer>true</overWriteIfNewer>
-              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,piccolo,sapia_console,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
+              <includeArtifactIds>sapia_magnet,ant,bsh,jdom,log4j,sapia_console,sapia_utils,sapia_corus_iop,protobuf-java</includeArtifactIds>
             </configuration>
           </execution>          
  

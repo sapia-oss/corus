@@ -101,8 +101,6 @@ public class Conf extends CorusCliCommand {
 
   // --------------------------------------------------------------------------
   
-  private static final PropertyMasker MASKER = new PropertyMasker().addMatcher("*password*");
-  
   @Override
   protected void doInit(CliContext context) {
     PROPS_TBL.setTableWidth(context.getConsole().getWidth());
@@ -559,13 +557,14 @@ public class Conf extends CorusCliCommand {
   }
 
   private void displayProperties(Property prop, CliContext ctx) {
+    PropertyMasker masker = ctx.getCorus().getConfigFacade().getPropertyMasker();
     Table propsTable = PROPS_TBL.createTable(ctx.getConsole().out());
-        
+
     propsTable.drawLine('-', 0, ctx.getConsole().getWidth());
 
     Row row = propsTable.newRow();
     row.getCellAt(PROPS_TBL.col("name").index()).append(prop.getName());
-    row.getCellAt(PROPS_TBL.col("val").index()).append(MASKER.getMaskedValue(prop.getName(), prop.getValue()));
+    row.getCellAt(PROPS_TBL.col("val").index()).append(masker.getMaskedValue(prop.getName(), prop.getValue()));
     row.getCellAt(PROPS_TBL.col("cat").index()).append(prop.getCategory().isNull() ? "N/A" : prop.getCategory().get());
     row.flush();
   }
