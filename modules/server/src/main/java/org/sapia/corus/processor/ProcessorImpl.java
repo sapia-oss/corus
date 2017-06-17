@@ -175,7 +175,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
     // termination (the Corus server might have been down for a period
     // of time that is longer then some process' tolerated idle delay).
     List<Process> processes = processDb.getProcesses(ProcessCriteria.builder().lifecycles(
-        LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING, LifeCycleStatus.KILL_CONFIRMED
+        LifeCycleStatus.ACTIVE, LifeCycleStatus.RESTARTING, LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_ASSUMED
     ).build());
     Process proc;
 
@@ -405,7 +405,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
       // else, just making sure the status is set to confirm, the current
       // background kill task will complete the work based on that status being set.
-    } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+    } else if (process.getStatus() != LifeCycleStatus.KILL_CONFIRMED && process.getStatus() != LifeCycleStatus.KILL_ASSUMED) {
       process.confirmKilled();
       process.save();
     }
@@ -547,6 +547,7 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
         LifeCycleStatus.SUSPENDED,
         LifeCycleStatus.STALE,
         LifeCycleStatus.KILL_CONFIRMED,
+        LifeCycleStatus.KILL_ASSUMED,
         LifeCycleStatus.KILL_REQUESTED
     ).build();
 

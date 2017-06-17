@@ -30,7 +30,9 @@ import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.services.processor.ActivePort;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
+import org.sapia.corus.client.services.processor.event.ProcessAssumedKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
@@ -106,9 +108,28 @@ public class KillTaskTest extends TestBaseTask {
     );
     verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
   }
-
+  
   @Test
   public void testKillFromCorusConfirmed() throws Exception {
+
+    proc.confirmKilled();
+    proc.save();
+    KillTask kill = new KillTask(3);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
+    
+    assertFalse(
+        "Process should have been killed", 
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
+    );
+    assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
+  }
+
+  @Test
+  public void testKillFromAdminConfirmed() throws Exception {
 
     proc.confirmKilled();
     proc.save();
@@ -125,6 +146,45 @@ public class KillTaskTest extends TestBaseTask {
     verify(dispatcher).dispatch(isA(ProcessKilledEvent.class));
     verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
   }
+  
+  @Test
+  public void testKillFromCorusAssumed() throws Exception {
+
+    proc.setStatus(LifeCycleStatus.KILL_ASSUMED);
+    proc.save();
+    KillTask kill = new KillTask(3);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get();
+    
+    assertFalse(
+        "Process should have been killed", 
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
+    );
+    assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessAssumedKilledEvent.class));
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
+  }
+  
+  @Test
+  public void testKillFromAdminAssumed() throws Exception {
+
+    proc.setStatus(LifeCycleStatus.KILL_ASSUMED);
+    proc.save();
+    KillTask kill = new KillTask(3);  
+    tm.executeAndWait(kill, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_ADMIN)).get();
+    
+    assertFalse(
+        "Process should have been killed", 
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
+    );
+    assertEquals("Port should have been released", 1, ctx.getPorts().getPortRanges().get(0).getAvailable().size());
+    
+    verify(dispatcher).dispatch(isA(ProcessKillPendingEvent.class));
+    verify(dispatcher).dispatch(isA(ProcessAssumedKilledEvent.class));
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGKILL), any(LogCallback.class));
+  }
+
 
   @Test
   public void testKill_zeroRetryAttempt() throws Exception {
