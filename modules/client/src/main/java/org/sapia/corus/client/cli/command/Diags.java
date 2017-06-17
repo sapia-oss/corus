@@ -116,12 +116,16 @@ public class Diags extends CorusCliCommand {
         
         processDiagnosticResults.add(hostProcessDiag);
         
+        List<String> progessErrorMessages = new ArrayList<>();
+        if (globalDiag.getData().getProgressResult().isSet()) {
+           progessErrorMessages.addAll(globalDiag.getData().getProgressResult().get().getErrorMessages());
+        }
         PairTuple<CorusHost, List<String>> hostProgressDiag =
             new PairTuple<CorusHost, List<String>>(
-                globalDiag.getOrigin(), globalDiag.getData().getProgressResult().getErrorMessages()
+                globalDiag.getOrigin(), progessErrorMessages
             );
         progressDiagnosticResults.add(hostProgressDiag);
-        if (!globalDiag.getData().getProgressResult().getErrorMessages().isEmpty()) {
+        if (!progessErrorMessages.isEmpty()) {
           progressDiagnosticErrorCount++;
         }
       }

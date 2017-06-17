@@ -30,6 +30,9 @@ import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.deployer.event.UndeploymentCompletedEvent;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.os.OsModule;
@@ -81,7 +84,7 @@ import com.google.common.collect.Lists;
  */
 @Bind(moduleInterface = Processor.class)
 @Remote(interfaces = Processor.class)
-public class ProcessorImpl extends ModuleHelper implements Processor {
+public class ProcessorImpl extends ModuleHelper implements Processor, SystemDiagnosticCapable {
 
   private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS = 60;
 
@@ -619,6 +622,20 @@ public class ProcessorImpl extends ModuleHelper implements Processor {
 
     return stat;
   }
+  
+  // --------------------------------------------------------------------------
+  // SystemDiagnosticCapable interface
+  
+  @Override
+  public SystemDiagnosticResult getSystemDiagnostic() {
+    if (getState().get() == ModuleState.BUSY) {
+      return new SystemDiagnosticResult("Processor", SystemDiagnosticStatus.BUSY, "Currently busy (executing processes)");
+    } else {
+      return new SystemDiagnosticResult("Processor", SystemDiagnosticStatus.UP);
+    }
+  }
+  
+  // --------------------------------------------------------------------------
 
   /**
    * Internal method that handles property change events.

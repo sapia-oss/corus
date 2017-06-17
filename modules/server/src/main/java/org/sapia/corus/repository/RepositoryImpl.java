@@ -25,6 +25,9 @@ import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.port.PortManager;
 import org.sapia.corus.client.services.port.PortRange;
@@ -91,6 +94,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RepositoryImpl extends ModuleHelper 
   implements 
     Repository, 
+    SystemDiagnosticCapable,
     AsyncEventListener, 
     SyncEventListener, 
     Interceptor, 
@@ -432,6 +436,18 @@ public class RepositoryImpl extends ModuleHelper
     } else {
       logger().debug(String.format("Node is %s, Will not pull distributions from repos", serverContext().getCorusHost().getRepoRole()));
     }    
+  }
+  
+  // --------------------------------------------------------------------------
+  // SystemDiagnosticCapable interface
+  
+  @Override
+  public SystemDiagnosticResult getSystemDiagnostic() {
+    if (getState().get() == ModuleState.BUSY) {
+      return new SystemDiagnosticResult("Repository", SystemDiagnosticStatus.BUSY, "Currently performing replication");
+    } else {
+      return new SystemDiagnosticResult("Repository", SystemDiagnosticStatus.UP);
+    }
   }
   
   // -------------------------------------------------------------------------

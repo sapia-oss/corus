@@ -2,6 +2,7 @@ package org.sapia.corus.diagnostic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,12 +21,15 @@ import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.diagnostic.DiagnosticModule;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProgressDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.SuggestionDiagnosticAction;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.processor.LockOwner;
 import org.sapia.corus.client.services.processor.Process;
@@ -35,7 +39,6 @@ import org.sapia.corus.client.services.processor.ProcessStartupInfo;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.event.ProcessStartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessStartedEvent;
-import org.sapia.corus.client.services.repository.Repository;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.core.ModuleHelper;
@@ -88,15 +91,12 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   // ==========================================================================
   
   public static final int DEFAULT_GRACE_PERIOD_DURATION_SECONDS = 60;
-    
-  @Autowired
-  private Deployer   deployer;
   
   @Autowired
-  private Repository repository;
-  
+  private Deployer  deployer;
+
   @Autowired
-  private Processor  processes;
+  private Processor processor;
 
   @Autowired
   private InternalConfigurator configurator;
@@ -106,6 +106,8 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   
   @Autowired
   private CorusTaskManager taskManager;
+  
+  private Collection<SystemDiagnosticCapable> systemDiagnosticProviders;
   
   private long startTime = System.currentTimeMillis();
   private volatile long lastProgressCheck;
@@ -134,13 +136,13 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
 
   // --------------------------------------------------------------------------
   // Provided for testing purposes
-
+  
   void setDeployer(Deployer deployer) {
     this.deployer = deployer;
   }
   
-  void setProcesses(Processor processes) {
-    this.processes = processes;
+  void setProcessor(Processor processor) {
+    this.processor = processor;
   }
   
   void setDispatcher(EventDispatcher dispatcher) {
@@ -159,16 +161,16 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
     this.clock = clock;
   }
   
-  void setDiagnosticProviders(List<? extends ProcessDiagnosticProvider> diagnosticProviders) {
+  public void setSystemDiagnosticProviders(Collection<SystemDiagnosticCapable> systemDiagnosticProviders) {
+    this.systemDiagnosticProviders = systemDiagnosticProviders;
+  }
+  
+  void setProcessDiagnosticProviders(List<? extends ProcessDiagnosticProvider> diagnosticProviders) {
     this.diagnosticProviders = diagnosticProviders;
   }
   
-  void setDiagnosticEvaluators(List<? extends ProcessConfigDiagnosticEvaluator> diagnosticEvaluators) {
+  void setProcessDiagnosticEvaluators(List<? extends ProcessConfigDiagnosticEvaluator> diagnosticEvaluators) {
     this.diagnosticEvaluators = diagnosticEvaluators;
-  }
-  
-  void setRepository(Repository repository) {
-    this.repository = repository;
   }
   
   void setTaskManager(CorusTaskManager taskManager) {
@@ -199,6 +201,8 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   
   @Override
   public void init() throws Exception {
+    
+    systemDiagnosticProviders = new ArrayList<SystemDiagnosticCapable>(super.appContext.getBeansOfType(SystemDiagnosticCapable.class).values());
     
     diagnosticCallback = new DefaultProcessDiagnosticCallback(log, serverContext(), diagnosticProviders);
     
@@ -258,8 +262,11 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   
   @Override
   public synchronized GlobalDiagnosticResult acquireGlobalDiagnostics(OptionalValue<LockOwner> requestingOwner) {
-    if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
-      return GlobalDiagnosticResult.Builder.newInstance().busy().build();
+    
+    GlobalDiagnosticResult sysDiagnostic = getSystemDiagnostic();
+    
+    if (sysDiagnostic.getStatus() == GlobalDiagnosticStatus.INCOMPLETE) {
+      return sysDiagnostic;
     } else {
       GlobalDiagnosticResult.Builder builder = GlobalDiagnosticResult.Builder.newInstance();
       List<ProgressMsg>        lastProgressMsgs = taskManager.clearBufferedMessages(ProgressMsg.ERROR, lastProgressCheck);
@@ -283,8 +290,11 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
   @Override
   public synchronized GlobalDiagnosticResult acquireGlobalDiagnostics(
       ProcessCriteria criteria, OptionalValue<LockOwner> requestingOwner) {
-    if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
-      return GlobalDiagnosticResult.Builder.newInstance().busy().build();
+    
+    GlobalDiagnosticResult sysDiagnostic = getSystemDiagnostic();
+    
+    if (sysDiagnostic.getStatus() == GlobalDiagnosticStatus.INCOMPLETE) {
+      return sysDiagnostic;
     } else {
       GlobalDiagnosticResult.Builder builder = GlobalDiagnosticResult.Builder.newInstance();
       List<ProgressMsg>        lastProgressMsgs = taskManager.clearBufferedMessages(ProgressMsg.ERROR, lastProgressCheck);
@@ -353,7 +363,9 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
         List<Process> restartingProcesses  = getProcessesFor(dist, pc, LifeCycleStatus.RESTARTING);
         List<Process> terminatingProcesses = getProcessesFor(dist, pc, LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_REQUESTED);
         
-        if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
+        GlobalDiagnosticResult sysDiagnostic = getSystemDiagnostic();
+        
+        if (sysDiagnostic.getStatus() == GlobalDiagnosticStatus.INCOMPLETE) {
           if (log.isInfoEnabled()) log.info("System busy, cannot acquire diagnostic for: " + ToStringUtil.toString(dist, pc));
           
           ProcessConfigDiagnosticEvaluationContext evalContext = new ProcessConfigDiagnosticEvaluationContext(
@@ -426,7 +438,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
               .lifecycles(LifeCycleStatus.ACTIVE)
               .build();
           
-          List<Process> toDiagnose = processes.getProcesses(pCriteria);
+          List<Process> toDiagnose = processor.getProcesses(pCriteria);
           
           if (log.isDebugEnabled()) 
             log.debug(String.format("Got %s processes currently running for %s", toDiagnose.size(), ToStringUtil.toString(dist, pc)));
@@ -481,6 +493,14 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
 
   // --------------------------------------------------------------------------
   // Restricted methods
+  
+  private GlobalDiagnosticResult getSystemDiagnostic() {
+    List<SystemDiagnosticResult> sysResults = new ArrayList<>(systemDiagnosticProviders.size());
+    for (SystemDiagnosticCapable sdp: systemDiagnosticProviders) {
+      sysResults.add(sdp.getSystemDiagnostic());
+    }
+    return GlobalDiagnosticResult.Builder.newInstance().systemDiagnostics(sysResults).build();
+  }
   
   private ProcessDiagnosticResult doAcquireProcessDiagnosticFor(Process process, OptionalValue<LockOwner> lockOwner) {
     try {
@@ -554,6 +574,6 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
         .lifecycles(status)
         .build();
     
-    return processes.getProcesses(criteria);
+    return processor.getProcesses(criteria);
   }
 }
