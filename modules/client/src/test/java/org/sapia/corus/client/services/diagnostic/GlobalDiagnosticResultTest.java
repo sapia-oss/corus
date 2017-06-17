@@ -14,10 +14,11 @@ import org.junit.Test;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.ubik.util.Collects;
 
 public class GlobalDiagnosticResultTest extends GlobalDiagnosticResult {
   
-  private GlobalDiagnosticResult emptyResult, progressErrorResult, processErrorResult, processWithoutErrorResult, busyResult;
+  private GlobalDiagnosticResult emptyResult, progressErrorResult, processErrorResult, processWithoutErrorResult;
   
   
   @Before
@@ -44,8 +45,6 @@ public class GlobalDiagnosticResultTest extends GlobalDiagnosticResult {
         .processDiagnostics(new ArrayList<ProcessConfigDiagnosticResult>(Arrays.asList(createProcessConfigResult(false))))
         .build();
     
-    busyResult = GlobalDiagnosticResult.Builder.newInstance().busy().build();
-
   }
   
   @Test
@@ -69,8 +68,37 @@ public class GlobalDiagnosticResultTest extends GlobalDiagnosticResult {
   }
   
   @Test
-  public void testGetStatus_busy_result() {
-    assertEquals(GlobalDiagnosticStatus.INCOMPLETE, busyResult.getStatus());
+  public void testGetStatus_with_busy_system_diagnostic() {
+    GlobalDiagnosticResult result = GlobalDiagnosticResult.Builder.newInstance()
+      .systemDiagnostics(Collects.arrayToList(
+          new SystemDiagnosticResult("test1", SystemDiagnosticStatus.UP),
+          new SystemDiagnosticResult("test2", SystemDiagnosticStatus.BUSY)
+      )
+    ).build();
+    
+    assertEquals(GlobalDiagnosticStatus.INCOMPLETE, result.getStatus());
+  }
+  
+  @Test
+  public void testGetStatus_with_error_system_diagnostic() {
+    GlobalDiagnosticResult result = GlobalDiagnosticResult.Builder.newInstance()
+        .systemDiagnostics(Collects.arrayToList(
+            new SystemDiagnosticResult("test1", SystemDiagnosticStatus.UP),
+            new SystemDiagnosticResult("test2", SystemDiagnosticStatus.DOWN)
+        )
+      ).build();
+    
+    assertEquals(GlobalDiagnosticStatus.FAILURE, result.getStatus());
+  }
+  
+  @Test
+  public void testGetStatus_with_success_system_diagnostic() {
+    GlobalDiagnosticResult result = GlobalDiagnosticResult.Builder.newInstance()
+        .systemDiagnostics(Collects.arrayToList(new SystemDiagnosticResult("test1", SystemDiagnosticStatus.UP)))
+        .systemDiagnostics(Collects.arrayToList(new SystemDiagnosticResult("test2", SystemDiagnosticStatus.UP)))
+        .build();
+    
+    assertEquals(GlobalDiagnosticStatus.SUCCESS, result.getStatus());
   }
 
   @Test

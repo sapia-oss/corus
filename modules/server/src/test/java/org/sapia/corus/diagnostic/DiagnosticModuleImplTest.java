@@ -34,6 +34,9 @@ import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticStatus;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.event.ProcessStartPendingEvent;
@@ -73,6 +76,9 @@ public class DiagnosticModuleImplTest {
   private Processor processor;
   
   @Mock
+  private SystemDiagnosticCapable sysProvider1, sysProvider2, sysProvider3;
+  
+  @Mock
   private InternalConfigurator configurator;
   
   private DiagnosticModuleImpl diagnosticModule;
@@ -97,15 +103,15 @@ public class DiagnosticModuleImplTest {
     diagnosticModule = new DiagnosticModuleImpl();
     diagnosticModule.setConfigurator(configurator);
     diagnosticModule.setDeployer(deployer);
-    diagnosticModule.setRepository(repository);
-    diagnosticModule.setProcesses(processor);
-    diagnosticModule.setDiagnosticEvaluators(Collects.arrayToList(rejectingEvaluator, acceptingEvaluator));
-    diagnosticModule.setDiagnosticProviders(Collects.arrayToList(rejectingProvider, acceptingProvider));
+    diagnosticModule.setProcessor(processor);
+    diagnosticModule.setProcessDiagnosticEvaluators(Collects.arrayToList(rejectingEvaluator, acceptingEvaluator));
+    diagnosticModule.setProcessDiagnosticProviders(Collects.arrayToList(rejectingProvider, acceptingProvider));
+    diagnosticModule.setSystemDiagnosticProviders(Collects.arrayToList(sysProvider1, sysProvider2, sysProvider3));
 
     when(deployer.getDistributions(any(DistributionCriteria.class))).thenReturn(Collects.arrayToList(dist));
-    when(deployer.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
-    when(repository.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
-    when(processor.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
+    when(sysProvider1.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider1", SystemDiagnosticStatus.UP));
+    when(sysProvider2.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider2", SystemDiagnosticStatus.UP));
+    when(sysProvider3.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider3", SystemDiagnosticStatus.UP));
     
     doAnswer(new Answer<List<Process>>() {
       @Override
@@ -229,18 +235,8 @@ public class DiagnosticModuleImplTest {
   }
   
   @Test
-  public void testAcquireDiagnostic_deployer_busy() {
-    when(deployer.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
-    
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
-    assertTrue(result.get(0).getProcessResults().isEmpty());
-    
-    assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
-  }
-  
-  @Test
-  public void testAcquireDiagnostic_repository_busy() {
-    when(repository.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
+  public void testAcquireDiagnostic_sys_diagnostic_provider_busy() {
+    when(sysProvider1.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("sysProvider1", SystemDiagnosticStatus.BUSY));
     
     List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertTrue(result.get(0).getProcessResults().isEmpty());

@@ -15,6 +15,7 @@ import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Bind;
+import org.sapia.corus.client.annotations.VisibleForTests;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.OptionalValue;
@@ -49,6 +50,9 @@ import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -89,7 +93,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Deployer.class, InternalDeployer.class })
 @Remote(interfaces = { Deployer.class })
-public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor {
+public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor, SystemDiagnosticCapable {
   
   private static final int DEFAULT_THROTTLE                        = 1;
   private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS        = 60;
@@ -132,6 +136,34 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
   private DeployerStateManager stateManager;
   
+  
+  private boolean flagDistAbsenceAsError;
+  
+  @VisibleForTests
+  void setEvents(EventDispatcher events) {
+    this.events = events;
+  }
+  
+  @VisibleForTests
+  void setConfiguration(DeployerConfiguration configuration) {
+    this.configuration = configuration;
+  }
+  
+  @VisibleForTests
+  void setTaskman(TaskManager taskman) {
+    this.taskman = taskman;
+  }
+  
+  
+  @VisibleForTests
+  DeployerStateManager getStateManager() {
+    return stateManager;
+  }
+  
+  public void setFlagDistAbsenceAsError(boolean flagDistAbsenceAsError) {
+    this.flagDistAbsenceAsError = flagDistAbsenceAsError;
+  }
+  
   /**
    * @param deploymentHandlers
    *          a {@link List} of {@link DeploymentHandler}s to assign.
@@ -156,7 +188,7 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     stateManager = new DeployerStateManager(state, events);
     store        = new DistributionDatabaseImpl();
 
-    services().bind(DistributionDatabase.class, store);
+    services().rebind(DistributionDatabase.class, store);
 
     services().getTaskManager().registerThrottle(DeployerThrottleKeys.DEPLOY_DISTRIBUTION, 
         ThrottleFactory.createMaxConcurrentThrottle(DEFAULT_THROTTLE));
@@ -264,6 +296,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     log.info("Initializing: rebuilding distribution objects");
 
     taskman.executeAndWait(new BuildDistTask(configuration.getDeployDir(), getDistributionStore()), null);
+    
+    if (flagDistAbsenceAsError) {
+      log.info("Diagnostics: the absence of distributions at this node will be flagged as an error");
+    }
 
     log.info("Distribution objects succesfully rebuilt");
 
@@ -593,6 +629,27 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
 
     log.info(String.format("Deployment upload completed for: %s", meta.getFileName()));
   }
+  
+  // --------------------------------------------------------------------------
+  // SystemDiagnosticCapable interface
+  
+  @Override
+  public SystemDiagnosticResult getSystemDiagnostic() {
+    if (getState().get() == ModuleState.BUSY) {
+      return new SystemDiagnosticResult("Deployer", SystemDiagnosticStatus.BUSY, "Currently busy (deployments ongoing)");
+    } else {
+      if (flagDistAbsenceAsError) {
+        if (store.getDistributions(DistributionCriteria.builder().all()).isEmpty()) {
+          return new SystemDiagnosticResult("Deployer", SystemDiagnosticStatus.DOWN, "No distributions deployed to this node");
+        }
+        return new SystemDiagnosticResult("Deployer", SystemDiagnosticStatus.UP);
+      }
+      return new SystemDiagnosticResult("Deployer", SystemDiagnosticStatus.UP);
+    }
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted
 
   private void assertFile(File f) {
     f.mkdirs();

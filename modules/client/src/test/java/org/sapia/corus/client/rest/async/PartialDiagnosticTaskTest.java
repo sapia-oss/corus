@@ -21,6 +21,7 @@ import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
 import org.sapia.corus.client.Result.Type;
 import org.sapia.corus.client.Results;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.facade.CorusConnector;
 import org.sapia.corus.client.facade.DiagnosticFacade;
 import org.sapia.corus.client.rest.resources.ProgressResult;
@@ -30,6 +31,7 @@ import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.GlobalDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProgressDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.util.TimeValue;
@@ -88,19 +90,34 @@ public class PartialDiagnosticTaskTest {
     final List<Result<GlobalDiagnosticResult>> pendingResults = new ArrayList<>();
             
     for (int i = 0; i < numError; i++) {
-      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(GlobalDiagnosticStatus.FAILURE, new ArrayList<ProcessConfigDiagnosticResult>(), new ProgressDiagnosticResult(Arrays.asList("error")));
+      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(
+          GlobalDiagnosticStatus.FAILURE, 
+          new ArrayList<SystemDiagnosticResult>(),
+          new ArrayList<ProcessConfigDiagnosticResult>(), 
+          OptionalValue.of(new ProgressDiagnosticResult(Arrays.asList("error")))
+      );
       Result<GlobalDiagnosticResult> r = new Result<GlobalDiagnosticResult>(corusHost(i), gdr, Type.ELEMENT);
       finalResults.add(r);
     }
     
     for (int i = 0; i < (numError + numSuccess); i++) {
-      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(GlobalDiagnosticStatus.INCOMPLETE, new ArrayList<ProcessConfigDiagnosticResult>(), new ProgressDiagnosticResult());
+      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(
+          GlobalDiagnosticStatus.INCOMPLETE, 
+          new ArrayList<SystemDiagnosticResult>(),
+          new ArrayList<ProcessConfigDiagnosticResult>(), 
+          OptionalValue.none()
+      );
       Result<GlobalDiagnosticResult> r = new Result<GlobalDiagnosticResult>(corusHost(i), gdr, Type.ELEMENT);
       pendingResults.add(r);
     }
     
     for (int i = 0; i < numSuccess; i++) {
-      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(GlobalDiagnosticStatus.SUCCESS, new ArrayList<ProcessConfigDiagnosticResult>(), new ProgressDiagnosticResult());
+      GlobalDiagnosticResult gdr = new GlobalDiagnosticResult(
+          GlobalDiagnosticStatus.SUCCESS, 
+          new ArrayList<SystemDiagnosticResult>(),
+          new ArrayList<ProcessConfigDiagnosticResult>(), 
+          OptionalValue.none()
+      );
       Result<GlobalDiagnosticResult> r = new Result<GlobalDiagnosticResult>(corusHost(i), gdr, Type.ELEMENT);
       finalResults.add(r);
     }   
