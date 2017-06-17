@@ -55,7 +55,7 @@ public class DiagnosticModuleImplTest {
   private DistributionInfo   distInfo;
   private ProcessConfig      processConfig;
   private ProcessStartupInfo startupInfo;
-  private Process            proc1, proc2, staleProc1, staleProc2;
+  private Process            proc1, proc2, staleProc1, staleProc2, staleProc3;
 
   @Mock
   private ProcessConfigDiagnosticEvaluator rejectingEvaluator, acceptingEvaluator;
@@ -88,7 +88,8 @@ public class DiagnosticModuleImplTest {
     proc2         = new Process(distInfo, "2");
     staleProc1    = new Process(distInfo, "3");
     staleProc2    = new Process(distInfo, "4");
-    
+    staleProc3    = new Process(distInfo, "5");
+
     dist.addProcess(processConfig);
     proc1.setStartupInfo(startupInfo);
     proc2.setStartupInfo(startupInfo);
@@ -279,8 +280,10 @@ public class DiagnosticModuleImplTest {
       @Override
       public List<Process> answer(InvocationOnMock invocation) throws Throwable {
         ProcessCriteria c = invocation.getArgumentAt(0, ProcessCriteria.class);
-        if (c.getLifeCycles().contains(LifeCycleStatus.KILL_CONFIRMED) && c.getLifeCycles().contains(LifeCycleStatus.KILL_REQUESTED)) {
-          return Arrays.asList(staleProc1, staleProc2);
+        if (c.getLifeCycles().contains(LifeCycleStatus.KILL_CONFIRMED) 
+            && c.getLifeCycles().contains(LifeCycleStatus.KILL_REQUESTED)
+            && c.getLifeCycles().contains(LifeCycleStatus.KILL_ASSUMED)) {
+          return Arrays.asList(staleProc1, staleProc2, staleProc3);
         } else if (c.getLifeCycles().contains(LifeCycleStatus.ACTIVE)) {
           return Arrays.asList(proc1, proc2);
         } else {

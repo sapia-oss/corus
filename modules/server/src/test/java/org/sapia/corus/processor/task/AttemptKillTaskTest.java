@@ -2,10 +2,14 @@ package org.sapia.corus.processor.task;
 
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+
+import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,10 +54,31 @@ public class AttemptKillTaskTest extends TestBaseTask{
   }
   
   @Test
+  public void testExecuteKill_SIGTERM_with_error() throws Exception{
+    ProcessHookManager processHooks = ctx.getServices().lookup(ProcessHookManager.class);
+    doThrow(new IOException("Error!!!")).when(processHooks).kill(any(), any(), any());
+    
+    AttemptKillTask task = new AttemptKillTask();
+    boolean completed = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 2, 3)).get();
+    assertTrue("Process kill error: KILL_ASSUMED status should be set", completed);
+    
+    assertEquals(LifeCycleStatus.KILL_ASSUMED, proc.getStatus());
+    verify(processHooks).kill(any(ProcessContext.class), eq(KillSignal.SIGTERM), any(LogCallback.class));    
+  }
+  
+  @Test
   public void testExecuteKillConfirmed() throws Exception{
     AttemptKillTask task = new AttemptKillTask();
     proc.setStatus(LifeCycleStatus.KILL_CONFIRMED);
     boolean completed = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 1, 3)).get();
     assertTrue("Process has confirmed termination; task should be completed", completed);
+  }
+  
+  @Test
+  public void testExecuteKillAssumed() throws Exception{
+    AttemptKillTask task = new AttemptKillTask();
+    proc.setStatus(LifeCycleStatus.KILL_ASSUMED);
+    boolean completed = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER, 1, 3)).get();
+    assertTrue("Process is assumed terminated; task should be completed", completed);
   }
 }

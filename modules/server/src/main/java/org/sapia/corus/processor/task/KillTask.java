@@ -12,6 +12,7 @@ import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.ProcessorConfiguration;
+import org.sapia.corus.client.services.processor.event.ProcessAssumedKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.processor.hook.ProcessContext;
@@ -116,7 +117,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
 
     // lock acquired, checking if process had confirmed previous kill
     // (if so, no point in continuing)
-    if (proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED) {
+    if (proc.getStatus() == Process.LifeCycleStatus.KILL_CONFIRMED || proc.getStatus() == LifeCycleStatus.KILL_ASSUMED) {
       doKillConfirmed(true, ctx);
     } else {
       if (hardKill) {
@@ -136,7 +137,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
     try {
       ctx.debug(String.format("Releasing lock on: %s", proc));
       proc.getLock().release(lockOwner);
-      if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+      if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED && proc.getStatus() != LifeCycleStatus.KILL_ASSUMED) {
         proc.save();
       } else {
         proc.delete();
@@ -176,7 +177,7 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
         if (performOsKill && proc.getOsPid() != null) {
           processHooks.kill(new ProcessContext(proc), KillSignal.SIGKILL, new TaskLogCallback(ctx));
         }
-      } catch (IOException e) {
+      } catch (Throwable e) {
         ctx.warn("Error caught trying to hard kill process as part of cleanup (process probably absent, so it properly shut down)", e);
       }
 
@@ -188,18 +189,30 @@ public class KillTask extends Task<Void, TaskParams<Process, ProcessTerminationR
               proc, new Date(proc.getCreationTime()), 
               TimeUnit.SECONDS.convert(procConfig.getRestartIntervalMillis(), TimeUnit.MILLISECONDS))
           );
+          if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, true));
+          } else if (proc.getStatus() == LifeCycleStatus.KILL_ASSUMED) {
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessAssumedKilledEvent(requestor, proc, true));            
+          }
           PerformProcessRestartTask restartProcess = new PerformProcessRestartTask();
           ctx.getTaskManager().executeAndWait(restartProcess, proc).get();
-          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, true));
         } else {
           ctx.debug(String.format("Restart interval (secs): %s", 
               TimeUnit.SECONDS.convert(procConfig.getRestartIntervalMillis(), TimeUnit.MILLISECONDS)));
           ctx.warn(String.format("Process will not be restarted; not enough time since last restart at: %s", 
               new Date(proc.getCreationTime())));
-          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
+          if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
+          } else if (proc.getStatus() == LifeCycleStatus.KILL_ASSUMED) {
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessAssumedKilledEvent(requestor, proc, false));            
+          }
         }
       } else {
-        ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
+        if (proc.getStatus() == LifeCycleStatus.KILL_CONFIRMED) {
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessKilledEvent(requestor, proc, false));
+        } else if (proc.getStatus() == LifeCycleStatus.KILL_ASSUMED) {
+          ctx.getServerContext().getServices().getEventDispatcher().dispatch(new ProcessAssumedKilledEvent(requestor, proc, false));            
+        }
         ctx.warn(String.format("Process %s terminated", proc));
       }
     } finally {

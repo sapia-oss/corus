@@ -311,7 +311,10 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.STALE, "Process is stale", process);
     } else if (process.getStatus() == LifeCycleStatus.RESTARTING) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.RESTARTING, "Process is restarting",  process);
-    } else if (process.getStatus() == LifeCycleStatus.KILL_CONFIRMED || process.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
+    } else if (
+        process.getStatus() == LifeCycleStatus.KILL_CONFIRMED 
+        || process.getStatus() == LifeCycleStatus.KILL_ASSUMED 
+        || process.getStatus() == LifeCycleStatus.KILL_REQUESTED) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SHUTTING_DOWN, "Process is shutting down",  process);
     } else if (process.getStatus() == LifeCycleStatus.SUSPENDED) {
       return new ProcessDiagnosticResult(ProcessDiagnosticStatus.SUSPENDED, "Process is suspended",  process);
@@ -351,7 +354,7 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
         
         List<Process> staleProcesses       = getProcessesFor(dist, pc, LifeCycleStatus.STALE);
         List<Process> restartingProcesses  = getProcessesFor(dist, pc, LifeCycleStatus.RESTARTING);
-        List<Process> terminatingProcesses = getProcessesFor(dist, pc, LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_REQUESTED);
+        List<Process> terminatingProcesses = getProcessesFor(dist, pc, LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_ASSUMED, LifeCycleStatus.KILL_REQUESTED);
         
         if (deployer.getState().get().isBusy() || repository.getState().get().isBusy()|| processes.getState().get().isBusy()) {
           if (log.isInfoEnabled()) log.info("System busy, cannot acquire diagnostic for: " + ToStringUtil.toString(dist, pc));

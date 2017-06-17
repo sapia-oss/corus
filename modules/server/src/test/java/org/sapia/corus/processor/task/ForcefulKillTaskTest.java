@@ -10,6 +10,9 @@ import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Port;
@@ -24,6 +27,7 @@ import org.sapia.corus.processor.hook.ProcessContext;
 import org.sapia.corus.processor.hook.ProcessHookManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 
+@RunWith(MockitoJUnitRunner.class)
 public class ForcefulKillTaskTest extends TestBaseTask{
 
   private Process          proc;
@@ -31,6 +35,7 @@ public class ForcefulKillTaskTest extends TestBaseTask{
   @Before
   public void setUp() throws Exception {
     super.setUp();
+    
     Distribution  dist  = super.createDistribution("testDist", "1.0");
     ProcessConfig conf  = super.createProcessConfig(dist, "testProc", "testProfile");
     PortRange     range = new PortRange("test", 8080, 8080);
@@ -50,9 +55,8 @@ public class ForcefulKillTaskTest extends TestBaseTask{
     assertTrue("Kill should have been successful", actual); 
     assertEquals(LifeCycleStatus.KILL_CONFIRMED, ctx.getProc().getProcess(proc.getProcessID()).getStatus());
   }
-  
   @Test
-  public void testExecuteFailure() throws Exception{
+  public void testExecute_with_failure() throws Exception{
     ProcessHookManager processHooks = ctx.getServices().lookup(ProcessHookManager.class);
     doThrow(new IOException("Kill error")).when(processHooks).kill(
           any(ProcessContext.class), 
@@ -61,8 +65,8 @@ public class ForcefulKillTaskTest extends TestBaseTask{
     ForcefulKillTask task = new ForcefulKillTask();
     boolean actual = ctx.getTm().executeAndWait(task, TaskParams.createFor(proc, ProcessTerminationRequestor.KILL_REQUESTOR_SERVER)).get(); 
 
-    assertFalse("Kill should not have been successful", actual);
-    assertEquals(LifeCycleStatus.ACTIVE, ctx.getProc().getProcess(proc.getProcessID()).getStatus());
+    assertTrue("Kill should have been successful", actual);
+    assertEquals(LifeCycleStatus.KILL_ASSUMED, ctx.getProc().getProcess(proc.getProcessID()).getStatus());
   } 
   
 }
