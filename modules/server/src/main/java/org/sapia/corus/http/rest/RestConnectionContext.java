@@ -229,8 +229,18 @@ public class RestConnectionContext implements CorusConnectionContext {
   }
 
   @Override
-  @SuppressWarnings(value = "unchecked")
   public <T, M> void invoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
+    doInvoke(results, moduleInterface, method, params, cluster.convertLocalHost(this));
+  }
+  
+  @Override
+  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+    return doInvoke(returnType, moduleInterface, method, params, info.convertLocalHost(this));
+  }
+  
+  @SuppressWarnings(value = "unchecked")
+  private <T, M> void doInvoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
+    
     final List<Result<T>> resultList = new ArrayList<Result<T>>();
     results.addListener(new ResultListener<T>() {
       @Override
@@ -252,8 +262,7 @@ public class RestConnectionContext implements CorusConnectionContext {
     }
   }
 
-  @Override
-  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+  private <T, M> T doInvoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     try {
 
       Object toReturn = null;

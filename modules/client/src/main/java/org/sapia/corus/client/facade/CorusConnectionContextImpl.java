@@ -34,7 +34,6 @@ import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
-import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
@@ -228,10 +227,18 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
   }
 
   @Override
-  @SuppressWarnings(value = "unchecked")
   public <T, M> void invoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
     refresh();
-
+    doInvoke(results, moduleInterface, method, params, cluster.convertLocalHost(this));
+  }
+    
+  @Override
+  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+    return doInvoke(returnType, moduleInterface, method, params, info.convertLocalHost(this));
+  }
+   
+  @SuppressWarnings(value = "unchecked")
+  private <T, M> void doInvoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
     final List<Result<T>> resultList = new ArrayList<Result<T>>();
     results.addListener(new ResultListener<T>() {
       @Override
@@ -258,9 +265,8 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
       throw e.getTargetException();
     }
   }
-
-  @Override
-  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+  
+  private <T, M> T doInvoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     try {
       ClientSideClusterInterceptor.clusterCurrentThread(info);
 
