@@ -6,11 +6,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.sapia.corus.client.facade.CorusConnectionContext;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.util.Collects;
+import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -25,13 +28,25 @@ public class ClusterInfo implements Serializable {
   private static final int HOST_INDEX = 0;
   private static final int PORT_INDEX = 1;
   private static final long serialVersionUID = 1L;
+  
+  private static final String LOCALHOST = "localhost";
 
   private boolean cluster;
-  private Set<ServerAddress> targets  = new HashSet<>();
-  private Set<ServerAddress> excluded = new HashSet<>();
+  private Set<ServerAddress> targets;
+  private Set<ServerAddress> excluded;
 
+  private ClusterInfo(boolean cluster, Set<ServerAddress> targets, Set<ServerAddress> excluded) {
+    this.cluster  = cluster;
+    this.targets  = targets;
+    this.excluded = excluded;
+  }
+  
+  public ClusterInfo() {
+    this(false, new HashSet<ServerAddress>(), new HashSet<ServerAddress>());
+  }
+  
   public ClusterInfo(boolean cluster) {
-    this.cluster = cluster;
+    this(cluster, new HashSet<ServerAddress>(), new HashSet<ServerAddress>());
   }
 
   /**
@@ -191,10 +206,41 @@ public class ClusterInfo implements Serializable {
   public static ClusterInfo notClustered() {
     return new ClusterInfo(false);
   }
+ 
+  /**
+   * @param context a {@link CorusConnectionContext}.
+   * @return a new {@link ClusterInfo} with this instance's state, but with the "localhost" addresses
+   * translated to the actual real address of the current Corus node.
+   */
+  public ClusterInfo convertLocalHost(CorusConnectionContext context) {
+    Set<ServerAddress> targetsCopy = doConvertLocalHost(targets, context);
+    Set<ServerAddress> excludedCopy = doConvertLocalHost(excluded, context);
+    return new ClusterInfo(cluster, targetsCopy, excludedCopy);
+  }
   
   @Override
   public String toString() {
     return Strings.toStringFor(this, "clustered", cluster, "targets", targets, "excluded", excluded);
   }
+  
+  // --------------------------------------------------------------------------
+  // Restricted
 
+  private Set<ServerAddress> doConvertLocalHost(Set<ServerAddress> toConvert, CorusConnectionContext context) {
+    final TCPAddress thisHost = context.getServerHost().getEndpoint().getServerTcpAddress();
+    Set<ServerAddress> copy = Collects.convertAsSet(toConvert, new Func<ServerAddress, ServerAddress>() {
+      @Override
+      public ServerAddress call(ServerAddress addr) {
+        if (addr instanceof TCPAddress) {
+          TCPAddress other = (TCPAddress) addr;
+          if (other.getHost().equalsIgnoreCase(LOCALHOST)) {
+            return new TCPAddress(thisHost.getTransportType(), thisHost.getHost(), other.getPort());
+          }
+        }
+        return addr;
+      }
+    });
+    
+    return copy;
+  }
 }
