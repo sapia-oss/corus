@@ -17,6 +17,7 @@ import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.FileUtil;
 import org.sapia.corus.client.common.Mappable;
 import org.sapia.corus.client.common.Matcheable;
+import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
 import org.sapia.corus.client.exceptions.deployer.DeploymentException;
@@ -451,7 +452,7 @@ public class Distribution implements java.io.Serializable, ObjectCreationCallbac
 
   @Override
   public int hashCode() {
-    return name.hashCode() ^ version.hashCode();
+    return ObjectUtil.safeHashCode(name, version);
   }
 
   @Override

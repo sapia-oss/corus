@@ -85,6 +85,7 @@ public class OptionalValue<T> implements Externalizable {
   public static <T> OptionalValue<T> none() {
     return new OptionalValue<T>(null);
   }
+
   
   // --------------------------------------------------------------------------
   // Object override
