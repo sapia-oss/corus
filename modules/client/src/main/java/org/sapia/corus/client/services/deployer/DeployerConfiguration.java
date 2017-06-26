@@ -49,7 +49,7 @@ public interface DeployerConfiguration extends Remote {
    * @return the path to the archive directory (where archived revisions are kept).
    */
   public String getArchiveDir();
-
+  
   /**
    * Copies the given configuration's values to this instance.
    * 

@@ -141,6 +141,8 @@
         scope="singleton" 
         autowire="autodetect">
         
+    <property name="flagDistAbsenceAsError" value="${corus.server.deploy.diag.dist.absence.error}" />    
+    
     <property name="deploymentHandlers">
         <list>
             <ref bean="fileDeploymentHandler" />

@@ -148,5 +148,11 @@ public class DeployerStateManager implements Interceptor {
       state.set(ModuleState.IDLE);
     }
   }
-
+  
+  // --------------------------------------------------------------------------
+  // Restricted
+  
+  void setState(ModuleState newState) {
+    state.set(newState);
+  }
 }

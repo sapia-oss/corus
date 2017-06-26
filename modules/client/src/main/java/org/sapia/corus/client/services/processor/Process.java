@@ -113,6 +113,13 @@ public class Process extends AbstractPersistent<String, Process>
     KILL_CONFIRMED("shutd.", "Indicates that a process has confirmed its termination"),
 
     /**
+     * Corresponds to the "kill assumed" status: the process has most likely terminated.
+     *
+     * @see #getStatus()
+     */
+    KILL_ASSUMED("shutd.", "Indicates that killing a process failed, most likely because it does not exist anymore"),
+    
+    /**
      * Corresponds to the "restarting" status: the process is in the
      * "restarting" queue.
      *
