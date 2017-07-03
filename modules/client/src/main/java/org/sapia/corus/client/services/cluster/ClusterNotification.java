@@ -19,6 +19,7 @@ public abstract class ClusterNotification implements Externalizable {
 
   private Set<Endpoint> visited = new HashSet<Endpoint>();
   private Set<Endpoint> targets = new HashSet<Endpoint>();
+  private long timestamp = System.currentTimeMillis();
 
   /**
    * @param ep
@@ -33,6 +34,10 @@ public abstract class ClusterNotification implements Externalizable {
     }
   }
 
+  public long getTimestamp() {
+    return timestamp;
+  }
+  
   /**
    * @return this instance's remote event type.
    */
@@ -77,12 +82,14 @@ public abstract class ClusterNotification implements Externalizable {
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     visited = (Set<Endpoint>) in.readObject();
     targets = (Set<Endpoint>) in.readObject();
+    timestamp = in.readLong();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(visited);
     out.writeObject(targets);
+    out.writeLong(timestamp);
   }
 
 }
