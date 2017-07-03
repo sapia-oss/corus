@@ -32,11 +32,11 @@ import org.sapia.ubik.util.TimeValue;
 @Remote(interfaces = {CorusTaskManager.class})
 public class CorusTaskManagerImpl extends ModuleHelper implements CorusTaskManager {
 
-  private static final int  CORE_POOL_SIZE      = 5;
+  private static final int  CORE_POOL_SIZE      = 15;
   private static final int  MAX_POOL_SIZE       = 100;
   private static final int  MAX_PROGRESS_SIZE   = 50;
   private static final long KEEP_ALIVE_SECONDS  = 30;
-  private static final int  WORK_QUEUE_SIZE     = 1000;
+  private static final int  WORK_QUEUE_SIZE     = 100;
 
   private TaskManagerImpl delegate;
   private ProgressQueues  queues    = new ProgressQueues();
