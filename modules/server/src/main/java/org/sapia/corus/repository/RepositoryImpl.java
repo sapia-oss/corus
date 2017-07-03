@@ -713,12 +713,23 @@ public class RepositoryImpl extends ModuleHelper
       logger().error("Could not cascade notification to next host", e);
     }
   }
+
+  protected boolean isEventTimestampExpired(long aTimestamp) {
+    return computeMillisSinceEventExpiration(aTimestamp) > 0;
+  }
+
+  protected long computeMillisSinceEventExpiration(long aTimestamp) {
+    return System.currentTimeMillis() - (aTimestamp + TimeUnit.SECONDS.toMillis(DEFAULT_IDLE_DELAY_SECONDS));
+  }
   
   // --------------------------------------------------------------------------
   // Artifact list request
 
   void handleArtifactListRequest(ArtifactListRequest distsReq) {
-    if (serverContext().getCorusHost().getRepoRole().isServer()) {
+    if (isEventTimestampExpired(distsReq.getTimestamp())) {
+      logger().warn("Ignoring " + distsReq + "; request from " + distsReq.getEndpoint().getServerAddress() +
+                    " is expired (since " + TimeUnit.MILLISECONDS.toSeconds(computeMillisSinceEventExpiration(distsReq.getTimestamp())) + " sec)");
+    } else if (serverContext().getCorusHost().getRepoRole().isServer()) {
       listRequests.add(distsReq);
       taskManager.execute(new ArtifactListRequestHandlerTask(repoConfig, listRequests), null);
     } else {
@@ -738,7 +749,10 @@ public class RepositoryImpl extends ModuleHelper
   }
 
   void handleDistributionDeploymentRequest(DistributionDeploymentRequest req) {
-    if (serverContext().getCorusHost().getRepoRole().isServer()) {
+    if (isEventTimestampExpired(req.getTimestamp())) {
+      logger().warn("Ignoring " + req + "; request from " + req.getEndpoint().getServerAddress() +
+                    " is expired (since " + TimeUnit.MILLISECONDS.toSeconds(computeMillisSinceEventExpiration(req.getTimestamp())) + " sec)");
+    } else if (serverContext().getCorusHost().getRepoRole().isServer()) {
       deployRequests.add(req);
       taskManager.execute(new ArtifactDeploymentRequestHandlerTask(repoConfig, deployRequests), null);
     } else {
@@ -760,7 +774,10 @@ public class RepositoryImpl extends ModuleHelper
   }
 
   void handleShellScriptDeploymentRequest(ShellScriptDeploymentRequest req) {
-    if (serverContext().getCorusHost().getRepoRole().isServer()) {
+    if (isEventTimestampExpired(req.getTimestamp())) {
+      logger().warn("Ignoring " + req + "; request from " + req.getEndpoint().getServerAddress() +
+                    " is expired (since " + TimeUnit.MILLISECONDS.toSeconds(computeMillisSinceEventExpiration(req.getTimestamp())) + " sec)");
+    } else if (serverContext().getCorusHost().getRepoRole().isServer()) {
       deployRequests.add(req);
       taskManager.execute(new ArtifactDeploymentRequestHandlerTask(repoConfig, deployRequests), null);
     } else {
@@ -782,7 +799,10 @@ public class RepositoryImpl extends ModuleHelper
   }
 
   void handleFileDeploymentRequest(FileDeploymentRequest req) {
-    if (serverContext().getCorusHost().getRepoRole().isServer()) {
+    if (isEventTimestampExpired(req.getTimestamp())) {
+      logger().warn("Ignoring " + req + "; request from " + req.getEndpoint().getServerAddress() +
+                    " is expired (since " + TimeUnit.MILLISECONDS.toSeconds(computeMillisSinceEventExpiration(req.getTimestamp())) + " sec)");
+    } else if (serverContext().getCorusHost().getRepoRole().isServer()) {
       deployRequests.add(req);
       taskManager.execute(new ArtifactDeploymentRequestHandlerTask(repoConfig, deployRequests), null);
     } else {

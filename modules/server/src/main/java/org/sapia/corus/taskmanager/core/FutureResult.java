@@ -20,6 +20,10 @@ public class FutureResult<R> {
     return doGet(timeout);
   }
 
+  public boolean isCompleted() {
+    return completed;
+  }
+  
   @SuppressWarnings(value = "unchecked")
   private synchronized R doGet(long timeout) throws InterruptedException, InvocationTargetException {
     while (!completed) {

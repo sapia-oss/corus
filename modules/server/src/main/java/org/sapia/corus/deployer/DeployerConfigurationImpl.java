@@ -8,6 +8,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   static final long serialVersionUID = 1L;
 
   public static final long DEFAULT_FILELOCK_TIMEOUT = 120000L;
+  public static final long DEFAULT_DEPLOYMENT_TASK_TIMEOUT_SEC = 30000L;
   public static final int DEFAULT_TEMP_FILE_TIMEOUT_HOURS = 1;
 
   private String deployDir;
@@ -16,6 +17,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   private String scriptDir;
   private String uploadDir;
   private String archiveDir;
+  private long deploymentTaskTimeoutSeconds = DEFAULT_DEPLOYMENT_TASK_TIMEOUT_SEC;
   private long fileLockTimeout = DEFAULT_FILELOCK_TIMEOUT;
   private int tempFileTimeoutHours = DEFAULT_TEMP_FILE_TIMEOUT_HOURS;
 
@@ -90,6 +92,15 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
   public void setTempFileTimeoutHours(int tempFileTimeoutHours) {
     this.tempFileTimeoutHours = tempFileTimeoutHours;
   }
+  
+  @Override
+  public long getDeploymentTaskTimeoutSeconds() {
+    return deploymentTaskTimeoutSeconds;
+  }
+  
+  public void setDeploymentTaskTimeoutSeconds(long timeout) {
+    this.deploymentTaskTimeoutSeconds = timeout;
+  }
 
   @Override
   public void copyFrom(DeployerConfiguration other) {
@@ -100,6 +111,7 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
     this.tempDir = other.getTempDir();
     this.uploadDir = other.getUploadDir();
     this.archiveDir = other.getArchiveDir();
+    this.deploymentTaskTimeoutSeconds = other.getDeploymentTaskTimeoutSeconds();
   }
 
   @Override
@@ -109,7 +121,8 @@ public class DeployerConfigurationImpl implements DeployerConfiguration {
         "repoDir", repoDir, 
         "scriptDir", scriptDir, 
         "tempDir", tempDir, 
-        "archiveDir", archiveDir
+        "archiveDir", archiveDir,
+        "deploymentTaskTimeoutSeconds", deploymentTaskTimeoutSeconds
     );
   }
 

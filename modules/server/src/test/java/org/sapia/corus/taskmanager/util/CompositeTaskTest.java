@@ -2,6 +2,7 @@ package org.sapia.corus.taskmanager.util;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -9,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,12 +47,15 @@ public class CompositeTaskTest {
       @Override
       public Task<?, ?> call(Integer index) {
         Task<?, ?> childTask = mock(Task.class);
-        task.add(childTask);
+        task.add(childTask, 10000);
         return childTask;
       }
     });
     
     when(taskContext.getTaskManager()).thenReturn(taskMan);
+    
+    when(futureResult.isCompleted()).thenReturn(true);
+    when(futureResult.get(anyLong())).thenReturn(null);
     
     doAnswer(new Answer<FutureResult<Void>>() {
       @Override
@@ -73,7 +78,13 @@ public class CompositeTaskTest {
   @Test
   public void testExecute() throws Throwable {
     task.execute(taskContext, null);
-    verify(futureResult, times(5)).get();
+    verify(futureResult, times(5)).get(10000);
+  }
+
+  @Test(expected = TimeoutException.class)
+  public void testExecute_timedout() throws Throwable {
+    when(futureResult.isCompleted()).thenReturn(false);
+    task.execute(taskContext, null);
   }
 
 }

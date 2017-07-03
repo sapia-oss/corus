@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.cluster.Endpoint;
@@ -67,13 +68,13 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
         Distribution dist = deployer.getDistribution(DistributionCriteria.builder().name(entry.getKey().getName()).version(entry.getKey().getVersion()).build());
         List<Endpoint> endpoint = new ArrayList<>(entry.getValue());
         for (Task<Void, Void> t : deployer.getImageDeploymentTasksFor(dist, endpoint)) {
-          toAddTo.add(t);
+          toAddTo.add(t, TimeUnit.SECONDS.toMillis(config().getArtifactDeploymentRequestWaitTimeoutSeconds()));
         }
         RunnableTask task = new DistributionRequestHandlerTask(
             deployer.getDistributionFile(entry.getKey().getName(), entry.getKey().getVersion()),
             endpoint
         );
-        toAddTo.add(task);
+        toAddTo.add(task, TimeUnit.SECONDS.toMillis(config().getArtifactDeploymentRequestWaitTimeoutSeconds()));
         List<ExecConfig> execConfigsForDistribution = Collects.filterToArrayList(execConfigs, new Condition<ExecConfig>() {
           @Override
           public boolean apply(ExecConfig item) {
@@ -86,7 +87,8 @@ public class DistributionDeploymentRequestHandlerTaskHelper extends ArtifactDepl
           }
         });
         if (!execConfigsForDistribution.isEmpty()) {
-          toAddTo.add(new SendExecConfigNotificationTask(execConfigsForDistribution, entry.getValue()));
+          toAddTo.add(new SendExecConfigNotificationTask(execConfigsForDistribution, entry.getValue()),
+                      TimeUnit.SECONDS.toMillis(config().getArtifactDeploymentRequestWaitTimeoutSeconds()));
         }
       } catch (DistributionNotFoundException e) {
         context().error("Caught error attempting to initiate distribution deployment", e);
