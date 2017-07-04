@@ -21,6 +21,8 @@ public class ArtifactListRequest implements Externalizable {
   public static final String EVENT_TYPE = "corus.event.repository.request.artifacts";
 
   private Endpoint endpoint;
+  
+  private long timestamp = System.currentTimeMillis();
 
   /**
    * Do not use: meant for externalization.
@@ -40,15 +42,21 @@ public class ArtifactListRequest implements Externalizable {
   public Endpoint getEndpoint() {
     return endpoint;
   }
+  
+  public long getTimestamp() {
+    return timestamp;
+  }
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     this.endpoint = (Endpoint) in.readObject();
+    this.timestamp = in.readLong();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
+    out.writeLong(timestamp);
   }
 
 }

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.ShellScript;
@@ -49,7 +50,7 @@ public class ShellScriptDeploymentRequestHandlerTaskHelper extends ArtifactDeplo
       try {
         RunnableTask task = new ShellScriptRequestHandlerTask(manager.getScriptFile(entry.getKey()), entry.getKey(), new ArrayList<Endpoint>(
             entry.getValue()));
-        toAddTo.add(task);
+        toAddTo.add(task, TimeUnit.SECONDS.toMillis(config().getArtifactDeploymentRequestWaitTimeoutSeconds()));
       } catch (FileNotFoundException e) {
         context().error("Shell script file not found, bypassing deployment for: " + entry.getKey(), e);
       }

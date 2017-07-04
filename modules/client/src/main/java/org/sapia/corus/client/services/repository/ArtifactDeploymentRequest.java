@@ -19,11 +19,12 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
 
   private Endpoint endpoint;
 
+  private long timestamp = System.currentTimeMillis();
+
   /**
    * Do not call: meant for externalization.
    */
   protected ArtifactDeploymentRequest() {
-
   }
 
   /**
@@ -42,6 +43,10 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
   public Endpoint getEndpoint() {
     return endpoint;
   }
+  
+  public long getTimestamp() {
+    return timestamp;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable interface
@@ -49,11 +54,13 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     endpoint = (Endpoint) in.readObject();
+    timestamp = in.readLong();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
+    out.writeLong(timestamp);
   }
 
 }
