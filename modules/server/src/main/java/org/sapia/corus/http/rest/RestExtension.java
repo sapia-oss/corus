@@ -52,7 +52,6 @@ import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.util.LoggerLogCallback;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Streams;
 import org.sapia.ubik.util.Strings;
 import org.sapia.ubik.util.TimeValue;
@@ -64,7 +63,7 @@ import org.sapia.ubik.util.pool.Pool;
  * @author yduchesne
  *
  */
-public class RestExtension implements HttpExtension, Interceptor {
+public class RestExtension implements HttpExtension {
     
   private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
   private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);

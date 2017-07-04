@@ -39,7 +39,6 @@ import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.Strings;
@@ -55,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Configurator.class })
 @Remote(interfaces = Configurator.class)
-public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator, Interceptor {
+public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator {
 
   public static final String PROP_SERVER_NAME   = "corus.server.name";
 
@@ -646,7 +645,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   // ==========================================================================
   // Inner classes
   
-  public final class PropertyChangeInterceptor<T> implements Interceptor {
+  public final class PropertyChangeInterceptor<T> {
     private final String propertyName;
     private final DynamicProperty<T> dynProperty;
 

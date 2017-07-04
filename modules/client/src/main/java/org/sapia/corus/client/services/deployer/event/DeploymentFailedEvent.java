@@ -2,7 +2,6 @@ package org.sapia.corus.client.services.deployer.event;
 
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched if an error occurs at deployment time. Precedes the corresponding {@link RollbackCompletedEvent}, 
@@ -11,7 +10,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class DeploymentFailedEvent implements Event {
+public class DeploymentFailedEvent {
 
   private OptionalValue<Distribution> distribution;
 

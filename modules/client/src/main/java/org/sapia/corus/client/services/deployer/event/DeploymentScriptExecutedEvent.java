@@ -1,8 +1,7 @@
 package org.sapia.corus.client.services.deployer.event;
 
-import org.sapia.ubik.rmi.interceptor.Event;
 
-public class DeploymentScriptExecutedEvent implements Event {
+public class DeploymentScriptExecutedEvent {
   
   private String scriptName;
   

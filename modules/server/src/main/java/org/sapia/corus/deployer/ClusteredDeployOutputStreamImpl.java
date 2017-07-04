@@ -19,7 +19,7 @@ import org.sapia.ubik.concurrent.NamedThreadFactory;
  * @author Yanick Duchesne
  */
 public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
-
+  
   private DeployOutputStream next;
   
   private ExecutorService    executor;
@@ -37,7 +37,11 @@ public class ClusteredDeployOutputStreamImpl extends DeployOutputStreamImpl {
    * @throws FileNotFoundException
    *           if the destination file could not be opened.
    */
-  ClusteredDeployOutputStreamImpl(File destFile, DeploymentMetadata meta, DeploymentHandler handler, DeployOutputStream next)
+  ClusteredDeployOutputStreamImpl(
+      File destFile, 
+      DeploymentMetadata meta, 
+      DeploymentHandler handler, 
+      DeployOutputStream next)
       throws FileNotFoundException {
     super(destFile, meta, handler);
     this.next     = next;

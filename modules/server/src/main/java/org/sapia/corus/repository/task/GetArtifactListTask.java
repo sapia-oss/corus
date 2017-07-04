@@ -6,6 +6,7 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
 import org.sapia.corus.repository.PullProcessState;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 import org.sapia.ubik.mcast.EventChannel;
 
@@ -18,10 +19,13 @@ import org.sapia.ubik.mcast.EventChannel;
  */
 public class GetArtifactListTask extends RunnableTask {
 
-  private PullProcessState state;
+  private PullProcessState                 state;
+  private RepositoryTaskCompletionCallback completionCallback;
+
   
-  public GetArtifactListTask(PullProcessState state) {
-    this.state = state;
+  public GetArtifactListTask(PullProcessState state, RepositoryTaskCompletionCallback completionCallback) {
+    this.state              = state;
+    this.completionCallback = completionCallback;
   }
 
   @Override
@@ -44,7 +48,7 @@ public class GetArtifactListTask extends RunnableTask {
               try {
                 EventChannel channel = context().getServerContext().getServices().getClusterManager().getEventChannel();
                 channel.dispatch(h.getEndpoint().getChannelAddress(), ArtifactListRequest.EVENT_TYPE, new ArtifactListRequest(context()
-                    .getServerContext().getCorusHost().getEndpoint())).get();
+                    .getServerContext().getCorusHost().getEndpoint()));
               } catch (Exception e) {
                 context().error("Could not dispatch distribution list request", e);
               }
@@ -60,4 +64,9 @@ public class GetArtifactListTask extends RunnableTask {
     }
   }
 
+  @Override
+  protected void onMaxExecutionReached(TaskExecutionContext ctx) throws Throwable {
+    completionCallback.taskCompleted();
+  }
+  
 }

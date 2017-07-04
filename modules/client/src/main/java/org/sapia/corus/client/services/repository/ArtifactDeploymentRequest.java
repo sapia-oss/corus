@@ -18,6 +18,7 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
   static final long serialVersionID = 1L;
 
   private Endpoint endpoint;
+  private boolean  force;
 
   /**
    * Do not call: meant for externalization.
@@ -34,6 +35,24 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
   protected ArtifactDeploymentRequest(Endpoint endpoint) {
     this.endpoint = endpoint;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public ArtifactDeploymentRequest setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   /**
    * @return the {@link Endpoint} corresponding to the Corus node from which
@@ -49,11 +68,13 @@ public abstract class ArtifactDeploymentRequest implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     endpoint = (Endpoint) in.readObject();
+    force    = in.readBoolean();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
+    out.writeBoolean(force);
   }
 
 }

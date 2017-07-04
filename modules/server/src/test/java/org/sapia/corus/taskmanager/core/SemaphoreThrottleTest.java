@@ -1,9 +1,8 @@
 package org.sapia.corus.taskmanager.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
-
 
 import org.junit.Before;
 import org.junit.Test;

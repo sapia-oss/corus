@@ -8,7 +8,6 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo;
 import org.sapia.corus.client.services.cluster.CurrentAuditInfo.AuditInfoRegistration;
 import org.sapia.corus.client.services.cluster.NonClusteredCommand;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.util.Assertions;
 
@@ -18,7 +17,7 @@ import org.sapia.ubik.util.Assertions;
  * 
  * @author Yanick Duchesne
  */
-public class ClientSideClusterInterceptor implements Interceptor {
+public class ClientSideClusterInterceptor {
   
   /**
    * Abstracts details of the client's connection.

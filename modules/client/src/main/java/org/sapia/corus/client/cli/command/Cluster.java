@@ -22,13 +22,13 @@ import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.sort.Sorting;
-import org.sapia.ubik.concurrent.Spawn;
 import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.rmi.server.Hub;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Collects;
 
 /**
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public class Cluster extends CorusCliCommand {
 
@@ -139,7 +139,7 @@ public class Cluster extends CorusCliCommand {
     final List<CorusHost> upHosts    = Collections.synchronizedList(new ArrayList<CorusHost>());
 
     for (final List<CorusHost> hosts: Collects.splitAsLists(otherHosts, CLUSTER_CHECK_BATCH_SIZE)) {
-      Spawn.run(new Runnable() {
+      Threads.getGlobalIoOutboundPool().submit(new Runnable() {
         @Override
         public void run() {
           for (CorusHost h : hosts) {

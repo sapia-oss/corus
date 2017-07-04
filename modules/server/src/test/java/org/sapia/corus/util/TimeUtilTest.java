@@ -1,6 +1,6 @@
 package org.sapia.corus.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.sapia.ubik.util.TimeRange;

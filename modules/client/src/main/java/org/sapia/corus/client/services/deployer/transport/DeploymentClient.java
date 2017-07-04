@@ -10,7 +10,7 @@ import org.sapia.ubik.net.ServerAddress;
 /**
  * This interface specifies the behavior of client-side deployment.
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public interface DeploymentClient {
   

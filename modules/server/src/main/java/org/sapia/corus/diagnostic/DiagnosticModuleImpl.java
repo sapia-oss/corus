@@ -53,7 +53,6 @@ import org.sapia.corus.diagnostic.provider.HttpProcessDiagnosticProvider;
 import org.sapia.corus.taskmanager.CorusTaskManager;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
@@ -62,7 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Bind(moduleInterface = { DiagnosticModule.class })
 @Remote(interfaces = DiagnosticModule.class)
-public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticModule, Interceptor {
+public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticModule {
   
   class PendingProcessInfo {
     

@@ -75,6 +75,25 @@ public class ShellScriptListResponseHandlerTaskTest extends AbstractRepoTaskTest
   }
   
   @Test
+  public void testExecuteWithForce() throws Throwable {
+    response.setForce(true);
+    final ShellScript f3 = new ShellScript("f3", "f3", "f3");
+    final ShellScript f4 = new ShellScript("f4", "f4", "f4");
+    when(scriptMan.getScripts()).thenReturn(Collects.arrayToList(f3, f4));
+    
+    task.execute(taskContext, null);
+    
+    verify(super.eventChannel).dispatch(any(ServerAddress.class), anyString(), argThat(new ArgumentMatcher<ShellScriptDeploymentRequest>() {
+      @Override
+      public boolean matches(Object argument) {
+        ShellScriptDeploymentRequest req = (ShellScriptDeploymentRequest) argument;
+        return req.isForce();
+      }
+    }));
+    assertThat(pullProcessState.getDiscoveredScriptsFromHost(serverEndpoint.getChannelAddress())).containsOnly(scripts.get(0), scripts.get(1));
+  }
+  
+  @Test
   public void testExecuteWithIntersectingShellScriptList() throws Throwable {
     final ShellScript f2 = new ShellScript("f2", "f2", "f2");
     final ShellScript f3 = new ShellScript("f3", "f3", "f3");

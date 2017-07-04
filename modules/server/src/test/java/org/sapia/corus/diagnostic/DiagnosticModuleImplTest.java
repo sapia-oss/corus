@@ -1,7 +1,8 @@
 package org.sapia.corus.diagnostic;
 
-import static org.junit.Assert.*
-;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -20,11 +22,6 @@ import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.reference.DefaultReference;
 import org.sapia.corus.client.services.ModuleState;
-import org.sapia.corus.client.services.processor.DistributionInfo;
-import org.sapia.corus.client.services.processor.LockOwner;
-import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.client.services.processor.ProcessCriteria;
-import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -37,8 +34,13 @@ import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
 import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
-import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.LockOwner;
+import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.event.ProcessStartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessStartedEvent;
 import org.sapia.corus.client.services.repository.Repository;
@@ -47,7 +49,6 @@ import org.sapia.corus.diagnostic.DiagnosticModuleImpl.PendingProcessInfo;
 import org.sapia.corus.diagnostic.evaluator.ProcessConfigDiagnosticEvaluationContext;
 import org.sapia.corus.diagnostic.evaluator.ProcessConfigDiagnosticEvaluator;
 import org.sapia.ubik.util.Collects;
-import org.junit.runner.RunWith;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DiagnosticModuleImplTest {

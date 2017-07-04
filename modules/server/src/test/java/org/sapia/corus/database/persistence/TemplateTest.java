@@ -4,8 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.Record;
-import org.sapia.corus.database.persistence.Template;
-import org.sapia.corus.database.persistence.TestPersistentObject;
 
 public class TemplateTest {
 

@@ -1,14 +1,12 @@
 package org.sapia.corus.cloud;
 
-import org.sapia.ubik.rmi.interceptor.Event;
-
 /**
  * Encapsulates a {@link CorusUserData}.
  * 
  * @author yduchesne
  *
  */
-public class CorusUserDataEvent implements Event {
+public class CorusUserDataEvent {
   
   private CorusUserData userData;
   

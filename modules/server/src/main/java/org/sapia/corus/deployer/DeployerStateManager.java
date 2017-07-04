@@ -19,7 +19,6 @@ import org.sapia.corus.client.services.deployer.event.UndeploymentCompletedEvent
 import org.sapia.corus.client.services.deployer.event.UndeploymentFailedEvent;
 import org.sapia.corus.client.services.deployer.event.UndeploymentStartingEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 
 /**
  * Manages the {@link Deployer}'s state by listening to deployment events, adjusting the said
@@ -28,7 +27,7 @@ import org.sapia.ubik.rmi.interceptor.Interceptor;
  * @author yduchesne
  *
  */
-public class DeployerStateManager implements Interceptor {
+public class DeployerStateManager {
 
   private Reference<ModuleState> state;
   private AtomicInteger          busyCount = new AtomicInteger();

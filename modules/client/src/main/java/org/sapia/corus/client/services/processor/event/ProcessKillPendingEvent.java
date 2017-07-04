@@ -2,7 +2,6 @@ package org.sapia.corus.client.services.processor.event;
 
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when a process kill has been requested and is pending.
@@ -10,7 +9,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class ProcessKillPendingEvent implements Event {
+public class ProcessKillPendingEvent {
 
   private ProcessTerminationRequestor requestor;
   private Process process;

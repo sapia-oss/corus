@@ -1,6 +1,7 @@
 package org.sapia.corus.repository.task;
 
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -9,7 +10,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.security.PublicKey;
 import java.util.HashSet;
@@ -17,20 +17,28 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
 import org.sapia.corus.repository.PullProcessState;
+import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.server.transport.socket.TcpSocketAddress;
 import org.sapia.ubik.util.Collects;
 
+@RunWith(MockitoJUnitRunner.class)
 public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
 
   private Set<CorusHost>      emptyHosts, clientHosts, serverHosts;
   private PullProcessState    pullProcessState; 
   private GetArtifactListTask task;
+  
+  @Mock
+  private RepositoryTaskCompletionCallback callback;
   
   @Before
   public void setUp() {
@@ -47,7 +55,7 @@ public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
     serverHosts    = Collects.arrayToSet(server);
     
     pullProcessState = new PullProcessState();
-    task           = new GetArtifactListTask(pullProcessState);
+    task           = new GetArtifactListTask(pullProcessState, callback);
    }
   
   @Test
@@ -78,6 +86,13 @@ public class GetArtifactListTaskTest extends AbstractRepoTaskTest {
     
     verify(eventChannel, times(1)).dispatch(eq(new TcpSocketAddress("test", 1000)), eq(ArtifactListRequest.EVENT_TYPE), any(ArtifactListRequest.class));
     assertThat(pullProcessState.getContactedRepoServer()).containsAll(serverHosts);
+  }
+  
+  @Test
+  public void testOnMaxExecutionReached() throws Throwable {
+    task.onMaxExecutionReached(mock(TaskExecutionContext.class));
+    
+    verify(callback).taskCompleted();
   }
   
 }

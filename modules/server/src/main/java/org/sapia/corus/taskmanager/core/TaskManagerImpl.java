@@ -6,6 +6,8 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.concurrent.ConfigurableExecutor;
 import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
@@ -13,10 +15,12 @@ import org.sapia.ubik.concurrent.NamedThreadFactory;
 
 public class TaskManagerImpl implements TaskManager {
 
-  private Timer background;
-  private ExecutorService threadpool;
-  private ServerContext serverContext;
-  private TaskLog globalTaskLog;
+  private static final Logger LOG = Hierarchy.getDefaultHierarchy().getLoggerFor(TaskManagerImpl.class.getName());
+  
+  private Timer                      background;
+  private ExecutorService            threadpool;
+  private ServerContext              serverContext;
+  private TaskLog                    globalTaskLog;
   private Map<ThrottleKey, Throttle> throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
 
   public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext, ThreadingConfiguration conf) {
@@ -173,6 +177,8 @@ public class TaskManagerImpl implements TaskManager {
   private void throttle(ThrottleKey throttleKey, final Runnable toRun) {
     final Throttle throttle = throttles.get(throttleKey);
     if (throttle == null) {
+      LOG.error("Could not find throttle for: " + throttleKey.getName() + ". Got following throttle keys:");
+      throttles.keySet().forEach(tk -> LOG.error("  -> " + tk.getName()));
       throw new IllegalStateException(String.format("No throttle found for %s", throttleKey.getName()));
     }
     threadpool.execute(new Runnable() {

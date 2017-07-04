@@ -1,10 +1,9 @@
 package org.sapia.corus.taskmanager.core;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import static org.junit.Assert.*;
 
 import java.util.concurrent.TimeUnit;
 

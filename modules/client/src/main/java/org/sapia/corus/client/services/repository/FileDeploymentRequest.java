@@ -24,9 +24,9 @@ public class FileDeploymentRequest extends ArtifactDeploymentRequest {
 
   public static final String EVENT_TYPE = "corus.event.repository.request.files";
 
-  private Endpoint endpoint;
-  private List<FileInfo> files = new ArrayList<FileInfo>();
-
+  private Endpoint       endpoint;
+  private List<FileInfo> files     = new ArrayList<FileInfo>();
+  
   /**
    * Do not use: meant for externalization.
    */
@@ -58,8 +58,8 @@ public class FileDeploymentRequest extends ArtifactDeploymentRequest {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
-    this.endpoint = (Endpoint) in.readObject();
-    this.files = (List<FileInfo>) in.readObject();
+    endpoint = (Endpoint) in.readObject();
+    files    = (List<FileInfo>) in.readObject();
   }
 
   @Override

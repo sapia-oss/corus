@@ -13,7 +13,6 @@ import org.sapia.corus.client.services.cluster.CorusCallbackCapable;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.Connections;
 import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
@@ -26,7 +25,7 @@ import org.sapia.ubik.util.Func;
  * 
  * @author Yanick Duchesne
  */
-public class ServerSideClusterInterceptor implements Interceptor, CorusCallback {
+public class ServerSideClusterInterceptor implements CorusCallback {
 
   private Logger                  log;
   private ServerContext           context;

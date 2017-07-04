@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.deployer.event;
 
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched following an "undeployment".
@@ -9,7 +8,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class UndeploymentCompletedEvent implements Event {
+public class UndeploymentCompletedEvent {
 
   private Distribution distribution;
 

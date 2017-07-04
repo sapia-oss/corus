@@ -1,6 +1,5 @@
 package org.sapia.corus.processor.task;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 

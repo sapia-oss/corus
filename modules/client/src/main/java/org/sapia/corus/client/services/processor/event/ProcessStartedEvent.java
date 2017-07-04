@@ -6,7 +6,6 @@ import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLog.Level;
 import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Signals that the Corus server has started a process.
@@ -14,7 +13,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class ProcessStartedEvent implements Event, Loggable {
+public class ProcessStartedEvent implements Loggable {
 
   private Distribution  distribution;
   private ProcessConfig processConfig;

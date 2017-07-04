@@ -3,15 +3,17 @@ package org.sapia.corus.repository.task;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -49,9 +51,7 @@ public class ArtifactListRequestHandlerTaskTest extends AbstractRepoTaskTest {
     distributions = Collects.arrayToList(dist1, dist2);
     
     requests = new Queue<ArtifactListRequest>();
-    requests.add(new ArtifactListRequest(ep1));
-    requests.add(new ArtifactListRequest(ep2));
-    
+
     task =  new ArtifactListRequestHandlerTask(conf, requests);
     
     when(serviceContext.getDeployer()).thenReturn(deployer);
@@ -60,6 +60,9 @@ public class ArtifactListRequestHandlerTaskTest extends AbstractRepoTaskTest {
 
   @Test
   public void testSendDistributionListResponse() throws Throwable {
+    requests.add(new ArtifactListRequest(ep1));
+    requests.add(new ArtifactListRequest(ep2));
+    
     task.execute(taskContext, null);
     
     verify(eventChannel, times(1)).dispatch(eq(ep1.getChannelAddress()), eq(DistributionListResponse.EVENT_TYPE), any(DistributionListResponse.class));
@@ -67,11 +70,19 @@ public class ArtifactListRequestHandlerTaskTest extends AbstractRepoTaskTest {
   }
 
   @Test
-  public void testSendDistributionListResponseForEmptyQueue() throws Throwable {
-    requests.removeAll();
+  public void testSendDistributionListResponse_fo_empty_queue() throws Throwable {
     task.execute(taskContext, null);
     
-    verify(eventChannel, never()).dispatch(eq(ep1.getChannelAddress()), eq(DistributionListResponse.EVENT_TYPE), any(DistributionListResponse.class));
-    verify(eventChannel, never()).dispatch(eq(ep2.getChannelAddress()), eq(DistributionListResponse.EVENT_TYPE), any(DistributionListResponse.class));
+    verify(eventChannel, never()).dispatch(any(ServerAddress.class), any(), any());
+  }
+  
+  @Test
+  public void testSendDistributionListResponse_with_force() throws Throwable {
+    requests.add(new ArtifactListRequest(ep1).setForce(true));
+    task.execute(taskContext, null);
+    
+    ArgumentCaptor<DistributionListResponse> captor = ArgumentCaptor.forClass(DistributionListResponse.class);
+    verify(eventChannel).dispatch(any(ServerAddress.class), any(), captor.capture());
+    assertThat(captor.getValue().isForce()).isTrue();
   }
 }

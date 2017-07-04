@@ -11,7 +11,6 @@ import org.sapia.corus.client.services.processor.event.ProcessKillPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessRestartedEvent;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 
 /**
  * Manages the state of the {@link Processor} module.
@@ -19,7 +18,7 @@ import org.sapia.ubik.rmi.interceptor.Interceptor;
  * @author yduchesne
  *
  */
-public class ProcessorStateManager implements Interceptor {
+public class ProcessorStateManager {
   
   private Reference<ModuleState> state;
   private AtomicInteger          busyCount = new AtomicInteger();

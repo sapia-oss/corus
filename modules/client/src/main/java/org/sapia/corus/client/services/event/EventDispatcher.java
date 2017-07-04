@@ -1,14 +1,12 @@
 package org.sapia.corus.client.services.event;
 
 import org.sapia.corus.client.Module;
-import org.sapia.ubik.rmi.interceptor.Event;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.InvalidInterceptorException;
 
 /**
  * Specifies event dispatching/registration behavior.
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public interface EventDispatcher extends Module {
 
@@ -20,20 +18,20 @@ public interface EventDispatcher extends Module {
    * @param event
    *          an event class.
    * @param it
-   *          an {@link Interceptor} instance.
+   *          an interceptor object.
    * 
    * @throws InvalidInterceptorException
    *           if the interceptor could not be added.
    */
-  public void addInterceptor(Class<?> event, Interceptor it) throws InvalidInterceptorException;
+  public void addInterceptor(Class<?> event, Object it) throws InvalidInterceptorException;
 
   /**
    * Dispatches the given event to all interceptors that have registered for the
    * event's class.
    * 
    * @param event
-   *          an {@link Event} instance.
+   *          an {@link Object} acting as an event.
    */
-  public void dispatch(Event event);
+  public void dispatch(Object event);
 
 }

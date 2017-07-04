@@ -9,6 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -70,6 +71,23 @@ public class FileListResponseHandlerTaskTest extends AbstractRepoTaskTest {
       public boolean matches(Object argument) {
         FileDeploymentRequest req = (FileDeploymentRequest) argument;
         return req.getFiles().size() == 2 && req.getFiles().containsAll(files);
+      }
+    }));
+    assertThat(pullProcessState.getDiscoveredFilesFromHost(serverEndpoint.getChannelAddress())).containsOnly(files.get(0), files.get(1));
+  }
+  
+  @Test
+  public void testExecuteWithForce() throws Throwable {
+    response.setForce(true);
+    when(fileMan.getFiles()).thenReturn(Collections.emptyList());
+    
+    task.execute(taskContext, null);
+    
+    verify(super.eventChannel).dispatch(any(ServerAddress.class), anyString(), argThat(new ArgumentMatcher<FileDeploymentRequest>() {
+      @Override
+      public boolean matches(Object argument) {
+        FileDeploymentRequest req = (FileDeploymentRequest) argument;
+        return req.isForce();
       }
     }));
     assertThat(pullProcessState.getDiscoveredFilesFromHost(serverEndpoint.getChannelAddress())).containsOnly(files.get(0), files.get(1));

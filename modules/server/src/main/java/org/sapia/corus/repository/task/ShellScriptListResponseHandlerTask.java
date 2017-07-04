@@ -7,14 +7,13 @@ import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.ShellScript;
 import org.sapia.corus.client.services.deployer.ShellScriptManager;
-import org.sapia.corus.client.services.repository.FileListResponse;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptListResponse;
 import org.sapia.corus.repository.PullProcessState;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 
 /**
- * Task that handles {@link FileListResponse}s.
+ * Task that handles {@link ShellScriptListResponse}s.
  * 
  * @author yduchesne
  * @author jcdesrochers
@@ -22,10 +21,10 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
 public class ShellScriptListResponseHandlerTask extends RunnableTask {
 
   private ShellScriptListResponse scriptsRes;
-  private PullProcessState state;
+  private PullProcessState        state;
 
   /**
-   * @param scriptsRes The {@link FileListResponse} to handle.
+   * @param scriptsRes The {@link ShellScriptListResponse} to handle.
    * @param state the state of the pull repository process.
    */
   public ShellScriptListResponseHandlerTask(ShellScriptListResponse scriptsRes, PullProcessState state) {
@@ -74,6 +73,7 @@ public class ShellScriptListResponseHandlerTask extends RunnableTask {
     Endpoint repoServerEndpoint = scriptsRes.getEndpoint();
 
     ShellScriptDeploymentRequest request = new ShellScriptDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint(), scripts);
+    request.setForce(scriptsRes.isForce());
     
     try {
       context().info("Sending shell script deployment request to host " + repoServerEndpoint);
