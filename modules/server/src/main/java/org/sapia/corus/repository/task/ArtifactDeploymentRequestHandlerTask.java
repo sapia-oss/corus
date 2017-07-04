@@ -80,11 +80,14 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
     if (!requests.isEmpty()) {
       PerformDeploymentTask deployTasks = new PerformDeploymentTask();
 
-      deployTasks.add(new SendConfigNotificationTask(repoConfig, allTargets));
+      deployTasks.add(new SendConfigNotificationTask(repoConfig, allTargets),
+                      TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
 
-      deployTasks.add(new SendPortRangeNotificationTask(repoConfig, allTargets));
+      deployTasks.add(new SendPortRangeNotificationTask(repoConfig, allTargets),
+                      TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
       
-      deployTasks.add(new SendSecurityConfigNotificationTask(repoConfig, allTargets));
+      deployTasks.add(new SendSecurityConfigNotificationTask(repoConfig, allTargets),
+                      TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
 
       ArtifactDeploymentHandlerTaskHelper distHelper = getDistributionHelper(getDistributionRequests(requests));
       distHelper.addTo(deployTasks);

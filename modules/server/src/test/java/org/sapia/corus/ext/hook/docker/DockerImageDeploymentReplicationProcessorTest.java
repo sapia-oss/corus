@@ -102,6 +102,7 @@ public class DockerImageDeploymentReplicationProcessorTest {
     when(taskContext.getServerContext()).thenReturn(serverContext);
     when(serverContext.getCorusHost()).thenReturn(CorusHost.newInstance("test-node", new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "test-os", "test-jvm", mock(PublicKey.class)));
     when(configuration.getRepoDir()).thenReturn(repoDir.getAbsolutePath());
+    when(configuration.getDeploymentTaskTimeoutSeconds()).thenReturn(10000L);
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
     doAnswer(new Answer<DeployOutputStream>() {
       @Override
@@ -122,7 +123,9 @@ public class DockerImageDeploymentReplicationProcessorTest {
       public FutureResult<Void> answer(InvocationOnMock invocation) throws Throwable {
         Task t = invocation.getArgumentAt(0, Task.class);
         t.execute(taskContext, null);
-        return mock(FutureResult.class);
+        FutureResult result = mock(FutureResult.class);
+        when(result.isCompleted()).thenReturn(true);
+        return result;
       }
     }).when(taskManager).executeAndWait(any(Task.class), anyObject());
     

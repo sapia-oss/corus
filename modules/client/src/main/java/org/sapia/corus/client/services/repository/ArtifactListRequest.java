@@ -22,7 +22,8 @@ public class ArtifactListRequest implements Externalizable {
 
   private Endpoint endpoint;
   private boolean  force;
-  
+  private long     timestamp = System.currentTimeMillis();
+
   /**
    * Do not use: meant for externalization.
    */
@@ -60,17 +61,23 @@ public class ArtifactListRequest implements Externalizable {
   public Endpoint getEndpoint() {
     return endpoint;
   }
+  
+  public long getTimestamp() {
+    return timestamp;
+  }
 
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    endpoint = (Endpoint) in.readObject();
-    force    = in.readBoolean();
+    endpoint  = (Endpoint) in.readObject();
+    force     = in.readBoolean();
+    timestamp = in.readLong();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
     out.writeBoolean(force);
+    out.writeLong(timestamp);
   }
 
 }

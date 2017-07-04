@@ -2,7 +2,9 @@ package org.sapia.corus.taskmanager.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
+import org.sapia.corus.taskmanager.core.FutureResult;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 
@@ -17,14 +19,16 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 public class CompositeTask extends Task<Void, Void> {
 
   private List<Task<?, ?>> children = new ArrayList<Task<?, ?>>();
+  private List<Long> executionTimeout = new ArrayList<>();
 
   /**
-   * @param task
-   *          a {@link Task} to add to this instance.
+   * @param task a {@link Task} to add to this instance.
+   * @param timeout The execution timeout of this task in milliseconds.
    * @return this instance.
    */
-  public CompositeTask add(Task<?, ?> task) {
+  public CompositeTask add(Task<?, ?> task, long timeout) {
     children.add(task);
+    executionTimeout.add(timeout);
     return this;
   }
 
@@ -44,10 +48,18 @@ public class CompositeTask extends Task<Void, Void> {
 
   @Override
   public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
-    for (Task<?, ?> t : children) {
-      ctx.debug("Executing nested task synchronously: " + t.getName());
-      ctx.getTaskManager().executeAndWait(t, null).get();
+    for (int i = 0; i < children.size(); i++) {
+      Task<?, ?> task = children.get(i);
+      long timeout = executionTimeout.get(i);
+      
+      ctx.debug("Executing nested task synchronously: " + task.getName());
+      FutureResult<?> result = ctx.getTaskManager().executeAndWait(task, null);
+      result.get(timeout);
+      if (!result.isCompleted()) {
+        throw new TimeoutException("Execution of child task " + task.getName() + " expired before completion (timeout=" + timeout + ")");
+      }
     }
+
     return null;
   }
 

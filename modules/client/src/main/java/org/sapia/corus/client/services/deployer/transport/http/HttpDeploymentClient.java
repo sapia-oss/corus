@@ -21,6 +21,8 @@ import org.sapia.ubik.util.Streams;
 public class HttpDeploymentClient extends AbstractDeploymentClient {
 
   public static final int CHUNKED_CONTENT_LEN = 8000;
+  public static final int HTTP_CONNECTION_TIMEOUT_MILLIS = 3000;
+  public static final int HTTP_READ_TIMEOUT_MILLIS = 60000;
   
   public static final String DEPLOYER_CONTEXT = "/corus/deployer";
 
@@ -75,6 +77,8 @@ public class HttpDeploymentClient extends AbstractDeploymentClient {
       conn.setUseCaches(false);
       conn.setDoInput(true);
       conn.setDoOutput(true);
+      conn.setConnectTimeout(HTTP_CONNECTION_TIMEOUT_MILLIS);
+      conn.setReadTimeout(HTTP_READ_TIMEOUT_MILLIS);
       conn.setChunkedStreamingMode(CHUNKED_CONTENT_LEN);
     }
     return conn;
