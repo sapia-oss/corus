@@ -303,8 +303,10 @@ public class RestConnectionContext implements CorusConnectionContext {
               toReturn = method.invoke(remoteModule, params);
             } catch (InvocationTargetException e) {
               log.error("Could not cluster method call: " + method, e.getTargetException());
+              throw e.getTargetException();
             } catch (Exception e) {
               log.error("Could not cluster method call: " + method, e);
+              throw e;
             }
           }
           
