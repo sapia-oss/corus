@@ -19,7 +19,7 @@ import org.sapia.corus.client.services.database.RevId;
 public class TestConfigurator implements Configurator {
 
   private Properties processProps = new Properties();
-  private Properties serverProps = new Properties();
+  private Properties serverProps  = new Properties();
 
   
   public String getRoleName() {
@@ -30,6 +30,23 @@ public class TestConfigurator implements Configurator {
   public void addProperties(PropertyScope scope, Properties props,
       Set<String> categories, boolean clearExisting) {
     props(scope).putAll(props);
+  }
+  
+  @Override
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting) {
+    props.forEach(p -> {
+      
+      Set<String> categories = new HashSet<>();
+      p.getCategory().ifSet(c -> categories.add(c));
+      
+      addProperty(
+          scope, 
+          p.getName(), 
+          p.getValue(),
+          categories
+      );
+      
+    });
   }
   
   @Override

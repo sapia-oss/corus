@@ -242,7 +242,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   @Override
   public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting) {
     Set<Property> deletedProperties = new LinkedHashSet<>();
-    Set<Property> addedProperties = new LinkedHashSet<>();
+    Set<Property> addedProperties   = new LinkedHashSet<>();
 
     // 1. Process property changes
     if (PropertyScope.PROCESS == scope) {
@@ -294,6 +294,31 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     if (addedProperties.size() > 0) {
       dispatcher.dispatch(new PropertyChangeEvent(EventType.ADD, scope, addedProperties));
     }
+  }
+  
+  @Override
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting) {
+    Map<String, Properties> propertiesByCategory = new HashMap<>();
+    Properties propertiesWithoutCategory = new Properties();
+    for (Property p : props) {
+      if (p.getCategory().isSet()) {
+        Properties propsForCategory  = propertiesByCategory.get(p.getCategory().get());
+        if (propsForCategory == null) {
+          propsForCategory = new Properties();
+          propertiesByCategory.put(p.getCategory().get(), propsForCategory);
+        }
+        propsForCategory.setProperty(p.getName(), p.getValue());
+      } else {
+        propertiesWithoutCategory.setProperty(p.getName(), p.getValue());
+      }
+    }
+    for (String cat : propertiesByCategory.keySet()) {
+      addProperties(scope, propertiesByCategory.get(cat), Collections.singletonMap(cat, cat).keySet(), clearExisting);
+    }
+    if (!propertiesWithoutCategory.isEmpty()) {
+      addProperties(scope, propertiesWithoutCategory, Collections.emptySet(), clearExisting);
+    }
+    
   }
   
   @Override

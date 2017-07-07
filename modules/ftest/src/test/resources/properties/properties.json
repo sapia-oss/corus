@@ -1,0 +1,31 @@
+{
+	"categories": [
+		{
+			"name": "cat1",
+			"properties": [
+				{
+					"name": "test.json.prop1",
+					"value": "value1"
+				},
+				{
+					"name": "test.json.prop2",
+					"value": "value2"
+				}
+			]
+		}
+	],
+	"properties": [
+		{
+			"name": "test.json.prop3",
+			"value": "value3",
+			"categories": [
+				"cat1",
+				"cat2"
+			]
+		},
+		{
+			"name": "test.json.prop4",
+			"value": "value4"
+		}
+	]
+}

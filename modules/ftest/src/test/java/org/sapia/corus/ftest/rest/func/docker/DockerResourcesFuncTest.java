@@ -1,4 +1,4 @@
-package org.sapia.corus.ftest.rest.docker;
+package org.sapia.corus.ftest.rest.func.docker;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;

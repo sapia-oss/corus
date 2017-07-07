@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.http.conn.util.InetAddressUtils;
 import org.sapia.corus.client.ClientDebug;
@@ -38,6 +37,7 @@ import org.sapia.ubik.rmi.NoSuchObjectException;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.rmi.server.transport.http.HttpAddress;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Assertions;
 
 /**
@@ -51,7 +51,6 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
 
   private static final ClientDebug DEBUG = ClientDebug.get(CorusConnectionContextImpl.class);
   
-  static final int  INVOKER_THREADS     = 10;
   static final long RECONNECT_INTERVAL  = 15000;
 
   private long                          lastReconnect     = System.currentTimeMillis();
@@ -80,9 +79,6 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
    *          the port of the Corus server to connect to.
    * @param fileSys
    *          the {@link ClientFileSystem}.
-   * @param invokerThreads
-   *          the number of threads to use when dispatching clustered method
-   *          calls to targeted Corus instances.
    * @throws Exception
    *           if a problem occurs when attempting to connect to the Corus
    *           server.
@@ -91,16 +87,12 @@ public class CorusConnectionContextImpl implements CorusConnectionContext {
    *           network-related problem occurs while attempting to connect to the
    *           given host/port.
    */
-  public CorusConnectionContextImpl(String host, int port, ClientFileSystem fileSys, int invokerThreads) throws ConnectionException, Exception {
+  public CorusConnectionContextImpl(String host, int port, ClientFileSystem fileSys) throws ConnectionException, Exception {
     connect(host, port);
     interceptor = new ClientSideClusterInterceptor();
     this.fileSys = fileSys;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
-    executor = Executors.newFixedThreadPool(invokerThreads);
-  }
-
-  public CorusConnectionContextImpl(String host, int port, ClientFileSystem fileSys) throws Exception {
-    this(host, port, fileSys, INVOKER_THREADS);
+    executor = Threads.createIoOutboundPool();
   }
 
   @Override
