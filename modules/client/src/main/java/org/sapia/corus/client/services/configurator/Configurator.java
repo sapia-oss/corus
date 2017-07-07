@@ -68,9 +68,9 @@ public interface Configurator extends java.rmi.Remote, Module, Dumpable {
 
   /**
    * @param scope
-   *          a {@link PropertyScope}
+   *          a {@link PropertyScope}.
    * @param props
-   *          the {@link Properties} to add
+   *          the {@link Properties} to add.
    * @param categories
    *          the {@link Set} of categories to which to associate the given properties.
    * @param clearExisting
@@ -78,6 +78,17 @@ public interface Configurator extends java.rmi.Remote, Module, Dumpable {
    *          should be cleared.
    */
   public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting);
+
+  /**
+   * @param scope
+   *          a {@link PropertyScope}.
+   * @param props
+   *          the {@link List} of {@link Property} instances to add.
+   * @param clearExisting
+   *          if <code>true</code>, indicates that the existing properties
+   *          should be cleared.
+   */
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting);
   
   /**
    * Returns a property value, for the first category that matches. This method first looks in the

@@ -76,7 +76,7 @@ public class PropertiesResourcesStressTest {
       }
     });
     
-    System.out.print(status);
+    System.out.println(status);
     
   }
 }
