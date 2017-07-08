@@ -3,8 +3,8 @@ package org.sapia.corus.client.services.processor.event;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventLog.Level;
-import org.sapia.corus.client.services.event.Loggable;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
 import org.sapia.ubik.rmi.interceptor.Event;
 
@@ -14,7 +14,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class ProcessStartPendingEvent implements Event, Loggable {
+public class ProcessStartPendingEvent implements Event, EventLogCapable {
   
   private Distribution       distribution;
   private ProcessConfig      process;
@@ -39,8 +39,8 @@ public class ProcessStartPendingEvent implements Event, Loggable {
   }
   
   @Override
-  public EventLog getEventLog() {
-    return new EventLog(Level.NORMAL, "Processor", 
+  public EventLog toEventLog() {
+    return new EventLog(EventLevel.INFO, "Processor", 
         String.format(
             "Process execution pending for %s - %s instance(s) requested", 
             process, startupInfo.getRequestedInstances()

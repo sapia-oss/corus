@@ -1,12 +1,12 @@
 package org.sapia.corus.client.services.processor.event;
 
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventLog.Level;
-import org.sapia.corus.client.services.event.Loggable;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.ubik.rmi.interceptor.Event;
 
-public class ProcessStaleEvent implements Event, Loggable {
+public class ProcessStaleEvent implements Event, EventLogCapable {
 
   private Process process;
 
@@ -18,8 +18,8 @@ public class ProcessStaleEvent implements Event, Loggable {
     return process;
   }
 
-  public EventLog getEventLog() {
-    return new EventLog(Level.CRITICAL, "Processor", "Process " + process.toString() + " has been detected as stale");
+  public EventLog toEventLog() {
+    return new EventLog(EventLevel.CRITICAL, "Processor", "Process " + process.toString() + " has been detected as stale");
   }
 
 }

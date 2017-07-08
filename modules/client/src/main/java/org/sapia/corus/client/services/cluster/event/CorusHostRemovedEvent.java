@@ -2,8 +2,8 @@ package org.sapia.corus.client.services.cluster.event;
 
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventLog.Level;
-import org.sapia.corus.client.services.event.Loggable;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
@@ -12,7 +12,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class CorusHostRemovedEvent implements Event, Loggable {
+public class CorusHostRemovedEvent implements Event, EventLogCapable {
   
   private CorusHost host;
   
@@ -28,8 +28,8 @@ public class CorusHostRemovedEvent implements Event, Loggable {
   }
   
   @Override
-  public EventLog getEventLog() {
-    return new EventLog(Level.NORMAL, "ClusterManager", "Corus host removed (down or terminated): " + host.toString());
+  public EventLog toEventLog() {
+    return new EventLog(EventLevel.INFO, "ClusterManager", "Corus host removed (down or terminated): " + host.toString());
   }
 
 }

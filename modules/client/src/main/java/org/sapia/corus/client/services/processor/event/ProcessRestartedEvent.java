@@ -3,8 +3,8 @@ package org.sapia.corus.client.services.processor.event;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventLog.Level;
-import org.sapia.corus.client.services.event.Loggable;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.ubik.rmi.interceptor.Event;
 
@@ -14,7 +14,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class ProcessRestartedEvent implements Event, Loggable {
+public class ProcessRestartedEvent implements Event, EventLogCapable {
 
   private Distribution  distribution;
   private ProcessConfig processConfig;
@@ -39,8 +39,8 @@ public class ProcessRestartedEvent implements Event, Loggable {
   }
   
   @Override
-  public EventLog getEventLog() {
-    return new EventLog(Level.NORMAL, "Processor", "Process was restarted: " + processConfig.toString() + ", id = " + process.getProcessID());
+  public EventLog toEventLog() {
+    return new EventLog(EventLevel.INFO, "Processor", "Process was restarted: " + processConfig.toString() + ", id = " + process.getProcessID());
   }
 
 }
