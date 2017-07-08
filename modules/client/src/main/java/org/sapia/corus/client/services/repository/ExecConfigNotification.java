@@ -26,6 +26,7 @@ public class ExecConfigNotification extends ClusterNotification {
   public static final String EVENT_TYPE = "corus.event.repository.notif.exec-config";
 
   private List<ExecConfig> configs = new ArrayList<ExecConfig>();
+  private boolean          force;
 
   /** Do not use: meant for serialization only */
   public ExecConfigNotification() {
@@ -50,6 +51,24 @@ public class ExecConfigNotification extends ClusterNotification {
   public List<ExecConfig> getConfigs() {
     return configs;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public ExecConfigNotification setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable
@@ -58,13 +77,15 @@ public class ExecConfigNotification extends ClusterNotification {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
-    this.configs = (List<ExecConfig>) in.readObject();
+    configs = (List<ExecConfig>) in.readObject();
+    force   = in.readBoolean();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeObject(configs);
+    out.writeBoolean(force);
   }
 
   // --------------------------------------------------------------------------

@@ -1,11 +1,17 @@
 package org.sapia.corus.taskmanager.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
+import org.apache.log.Hierarchy;
+import org.apache.log.Logger;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.ubik.concurrent.ConfigurableExecutor;
 import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
@@ -13,19 +19,34 @@ import org.sapia.ubik.concurrent.NamedThreadFactory;
 
 public class TaskManagerImpl implements TaskManager {
 
-  private Timer background;
-  private ExecutorService threadpool;
-  private ServerContext serverContext;
-  private TaskLog globalTaskLog;
-  private Map<ThrottleKey, Throttle> throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
+  public static final long TASK_EXECUTION_TTL_MILLIS = 60000;
+  public static final long TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS = 30000;
+  
+  private static final Logger LOG = Hierarchy.getDefaultHierarchy().getLoggerFor(TaskManagerImpl.class.getName());
+  
+  private Timer                             background;
+  private ExecutorService                   threadpool;
+  private ServerContext                     serverContext;
+  private TaskLog                           globalTaskLog;
+  private Map<ThrottleKey, Throttle>        throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
+  private PriorityQueue<MonitoredTaskEntry> pendingTasks;
 
   public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext, ThreadingConfiguration conf) {
     this.globalTaskLog = globalTaskLog;
     this.serverContext = serverContext;
     this.background = new Timer("TaskManagerDaemon", true);
     this.threadpool = new ConfigurableExecutor(conf, NamedThreadFactory.createWith("TaskManager"));
+    
+    pendingTasks = new PriorityQueue<>(256, (MonitoredTaskEntry o1, MonitoredTaskEntry o2) -> MonitoredTaskEntry.compare(o1, o2));
+    background.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        LOG.info("Thread pool statistics: " + threadpool);
+        monitorPendingTasks();
+      }
+    }, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS);
   }
-
+  
   @Override
   public void registerThrottle(ThrottleKey key, Throttle throttle) {
     throttles.put(key, throttle);
@@ -68,7 +89,7 @@ public class TaskManagerImpl implements TaskManager {
       if (task instanceof Throttleable) {
         throttle(((Throttleable) task).getThrottleKey(), toRun);
       } else {
-        threadpool.execute(toRun);
+        startTaskAndMonitorExecution(toRun);
       }
     }
   }
@@ -112,7 +133,7 @@ public class TaskManagerImpl implements TaskManager {
       if (task instanceof Throttleable) {
         throttle(((Throttleable) task).getThrottleKey(), toRun);
       } else {
-        threadpool.execute(toRun);
+        startTaskAndMonitorExecution(toRun);
       }
     }
     return result;
@@ -173,14 +194,65 @@ public class TaskManagerImpl implements TaskManager {
   private void throttle(ThrottleKey throttleKey, final Runnable toRun) {
     final Throttle throttle = throttles.get(throttleKey);
     if (throttle == null) {
+      LOG.error("Could not find throttle for: " + throttleKey.getName() + ". Got following throttle keys:");
+      throttles.keySet().forEach(tk -> LOG.error("  -> " + tk.getName()));
       throw new IllegalStateException(String.format("No throttle found for %s", throttleKey.getName()));
     }
-    threadpool.execute(new Runnable() {
-      @Override
-      public void run() {
-        throttle.execute(toRun);
+    startTaskAndMonitorExecution(() -> throttle.execute(toRun));
+  }
+  
+  protected void monitorPendingTasks() {
+    LOG.debug("Monitoring pending tasks... ");
+    
+    // Extract completed tasks
+    List<MonitoredTaskEntry> toMonitor = new ArrayList<>();
+    synchronized (pendingTasks) {
+      try {
+        if (pendingTasks.size() > 0 && pendingTasks.peek().maxCompletionTimestamp < System.currentTimeMillis()) {
+          toMonitor.add(pendingTasks.poll());
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    });
+    }
+
+    // Cancel non completed tasks
+    for (MonitoredTaskEntry t: toMonitor) {
+      try {
+        if (!t.executionResult.isDone()) {
+          LOG.warn("Cancelling task that is not completed after time to live of " + TASK_EXECUTION_TTL_MILLIS);
+          t.executionResult.cancel(true);
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
+  protected void startTaskAndMonitorExecution(Runnable toRun) {
+    Future<?> executionResult = threadpool.submit(toRun);
+    
+    MonitoredTaskEntry entry = new MonitoredTaskEntry(executionResult, System.currentTimeMillis() + TASK_EXECUTION_TTL_MILLIS);
+    synchronized (pendingTasks) {
+      pendingTasks.add(entry);
+    }
+  }
+
+  
+  
+  
+  public static class MonitoredTaskEntry {
+    private Future<?> executionResult;
+    private long maxCompletionTimestamp;
+    
+    private MonitoredTaskEntry(Future<?> executionResult, long maxCompletionTimestamp) {
+      this.executionResult = executionResult;
+      this.maxCompletionTimestamp = maxCompletionTimestamp;
+    }
+
+    public static int compare(MonitoredTaskEntry o1, MonitoredTaskEntry o2) {
+      return Long.compare(o1.maxCompletionTimestamp, o2.maxCompletionTimestamp);
+    }    
   }
 
 }

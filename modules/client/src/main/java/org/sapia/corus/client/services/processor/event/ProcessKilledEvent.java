@@ -22,7 +22,7 @@ public class ProcessKilledEvent extends EventSupport {
 
   public ProcessKilledEvent(ProcessTerminationRequestor requestor, Process process, boolean restarted) {
     this.requestor = requestor;
-    this.process = process;
+    this.process   = process;
     this.restarted = restarted;
   }
 

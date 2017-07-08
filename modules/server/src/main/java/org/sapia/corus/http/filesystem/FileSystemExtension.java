@@ -44,7 +44,6 @@ import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
 import org.sapia.corus.http.helpers.AccessDeniedHelper;
 import org.sapia.corus.http.helpers.NotFoundHelper;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Chrono;
 
 /**
@@ -60,7 +59,7 @@ import org.sapia.ubik.util.Chrono;
  * @author yduchesne
  *
  */
-public class FileSystemExtension implements HttpExtension, Interceptor {
+public class FileSystemExtension implements HttpExtension {
 
   public static final String HTTP_FILESYSTEM_CONTEXT = "files";
 

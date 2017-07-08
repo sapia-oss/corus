@@ -6,7 +6,6 @@ import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when process execution is pending.

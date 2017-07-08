@@ -57,6 +57,12 @@ public class ConfiguratorFacadeImpl extends FacadeHelper<Configurator> implement
   }
   
   @Override
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting, ClusterInfo cluster) {
+    proxy.addProperties(scope, props, clearExisting);
+    invoker.invokeLenient(void.class, cluster);
+  }
+  
+  @Override
   public void removeProperty(PropertyScope scope, ArgMatcher name,
       Set<ArgMatcher> categories, ClusterInfo cluster) {
     proxy.removeProperty(scope, name, categories);

@@ -4,7 +4,6 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLogCapable;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Event dispatched when a Corus host is added to the current node's cluster view.
@@ -12,7 +11,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class CorusHostAddedEvent implements Event, EventLogCapable {
+public class CorusHostAddedEvent implements EventLogCapable {
   
   private CorusHost host;
   

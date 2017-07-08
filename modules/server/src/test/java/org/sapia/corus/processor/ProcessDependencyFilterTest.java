@@ -1,13 +1,13 @@
 package org.sapia.corus.processor;
 
-import junit.framework.TestCase;
-
 import org.sapia.corus.client.services.deployer.dist.Dependency;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.Java;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.deployer.TestDeployer;
 import org.sapia.corus.util.TestProgressQueue;
+
+import junit.framework.TestCase;
 
 public class ProcessDependencyFilterTest extends TestCase {
   

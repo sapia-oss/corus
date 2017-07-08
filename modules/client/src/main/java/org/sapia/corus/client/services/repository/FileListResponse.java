@@ -29,8 +29,9 @@ public class FileListResponse implements Externalizable {
    */
   public static final String EVENT_TYPE = "corus.event.repository.response.files";
 
-  private Endpoint endpoint;
+  private Endpoint       endpoint;
   private List<FileInfo> files;
+  private boolean        force;
 
   /**
    * Do not call: meant for externalization only.
@@ -64,6 +65,24 @@ public class FileListResponse implements Externalizable {
   public List<FileInfo> getFiles() {
     return files;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public FileListResponse setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable
@@ -72,13 +91,15 @@ public class FileListResponse implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     endpoint = (Endpoint) in.readObject();
-    files = (List<FileInfo>) in.readObject();
+    files    = (List<FileInfo>) in.readObject();
+    force    = in.readBoolean();    
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
     out.writeObject(files);
+    out.writeBoolean(force);
   }
 
 }

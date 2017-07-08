@@ -141,6 +141,8 @@
         scope="singleton" 
         autowire="autodetect">
         
+    <property name="flagDistAbsenceAsError" value="${corus.server.deploy.diag.dist.absence.error}" />    
+    
     <property name="deploymentHandlers">
         <list>
             <ref bean="fileDeploymentHandler" />
@@ -269,6 +271,12 @@
     <property name="repoServerExecProcessEnabled"  value="${corus.server.repository.server.exec-enabled}" />
     <property name="repoServerSyncEnabled"         value="${corus.server.repository.server.synchronization.enabled}" />
     <property name="repoClientDeployScriptEnabled" value="${corus.server.repository.client.deploy-scripts-enabled}" />
+    
+    <property name="checkStateEnabled"            value="${corus.server.repository.state-check.enabled}" />
+    <property name="checkStateIntervalSeconds"    value="${corus.server.repository.state-check.interval}" />
+    <property name="checkStateRandomHostsEnabled" value="${corus.server.repository.state-check.max-random-hosts.enabled}" />
+    <property name="checkStateMaxRandomHosts"     value="${corus.server.repository.state-check.max-random-hosts} " />
+    <property name="checkStateAutomatic"          value="${corus.server.repository.state-check.automatic}" />
   </bean>
 
   <bean name="org.sapia.corus.client.services.repository.Repository" 

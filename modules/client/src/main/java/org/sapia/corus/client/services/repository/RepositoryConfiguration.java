@@ -149,4 +149,33 @@ public interface RepositoryConfiguration extends Remote {
    * @return <code>true</code> if packaged deployment scripts are to be executed at repo client nodes.
    */
   public boolean isRepoClientDeployScriptEnabled();
+  
+  /**
+   * @return the time interval at which the state check task should run.
+   */
+  public int getCheckStateIntervalSeconds();
+  
+  /**
+   * @return <code>true</code> if the state checking is enabled.
+   */
+  public boolean isCheckStateEnabled();
+
+  /**
+   * @return the maximum number of random hosts to check from when a node without distributions is
+   *         checking other nodes for the presence of artifacts, and no repo server nodes are found.
+   *         (when no repo server nodes are found, the current node will check randomly selected peers,
+   *         up to the number specified by this property).
+   */
+  public int getCheckStateMaxRandomHosts();
+  
+  /**
+   * @return <code>true</code> if checking random Corus nodes when no repo servers are found
+   *         is enabled - <code>false</code> otherwise.
+   */
+  public boolean isCheckStateRandomHostsEnabled();
+  
+  /**
+   * @return <code>true</code> if state checking should be determined automatically.
+   */
+  public boolean isCheckStateAutomatic();
 }

@@ -2,10 +2,10 @@ package org.sapia.corus.util.test;
 
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueueImpl;
+
+import junit.framework.TestCase;
 
 
 /**

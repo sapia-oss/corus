@@ -1,7 +1,5 @@
 package org.sapia.corus.processor.task;
 
-import java.io.IOException;
-
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
@@ -40,10 +38,11 @@ public class ForcefulKillTask extends Task<Boolean, TaskParams<Process, ProcessT
         processHooks.kill(new ProcessContext(process), KillSignal.SIGKILL, new TaskLogCallback(ctx));
         process.setStatus(LifeCycleStatus.KILL_CONFIRMED);
         process.save();
-      } catch (IOException e) {
-        ctx.warn(String.format("Error performing OS kill on process %s", process));
+      } catch (Throwable e) {
+        ctx.warn(String.format("Error performing OS kill on process %s. Assumed to be terminated", process));
         ctx.error(e);
-        killSuccess = false;
+        process.setStatus(LifeCycleStatus.KILL_ASSUMED);
+        process.save();
       }
     } else {
       ctx.warn(String.format("Process has no OS PID: %s; could bot be forcefully killed", process));

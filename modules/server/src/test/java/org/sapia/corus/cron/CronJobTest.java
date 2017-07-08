@@ -8,8 +8,8 @@ import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.sapia.corus.client.common.json.JsonObjectInput;
-import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
+import org.sapia.corus.client.common.json.WriterJsonStream;
 import org.sapia.corus.client.services.cron.CronJobInfo;
 
 public class CronJobTest {

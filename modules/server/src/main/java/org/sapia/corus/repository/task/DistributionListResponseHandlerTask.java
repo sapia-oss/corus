@@ -14,7 +14,7 @@ import org.sapia.corus.repository.PullProcessState;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 
 /**
- * Task that handles {@link DistributionListResponse}ss.
+ * Task that handles {@link DistributionListResponse}s.
  * 
  * @author yduchesne
  * @author jcdesrochers
@@ -22,15 +22,16 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
 public class DistributionListResponseHandlerTask extends RunnableTask {
 
   private DistributionListResponse distsRes;
-  private PullProcessState state;
+  private PullProcessState         state;
 
   /**
    * @param distsRes the {@link DistributionListResponse} to handle.
-   * @param state the state of the pull repository process.
+   * @param state    the state of the pull repository process.
+   * @param force    the 'force' flag.
    */
   public DistributionListResponseHandlerTask(DistributionListResponse distsRes, PullProcessState state) {
     this.distsRes = distsRes;
-    this.state = state;
+    this.state    = state;
   }
 
   @Override
@@ -44,7 +45,7 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
       if (discoveredDistributions.isEmpty()) {
         context().debug("No distribution to request from host " + distsRes.getEndpoint());
       } else {
-        doSendDistirbutionDeploymentRequest(discoveredDistributions);
+        doSendDistributionDeploymentRequest(discoveredDistributions);
       }
     } finally {
       state.releaseLock();
@@ -60,7 +61,7 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
         deployer.getDistribution(DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build());
       } catch (DistributionNotFoundException e) {
         if (state.addDiscoveredDistributionFromHostIfAbsent(dist, repoServerEndpoint.getChannelAddress())) {
-          context().info(String.format("Found new distribution %s form host %s", dist, repoServerEndpoint));
+          context().info(String.format("Found new distribution %s from host %s", dist, repoServerEndpoint));
         } else {
           context().info(String.format("Distribution %s already discovered form another host", dist));
         }
@@ -70,11 +71,12 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
     return state.getDiscoveredDistributionsFromHost(repoServerEndpoint.getChannelAddress());
   }
 
-  private void doSendDistirbutionDeploymentRequest(Collection<RepoDistribution> distributions) {
+  private void doSendDistributionDeploymentRequest(Collection<RepoDistribution> distributions) {
     ClusterManager cluster = context().getServerContext().getServices().getClusterManager();
     Endpoint repoServerEndpoint = distsRes.getEndpoint();
     
     DistributionDeploymentRequest request = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
+    request.setForce(distsRes.isForce());
     request.addDistributions(distributions);
 
     try {

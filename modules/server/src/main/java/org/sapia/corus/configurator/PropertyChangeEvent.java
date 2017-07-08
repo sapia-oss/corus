@@ -9,13 +9,12 @@ import java.util.List;
 import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
-import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.util.Strings;
 
 /**
  * An instance of this class is dispatched when a property change occurs.
  */
-public class PropertyChangeEvent implements Serializable, Event {
+public class PropertyChangeEvent implements Serializable {
 
   private static final long serialVersionUID = -674312933742477636L;
 

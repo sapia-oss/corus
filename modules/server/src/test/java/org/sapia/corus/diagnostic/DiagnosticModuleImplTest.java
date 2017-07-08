@@ -1,7 +1,8 @@
 package org.sapia.corus.diagnostic;
 
-import static org.junit.Assert.*
-;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -20,11 +22,6 @@ import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.reference.DefaultReference;
 import org.sapia.corus.client.services.ModuleState;
-import org.sapia.corus.client.services.processor.DistributionInfo;
-import org.sapia.corus.client.services.processor.LockOwner;
-import org.sapia.corus.client.services.processor.Process;
-import org.sapia.corus.client.services.processor.ProcessCriteria;
-import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
@@ -34,8 +31,16 @@ import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessConfigDiagnosticStatus;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticResult;
 import org.sapia.corus.client.services.diagnostic.ProcessDiagnosticStatus;
-import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticCapable;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticResult;
+import org.sapia.corus.client.services.diagnostic.SystemDiagnosticStatus;
+import org.sapia.corus.client.services.processor.DistributionInfo;
+import org.sapia.corus.client.services.processor.LockOwner;
+import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.LifeCycleStatus;
+import org.sapia.corus.client.services.processor.ProcessCriteria;
+import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.processor.event.ProcessStartPendingEvent;
 import org.sapia.corus.client.services.processor.event.ProcessStartedEvent;
 import org.sapia.corus.client.services.repository.Repository;
@@ -44,7 +49,6 @@ import org.sapia.corus.diagnostic.DiagnosticModuleImpl.PendingProcessInfo;
 import org.sapia.corus.diagnostic.evaluator.ProcessConfigDiagnosticEvaluationContext;
 import org.sapia.corus.diagnostic.evaluator.ProcessConfigDiagnosticEvaluator;
 import org.sapia.ubik.util.Collects;
-import org.junit.runner.RunWith;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DiagnosticModuleImplTest {
@@ -55,7 +59,7 @@ public class DiagnosticModuleImplTest {
   private DistributionInfo   distInfo;
   private ProcessConfig      processConfig;
   private ProcessStartupInfo startupInfo;
-  private Process            proc1, proc2, staleProc1, staleProc2;
+  private Process            proc1, proc2, staleProc1, staleProc2, staleProc3;
 
   @Mock
   private ProcessConfigDiagnosticEvaluator rejectingEvaluator, acceptingEvaluator;
@@ -73,6 +77,9 @@ public class DiagnosticModuleImplTest {
   private Processor processor;
   
   @Mock
+  private SystemDiagnosticCapable sysProvider1, sysProvider2, sysProvider3;
+  
+  @Mock
   private InternalConfigurator configurator;
   
   private DiagnosticModuleImpl diagnosticModule;
@@ -88,7 +95,8 @@ public class DiagnosticModuleImplTest {
     proc2         = new Process(distInfo, "2");
     staleProc1    = new Process(distInfo, "3");
     staleProc2    = new Process(distInfo, "4");
-    
+    staleProc3    = new Process(distInfo, "5");
+
     dist.addProcess(processConfig);
     proc1.setStartupInfo(startupInfo);
     proc2.setStartupInfo(startupInfo);
@@ -96,15 +104,15 @@ public class DiagnosticModuleImplTest {
     diagnosticModule = new DiagnosticModuleImpl();
     diagnosticModule.setConfigurator(configurator);
     diagnosticModule.setDeployer(deployer);
-    diagnosticModule.setRepository(repository);
-    diagnosticModule.setProcesses(processor);
-    diagnosticModule.setDiagnosticEvaluators(Collects.arrayToList(rejectingEvaluator, acceptingEvaluator));
-    diagnosticModule.setDiagnosticProviders(Collects.arrayToList(rejectingProvider, acceptingProvider));
+    diagnosticModule.setProcessor(processor);
+    diagnosticModule.setProcessDiagnosticEvaluators(Collects.arrayToList(rejectingEvaluator, acceptingEvaluator));
+    diagnosticModule.setProcessDiagnosticProviders(Collects.arrayToList(rejectingProvider, acceptingProvider));
+    diagnosticModule.setSystemDiagnosticProviders(Collects.arrayToList(sysProvider1, sysProvider2, sysProvider3));
 
     when(deployer.getDistributions(any(DistributionCriteria.class))).thenReturn(Collects.arrayToList(dist));
-    when(deployer.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
-    when(repository.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
-    when(processor.getState()).thenReturn(DefaultReference.of(ModuleState.IDLE));
+    when(sysProvider1.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider1", SystemDiagnosticStatus.UP));
+    when(sysProvider2.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider2", SystemDiagnosticStatus.UP));
+    when(sysProvider3.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("provider3", SystemDiagnosticStatus.UP));
     
     doAnswer(new Answer<List<Process>>() {
       @Override
@@ -228,18 +236,8 @@ public class DiagnosticModuleImplTest {
   }
   
   @Test
-  public void testAcquireDiagnostic_deployer_busy() {
-    when(deployer.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
-    
-    List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
-    assertTrue(result.get(0).getProcessResults().isEmpty());
-    
-    assertEquals(ProcessConfigDiagnosticStatus.BUSY, result.get(0).getStatus());
-  }
-  
-  @Test
-  public void testAcquireDiagnostic_repository_busy() {
-    when(repository.getState()).thenReturn(DefaultReference.of(ModuleState.BUSY));
+  public void testAcquireDiagnostic_sys_diagnostic_provider_busy() {
+    when(sysProvider1.getSystemDiagnostic()).thenReturn(new SystemDiagnosticResult("sysProvider1", SystemDiagnosticStatus.BUSY));
     
     List<ProcessConfigDiagnosticResult> result = diagnosticModule.acquireProcessDiagnostics(NULL_LOCK_OWNER);
     assertTrue(result.get(0).getProcessResults().isEmpty());
@@ -279,8 +277,10 @@ public class DiagnosticModuleImplTest {
       @Override
       public List<Process> answer(InvocationOnMock invocation) throws Throwable {
         ProcessCriteria c = invocation.getArgumentAt(0, ProcessCriteria.class);
-        if (c.getLifeCycles().contains(LifeCycleStatus.KILL_CONFIRMED) && c.getLifeCycles().contains(LifeCycleStatus.KILL_REQUESTED)) {
-          return Arrays.asList(staleProc1, staleProc2);
+        if (c.getLifeCycles().contains(LifeCycleStatus.KILL_CONFIRMED) 
+            && c.getLifeCycles().contains(LifeCycleStatus.KILL_REQUESTED)
+            && c.getLifeCycles().contains(LifeCycleStatus.KILL_ASSUMED)) {
+          return Arrays.asList(staleProc1, staleProc2, staleProc3);
         } else if (c.getLifeCycles().contains(LifeCycleStatus.ACTIVE)) {
           return Arrays.asList(proc1, proc2);
         } else {

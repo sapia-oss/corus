@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
@@ -111,7 +112,7 @@ public class DockerImageDeploymentReplicationProcessor implements ImageDeploymen
           if (deployOutputStreamFunc.isSet()) {
             task.setDeployOutputStreamFunc(deployOutputStreamFunc.get());
           }
-          tasks.add(task);
+          tasks.add(task, TimeUnit.SECONDS.toMillis(configuration.getDeploymentTaskTimeoutSeconds()));
         }
       }
     }

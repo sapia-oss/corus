@@ -43,6 +43,11 @@ public class ImmutableReference<T> implements Reference<T> {
     // noop
   }
   
+  @Override
+  public boolean setIf(T newState, T expectedCurrentState) {
+    return false;
+  }
+  
   /**
    * @param other another {@link Reference}.
    * @return a new {@link ImmutableReference}, wrapping the given reference's instance.

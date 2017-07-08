@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.sapia.corus.client.services.database.DbMap;
-import org.sapia.corus.database.PersistentDb;
 
 public class TestDbModule{
   

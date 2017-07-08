@@ -94,6 +94,11 @@ public interface CorusConsts {
    */
   public static final String PROPERTY_CORUS_REST_AUTH_REQUIRED       = "corus.server.api.auth.required";
 
+  /**
+   * Indicast the size for the client connector pool used in the REST extension.
+   */
+  public static final String PROPERTY_CORUS_REST_CONNECTOR_SIZE      = "corus.server.api.client.connector.pool-size";
+  
   // --------------------------------------------------------------------------
   // Hot Config
 

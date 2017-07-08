@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
@@ -38,6 +37,7 @@ import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Assertions;
 
 /**
@@ -47,8 +47,6 @@ import org.sapia.ubik.util.Assertions;
  * 
  */
 public class RestConnectionContext implements CorusConnectionContext {
-
-  static final int INVOKER_THREADS = 10;
 
   private Logger                        log          = Hierarchy.getDefaultHierarchy().getLoggerFor(RestConnectionContext.class.getName());
   private Corus                         corus;
@@ -72,33 +70,17 @@ public class RestConnectionContext implements CorusConnectionContext {
    *          the current {@link Corus} host.
    * @param fileSys
    *          the {@link ClientFileSystem}.
-   * @param invokerThreads
-   *          the number of threads to use when dispatching clustered method
-   *          calls to targeted Corus instances.
    */
-  public RestConnectionContext(Corus current, ClientFileSystem fileSys, int invokerThreads) {
+  public RestConnectionContext(Corus current, ClientFileSystem fileSys) {
     this.corus         = current;
     this.serverHost  = corus.getHostInfo();
     this.domain      = corus.getDomain();
     this.interceptor = new ClientSideClusterInterceptor();
     this.fileSys     = fileSys;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
-    executor = Executors.newFixedThreadPool(invokerThreads);
+    executor = Threads.createIoOutboundPool();
   }
 
-  /**
-   * Internally calls the {@link RestConnectionContext#RestConnectionContext(Corus, ClientFileSystem, int)}, passing
-   * in the default number of invoker threads (see {@link #INVOKER_THREADS}).
-   * 
-   * @param current
-   *          the current {@link Corus} host.
-   * @param fileSys
-   *          the {@link ClientFileSystem}.
-   */
-  public RestConnectionContext(Corus current, ClientFileSystem fileSys) {
-    this(current, fileSys, INVOKER_THREADS);
-  }
-  
   // --------------------------------------------------------------------------
   // Basic stuff: domain, version, ClientFileSystem.
 
@@ -215,7 +197,7 @@ public class RestConnectionContext implements CorusConnectionContext {
   
   @Override
   public void disconnect() {
-    executor.shutdownNow();
+    executor.shutdown();
   }
   
   @Override
@@ -229,8 +211,18 @@ public class RestConnectionContext implements CorusConnectionContext {
   }
 
   @Override
-  @SuppressWarnings(value = "unchecked")
   public <T, M> void invoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
+    doInvoke(results, moduleInterface, method, params, cluster.convertLocalHost(this));
+  }
+  
+  @Override
+  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+    return doInvoke(returnType, moduleInterface, method, params, info.convertLocalHost(this));
+  }
+  
+  @SuppressWarnings(value = "unchecked")
+  private <T, M> void doInvoke(Results<T> results, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo cluster) throws Throwable {
+    
     final List<Result<T>> resultList = new ArrayList<Result<T>>();
     results.addListener(new ResultListener<T>() {
       @Override
@@ -252,8 +244,7 @@ public class RestConnectionContext implements CorusConnectionContext {
     }
   }
 
-  @Override
-  public <T, M> T invoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
+  private <T, M> T doInvoke(Class<T> returnType, Class<M> moduleInterface, Method method, Object[] params, ClusterInfo info) throws Throwable {
     try {
 
       Object toReturn = null;
@@ -294,8 +285,10 @@ public class RestConnectionContext implements CorusConnectionContext {
               toReturn = method.invoke(remoteModule, params);
             } catch (InvocationTargetException e) {
               log.error("Could not cluster method call: " + method, e.getTargetException());
+              throw e.getTargetException();
             } catch (Exception e) {
               log.error("Could not cluster method call: " + method, e);
+              throw e;
             }
           }
           

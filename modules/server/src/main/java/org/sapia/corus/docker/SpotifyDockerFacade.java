@@ -16,7 +16,6 @@ import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.core.ServerStartedEvent;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.spotify.docker.client.DefaultDockerClient;
@@ -35,7 +34,7 @@ import com.spotify.docker.client.messages.Version;
  *
  * @author yduchesne
  */
-public class SpotifyDockerFacade implements DockerFacade, Interceptor {
+public class SpotifyDockerFacade implements DockerFacade {
   
   private enum State {
     INIT,

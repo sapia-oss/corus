@@ -1,6 +1,10 @@
 package org.sapia.corus.cli;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.LogEvent;

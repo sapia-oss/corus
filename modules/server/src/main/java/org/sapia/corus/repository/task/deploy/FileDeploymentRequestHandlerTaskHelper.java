@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.FileInfo;
@@ -47,7 +48,7 @@ public class FileDeploymentRequestHandlerTaskHelper extends ArtifactDeploymentHa
       context().info(String.format("Triggering deployment of %s to %s", entry.getKey(), entry.getValue()));
       try {
         RunnableTask task = new FileRequestHandlerTask(manager.getFile(entry.getKey()), new ArrayList<Endpoint>(entry.getValue()));
-        toAddTo.add(task);
+        toAddTo.add(task, TimeUnit.SECONDS.toMillis(config().getArtifactDeploymentRequestWaitTimeoutSeconds()));
       } catch (FileNotFoundException e) {
         context().error("File not found, bypassing deployment for: " + entry.getKey().getName(), e);
       }

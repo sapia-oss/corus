@@ -8,6 +8,6 @@ public class ProcessorThrottleKeys {
   /**
    * The {@link ThrottleKey} corresponding to process execution throttling.
    */
-  public static final ThrottleKey PROCESS_EXEC = new DefaultThrottleKey("PROCESS_EXEC");
+  public static final ThrottleKey PROCESS_EXEC = new DefaultThrottleKey("Processor:ExecuteProcess");
 
 }

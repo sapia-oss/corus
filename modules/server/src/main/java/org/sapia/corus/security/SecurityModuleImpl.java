@@ -27,7 +27,6 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.util.UriPattern;
 import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.VmId;
 import org.sapia.ubik.rmi.server.invocation.ServerPreInvokeEvent;
@@ -43,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = SecurityModule.class)
 @Remote(interfaces = { SecurityModule.class})
-public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, Interceptor {
+public class SecurityModuleImpl extends ModuleHelper implements SecurityModule {
 
   static final String PROPERTY_ALLOW = "corus.server.security.hostPattern.allow";
   static final String PROPERTY_DENY  = "corus.server.security.hostPattern.deny";
@@ -338,4 +337,5 @@ public class SecurityModuleImpl extends ModuleHelper implements SecurityModule, 
       }
     }    
   }
+  
 }

@@ -1,12 +1,16 @@
 package org.sapia.corus.client.rest.resources;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Properties;
+import java.util.List;
 
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.annotations.Authorized;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.IOUtil;
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.rest.Value;
 import org.sapia.corus.client.rest.Accepts;
 import org.sapia.corus.client.rest.ContentTypes;
@@ -15,6 +19,8 @@ import org.sapia.corus.client.rest.Output;
 import org.sapia.corus.client.rest.Path;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.JsonPropertyParser;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.http.HttpExtension;
 import org.sapia.corus.client.services.security.Permission;
@@ -42,7 +48,7 @@ public class PropertiesWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
-  public void addPropertiesForPartition(RequestContext context) {
+  public void addPropertiesForPartition(RequestContext context) throws IOException {
     ClusterInfo targets = context.getPartitionService()
         .getPartitionSet(context.getRequest().getValue("corus:partitionSetId").asString())
         .getPartition(context.getRequest().getValue("corus:partitionIndex").asInt())
@@ -60,7 +66,7 @@ public class PropertiesWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
-  public void addPropertiesForCluster(RequestContext context) {
+  public void addPropertiesForCluster(RequestContext context) throws IOException {
     doAddProperties(context, ClusterInfo.clustered());
   }
   
@@ -72,7 +78,7 @@ public class PropertiesWriteResource {
   @Output(ContentTypes.APPLICATION_JSON)
   @Accepts({ContentTypes.APPLICATION_JSON, ContentTypes.ANY})
   @Authorized(Permission.WRITE)
-  public void addPropertiesForHost(RequestContext context) {
+  public void addPropertiesForHost(RequestContext context) throws IOException {
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(context.getRequest().getValue("corus:host").asString());
     doAddProperties(context, cluster);
   }
@@ -219,28 +225,38 @@ public class PropertiesWriteResource {
   // --------------------------------------------------------------------------
   // Restricted
   
-  private void doAddProperties(RequestContext context, ClusterInfo cluster) {
-    Properties props = new Properties();
-    for (Value v : context.getRequest().getValues()) {
-      if (!v.getName().equals(HttpExtension.CORUS_PARAM_APP_ID) 
-          && !v.getName().equals(HttpExtension.CORUS_PARAM_APP_KEY)) {
-        props.setProperty(v.getName(), v.asString());
-      }
-    }    
+  private void doAddProperties(RequestContext context, ClusterInfo cluster) throws IOException {
+    
+    String         content    = IOUtil.textStreamToString(context.getRequest().getContent()).trim();
+    List<Property> properties = new ArrayList<>();
+
     Value category = context.getRequest().getValue("corus:category");
-    if (category.isNull()) {
-      context.getConnector().getConfigFacade().addProperties(
-          getScope(context), 
-          props, 
-          new HashSet<String>(0),
-          context.getRequest().getValue("clearExisting", "false").asBoolean(), cluster);
-    } else {
-      context.getConnector().getConfigFacade().addProperties(
-          getScope(context), 
-          props, 
-          category.asSet(),
-          context.getRequest().getValue("clearExisting", "false").asBoolean(), cluster);
+
+    if (!content.isEmpty() && !content.equals("{}")) {
+      JsonPropertyParser.parse(category.isSet() ? OptionalValue.of(category.asString()) : OptionalValue.none(), content, prop -> properties.add(prop));
     }
+    
+    if (category.isNull()) {
+      for (Value v : context.getRequest().getValues()) {
+        if (!v.getName().equals(HttpExtension.CORUS_PARAM_APP_ID) 
+            && !v.getName().equals(HttpExtension.CORUS_PARAM_APP_KEY)) {
+          properties.add(new Property(v.getName(), v.asString()));
+        }
+      }  
+    } else {
+      for (Value v : context.getRequest().getValues()) {
+        if (!v.getName().equals(HttpExtension.CORUS_PARAM_APP_ID) 
+            && !v.getName().equals(HttpExtension.CORUS_PARAM_APP_KEY)) {
+          properties.add(new Property(v.getName(), v.asString(), category.asString()));
+        }
+      }  
+    }
+    
+    context.getConnector().getConfigFacade().addProperties(
+        getScope(context), 
+        properties,
+        context.getRequest().getValue("clearExisting", "false").asBoolean(), cluster
+    );
   }
   
   private void doDeleteProperty(RequestContext context, ClusterInfo cluster) {

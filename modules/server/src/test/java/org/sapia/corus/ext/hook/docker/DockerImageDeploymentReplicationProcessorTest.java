@@ -13,13 +13,10 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,8 +28,6 @@ import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.IOUtil;
-import org.sapia.corus.client.common.ProgressQueue;
-import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.log.LogCallback;
 import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.cluster.CorusHost;
@@ -107,6 +102,7 @@ public class DockerImageDeploymentReplicationProcessorTest {
     when(taskContext.getServerContext()).thenReturn(serverContext);
     when(serverContext.getCorusHost()).thenReturn(CorusHost.newInstance("test-node", new Endpoint(mock(ServerAddress.class), mock(ServerAddress.class)), "test-os", "test-jvm", mock(PublicKey.class)));
     when(configuration.getRepoDir()).thenReturn(repoDir.getAbsolutePath());
+    when(configuration.getDeploymentTaskTimeoutSeconds()).thenReturn(10000L);
     when(dockerFacade.getDockerClient()).thenReturn(dockerClient);
     doAnswer(new Answer<DeployOutputStream>() {
       @Override
@@ -127,7 +123,9 @@ public class DockerImageDeploymentReplicationProcessorTest {
       public FutureResult<Void> answer(InvocationOnMock invocation) throws Throwable {
         Task t = invocation.getArgumentAt(0, Task.class);
         t.execute(taskContext, null);
-        return mock(FutureResult.class);
+        FutureResult result = mock(FutureResult.class);
+        when(result.isCompleted()).thenReturn(true);
+        return result;
       }
     }).when(taskManager).executeAndWait(any(Task.class), anyObject());
     

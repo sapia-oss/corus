@@ -68,8 +68,8 @@ public class DiagnosticResource {
     return doGetDiagnostics(context, cluster, responseFacade);
   }
 
-  // --------------------------------------------------------------------------
 
+  /*
   @Path({
       "/clusters/{corus:cluster}/hosts/localhost/diagnostic"
   })
@@ -80,7 +80,7 @@ public class DiagnosticResource {
     TCPAddress localAddress = context.getConnector().getContext().getServerHost().getEndpoint().getServerTcpAddress();
     ClusterInfo cluster = ClusterInfo.fromLiteralForm(localAddress.getHost()+":"+localAddress.getPort());
     return doGetDiagnostics(context, cluster, responseFacade);
-  }
+  }*/
 
   // --------------------------------------------------------------------------
   // Restricted methods

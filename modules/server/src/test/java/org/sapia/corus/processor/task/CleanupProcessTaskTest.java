@@ -1,11 +1,10 @@
 package org.sapia.corus.processor.task;
 
 import static org.junit.Assert.assertFalse;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -33,7 +32,7 @@ public class CleanupProcessTaskTest extends TestBaseTask{
   }
   
   @Test
-  public void testExecute() throws Exception{
+  public void testExecute_with_kill_confirmed() throws Exception{
     CleanupProcessTask task = new CleanupProcessTask();
     proc.setStatus(LifeCycleStatus.KILL_CONFIRMED);
     proc.setDeleteOnKill(true);
@@ -47,9 +46,37 @@ public class CleanupProcessTaskTest extends TestBaseTask{
   }
   
   @Test
-  public void testExecuteNotDeleteOnKill() throws Exception{
+  public void testExecute_with_kill_assumed() throws Exception{
+    CleanupProcessTask task = new CleanupProcessTask();
+    proc.setStatus(LifeCycleStatus.KILL_ASSUMED);
+    proc.setDeleteOnKill(true);
+    proc.save();
+    ctx.getTm().executeAndWait(task, proc).get();
+    verify(fs).deleteDirectory(any(File.class));
+    assertFalse(
+        "Process should have been removed from active process list", 
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
+    );
+  }
+  
+  @Test
+  public void testExecuteNotDeleteOnKill_with_kill_confirmed() throws Exception{
     CleanupProcessTask task = new CleanupProcessTask();
     proc.setStatus(LifeCycleStatus.KILL_CONFIRMED);
+    proc.setDeleteOnKill(false);
+    proc.save();
+    ctx.getTm().executeAndWait(task, proc).get();
+    verify(fs, times(0)).deleteDirectory(any(File.class));
+    assertFalse(
+        "Process should have been removed from active process list", 
+        ctx.getProc().getProcessDB().containsProcess(proc.getProcessID())
+    );
+  }
+  
+  @Test
+  public void testExecuteNotDeleteOnKill_with_kill_assumed() throws Exception{
+    CleanupProcessTask task = new CleanupProcessTask();
+    proc.setStatus(LifeCycleStatus.KILL_ASSUMED);
     proc.setDeleteOnKill(false);
     proc.save();
     ctx.getTm().executeAndWait(task, proc).get();

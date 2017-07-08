@@ -1,11 +1,16 @@
 package org.sapia.corus.database;
 
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.Iterator;
-
-import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +18,6 @@ import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.RecordMatcher;
 import org.sapia.corus.client.services.database.persistence.AbstractPersistent;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
-import org.sapia.corus.database.CachingDbMap;
 import org.sapia.ubik.util.Collects;
 
 public class CachingDbMapTest {

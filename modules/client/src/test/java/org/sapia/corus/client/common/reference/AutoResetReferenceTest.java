@@ -25,6 +25,18 @@ public class AutoResetReferenceTest {
     ref.set("b");
     assertEquals("b", ref.get());
   }
+
+  @Test
+  public void testSetIf() {
+    assertTrue(ref.setIf("b", "a"));
+    assertEquals("b", ref.get());
+  }
+  
+  @Test
+  public void testSetIf_false() {
+    assertFalse(ref.setIf("b", "c"));
+    assertEquals("a", ref.get());
+  }
   
   @Test
   public void testSetGet_delay_passed() {

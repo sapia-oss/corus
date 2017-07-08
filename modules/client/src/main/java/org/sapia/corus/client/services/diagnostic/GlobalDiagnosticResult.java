@@ -4,12 +4,12 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.json.JsonStream;
 import org.sapia.corus.client.common.json.JsonStreamable;
-import org.sapia.ubik.util.Assertions;
 
 /**
  * Holds global diagnostic data.
@@ -21,18 +21,15 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
 
   public static class Builder {
     
-    private List<ProcessConfigDiagnosticResult> processResults;
-    private ProgressDiagnosticResult            progressResult;
-    private boolean                             busy;
+    private List<ProcessConfigDiagnosticResult>     processResults  = Collections.emptyList();
+    private OptionalValue<ProgressDiagnosticResult> progressResult  = OptionalValue.none();
+    private List<SystemDiagnosticResult>            systemResults   = Collections.emptyList();
     
     private Builder() {
     }
     
-    public Builder busy() {
-      this.busy = true;
-      this.processResults = new ArrayList<ProcessConfigDiagnosticResult>();
-      this.progressResult = new ProgressDiagnosticResult(new ArrayList<String>());
-      return this;
+    public static Builder newInstance() {
+      return new Builder();
     }
     
     public Builder processDiagnostics(List<ProcessConfigDiagnosticResult> results) {
@@ -41,18 +38,20 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
     }
     
     public Builder progressDiagnostics(ProgressDiagnosticResult result) {
-      this.progressResult = result;
+      this.progressResult = OptionalValue.of(result);
+      return this;
+    }
+    
+    public Builder systemDiagnostics(List<SystemDiagnosticResult> result) {
+      this.systemResults = result;
       return this;
     }
     
     public GlobalDiagnosticResult build() {
-      Assertions.notNull(processResults, "Process diagnostic results not set");
-      Assertions.notNull(progressResult, "Progress diagnostic results not set");
-
-      GlobalDiagnosticStatus      status = null;
-      if (busy) {
-        status = GlobalDiagnosticStatus.INCOMPLETE;
-      } else if (!progressResult.getErrorMessages().isEmpty()) {
+      GlobalDiagnosticStatus status = determineGlobalDiagnosticFromSystemResults();
+      if (status == GlobalDiagnosticStatus.INCOMPLETE) {
+        // noop
+      } else if (progressResult.isSet() && !progressResult.get().getErrorMessages().isEmpty()) {
         status = GlobalDiagnosticStatus.FAILURE;
       } else {
         for (ProcessConfigDiagnosticResult r : processResults) {
@@ -65,15 +64,37 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
           }
         }
       }
-      if (status == null) {
-        status = GlobalDiagnosticStatus.SUCCESS;
-      }
-      return new GlobalDiagnosticResult(status, processResults, progressResult);
+      return new GlobalDiagnosticResult(status, systemResults, processResults, progressResult);
     }
     
-    public static Builder newInstance() {
-      return new Builder();
+    private GlobalDiagnosticStatus determineGlobalDiagnosticFromSystemResults() {
+      int incompleteCount = 0;
+      int failureCount    = 0;
+      
+      for(SystemDiagnosticResult r : systemResults) {
+         switch (r.getStatus().getMatchingGlobalDiagnostic()) {
+           case FAILURE:
+             failureCount++;
+             break;
+           case INCOMPLETE:
+             incompleteCount++;
+             break;
+           case SUCCESS:
+             // noop
+             break;
+           default:
+             throw new IllegalStateException("State not handled: " + r.getStatus().getMatchingGlobalDiagnostic());
+         }
+      }
+      if (failureCount > 0) {
+        return GlobalDiagnosticStatus.FAILURE;
+      }
+      if (incompleteCount > 0) {
+        return GlobalDiagnosticStatus.INCOMPLETE;
+      }
+      return GlobalDiagnosticStatus.SUCCESS;
     }
+    
   }
   
   // ==========================================================================
@@ -81,9 +102,10 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
   static final int VERSION_1       = 1;
   static final int CURRENT_VERSION = VERSION_1;
   
-  private GlobalDiagnosticStatus              status;
-  private List<ProcessConfigDiagnosticResult> processResults;
-  private ProgressDiagnosticResult            progressResult;
+  private GlobalDiagnosticStatus                  status;
+  private List<SystemDiagnosticResult>            systemDiagnosticResults;
+  private List<ProcessConfigDiagnosticResult>     processResults;
+  private OptionalValue<ProgressDiagnosticResult> progressResult;
   
   /**
    * DO NOT CALL: serialization only
@@ -92,12 +114,14 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
   }
   
   public GlobalDiagnosticResult(
-      GlobalDiagnosticStatus              status, 
-      List<ProcessConfigDiagnosticResult> processResults,
-      ProgressDiagnosticResult            progressResult) {
-    this.status         = status;
-    this.processResults = processResults;
-    this.progressResult = progressResult;
+      GlobalDiagnosticStatus                   status, 
+      List<SystemDiagnosticResult>             systemDiagnosticResults,
+      List<ProcessConfigDiagnosticResult>      processResults,
+      OptionalValue<ProgressDiagnosticResult>  progressResult) {
+    this.status                  = status;
+    this.systemDiagnosticResults = systemDiagnosticResults;
+    this.processResults          = processResults;
+    this.progressResult          = progressResult;
   }
   
   public GlobalDiagnosticStatus getStatus() {
@@ -108,7 +132,11 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
     return processResults;
   }
   
-  public ProgressDiagnosticResult getProgressResult() {
+  public List<SystemDiagnosticResult> getSystemDiagnosticResults() {
+    return systemDiagnosticResults;
+  }
+  
+  public OptionalValue<ProgressDiagnosticResult> getProgressResult() {
     return progressResult;
   }
 
@@ -120,13 +148,23 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
     stream.beginObject()
       .field("classVersion").value(CURRENT_VERSION)
       .field("status").value(status.name())
-      .field("processDiagnostics").beginArray();
+      .field("systemDiagnostics").beginArray();
+    for (SystemDiagnosticResult r : this.systemDiagnosticResults) {
+      r.toJson(stream, level);
+    }
+    stream.endArray();
+   
+    stream.field("processDiagnostics").beginArray();
     for (ProcessConfigDiagnosticResult r : processResults) {
       r.toJson(stream, level);
     }
     stream.endArray();
+    
     stream.field("progressDiagnostics");
-    progressResult.toJson(stream, level);
+    if (progressResult.isSet()) {
+      progressResult.get().toJson(stream, level);
+    }
+    
     stream.endObject();
   }
   
@@ -139,9 +177,10 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
       ClassNotFoundException {
     int inputVersion = in.readInt();
     if (inputVersion == VERSION_1) {
-      status         = (GlobalDiagnosticStatus) in.readObject();
-      processResults = (List<ProcessConfigDiagnosticResult>) in.readObject();
-      progressResult = (ProgressDiagnosticResult) in.readObject();
+      status                  = (GlobalDiagnosticStatus) in.readObject();
+      systemDiagnosticResults = (List<SystemDiagnosticResult>) in.readObject();
+      processResults          = (List<ProcessConfigDiagnosticResult>) in.readObject();
+      progressResult          = (OptionalValue<ProgressDiagnosticResult>) in.readObject();
     } else {
       throw new IllegalStateException("Version not handled: " + inputVersion);
     }
@@ -151,6 +190,7 @@ public class GlobalDiagnosticResult implements Externalizable, JsonStreamable {
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeInt(CURRENT_VERSION);
     out.writeObject(status);
+    out.writeObject(systemDiagnosticResults);
     out.writeObject(processResults);
     out.writeObject(progressResult);
   }

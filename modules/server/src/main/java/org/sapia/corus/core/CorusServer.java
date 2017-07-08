@@ -49,11 +49,11 @@ import org.sapia.corus.log.CompositeTarget;
 import org.sapia.corus.log.FormatterFactory;
 import org.sapia.corus.log.StdoutTarget;
 import org.sapia.corus.log.SyslogTarget;
+import org.sapia.corus.simulation.SimulationSettings;
 import org.sapia.corus.util.CorusTimestampOutputStream;
 import org.sapia.corus.util.PropertiesFilter;
 import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.concurrent.BlockingRef;
-import org.sapia.ubik.concurrent.Spawn;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.GroupMembershipBootstrap;
 import org.sapia.ubik.net.ServerAddress;
@@ -61,12 +61,13 @@ import org.sapia.ubik.net.TCPAddress;
 import org.sapia.ubik.rmi.Consts;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.http.HttpConsts;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Conf;
 
 /**
  * This class is the entry point called from the <tt>java</tt> command line.
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public class CorusServer {
   
@@ -248,6 +249,19 @@ public class CorusServer {
       // overwriting with user-data properties
       PropertiesUtil.copy(userDataProperties, corusProps);
       
+      // Exporting simulation properties to System properties
+      Properties simulationProps = PropertiesUtil.filter(corusProps, new PropertiesFilter() {
+        @Override
+        public boolean accepts(String name, String value) {
+          return name.startsWith("corus.server.simulation") && value != null;
+        }
+      });
+      for (String n : simulationProps.stringPropertyNames()) {
+        if (System.getProperty(n) == null) {
+          System.setProperty(n, simulationProps.getProperty(n));
+        }
+      }
+      
       // ----------------------------------------------------------------------
       // Determining port: if a port other than the default was passed at the
       // command-line, we're using it. Otherwise, we're using the configured
@@ -392,6 +406,12 @@ public class CorusServer {
           }
         }
       }
+      
+      // ----------------------------------------------------------------------
+      // Dumping simulation settings
+      if (serverLog.isDebugEnabled()) {
+        SimulationSettings.dump(serverLog);
+      }
 
       // ----------------------------------------------------------------------
       // Exporting server
@@ -429,7 +449,7 @@ public class CorusServer {
       } else {
         bootstrap = new GroupMembershipBootstrap(domain, ubikConf);
         final BlockingRef<Object> started = new BlockingRef<>();
-        Spawn.run(new Runnable() {
+        Threads.getGlobalIoOutboundPool().submit(new Runnable() {
           @Override
           public void run() {
             try {

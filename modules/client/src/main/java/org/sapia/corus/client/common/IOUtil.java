@@ -16,6 +16,7 @@ import java.nio.channels.FileLock;
 
 import org.apache.commons.lang.text.StrLookup;
 import org.apache.commons.lang.text.StrSubstitutor;
+import org.sapia.ubik.util.Assertions;
 
 /**
  * I/O utility methods.
@@ -114,6 +115,17 @@ public class IOUtil {
         // noop
       }
     }
+  }
+  
+  /**
+   * @param resourceName the name of the resource whose content is to be retrieved as a string.
+   * @return the {@link String} corresponding to the underlying resource's content.
+   * @throws IOException if an I/O error occurs while trying to process the underlying resource.
+   */
+  public static String textResourceToString(String resourceName) throws IOException {
+    InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
+    Assertions.isFalse(is == null, "Resource not found: %s", resourceName);
+    return textStreamToString(is);
   }
   
   /**

@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.processor.event;
 
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when a process' publishing is pending.
@@ -9,7 +8,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class ProcessPublishingPendingEvent implements Event {
+public class ProcessPublishingPendingEvent {
   
   private Process process;
   

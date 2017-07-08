@@ -1453,6 +1453,55 @@ http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-a
           <p>
           Similarly to the <tt>GET</tt> call, the scope is provided as a path variable, as the documentation below explains.
           </p>
+          <p>
+          Not that as of release 5.1.9, in addition to accepting properties as HTTP request parameters, this call also optionally 
+          accepts a JSON payload that allows specifying properties in a more structured format. Here's an example:
+          </p>
+          <sapia:code>{
+	"categories": [
+		{
+			"name": "cat1",
+			"properties": [
+				{
+					"name": "test.json.prop1",
+					"value": "value1"
+				},
+				{
+					"name": "test.json.prop2",
+					"value": "value2"
+				}
+			]
+		}
+	],
+	"properties": [
+		{
+			"name": "test.json.prop3",
+			"value": "value3",
+			"categories": [
+				"cat1",
+				"cat2"
+			]
+		},
+		{
+			"name": "test.json.prop4",
+			"value": "value4"
+		}
+	]
+}</sapia:code>
+					<p>
+						The above consists of a JSON object having two fields at the root: <tt>categories</tt> and <tt>properties</tt>. Each consists of an array.
+						The categories array holds JSON objects corresponding to categories: each category has a name, and a <tt>properties</tt> field holding
+						an array of JSON objects corresponding to properties, as the field name implies. You might have noted at this point that properties can 
+						be specified as child objects of categories, or as stand-alone objects under the <tt>properties</tt> field, at the root - more on that in 
+						a few lines. Properties declared under a category take mandatory <tt>name</tt> and <tt>value</tt> fields - the value may be empty. 		
+					</p>	
+					<p>
+						Now, for the properties defined under the root <tt>properties</tt> fields, these are normally reserved for properties that have no category.
+						But as a convenience that may come handy at times, each property at at level can have a <tt>categories</tt> field specified: this allows
+						specifying an array of categories to which the property belongs.
+					</p>
+
+
           <sapia:code>PUT
 - Permission.....: WRITE
 - Behavior.......: SYNC
@@ -1479,6 +1528,13 @@ http://saturn:33000/rest/clusters/app-01/partitionsets/8d450417-cbee-4e58-9533-a
                     (must be 'process' to obtain process properties stored 
                     in Corus, or 'server' for the server properties).
   - category......: A property category.</sapia:code>
+       
+        <sapia:note>
+        When a category is set as part of the URL and a JSON configuration is specified as the request's body, the category in the URL acts as a global value and 
+        is automatically assigned to all properties declared in the JSON configuration. Also, if properties in the URL have a name that matches any of one 
+        of the properties passed in the JSON configuration, the ones in the URL prevail. So, in order to avoid confusion, it is preferrable to use one approach 
+        or the other.
+        </sapia:note>        
         
         <p><b>Sample request</b></p>
         <sapia:code>http://saturn:33000/rest/clusters/app-01/hosts/192.168.0.104:33000/properties/process?connections.min=100&amp;connections.max=200

@@ -4,7 +4,6 @@ import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLogCapable;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 public class ProcessStaleEvent implements Event, EventLogCapable {
 

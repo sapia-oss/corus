@@ -21,9 +21,9 @@ public class CleanupProcessTask extends Task<Void, Process> {
 
     FileSystemModule fs = ctx.getServerContext().lookup(FileSystemModule.class);
 
-    if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
-      throw new IllegalStateException(String.format("Cannot kill process %s; current status is %s, expected: %s", proc, proc.getStatus(),
-          LifeCycleStatus.KILL_CONFIRMED));
+    if (proc.getStatus() != LifeCycleStatus.KILL_CONFIRMED && proc.getStatus() != LifeCycleStatus.KILL_ASSUMED) {
+      throw new IllegalStateException(String.format("Cannot kill process %s; current status is %s, expected: %s or %s", proc, proc.getStatus(),
+          LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_ASSUMED));
     }
 
     if (proc.getProcessDir() != null) {

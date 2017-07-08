@@ -49,7 +49,12 @@ public interface DeployerConfiguration extends Remote {
    * @return the path to the archive directory (where archived revisions are kept).
    */
   public String getArchiveDir();
-
+  
+  /**
+   * @return the timeout in seconds of any deployment task.
+   */
+  public long getDeploymentTaskTimeoutSeconds();
+  
   /**
    * Copies the given configuration's values to this instance.
    * 

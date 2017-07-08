@@ -1,6 +1,7 @@
 package org.sapia.corus.ext.hook.docker;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.sapia.corus.client.common.ToStringUtil;
@@ -14,6 +15,7 @@ import org.sapia.corus.docker.DockerFacade;
 import org.sapia.corus.docker.DockerFacadeException;
 import org.sapia.corus.processor.hook.ProcessContext;
 import org.sapia.corus.processor.hook.ProcessKillHook;
+import org.sapia.ubik.util.Collects;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -23,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class DockerProcessKillHook implements ProcessKillHook {
+  
+  private static final Set<LifeCycleStatus> KILLED_STATUSES = Collects.arrayToSet(LifeCycleStatus.KILL_CONFIRMED, LifeCycleStatus.KILL_ASSUMED);
 
   @Autowired
   private DockerFacade dockerFacade;
@@ -51,7 +55,7 @@ public class DockerProcessKillHook implements ProcessKillHook {
 
   @Override
   public void kill(ProcessContext context, KillSignal signal, LogCallback callback) throws IOException {
-    if (context.getProcess().getStatus() != LifeCycleStatus.KILL_CONFIRMED) {
+    if (!KILLED_STATUSES.contains(context.getProcess().getStatus())) {
       try {
         int secondsToWaitBeforeHardKill = (int) TimeUnit.MILLISECONDS.toSeconds(
                 processorConfig.getKillIntervalMillis()) * context.getProcess().getMaxKillRetry();

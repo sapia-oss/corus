@@ -28,6 +28,7 @@ public class ConfigNotification extends ClusterNotification {
 
   private List<Property> properties = new ArrayList<>();
   private Set<String>    tags       = new HashSet<>();
+  private boolean        force;
 
   public ConfigNotification() {
   }
@@ -66,6 +67,24 @@ public class ConfigNotification extends ClusterNotification {
   public Set<String> getTags() {
     return tags;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public ConfigNotification setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -73,6 +92,7 @@ public class ConfigNotification extends ClusterNotification {
     super.readExternal(in);
     properties = (List<Property>) in.readObject();
     tags = (Set<String>) in.readObject();
+    force = in.readBoolean();
   }
 
   @Override
@@ -80,5 +100,6 @@ public class ConfigNotification extends ClusterNotification {
     super.writeExternal(out);
     out.writeObject(properties);
     out.writeObject(tags);
+    out.writeBoolean(force);
   }
 }

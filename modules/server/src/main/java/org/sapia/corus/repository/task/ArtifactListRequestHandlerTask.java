@@ -33,7 +33,7 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
   private RepositoryConfiguration config;
 
   public ArtifactListRequestHandlerTask(RepositoryConfiguration config, org.sapia.corus.util.Queue<ArtifactListRequest> requests) {
-    this.config = config;
+    this.config       = config;
     this.requestQueue = requests;
   }
 
@@ -69,7 +69,8 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     Deployer deployer = ctx.getServerContext().getServices().getDeployer();
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
-    DistributionListResponse response = new DistributionListResponse(ctx.getServerContext().getCorusHost().getEndpoint());
+    DistributionListResponse response = new DistributionListResponse(ctx.getServerContext().getCorusHost().getEndpoint())
+        .setForce(request.isForce());
     deployer.getDistributions(DistributionCriteria.builder().all()).stream().
         map(dist -> new RepoDistribution(dist.getName(), dist.getVersion())).
         forEach(rd -> response.addDistribution(rd));
@@ -87,7 +88,8 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
     List<ShellScript> scripts = manager.getScripts();
-    ShellScriptListResponse response = new ShellScriptListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), scripts);
+    ShellScriptListResponse response = new ShellScriptListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), scripts)
+        .setForce(request.isForce());
 
     try {
       cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), ShellScriptListResponse.EVENT_TYPE, response).get();
@@ -102,7 +104,8 @@ public class ArtifactListRequestHandlerTask extends RunnableTask {
     ClusterManager cluster = ctx.getServerContext().getServices().getClusterManager();
 
     List<FileInfo> files = manager.getFiles();
-    FileListResponse response = new FileListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), files);
+    FileListResponse response = new FileListResponse(ctx.getServerContext().getCorusHost().getEndpoint(), files)
+        .setForce(request.isForce());
 
     try {
       cluster.getEventChannel().dispatch(request.getEndpoint().getChannelAddress(), FileListResponse.EVENT_TYPE, response).get();

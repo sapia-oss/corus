@@ -1,11 +1,14 @@
 package org.sapia.corus.client.rest.resources;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.junit.Before;
@@ -27,6 +30,7 @@ import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.rest.async.AsynchronousCompletionService;
 import org.sapia.corus.client.rest.resources.PropertiesWriteResource;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.ubik.util.Collects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,7 +49,7 @@ public class PropertiesWriteResourceTest {
   private AsynchronousCompletionService async;
   
   @Mock
-  private PartitionService partitions;
+  private PartitionService         partitions;
   
   @Mock
   private RestRequest              request;
@@ -72,46 +76,47 @@ public class PropertiesWriteResourceTest {
     when(request.getValue("p")).thenReturn(new Value("p", "test"));
     when(request.getValue("clearExisting", "false")).thenReturn(new Value("clearExisting", "false"));
     when(request.getValues()).thenReturn(Collects.arrayToList(new Value("a", "v1"), new Value("b", "v2")));
+    when(request.getContent()).thenReturn(new ByteArrayInputStream("".getBytes()));
   }
   
   @Test
-  public void testAddPropertiesForCluster() {
+  public void testAddPropertiesForCluster() throws IOException {
     resource.addPropertiesForCluster(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), anySetOf(String.class),  eq(false), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS), anyListOf(Property.class), eq(false), any(ClusterInfo.class));
   }
   
   @Test
-  public void testAddPropertiesForCluster_clear_existing() {
+  public void testAddPropertiesForCluster_clear_existing() throws IOException {
     when(request.getValue("clearExisting", "false")).thenReturn(new Value("clearExisting", "true"));
     resource.addPropertiesForCluster(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), anySetOf(String.class),  eq(true), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS), anyListOf(Property.class), eq(true), any(ClusterInfo.class));
   }
   
   @Test
-  public void testAddPropertiesForCluster_category() {
+  public void testAddPropertiesForCluster_category() throws IOException {
     when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "test-cat"));
     resource.addPropertiesForCluster(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Collects.arrayToSet("test-cat")),  eq(false), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS), anyListOf(Property.class), eq(false), any(ClusterInfo.class));
   }
 
   @Test
-  public void testAddPropertiesForHost() {
+  public void testAddPropertiesForHost() throws IOException {
     resource.addPropertiesForHost(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), anySetOf(String.class), eq(false), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS), anyListOf(Property.class), eq(false), any(ClusterInfo.class));
   }
   
   @Test
-  public void testAddPropertiesForHost_clear_existing() {
+  public void testAddPropertiesForHost_clear_existing() throws IOException {
     when(request.getValue("clearExisting", "false")).thenReturn(new Value("clearExisting", "true"));
     resource.addPropertiesForHost(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), anySetOf(String.class), eq(true), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS),  anyListOf(Property.class), eq(true), any(ClusterInfo.class));
   }
   
   @Test
-  public void testAddPropertiesForHost_category() {
+  public void testAddPropertiesForHost_category() throws IOException {
     when(request.getValue("corus:category")).thenReturn(new Value("corus:category", "test-cat"));
     resource.addPropertiesForHost(context);
-    verify(confs).addProperties(eq(PropertyScope.PROCESS), any(Properties.class), eq(Collects.arrayToSet("test-cat")),  eq(false), any(ClusterInfo.class));
+    verify(confs).addProperties(eq(PropertyScope.PROCESS),  anyListOf(Property.class), eq(false), any(ClusterInfo.class));
   }
 
   @Test

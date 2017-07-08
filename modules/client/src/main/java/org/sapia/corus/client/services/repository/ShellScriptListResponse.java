@@ -26,8 +26,9 @@ public class ShellScriptListResponse implements Externalizable {
    */
   public static final String EVENT_TYPE = "corus.event.repository.response.scripts";
 
-  private Endpoint endpoint;
+  private Endpoint          endpoint;
   private List<ShellScript> scripts;
+  private boolean           force;
 
   /**
    * Do not call: meant for externalization only.
@@ -61,6 +62,24 @@ public class ShellScriptListResponse implements Externalizable {
   public List<ShellScript> getScripts() {
     return scripts;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public ShellScriptListResponse setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable
@@ -69,13 +88,15 @@ public class ShellScriptListResponse implements Externalizable {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     endpoint = (Endpoint) in.readObject();
-    scripts = (List<ShellScript>) in.readObject();
+    scripts  = (List<ShellScript>) in.readObject();
+    force    = in.readBoolean();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
     out.writeObject(scripts);
+    out.writeBoolean(force);
   }
 
 }

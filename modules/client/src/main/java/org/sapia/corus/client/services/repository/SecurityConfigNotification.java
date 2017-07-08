@@ -31,6 +31,7 @@ public class SecurityConfigNotification extends ClusterNotification {
   
   private List<RoleConfig>   roleConfigurations;
   private List<AppKeyConfig> appKeyConfigurations;
+  private boolean            force;
 
   /**
    * Do not call: meant for externalization only.
@@ -62,6 +63,24 @@ public class SecurityConfigNotification extends ClusterNotification {
     return appKeyConfigurations;
   }
   
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public SecurityConfigNotification setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
+  
   // --------------------------------------------------------------------------
   // Externalizable
 
@@ -71,6 +90,7 @@ public class SecurityConfigNotification extends ClusterNotification {
     super.readExternal(in);
     roleConfigurations   = (List<RoleConfig>) in.readObject();
     appKeyConfigurations = (List<AppKeyConfig>) in.readObject();
+    force                = in.readBoolean();
     
   }
 
@@ -79,6 +99,7 @@ public class SecurityConfigNotification extends ClusterNotification {
     super.writeExternal(out);
     out.writeObject(roleConfigurations);
     out.writeObject(appKeyConfigurations);
+    out.writeBoolean(force);
   }
 
   // --------------------------------------------------------------------------

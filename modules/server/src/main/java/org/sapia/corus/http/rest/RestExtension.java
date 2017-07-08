@@ -52,7 +52,6 @@ import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.util.LoggerLogCallback;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Streams;
 import org.sapia.ubik.util.Strings;
 import org.sapia.ubik.util.TimeValue;
@@ -64,9 +63,9 @@ import org.sapia.ubik.util.pool.Pool;
  * @author yduchesne
  *
  */
-public class RestExtension implements HttpExtension, Interceptor {
+public class RestExtension implements HttpExtension {
     
-  private static final int       DEFAULT_CORUS_CONNECTOR_POOL_SIZE = 10;
+  private static final String    DEFAULT_CORUS_CONNECTOR_POOL_SIZE = "10";
   private static final TimeValue STALE_ASYNC_TASK_CLEANUP_DELAY    = TimeValue.createSeconds(60);
   private static final TimeValue DEFAULT_TASK_TIMEOUT              = TimeValue.createSeconds(30);
   private static final int       TRANSFER_BUFSZ                    = 8082;
@@ -77,16 +76,18 @@ public class RestExtension implements HttpExtension, Interceptor {
    .setName("Corus REST API");
   
 
-  private Logger             logger     = Hierarchy.getDefaultHierarchy().getLoggerFor(RestExtension.class.getName());
-  private CorusConnectorPool connectors;
-  private RestContainer      container;
-  private ServerContext      serverContext;
+  private Logger                            logger         = Hierarchy.getDefaultHierarchy().getLoggerFor(RestExtension.class.getName());
+  private CorusConnectorPool                connectors;
+  private RestContainer                     container;
+  private ServerContext                     serverContext;
   private AsynchronousCompletionServiceImpl asyncImpl;
-  private PartitionServiceImpl partitionImpl;
+  private PartitionServiceImpl              partitionImpl;
   
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
-    connectors = new CorusConnectorPool(DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
+    
+    String connectorPoolSizeValue = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_CONNECTOR_SIZE, DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
+    connectors = new CorusConnectorPool(Integer.parseInt(connectorPoolSizeValue));
     Auditor auditor = serverContext.getServices().getAuditor();
     container  = RestContainer.Builder.newInstance().auditor(auditor).buildDefaultInstance();
     
@@ -120,6 +121,14 @@ public class RestExtension implements HttpExtension, Interceptor {
         logger.debug(line);
       }
     });
+  }
+
+  private String doGetProperty(String propName, String defaultVal) {
+    String val = doGetProperty(propName);
+    if (val == null) {
+      val = defaultVal;
+    }
+    return val;
   }
   
   private String doGetProperty(String propName) {

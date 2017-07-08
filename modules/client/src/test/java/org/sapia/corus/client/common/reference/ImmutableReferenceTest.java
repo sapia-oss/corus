@@ -26,6 +26,12 @@ public class ImmutableReferenceTest {
     ref.set(5);
     assertEquals(new Integer(1), ref.get());
   }
+  
+  @Test
+  public void testSetIf() {
+    ref.setIf(5, 1);
+    assertEquals(new Integer(1), ref.get());
+  }
 
   @Test
   public void testOf() {

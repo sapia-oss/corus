@@ -1,7 +1,9 @@
 package org.sapia.corus.client.common.reference;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
@@ -26,6 +28,18 @@ public class DefaultReferenceTest {
   public void testSet() {
     ref.set(5);
     assertEquals(new Integer(5), ref.get());
+  }
+  
+  @Test
+  public void testSetIf() {
+    assertTrue(ref.setIf(2, 1));
+    assertEquals(new Integer(2), ref.get());
+  }
+  
+  @Test
+  public void testSetIf_false() {
+    assertFalse(ref.setIf(2, 3));
+    assertEquals(new Integer(1), ref.get());
   }
 
   @Test
