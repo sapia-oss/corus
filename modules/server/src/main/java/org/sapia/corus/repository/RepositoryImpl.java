@@ -493,6 +493,9 @@ public class RepositoryImpl extends ModuleHelper
   @Override
   public synchronized void onAsyncEvent(RemoteEvent evt) {
     try {
+      if (logger().isDebugEnabled()) {
+        logger().debug("Received event: " + evt.getType());
+      }
       if (evt.getType().equals(ArtifactListRequest.EVENT_TYPE)) {
         ArtifactListRequest request = (ArtifactListRequest) evt.getData();
         if (strategy.acceptsEvent(RepoEventType.ARTIFACT_LIST_REQUEST) || request.isForce()) {

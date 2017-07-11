@@ -55,6 +55,6 @@ public class SendPortRangeNotificationTask extends RunnableTask {
     PortRangeNotification notif = new PortRangeNotification(ranges);
     notif.setForce(force);
     notif.getTargets().addAll(targetEndpoints);
-    context().getServerContext().getServices().getClusterManager().send(notif);    
+    context().getServerContext().getServices().getClusterManager().dispatch(notif);    
   }
 }

@@ -17,11 +17,11 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
 public class SendExecConfigNotificationTask extends RunnableTask {
 
   private List<ExecConfig> execConfigs;
-  private Set<Endpoint> targets;
+  private Set<Endpoint>    targets;
 
   public SendExecConfigNotificationTask(List<ExecConfig> configs, Set<Endpoint> targets) {
     this.execConfigs = configs;
-    this.targets = targets;
+    this.targets     = targets;
   }
 
   @Override
@@ -33,7 +33,7 @@ public class SendExecConfigNotificationTask extends RunnableTask {
         context().debug("Sending execution configuration notification to: " + targets);
         ExecConfigNotification notif = new ExecConfigNotification(execConfigs);
         notif.getTargets().addAll(targets);
-        context().getServerContext().getServices().getClusterManager().send(notif);
+        context().getServerContext().getServices().getClusterManager().dispatch(notif);
       }
     } catch (Exception e) {
       context().error("Could not send execution configurations", e);

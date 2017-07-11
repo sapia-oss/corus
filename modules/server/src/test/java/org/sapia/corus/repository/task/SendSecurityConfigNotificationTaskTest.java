@@ -56,7 +56,7 @@ public class SendSecurityConfigNotificationTaskTest extends AbstractRepoTaskTest
   public void test_normal_case() throws Throwable {
     task.execute(taskContext, null);
     
-    verify(cluster, times(2)).send(any(ClusterNotification.class));
+    verify(cluster, times(2)).dispatch(any(ClusterNotification.class));
   }
   
   @Test
@@ -66,7 +66,7 @@ public class SendSecurityConfigNotificationTaskTest extends AbstractRepoTaskTest
     
     task.execute(taskContext, null);
     
-    verify(cluster, never()).send(any(ClusterNotification.class));
+    verify(cluster, never()).dispatch(any(ClusterNotification.class));
   }
 
 }

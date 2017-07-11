@@ -89,13 +89,13 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
       deployTasks.add(new SendSecurityConfigNotificationTask(repoConfig, allTargets),
                       TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
 
-      ArtifactDeploymentHandlerTaskHelper distHelper = getDistributionHelper(getDistributionRequests(requests));
+      ArtifactDeploymentHandlerTaskHelper distHelper   = getDistributionHelper(getDistributionRequests(requests));
       distHelper.addTo(deployTasks);
 
       ArtifactDeploymentHandlerTaskHelper scriptHelper = getShellScriptHelper(getScriptRequests(requests));
       scriptHelper.addTo(deployTasks);
 
-      ArtifactDeploymentHandlerTaskHelper fileHelper = getFileHelper(getFileRequests(requests));
+      ArtifactDeploymentHandlerTaskHelper fileHelper   = getFileHelper(getFileRequests(requests));
       fileHelper.addTo(deployTasks);
 
       context().getTaskManager().execute(deployTasks, null);

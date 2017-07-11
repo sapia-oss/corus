@@ -41,7 +41,9 @@ public class TaskManagerImpl implements TaskManager {
     background.schedule(new TimerTask() {
       @Override
       public void run() {
-        LOG.info("Thread pool statistics: " + threadpool);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Thread pool statistics: " + threadpool);
+        }
         monitorPendingTasks();
       }
     }, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS);

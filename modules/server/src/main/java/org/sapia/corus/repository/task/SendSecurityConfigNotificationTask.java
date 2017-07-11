@@ -55,6 +55,6 @@ public class SendSecurityConfigNotificationTask extends RunnableTask {
     SecurityConfigNotification notif = new SecurityConfigNotification(roleConfigs, appKeyConfigs);
     notif.getTargets().addAll(targets);
     notif.setForce(force);
-    context().getServerContext().getServices().getClusterManager().send(notif);    
+    context().getServerContext().getServices().getClusterManager().dispatch(notif);    
   }
 }

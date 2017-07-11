@@ -172,14 +172,14 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.CLIENT);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
     repo.push();
-    verify(cluster, never()).send(any(ClusterNotification.class)); 
+    verify(cluster, never()).dispatch(any(ClusterNotification.class)); 
   }
   
   public void testPush_for_server_node() throws Exception {
     host.setRepoRole(RepoRole.SERVER);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
     repo.push();
-    verify(cluster).send(any(ClusterNotification.class)); 
+    verify(cluster).dispatch(any(ClusterNotification.class)); 
   }
 
   @Test
@@ -187,7 +187,7 @@ public class RepositoryImplTest {
     host.setRepoRole(RepoRole.NONE);
     repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.NONE));
     repo.push();
-    verify(cluster, never()).send(any(ClusterNotification.class)); 
+    verify(cluster, never()).dispatch(any(ClusterNotification.class)); 
   }
   
   @Test
@@ -543,7 +543,7 @@ public class RepositoryImplTest {
     repo.onAsyncEvent(event);
 
     verify(tasks, never()).executeBackground(any(Task.class), any(Void.class), any(BackgroundTaskConfig.class));
-    verify(cluster, never()).send(any(ExecConfigNotification.class));
+    verify(cluster, never()).dispatch(any(ExecConfigNotification.class));
   }
   
   @Test
@@ -643,7 +643,7 @@ public class RepositoryImplTest {
     verify(config, never()).addProperty(eq(PropertyScope.PROCESS), eq("test"), eq("val"), eq(new HashSet<String>()));
     verify(config, never()).addTags(anySet(), eq(false));
     
-    verify(cluster, never()).send(any(ExecConfigNotification.class));
+    verify(cluster, never()).dispatch(any(ExecConfigNotification.class));
   }
   
   @Test
@@ -785,7 +785,7 @@ public class RepositoryImplTest {
     
     verify(security, never()).addOrUpdateRole(eq("admin"), anySetOf(Permission.class));
     verify(appkeys, never()).addOrUpdateApplicationKey(eq("test-app"), eq("test-key"), eq("test-role"));
-    verify(cluster, never()).send(any(SecurityConfigNotification.class));
+    verify(cluster, never()).dispatch(any(SecurityConfigNotification.class));
   }
   
   @Test
