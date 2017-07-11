@@ -114,11 +114,11 @@ public class EventLog implements JsonStreamable, Externalizable {
   
   public static class Builder {
     
-    private Date   time;
-    private String source;
-    private String type;
-    private String message;
-    private EventLevel  level;
+    private Date          time;
+    private String        source;
+    private String        type;
+    private StringBuilder message = new StringBuilder();
+    private EventLevel    level;
     
     public Builder time(Date time) {
       this.time = time;
@@ -128,6 +128,10 @@ public class EventLog implements JsonStreamable, Externalizable {
     public Builder source(String source) {
       this.source = source;
       return this;
+    }
+    
+    public Builder source(Class<?> source) {
+      return source(source.getSimpleName());
     }
     
     public Builder type(String type) {
@@ -140,8 +144,8 @@ public class EventLog implements JsonStreamable, Externalizable {
       return this;
     }
     
-    public Builder message(String message, String...args) {
-      this.message = String.format(message, args);
+    public Builder message(String message, Object...args) {
+      this.message.append(String.format(message, args));
       return this;
     }
     
@@ -156,7 +160,7 @@ public class EventLog implements JsonStreamable, Externalizable {
       Assertions.notNull(message, "Message must be specified");
       Assertions.notNull(level, "Level must be specified");
       
-      return new EventLog(time == null ? new Date() : time, level, source, type, message);
+      return new EventLog(time == null ? new Date() : time, level, source, type, message.toString());
     }
     
   }

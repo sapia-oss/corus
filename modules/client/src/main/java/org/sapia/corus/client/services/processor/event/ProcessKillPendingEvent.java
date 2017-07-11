@@ -1,10 +1,13 @@
 package org.sapia.corus.client.services.processor.event;
 
+import javax.annotation.processing.Processor;
+
 import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventSupport;
+import org.sapia.corus.client.services.event.CorusEventSupport;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
 
@@ -14,7 +17,7 @@ import org.sapia.corus.client.services.processor.Process.ProcessTerminationReque
  * @author yduchesne
  *
  */
-public class ProcessKillPendingEvent extends EventSupport {
+public class ProcessKillPendingEvent extends CorusEventSupport {
 
   private ProcessTerminationRequestor requestor;
   private Process process;
@@ -37,23 +40,6 @@ public class ProcessKillPendingEvent extends EventSupport {
     return requestor == ProcessTerminationRequestor.KILL_REQUESTOR_SERVER ? EventLevel.CRITICAL : EventLevel.INFO;
   }
  
-  // --------------------------------------------------------------------------
-  // JsonStreamable interface
-  
-  @Override
-  public void toJson(JsonStream stream, ContentLevel level) {
-    stream.beginObject()
-      .field("type").value(getClass().getSimpleName())
-      .field("level").value(getLevel().name())
-      .field("time").value(formattedTime())
-      .field("requestor").value(requestor.name())
-      .field("processId").value(process.getProcessID())
-      .field("processName").value(process.getDistributionInfo().getProcessName())
-      .field("distribution").value(process.getDistributionInfo().getName())
-      .field("version").value(process.getDistributionInfo().getVersion())
-      .endObject();
-  }
-  
   @Override
   public EventLog toEventLog() {
     switch (requestor) {
@@ -86,5 +72,17 @@ public class ProcessKillPendingEvent extends EventSupport {
       
     }
   }
+  
+  @Override
+  protected Class<?> source() {
+    return Processor.class;
+  }
 
+  @Override
+  protected void toJson(JsonStream stream) {
+    stream
+      .field("requestor").value(requestor.name())
+      .field("message").value(toEventLog().getMessage());
+    process.toJson(stream, ContentLevel.DETAIL);
+  }
 }

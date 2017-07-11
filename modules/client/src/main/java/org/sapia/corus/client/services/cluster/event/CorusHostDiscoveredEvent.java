@@ -9,21 +9,21 @@ import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLog;
 
 /**
- * Event dispatched when a Corus host is removed from the current node's cluster view.
+ * Event dispatched when a Corus host is added to the current node's cluster view.
  * 
  * @author yduchesne
  *
  */
-public class CorusHostRemovedEvent extends CorusEventSupport {
+public class CorusHostDiscoveredEvent extends CorusEventSupport {
   
   private CorusHost host;
   
-  public CorusHostRemovedEvent(CorusHost host) {
+  public CorusHostDiscoveredEvent(CorusHost host) {
     this.host = host;
   }
   
   /**
-   * @return the {@link CorusHost} instance corresponding to the host that disappeared.
+   * @return the {@link CorusHost} instance corresponding to the host that appeared.
    */
   public CorusHost getHost() {
     return host;
@@ -38,9 +38,9 @@ public class CorusHostRemovedEvent extends CorusEventSupport {
   public EventLog toEventLog() {
     return EventLog.builder()
         .source(source())
-        .type(CorusHostRemovedEvent.class)
+        .type(CorusHostDiscoveredEvent.class)
         .level(getLevel())
-        .message("Corus host removed (down or terminated): ", host.toString())
+        .message("Corus host discovered: %s", host)
         .build();
   }
   
@@ -53,7 +53,7 @@ public class CorusHostRemovedEvent extends CorusEventSupport {
   protected void toJson(JsonStream stream) {
     stream
       .field("message").value(toEventLog().getMessage())
-      .field("removedHost");
+      .field("discoveredHost");
     host.toJson(stream, ContentLevel.DETAIL);
   }
 

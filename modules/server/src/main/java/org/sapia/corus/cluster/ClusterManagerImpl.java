@@ -19,7 +19,7 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostDiscoveredEvent;
 import org.sapia.corus.client.services.cluster.event.CorusHostRemovedEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
@@ -391,7 +391,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     synchronized (hostsByNode) {
       if(hostsByNode.put(host.getNode(), host) == null) {
         log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
-        dispatcher.dispatch(new CorusHostAddedEvent(host));
+        dispatcher.dispatch(new CorusHostDiscoveredEvent(host));
       }
     }
   }

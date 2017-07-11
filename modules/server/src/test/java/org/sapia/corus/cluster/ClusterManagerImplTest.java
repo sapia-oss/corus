@@ -16,7 +16,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostDiscoveredEvent;
 import org.sapia.corus.client.services.cluster.event.CorusHostRemovedEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
@@ -61,21 +61,21 @@ public class ClusterManagerImplTest {
   public void testOnCorusPubEvent() throws IOException {
     cluster.onAsyncEvent(new RemoteEvent(CorusPubEvent.class.getName(), new CorusPubEvent(createCorusHost())));
     
-    verify(eventDispatcher).dispatch(isA(CorusHostAddedEvent.class));
+    verify(eventDispatcher).dispatch(isA(CorusHostDiscoveredEvent.class));
   }
   
   @Test
   public void testOnCorusDiscoEvent() throws IOException {
     cluster.onAsyncEvent(new RemoteEvent(CorusDiscoEvent.class.getName(), new CorusDiscoEvent(createCorusHost())));
     
-    verify(eventDispatcher).dispatch(isA(CorusHostAddedEvent.class));
+    verify(eventDispatcher).dispatch(isA(CorusHostDiscoveredEvent.class));
   }
   
   @Test
   public void testAddNode() {
     cluster.addNode(createCorusHost());
     
-    verify(eventDispatcher).dispatch(isA(CorusHostAddedEvent.class));  
+    verify(eventDispatcher).dispatch(isA(CorusHostDiscoveredEvent.class));  
   }
   
   @Test
