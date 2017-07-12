@@ -36,6 +36,7 @@ import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
 import org.sapia.corus.client.services.repository.ChangeRepoRoleNotification;
+import org.sapia.corus.client.services.repository.ConfigDeploymentRequest;
 import org.sapia.corus.client.services.repository.ConfigNotification;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
@@ -311,6 +312,7 @@ public class RepositoryImpl extends ModuleHelper
     clusterManager.getEventChannel().registerAsyncListener(DistributionDeploymentRequest.EVENT_TYPE, this);
     clusterManager.getEventChannel().registerAsyncListener(FileDeploymentRequest.EVENT_TYPE, this);
     clusterManager.getEventChannel().registerAsyncListener(ShellScriptDeploymentRequest.EVENT_TYPE, this);
+    clusterManager.getEventChannel().registerAsyncListener(ConfigDeploymentRequest.EVENT_TYPE, this);
 
     // repo client-related
     clusterManager.getEventChannel().registerAsyncListener(DistributionListResponse.EVENT_TYPE, this);
@@ -503,7 +505,16 @@ public class RepositoryImpl extends ModuleHelper
           state.set(ModuleState.BUSY);
           handleArtifactListRequest(request);
         }
-
+      
+      // Config deployment request
+      } else if (evt.getType().equals(ConfigDeploymentRequest.EVENT_TYPE)) {
+        ConfigDeploymentRequest request = (ConfigDeploymentRequest) evt.getData();
+        if (strategy.acceptsEvent(RepoEventType.CONFIG_DEPLOYMENT_REQUEST) || request.isForce()) {
+          logger().debug("Got config deployment request");
+          state.set(ModuleState.BUSY);
+          handleConfigDeploymentRequest(request);
+        }
+        
       // Distribution (list response, deployment request)
       } else if (evt.getType().equals(DistributionListResponse.EVENT_TYPE)) {
         DistributionListResponse response = (DistributionListResponse) evt.getData();
@@ -803,6 +814,19 @@ public class RepositoryImpl extends ModuleHelper
       taskManager.execute(new ArtifactListRequestHandlerTask(repoConfig, listRequests), null);
     } else {
       logger().debug("Ignoring " + distsReq + "; repo type is " + serverContext().getCorusHost().getRepoRole());
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Conf
+  
+  void handleConfigDeploymentRequest(ConfigDeploymentRequest confReq) {
+    if (isEventTimestampExpired(confReq.getTimestamp())) {
+      logger().warn("Ignoring " + confReq + "; request from " + confReq.getEndpoint().getServerAddress() +
+          " is expired (since " + TimeUnit.MILLISECONDS.toSeconds(computeMillisSinceEventExpiration(confReq.getTimestamp())) + " sec)");   
+    } else if (serverContext().getCorusHost().getRepoRole().isServer() || confReq.isForce()) {
+      deployRequests.add(confReq);
+      taskManager.execute(new ArtifactDeploymentRequestHandlerTask(repoConfig, deployRequests), null);
     }
   }
 
