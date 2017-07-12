@@ -1,12 +1,13 @@
 package org.sapia.corus.repository.task;
 
 import java.util.Collection;
-
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
+import org.sapia.corus.client.services.repository.ConfigDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.RepoDistribution;
@@ -43,7 +44,8 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
       Collection<RepoDistribution> discoveredDistributions = doProcessResponseAndUpdatePullState();
       
       if (discoveredDistributions.isEmpty()) {
-        context().debug("No distribution to request from host " + distsRes.getEndpoint());
+        context().debug("No distribution to request from host " + distsRes.getEndpoint() + ". Will request configuration");
+        doSendConfigDeploymentRequest();
       } else {
         doSendDistributionDeploymentRequest(discoveredDistributions);
       }
@@ -70,21 +72,28 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
     
     return state.getDiscoveredDistributionsFromHost(repoServerEndpoint.getChannelAddress());
   }
+  
+  private void doSendConfigDeploymentRequest() {
+    ConfigDeploymentRequest confReq = new ConfigDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
+    confReq.setForce(distsRes.isForce());   
+    doSendRequest(confReq, ConfigDeploymentRequest.EVENT_TYPE);
+  }
 
   private void doSendDistributionDeploymentRequest(Collection<RepoDistribution> distributions) {
-    ClusterManager cluster = context().getServerContext().getServices().getClusterManager();
-    Endpoint repoServerEndpoint = distsRes.getEndpoint();
-    
-    DistributionDeploymentRequest request = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
-    request.setForce(distsRes.isForce());
-    request.addDistributions(distributions);
-
+    DistributionDeploymentRequest distReq = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
+    distReq.setForce(distsRes.isForce());
+    distReq.addDistributions(distributions);  
+    doSendRequest(distReq, DistributionDeploymentRequest.EVENT_TYPE);
+  }
+  
+  private void doSendRequest(ArtifactDeploymentRequest request, String eventType) {
     try {
-      context().info("Sending distribution deployment request to host " + repoServerEndpoint);
-      cluster.getEventChannel().dispatch(repoServerEndpoint.getChannelAddress(), DistributionDeploymentRequest.EVENT_TYPE, request).get();
+      ClusterManager cluster            = context().getServerContext().getServices().getClusterManager();
+      Endpoint       repoServerEndpoint = distsRes.getEndpoint();
+      context().info("Sending deployment request to host " + repoServerEndpoint);
+      cluster.getEventChannel().dispatch(repoServerEndpoint.getChannelAddress(), eventType, request).get();
     } catch (Exception e) {
-      context().error(String.format("Could not send distribution deployment request to %s", distsRes.getEndpoint()), e);
+      context().error(String.format("Could not send deployment request to %s", distsRes.getEndpoint()), e);
     }
   }
-    
 }
