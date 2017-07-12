@@ -41,6 +41,7 @@ import org.sapia.corus.client.services.processor.ExecConfig;
 import org.sapia.corus.client.services.processor.Processor;
 import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
 import org.sapia.corus.client.services.repository.ArtifactListRequest;
+import org.sapia.corus.client.services.repository.ConfigDeploymentRequest;
 import org.sapia.corus.client.services.repository.ConfigNotification;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
@@ -217,6 +218,49 @@ public class RepositoryImplTest {
     RemoteEvent event = new RemoteEvent(ArtifactListRequest.EVENT_TYPE, req);
     repo.onAsyncEvent(event);
     verify(listRequestQueue).add(any(ArtifactListRequest.class));
+  }
+  
+  // --------------------------------------------------------------------------
+  // Config
+  
+  @Test
+  public void testHandleConfigDeploymentRequest_for_server() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    ConfigDeploymentRequest req = new ConfigDeploymentRequest(createCorusHost(RepoRole.CLIENT).getEndpoint());
+    RemoteEvent event = new RemoteEvent(ConfigDeploymentRequest.EVENT_TYPE, req);
+    repo.onAsyncEvent(event);
+    verify(deployRequestQueue).add(any(ConfigDeploymentRequest.class));
+  }
+  
+  @Test
+  public void testHandleConfigDeploymentRequest_for_server_force() throws Exception {
+    host.setRepoRole(RepoRole.SERVER);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.SERVER));
+    ConfigDeploymentRequest req = new ConfigDeploymentRequest(createCorusHost(RepoRole.CLIENT).getEndpoint());
+    req.setForce(true);
+    RemoteEvent event = new RemoteEvent(ConfigDeploymentRequest.EVENT_TYPE, req);
+    repo.onAsyncEvent(event);
+    verify(deployRequestQueue).add(any(ConfigDeploymentRequest.class));
+  }
+  
+  @Test
+  public void testHandleConfigDeploymentRequest_for_client() throws Exception {
+    host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
+    ConfigDeploymentRequest req = new ConfigDeploymentRequest(createCorusHost(RepoRole.CLIENT).getEndpoint());
+    RemoteEvent event = new RemoteEvent(ConfigDeploymentRequest.EVENT_TYPE, req);
+    repo.onAsyncEvent(event);
+    verify(deployRequestQueue, never()).add(any(ConfigDeploymentRequest.class));
+  }
+
+  @Test
+  public void testHandleConfigDeploymentRequest_for_client_force() throws Exception {
+    host.setRepoRole(RepoRole.CLIENT);
+    repo.setRepoStrategy(new DefaultRepoStrategy(RepoRole.CLIENT));
+    ConfigDeploymentRequest req = new ConfigDeploymentRequest(createCorusHost(RepoRole.CLIENT).getEndpoint());
+    RemoteEvent event = new RemoteEvent(ConfigDeploymentRequest.EVENT_TYPE, req);
+    repo.onAsyncEvent(event);
+    verify(deployRequestQueue, never()).add(any(ConfigDeploymentRequest.class));
   }
   
   // --------------------------------------------------------------------------
