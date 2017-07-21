@@ -11,7 +11,7 @@
 	<properties>
 		<springframework.version>4.3.9.RELEASE</springframework.version>
 		<camel.version>2.15.0</camel.version>
-		<sapia-ubik.version>5.0rc4</sapia-ubik.version>
+		<sapia-ubik.version>5.0-rc4</sapia-ubik.version>
 		<sapia-corus-iop.version>3.0</sapia-corus-iop.version>
 		<magnet.version>3.1</magnet.version>
 		<aws-sdk.version>1.11.163</aws-sdk.version>

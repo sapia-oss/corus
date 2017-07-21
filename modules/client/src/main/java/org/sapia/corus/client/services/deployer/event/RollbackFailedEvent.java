@@ -18,11 +18,11 @@ import org.sapia.corus.client.services.event.EventLog;
 public class RollbackFailedEvent extends CorusEventSupport {
 
   private Distribution distribution;
-  private RollbackType type;
+  private RollbackType rollbackType;
 
-  public RollbackFailedEvent(Distribution dist, RollbackType type) {
+  public RollbackFailedEvent(Distribution dist, RollbackType rollbackType) {
     this.distribution = dist;
-    this.type         = type;
+    this.rollbackType = rollbackType;
   }
 
   /**
@@ -36,7 +36,7 @@ public class RollbackFailedEvent extends CorusEventSupport {
    * @return this instance's {@link Type}.
    */
   public RollbackType getRollbackType() {
-    return type;
+    return rollbackType;
   }
  
   @Override
@@ -65,7 +65,7 @@ public class RollbackFailedEvent extends CorusEventSupport {
   protected void toJson(JsonStream stream) {
     stream
       .field("message").value(toEventLog().getMessage())
-      .field("type").value(type.name())
+      .field("rollbackType").value(rollbackType.name())
       .field("distribution");
     distribution.toJson(stream, ContentLevel.SUMMARY);
   }

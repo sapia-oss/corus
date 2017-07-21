@@ -63,7 +63,7 @@ public class CascadingDeploymentInterruptedEventTest {
     
     JSONObject json = stream.toJsonObject();
     
-    assertThat(json.has("remainingHosts")).isTrue();
+    assertThat(json.has("remainingHostCount")).isTrue();
     assertThat(json.has("message")).isTrue();
   }
 

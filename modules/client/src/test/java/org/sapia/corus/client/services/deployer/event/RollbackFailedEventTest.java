@@ -62,7 +62,7 @@ public class RollbackFailedEventTest {
     
     assertThat(json.has("message")).isTrue();
     assertThat(json.has("distribution")).isTrue();
-    assertThat(json.has("type")).isTrue();
+    assertThat(json.has("rollbackType")).isTrue();
   }
 
 }
