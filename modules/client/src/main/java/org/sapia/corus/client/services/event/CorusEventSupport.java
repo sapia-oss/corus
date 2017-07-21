@@ -24,12 +24,22 @@ public abstract class CorusEventSupport implements CorusEvent {
   public Date getTime() {
     return time;
   }
+  
+  @Override
+  public String getSource() {
+    return source().getSimpleName();
+  }
+
+  @Override
+  public String getType() {
+    return type().getSimpleName();
+  }
 
   @Override
   public void toJson(CorusHost host, JsonStream stream) {
     stream.beginObject()
       .field("source").value(source().getSimpleName())
-      .field("type").value(getClass().getSimpleName())
+      .field("type").value(type().getSimpleName())
       .field("level").value(getLevel().name())
       .field("time").value(FMT.format(getTime()))
       .field("host");
@@ -39,18 +49,20 @@ public abstract class CorusEventSupport implements CorusEvent {
   }
   
   /**
-   * @return this instance's formatted time - as a UTC-based timestamp.
-   */
-  protected String formattedTime() {
-    return FMT.format(time);
-  }
-  
-  /**
    * Template method to be overloaded by inheriting classes.
    * 
    * @return the class of the object from which the event originates.
    */
   protected abstract Class<?> source();
+  
+  /**
+   * Returns the {@link Class} of the event type, which by default corresponds to this instance's class.
+   * 
+   * @return this instance's class, which is used as the event type.
+   */
+  protected Class<?> type() {
+    return getClass();
+  }
   
   /**
    * Template method to be overloaded by inheriting classes.

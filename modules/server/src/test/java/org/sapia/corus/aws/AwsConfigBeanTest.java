@@ -1,8 +1,6 @@
 package org.sapia.corus.aws;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
@@ -30,8 +28,18 @@ public class AwsConfigBeanTest {
   public void setUp() throws Exception {
     bean = new AwsConfigBean() {
       @Override
-      protected String retrieveInstanceId() throws IOException {
-        return "test";
+      protected String retrieveInstanceId() {
+        return "test-instance-id";
+      }
+      
+      @Override
+      protected String retrieveAvailabilityZone() {
+        return "test-az";
+      }
+      
+      @Override
+      protected String retrieveRegion() {
+        return "test-region";
       }
     };
     bean.setConfigurator(configurator);
@@ -42,7 +50,7 @@ public class AwsConfigBeanTest {
   public void testIsAwsEnabled_true() {
     bean.addConfigChangeListener(listener);
     bean.getIsAwsEnabled().setValue(true);
-    assertTrue(bean.isAwsEnabled());
+    assertThat(bean.isAwsEnabled()).isTrue();
     verify(listener).onAwsEnabled();
   }
   
@@ -51,19 +59,40 @@ public class AwsConfigBeanTest {
     bean.getIsAwsEnabled().setValue(true);
     bean.addConfigChangeListener(listener);
     bean.getIsAwsEnabled().setValue(false);
-    assertFalse(bean.isAwsEnabled());
+    assertThat(bean.isAwsEnabled()).isFalse();
     verify(listener).onAwsDisabled();
   }
   
   @Test
-  public void testConfigChangeListener_get_instance_id_for_enabled() throws IOException {
+  public void testAwsEnabled_get_instance_id() throws IOException {
     bean.getIsAwsEnabled().setValue(true);
-    assertEquals("test", bean.getInstanceId());
+    assertThat(bean.getInstanceId()).isEqualTo("test-instance-id");
   }
   
   @Test(expected = IllegalStateException.class)
-  public void testConfigChangeListener_get_instance_id_for_disabled() throws IOException {
+  public void testAwsDisabled_get_instance_id() throws IOException {
     bean.getInstanceId();
   }
+  
+  @Test
+  public void testAwsEnabled_get_az() throws IOException {
+    bean.getIsAwsEnabled().setValue(true);
+    assertThat(bean.getAvailabilityZone()).isEqualTo("test-az");
+  }
+  
+  @Test(expected = IllegalStateException.class)
+  public void testAwsDisabled_get_az() throws IOException {
+    bean.getAvailabilityZone();
+  }
 
+  @Test
+  public void testAwsEnabled_get_region() throws IOException {
+    bean.getIsAwsEnabled().setValue(true);
+    assertThat(bean.getRegion()).isEqualTo("test-region");
+  }
+  
+  @Test(expected = IllegalStateException.class)
+  public void testAwsDisabled_get_region() throws IOException {
+    bean.getRegion();
+  }
 }

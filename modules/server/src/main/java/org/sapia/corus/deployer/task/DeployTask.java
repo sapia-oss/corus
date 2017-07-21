@@ -28,9 +28,9 @@ import org.sapia.corus.client.services.deployer.event.DeploymentScriptExecutedEv
 import org.sapia.corus.client.services.deployer.event.DeploymentStartingEvent;
 import org.sapia.corus.client.services.deployer.event.DeploymentUnzippedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
-import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Status;
-import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Type;
+import org.sapia.corus.client.services.deployer.event.RollbackFailedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackType;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.repository.RepositoryConfiguration;
@@ -201,11 +201,11 @@ public class DeployTask extends Task<Void, TaskParams<File, DeployPreferences, V
             String scriptBaseDir = FilePath.newInstance().addDir(actualBaseDir.getAbsolutePath()).addDir("common").createFilePath();
             dispatcher.dispatch(new RollbackStartingEvent(dist));
             if(doRunDeployScript(ctx, dispatcher, fs, dist, fs.getFileHandle(scriptBaseDir), "rollback.corus", false)) {
-              ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.AUTO, Status.SUCCESS));
+              ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, RollbackType.AUTO));
             }
             ctx.error("Rollback completed. Was automatically performed due to error:", e);
           } catch (Exception e2) {
-            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.AUTO, Status.FAILURE));
+            ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackFailedEvent(dist, RollbackType.AUTO));
             ctx.error("Error executing rollback.corus script", e2);
             ctx.error("Original error that caused rollback was:", e);
           }

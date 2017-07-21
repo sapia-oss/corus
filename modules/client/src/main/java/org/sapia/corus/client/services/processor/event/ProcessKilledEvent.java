@@ -20,8 +20,8 @@ import org.sapia.corus.client.services.processor.Processor;
 public class ProcessKilledEvent extends CorusEventSupport {
 
   private ProcessTerminationRequestor requestor;
-  private Process process;
-  private boolean restarted;
+  private Process                     process;
+  private boolean                     restarted;
 
   public ProcessKilledEvent(ProcessTerminationRequestor requestor, Process process, boolean restarted) {
     this.requestor = requestor;
@@ -111,6 +111,6 @@ public class ProcessKilledEvent extends CorusEventSupport {
       .field("restarted").value(restarted)
       .field("message").value(toEventLog().getMessage())
       .field("process");
-    process.toJson(stream, ContentLevel.DETAIL);
+    process.toJson(stream, ContentLevel.SUMMARY);
   }
 }

@@ -20,11 +20,11 @@ import org.sapia.corus.client.services.processor.Process.ProcessTerminationReque
 public class ProcessKillPendingEvent extends CorusEventSupport {
 
   private ProcessTerminationRequestor requestor;
-  private Process process;
+  private Process                     process;
 
   public ProcessKillPendingEvent(ProcessTerminationRequestor requestor, Process process) {
     this.requestor = requestor;
-    this.process = process;
+    this.process   = process;
   }
 
   public Process getProcess() {
@@ -82,7 +82,8 @@ public class ProcessKillPendingEvent extends CorusEventSupport {
   protected void toJson(JsonStream stream) {
     stream
       .field("requestor").value(requestor.name())
-      .field("message").value(toEventLog().getMessage());
-    process.toJson(stream, ContentLevel.DETAIL);
+      .field("message").value(toEventLog().getMessage())
+      .field("process");
+    process.toJson(stream, ContentLevel.SUMMARY);
   }
 }

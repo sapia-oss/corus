@@ -112,6 +112,9 @@ public class EventLog implements JsonStreamable, Externalizable {
     return level + "," + source + "," + message;
   }
   
+  // ==========================================================================
+  // Builder
+  
   public static class Builder {
     
     private Date          time;

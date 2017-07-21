@@ -54,7 +54,7 @@ public class CorusHostRemovedEvent extends CorusEventSupport {
     stream
       .field("message").value(toEventLog().getMessage())
       .field("removedHost");
-    host.toJson(stream, ContentLevel.DETAIL);
+    host.toJson(stream, ContentLevel.SUMMARY);
   }
 
 }

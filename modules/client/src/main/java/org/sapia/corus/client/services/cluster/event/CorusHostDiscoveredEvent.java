@@ -54,7 +54,7 @@ public class CorusHostDiscoveredEvent extends CorusEventSupport {
     stream
       .field("message").value(toEventLog().getMessage())
       .field("discoveredHost");
-    host.toJson(stream, ContentLevel.DETAIL);
+    host.toJson(stream, ContentLevel.SUMMARY);
   }
 
 }

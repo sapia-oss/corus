@@ -13,8 +13,8 @@ import org.sapia.corus.client.services.processor.Processor;
 public class ProcessAssumedKilledEvent extends CorusEventSupport {
 
   private ProcessTerminationRequestor requestor;
-  private Process process;
-  private boolean restarted;
+  private Process                     process;
+  private boolean                     restarted;
 
   public ProcessAssumedKilledEvent(ProcessTerminationRequestor requestor, Process process, boolean restarted) {
     this.requestor = requestor;
@@ -47,7 +47,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s was killed by Corus " + ToStringUtil.toString(process))
+          .message("Process %s was killed by Corus ", ToStringUtil.toString(process))
           .message("but an error occurred upon terminating it. ")
           .message("The process was not restarted. Check the status of the system ")
           .message("to make sure that the process is indeed terminated")
@@ -57,7 +57,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s was killed by Corus " + ToStringUtil.toString(process))
+          .message("Process %s was killed by Corus ", ToStringUtil.toString(process))
           .message("but an error occurred upon terminating it. ")
           .message("The process was restarted. Check the status of the system ")
           .message("to make sure that the original process was indeed terminated")
@@ -69,7 +69,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s was killed by the administrator " + ToStringUtil.toString(process))
+          .message("Process %s was killed by the administrator ", ToStringUtil.toString(process))
           .message("but an error occurred upon terminating it. ")
           .message("The process was not restarted. Check the status of the system ")
           .message("to make sure that the process is indeed terminated")
@@ -79,7 +79,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s was killed by the administrator " + ToStringUtil.toString(process))
+          .message("Process %s was killed by the administrator ", ToStringUtil.toString(process))
           .message("but an error occurred upon terminating it. ")
           .message("The process was restarted. Check the status of the system ")
           .message("to make sure that the original process was indeed terminated")
@@ -91,7 +91,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s has requested termination " + ToStringUtil.toString(process))
+          .message("Process %s has requested termination ", ToStringUtil.toString(process))
           .message("but an error occurred upon trying to kill it. ")
           .message("Check the status of the system ")
           .message("to make sure that the process is indeed terminated")
@@ -101,10 +101,10 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
           .source(source())
           .type(ProcessAssumedKilledEvent.class)
           .level(getLevel())
-          .message("Process %s has requested a restart " + ToStringUtil.toString(process))
+          .message("Process %s has requested a restart ", ToStringUtil.toString(process))
           .message("but an error occurred upon trying to kill it. ")
           .message("The process was restarted regardless, but check the status of the system ")
-          .message("to make sure that the process original process was indeed terminated")
+          .message("to make sure that the original process was indeed terminated")
           .build();
       }
     }
@@ -124,7 +124,7 @@ public class ProcessAssumedKilledEvent extends CorusEventSupport {
       .field("message").value(toEventLog().getMessage())
       .field("process");
     
-    process.toJson(stream, ContentLevel.DETAIL);
+    process.toJson(stream, ContentLevel.SUMMARY);
   }
 
 }

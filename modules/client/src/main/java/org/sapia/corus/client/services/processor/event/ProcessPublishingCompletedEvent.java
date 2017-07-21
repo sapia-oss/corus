@@ -1,5 +1,7 @@
 package org.sapia.corus.client.services.processor.event;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.ToStringUtil;
@@ -27,8 +29,8 @@ public class ProcessPublishingCompletedEvent extends CorusEventSupport {
     MAX_ATTEMPTS_REACHED;
   }
  
-  private Process       process;
-  private PublishStatus status;
+  private Process                  process;
+  private PublishStatus            status;
   private OptionalValue<Exception> error = OptionalValue.none();
   
   public ProcessPublishingCompletedEvent(Process process, Exception error) {
@@ -120,8 +122,15 @@ public class ProcessPublishingCompletedEvent extends CorusEventSupport {
   protected void toJson(JsonStream stream) {
     stream
       .field("status").value(status.name())
-      .field("message").value(toEventLog().getMessage());
-    process.toJson(stream, ContentLevel.DETAIL);
+      .field("message").value(toEventLog().getMessage())
+      .field("process");
+    
+    process.toJson(stream, ContentLevel.SUMMARY);
+    
+    error.ifSet(err -> {
+      stream.field("error")
+        .value(StringEscapeUtils.escapeJavaScript(ExceptionUtils.getFullStackTrace(err)));
+    });
   }
   
   // --------------------------------------------------------------------------

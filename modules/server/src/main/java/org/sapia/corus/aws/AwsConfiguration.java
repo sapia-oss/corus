@@ -19,13 +19,31 @@ public interface AwsConfiguration {
   }
 
   /**
-   * @return the EC2 instance ID.
+   * @return the current EC2 instance ID.
    * 
-   * @throws IllegalStateException if AWS support is disabled.
-   * 
+   * @throws IllegalStateException if AWS support is disabled or if the instance ID
+   *         could not be determined.
    * @see #isAwsEnabled()
    */
   public String getInstanceId() throws IllegalStateException;
+  
+  /**
+   * @return the current AWS availability zone.
+   * 
+   * @throws IllegalStateException if AWS support is disabled or if the AZ
+   *         could not be determined.
+   * @see #isAwsEnabled()
+   */
+  public String getAvailabilityZone() throws IllegalStateException;
+  
+  /**
+   * @return the current AWS region.
+   * 
+   * @throws IllegalStateException if AWS support is disabled or if the AWS region
+   *         could not be determined.
+   * @see #isAwsEnabled()
+   */
+  public String getRegion() throws IllegalStateException;
   
   /**
    * @return <code>true</code> if AWS support is enabled.
