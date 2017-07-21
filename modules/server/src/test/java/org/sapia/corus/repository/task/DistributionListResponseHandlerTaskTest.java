@@ -17,6 +17,7 @@ import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.repository.ConfigDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.RepoDistribution;
@@ -101,6 +102,40 @@ public class DistributionListResponseHandlerTaskTest extends AbstractRepoTaskTes
     ArgumentCaptor<DistributionDeploymentRequest> captor = ArgumentCaptor.forClass(DistributionDeploymentRequest.class);
     verify(this.eventChannel).dispatch(any(ServerAddress.class), anyString(), captor.capture());
     assertThat(pullProcessState.getDiscoveredDistributionsFromHost(serverEndpoint.getChannelAddress())).isNotEmpty();
+    assertThat(captor.getValue().isForce()).isTrue();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Config deployment request
+
+  @Test
+  public void testDispatchConfigDeploymentRequest() throws Throwable {
+    response = new DistributionListResponse(serverEndpoint);
+    task = new DistributionListResponseHandlerTask(response, pullProcessState);
+    
+    when(deployer.getDistribution(any(DistributionCriteria.class))).thenThrow(new DistributionNotFoundException("Not found"));
+
+    task.execute(taskContext, null);
+    
+    ArgumentCaptor<ConfigDeploymentRequest> captor = ArgumentCaptor.forClass(ConfigDeploymentRequest.class);
+    verify(this.eventChannel).dispatch(any(ServerAddress.class), anyString(), captor.capture());
+    assertThat(pullProcessState.getDiscoveredDistributionsFromHost(serverEndpoint.getChannelAddress())).isEmpty();
+    assertThat(captor.getValue().isForce()).isFalse();
+  }
+  
+  @Test
+  public void testDispatchConfigDeploymentRequestWithForce() throws Throwable {
+    response = new DistributionListResponse(serverEndpoint);
+    task = new DistributionListResponseHandlerTask(response, pullProcessState);
+    
+    response.setForce(true);
+    when(deployer.getDistribution(any(DistributionCriteria.class))).thenThrow(new DistributionNotFoundException("Not found"));
+
+    task.execute(taskContext, null);
+    
+    ArgumentCaptor<ConfigDeploymentRequest> captor = ArgumentCaptor.forClass(ConfigDeploymentRequest.class);
+    verify(this.eventChannel).dispatch(any(ServerAddress.class), anyString(), captor.capture());
+    assertThat(pullProcessState.getDiscoveredDistributionsFromHost(serverEndpoint.getChannelAddress())).isEmpty();
     assertThat(captor.getValue().isForce()).isTrue();
   }
 }

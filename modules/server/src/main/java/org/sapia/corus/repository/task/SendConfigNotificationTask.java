@@ -72,6 +72,6 @@ public class SendConfigNotificationTask extends RunnableTask {
       context().debug("Pushing of tags disabled, NOT pushing to: " + targets);
     }
 
-    context().getServerContext().getServices().getClusterManager().send(notif);
+    context().getServerContext().getServices().getClusterManager().dispatch(notif);
   }
 }

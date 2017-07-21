@@ -34,7 +34,7 @@ public class DistributionDeploymentRequest extends ArtifactDeploymentRequest {
   }
 
   /**
-   * @param requesterAddr
+   * @param endpoint
    *          the {@link Endpoint} of the requester from which this instance
    *          originates.
    */
