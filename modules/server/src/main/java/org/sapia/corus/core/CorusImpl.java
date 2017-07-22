@@ -34,13 +34,19 @@ import org.springframework.context.support.GenericApplicationContext;
 public class CorusImpl implements InternalCorus, RemoteContextProvider {
 
   private ModuleLifeCycleManager lifeCycle;
-  private volatile String domain;
-  private KeyPair keyPair;
-  private volatile boolean isRunning;
+  private volatile String        domain;
+  private KeyPair                keyPair;
+  private volatile boolean       isRunning;
 
-  CorusImpl(Properties config, String domain, ServerAddress serverAddress, EventChannel channel, CorusTransport aTransport, String corusHome, KeyPair keyPair)
-      throws IOException, Exception {
-    init(config, domain, serverAddress, channel, aTransport, corusHome, keyPair);
+  CorusImpl(
+      Properties     config, 
+      String         domain, 
+      ServerAddress  serverAddress, 
+      EventChannel   channel, 
+      CorusTransport transport, 
+      String         corusHome, 
+      KeyPair        keyPair) throws IOException, Exception {
+    init(config, domain, serverAddress, channel, transport, corusHome, keyPair);
   }
 
   @Override
@@ -90,13 +96,31 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     return lifeCycle;
   }
 
-  private ServerContext init(final Properties props, String domain, ServerAddress address, EventChannel channel, CorusTransport aTransport,
-      String corusHome, KeyPair keyPair) throws IOException, Exception {
-    this.domain = domain;
+  private ServerContext init(
+      final Properties props, 
+      String           domain, 
+      ServerAddress    address, 
+      EventChannel     channel, 
+      CorusTransport   transport,
+      String           corusHome, 
+      KeyPair          keyPair) throws IOException, Exception {
+    
+    this.domain  = domain;
     this.keyPair = keyPair;
-    InternalServiceContext services = new InternalServiceContext();
-    String fixedCorusHome = FileUtil.fixFileSeparators(corusHome);
-    ServerContextImpl serverContext = new ServerContextImpl(this, aTransport, address, channel, domain, fixedCorusHome, services, props, keyPair);
+    
+    InternalServiceContext services       = new InternalServiceContext();
+    String                 fixedCorusHome = FileUtil.fixFileSeparators(corusHome);
+    ServerContextImpl      serverContext   = new ServerContextImpl(
+        this, 
+        transport, 
+        address, 
+        channel, 
+        domain, 
+        fixedCorusHome, 
+        services, 
+        props, 
+        keyPair
+    );
 
     // root context
     PropertyContainer propContainer = new PropertyContainer() {
@@ -106,8 +130,8 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
       }
     };
 
-    final ModuleLifeCycleManager manager = new ModuleLifeCycleManager(serverContext, propContainer);
-    BeanFactoryPostProcessor configPostProcessor = new ConfigurationPostProcessor(manager);
+    final ModuleLifeCycleManager manager             = new ModuleLifeCycleManager(serverContext, propContainer);
+    BeanFactoryPostProcessor     configPostProcessor = new ConfigurationPostProcessor(manager);
 
     GenericApplicationContext rootContext = new GenericApplicationContext();
     rootContext.getBeanFactory().registerSingleton("lifecycleManager", manager);
@@ -129,7 +153,6 @@ public class CorusImpl implements InternalCorus, RemoteContextProvider {
     moduleContext.refresh();
     manager.addApplicationContext(moduleContext);
     
-
     lifeCycle = manager;
 
     return serverContext;

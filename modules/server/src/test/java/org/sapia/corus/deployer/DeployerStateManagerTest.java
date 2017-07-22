@@ -24,6 +24,7 @@ import org.sapia.corus.client.services.deployer.event.DeploymentStreamingStartin
 import org.sapia.corus.client.services.deployer.event.DeploymentUnzippedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackType;
 import org.sapia.corus.client.services.deployer.event.UndeploymentCompletedEvent;
 import org.sapia.corus.client.services.deployer.event.UndeploymentFailedEvent;
 import org.sapia.corus.client.services.deployer.event.UndeploymentStartingEvent;
@@ -184,7 +185,7 @@ public class DeployerStateManagerTest {
   @Test
   public void testOnRollbackCompletedEvent() {
     manager.onRollbackStartingEvent(new RollbackStartingEvent(dist));
-    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackCompletedEvent.Type.USER, RollbackCompletedEvent.Status.SUCCESS));
+    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackType.USER));
     assertEquals(ModuleState.IDLE, state.get());
   }
   
@@ -192,9 +193,9 @@ public class DeployerStateManagerTest {
   public void testOnRollbackCompletedEvent_concurrent_rollbacks() {
     manager.onRollbackStartingEvent(new RollbackStartingEvent(dist));
     manager.onRollbackStartingEvent(new RollbackStartingEvent(dist));
-    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackCompletedEvent.Type.USER, RollbackCompletedEvent.Status.SUCCESS));
+    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackType.USER));
     assertEquals(ModuleState.BUSY, state.get());
-    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackCompletedEvent.Type.USER, RollbackCompletedEvent.Status.SUCCESS));
+    manager.onRollbackCompletedEvent(new RollbackCompletedEvent(dist, RollbackType.USER));
     assertEquals(ModuleState.IDLE, state.get());
 
   }

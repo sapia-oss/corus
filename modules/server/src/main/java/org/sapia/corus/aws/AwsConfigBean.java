@@ -1,10 +1,5 @@
 package org.sapia.corus.aws;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,15 +8,18 @@ import javax.annotation.PostConstruct;
 
 import org.apache.log.Hierarchy;
 import org.apache.log.Logger;
+import org.sapia.corus.client.annotations.VisibleForTests;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.configurator.InternalConfigurator;
 import org.sapia.corus.core.CorusConsts;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.corus.util.DynamicProperty.DynamicPropertyListener;
+import org.sapia.ubik.util.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.util.EC2MetadataUtils;
 
 /**
  * Implementation of the {@link AwsConfiguration} interface.
@@ -39,6 +37,10 @@ public class AwsConfigBean implements AwsConfiguration {
   private DynamicProperty<Boolean>      isAwsEnabled = new DynamicProperty<Boolean>(false);
 
   private OptionalValue<String>         instanceId   = OptionalValue.none();
+  
+  private OptionalValue<String>         region       = OptionalValue.none();
+  
+  private OptionalValue<String>         availZone    = OptionalValue.none();
 
   private List<AwsConfigChangeListener> listeners    = Collections.synchronizedList(new ArrayList<AwsConfigChangeListener>());
   
@@ -57,7 +59,15 @@ public class AwsConfigBean implements AwsConfiguration {
   public void setInstanceId(OptionalValue<String> instanceId) {
     this.instanceId = instanceId;
   }
-
+  
+  public void setRegion(OptionalValue<String> region) {
+    this.region = region;
+  }
+  
+  public void setAvailabilityZone(OptionalValue<String> availZone) {
+    this.availZone = availZone;
+  }
+  
   // --------------------------------------------------------------------------
   // Config setters
   
@@ -71,7 +81,7 @@ public class AwsConfigBean implements AwsConfiguration {
   @PostConstruct
   public void init() {
     configurator.registerForPropertyChange(CorusConsts.PROPERTY_CORUS_AWS_ENABLED, isAwsEnabled);
-    
+
     // taking into config update
     isAwsEnabled.addListener(new DynamicPropertyListener<Boolean>() {
       @Override
@@ -107,14 +117,22 @@ public class AwsConfigBean implements AwsConfiguration {
   @Override
   public String getInstanceId() throws IllegalStateException {
     checkAwsEnabled();
-    if (instanceId.isNull()) {
-      try {
-        instanceId = OptionalValue.of(retrieveInstanceId());
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not retrieve EC2 instance ID", e);
-      }
-    }
+    instanceId.ifNull(() -> instanceId = OptionalValue.of(retrieveInstanceId()));
     return instanceId.get();
+  }
+  
+  @Override
+  public String getRegion() throws IllegalStateException {
+    checkAwsEnabled();
+    region.ifNull(() -> region = OptionalValue.of(retrieveRegion()));
+    return region.get();
+  }
+  
+  @Override
+  public String getAvailabilityZone() throws IllegalStateException {
+    checkAwsEnabled();
+    availZone.ifNull(() -> availZone = OptionalValue.of(retrieveAvailabilityZone()));
+    return availZone.get();  
   }
   
   @Override
@@ -138,27 +156,33 @@ public class AwsConfigBean implements AwsConfiguration {
   // --------------------------------------------------------------------------
   // Restricted
   
+  
+  @VisibleForTests
+  protected String retrieveInstanceId() {
+    String toReturn = EC2MetadataUtils.getInstanceId();
+    Assertions.notNull(toReturn, "EC2 instance ID could not be determined");
+    return toReturn;
+  }
+  
+  @VisibleForTests
+  protected String retrieveAvailabilityZone() {
+    String toReturn = EC2MetadataUtils.getAvailabilityZone();
+    Assertions.notNull(toReturn, "AWS availability zone could not be determined");
+    return toReturn;
+  }
+  
+  @VisibleForTests
+  protected String retrieveRegion() {
+    String toReturn = EC2MetadataUtils.getEC2InstanceRegion();
+    Assertions.notNull(toReturn, "AWS region could not be determined");
+    return toReturn;
+  }
+  
   private void checkAwsEnabled() throws IllegalStateException {
     if (!isAwsEnabled()) {
       throw new IllegalStateException("AWS support disabled");
     }
   }
   
-  // visible for testing
-  protected String retrieveInstanceId() throws IOException {
-    String inputLine = null;
-    URL url = new URL("http://169.254.169.254/latest/meta-data/instance-id");
-    
-    URLConnection conn = url.openConnection();
-    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-    try {
-      while ((inputLine = in.readLine()) != null) {
-        return inputLine;
-      }
-    } finally {
-      in.close();
-    }
-    throw new IllegalStateException("No EC2 instance ID data available");
-  }
 
 }
