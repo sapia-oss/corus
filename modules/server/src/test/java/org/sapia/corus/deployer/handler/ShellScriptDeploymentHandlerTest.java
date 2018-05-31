@@ -2,8 +2,8 @@ package org.sapia.corus.deployer.handler;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
 import java.io.File;
 

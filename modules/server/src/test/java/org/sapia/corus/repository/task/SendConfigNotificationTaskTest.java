@@ -4,6 +4,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,16 +14,22 @@ import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sapia.corus.client.common.ArgMatcher;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.client.services.configurator.Tag;
+import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.util.Collects;
 
+import com.google.common.collect.Sets;
+
 public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
-  
+
+  private Set<PairTuple<Boolean, Endpoint>> endpoints;
   private List<Property> propList;
   private Set<Tag> tags;
   private SendConfigNotificationTask task;
@@ -30,7 +37,12 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
   @Before
   public void setUp() {
     super.doSetUp();
-    Set<Endpoint> endpoints = new HashSet<Endpoint>();
+    
+    endpoints = Sets.newHashSet(
+        new PairTuple<Boolean, Endpoint>(true, new Endpoint(Mockito.mock(ServerAddress.class), Mockito.mock(ServerAddress.class))),
+        new PairTuple<Boolean, Endpoint>(true, new Endpoint(Mockito.mock(ServerAddress.class), Mockito.mock(ServerAddress.class)))
+    );
+    
     task     = new SendConfigNotificationTask(repoConfig, endpoints);
     propList = Collects.arrayToList(new Property("test", "testValue"));
     tags     = new HashSet<Tag>();
@@ -42,7 +54,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
     when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(ArgMatcher.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
-    verify(cluster).send(any(ClusterNotification.class));
+    verify(cluster, times(2)).dispatch(any(ClusterNotification.class));
   }
   
   @Test
@@ -52,7 +64,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
     when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(ArgMatcher.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
-    verify(cluster, never()).send(any(ClusterNotification.class));
+    verify(cluster, never()).dispatch(any(ClusterNotification.class));
   }
 
   @Test
@@ -61,7 +73,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
     when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(ArgMatcher.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
-    verify(cluster).send(any(ClusterNotification.class));
+    verify(cluster, times(2)).dispatch(any(ClusterNotification.class));
   }    
 
   @Test
@@ -70,7 +82,7 @@ public class SendConfigNotificationTaskTest extends AbstractRepoTaskTest {
     when(configurator.getAllPropertiesList(eq(PropertyScope.PROCESS), anySetOf(ArgMatcher.class))).thenReturn(propList);
     when(configurator.getTags()).thenReturn(tags);
     task.execute(taskContext, null);
-    verify(cluster).send(any(ClusterNotification.class));
+    verify(cluster, times(2)).dispatch(any(ClusterNotification.class));
   }    
   
 }

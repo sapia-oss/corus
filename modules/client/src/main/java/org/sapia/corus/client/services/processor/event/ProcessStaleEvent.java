@@ -4,9 +4,8 @@ import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLog.Level;
 import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 
-public class ProcessStaleEvent implements Event, Loggable {
+public class ProcessStaleEvent implements Loggable {
 
   private Process process;
 

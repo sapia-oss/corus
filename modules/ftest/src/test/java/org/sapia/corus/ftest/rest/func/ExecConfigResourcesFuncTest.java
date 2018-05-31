@@ -1,4 +1,4 @@
-package org.sapia.corus.ftest.rest.core;
+package org.sapia.corus.ftest.rest.func;
 
 import static org.testng.Assert.*;
 

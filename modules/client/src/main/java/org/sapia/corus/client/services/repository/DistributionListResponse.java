@@ -30,6 +30,7 @@ public class DistributionListResponse implements Externalizable {
 
   private Endpoint endpoint;
   private List<RepoDistribution> distributions = new ArrayList<RepoDistribution>();
+  private boolean force;
 
   /**
    * Do not call: meant for externalization
@@ -77,18 +78,38 @@ public class DistributionListResponse implements Externalizable {
   public void addDistributions(Collection<RepoDistribution> dist) {
     distributions.addAll(dist);
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public DistributionListResponse setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   @SuppressWarnings("unchecked")
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-    this.endpoint = (Endpoint) in.readObject();
-    this.distributions = (List<RepoDistribution>) in.readObject();
+    endpoint      = (Endpoint) in.readObject();
+    distributions = (List<RepoDistribution>) in.readObject();
+    force         = in.readBoolean();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     out.writeObject(endpoint);
     out.writeObject(distributions);
+    out.writeBoolean(force);
   }
 
 }

@@ -1,7 +1,5 @@
 package org.sapia.corus.processor.task;
 
-import java.io.IOException;
-
 import org.sapia.corus.client.common.ToStringUtil;
 import org.sapia.corus.client.services.os.OsModule.KillSignal;
 import org.sapia.corus.client.services.processor.Process;

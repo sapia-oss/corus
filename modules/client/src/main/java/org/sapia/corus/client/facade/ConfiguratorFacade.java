@@ -59,6 +59,8 @@ public interface ConfiguratorFacade {
    *          should be cleared.
    */
   public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting, ClusterInfo cluster);
+  
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting, ClusterInfo cluster);
 
   /**
    * If the {@link PropertyScope#PROCESS} scope is specified, returns the global process properties, overwritten by 

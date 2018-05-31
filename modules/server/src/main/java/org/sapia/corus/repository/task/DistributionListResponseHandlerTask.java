@@ -1,12 +1,13 @@
 package org.sapia.corus.repository.task;
 
 import java.util.Collection;
-
 import org.sapia.corus.client.exceptions.deployer.DistributionNotFoundException;
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
+import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
+import org.sapia.corus.client.services.repository.ConfigDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionListResponse;
 import org.sapia.corus.client.services.repository.RepoDistribution;
@@ -14,7 +15,7 @@ import org.sapia.corus.repository.PullProcessState;
 import org.sapia.corus.taskmanager.util.RunnableTask;
 
 /**
- * Task that handles {@link DistributionListResponse}ss.
+ * Task that handles {@link DistributionListResponse}s.
  * 
  * @author yduchesne
  * @author jcdesrochers
@@ -22,15 +23,16 @@ import org.sapia.corus.taskmanager.util.RunnableTask;
 public class DistributionListResponseHandlerTask extends RunnableTask {
 
   private DistributionListResponse distsRes;
-  private PullProcessState state;
+  private PullProcessState         state;
 
   /**
    * @param distsRes the {@link DistributionListResponse} to handle.
-   * @param state the state of the pull repository process.
+   * @param state    the state of the pull repository process.
+   * @param force    the 'force' flag.
    */
   public DistributionListResponseHandlerTask(DistributionListResponse distsRes, PullProcessState state) {
     this.distsRes = distsRes;
-    this.state = state;
+    this.state    = state;
   }
 
   @Override
@@ -42,9 +44,10 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
       Collection<RepoDistribution> discoveredDistributions = doProcessResponseAndUpdatePullState();
       
       if (discoveredDistributions.isEmpty()) {
-        context().debug("No distribution to request from host " + distsRes.getEndpoint());
+        context().debug("No distribution to request from host " + distsRes.getEndpoint() + ". Will request configuration");
+        doSendConfigDeploymentRequest();
       } else {
-        doSendDistirbutionDeploymentRequest(discoveredDistributions);
+        doSendDistributionDeploymentRequest(discoveredDistributions);
       }
     } finally {
       state.releaseLock();
@@ -60,7 +63,7 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
         deployer.getDistribution(DistributionCriteria.builder().name(dist.getName()).version(dist.getVersion()).build());
       } catch (DistributionNotFoundException e) {
         if (state.addDiscoveredDistributionFromHostIfAbsent(dist, repoServerEndpoint.getChannelAddress())) {
-          context().info(String.format("Found new distribution %s form host %s", dist, repoServerEndpoint));
+          context().info(String.format("Found new distribution %s from host %s", dist, repoServerEndpoint));
         } else {
           context().info(String.format("Distribution %s already discovered form another host", dist));
         }
@@ -69,20 +72,28 @@ public class DistributionListResponseHandlerTask extends RunnableTask {
     
     return state.getDiscoveredDistributionsFromHost(repoServerEndpoint.getChannelAddress());
   }
+  
+  private void doSendConfigDeploymentRequest() {
+    ConfigDeploymentRequest confReq = new ConfigDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
+    confReq.setForce(distsRes.isForce());   
+    doSendRequest(confReq, ConfigDeploymentRequest.EVENT_TYPE);
+  }
 
-  private void doSendDistirbutionDeploymentRequest(Collection<RepoDistribution> distributions) {
-    ClusterManager cluster = context().getServerContext().getServices().getClusterManager();
-    Endpoint repoServerEndpoint = distsRes.getEndpoint();
-    
-    DistributionDeploymentRequest request = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
-    request.addDistributions(distributions);
-
+  private void doSendDistributionDeploymentRequest(Collection<RepoDistribution> distributions) {
+    DistributionDeploymentRequest distReq = new DistributionDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint());
+    distReq.setForce(distsRes.isForce());
+    distReq.addDistributions(distributions);  
+    doSendRequest(distReq, DistributionDeploymentRequest.EVENT_TYPE);
+  }
+  
+  private void doSendRequest(ArtifactDeploymentRequest request, String eventType) {
     try {
-      context().info("Sending distribution deployment request to host " + repoServerEndpoint);
-      cluster.getEventChannel().dispatch(repoServerEndpoint.getChannelAddress(), DistributionDeploymentRequest.EVENT_TYPE, request).get();
+      ClusterManager cluster            = context().getServerContext().getServices().getClusterManager();
+      Endpoint       repoServerEndpoint = distsRes.getEndpoint();
+      context().info("Sending deployment request to host " + repoServerEndpoint);
+      cluster.getEventChannel().dispatch(repoServerEndpoint.getChannelAddress(), eventType, request).get();
     } catch (Exception e) {
-      context().error(String.format("Could not send distribution deployment request to %s", distsRes.getEndpoint()), e);
+      context().error(String.format("Could not send deployment request to %s", distsRes.getEndpoint()), e);
     }
   }
-    
 }

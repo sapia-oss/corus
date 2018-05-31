@@ -31,13 +31,13 @@ public class SendExecConfigNotificationTaskTest extends AbstractRepoTaskTest {
   public void testNonEmptyConfigList() throws Throwable {
     when(execConfigs.isEmpty()).thenReturn(false);
     task.execute(taskContext, null);
-    verify(cluster).send(any(ClusterNotification.class));
+    verify(cluster).dispatch(any(ClusterNotification.class));
   }
   
   @Test
   public void testWithEmptyConfigList() throws Throwable {
     when(execConfigs.isEmpty()).thenReturn(true);
     task.execute(taskContext, null);
-    verify(cluster, never()).send(any(ClusterNotification.class));
+    verify(cluster, never()).dispatch(any(ClusterNotification.class));
   }
 }

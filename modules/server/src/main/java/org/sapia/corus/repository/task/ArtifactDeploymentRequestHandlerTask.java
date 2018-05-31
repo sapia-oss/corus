@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.corus.client.services.repository.ArtifactDeploymentRequest;
 import org.sapia.corus.client.services.repository.DistributionDeploymentRequest;
@@ -18,11 +20,9 @@ import org.sapia.corus.repository.task.deploy.ShellScriptDeploymentRequestHandle
 import org.sapia.corus.taskmanager.core.DefaultThrottleKey;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.util.RunnableThrottleableTask;
-import org.sapia.corus.util.Queue;
 import org.sapia.corus.util.DelayedQueue;
+import org.sapia.corus.util.Queue;
 import org.sapia.ubik.net.ThreadInterruptedException;
-import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Func;
 
 /**
  * A task that handles {@link ArtifactDeploymentRequest}s.
@@ -35,7 +35,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   /**
    * The {@link ThrottleKey} that this class uses.
    */
-  public static final ThrottleKey DEPLOY_REQUEST_THROTTLE = new DefaultThrottleKey();
+  public static final ThrottleKey DEPLOY_REQUEST_THROTTLE = new DefaultThrottleKey("Repository:HandleArtifactDeploymentRequest");
 
   private RepositoryConfiguration repoConfig;
   private DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue;
@@ -48,7 +48,7 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
    */
   public ArtifactDeploymentRequestHandlerTask(RepositoryConfiguration repoConfig, DelayedQueue<ArtifactDeploymentRequest> deployRequestQueue) {
     super(DEPLOY_REQUEST_THROTTLE);
-    this.repoConfig = repoConfig;
+    this.repoConfig         = repoConfig;
     this.deployRequestQueue = deployRequestQueue;
   }
 
@@ -73,11 +73,9 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
   
   private void doDeploy(List<ArtifactDeploymentRequest> requests) {
     context().info(String.format("Got %s artifact deployment requests to process", requests.size()));
-    Set<Endpoint> allTargets = Collects.convertAsSet(requests, new Func<Endpoint, ArtifactDeploymentRequest>() {
-      public Endpoint call(ArtifactDeploymentRequest req) {
-        return req.getEndpoint();
-      }
-    });
+    Set<PairTuple<Boolean, Endpoint>> allTargets = requests.stream()
+        .map(r -> new PairTuple<Boolean, Endpoint>(r.isForce(), r.getEndpoint()))
+        .collect(Collectors.toSet());
 
     if (!requests.isEmpty()) {
       PerformDeploymentTask deployTasks = new PerformDeploymentTask();
@@ -91,13 +89,13 @@ public class ArtifactDeploymentRequestHandlerTask extends RunnableThrottleableTa
       deployTasks.add(new SendSecurityConfigNotificationTask(repoConfig, allTargets),
                       TimeUnit.SECONDS.toMillis(repoConfig.getArtifactDeploymentRequestWaitTimeoutSeconds()));
 
-      ArtifactDeploymentHandlerTaskHelper distHelper = getDistributionHelper(getDistributionRequests(requests));
+      ArtifactDeploymentHandlerTaskHelper distHelper   = getDistributionHelper(getDistributionRequests(requests));
       distHelper.addTo(deployTasks);
 
       ArtifactDeploymentHandlerTaskHelper scriptHelper = getShellScriptHelper(getScriptRequests(requests));
       scriptHelper.addTo(deployTasks);
 
-      ArtifactDeploymentHandlerTaskHelper fileHelper = getFileHelper(getFileRequests(requests));
+      ArtifactDeploymentHandlerTaskHelper fileHelper   = getFileHelper(getFileRequests(requests));
       fileHelper.addTo(deployTasks);
 
       context().getTaskManager().execute(deployTasks, null);

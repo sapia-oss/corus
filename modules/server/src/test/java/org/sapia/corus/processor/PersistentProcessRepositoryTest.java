@@ -17,8 +17,8 @@ import org.sapia.corus.client.services.processor.ProcessCriteria;
 import org.sapia.corus.database.CachingDbMap;
 import org.sapia.corus.database.TestDbModule;
 import org.sapia.corus.interop.api.message.StatusMessageCommand;
-import org.sapia.corus.interop.soap.message.Status.StatusBuilder;
 import org.sapia.corus.interop.soap.message.Context.ContextBuilder;
+import org.sapia.corus.interop.soap.message.Status.StatusBuilder;
 
 public class PersistentProcessRepositoryTest {
 

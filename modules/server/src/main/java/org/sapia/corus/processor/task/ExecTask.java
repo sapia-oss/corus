@@ -33,7 +33,7 @@ import org.sapia.corus.taskmanager.core.Throttleable;
  * process.
  * </ol>
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public class ExecTask extends Task<Void, TaskParams<Distribution, ProcessConfig, String, ProcessStartupInfo>> implements Throttleable {
 

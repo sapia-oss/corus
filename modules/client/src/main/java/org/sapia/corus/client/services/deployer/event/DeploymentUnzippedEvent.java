@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.deployer.event;
 
 import org.sapia.corus.client.services.deployer.dist.Distribution;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when a distribution has been unzipped and added to Corus, but before post-deploy script execution.
@@ -9,7 +8,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class DeploymentUnzippedEvent implements Event {
+public class DeploymentUnzippedEvent {
 
   private Distribution distribution;
 

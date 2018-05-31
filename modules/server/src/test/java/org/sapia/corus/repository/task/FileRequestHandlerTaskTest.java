@@ -37,7 +37,7 @@ public class FileRequestHandlerTaskTest extends AbstractRepoTaskTest {
     targets.clear();
     task.execute(taskContext, null);
     assertFalse(task.deploy);
-    verify(cluster, never()).send(any(ClusterNotification.class));
+    verify(cluster, never()).dispatch(any(ClusterNotification.class));
   }
 
   @Test

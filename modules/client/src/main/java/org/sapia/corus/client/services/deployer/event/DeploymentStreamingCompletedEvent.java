@@ -1,7 +1,6 @@
 package org.sapia.corus.client.services.deployer.event;
 
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when streaming of a deployed artifact has completed successfully.
@@ -9,7 +8,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class DeploymentStreamingCompletedEvent implements Event {
+public class DeploymentStreamingCompletedEvent {
   
   private DeploymentMetadata deploymentMetadata;
   

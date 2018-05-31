@@ -1,14 +1,13 @@
 package org.sapia.corus.core;
 
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched by the corus server once it has started listening to request.
  * 
  * @author Yanick Duchesne
  */
-public class ServerStartedEvent implements java.io.Serializable, Event {
+public class ServerStartedEvent implements java.io.Serializable {
 
   static final long serialVersionUID = 1L;
 

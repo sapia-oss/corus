@@ -7,6 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ import org.sapia.corus.client.annotations.VisibleForTests;
 import org.sapia.corus.client.common.FilePath;
 import org.sapia.corus.client.common.IDGenerator;
 import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.corus.client.common.ProgressQueueImpl;
 import org.sapia.corus.client.common.StrLookups;
@@ -45,8 +47,10 @@ import org.sapia.corus.client.services.deployer.DeployerConfiguration;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.UndeployPreferences;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.deployer.event.CascadingDeploymentInterruptedEvent;
 import org.sapia.corus.client.services.deployer.transport.ClientDeployOutputStream;
 import org.sapia.corus.client.services.deployer.transport.DeployOutputStream;
+import org.sapia.corus.client.services.deployer.transport.DeploymentClient;
 import org.sapia.corus.client.services.deployer.transport.DeploymentClientFactory;
 import org.sapia.corus.client.services.deployer.transport.DeploymentMetadata;
 import org.sapia.corus.client.services.deployer.transport.DistributionDeploymentMetadata;
@@ -61,6 +65,7 @@ import org.sapia.corus.cloud.CorusUserData.Artifact;
 import org.sapia.corus.cloud.CorusUserDataEvent;
 import org.sapia.corus.core.ModuleHelper;
 import org.sapia.corus.core.ServerStartedEvent;
+import org.sapia.corus.deployer.ResilientDeploymentClient.DeploymentClientSupplier;
 import org.sapia.corus.deployer.artifact.InternalArtifactManager;
 import org.sapia.corus.deployer.processor.DeploymentProcessorManager;
 import org.sapia.corus.deployer.task.BuildDistTask;
@@ -71,6 +76,7 @@ import org.sapia.corus.deployer.task.UndeployTask;
 import org.sapia.corus.deployer.transport.Deployment;
 import org.sapia.corus.deployer.transport.DeploymentConnector;
 import org.sapia.corus.deployer.transport.DeploymentProcessor;
+import org.sapia.corus.simulation.SimulationSettings;
 import org.sapia.corus.taskmanager.core.BackgroundTaskConfig;
 import org.sapia.corus.taskmanager.core.SequentialTaskConfig;
 import org.sapia.corus.taskmanager.core.Task;
@@ -82,7 +88,7 @@ import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.corus.taskmanager.tasks.FileDeletionTask;
 import org.sapia.ubik.net.ServerAddress;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
+import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -93,7 +99,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Deployer.class, InternalDeployer.class })
 @Remote(interfaces = { Deployer.class })
-public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, Interceptor, SystemDiagnosticCapable {
+public class DeployerImpl extends ModuleHelper implements InternalDeployer, DeploymentConnector, SystemDiagnosticCapable {
   
   private static final int DEFAULT_THROTTLE                        = 1;
   private static final int DEFAULT_STATE_IDLE_DELAY_SECONDS        = 60;
@@ -534,8 +540,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
     DeploymentHandler handler = selectDeploymentHandler(meta);
     File destFile = handler.getDestFile(meta);
 
-    log.info("Processing incoming deployment: " + meta.getFileName() + " with " + handler);
-    log.info("Transferring deployment stream to: " + destFile.getAbsolutePath());
+    if (log.isInfoEnabled()) {
+      log.info("Processing incoming deployment: " + meta.getFileName() + " with " + handler);
+      log.info("Transferring deployment stream to: " + destFile.getAbsolutePath());
+    }
 
     DeployOutputStream out;
 
@@ -555,9 +563,11 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
       ServerAddress addr;
       ServerAddress current = serverContext().getCorusHost().getEndpoint().getServerAddress();
 
-      log.debug(String.format("Targeted hosts: %s", meta.getClusterInfo().getTargets()));
-      log.debug(String.format("Visited hosts: %s", meta.getVisited()));
-      log.debug(String.format("Current host: %s", current));
+      if (log.isDebugEnabled()) {
+        log.debug(String.format("Targeted hosts: %s", meta.getClusterInfo().getTargets()));
+        log.debug(String.format("Visited hosts: %s", meta.getVisited()));
+        log.debug(String.format("Current host: %s", current));
+      }
 
       // adding this host to visited set
       visited.add(current);
@@ -583,10 +593,10 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
           // chaining deployment to next host.
           if (!meta.isTargeted(current)) {
             log.info(String.format("This host is not targeted. Deployment is cascaded to the next host: %s", addr));
-            out = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
+            out = new ClientDeployOutputStream(meta, createClientFor(addr, visited, meta.getClusterInfo().getTargets()));
           } else {
             log.info(String.format("Deploying to this host, and cascading deployment to the next host: %s", addr));
-            DeployOutputStream next = new ClientDeployOutputStream(meta, DeploymentClientFactory.newDeploymentClientFor(addr));
+            DeployOutputStream next = new ClientDeployOutputStream(meta, createClientFor(addr, visited, meta.getClusterInfo().getTargets()));
             out = new ClusteredDeployOutputStreamImpl(destFile, meta, handler, next);
           }
         }
@@ -650,6 +660,42 @@ public class DeployerImpl extends ModuleHelper implements InternalDeployer, Depl
   
   // --------------------------------------------------------------------------
   // Restricted
+  
+  private ResilientDeploymentClient createClientFor(ServerAddress nextHost, Set<ServerAddress> visited, Set<ServerAddress> targets) {
+    
+    DeploymentClientSupplier supplier;
+    if (SimulationSettings.isDeploymentInterruptionEnabled()) {
+      supplier = new DeploymentClientSupplier() {
+        @Override
+        public DeploymentClient getClient() throws IOException {
+          throw new IOException("Simulated deployment interruption");
+        }
+      };
+    } else {
+      supplier = new DeploymentClientSupplier() {
+        @Override
+        public DeploymentClient getClient() throws IOException {
+          return DeploymentClientFactory.newDeploymentClientFor(nextHost);
+        }
+      };
+    }
+    
+    final Set<ServerAddress> remaining = new HashSet<>(targets);
+    remaining.removeAll(visited);
+    remaining.add(nextHost);
+    
+    ResilientDeploymentClient resilient = new ResilientDeploymentClient(supplier, new Func<List<ProgressMsg>, IOException>() {
+      @Override
+      public List<ProgressMsg> call(IOException ioe) {
+        List<ProgressMsg> messages = new ArrayList<>();
+        messages.add(new ProgressMsg("Error caught cascading deployment to host " + nextHost, ProgressMsg.WARNING));
+        messages.add(new ProgressMsg("Notification will be sent to remaining hosts in cascade so that they perform a pull", ProgressMsg.WARNING));
+        events.dispatch(new CascadingDeploymentInterruptedEvent(nextHost, remaining));
+        return messages;
+      }
+    });
+    return resilient;
+  }
 
   private void assertFile(File f) {
     f.mkdirs();

@@ -1,17 +1,18 @@
 package org.sapia.corus.taskmanager;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.common.ProgressMsg;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.taskmanager.core.Task;
 import org.sapia.corus.taskmanager.core.TaskExecutionContext;
-import org.junit.runner.RunWith;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CorusTaskManagerImplTest {

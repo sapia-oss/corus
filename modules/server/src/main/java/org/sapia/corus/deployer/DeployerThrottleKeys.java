@@ -5,10 +5,10 @@ import org.sapia.corus.taskmanager.core.ThrottleKey;
 
 public class DeployerThrottleKeys {
 
-  public static ThrottleKey DEPLOY_DISTRIBUTION            = new DefaultThrottleKey("DEPLOY_DISTRIBUTION");
-  public static ThrottleKey UNDEPLOY_DISTRIBUTION          = new DefaultThrottleKey("UNDEPLOY_DISTRIBUTION");
-  public static ThrottleKey ROLLBACK_DISTRIBUTION          = new DefaultThrottleKey("ROLLBACK_DISTRIBUTION");
-  public static ThrottleKey UNARCHIVE_DISTRIBUTION         = new DefaultThrottleKey("UNARCHIVE_DISTRIBUTION");
-  public static ThrottleKey DEPLOY_UNARCHIVED_DISTRIBUTION = new DefaultThrottleKey("DEPLOY_UNARCHIVED_DISTRIBUTION");
+  public static ThrottleKey DEPLOY_DISTRIBUTION            = new DefaultThrottleKey("Deployer:DeployDistribution");
+  public static ThrottleKey UNDEPLOY_DISTRIBUTION          = new DefaultThrottleKey("Deployer:UndeployDistribution");
+  public static ThrottleKey ROLLBACK_DISTRIBUTION          = new DefaultThrottleKey("Deployer:RollbackDistribution");
+  public static ThrottleKey UNARCHIVE_DISTRIBUTION         = new DefaultThrottleKey("Deployer:UnarchiveDistribution");
+  public static ThrottleKey DEPLOY_UNARCHIVED_DISTRIBUTION = new DefaultThrottleKey("Deployer:DeployUnarchivedDistribution");
   
 }

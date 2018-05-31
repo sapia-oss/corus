@@ -4,15 +4,28 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+import java.util.function.Consumer;
 
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OptionalValueTest {
   
   private OptionalValue<String> val1, val2, equal, nullVal;
   
+  @Mock
+  private Consumer<String> consumer;
+  
+  @Mock
+  private Runnable todo;
   
   @Before
   public void setUp() {
@@ -44,7 +57,35 @@ public class OptionalValueTest {
   public void testGet() {
     assertEquals(val1.get(), "1");
   }
+  
+  @Test
+  public void testIfSet() {
+    val1.ifSet(v ->  consumer.accept(v));
+    
+    verify(consumer).accept("1");
+  }
 
+  @Test
+  public void testIfSet_with_null() {
+    nullVal.ifSet(v ->  consumer.accept(v));
+    
+    verify(consumer, never()).accept("1");
+  }
+  
+  @Test
+  public void testIfNull() {
+    val1.ifNull(() ->  todo.run());
+    
+    verify(todo, never()).run();
+  }
+
+  @Test
+  public void testIfNull_with_null() {
+    nullVal.ifNull(() ->  todo.run());
+    
+    verify(todo).run();
+  }
+  
   @Test
   public void testEquals() {
     assertEquals(val1, equal);

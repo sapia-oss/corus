@@ -4,6 +4,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.function.Consumer;
 
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Strings;
@@ -69,6 +70,41 @@ public class OptionalValue<T> implements Externalizable {
     Assertions.illegalState(value == null, 
         "Value is not set. Call isNull() or isSet() to test for value presence");
     return value;
+  }
+  
+  /**
+   * Passes this instance's value to the given consumer, if this instance's value is set.
+   * 
+   * @param consumer a {@link Consumer} to invoke if this instance's value is set.
+   * @return this instance, to allow for chained invocation.
+   */
+  public OptionalValue<T> ifSet(Consumer<T> consumer) {
+    if (value != null) {
+      consumer.accept(value);
+    }
+    return this;
+  }
+
+  /**
+   * Passes this instance's value to the given consumer, if this instance's value is set, other
+   * passes the given default value.
+   * 
+   * @param consumer a {@link Consumer} to invoke.
+   * @return this instance, to allow for chained invocation.
+   */
+  public OptionalValue<T> ifSet(Consumer<T> consumer, T defaultValue) {
+    return this;
+  }
+  
+  /**
+   * @param todo the {@link Runnable} holding the work to do if this instance's value is null.
+   * @return this instance, to allow for chained invocation.
+   */
+  public OptionalValue<T> ifNull(Runnable  todo) {
+    if (value == null) {
+      todo.run();
+    }
+    return this;
   }
   
   /**

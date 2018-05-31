@@ -1,11 +1,10 @@
 package org.sapia.corus.processor.task;
 
 import static org.junit.Assert.assertFalse;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

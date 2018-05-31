@@ -3,7 +3,6 @@ package org.sapia.corus.client.services.processor.event;
 import org.sapia.corus.client.common.ObjectUtil;
 import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 import org.sapia.ubik.util.Strings;
 
 /**
@@ -12,7 +11,7 @@ import org.sapia.ubik.util.Strings;
  * @author yduchesne
  *
  */
-public class ProcessPublishingCompletedEvent implements Event {
+public class ProcessPublishingCompletedEvent {
   
   public enum PublishStatus {
     NOT_APPLICABLE,

@@ -108,7 +108,8 @@ public class Deployment {
         handleResult(deployOutput.commit());
       }
     } catch (IOException e) {
-      context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingFailedEvent(meta));      
+      context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingFailedEvent(meta));  
+      throw e;
     } finally {
       context.getServices().getEventDispatcher().dispatch(new DeploymentStreamingCompletedEvent(meta));
       Streams.closeSilently(is);

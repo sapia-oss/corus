@@ -26,6 +26,7 @@ public class PortRangeNotification extends ClusterNotification {
   public static final String EVENT_TYPE = "corus.event.repository.notif.port-range";
 
   private List<PortRange> portRanges = new ArrayList<PortRange>();
+  private boolean         force;
 
   /** Do not use: meant for serialization only */
   public PortRangeNotification() {
@@ -50,6 +51,24 @@ public class PortRangeNotification extends ClusterNotification {
   public List<PortRange> getPortRanges() {
     return portRanges;
   }
+  
+  /**
+   * Sets this instance's <code>force</code>.
+   * 
+   */
+  public PortRangeNotification setForce(boolean force) {
+    this.force = force;
+    return this;
+  }
+ 
+  /**
+   * @return <code>true</code> if the deployment should be performed whether the 
+   * node receiving this request is a repo node or not, and regardless if it has
+   * its corresponding "push" flag turn off.
+   */
+  public boolean isForce() {
+    return force;
+  }
 
   // --------------------------------------------------------------------------
   // Externalizable
@@ -58,13 +77,15 @@ public class PortRangeNotification extends ClusterNotification {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
-    this.portRanges = (List<PortRange>) in.readObject();
+    portRanges = (List<PortRange>) in.readObject();
+    force      = in.readBoolean();
   }
 
   @Override
   public void writeExternal(ObjectOutput out) throws IOException {
     super.writeExternal(out);
     out.writeObject(portRanges);
+    out.writeBoolean(force);
   }
 
   // --------------------------------------------------------------------------

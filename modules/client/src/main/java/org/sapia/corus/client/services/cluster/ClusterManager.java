@@ -67,6 +67,8 @@ public interface ClusterManager extends java.rmi.Remote, Module {
   public void changeCluster(String name);
 
   /**
+   * Sends the given notification synchronously.
+   * 
    * @param notif
    *          a {@link ClusterNotification} to send.
    * @return the {@link Response} returned by the targeted node.
@@ -77,5 +79,15 @@ public interface ClusterManager extends java.rmi.Remote, Module {
    *           timely fashion.
    */
   public Response send(ClusterNotification notif) throws IOException, TimeoutException;
+  
+  /**
+   * Sends the given notification asynchronously.
+   * 
+   * @param notif
+   *          a {@link ClusterNotification} to send asynchronously.
+   * @throws IOException
+   *          if an I/O problem occurs.
+   */
+  public void dispatch(ClusterNotification notif) throws IOException;
 
 }

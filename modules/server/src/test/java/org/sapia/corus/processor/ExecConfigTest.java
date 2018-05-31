@@ -1,8 +1,8 @@
 package org.sapia.corus.processor;
 
-import junit.framework.TestCase;
-
 import org.sapia.corus.client.services.processor.ExecConfig;
+
+import junit.framework.TestCase;
 
 public class ExecConfigTest extends TestCase {
 

@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
@@ -36,6 +39,7 @@ import org.sapia.ubik.mcast.Response;
 import org.sapia.ubik.mcast.TimeoutException;
 import org.sapia.ubik.net.ConnectionStateListener;
 import org.sapia.ubik.net.ServerAddress;
+import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
@@ -243,10 +247,64 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       logger().debug("No more target to send notification to: " + notif);
       return new Response(channel.getUnicastAddress(), 0, null);
     } else {
-      logger().debug("Got remaining targets: " + notif.getTargets());
-      Endpoint target = notif.getTargets().iterator().next();
-      logger().debug("Sending to: " + target);
-      return channel.send(target.getChannelAddress(), notif.getEventType(), notif);
+      if (log.isDebugEnabled()) {
+        log.debug("Got remaining targets: " + notif.getTargets());
+      }
+      Iterator<Endpoint> targetItr = notif.getTargets().iterator();
+      Exception lastExc = null;
+      while (targetItr.hasNext()) {
+        Endpoint nextTarget = targetItr.next();
+        try {
+          return channel.send(nextTarget.getChannelAddress(), notif.getEventType(), notif);
+        } catch (IOException | TimeoutException e) {
+          notif.addVisited(nextTarget);
+          lastExc = e;
+          // keep trying
+        }
+      }
+
+      // if we reach this point, it's because all send attempts have failed
+      if (lastExc instanceof IOException) {
+        throw (IOException) lastExc;
+      }
+      if (lastExc instanceof TimeoutException) {
+        throw (TimeoutException) lastExc;
+      } 
+      throw new IllegalStateException("Could not send notifcation: target hosts have failed");
+    }
+  }
+  
+  @Override
+  public void dispatch(ClusterNotification notif) throws IOException {
+    notif.addVisited(serverContext().getCorusHost().getEndpoint());
+    if (notif.getTargets().isEmpty()) {
+      if (logger().isDebugEnabled()) {
+        logger().debug("No more target to send notification to: " + notif);
+      }
+    } else {
+      Iterator<Endpoint> targetItr = notif.getTargets().iterator();
+
+      if (log.isDebugEnabled()) {
+        logger().debug("Got remaining targets: " + notif.getTargets());
+      }
+      while (targetItr.hasNext()) {
+        Endpoint nextTarget = targetItr.next();
+        Future<?> result = channel.dispatch(nextTarget.getChannelAddress(), notif.getEventType(), notif);
+        try {
+          result.get();
+          break;
+        } catch (ExecutionException e) {
+          notif.addVisited(nextTarget);
+          if (e.getCause() instanceof IOException) {
+            // keep trying
+            continue;
+          } else {
+            throw new IllegalStateException("Caught unexpected exception while sending notification asynchronously");
+          }
+        } catch (InterruptedException e) {
+          throw new ThreadInterruptedException();
+        }
+      }
     }
   }
 

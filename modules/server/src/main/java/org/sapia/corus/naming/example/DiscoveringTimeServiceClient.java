@@ -3,7 +3,7 @@ package org.sapia.corus.naming.example;
 import javax.naming.Context;
 
 import org.sapia.ubik.log.Log;
-import org.sapia.ubik.rmi.Consts;
+import org.sapia.ubik.rmi.Defaults;
 import org.sapia.ubik.rmi.naming.remote.discovery.DiscoveryHelper;
 import org.sapia.ubik.rmi.naming.remote.discovery.JndiDiscoListener;
 
@@ -27,7 +27,7 @@ public class DiscoveringTimeServiceClient implements JndiDiscoListener {
     DiscoveryHelper helper = null;
     Log.setInfo();
     try {
-      helper = new DiscoveryHelper("default", Consts.DEFAULT_MCAST_ADDR, Consts.DEFAULT_MCAST_PORT);
+      helper = new DiscoveryHelper("default", Defaults.DEFAULT_MCAST_ADDR, Defaults.DEFAULT_MCAST_PORT);
       helper.addJndiDiscoListener(new DiscoveringTimeServiceClient());
       while (true) {
         Thread.sleep(1000000);

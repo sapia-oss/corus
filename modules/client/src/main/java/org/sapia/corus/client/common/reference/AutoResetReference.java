@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Strings;
 import org.sapia.ubik.util.SysClock;
 import org.sapia.ubik.util.SysClock.RealtimeClock;
@@ -38,6 +39,11 @@ public class AutoResetReference<T> implements Reference<T> {
   }
   
   public AutoResetReference(T defaultInstance, T instance, TimeValue idleTimeDelay) {
+    Assertions.notNull(defaultInstance, "Default value cannot be null");
+    Assertions.notNull(instance, "Value cannot be null");
+    Assertions.notNull(idleTimeDelay, "Time delay cannot be null");
+
+
     this.defaultInstance     = instance;
     this.currentInstance     = instance;
     this.idleTimeDelayMillis = idleTimeDelay.getValueInMillis();
@@ -50,9 +56,19 @@ public class AutoResetReference<T> implements Reference<T> {
    
   @Override
   public synchronized void set(T instance) {
+    Assertions.notNull(instance, "Value cannot be null");
     isDefault        = false;
     currentInstance  = instance;
     lastChangeMillis = sysClock.currentTimeMillis();
+  }
+  
+  @Override
+  public synchronized boolean setIf(T newState, T expectedCurrentState) {
+    if (currentInstance.equals(expectedCurrentState)) {
+      set(newState);
+      return true;
+    }
+    return false;
   }
   
   @Override

@@ -2,7 +2,6 @@ package org.sapia.corus.deployer.transport;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 

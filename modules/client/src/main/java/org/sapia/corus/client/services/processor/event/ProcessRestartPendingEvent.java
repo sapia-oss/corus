@@ -3,7 +3,6 @@ package org.sapia.corus.client.services.processor.event;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
 import org.sapia.corus.client.services.processor.Process;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Signals that a process restart has been requested and is pending.
@@ -11,7 +10,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class ProcessRestartPendingEvent implements Event {
+public class ProcessRestartPendingEvent {
 
   private Distribution  distribution;
   private ProcessConfig processConfig;

@@ -22,13 +22,13 @@ public class TaskManagerImpl implements TaskManager {
   public static final long TASK_EXECUTION_TTL_MILLIS = 60000;
   public static final long TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS = 30000;
   
-  private static final Logger log = Hierarchy.getDefaultHierarchy().getLoggerFor(TaskManagerImpl.class.getName());
+  private static final Logger LOG = Hierarchy.getDefaultHierarchy().getLoggerFor(TaskManagerImpl.class.getName());
   
-  private Timer background;
-  private ExecutorService threadpool;
-  private ServerContext serverContext;
-  private TaskLog globalTaskLog;
-  private Map<ThrottleKey, Throttle> throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
+  private Timer                             background;
+  private ExecutorService                   threadpool;
+  private ServerContext                     serverContext;
+  private TaskLog                           globalTaskLog;
+  private Map<ThrottleKey, Throttle>        throttles = new ConcurrentHashMap<ThrottleKey, Throttle>();
   private PriorityQueue<MonitoredTaskEntry> pendingTasks;
 
   public TaskManagerImpl(TaskLog globalTaskLog, ServerContext serverContext, ThreadingConfiguration conf) {
@@ -41,7 +41,6 @@ public class TaskManagerImpl implements TaskManager {
     background.schedule(new TimerTask() {
       @Override
       public void run() {
-        log.info("Thread pool statistics: " + threadpool);
         monitorPendingTasks();
       }
     }, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS);
@@ -194,13 +193,15 @@ public class TaskManagerImpl implements TaskManager {
   private void throttle(ThrottleKey throttleKey, final Runnable toRun) {
     final Throttle throttle = throttles.get(throttleKey);
     if (throttle == null) {
+      LOG.error("Could not find throttle for: " + throttleKey.getName() + ". Got following throttle keys:");
+      throttles.keySet().forEach(tk -> LOG.error("  -> " + tk.getName()));
       throw new IllegalStateException(String.format("No throttle found for %s", throttleKey.getName()));
     }
     startTaskAndMonitorExecution(() -> throttle.execute(toRun));
   }
   
   protected void monitorPendingTasks() {
-    log.debug("Monitoring pending tasks... ");
+    LOG.debug("Monitoring pending tasks... ");
     
     // Extract completed tasks
     List<MonitoredTaskEntry> toMonitor = new ArrayList<>();
@@ -218,7 +219,7 @@ public class TaskManagerImpl implements TaskManager {
     for (MonitoredTaskEntry t: toMonitor) {
       try {
         if (!t.executionResult.isDone()) {
-          log.warn("Cancelling task that is not completed after time to live of " + TASK_EXECUTION_TTL_MILLIS);
+          LOG.warn("Cancelling task that is not completed after time to live of " + TASK_EXECUTION_TTL_MILLIS);
           t.executionResult.cancel(true);
         }
       } catch (Exception e) {

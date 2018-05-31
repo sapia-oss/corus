@@ -1,13 +1,13 @@
 package org.sapia.corus.repository.task.deploy;
 
-import static org.junit.Assert.*;
-
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,12 +18,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.deployer.FileInfo;
 import org.sapia.corus.client.services.deployer.ShellScript;
-import org.sapia.corus.client.services.deployer.ShellScriptManager;
-import org.sapia.corus.client.services.repository.FileDeploymentRequest;
 import org.sapia.corus.client.services.repository.ShellScriptDeploymentRequest;
-import org.sapia.corus.deployer.InternalFileManager;
 import org.sapia.corus.deployer.InternalShellScriptManager;
 import org.sapia.corus.repository.task.AbstractRepoTaskTest;
 import org.sapia.corus.taskmanager.util.CompositeTask;

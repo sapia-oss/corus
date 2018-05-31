@@ -19,7 +19,7 @@ import org.sapia.ubik.net.ServerAddress;
  * multiple repo server are available to perform deployments.
  * 
  * The methods of this class are not thread safe. It is the responsibility of the client class to properly
- * acquire and release the lock on this state object to perform any mutation safelly. 
+ * acquire and release the lock on this state object to perform any mutation safely. 
  * 
  * @author jcdesrochers
  */

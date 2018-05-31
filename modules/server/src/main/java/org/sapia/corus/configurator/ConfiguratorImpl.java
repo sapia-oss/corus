@@ -39,7 +39,6 @@ import org.sapia.corus.core.PropertyContainer;
 import org.sapia.corus.core.PropertyProvider;
 import org.sapia.corus.util.DynamicProperty;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 import org.sapia.ubik.util.Strings;
@@ -55,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Bind(moduleInterface = { Configurator.class })
 @Remote(interfaces = Configurator.class)
-public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator, Interceptor {
+public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurator {
 
   public static final String PROP_SERVER_NAME   = "corus.server.name";
 
@@ -243,7 +242,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   @Override
   public void addProperties(PropertyScope scope, Properties props, Set<String> categories, boolean clearExisting) {
     Set<Property> deletedProperties = new LinkedHashSet<>();
-    Set<Property> addedProperties = new LinkedHashSet<>();
+    Set<Property> addedProperties   = new LinkedHashSet<>();
 
     // 1. Process property changes
     if (PropertyScope.PROCESS == scope) {
@@ -295,6 +294,31 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
     if (addedProperties.size() > 0) {
       dispatcher.dispatch(new PropertyChangeEvent(EventType.ADD, scope, addedProperties));
     }
+  }
+  
+  @Override
+  public void addProperties(PropertyScope scope, List<Property> props, boolean clearExisting) {
+    Map<String, Properties> propertiesByCategory = new HashMap<>();
+    Properties propertiesWithoutCategory = new Properties();
+    for (Property p : props) {
+      if (p.getCategory().isSet()) {
+        Properties propsForCategory  = propertiesByCategory.get(p.getCategory().get());
+        if (propsForCategory == null) {
+          propsForCategory = new Properties();
+          propertiesByCategory.put(p.getCategory().get(), propsForCategory);
+        }
+        propsForCategory.setProperty(p.getName(), p.getValue());
+      } else {
+        propertiesWithoutCategory.setProperty(p.getName(), p.getValue());
+      }
+    }
+    for (String cat : propertiesByCategory.keySet()) {
+      addProperties(scope, propertiesByCategory.get(cat), Collections.singletonMap(cat, cat).keySet(), clearExisting);
+    }
+    if (!propertiesWithoutCategory.isEmpty()) {
+      addProperties(scope, propertiesWithoutCategory, Collections.emptySet(), clearExisting);
+    }
+    
   }
   
   @Override
@@ -646,7 +670,7 @@ public class ConfiguratorImpl extends ModuleHelper implements InternalConfigurat
   // ==========================================================================
   // Inner classes
   
-  public final class PropertyChangeInterceptor<T> implements Interceptor {
+  public final class PropertyChangeInterceptor<T> {
     private final String propertyName;
     private final DynamicProperty<T> dynProperty;
 

@@ -8,7 +8,6 @@ import org.sapia.corus.client.common.json.JsonInput;
 import org.sapia.corus.client.services.database.DbMap;
 import org.sapia.corus.client.services.database.PatternRecordMatcher;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
-import org.sapia.corus.database.InMemoryDbMap;
 import org.sapia.ubik.util.Func;
 
 public class PatternRecordMatcherTest {

@@ -8,8 +8,6 @@ import org.sapia.corus.core.ModuleHelper;
 import org.sapia.ubik.concurrent.ConfigurableExecutor;
 import org.sapia.ubik.concurrent.ConfigurableExecutor.ThreadingConfiguration;
 import org.sapia.ubik.concurrent.NamedThreadFactory;
-import org.sapia.ubik.rmi.interceptor.Event;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.rmi.interceptor.MultiDispatcher;
 import org.sapia.ubik.util.TimeValue;
 
@@ -55,13 +53,13 @@ public class EventDispatcherImpl extends ModuleHelper implements EventDispatcher
 
   @Override
   @SuppressWarnings("rawtypes")
-  public void addInterceptor(Class event, Interceptor it) {
+  public void addInterceptor(Class event, Object it) {
     logger().debug("Adding interceptor: " + it + " for event type: " + event);
     delegate.addInterceptor(event, it);
   }
 
   @Override
-  public void dispatch(final Event event) {
+  public void dispatch(final Object event) {
     // precaution if this instance is used in unit testing and init()
     // has not been called
     if (executor == null) {

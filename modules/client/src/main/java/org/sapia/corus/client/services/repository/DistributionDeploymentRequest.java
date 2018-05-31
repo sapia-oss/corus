@@ -23,9 +23,9 @@ public class DistributionDeploymentRequest extends ArtifactDeploymentRequest {
 
   public static final String EVENT_TYPE = "corus.event.repository.request.deployment";
 
-  private Endpoint endpoint;
-  private List<RepoDistribution> distributions = new ArrayList<RepoDistribution>();
-
+  private Endpoint               endpoint;
+  private List<RepoDistribution> distributions = new ArrayList<RepoDistribution>();  
+  
   /**
    * Do not use: meant for externalization.
    */
@@ -34,14 +34,14 @@ public class DistributionDeploymentRequest extends ArtifactDeploymentRequest {
   }
 
   /**
-   * @param requesterAddr
+   * @param endpoint
    *          the {@link Endpoint} of the requester from which this instance
    *          originates.
    */
   public DistributionDeploymentRequest(Endpoint endpoint) {
     super(endpoint);
   }
-
+  
   /**
    * @return this instance's unmodifiable {@link List} of
    *         {@link RepoDistribution}.
@@ -70,8 +70,8 @@ public class DistributionDeploymentRequest extends ArtifactDeploymentRequest {
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
     super.readExternal(in);
-    this.endpoint = (Endpoint) in.readObject();
-    this.distributions = (List<RepoDistribution>) in.readObject();
+    endpoint      = (Endpoint) in.readObject();
+    distributions = (List<RepoDistribution>) in.readObject();
   }
 
   @Override

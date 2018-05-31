@@ -1,6 +1,5 @@
 package org.sapia.corus.client.services.deployer.event;
 
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when a deployment is starting.
@@ -8,7 +7,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  * 
  */
-public class DeploymentStartingEvent implements Event {
+public class DeploymentStartingEvent {
 
   public DeploymentStartingEvent() {
   }

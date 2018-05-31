@@ -10,7 +10,7 @@ import org.sapia.corus.client.common.ProgressQueue;
 import org.sapia.ubik.serialization.SerializationStreams;
 
 /**
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public class ClientDeployOutputStream implements DeployOutputStream {
 

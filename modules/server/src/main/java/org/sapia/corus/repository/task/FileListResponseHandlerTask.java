@@ -23,6 +23,7 @@ public class FileListResponseHandlerTask extends RunnableTask {
   private FileListResponse filesRes;
   private PullProcessState state;
 
+
   /**
    * @param filesRes The {@link FileListResponse} to handle.
    * @param state the state of the pull repository process.
@@ -75,7 +76,7 @@ public class FileListResponseHandlerTask extends RunnableTask {
     Endpoint repoServerEndpoint = filesRes.getEndpoint();
 
     FileDeploymentRequest request = new FileDeploymentRequest(context().getServerContext().getCorusHost().getEndpoint(), files);
-    
+    request.setForce(filesRes.isForce());
     try {
       context().info("Sending file deployment request to host " + repoServerEndpoint);
       cluster.getEventChannel().dispatch(repoServerEndpoint.getChannelAddress(), FileDeploymentRequest.EVENT_TYPE, request).get();

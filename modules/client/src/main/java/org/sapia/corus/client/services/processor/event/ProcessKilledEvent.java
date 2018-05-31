@@ -6,9 +6,8 @@ import org.sapia.corus.client.services.event.EventLog.Level;
 import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.Process.ProcessTerminationRequestor;
-import org.sapia.ubik.rmi.interceptor.Event;
 
-public class ProcessKilledEvent implements Event, Loggable {
+public class ProcessKilledEvent implements Loggable {
 
   private ProcessTerminationRequestor requestor;
   private Process process;

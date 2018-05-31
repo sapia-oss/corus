@@ -4,7 +4,6 @@ import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLog.Level;
 import org.sapia.corus.client.services.event.Loggable;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Event dispatched when a Corus host is removed from the current node's cluster view.
@@ -12,7 +11,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class CorusHostRemovedEvent implements Event, Loggable {
+public class CorusHostRemovedEvent implements Loggable {
   
   private CorusHost host;
   

@@ -6,7 +6,6 @@ import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.event.EventLog.Level;
 import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
-import org.sapia.ubik.rmi.interceptor.Event;
 
 /**
  * Dispatched when process execution is pending.
@@ -14,7 +13,7 @@ import org.sapia.ubik.rmi.interceptor.Event;
  * @author yduchesne
  *
  */
-public class ProcessStartPendingEvent implements Event, Loggable {
+public class ProcessStartPendingEvent implements Loggable {
   
   private Distribution       distribution;
   private ProcessConfig      process;

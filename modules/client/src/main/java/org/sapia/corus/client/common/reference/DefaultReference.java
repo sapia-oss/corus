@@ -23,18 +23,28 @@ public class DefaultReference<T> implements Reference<T> {
   }
   
   public DefaultReference(T instance) {
-    Assertions.notNull(instance, "Instance cannot be null");
+    Assertions.notNull(instance, "Value cannot be null");
     this.instance = instance;
   }
   
   @Override
-  public T get() {
+  public synchronized T get() {
     return instance;
   }
 
   @Override
-  public void set(T instance) {
+  public synchronized void set(T instance) {
+    Assertions.notNull(instance, "Value cannot be null");
     this.instance = instance;
+  }
+  
+  @Override
+  public synchronized boolean setIf(T newState, T expectedCurrentState) {
+    if (instance.equals(expectedCurrentState)) {
+      set(newState);
+      return true;
+    }
+    return false;
   }
   
   /**

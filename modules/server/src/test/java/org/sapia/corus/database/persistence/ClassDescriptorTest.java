@@ -1,11 +1,11 @@
 package org.sapia.corus.database.persistence;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 import org.sapia.corus.client.services.database.persistence.ClassDescriptor;
 import org.sapia.corus.client.services.database.persistence.NoSuchFieldException;
-import org.sapia.corus.database.persistence.TestPersistentObject;
 
 public class ClassDescriptorTest {
 

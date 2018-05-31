@@ -6,7 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.sapia.corus.client.rest.resources.ProgressResult;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
-import org.sapia.ubik.concurrent.Spawn;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Assertions;
 
 /**
@@ -78,7 +78,7 @@ public class CompositeProgressTask implements ProgressCapableTask {
   }
   
   protected void triggerNextTask(final ProgressCapableTask nextTask) {
-    Spawn.run(new Runnable() {
+    Threads.getGlobalWorkerPool().submit(new Runnable() {
       @Override
       public void run() {
         nextTask.execute();

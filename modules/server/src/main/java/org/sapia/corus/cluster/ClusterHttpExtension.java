@@ -5,8 +5,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import jersey.repackaged.com.google.common.collect.Lists;
-
 import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.http.HttpContext;
@@ -15,6 +13,8 @@ import org.sapia.corus.client.services.http.HttpExtensionInfo;
 import org.sapia.corus.client.services.http.HttpResponseFacade;
 import org.sapia.corus.core.ServerContext;
 import org.sapia.corus.http.HttpExtensionManager;
+
+import jersey.repackaged.com.google.common.collect.Lists;
 
 public class ClusterHttpExtension implements HttpExtension {
 

@@ -14,10 +14,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -170,6 +172,27 @@ public class ConfiguratorImplTest {
   }
   
   @Test
+  public void testAddProcessPropertie_with_property_objects() {
+    List<Property> props = Arrays.asList(
+        new Property("test1", "value1"),
+        new Property("test2", "value2")
+    );
+    
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, false);
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties).put(eq("test1"), eq(new ConfigProperty("test1", "value1")));
+    verify(processProperties).put(eq("test2"), eq(new ConfigProperty("test2", "value2")));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher).dispatch(captor.capture());
+    
+    assertPropertyChangeEvent(EventType.ADD, PropertyScope.PROCESS, 
+        new Property[] { new Property("test1", "value1"), new Property("test2", "value2") },
+        captor.getValue());
+  }
+  
+  @Test
   public void testAddProcessProperties_clearExisting_nothingToClear() {
     Properties props = new Properties();
     props.setProperty("test1", "value1");
@@ -263,7 +286,37 @@ public class ConfiguratorImplTest {
   }
   
   @Test
-  public void testAddProcessProperties_categories_clearExisting_nothingToClear() {
+  public void testAddProcessProperties_with_categories_and_property_objects() {
+    List<Property> props = Arrays.asList(
+        new Property("test1", "value1", "cat1"),
+        new Property("test1", "value1", "cat2"),
+        new Property("test2", "value2", "cat1"),
+        new Property("test2", "value2", "cat2")
+    );
+    
+    configurator.addProperties(PropertyScope.PROCESS, props, false);
+    
+    assertEquals("value1", configurator.getProcessPropertiesByCategory().get("cat1").getProperty("test1"));
+    assertEquals("value2", configurator.getProcessPropertiesByCategory().get("cat2").getProperty("test2"));
+    
+    verify(processProperties, never()).remove(any(String.class));
+    verify(processProperties, never()).put(anyString(), any(ConfigProperty.class));
+    ArgumentCaptor<PropertyChangeEvent> captor = ArgumentCaptor.forClass(PropertyChangeEvent.class);
+    verify(dispatcher, times(2)).dispatch(captor.capture());
+
+    List<PropertyChangeEvent> captured = captor.getAllValues();
+    captured.forEach(evt -> {
+      assertEquals(EventType.ADD, evt.getEventType());
+      assertEquals(PropertyScope.PROCESS, evt.getScope());
+    });
+    
+    Set<Property> capturedProps = captured.stream().flatMap(evt -> evt.getProperties().stream()).collect(Collectors.toSet());
+    assertThat(capturedProps).containsAll(props);
+  }
+  
+  
+  @Test
+  public void testAddProcessProperties_with_categories_clear_existing_nothing_to_clear() {
     Properties props = new Properties();
     props.setProperty("test1", "value1");
     props.setProperty("test2", "value2");

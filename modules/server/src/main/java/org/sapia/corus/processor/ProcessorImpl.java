@@ -70,7 +70,6 @@ import org.sapia.corus.taskmanager.core.TaskManager;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleFactory;
 import org.sapia.ubik.rmi.Remote;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Pause;
 import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -677,13 +676,13 @@ public class ProcessorImpl extends ModuleHelper implements Processor, SystemDiag
     }
   }
 
-  public class ProcessorInterceptor implements Interceptor {
+  public class ProcessorInterceptor {
     public void onUndeploymentCompletedEvent(UndeploymentCompletedEvent evt) {
       execConfigs.removeProcessesForDistribution(evt.getDistribution());
     }
   }
 
-  public class PropertyChangeInterceptor implements Interceptor {
+  public class PropertyChangeInterceptor {
     public void onPropertyChangeEvent(PropertyChangeEvent event) {
       doHandlePropertyChangeEvent(event);
     }

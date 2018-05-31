@@ -1,17 +1,27 @@
 package org.sapia.corus.client.common;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * This class implements the {@link ProgressQueue} interface.
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
-public class ProgressQueueImpl implements ProgressQueue {
+public class ProgressQueueImpl implements ProgressQueue, Externalizable {
   private List<ProgressMsg> msgs = new ArrayList<ProgressMsg>();
-  private boolean over;
+  private boolean          over;
 
+  public ProgressQueueImpl() {
+  }
+  
+  // --------------------------------------------------------------------------
+  // ProgressQueue interface
+  
   @Override
   public synchronized boolean hasNext() {
     while ((msgs.size() == 0) && !over) {
@@ -105,6 +115,25 @@ public class ProgressQueueImpl implements ProgressQueue {
     }
     return toReturn;
   }
+  
+  // --------------------------------------------------------------------------
+  // Externalizable interface
+  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    msgs = (List<ProgressMsg>) in.readObject();
+    over = in.readBoolean();
+  }
+  
+  @Override
+  public void writeExternal(ObjectOutput out) throws IOException {
+    out.writeObject(msgs);
+    out.writeBoolean(over);
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted
 
   /**
    * This template method is internally called from within the

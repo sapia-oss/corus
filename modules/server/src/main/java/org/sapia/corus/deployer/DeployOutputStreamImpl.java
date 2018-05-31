@@ -15,7 +15,7 @@ import org.sapia.ubik.util.Assertions;
 /**
  * An output stream that is used for deployment.
  * 
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 public class DeployOutputStreamImpl extends FileOutputStream implements DeployOutputStream {
   

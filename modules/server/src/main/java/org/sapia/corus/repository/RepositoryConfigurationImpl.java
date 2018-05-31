@@ -21,6 +21,8 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private static final int DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS     = 120;
   private static final int DEFAULT_ARTIFACT_DEPLOYMENT_DELAY_SECONDS    = 5;
   private static final int DEFAULT_ARTIFACT_DEPLOYMENT_TIMEOUT_SECONDS  = 15;
+  private static final int DEFAULT_CHECK_STATE_INTERVAL_SECONDS         = 60;
+  private static final int DEFAULT_CHECK_STATE_MAX_RANDOM_HOSTS         = 5;
 
   private static final TimeRange DEFAULT_BOOTSTRAP_DELAY = new TimeRange(TimeValue.createSeconds(5), TimeValue.createSeconds(10));
 
@@ -40,17 +42,69 @@ public class RepositoryConfigurationImpl implements RepositoryConfiguration {
   private boolean repoServerExecProcessEnabled  = false;
   private boolean repoClientDeployScriptEnabled = true;
   private boolean repoServerSyncEnabled         = false;
+  private boolean checkStateEnabled             = true;
+  private boolean checkStateRandomHostsEnabled  = false;
+  private boolean checkStateAutomatic           = true;
 
   private int distributionDiscoveryIntervalSeconds = DEFAULT_DIST_DISCO_INTERVAL_SECONDS;
   private int distributionDiscoveryMaxAttempts     = DEFAULT_DIST_DISCO_MAX_ATTEMPTS;
   private int maxConcurrentDeploymentRequests      = DEFAULT_MAX_CONCURRENT_DEPLOYMENT_REQUESTS;
   private int repoFileTtlMinutes                   = DEFAULT_REPO_FILE_TTL_MINUTES;
   private int repoFileCheckIntervalSeconds         = DEFAULT_REPO_FILE_CHECK_INTERVAL_SECONDS;
+  private int checkStateIntervalSeconds            = DEFAULT_CHECK_STATE_INTERVAL_SECONDS;
+  private int checkStateMaxRandomHosts             = DEFAULT_CHECK_STATE_MAX_RANDOM_HOSTS;
   private TimeRange bootstrapDelay                 = DEFAULT_BOOTSTRAP_DELAY;
+  
   
   private long artifactDeploymentRequestActivityDelaySeconds = DEFAULT_ARTIFACT_DEPLOYMENT_DELAY_SECONDS;
   
   private long artifactDeploymentRequestActivityTimeoutSeconds = DEFAULT_ARTIFACT_DEPLOYMENT_TIMEOUT_SECONDS;
+
+  
+  public void setCheckStateEnabled(boolean checkStateEnabled) {
+    this.checkStateEnabled = checkStateEnabled;
+  }
+  
+  @Override
+  public boolean isCheckStateEnabled() {
+    return checkStateEnabled;
+  }
+  
+  public void setCheckStateAutomatic(boolean checkStateAutomatic) {
+    this.checkStateAutomatic = checkStateAutomatic;
+  }
+  
+  @Override
+  public boolean isCheckStateAutomatic() {
+    return checkStateAutomatic;
+  }
+  
+  public void setCheckStateRandomHostsEnabled(boolean checkStateRandomHostsEnabled) {
+    this.checkStateRandomHostsEnabled = checkStateRandomHostsEnabled;
+  }
+  
+  @Override
+  public boolean isCheckStateRandomHostsEnabled() {
+    return checkStateRandomHostsEnabled;
+  }
+  
+  public void setCheckStateIntervalSeconds(int checkStateIntervalSeconds) {
+    this.checkStateIntervalSeconds = checkStateIntervalSeconds;
+  }
+  
+  @Override
+  public int getCheckStateIntervalSeconds() {
+    return checkStateIntervalSeconds;
+  }
+  
+  public void setCheckStateMaxRandomHosts(int checkStateMaxRandomHosts) {
+    this.checkStateMaxRandomHosts = checkStateMaxRandomHosts;
+  }
+  
+  @Override
+  public int getCheckStateMaxRandomHosts() {
+    return checkStateMaxRandomHosts;
+  }
   
   public void setRepoServerExecProcessEnabled(boolean repoServerExecProcessEnabled) {
     this.repoServerExecProcessEnabled = repoServerExecProcessEnabled;

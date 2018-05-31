@@ -69,14 +69,14 @@ public abstract class ClusterNotification implements Externalizable {
   public Set<Endpoint> getTargets() {
     return targets;
   }
-
+  
   /**
    * @return this instance's visited target set.
    */
   public Set<Endpoint> getVisited() {
     return visited;
   }
-
+  
   @SuppressWarnings("unchecked")
   @Override
   public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {

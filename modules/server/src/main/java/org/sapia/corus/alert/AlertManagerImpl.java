@@ -18,7 +18,6 @@ import org.sapia.corus.client.services.processor.Process.ProcessTerminationReque
 import org.sapia.corus.client.services.processor.event.ProcessKilledEvent;
 import org.sapia.corus.client.services.processor.event.ProcessStaleEvent;
 import org.sapia.corus.core.ModuleHelper;
-import org.sapia.ubik.rmi.interceptor.Interceptor;
 import org.sapia.ubik.util.Strings;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -40,7 +39,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
  * 
  */
 @Bind(moduleInterface = AlertManager.class)
-public class AlertManagerImpl extends ModuleHelper implements AlertManager, Interceptor {
+public class AlertManagerImpl extends ModuleHelper implements AlertManager {
 
   private static final int    ALERT_SENDERS     = 3;
   private static final int    DEFAULT_SMTP_PORT = 25;

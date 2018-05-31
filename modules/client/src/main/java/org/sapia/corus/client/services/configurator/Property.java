@@ -73,6 +73,14 @@ public class Property implements Externalizable, Comparable<Property>, Matcheabl
     return OptionalValue.of(category);
   }
   
+  /**
+   * @param category a category.
+   * @return a copy of this instance, but with the given category assigned.
+   */
+  public Property getCopyWith(String category) {
+    return new Property(name, value, category);
+  }
+  
   // --------------------------------------------------------------------------
   // Mappable interface
   

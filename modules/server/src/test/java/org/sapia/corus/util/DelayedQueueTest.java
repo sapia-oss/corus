@@ -1,13 +1,13 @@
 package org.sapia.corus.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sapia.ubik.util.SysClock.MutableClock;
 import org.sapia.corus.util.Sleeper.MockSleeper;
+import org.sapia.ubik.util.SysClock.MutableClock;
 import org.sapia.ubik.util.TimeValue;
 
 public class DelayedQueueTest {

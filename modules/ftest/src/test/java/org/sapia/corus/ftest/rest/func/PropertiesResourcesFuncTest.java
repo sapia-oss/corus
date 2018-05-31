@@ -1,8 +1,11 @@
-package org.sapia.corus.ftest.rest.core;
+package org.sapia.corus.ftest.rest.func;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 
 import javax.ws.rs.client.Entity;
@@ -10,11 +13,14 @@ import javax.ws.rs.core.MediaType;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-
 import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.common.ArgMatcher;
 import org.sapia.corus.client.common.ArgMatchers;
+import org.sapia.corus.client.common.IOUtil;
+import org.sapia.corus.client.common.OptionalValue;
+import org.sapia.corus.client.common.tuple.PairTuple;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
+import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.corus.ftest.FtestClient;
 import org.sapia.corus.ftest.JSONValue;
 import org.sapia.corus.ftest.PartitionInfo;
@@ -25,12 +31,40 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 
 public class PropertiesResourcesFuncTest {
+  
 
   private FtestClient client;
+  
+  private List<Property> expectedJsonPropertiesNoCat;
+  private List<Property> expectedJsonPropertiesCat1;
+  private List<Property> expectedJsonPropertiesCat2;
+  private List<Property> expectedJsonPropertiesGlobalCategory;
+
   
   @BeforeSuite
   public void beforeSuite() {
     client = FtestClient.open();
+   
+    expectedJsonPropertiesNoCat = Arrays.asList(
+        new Property("test.json.prop4", "value4")
+    );
+    
+    expectedJsonPropertiesCat1 = Arrays.asList(
+        new Property("test.json.prop1", "value1"),
+        new Property("test.json.prop2", "value2"),
+        new Property("test.json.prop3", "value3")
+    );
+    
+    expectedJsonPropertiesCat2 = Arrays.asList(
+        new Property("test.json.prop3", "value3")
+    );
+    
+    expectedJsonPropertiesGlobalCategory = Arrays.asList(
+        new Property("test.json.prop1", "value1"),
+        new Property("test.json.prop2", "value2"),
+        new Property("test.json.prop3", "value3"),
+        new Property("test.json.prop4", "value4")
+    );
   }
   
   @AfterSuite
@@ -78,9 +112,34 @@ public class PropertiesResourcesFuncTest {
     JSONArray results = client.resource("/clusters/ftest/properties/process")
         .queryParam("p", "test.prop.*").request()
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+
+    assertEquals(checkUrlProperties(results, false), client.getHostCount());
+  }
+  
+  @Test
+  public void testAddProperties_clustered_with_json_input() throws Exception {
+    JSONValue response = client.resource("/clusters/ftest/properties/process")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(IOUtil.textResourceToString("properties/properties.json"), MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    checkProperties(results, false);
+    checkUrlProperties(results, false);
+
+    results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.json.prop*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    
+    assertEquals(checkJsonProperties(results, OptionalValue.none(), expectedJsonPropertiesNoCat), client.getHostCount());
   }
   
   @Test
@@ -125,7 +184,67 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    assertEquals(checkProperties(results, true), client.getHostCount());
+    assertEquals(checkUrlProperties(results, true), client.getHostCount());
+  }
+  
+  @Test
+  public void testAddProperties_clustered_with_json_input_and_specific_categories() throws Exception {
+    JSONValue response = client.resource("/clusters/ftest/properties/process")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(IOUtil.textResourceToString("properties/properties.json"), MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+
+    checkUrlProperties(results, false);
+
+    results = client.resource("/clusters/ftest/properties/process/cat1")
+        .queryParam("p", "test.json.prop*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    
+    assertEquals(checkJsonProperties(results, OptionalValue.none(), expectedJsonPropertiesCat1), client.getHostCount());
+    
+    results = client.resource("/clusters/ftest/properties/process/cat2")
+        .queryParam("p", "test.json.prop*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    
+    assertEquals(checkJsonProperties(results, OptionalValue.none(), expectedJsonPropertiesCat2), client.getHostCount());
+  }
+  
+  @Test
+  public void testAddProperties_category_clustered_with_json_input_and_global_category() throws Exception {
+    JSONValue response = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(IOUtil.textResourceToString("properties/properties.json"), MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client
+        .resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+
+    assertEquals(checkUrlProperties(results, true), client.getHostCount());
+    
+    results = client.resource("/clusters/ftest/properties/process/test.category")
+        .queryParam("p", "test.json.prop*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    
+    assertEquals(checkJsonProperties(results, OptionalValue.none(), expectedJsonPropertiesGlobalCategory), client.getHostCount());
+    
   }
   
   @Test
@@ -200,7 +319,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
     
-    assertEquals(checkProperties(results, true), client.getHostCount());
+    assertEquals(checkUrlProperties(results, true), client.getHostCount());
   }
   
   // --------------------------------------------------------------------------
@@ -208,7 +327,7 @@ public class PropertiesResourcesFuncTest {
   
   @Test
   public void testAddProperties_specific_host() throws Exception {
-    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/process/test.category")
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/process")
         .queryParam("test.prop.1", "value1")
         .queryParam("test.prop.2", "value2")
         .request()
@@ -223,7 +342,33 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    assertEquals(checkProperties(results, true), 1);
+    assertEquals(checkUrlProperties(results, true), 1);
+  }
+  
+  @Test
+  public void testAddProperties_specific_host_with_json_input() throws Exception {
+    JSONValue response = client.resource("/clusters/ftest/hosts/" + client.getHostLiteral() + "/properties/process")
+        .queryParam("test.prop.1", "value1")
+        .queryParam("test.prop.2", "value2")
+        .request()
+          .header(FtestClient.HEADER_APP_ID, client.getAdminAppId())
+          .header(FtestClient.HEADER_APP_KEY, client.getAppkey())
+          .accept(MediaType.APPLICATION_JSON) 
+          .put(Entity.entity(IOUtil.textResourceToString("properties/properties.json"), MediaType.APPLICATION_JSON), JSONValue.class);
+    assertEquals(200, response.asObject().getInt("status"));
+
+    JSONArray results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.prop.*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    assertEquals(results.size(), client.getHostCount());
+
+    checkUrlProperties(results, false);
+
+    results = client.resource("/clusters/ftest/properties/process")
+        .queryParam("p", "test.json.prop*").request()
+        .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
+    
+    assertEquals(checkJsonProperties(results, OptionalValue.none(), expectedJsonPropertiesNoCat), 1);
   }
   
   @Test
@@ -246,7 +391,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    assertEquals(checkProperties(results, true), 1);
+    assertEquals(checkUrlProperties(results, true), 1);
   }
   
   @Test
@@ -267,7 +412,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    assertEquals(checkProperties(results, true), 1);
+    assertEquals(checkUrlProperties(results, true), 1);
   }
   
   @Test
@@ -291,7 +436,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
 
-    assertEquals(checkProperties(results, true), 1);
+    assertEquals(checkUrlProperties(results, true), 1);
   }
   
   @Test
@@ -321,7 +466,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
     
-    assertEquals(checkProperties(results, true), client.getHostCount() - 1);
+    assertEquals(checkUrlProperties(results, true), client.getHostCount() - 1);
   }
   
   @Test
@@ -354,7 +499,7 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
     
-    assertEquals(checkProperties(results, true), client.getHostCount() - 1);
+    assertEquals(checkUrlProperties(results, true), client.getHostCount() - 1);
   }
   
   @Test
@@ -405,13 +550,13 @@ public class PropertiesResourcesFuncTest {
         .accept(MediaType.APPLICATION_JSON).get(JSONValue.class).asArray();
     assertEquals(results.size(), client.getHostCount());
     
-    assertEquals(checkProperties(results, true), 1);
+    assertEquals(checkUrlProperties(results, true), 1);
   }
  
   // --------------------------------------------------------------------------
   // auth
   
-  private int checkProperties(JSONArray results, boolean checkCategory) {
+  private int checkUrlProperties(JSONArray results, boolean checkCategory) {
     int totalNonEmpty = 0;
     for (int i = 0; i < results.size(); i++) {
       JSONObject result = results.getJSONObject(i);
@@ -433,6 +578,31 @@ public class PropertiesResourcesFuncTest {
         assertEquals(props.getProperty("test.prop.1"), "value1");
         assertEquals(props.getProperty("test.prop.2"), "value2");
       }
+    }
+    return totalNonEmpty;
+  }
+  
+  private int checkJsonProperties(JSONArray results, OptionalValue<String> categoryName, List<Property> expected) {
+    int totalNonEmpty = 0;
+    for (int i = 0; i < results.size(); i++) {
+      JSONObject result = results.getJSONObject(i);
+      JSONArray jsonProps = result.getJSONArray("data");
+      if (jsonProps.size() > 0) {
+        totalNonEmpty++;
+      }
+      Properties props = new Properties();
+      for (int j = 0; j < jsonProps.size(); j++) {
+        JSONObject jsonProp = jsonProps.getJSONObject(j);
+        props.setProperty(jsonProp.getString("name"), jsonProp.getString("value"));
+        categoryName.ifSet(c -> {
+          assertEquals(jsonProp.getString("category"), c);
+        });
+      }
+      assertEquals(props.size(), expected.size());
+      
+      expected.forEach(pt -> {
+        assertEquals(props.getProperty(pt.getName()), pt.getValue()); 
+      });
     }
     return totalNonEmpty;
   }
