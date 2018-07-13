@@ -302,15 +302,6 @@
 
   <!-- ============ PUBLISHER ============ -->
 
-  <!-- AWS -->
-  
-  <bean name="org.sapia.corus.aws.AwsConfiguration"
-      class="org.sapia.corus.aws.AwsConfigBean"
-      scope="singleton"
-      autowire="autodetect">
-    <property name="awsEnabled" value="${corus.server.aws.enabled}" />
-  </bean> 
-  
   <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.AWS"
       class="org.sapia.corus.ext.pub.aws.AwsElbPublishingProvider"
       scope="singleton"
@@ -342,5 +333,23 @@
       autowire="autodetect">
     <property name="processStartupGracePeriodDuration" value="${corus.server.diagnostic.grace-period.duration}" />
   </bean>   
+
+  <!-- ============ AWS ============ -->
    
+     
+  <bean name="org.sapia.corus.aws.AwsConfiguration"
+      class="org.sapia.corus.aws.AwsConfigBean"
+      scope="singleton"
+      autowire="autodetect">
+    <property name="awsEnabled" value="${corus.server.aws.enabled}" />
+  </bean> 
+   
+  <bean name="org.sapia.corus.aws.cloudwatch.AwsCloudWatchBean"
+  		class="org.sapia.corus.aws.cloudwatch.AwsCloudWatchBean"
+  		scope="singleton"
+  		autowire="autodetect">
+  	<property name="region" value="${corus.server.aws.cloudwatch.region}" />
+    <property name="enabled" value="${corus.server.aws.cloudwatch.enabled}" />
+  </bean>
+  
 </beans>

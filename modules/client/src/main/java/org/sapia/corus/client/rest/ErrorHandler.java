@@ -2,6 +2,7 @@ package org.sapia.corus.client.rest;
 
 import java.io.StringWriter;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.sapia.corus.client.common.json.WriterJsonStream;
 
@@ -30,7 +31,7 @@ public interface ErrorHandler {
       WriterJsonStream st = new WriterJsonStream(sw);
       st.beginObject()
         .field("message").value(error.getMessage())
-        .field("details").value(ExceptionUtils.getFullStackTrace(error))
+        .field("details").value(StringEscapeUtils.unescapeJavaScript(ExceptionUtils.getFullStackTrace(error)))
       .endObject();
       return sw.toString();
     }

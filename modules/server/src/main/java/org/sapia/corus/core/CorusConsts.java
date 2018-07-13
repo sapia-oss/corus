@@ -144,7 +144,12 @@ public interface CorusConsts {
   /**
    * Indicates if AWS integration is enabled.
    */
-  public static final String PROPERTY_CORUS_AWS_ENABLED   = "corus.server.aws.enabled";
+  public static final String PROPERTY_CORUS_AWS_ENABLED                = "corus.server.aws.enabled";
+
+  /**
+   * Indicates if AWS CloudWatch integration is enabled.
+   */
+  public static final String PROPERTY_CORUS_AWS_CLOUDWATCH_ENABLED     = "corus.server.aws.cloudwatch.enabled";
 
   // --------------------------------------------------------------------------
   // Docker

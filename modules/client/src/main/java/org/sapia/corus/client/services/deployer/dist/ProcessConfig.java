@@ -407,7 +407,12 @@ public class ProcessConfig implements Externalizable, ObjectHandlerIF, Matcheabl
    * @return <code>true</code> if NUMA support is enabled for the process to be started.
    */
   public boolean isNumaEnabled(Env env) {
-    return findFor(env.getProfile()).isNumaEnabled();
+    Starter st = findFor(env.getProfile());
+    if (st != null) {
+      return st.isNumaEnabled();
+    } else {
+      return false;
+    }
   }
 
   /**

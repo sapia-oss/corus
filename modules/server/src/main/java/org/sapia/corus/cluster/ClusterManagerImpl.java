@@ -19,7 +19,7 @@ import org.sapia.corus.client.services.cluster.ClusterNotification;
 import org.sapia.corus.client.services.cluster.ClusterStatus;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostDiscoveredEvent;
 import org.sapia.corus.client.services.cluster.event.CorusHostRemovedEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.http.HttpModule;
@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, AsyncEventListener, EventChannelStateListener {
 
-  private static final int CLUSTER_STATE_CHECK_INTERVAL = 5000;
+  private static final int CLUSTER_STATE_CHECK_INTERVAL = 20000;
   private static final int START_UP_DELAY               = 15000;
   private static final int RECONNECTION_DELAY           = 10000;
   private static final int RECONNECTION_DELAY_OFFSET    = 2000;
@@ -391,7 +391,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     synchronized (hostsByNode) {
       if(hostsByNode.put(host.getNode(), host) == null) {
         log.info(String.format("Corus server discovered: %s. Adding to cluster view", host.getEndpoint()));
-        dispatcher.dispatch(new CorusHostAddedEvent(host));
+        dispatcher.dispatch(new CorusHostDiscoveredEvent(host));
       }
     }
   }

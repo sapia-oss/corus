@@ -1,13 +1,5 @@
 package org.sapia.corus.deployer.task;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.List;
-
-import org.apache.commons.lang.text.StrLookup;
 import org.sapia.console.ConsoleOutput;
 import org.sapia.corus.cli.EmbeddedInterpreter;
 import org.sapia.corus.client.AutoClusterFlag;
@@ -21,9 +13,9 @@ import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
-import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Status;
-import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent.Type;
+import org.sapia.corus.client.services.deployer.event.RollbackFailedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackType;
 import org.sapia.corus.client.services.file.FileSystemModule;
 import org.sapia.corus.client.services.processor.Process;
 import org.sapia.corus.client.services.processor.ProcessCriteria;
@@ -34,6 +26,15 @@ import org.sapia.corus.taskmanager.core.TaskExecutionContext;
 import org.sapia.corus.taskmanager.core.TaskParams;
 import org.sapia.corus.taskmanager.core.ThrottleKey;
 import org.sapia.corus.taskmanager.core.Throttleable;
+import org.sapia.ubik.util.IoUtils;
+
+import org.apache.commons.lang.text.StrLookup;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.List;
 
 /**
  * Executes the rollback of a specific distribution.
@@ -76,9 +77,9 @@ public class RollbackTask extends Task<Void, TaskParams<Distribution, Void, Void
     try {
       ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackStartingEvent(dist));
       doRunScript(fs, scriptBaseDir, scriptFile, dist, ctx);
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.USER, Status.SUCCESS));
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, RollbackType.USER));
     } catch (Exception e) {
-      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackCompletedEvent(dist, Type.USER, Status.FAILURE));
+      ctx.getServerContext().getServices().getEventDispatcher().dispatch(new RollbackFailedEvent(dist, RollbackType.USER));
       ctx.error("Error caught while executing rollback script", e);
       throw e;
     }
@@ -148,11 +149,7 @@ public class RollbackTask extends Task<Void, TaskParams<Distribution, Void, Void
     } catch (Throwable e) {
       throw new IllegalStateException("Could not execute rollback.corus script", e);
     } finally {
-      try {
-        scriptReader.close();
-      } catch (IOException e) {
-        // noop
-      }
+      IoUtils.closeSilently(scriptReader);
     }
   }
 

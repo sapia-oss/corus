@@ -18,7 +18,7 @@ import org.sapia.corus.client.services.cluster.ClusterManager;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.CorusHost.RepoRole;
 import org.sapia.corus.client.services.cluster.Endpoint;
-import org.sapia.corus.client.services.cluster.event.CorusHostAddedEvent;
+import org.sapia.corus.client.services.cluster.event.CorusHostDiscoveredEvent;
 import org.sapia.corus.client.services.configurator.Configurator;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
@@ -356,11 +356,11 @@ public class RepositoryImpl extends ModuleHelper
   // Event interceptor methods
   
   public void onServerStartedEvent(ServerStartedEvent event) {
-    dispatcher.addInterceptor(CorusHostAddedEvent.class, this);
+    dispatcher.addInterceptor(CorusHostDiscoveredEvent.class, this);
     doFirstPull();
   }
   
-  public void onCorusHostAddedEvent(CorusHostAddedEvent event) {
+  public void onCorusHostAddedEvent(CorusHostDiscoveredEvent event) {
     if (event.getHost().getRepoRole() == RepoRole.SERVER
         && strategy.acceptsPull() 
         && !state.get().isBusy() 

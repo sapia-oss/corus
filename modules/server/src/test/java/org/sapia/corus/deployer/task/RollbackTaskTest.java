@@ -26,6 +26,7 @@ import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.DistributionCriteria;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.event.RollbackCompletedEvent;
+import org.sapia.corus.client.services.deployer.event.RollbackFailedEvent;
 import org.sapia.corus.client.services.deployer.event.RollbackStartingEvent;
 import org.sapia.corus.client.services.event.EventDispatcher;
 import org.sapia.corus.client.services.file.FileSystemModule;
@@ -121,7 +122,7 @@ public class RollbackTaskTest {
     }
     
     verify(dispatcher).dispatch(isA(RollbackStartingEvent.class));
-    verify(dispatcher).dispatch(isA(RollbackCompletedEvent.class));
+    verify(dispatcher).dispatch(isA(RollbackFailedEvent.class));
   }
   
   
