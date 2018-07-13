@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Remote(interfaces = ClusterManager.class)
 public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, AsyncEventListener, EventChannelStateListener {
 
-  private static final int CLUSTER_STATE_CHECK_INTERVAL = 5000;
+  private static final int CLUSTER_STATE_CHECK_INTERVAL = 20000;
   private static final int START_UP_DELAY               = 15000;
   private static final int RECONNECTION_DELAY           = 10000;
   private static final int RECONNECTION_DELAY_OFFSET    = 2000;
