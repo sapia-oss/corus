@@ -43,11 +43,13 @@ public class ProcessConfigTest {
     Java starter = new Java();
     conf.setName("server");
     starter.setProfile("test");
+    starter.setNumaEnabled(false);
     conf.addStarter(starter);
 
     starter = new Java();
     conf.setName("server");
     starter.setProfile("prod");
+    starter.setNumaEnabled(true);
     conf.addStarter(starter);
     Dependency dep = new Dependency();
     dep.setProfile("prod");
@@ -92,6 +94,30 @@ public class ProcessConfigTest {
   public void testMatchesProcessName() {
     assertTrue(conf.matches(Matcheable.DefaultPattern.parse("server")));
     assertFalse(conf.matches(Matcheable.DefaultPattern.parse("foo")));
+  }
+  
+  @Test
+  public void testIsNumaEnabled_active() {
+    when(env.getProfile()).thenReturn("test");
+    boolean actual = conf.isNumaEnabled(env);
+    
+    assertFalse("Invalid value for isNumaEnabled", actual);
+  }
+  
+  @Test
+  public void testIsNumaEnabled_inactive() {
+    when(env.getProfile()).thenReturn("prod");
+    boolean actual = conf.isNumaEnabled(env);
+    
+    assertTrue("Invalid value for isNumaEnabled", actual);
+  }
+  
+  @Test
+  public void testIsNumaEnabled_invalidProfile() {
+    when(env.getProfile()).thenReturn("invalid");
+    boolean actual = conf.isNumaEnabled(env);
+    
+    assertFalse("Invalid value for isNumaEnabled", actual);
   }
   
   @Test
