@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 
 import org.sapia.console.AbortException;
 import org.sapia.console.Arg;
@@ -13,7 +14,9 @@ import org.sapia.console.InputException;
 import org.sapia.console.OptionDef;
 import org.sapia.console.table.Row;
 import org.sapia.console.table.Table;
+import org.sapia.corus.client.ClusterInfo;
 import org.sapia.corus.client.Result;
+import org.sapia.corus.client.Result.Type;
 import org.sapia.corus.client.Results;
 import org.sapia.corus.client.cli.CliContext;
 import org.sapia.corus.client.cli.TableDef;
@@ -40,7 +43,8 @@ public class Cluster extends CorusCliCommand {
   private static final String DOMAIN = "domain";
   private static final String REPO   = "repo";
   
-  private static final OptionDef OPT_ASSERT = new OptionDef("a", true);
+  private static final OptionDef OPT_ASSERT     = new OptionDef("a", true);
+  private static final OptionDef OPT_SEQUENTIAL = new OptionDef("seq", false);
 
   
   private final TableDef STATUS_TBL = TableDef.newInstance()
@@ -100,12 +104,19 @@ public class Cluster extends CorusCliCommand {
   
   @Override
   public List<OptionDef> getAvailableOptions() {
-    return Collects.arrayToList(OPT_ASSERT, OPT_CLUSTER);
+    return Collects.arrayToList(OPT_ASSERT, OPT_CLUSTER, OPT_SEQUENTIAL);
   }
 
   private void status(CliContext ctx) throws InputException {
     displayStatusHeader(ctx);
-    Results<ClusterStatus> results = ctx.getCorus().getCluster().getClusterStatus(getClusterInfo(ctx));
+    
+    Results<ClusterStatus> results;
+    if (ctx.getCommandLine().containsOption(OPT_SEQUENTIAL.getName(), false)) {
+      results = doSequentialExecution(ctx, host -> ctx.getCorus().getCluster().getClusterStatus(new ClusterInfo(false)).next());      
+    } else {
+      results = ctx.getCorus().getCluster().getClusterStatus(getClusterInfo(ctx));
+    }
+    
     results = Sorting.sortSingle(results, ClusterStatus.class, ctx.getSortSwitches());
     Table table = STATUS_TBL.createTable(ctx.getConsole().out());
 
@@ -113,10 +124,12 @@ public class Cluster extends CorusCliCommand {
 
     while (results.hasNext()) {
       Result<ClusterStatus> status = results.next();
-      Row row = table.newRow();
-      row.getCellAt(STATUS_TBL.col("host").index()).append(status.getOrigin().getFormattedAddress());
-      row.getCellAt(STATUS_TBL.col("nodeCount").index()).append(Integer.toString(status.getData().getNodeCount()));
-      row.flush();
+      if (!status.isError()) {
+        Row row = table.newRow();
+        row.getCellAt(STATUS_TBL.col("host").index()).append(status.getOrigin().getFormattedAddress());
+        row.getCellAt(STATUS_TBL.col("nodeCount").index()).append(Integer.toString(status.getData().getNodeCount()));
+        row.flush();
+      }
     }
   }
   
@@ -208,7 +221,54 @@ public class Cluster extends CorusCliCommand {
   }
   
   private void resync(CliContext ctx) {
-    ctx.getCorus().getCluster().resync();
+    if (ctx.getCommandLine().containsOption(OPT_SEQUENTIAL.getName(), false)) {
+      doSequentialExecution(ctx, host -> { 
+        ctx.getConsole().println(String.format("Resyncing cluster for host %s", host.getFormattedAddress()));
+        ctx.getCorus().getCluster().resync();
+        return null;
+      });
+    } else {
+      ctx.getCorus().getCluster().resync();
+    }
+    
   }
   
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private <T> Results<T> doSequentialExecution(CliContext ctx, Function<CorusHost, Result<T>> execFunc) {
+    ClusterInfo info = getClusterInfo(ctx);
+    CorusHost current = ctx.getCorus().getContext().getServerHost();
+
+    List<CorusHost> targets = new ArrayList<CorusHost>();
+    targets.add(current);
+    if (info.isClustered()) {
+      // targeting all other hosts
+      targets.addAll(ctx.getCorus().getContext().getOtherHosts());
+    }
+    
+    Results<T> result = new Results<>();
+    try {
+      for (CorusHost host : targets) {
+        try {
+          ctx.getCorus().getContext().connect(
+              host.getEndpoint().getServerTcpAddress().getHost(), 
+              host.getEndpoint().getServerTcpAddress().getPort()
+          );
+          Result<T> r = execFunc.apply(host);
+          if (result != null) {
+            result.addResult(r);
+          }
+        } catch (Exception e) {
+          result.addResult(new Result(host, e, Type.ELEMENT));
+        }
+      }
+    } finally {
+      ctx.getCorus().getContext().connect(
+          current.getEndpoint().getServerTcpAddress().getHost(), 
+          current.getEndpoint().getServerTcpAddress().getPort()
+      );
+    }
+  
+    return result;
+  }
+
 }

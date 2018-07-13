@@ -3,7 +3,7 @@
    <p>Provides cluster-related functionality.</p>
   </section>
   <section title="Syntax">
-    <p>cluster status [-cluster]</p>
+    <p>cluster status [[-cluster] [-seq]]</p>
     <p/>    
     <p>OR:</p>    
     <p>cluster check</p>
@@ -15,7 +15,7 @@
     <p>cluster repo &lt;role&gt; [-cluster]</p>
     <p/>    
     <p>OR:</p>      
-    <p>cluster resync</p>
+    <p>cluster resync [[-cluster] [-seq]]</p>
     <p/>    
     <p>Where:</p>
     <p/>
@@ -30,6 +30,8 @@
     <p>- resync : forces a resync of the current node with the other nodes in the cluster (this command does not support the -cluster option).</p>
     <p/>    
     <p>- cluster: if specified, the command will be replicated to all Corus servers in the cluster.</p>
+    <p/>    
+    <p>- seq: if the command is clustered, indicates that it should be done one host after the other from the client, sequentially (rather than through cascading replication).</p>
   </section>
   <section title="Notes">
     <p>The resync command does not support the -cluster option: the current node will broadcast an event to the broadcast channel automatically, 
@@ -39,8 +41,11 @@
     disappeared from the cluster view of other nodes).</p>
   </section>  
   <section title="Examples">
+    <p>cluster status</p>
     <p>cluster status -cluster</p>
+    <p>cluster status -cluster -seq</p>
     <p>cluster resync</p>
+    <p>cluster resync -cluster -seq</p>
     <p/>    
   </section>
 </help>
