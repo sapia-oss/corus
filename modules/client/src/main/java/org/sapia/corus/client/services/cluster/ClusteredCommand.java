@@ -3,6 +3,7 @@ package org.sapia.corus.client.services.cluster;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -124,10 +125,8 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
 
         returnValue = super.execute();
         visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
-        ServerAddress nextAddress = selectNextAddress();
-        if (nextAddress != null) {
-          cascade(nextAddress);
-        }
+        cascade();
+
         // otherwise, this command is not meant for this node (cascading to the
         // next host if required).
       } else {
@@ -136,14 +135,12 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
               .getCorus().getHostInfo().getEndpoint().getServerAddress()));
         }
         visited.add(callback.getCorus().getHostInfo().getEndpoint().getServerAddress());
-        ServerAddress nextAddress = selectNextAddress();
+
         if (auditInfo.isSet()) {
           AuditInfo decrypted = auditInfo.get().decryptWith(callback.getDecryptionContext());
           this.auditInfo = OptionalValue.of(decrypted);
         }
-        if (nextAddress != null) {
-          returnValue = cascade(nextAddress);
-        }
+        returnValue = cascade();
       }
       return returnValue;
     } catch (Throwable t) {
@@ -152,7 +149,33 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
     }
   }
 
-  private Object cascade(ServerAddress nextAddress) throws Throwable {
+  private Object cascade() throws Throwable {
+    ServerAddress nextAddress = selectNextAddress();
+    do {
+      if (nextAddress != null) {
+        try {
+          return doCascade(nextAddress);
+        } catch (RemoteException e) {
+          if (callback.isLenient()) {
+            callback.debug(
+                String.format(
+                    "Network error trying to send clustered command to host " +
+                        "%s (lenient mode enabled, proceeding to next host if any)",
+                    nextAddress
+                )
+            );
+            nextAddress = selectNextAddress();
+          } else {
+            throw e;
+          }
+        }
+      }
+    } while (nextAddress != null);
+    // if we reached this point, nothing has worked
+    return null;
+  }
+
+  private Object doCascade(ServerAddress nextAddress) throws Throwable {
     if (callback.isDebug()) {
       callback.debug(String.format("Sending clustered command %s to %s", getMethodName(), nextAddress));
     }

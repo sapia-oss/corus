@@ -27,6 +27,7 @@
         class="org.sapia.corus.cluster.ClusterManagerImpl" 
         scope="singleton" 
         autowire="autodetect">
+    <property name="lenient" value="${corus.server.cluster.lenient-enabled}" />
   </bean> 
 
   <!-- ============ JNDI ============ -->

@@ -76,7 +76,7 @@ public class ServerSideClusterInterceptorTest {
     when(cluster.resolveHost(any(ServerAddress.class))).thenReturn(host);
 
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(Encryption.getDefaultEncryptionContext(context.getKeyPair().getPublic())));
-    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier);
+    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier, false);
   }
 
   @Test

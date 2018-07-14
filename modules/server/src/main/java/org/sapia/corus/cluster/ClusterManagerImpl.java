@@ -74,6 +74,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private ServerSideClusterInterceptor  interceptor;
   private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
   private long                          startTime         = System.currentTimeMillis();
+  private boolean                       lenient;
 
   void setHttpModule(HttpModule http) {
     this.http = http;
@@ -81,6 +82,10 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   
   void setDispatcher(EventDispatcher dispatcher) {
     this.dispatcher = dispatcher;
+  }
+
+  public void setLenient(boolean lenient) {
+    this.lenient = lenient;
   }
 
   /**
@@ -123,7 +128,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     super.start();
     logger().info("Starting event channel");
     channel.start();
-    interceptor = new ServerSideClusterInterceptor(log, serverContext());
+    interceptor = new ServerSideClusterInterceptor(log, serverContext(), lenient);
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
 
