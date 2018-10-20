@@ -3,6 +3,7 @@ package org.sapia.corus.client.services.cluster;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.net.SocketException;
 import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -155,7 +156,7 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
       if (nextAddress != null) {
         try {
           return doCascade(nextAddress);
-        } catch (RemoteException e) {
+        } catch (RemoteException | SocketException e) {
           if (callback.isLenient()) {
             callback.debug(
                 String.format(
