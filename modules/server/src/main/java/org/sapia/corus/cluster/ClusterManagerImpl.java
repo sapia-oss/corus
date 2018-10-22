@@ -128,7 +128,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   @Override
   public void start() throws Exception {
     super.start();
-    logger().info("Starting event channel");
+    logger().info("Starting event channel with lenient mode set to " + lenient);
     channel.start();
     interceptor = new ServerSideClusterInterceptor(log, serverContext(), lenient);
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
