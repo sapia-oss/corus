@@ -82,10 +82,13 @@ public class RestExtension implements HttpExtension {
   private ServerContext                     serverContext;
   private AsynchronousCompletionServiceImpl asyncImpl;
   private PartitionServiceImpl              partitionImpl;
+  private boolean                           lenient;
   
   public RestExtension(ServerContext serverContext) {
     this.serverContext = serverContext;
-    
+
+    lenient = doGetProperty(CorusConsts.PROPERTY_CORUS_SERVER_LENIENT_ENABLED, "false").equalsIgnoreCase("true");
+
     String connectorPoolSizeValue = doGetProperty(CorusConsts.PROPERTY_CORUS_REST_CONNECTOR_SIZE, DEFAULT_CORUS_CONNECTOR_POOL_SIZE);
     connectors = new CorusConnectorPool(Integer.parseInt(connectorPoolSizeValue));
     Auditor auditor = serverContext.getServices().getAuditor();
@@ -489,7 +492,8 @@ public class RestExtension implements HttpExtension {
               serverContext.getCorus(), 
               new DefaultClientFileSystem(
                   new File(serverContext.getServices().getDeployer().getConfiguration().getUploadDir())
-              )
+              ),
+              lenient
           )
       );
     }

@@ -11,6 +11,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
@@ -74,6 +76,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private ServerSideClusterInterceptor  interceptor;
   private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
   private long                          startTime         = System.currentTimeMillis();
+  private boolean                       lenient;
 
   void setHttpModule(HttpModule http) {
     this.http = http;
@@ -81,6 +84,10 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   
   void setDispatcher(EventDispatcher dispatcher) {
     this.dispatcher = dispatcher;
+  }
+
+  public void setLenient(boolean lenient) {
+    this.lenient = lenient;
   }
 
   /**
@@ -121,31 +128,36 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   @Override
   public void start() throws Exception {
     super.start();
-    logger().info("Starting event channel");
+    logger().info("Starting event channel with lenient mode set to " + lenient);
     channel.start();
-    interceptor = new ServerSideClusterInterceptor(log, serverContext());
+    interceptor = new ServerSideClusterInterceptor(log, serverContext(), lenient);
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
 
     BackgroundTaskConfig taskConf = BackgroundTaskConfig.create().setExecDelay(CLUSTER_STATE_CHECK_INTERVAL).setExecInterval(CLUSTER_STATE_CHECK_INTERVAL);
+    Semaphore taskSyncLock = new Semaphore(1); 
     serverContext().getServices().getTaskManager().executeBackground(new Task<Void, Void>() {
       @Override
       public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
-        if (channel.getView().getNodeCount() != hostsByNode.size()) {
-          Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
-          channelNodes.removeAll(hostsByNode.keySet());
-          for (String channelNode : channelNodes) {
-            try {
-              NodeInfo info = channel.getView().getNodeInfo(channelNode);
-              logger().debug("Node " + info + " is out of sync: trying to reconnect with it...");
-              if (info != null) {
-                channel.dispatch(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-              } else {
-                log.warn("Not node info found for ID: " + channelNode);
+        if (taskSyncLock.tryAcquire()) {
+          try {
+            Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
+            channelNodes.removeAll(hostsByNode.keySet());
+            for (String channelNode : channelNodes) {
+              try {
+                NodeInfo info = channel.getView().getNodeInfo(channelNode);
+                logger().debug("Node " + info + " is out of sync: trying to reconnect with it...");
+                if (info != null) {
+                  channel.dispatch(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
+                } else {
+                  log.warn("Not node info found for ID: " + channelNode);
+                }
+              } catch (Exception e) {
+                log.warn("Error caught trying refresh cluster view with node " + channelNode, e);
               }
-            } catch (Exception e) {
-              log.warn("Error caught trying refresh cluster view with node " + channelNode, e);
             }
+          } finally {
+            taskSyncLock.release();
           }
         }
         return null;

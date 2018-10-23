@@ -98,7 +98,9 @@ public interface CorusConsts {
    * Indicast the size for the client connector pool used in the REST extension.
    */
   public static final String PROPERTY_CORUS_REST_CONNECTOR_SIZE      = "corus.server.api.client.connector.pool-size";
-  
+
+  public static final String PROPERTY_CORUS_SERVER_LENIENT_ENABLED   = "corus.server.cluster.lenient-enabled";
+
   // --------------------------------------------------------------------------
   // Hot Config
 
