@@ -5,7 +5,6 @@ import java.util.Set;
 
 import org.apache.log.Logger;
 
-import org.sapia.corus.client.common.OptionalValue;
 import org.sapia.corus.client.common.encryption.DecryptionContext;
 import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.services.audit.AuditInfo;
