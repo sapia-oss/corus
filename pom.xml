@@ -9,7 +9,7 @@
 	<version>develop-SNAPSHOT</version>
 
 	<properties>
-		<springframework.version>4.3.9.RELEASE</springframework.version>
+		<springframework.version>5.1.1.RELEASE</springframework.version>
 		<camel.version>2.15.0</camel.version>
 		<sapia-ubik.version>5.1rc2</sapia-ubik.version>
 		<sapia-corus-iop.version>3.0</sapia-corus-iop.version>
