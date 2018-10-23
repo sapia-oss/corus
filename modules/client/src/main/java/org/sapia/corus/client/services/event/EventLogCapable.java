@@ -8,10 +8,10 @@ package org.sapia.corus.client.services.event;
  * @author yduchesne
  * 
  */
-public interface Loggable {
+public interface EventLogCapable {
 
   /**
    * @return an {@link EventLog}.
    */
-  public EventLog getEventLog();
+  public EventLog toEventLog();
 }

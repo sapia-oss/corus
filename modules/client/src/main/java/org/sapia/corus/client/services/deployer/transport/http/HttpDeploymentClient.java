@@ -22,7 +22,7 @@ public class HttpDeploymentClient extends AbstractDeploymentClient {
 
   public static final int CHUNKED_CONTENT_LEN = 8000;
   public static final int HTTP_CONNECTION_TIMEOUT_MILLIS = 3000;
-  public static final int HTTP_READ_TIMEOUT_MILLIS = 60000;
+  public static final int HTTP_READ_TIMEOUT_MILLIS = 300000;
   
   public static final String DEPLOYER_CONTEXT = "/corus/deployer";
 

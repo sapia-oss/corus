@@ -301,6 +301,13 @@ public class ProcessorImpl extends ModuleHelper implements Processor, SystemDiag
         }
         if (configs.size() == 0) {
           q.warning(String.format("Could not find any process to start for: %s", criteria));
+        }
+        boolean profileExists = false;
+        for (ProcessConfig config : configs) {
+          profileExists |= config.containsProfile(criteria.getProfile().get());
+        }
+        if (!profileExists) {
+          q.warning(String.format("Could not find specified profile to start in process: %s", criteria));
         } else {
           for (ProcessConfig config : configs) {
             int activeCount = processes.getActiveProcessCountFor(criteria);

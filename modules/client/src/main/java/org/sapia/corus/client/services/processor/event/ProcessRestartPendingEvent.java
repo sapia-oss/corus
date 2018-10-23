@@ -1,8 +1,15 @@
 package org.sapia.corus.client.services.processor.event;
 
+import org.sapia.corus.client.common.ToStringUtil;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.event.CorusEventSupport;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLog;
 import org.sapia.corus.client.services.processor.Process;
+import org.sapia.corus.client.services.processor.Processor;
 
 /**
  * Signals that a process restart has been requested and is pending.
@@ -10,7 +17,7 @@ import org.sapia.corus.client.services.processor.Process;
  * @author yduchesne
  * 
  */
-public class ProcessRestartPendingEvent {
+public class ProcessRestartPendingEvent extends CorusEventSupport {
 
   private Distribution  distribution;
   private ProcessConfig processConfig;
@@ -32,6 +39,37 @@ public class ProcessRestartPendingEvent {
   
   public Process getProcess() {
     return process;
+  }
+  
+  @Override
+  public EventLevel getLevel() {
+    return EventLevel.INFO;
+  }
+  
+  @Override
+  public EventLog toEventLog() {
+    return EventLog.builder()
+        .source(source())
+        .type(getClass())
+        .level(getLevel())
+        .message("Restart of process %s is pending", ToStringUtil.toString(process))
+        .build();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted
+  
+  @Override
+  protected Class<?> source() {
+    return Processor.class;
+  }
+  
+  @Override
+  protected void toJson(JsonStream stream) {
+    stream
+      .field("message").value(toEventLog().getMessage())
+      .field("process");
+    process.toJson(stream, ContentLevel.SUMMARY);
   }
 
 }

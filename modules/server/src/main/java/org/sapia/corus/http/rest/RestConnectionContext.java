@@ -2,6 +2,7 @@ package org.sapia.corus.http.rest;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,8 +60,8 @@ public class RestConnectionContext implements CorusConnectionContext {
   private ClientFileSystem              fileSys;
   private Stack<Pattern>                resultFilter  = new Stack<Matcheable.Pattern>();
   private HostSelectionContext          hostSelection = new HostSelectionContextImpl();
+  private boolean                       lenient;
 
-  
   {
     resultFilter.push(Matcheable.AnyPattern.newInstance()); 
   }
@@ -70,13 +71,16 @@ public class RestConnectionContext implements CorusConnectionContext {
    *          the current {@link Corus} host.
    * @param fileSys
    *          the {@link ClientFileSystem}.
+   * @param lenient if <code>true</code>, indicates that this instance is lenient to network failures when
+   *                performing clustered commands.
    */
-  public RestConnectionContext(Corus current, ClientFileSystem fileSys) {
+  public RestConnectionContext(Corus current, ClientFileSystem fileSys, boolean lenient) {
     this.corus         = current;
     this.serverHost  = corus.getHostInfo();
     this.domain      = corus.getDomain();
     this.interceptor = new ClientSideClusterInterceptor();
     this.fileSys     = fileSys;
+    this.lenient     = lenient;
     Hub.getModules().getClientRuntime().addInterceptor(ClientPreInvokeEvent.class, interceptor);
     executor = Threads.createIoOutboundPool();
   }
@@ -389,9 +393,14 @@ public class RestConnectionContext implements CorusConnectionContext {
               corus = (Corus) Hub.connect(addr.getEndpoint().getServerAddress());
               cachedStubs.put(addr.getEndpoint().getServerAddress(), corus);
             } catch (java.rmi.RemoteException e) {
-              log.debug("Error invoking on host: " + addr, e);
-              Result errorResult = new Result(addr, e, resultType);
-              results.addResult(errorResult);
+              if (lenient) {
+                log.debug(String.format("Network error invoking host: %s. Lenient mode is enabled, error ignored", addr), e);
+              } else {
+                log.debug("Network error invoking host: " + addr, e);
+                Result errorResult = new Result(addr, e, resultType);
+                results.addResult(errorResult);
+              }
+
               return;
             }
           }
@@ -405,6 +414,21 @@ public class RestConnectionContext implements CorusConnectionContext {
             }
             returnValue = method.invoke(module, params);
             results.addResult(new Result(addr, returnValue, resultType));
+          } catch (UndeclaredThrowableException e) {
+            Throwable wrapped = e.getCause();
+            if (wrapped instanceof RemoteException) {
+              if (lenient) {
+                log.debug(String.format("Network error invoking host: %s. Lenient mode is enabled, error ignored", addr), e);
+              } else {
+                log.debug("Network error invoking host: " + addr, e);
+                Result errorResult = new Result(addr, e, resultType);
+                results.addResult(errorResult);
+              }
+            } else {
+              log.debug("Error invoking on host: " + addr, wrapped);
+              Result errorResult = new Result(addr, wrapped, resultType);
+              results.addResult(errorResult);
+            }
           } catch (Exception err) {
             log.debug("Error invoking on host: " + addr, err);
             Result errorResult = new Result(addr, err, resultType);

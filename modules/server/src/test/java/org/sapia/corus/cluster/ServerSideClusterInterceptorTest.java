@@ -1,9 +1,13 @@
 package org.sapia.corus.cluster;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+
+import java.rmi.RemoteException;
 import java.security.KeyPair;
 
 import org.apache.log.Hierarchy;
@@ -76,7 +80,7 @@ public class ServerSideClusterInterceptorTest {
     when(cluster.resolveHost(any(ServerAddress.class))).thenReturn(host);
 
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(Encryption.getDefaultEncryptionContext(context.getKeyPair().getPublic())));
-    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier);
+    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier, false);
   }
 
   @Test
@@ -88,15 +92,31 @@ public class ServerSideClusterInterceptorTest {
     
     assertTrue("Expected AuditInfo to have been encrypted prior to cascading command to next host", cmd.getAuditInfo().get().isEncrypted());
   }
-  
+
+
+  @Test
+  public void testSend_decrypted_after_send_failure() throws Exception {
+    doThrow(new RemoteException("ERROR")).when(rmiConnection).send(any());
+
+    IncomingCommandEvent evt = new IncomingCommandEvent(cmd);
+    interceptor.onIncomingCommandEvent(evt);
+    cmd.decrypt(interceptor.getDecryptionContext());
+    try {
+      interceptor.send(cmd, nextAddress);
+    } catch (RemoteException e) {
+      // noop
+    }
+    assertFalse("Expected AuditInfo to have been switched back to decrypted after error on send", cmd.getAuditInfo().get().isEncrypted());
+  }
+
   
   @Test(expected = IllegalStateException.class)
   public void testSend_already_encrypted_audit_info() throws Exception {
+    doThrow(new RemoteException("ERROR")).when(rmiConnection).send(any());
     IncomingCommandEvent evt = new IncomingCommandEvent(cmd);
     cmd.setAuditInfo(cmd.getAuditInfo().get().decryptWith(interceptor.getDecryptionContext()));
     interceptor.onIncomingCommandEvent(evt);
     interceptor.send(cmd, nextAddress);
-    
   }
   
   public static class TestCommand extends InvokeCommand {

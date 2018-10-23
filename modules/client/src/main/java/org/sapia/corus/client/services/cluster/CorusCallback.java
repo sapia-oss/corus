@@ -16,6 +16,8 @@ public interface CorusCallback {
 
   public boolean isDebug();
 
+  public boolean isLenient();
+
   public void error(String message, Throwable err);
 
   public Object send(ClusteredCommand cmd, ServerAddress nextTarget) throws Throwable;

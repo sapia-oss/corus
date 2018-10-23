@@ -1,11 +1,15 @@
 package org.sapia.corus.client.services.processor.event;
 
+import org.sapia.corus.client.common.ToStringUtil;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
 import org.sapia.corus.client.services.deployer.dist.ProcessConfig;
+import org.sapia.corus.client.services.event.CorusEventSupport;
+import org.sapia.corus.client.services.event.EventLevel;
 import org.sapia.corus.client.services.event.EventLog;
-import org.sapia.corus.client.services.event.EventLog.Level;
-import org.sapia.corus.client.services.event.Loggable;
 import org.sapia.corus.client.services.processor.ProcessStartupInfo;
+import org.sapia.corus.client.services.processor.Processor;
 
 /**
  * Dispatched when process execution is pending.
@@ -13,7 +17,7 @@ import org.sapia.corus.client.services.processor.ProcessStartupInfo;
  * @author yduchesne
  *
  */
-public class ProcessStartPendingEvent implements Loggable {
+public class ProcessStartPendingEvent extends CorusEventSupport {
   
   private Distribution       distribution;
   private ProcessConfig      process;
@@ -29,7 +33,7 @@ public class ProcessStartPendingEvent implements Loggable {
     return distribution;
   }
 
-  public ProcessConfig getProcess() {
+  public ProcessConfig getProcessConfig() {
     return process;
   }
   
@@ -38,13 +42,38 @@ public class ProcessStartPendingEvent implements Loggable {
   }
   
   @Override
-  public EventLog getEventLog() {
-    return new EventLog(Level.NORMAL, "Processor", 
-        String.format(
-            "Process execution pending for %s - %s instance(s) requested", 
-            process, startupInfo.getRequestedInstances()
-        )
-    );
+  public EventLevel getLevel() {
+    return EventLevel.INFO;
+  }
+  
+  @Override
+  public EventLog toEventLog() {
+    return EventLog.builder()
+        .source(source())
+        .type(getClass())
+        .level(getLevel())
+        .message(
+            "Process execution pending for process %s of %s - %s instance(s) requested", 
+            process.getName(), ToStringUtil.toString(distribution), startupInfo.getRequestedInstances())
+        .build();
   }
 
+  // --------------------------------------------------------------------------
+  // Restricted
+  
+  @Override
+  protected Class<?> source() {
+    return Processor.class;
+  }
+  
+  @Override
+  protected void toJson(JsonStream stream) {
+    stream
+      .field("message").value(toEventLog().getMessage())
+      .field("processName").value(process.getName())
+      .field("requestedInstances").value(startupInfo.getRequestedInstances())
+      .field("distribution");
+    distribution.toJson(stream, ContentLevel.SUMMARY);
+  }
+  
 }

@@ -98,7 +98,9 @@ public interface CorusConsts {
    * Indicast the size for the client connector pool used in the REST extension.
    */
   public static final String PROPERTY_CORUS_REST_CONNECTOR_SIZE      = "corus.server.api.client.connector.pool-size";
-  
+
+  public static final String PROPERTY_CORUS_SERVER_LENIENT_ENABLED   = "corus.server.cluster.lenient-enabled";
+
   // --------------------------------------------------------------------------
   // Hot Config
 
@@ -144,7 +146,12 @@ public interface CorusConsts {
   /**
    * Indicates if AWS integration is enabled.
    */
-  public static final String PROPERTY_CORUS_AWS_ENABLED   = "corus.server.aws.enabled";
+  public static final String PROPERTY_CORUS_AWS_ENABLED                = "corus.server.aws.enabled";
+
+  /**
+   * Indicates if AWS CloudWatch integration is enabled.
+   */
+  public static final String PROPERTY_CORUS_AWS_CLOUDWATCH_ENABLED     = "corus.server.aws.cloudwatch.enabled";
 
   // --------------------------------------------------------------------------
   // Docker
