@@ -1,46 +1,28 @@
 package org.sapia.corus.client.services.deployer.event;
 
+import org.sapia.corus.client.common.ToStringUtil;
+import org.sapia.corus.client.common.json.JsonStream;
+import org.sapia.corus.client.common.json.JsonStreamable.ContentLevel;
+import org.sapia.corus.client.services.deployer.Deployer;
 import org.sapia.corus.client.services.deployer.dist.Distribution;
+import org.sapia.corus.client.services.event.CorusEventSupport;
+import org.sapia.corus.client.services.event.EventLevel;
+import org.sapia.corus.client.services.event.EventLog;
 
 /**
- * Dispatched in the context of a rollback.
+ * Dispatched in the context of a rollback having completed successfully.
  * 
  * @author yduchesne
  * 
  */
-public class RollbackCompletedEvent {
-
-  /**
-   * Indicates if the rollback was done automatically in the context of a deployment,
-   * or if it was user-requested.
-   * 
-   * @author yduchesne
-   *
-   */
-  public enum Type {
-    AUTO,
-    USER
-  }
-  
-  /**
-   * Indicates if the rollback was successful or not.
-   * 
-   * @author yduchesne
-   *
-   */
-  public enum Status {
-    SUCCESS,
-    FAILURE
-  }
+public class RollbackCompletedEvent extends CorusEventSupport {
 
   private Distribution distribution;
-  private Type         type;
-  private Status       status;
+  private RollbackType         type;
 
-  public RollbackCompletedEvent(Distribution dist, Type type, Status status) {
+  public RollbackCompletedEvent(Distribution dist, RollbackType type) {
     this.distribution = dist;
     this.type         = type;
-    this.status       = status;
   }
 
   /**
@@ -51,17 +33,40 @@ public class RollbackCompletedEvent {
   }
   
   /**
-   * @return this instance's {@link Type}.
+   * @return this instance's {@link RollbackType}.
    */
-  public Type getType() {
+  public RollbackType getRollbackType() {
     return type;
   }
   
-  /**
-   * @return this instance's status.
-   */
-  public Status getStatus() {
-    return status;
+  @Override
+  public EventLevel getLevel() {
+    return EventLevel.INFO;
   }
-
+  
+  @Override
+  public EventLog toEventLog() {
+    return EventLog.builder()
+        .source(source())
+        .type(getClass())
+        .level(getLevel())
+        .message("Rollback successful for distribution %s", ToStringUtil.toString(distribution))
+        .build();
+  }
+  
+  // --------------------------------------------------------------------------
+  // Restricted
+  
+  @Override
+  protected Class<?> source() {
+    return Deployer.class;
+  }
+  
+  protected void toJson(JsonStream stream) {
+    stream
+      .field("message").value(toEventLog().getMessage())
+      .field("type").value(type.name())
+      .field("distribution");
+    distribution.toJson(stream, ContentLevel.SUMMARY);
+  }
 }

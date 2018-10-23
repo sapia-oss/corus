@@ -31,24 +31,30 @@ public class ServerSideClusterInterceptor implements CorusCallback {
   private ServerContext           context;
   private ClusterManager          cluster;
   private Func<Connections, ServerAddress> connectionPoolSupplier;
+  private boolean                 lenient;
   
   /**
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
-   * @param a function used to obtain a {@link Connections} instance.
+   * @param connectionPoolSupplier a function used to obtain a {@link Connections} instance.
+   * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
+   *                should be ignored.
    */
-  ServerSideClusterInterceptor(Logger log, ServerContext context, Func<Connections, ServerAddress> connectionPoolSupplier) {
+  ServerSideClusterInterceptor(Logger log, ServerContext context, Func<Connections, ServerAddress> connectionPoolSupplier, boolean lenient) {
     this.log                    = log;
     this.context                = context;
     this.cluster                = context.getServices().lookup(ClusterManager.class);
     this.connectionPoolSupplier = connectionPoolSupplier;
+    this.lenient                = lenient;
   }
 
   /**
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
+   * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
+   *                should be ignored.
    */
-  ServerSideClusterInterceptor(Logger log, ServerContext context) {
+  ServerSideClusterInterceptor(Logger log, ServerContext context, boolean lenient) {
     this(log, context, new Func<Connections, ServerAddress>() {
       @Override
       public Connections call(ServerAddress nextTarget) {
@@ -58,7 +64,12 @@ public class ServerSideClusterInterceptor implements CorusCallback {
           throw new IllegalStateException("Network error occurred while performing operation", e);
         }
       }
-    });
+    }, lenient);
+  }
+
+  @Override
+  public boolean isLenient() {
+    return lenient;
   }
 
   /**

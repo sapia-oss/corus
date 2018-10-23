@@ -6,17 +6,25 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+
+import java.rmi.RemoteException;
 import java.security.KeyPair;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
+
 import org.sapia.corus.client.Corus;
 import org.sapia.corus.client.common.encryption.DecryptionContext;
 import org.sapia.corus.client.common.encryption.Encryption;
@@ -40,7 +48,7 @@ public class ClusteredCommandTest {
   private Corus corus;
   
   @Mock
-  private ServerAddress clientAddress, address, address2;
+  private ServerAddress clientAddress, address, address2, address3;
   
   @Mock
   private Connection conn;
@@ -108,7 +116,37 @@ public class ClusteredCommandTest {
     verify(callback).send(cmd, address2);
     verify(auditor).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
   }
-  
+
+  @Test
+  public void testExecute_all_hosts_with_network_failure_and_lenient_enabled() throws Throwable {
+    when(callback.isLenient()).thenReturn(true);
+    setUpForNetworkFailure();
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+
+    assertEquals(new Integer(0), cmd.execute());
+    assertTrue(cmd.getVisited().contains(address));
+    assertTrue(cmd.getVisited().contains(address2));
+    assertFalse(cmd.getAuditInfo().get().isEncrypted());
+    verify(callback).send(cmd, address2);
+    verify(auditor).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+  }
+
+  @Test
+  public void testExecute_all_hosts_with_network_failure_and_lenient_disabled() throws Throwable {
+    when(callback.isLenient()).thenReturn(true);
+    setUpForNetworkFailure();
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+
+    assertEquals(new Integer(0), cmd.execute());
+    assertTrue(cmd.getVisited().contains(address));
+    assertTrue(cmd.getVisited().contains(address2));
+    assertFalse(cmd.getAuditInfo().get().isEncrypted());
+    verify(callback).send(cmd, address2);
+    verify(auditor).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+  }
+
   @Test
   public void testExecute_specific_hosts() throws Throwable {
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
@@ -121,6 +159,35 @@ public class ClusteredCommandTest {
     assertFalse(cmd.getAuditInfo().get().isEncrypted());
     verify(callback).send(cmd, address2);
     verify(auditor).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+  }
+
+  @Test
+  public void testExecute_specific_hosts_with_network_failure_and_lenient_enabled() throws Throwable {
+    setUpForNetworkFailure();
+    when(callback.isLenient()).thenReturn(true);
+
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+    cmd.addTargets(Collects.arrayToSet(address, address2, address3));
+
+    assertEquals(new Integer(0), cmd.execute());
+    assertTrue(cmd.getVisited().contains(address));
+    assertTrue(cmd.getTargeted().contains(address2));
+    assertTrue(cmd.getTargeted().contains(address3));
+    assertFalse(cmd.getAuditInfo().get().isEncrypted());
+    verify(callback, times(2)).send(any(), any());
+    verify(auditor).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+  }
+
+  @Test(expected = RemoteException.class)
+  public void testExecute_specific_hosts_with_network_failure_and_lenient_disabled() throws Throwable {
+    setUpForNetworkFailure();
+
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+    cmd.addTargets(Collects.arrayToSet(address, address2, address3));
+
+    cmd.execute();
   }
   
   @Test
@@ -135,7 +202,33 @@ public class ClusteredCommandTest {
     assertFalse(cmd.getAuditInfo().get().isEncrypted());
     verify(callback).send(cmd, address2);
     verify(auditor, never()).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+  }
 
+  @Test
+  public void testExecute_specific_hosts_not_current_host_with_network_failure_and_lenient_enabled() throws Throwable {
+    setUpForNetworkFailure();
+    when(callback.isLenient()).thenReturn(true);
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+    cmd.addTargets(Collects.arrayToSet(address2, address3));
+
+    cmd.execute();
+
+    assertTrue(cmd.getVisited().contains(address));
+    assertTrue(cmd.getTargeted().contains(address2));
+    assertFalse(cmd.getAuditInfo().get().isEncrypted());
+    verify(callback).send(cmd, address2);
+    verify(auditor, never()).audit(any(AuditInfo.class), any(ServerAddress.class), anyString(), anyString());
+
+  }
+
+  @Test(expected = RemoteException.class)
+  public void testExecute_specific_hosts_not_current_host_with_network_failure_and_lenient_disabled() throws Throwable {
+    setUpForNetworkFailure();
+    cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
+    cmd.setCorusCallback(callback);
+    cmd.addTargets(Collects.arrayToSet(address2, address3));
+    cmd.execute();
   }
   
   @Test
@@ -145,6 +238,7 @@ public class ClusteredCommandTest {
     cmd.exclude(Collects.arrayToSet(address2));
 
     cmd.execute();
+
     assertTrue(cmd.getVisited().contains(address));
     assertTrue(cmd.getVisited().contains(address2));;
     assertFalse(cmd.getAuditInfo().get().isEncrypted());
@@ -160,7 +254,28 @@ public class ClusteredCommandTest {
   @Test
   public void testSelectNextAddress() {
   }
-  
+
+  private void setUpForNetworkFailure() {
+    try {
+      doAnswer(new Answer<Object>() {
+
+        private int invocationCount;
+
+        @Override
+        public Object answer(InvocationOnMock invocation) throws Throwable {
+          if (invocationCount == 0) {
+            throw new RemoteException("Network Error");
+          }
+          invocationCount++;
+
+          return "test-result";
+        }
+      }).when(callback).send(any(), any());
+    } catch (Throwable e) {
+      throw new IllegalStateException("Error setting up mock callback for network failure", e);
+    }
+  }
+
   public static class TestCommand extends InvokeCommand {
     
     public TestCommand() {

@@ -1,6 +1,5 @@
 package org.sapia.corus.client.services.deployer.event;
 
-
 public class DeploymentScriptExecutedEvent {
   
   private String scriptName;

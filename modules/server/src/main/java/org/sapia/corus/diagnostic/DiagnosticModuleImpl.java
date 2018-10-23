@@ -229,12 +229,12 @@ public class DiagnosticModuleImpl extends ModuleHelper implements  DiagnosticMod
     log.info(String.format(
         "Got %s processes pending execution for %s", 
         event.getStartupInfo().getRequestedInstances(), 
-        ToStringUtil.toString(event.getDistribution(), event.getProcess())
+        ToStringUtil.toString(event.getDistribution(), event.getProcessConfig())
     ));
     
     pendingProcessInfoByGroup.put(
         event.getStartupInfo().getStartGroupId(), 
-        new PendingProcessInfo(event.getProcess(), event.getStartupInfo())
+        new PendingProcessInfo(event.getProcessConfig(), event.getStartupInfo())
     );
   }
   
