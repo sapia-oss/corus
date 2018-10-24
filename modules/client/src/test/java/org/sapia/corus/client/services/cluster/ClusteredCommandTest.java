@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -95,13 +94,22 @@ public class ClusteredCommandTest {
   }
   
   @Test
-  public void testSetAuditInfo() {
+  public void testSetAuditInfo_encrypted() {
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
   }
   
   @Test(expected = IllegalStateException.class)
-  public void testSetAuditInfo_unencrypted() {
+  public void testSetAuditInfo_decrypted() {
     cmd.setAuditInfo(AuditInfo.forUser("test"));
+  }
+  
+  public void testResetAuditInfo_decrypted() {
+    cmd.setAuditInfo(AuditInfo.forUser("test"));
+  }
+  
+  @Test(expected = IllegalStateException.class)
+  public void testResetAuditInfo_encrypted() {
+	cmd.resetAuditInfo(AuditInfo.forUser("test").encryptWith(encryption));
   }
 
   @Test

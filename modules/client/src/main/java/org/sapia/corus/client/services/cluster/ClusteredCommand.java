@@ -71,6 +71,11 @@ public class ClusteredCommand extends InvokeCommand implements CorusCallbackCapa
     this.auditInfo = OptionalValue.of(auditInfo);
   }
   
+  public void resetAuditInfo(AuditInfo auditInfo) {
+	Assertions.illegalState(auditInfo.isEncrypted(), "Expected AuditInfo to be decrypted at this point");
+	this.auditInfo = OptionalValue.of(auditInfo);
+  }
+  
   public void decrypt(DecryptionContext dc) {
     if (auditInfo.isSet()) {
       Assertions.illegalState(!auditInfo.get().isEncrypted(), "Expected AuditInfo to be encrypted at this point");
