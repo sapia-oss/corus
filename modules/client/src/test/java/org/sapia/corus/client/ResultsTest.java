@@ -12,6 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.sapia.corus.client.common.ThreadWrapper;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
@@ -55,21 +56,21 @@ public class ResultsTest {
   }
   
   @Test
-  public void testNormalUsage_async() {
+  public void testNormalUsage_async() throws Exception {
     final List<Integer> vals = new ArrayList<Integer>();
     for (int i = 0; i < 5; i++) {
       vals.add(new Integer(i));
     }
     results.setInvocationCount(vals.size());
     
-    new Thread(new Runnable() {
+    ThreadWrapper t = ThreadWrapper.wrap(new Thread(new Runnable() {
       @Override
       public void run() {
         for (Integer v : vals) {
           results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
         }        
       }
-    }).start();
+    })).start();
     
     int count = 0;
     while (results.hasNext()) {
@@ -77,31 +78,35 @@ public class ResultsTest {
       count++;
     }
 
+    t.stop();
+
     assertEquals(vals.size(), count);
   }
   
   @Test
-  public void testNormalUsage_iterate() {
+  public void testNormalUsage_iterate() throws Exception {
     final List<Integer> vals = new ArrayList<Integer>();
     for (int i = 0; i < 5; i++) {
       vals.add(new Integer(i));
     }
     results.setInvocationCount(vals.size());
     
-    new Thread(new Runnable() {
+    ThreadWrapper t = ThreadWrapper.wrap(new Thread(new Runnable() {
       @Override
       public void run() {
         for (Integer v : vals) {
           results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
         }        
       }
-    }).start();
+    })).start();
     
     int count = 0;
     
     for (Result<Integer> r : results) {
       count++;
     }
+    
+    t.stop();
 
     assertEquals(vals.size(), count);
   }
