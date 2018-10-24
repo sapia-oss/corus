@@ -6,7 +6,7 @@
 
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.springframework.org/schema/beans
-          http://www.springframework.org/schema/beans/spring-beans-2.5.xsd 
+          http://www.springframework.org/schema/beans/spring-beans.xsd 
           http://www.springframework.org/schema/context 
           http://www.springframework.org/schema/context/spring-context.xsd">
           
@@ -18,7 +18,7 @@
   <bean name="org.sapia.corus.client.services.audit.Auditor"
         class="org.sapia.corus.audit.AuditorImpl" 
         scope="singleton" 
-        autowire="autodetect">
+        autowire="byType">
   </bean> 
   
   <!-- ============ CLUSTER ============ -->
@@ -26,7 +26,7 @@
   <bean name="org.sapia.corus.client.services.cluster.ClusterManager"
         class="org.sapia.corus.cluster.ClusterManagerImpl" 
         scope="singleton" 
-        autowire="autodetect">
+        autowire="byType">
     <property name="lenient" value="${corus.server.cluster.lenient-enabled}" />
   </bean> 
 
@@ -35,25 +35,25 @@
   <bean name="org.sapia.corus.client.services.naming.JndiModule" 
         class="org.sapia.corus.naming.JndiModuleImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean> 
   
   <!-- ============ ARTIFACT MANAGER ============ -->
 
   <bean class="org.sapia.corus.deployer.artifact.FileArtifactProvider" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean>
   
   <bean class="org.sapia.corus.deployer.artifact.S3ArtifactProvider" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean>
   
   <bean name="org.sapia.corus.client.services.artifact.ArtifactManager" 
         class="org.sapia.corus.deployer.artifact.ArtifactManagerImpl" 
         scope="singleton" 
-        autowire="autodetect">
+        autowire="byType">
   </bean>
   
   <!-- ============= DOCKER ============= -->
@@ -120,17 +120,17 @@
   <bean name="org.sapia.corus.deployer.archiver.DistributionArchiver"
         scope="singleton" 
         class="org.sapia.corus.deployer.archiver.DistributionArchiverImpl" 
-        autowire="autodetect" />
+        autowire="byType" />
   
   <bean name="deployer.shellScriptManager" 
         class="org.sapia.corus.deployer.ShellScriptManagerImpl" 
         scope="singleton"
-        autowire="autodetect" />
+        autowire="byType" />
         
   <bean name="deployer.fileManager" 
         class="org.sapia.corus.deployer.FileManagerImpl" 
         scope="singleton"
-        autowire="autodetect" />        
+        autowire="byType" />        
   
   <bean name="fileDeploymentHandler"         class="org.sapia.corus.deployer.handler.FileDeploymentHandler" />
   <bean name="distributionDeploymentHandler" class="org.sapia.corus.deployer.handler.DistributionDeploymentHandler" />
@@ -140,7 +140,7 @@
   <bean name="org.sapia.corus.client.services.deployer.Deployer" 
         class="org.sapia.corus.deployer.DeployerImpl" 
         scope="singleton" 
-        autowire="autodetect">
+        autowire="byType">
         
     <property name="flagDistAbsenceAsError" value="${corus.server.deploy.diag.dist.absence.error}" />    
     
@@ -159,7 +159,7 @@
   <bean name="org.sapia.corus.client.services.port.PortManager" 
         class="org.sapia.corus.port.PortManagerImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean>
   
   <!-- ============== NUMA ============== -->
@@ -170,11 +170,11 @@
       <constructor-arg ref="org.sapia.corus.client.services.configurator.Configurator"/>
       <constructor-arg ref="org.sapia.corus.client.services.processor.Processor"/>
       <constructor-arg ref="org.sapia.corus.client.services.os.OsModule"/>
-      <property name="enabled"              value="${corus.server.numa.enabled}" />
-      <property name="bindingCpu"           value="${corus.server.numa.bind.cpu}" />
-      <property name="bindingMemory"        value="${corus.server.numa.bind.memory}" />
-      <property name="firstNumaNodeId"      value="${corus.server.numa.first.node.id}" />
-      <property name="numaNodeCount"        value="${corus.server.numa.node.count}" />
+      <property name="enabled"             value="${corus.server.numa.enabled}" />
+      <property name="bindingCpu"          value="${corus.server.numa.bind.cpu}" />
+      <property name="bindingMemory"       value="${corus.server.numa.bind.memory}" />
+      <property name="firstNumaNodeId"     value="${corus.server.numa.first.node.id}" />
+      <property name="numaNodeCount"       value="${corus.server.numa.node.count}" />
       <property name="autoDetectionEnabled" value="${corus.server.numa.auto-detection.enabled}" />
   </bean>
   
@@ -217,14 +217,14 @@
   <bean name="org.sapia.corus.client.services.processor.Processor" 
         class="org.sapia.corus.processor.ProcessorImpl" 
         scope="singleton" 
-        autowire="autodetect"/>
+        autowire="byType"/>
 
   <!-- ============ CRON ============ -->
 
   <bean name="org.sapia.corus.client.services.cron.CronModule" 
         class="org.sapia.corus.cron.CronModuleImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean> 
 
   <!-- ============ SECURITY ============ -->
@@ -232,7 +232,7 @@
   <bean name="org.sapia.corus.client.services.security.SecurityModule" 
         class="org.sapia.corus.security.SecurityModuleImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
     <property name="allowedHostPatterns"   value="${corus.server.security.hostPattern.allow}" />
     <property name="deniedHostPatterns"    value="${corus.server.security.hostPattern.deny}" />
   </bean>
@@ -240,7 +240,7 @@
   <bean name="org.sapia.corus.client.services.security.ApplicationKeyManager"
         class="org.sapia.corus.security.ApplicationKeyManagerImpl"
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean>
 
   <!-- ============ REPO ============ -->
@@ -283,7 +283,7 @@
   <bean name="org.sapia.corus.client.services.repository.Repository" 
         class="org.sapia.corus.repository.RepositoryImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
   </bean>
 
   <!-- ============ ALERTS ============ -->
@@ -291,7 +291,7 @@
   <bean name="org.sapia.corus.client.services.alert.AlertManager" 
         class="org.sapia.corus.alert.AlertManagerImpl" 
         scope="singleton"
-        autowire="autodetect">
+        autowire="byType">
     <property name="smtpHost"   	   value="${corus.server.alert.smtp.host}" />
     <property name="smtpPort"        value="${corus.server.alert.smtp.port}" />
     <property name="smtpPassword"    value="${corus.server.alert.smtp.password}" />
@@ -306,14 +306,14 @@
   <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.AWS"
       class="org.sapia.corus.ext.pub.aws.AwsElbPublishingProvider"
       scope="singleton"
-      autowire="autodetect">
+      autowire="byType">
   </bean> 
 
   <!-- Consul -->
   <bean name="org.sapia.corus.publisher.ProcessPublishingProvider.CONSUL"
       class="org.sapia.corus.ext.pub.consul.ConsulPublisher"
       scope="singleton"
-      autowire="autodetect">
+      autowire="byType">
     <property name="enabled"                value="${corus.server.pub.consul.enabled}" />
     <property name="agentUrl"               value="${corus.server.pub.consul.agent-url}" />
     <property name="publishIntervalSeconds" value="${corus.server.pub.consul.interval}" />
@@ -323,7 +323,7 @@
   <bean name="orgs.sapia.co"
       class="org.sapia.corus.publisher.ProcessPublisherImpl"
       scope="singleton"
-      autowire="autodetect">
+      autowire="byType">
   </bean> 
   
   <!-- ============ DIAGNOSTICS ============ -->
@@ -331,7 +331,7 @@
   <bean name="org.sapia.corus.client.services.diagnostic.DiagnosticModule"
       class="org.sapia.corus.diagnostic.DiagnosticModuleImpl"
       scope="singleton"
-      autowire="autodetect">
+      autowire="byType">
     <property name="processStartupGracePeriodDuration" value="${corus.server.diagnostic.grace-period.duration}" />
   </bean>   
 
@@ -341,14 +341,14 @@
   <bean name="org.sapia.corus.aws.AwsConfiguration"
       class="org.sapia.corus.aws.AwsConfigBean"
       scope="singleton"
-      autowire="autodetect">
+      autowire="byType">
     <property name="awsEnabled" value="${corus.server.aws.enabled}" />
   </bean> 
    
   <bean name="org.sapia.corus.aws.cloudwatch.AwsCloudWatchBean"
   		class="org.sapia.corus.aws.cloudwatch.AwsCloudWatchBean"
   		scope="singleton"
-  		autowire="autodetect">
+  		autowire="byType">
   	<property name="region" value="${corus.server.aws.cloudwatch.region}" />
     <property name="enabled" value="${corus.server.aws.cloudwatch.enabled}" />
   </bean>
