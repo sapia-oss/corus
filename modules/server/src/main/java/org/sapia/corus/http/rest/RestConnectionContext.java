@@ -1,14 +1,17 @@
 package org.sapia.corus.http.rest;
 
+import java.io.InterruptedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.net.SocketException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -40,6 +43,8 @@ import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.invocation.ClientPreInvokeEvent;
 import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Assertions;
+
+import com.google.common.collect.Lists;
 
 /**
  * An instance of this class encapsulates objects pertaining to the connection to a Corus server.
@@ -275,25 +280,8 @@ public class RestConnectionContext implements CorusConnectionContext {
             if (log.isDebugEnabled()) {
               log.debug("Chaining invocation to other hosts for: " + method);
             }
-            CorusHost nextHost  = this.getOtherHosts().iterator().next();
-            Corus     corus     = getRemoteCorus(nextHost);
-            if (CurrentAuditInfo.isSet()) {
-              AuditInfoRegistration reg = CurrentAuditInfo.get().get();
-              CurrentAuditInfo.set(reg.getAuditInfo(), nextHost);
-            } else {
-              CurrentAuditInfo.set(AuditInfo.forCurrentUser(), nextHost);
-            }
-       
-            Object remoteModule = corus.lookup(moduleInterface.getName());
-            try {
-              toReturn = method.invoke(remoteModule, params);
-            } catch (InvocationTargetException e) {
-              log.error("Could not cluster method call: " + method, e.getTargetException());
-              throw e.getTargetException();
-            } catch (Exception e) {
-              log.error("Could not cluster method call: " + method, e);
-              throw e;
-            }
+            toReturn = doSafellyInvokeOneNodeOfCluster(moduleInterface, method, params);
+            
           }
           
         // only other hosts are targeted
@@ -305,23 +293,7 @@ public class RestConnectionContext implements CorusConnectionContext {
           if (log.isDebugEnabled()) {
             log.debug("Other host(s) targeted for: " + method + " (" + info + ")");
           }
-          CorusHost nextHost = getOtherHosts().iterator().next();
-          Corus     corus    = getRemoteCorus(nextHost);
-          if (CurrentAuditInfo.isSet()) {
-            AuditInfoRegistration reg = CurrentAuditInfo.get().get();
-            CurrentAuditInfo.set(reg.getAuditInfo(), nextHost);
-          } else {
-            CurrentAuditInfo.set(AuditInfo.forCurrentUser(), nextHost);
-          }
-          
-          Object remoteModule = corus.lookup(moduleInterface.getName());
-          try {
-            toReturn = method.invoke(remoteModule, params);
-          } catch (InvocationTargetException e) {
-            throw e.getTargetException();
-          } catch (Exception e) {
-            throw e;
-          }
+          toReturn = doSafellyInvokeOneNodeOfCluster(moduleInterface, method, params);
         } 
       } else {
         if (log.isDebugEnabled()) {
@@ -340,6 +312,62 @@ public class RestConnectionContext implements CorusConnectionContext {
     } finally {
       ClientSideClusterInterceptor.unregister();
     }
+  }
+  
+  private <M> Object doSafellyInvokeOneNodeOfCluster(Class<M> moduleInterface, Method method, Object[] params) throws Throwable {
+    LinkedList<CorusHost> hostList = Lists.newLinkedList(this.getOtherHosts());
+    CorusHost nextHost = null;
+    Corus     corus    = null;
+    Object    result   = null;
+    
+    while (hostList.size() > 0 && result == null) {
+      try {
+        nextHost = hostList.removeFirst();
+        corus = getRemoteCorus(nextHost);
+      } catch (Exception e) {
+        if (lenient) {
+          log.info(String.format("Network error connecting to host: %s. Lenient mode is enabled, error ignored", nextHost), e);
+        } else {
+          log.warn("Network error connecting host: " + nextHost, e);
+          throw e;
+        }
+      }
+      
+      if (corus != null) {
+        if (CurrentAuditInfo.isSet()) {
+          AuditInfoRegistration reg = CurrentAuditInfo.get().get();
+          CurrentAuditInfo.set(reg.getAuditInfo(), nextHost);
+        } else {
+          CurrentAuditInfo.set(AuditInfo.forCurrentUser(), nextHost);
+        }
+   
+        try {
+          Object remoteModule = corus.lookup(moduleInterface.getName());
+          result = method.invoke(remoteModule, params);
+        } catch (InvocationTargetException | UndeclaredThrowableException e) {
+          Throwable wrapped;
+          if (e instanceof InvocationTargetException) {
+            wrapped = ((InvocationTargetException) e).getTargetException();
+          } else {
+            wrapped = ((UndeclaredThrowableException) e).getUndeclaredThrowable();
+          }
+          
+          if ((wrapped instanceof RemoteException) || (wrapped instanceof SocketException) || (wrapped instanceof InterruptedIOException)) {
+            if (lenient) {
+              log.debug(String.format("Network error invoking host: %s. Lenient mode is enabled, error ignored", nextHost), e);
+            } else {
+              log.error("Could not cluster method call: " + method, wrapped);
+              throw wrapped;
+            }
+          }
+        } catch (Exception e) {
+          log.error("Could not cluster method call: " + method, e);
+          throw e;
+        }
+      }
+    }
+    
+    return result;
   }
   
   @SuppressWarnings(value = "unchecked")
@@ -416,7 +444,7 @@ public class RestConnectionContext implements CorusConnectionContext {
             results.addResult(new Result(addr, returnValue, resultType));
           } catch (UndeclaredThrowableException e) {
             Throwable wrapped = e.getCause();
-            if (wrapped instanceof RemoteException) {
+            if ((wrapped instanceof RemoteException) || (wrapped instanceof SocketException) || (wrapped instanceof InterruptedIOException)) {
               if (lenient) {
                 log.debug(String.format("Network error invoking host: %s. Lenient mode is enabled, error ignored", addr), e);
               } else {
@@ -453,13 +481,6 @@ public class RestConnectionContext implements CorusConnectionContext {
       log.debug("==> Completed dispatching of method invocation to cluster: " + method);
     }
   }
-
-  // --------------------------------------------------------------------------
-  // Unimplemented
-  
-  @Override
-  public void reconnect() {
-  }
   
   private Corus getRemoteCorus(CorusHost remoteHost) throws RemoteException {
     Corus corus = (Corus) cachedStubs.get(remoteHost.getEndpoint().getServerAddress());
@@ -468,6 +489,13 @@ public class RestConnectionContext implements CorusConnectionContext {
       cachedStubs.put(remoteHost.getEndpoint().getServerAddress(), corus);
     }
     return corus;
+  }
+  
+  // --------------------------------------------------------------------------
+  // Unimplemented
+  
+  @Override
+  public void reconnect() {
   }
 
 }
