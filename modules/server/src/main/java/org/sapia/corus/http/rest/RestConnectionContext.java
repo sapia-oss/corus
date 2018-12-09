@@ -319,8 +319,9 @@ public class RestConnectionContext implements CorusConnectionContext {
     CorusHost nextHost = null;
     Corus     corus    = null;
     Object    result   = null;
+    Boolean   invocationCompleted = false;
     
-    while (hostList.size() > 0 && result == null) {
+    while (hostList.size() > 0 && invocationCompleted == false) {
       try {
         nextHost = hostList.removeFirst();
         corus = getRemoteCorus(nextHost);
@@ -342,8 +343,10 @@ public class RestConnectionContext implements CorusConnectionContext {
         }
    
         try {
+          log.info(String.format("Invoking rest endpoint (%s) for module %s", corus, moduleInterface.getName()));
           Object remoteModule = corus.lookup(moduleInterface.getName());
           result = method.invoke(remoteModule, params);
+          invocationCompleted = true;
         } catch (InvocationTargetException | UndeclaredThrowableException e) {
           Throwable wrapped;
           if (e instanceof InvocationTargetException) {
