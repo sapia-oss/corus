@@ -8,12 +8,21 @@
 	<url>http://www.sapia-oss.org/projects/corus/index.html</url>
 	<artifactId>sapia_corus_server_package</artifactId>
 
+<<<<<<< HEAD
 	<parent>
 		<groupId>org.sapia</groupId>
 		<artifactId>sapia_corus_parent</artifactId>
 		<version>5.2.4</version>
 		<relativePath>../..</relativePath>
 	</parent>
+=======
+  <parent>
+    <groupId>org.sapia</groupId>
+    <artifactId>sapia_corus_parent</artifactId>
+    <version>fix-lenient</version>
+    <relativePath>../..</relativePath>
+  </parent>
+>>>>>>> c27169f2e8a96feb0562e96046716f48e1ce01a2
 
 	<packaging>jar</packaging>
 
