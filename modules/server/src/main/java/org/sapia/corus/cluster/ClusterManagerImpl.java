@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.sapia.corus.client.annotations.Bind;
 import org.sapia.corus.client.services.Service;
@@ -35,7 +34,6 @@ import org.sapia.corus.util.PropertiesUtil;
 import org.sapia.ubik.mcast.AsyncEventListener;
 import org.sapia.ubik.mcast.EventChannel;
 import org.sapia.ubik.mcast.EventChannelStateListener;
-import org.sapia.ubik.mcast.NodeInfo;
 import org.sapia.ubik.mcast.RemoteEvent;
 import org.sapia.ubik.mcast.Response;
 import org.sapia.ubik.mcast.TimeoutException;
@@ -52,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Implements the {@link ClusterManager} module.
  *
- * @author Yanick Duchesne
+ * @author yduchesne
  */
 @Bind(moduleInterface = ClusterManager.class)
 @Remote(interfaces = ClusterManager.class)
@@ -130,7 +128,11 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
     super.start();
     logger().info("Starting event channel with lenient mode set to " + lenient);
     channel.start();
-    interceptor = new ServerSideClusterInterceptor(log, serverContext(), lenient);
+    interceptor = new ServerSideClusterInterceptor(log, serverContext(), (nextNode) ->  {
+        if (lenient) {
+            removeNode(nextNode.getNode());  
+        }
+    }, lenient);
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
 
@@ -141,20 +143,12 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
       public Void execute(TaskExecutionContext ctx, Void param) throws Throwable {
         if (taskSyncLock.tryAcquire()) {
           try {
-            Set<String> channelNodes = new HashSet<>(channel.getView().getNodes());
-            channelNodes.removeAll(hostsByNode.keySet());
-            for (String channelNode : channelNodes) {
-              try {
-                NodeInfo info = channel.getView().getNodeInfo(channelNode);
-                logger().debug("Node " + info + " is out of sync: trying to reconnect with it...");
-                if (info != null) {
-                  channel.dispatch(info.getAddr(), CorusPubEvent.class.getName(), new CorusPubEvent(serverContext().getCorusHost()));
-                } else {
-                  log.warn("Not node info found for ID: " + channelNode);
-                }
-              } catch (Exception e) {
-                log.warn("Error caught trying refresh cluster view with node " + channelNode, e);
-              }
+            Set<String> actualNodes   = new HashSet<>(channel.getView().getNodes());
+            Set<String> presumedNodes = new HashSet<>(hostsByNode.keySet());
+            presumedNodes.removeAll(actualNodes);
+            // remove traces of nodes that are no longer in the view.
+            for (String presumedNode : presumedNodes) {
+              removeNode(presumedNode);
             }
           } finally {
             taskSyncLock.release();
@@ -162,7 +156,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
         }
         return null;
       }
-    }, null,taskConf);
+    }, null, taskConf);
 
     http.addHttpExtension(new ClusterHttpExtension(serverContext, this));
 

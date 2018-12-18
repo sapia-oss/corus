@@ -2,6 +2,7 @@ package org.sapia.corus.cluster;
 
 import java.rmi.RemoteException;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.log.Logger;
 
@@ -25,7 +26,7 @@ import org.sapia.ubik.util.Func;
 /**
  * Handles clustered commands on the server-side.
  * 
- * @author Yanick Duchesne
+ * @author yduchesnes
  */
 public class ServerSideClusterInterceptor implements CorusCallback {
 
@@ -34,29 +35,38 @@ public class ServerSideClusterInterceptor implements CorusCallback {
   private ClusterManager          cluster;
   private Func<Connections, ServerAddress> connectionPoolSupplier;
   private boolean                 lenient;
+  private Consumer<CorusHost>     invalidNodeListener;
   
   /**
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
    * @param connectionPoolSupplier a function used to obtain a {@link Connections} instance.
+   * @param invalidNodeListener a {@link Consumer} to notify when connecting to a remote node fails.
    * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
    *                should be ignored.
    */
-  ServerSideClusterInterceptor(Logger log, ServerContext context, Func<Connections, ServerAddress> connectionPoolSupplier, boolean lenient) {
+  ServerSideClusterInterceptor(
+          Logger log, 
+          ServerContext context, 
+          Func<Connections, ServerAddress> connectionPoolSupplier, 
+          Consumer<CorusHost> invalidNodeListener,
+          boolean lenient) {
     this.log                    = log;
     this.context                = context;
     this.cluster                = context.getServices().lookup(ClusterManager.class);
     this.connectionPoolSupplier = connectionPoolSupplier;
+    this.invalidNodeListener    = invalidNodeListener;
     this.lenient                = lenient;
   }
 
   /**
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
+   * @param invalidNodeListener a {@link Consumer} to notify when connecting to a remote node fails.
    * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
    *                should be ignored.
    */
-  ServerSideClusterInterceptor(Logger log, ServerContext context, boolean lenient) {
+  ServerSideClusterInterceptor(Logger log, ServerContext context, Consumer<CorusHost> invalidNodeListener, boolean lenient) {
     this(log, context, new Func<Connections, ServerAddress>() {
       @Override
       public Connections call(ServerAddress nextTarget) {
@@ -66,7 +76,7 @@ public class ServerSideClusterInterceptor implements CorusCallback {
           throw new IllegalStateException("Network error occurred while performing operation", e);
         }
       }
-    }, lenient);
+    }, invalidNodeListener, lenient);
   }
 
   @Override
@@ -121,10 +131,10 @@ public class ServerSideClusterInterceptor implements CorusCallback {
     Connections pool = connectionPoolSupplier.call(nextTarget);
     AuditInfo currentAuditInfo = null;
 
+    CorusHost nextHost = cluster.resolveHost(nextTarget);
     if (cmd.getAuditInfo().isSet()) {
       Assertions.illegalState(cmd.getAuditInfo().get().isEncrypted(), "Expected AuditInfo to have been decrypted at this point");
       log.debug("AuditInfo is set: encrypting with public key of next targeted host");
-      CorusHost nextHost = cluster.resolveHost(nextTarget);
       currentAuditInfo = cmd.getAuditInfo().get();
       cmd.setAuditInfo(cmd.getAuditInfo().get().encryptWith(Encryption.getDefaultEncryptionContext(nextHost.getPublicKey())));
     }
@@ -143,6 +153,7 @@ public class ServerSideClusterInterceptor implements CorusCallback {
         pool.invalidate(conn);
       }
       pool.clear();
+      invalidNodeListener.accept(nextHost);
       throw re;
     } catch (Exception e) {
       log.error("Problem sending clustered command to " + nextTarget, e);

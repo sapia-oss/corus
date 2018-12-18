@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.rmi.RemoteException;
 import java.security.KeyPair;
+import java.util.function.Consumer;
 
 import org.apache.log.Hierarchy;
 import org.junit.Before;
@@ -53,6 +54,9 @@ public class ServerSideClusterInterceptorTest {
   @Mock
   private Func<Connections, ServerAddress> connectionSupplier;
   
+  @Mock 
+  private Consumer<CorusHost> invalidHostListener;
+  
   private InternalServiceContext services;
  
   private ClusteredCommand cmd;
@@ -80,7 +84,7 @@ public class ServerSideClusterInterceptorTest {
     when(cluster.resolveHost(any(ServerAddress.class))).thenReturn(host);
 
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(Encryption.getDefaultEncryptionContext(context.getKeyPair().getPublic())));
-    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier, false);
+    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier, invalidHostListener, false);
   }
 
   @Test
@@ -109,6 +113,20 @@ public class ServerSideClusterInterceptorTest {
     assertFalse("Expected AuditInfo to have been switched back to decrypted after error on send", cmd.getAuditInfo().get().isEncrypted());
   }
 
+  @Test
+  public void testSend_invalid_host_listener_was_notified() throws Exception {
+    doThrow(new RemoteException("ERROR")).when(rmiConnection).send(any());
+
+    IncomingCommandEvent evt = new IncomingCommandEvent(cmd);
+    interceptor.onIncomingCommandEvent(evt);
+    cmd.decrypt(interceptor.getDecryptionContext());
+    try {
+      interceptor.send(cmd, nextAddress);
+    } catch (RemoteException e) {
+      // noop
+    }
+    invalidHostListener.accept(any());
+  }
   
   @Test(expected = IllegalStateException.class)
   public void testSend_already_encrypted_audit_info() throws Exception {
