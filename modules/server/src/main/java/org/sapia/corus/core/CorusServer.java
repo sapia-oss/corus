@@ -21,7 +21,10 @@ import org.apache.log.LogTarget;
 import org.apache.log.Logger;
 import org.apache.log.Priority;
 import org.apache.log.format.Formatter;
+import org.apache.log.output.io.rotate.OrRotateStrategy;
 import org.apache.log.output.io.rotate.RevolvingFileStrategy;
+import org.apache.log.output.io.rotate.RotateStrategy;
+import org.apache.log.output.io.rotate.RotateStrategyBySize;
 import org.apache.log.output.io.rotate.RotateStrategyByTime;
 import org.apache.log.output.io.rotate.RotatingFileTarget;
 import org.apache.log4j.Level;
@@ -337,14 +340,16 @@ public class CorusServer {
         if (!logsDir.exists()) {
           throw new IOException("Log directory does not exist and could not be created: " + logsDir.getAbsolutePath());
         }
-
+        
+        long maxLogFileSizeBytes = Long.parseLong(corusProps.getProperty(CorusConsts.CORUS_LOG_MAX_FILESIZE));
+        
         Formatter allLogsFormatter = FormatterFactory.createDefaultFormatter();
         File      allLogsFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_" + port + ".log");
-        allLogsTarget.addTarget(createFileLogTarget(allLogsFile, allLogsFormatter));
+        allLogsTarget.addTarget(createFileLogTarget(allLogsFile, maxLogFileSizeBytes, allLogsFormatter));
         
         Formatter auditLogFormatter = new AuditLogFormatter();
         File      auditLogFile = new File(logsDir.getAbsolutePath() + File.separator + domain + "_audit_" + port + ".log");
-        auditLogTarget.addTarget(createFileLogTarget(auditLogFile, auditLogFormatter));
+        auditLogTarget.addTarget(createFileLogTarget(auditLogFile, maxLogFileSizeBytes, auditLogFormatter));
       } else {
         Formatter allLogsFormatter  = FormatterFactory.createDefaultFormatter();
         StdoutTarget allLogsStdoutTarget = new StdoutTarget(allLogsFormatter);
@@ -545,8 +550,10 @@ public class CorusServer {
     }
   }
   
-  private static LogTarget createFileLogTarget(File file, Formatter logFormatter) throws IOException {
-    RotateStrategyByTime  rotateStrategy = new RotateStrategyByTime(1000 * 60 * 60 * 24);
+  private static LogTarget createFileLogTarget(File file, long maxFileSizeBytes, Formatter logFormatter) throws IOException {
+    OrRotateStrategy rotateStrategy = new OrRotateStrategy(new RotateStrategy[] {
+        new RotateStrategyByTime(1000 * 60 * 60 * 24),
+        new RotateStrategyBySize(maxFileSizeBytes) });
     RevolvingFileStrategy fileStrategy = new RevolvingFileStrategy(file, 5);
     RotatingFileTarget    rotatingTarget = new RotatingFileTarget(logFormatter, rotateStrategy, fileStrategy);
     return rotatingTarget;

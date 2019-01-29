@@ -241,6 +241,14 @@ corus.server.properties.include.
           <td>Yes</td>
         </tr>
         <tr>
+          <td><tt>corus.server.log.max.file.size</tt></td>
+          <td>
+            The maximum size of the log files - value specified in bytes.
+          </td>
+          <td>No</td>
+          <td>No</td>
+        </tr>
+        <tr>
           <td><tt>corus.server.syslog.protocol</tt></td>
           <td>
             The protocol to use to connect to the Syslog daemon -  value may be <tt>udp</tt>, <tt>tcp</tt>.

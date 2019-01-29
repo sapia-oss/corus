@@ -56,6 +56,9 @@ public interface CorusConsts {
   public static final String PROPERTY_CORUS_MCAST_PORT               = "corus.server.multicast.port";
 
   public static final String CORUS_TRANSPORT_TCP                     = "tcp";
+  
+  public static final String CORUS_LOG_MAX_FILESIZE                  = "corus.server.log.max.file.size";
+
 
   // --------------------------------------------------------------------------
   // File & security-related
