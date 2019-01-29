@@ -61,7 +61,7 @@ class DefaultProcessDiagnosticCallback implements ProcessDiagnosticCallback {
             } else {
               String msg = String.format("Process %s (%s) has no diagnostic config defined for port %s", 
                   ToStringUtil.toString(toDiagnose), ToStringUtil.toString(context.getDistribution(), context.getProcessConfig()), activePort.getName());
-              log.warn(msg);
+              log.debug(msg);
               OptionalValue<String> noneProtocol = OptionalValue.none();
               results.add(new ProcessDiagnosticResult(ProcessDiagnosticStatus.NO_DIAGNOSTIC_CONFIG, msg, toDiagnose, noneProtocol, activePort));
             }
