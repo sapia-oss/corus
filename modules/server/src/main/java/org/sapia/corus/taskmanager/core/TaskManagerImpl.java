@@ -41,7 +41,11 @@ public class TaskManagerImpl implements TaskManager {
     background.schedule(new TimerTask() {
       @Override
       public void run() {
-        monitorPendingTasks();
+        try {
+          monitorPendingTasks();
+        } catch (Exception e) {
+          LOG.error("Error caught while monitoring pending tasks", e);
+        }
       }
     }, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS, TASK_EXECUTION_MONITORING_INTERNVAL_MILLIS);
   }
@@ -140,8 +144,18 @@ public class TaskManagerImpl implements TaskManager {
 
   public <R, P> void executeBackground(final Task<R, P> task, final P param, final BackgroundTaskConfig config) {
     background.schedule(new TimerTask() {
+      
+     
+      
       @Override
       public void run() {
+        try {
+          doRun();
+        } catch (Exception e) {
+          LOG.error("Error executing background task", e);
+        }
+      }
+      private void doRun() {
         if (task.isAborted()) {
           super.cancel();
           background.purge();
