@@ -28,6 +28,7 @@
         scope="singleton" 
         autowire="byType">
     <property name="lenient" value="${corus.server.cluster.lenient-enabled}" />
+    <property name="commandTimeout" value="${corus.server.cluster.command.timeout}" />
   </bean> 
 
   <!-- ============ JNDI ============ -->

@@ -46,6 +46,7 @@ import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
 import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
+import org.sapia.ubik.util.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -76,6 +77,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   private DeferredAsyncListener         deferredListeners = new DeferredAsyncListener();
   private long                          startTime         = System.currentTimeMillis();
   private boolean                       lenient;
+  private long                          commandTimeoutMillis;
 
   void setHttpModule(HttpModule http) {
     this.http = http;
@@ -87,6 +89,10 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
 
   public void setLenient(boolean lenient) {
     this.lenient = lenient;
+  }
+  
+  public void setCommandTimeout(long timeoutMillis) {
+    this.commandTimeoutMillis = timeoutMillis;
   }
 
   /**
@@ -128,12 +134,15 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
   public void start() throws Exception {
     super.start();
     logger().info("Starting event channel with lenient mode set to " + lenient);
+    logger().info("Clustered command timeout set to " + commandTimeoutMillis + " milliseconds");
+
     channel.start();
     interceptor = new ServerSideClusterInterceptor(log, serverContext(), (nextNode) ->  {
         if (lenient) {
             removeNode(nextNode.getNode());  
         }
     }, Threads.createIoOutboundPool(), lenient);
+    interceptor.setOutboundCommandTimeout(TimeValue.createMillis(commandTimeoutMillis));
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
 

@@ -94,6 +94,14 @@ public class ServerSideClusterInterceptor implements CorusCallback {
       }
     }, invalidNodeListener, outboundIoExecutor, lenient);
   }
+  
+  /**
+   * 
+   * @param outboundCommandTimeout
+   */
+  public void setOutboundCommandTimeout(TimeValue outboundCommandTimeout) {
+    this.outboundCommandTimeout = outboundCommandTimeout;
+  }
 
   @Override
   public boolean isLenient() {
