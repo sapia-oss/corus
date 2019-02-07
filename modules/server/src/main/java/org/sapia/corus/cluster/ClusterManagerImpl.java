@@ -43,6 +43,7 @@ import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.rmi.Remote;
 import org.sapia.ubik.rmi.server.Hub;
 import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
+import org.sapia.ubik.rmi.threads.Threads;
 import org.sapia.ubik.util.Collects;
 import org.sapia.ubik.util.Func;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,7 @@ public class ClusterManagerImpl extends ModuleHelper implements ClusterManager, 
         if (lenient) {
             removeNode(nextNode.getNode());  
         }
-    }, lenient);
+    }, Threads.createIoOutboundPool(), lenient);
     Hub.getModules().getServerRuntime().addInterceptor(IncomingCommandEvent.class, interceptor);
     deferredListeners.ready();
 

@@ -2,6 +2,10 @@ package org.sapia.corus.cluster;
 
 import java.rmi.RemoteException;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.apache.log.Logger;
@@ -22,6 +26,7 @@ import org.sapia.ubik.rmi.server.transport.IncomingCommandEvent;
 import org.sapia.ubik.rmi.server.transport.RmiConnection;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Func;
+import org.sapia.ubik.util.TimeValue;
 
 /**
  * Handles clustered commands on the server-side.
@@ -36,12 +41,15 @@ public class ServerSideClusterInterceptor implements CorusCallback {
   private Func<Connections, ServerAddress> connectionPoolSupplier;
   private boolean                 lenient;
   private Consumer<CorusHost>     invalidNodeListener;
+  private ExecutorService         outboundIoExecutor;
+  private TimeValue               outboundCommandTimeout = new TimeValue(30, TimeUnit.SECONDS);
   
   /**
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
    * @param connectionPoolSupplier a function used to obtain a {@link Connections} instance.
    * @param invalidNodeListener a {@link Consumer} to notify when connecting to a remote node fails.
+   * @param outboundIoExecutor the {@link ExecutorService} to use for sending commands over the wire.
    * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
    *                should be ignored.
    */
@@ -50,12 +58,14 @@ public class ServerSideClusterInterceptor implements CorusCallback {
           ServerContext context, 
           Func<Connections, ServerAddress> connectionPoolSupplier, 
           Consumer<CorusHost> invalidNodeListener,
+          ExecutorService outboundIoExecutor,
           boolean lenient) {
     this.log                    = log;
     this.context                = context;
     this.cluster                = context.getServices().lookup(ClusterManager.class);
     this.connectionPoolSupplier = connectionPoolSupplier;
     this.invalidNodeListener    = invalidNodeListener;
+    this.outboundIoExecutor     = outboundIoExecutor;
     this.lenient                = lenient;
   }
 
@@ -63,10 +73,16 @@ public class ServerSideClusterInterceptor implements CorusCallback {
    * @param log the {@link Logger} to use.
    * @param context the {@link ServerContext}.
    * @param invalidNodeListener a {@link Consumer} to notify when connecting to a remote node fails.
+   * @param outboundIoExecutor the {@link ExecutorService} to use for sending commands over the wire.
    * @param lenient if <code>true</code>, indicates that clustered commands execution errors due to network failures
    *                should be ignored.
    */
-  ServerSideClusterInterceptor(Logger log, ServerContext context, Consumer<CorusHost> invalidNodeListener, boolean lenient) {
+  ServerSideClusterInterceptor(
+      Logger log, 
+      ServerContext context, 
+      Consumer<CorusHost> invalidNodeListener, 
+      ExecutorService outboundIoExecutor,
+      boolean lenient) {
     this(log, context, new Func<Connections, ServerAddress>() {
       @Override
       public Connections call(ServerAddress nextTarget) {
@@ -76,7 +92,7 @@ public class ServerSideClusterInterceptor implements CorusCallback {
           throw new IllegalStateException("Network error occurred while performing operation", e);
         }
       }
-    }, invalidNodeListener, lenient);
+    }, invalidNodeListener, outboundIoExecutor, lenient);
   }
 
   @Override
@@ -128,6 +144,16 @@ public class ServerSideClusterInterceptor implements CorusCallback {
 
   @Override
   public Object send(ClusteredCommand cmd, ServerAddress nextTarget) throws Exception {
+    Future<Object> result = outboundIoExecutor.submit(new Callable<Object>() {
+      @Override
+      public Object call() throws Exception {
+        return doSend(cmd,  nextTarget);
+      }
+    });
+    return result.get(outboundCommandTimeout.getValue(), outboundCommandTimeout.getUnit());
+  }
+  
+  private Object doSend(ClusteredCommand cmd, ServerAddress nextTarget) throws Exception {
     Connections pool = connectionPoolSupplier.call(nextTarget);
     AuditInfo currentAuditInfo = null;
 

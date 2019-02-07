@@ -3,12 +3,19 @@ package org.sapia.corus.cluster;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 
 import java.rmi.RemoteException;
 import java.security.KeyPair;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import org.apache.log.Hierarchy;
@@ -16,7 +23,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.sapia.corus.client.common.encryption.Encryption;
 import org.sapia.corus.client.services.audit.AuditInfo;
 import org.sapia.corus.client.services.cluster.ClusterManager;
@@ -57,6 +67,9 @@ public class ServerSideClusterInterceptorTest {
   @Mock 
   private Consumer<CorusHost> invalidHostListener;
   
+  @Mock
+  private ExecutorService outboundCommandPool;
+  
   private InternalServiceContext services;
  
   private ClusteredCommand cmd;
@@ -82,9 +95,18 @@ public class ServerSideClusterInterceptorTest {
     when(context.getServices()).thenReturn(services);
     when(context.getKeyPair()).thenReturn(kp);
     when(cluster.resolveHost(any(ServerAddress.class))).thenReturn(host);
+    
+    doAnswer(new Answer<Future<Object>>() {
+      @Override
+      public Future<Object> answer(InvocationOnMock invocation) throws Throwable {
+        Callable<Object> task = invocation.getArgumentAt(0, Callable.class);
+        return new TestFuture<Object>(task.call());
+      }
+    }).when(outboundCommandPool).submit(any(Callable.class));
 
     cmd.setAuditInfo(AuditInfo.forUser("test").encryptWith(Encryption.getDefaultEncryptionContext(context.getKeyPair().getPublic())));
-    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), context, connectionSupplier, invalidHostListener, false);
+    interceptor = new ServerSideClusterInterceptor(Hierarchy.getDefaultHierarchy().getRootLogger(), 
+        context, connectionSupplier, invalidHostListener, outboundCommandPool, false);
   }
 
   @Test
@@ -150,4 +172,39 @@ public class ServerSideClusterInterceptorTest {
     
   }
 
+  private static class TestFuture<T> implements Future<T> {
+   
+    private T toReturn;
+    
+    private TestFuture(T toReturn) {
+      this.toReturn = toReturn;
+    }
+    
+    @Override
+    public T get() throws InterruptedException, ExecutionException {
+      return toReturn;
+    }
+    
+    @Override
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+      return get();
+    }
+    
+    @Override
+    public boolean cancel(boolean mayInterruptIfRunning) {
+      return true;
+    }
+    
+    @Override
+    public boolean isCancelled() {
+      return false;
+    }
+    
+    @Override
+    public boolean isDone() {
+      return false;
+    }
+    
+    
+  }
 }
