@@ -16,7 +16,6 @@ import org.sapia.corus.client.common.ThreadWrapper;
 import org.sapia.corus.client.services.cluster.CorusHost;
 import org.sapia.corus.client.services.cluster.Endpoint;
 import org.sapia.ubik.net.ServerAddress;
-import org.sapia.ubik.util.Func;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ResultsTest {
@@ -156,12 +155,7 @@ public class ResultsTest {
       results.addResult(new Result<Integer>(origin, v, Result.Type.forClass(Integer.class)));
     }
 
-    Results<Integer> filtered = results.filter(new Func<Integer, Integer>() {
-      @Override
-      public Integer call(Integer arg) {
-        return new Integer(0);
-      }
-    });
+    Results<Integer> filtered = results.filter((arg) -> new Integer(0), (err) -> {});
 
     List<Integer> filteredList = new ArrayList<Integer>();
     while (filtered.hasNext()) {

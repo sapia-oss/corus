@@ -47,7 +47,6 @@ import org.sapia.corus.client.services.configurator.Tag;
 import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Condition;
 import org.sapia.ubik.util.Func;
 
 /**
@@ -417,17 +416,9 @@ public class Conf extends CorusCliCommand {
     String nameFilter = getOptValue(ctx, OPT_TAG.getName());
     if (nameFilter != null) {
       final org.sapia.corus.client.common.ArgMatcher pattern = ArgMatchers.parse(nameFilter);
-      res = res.filter(new Func<List<Tag>, List<Tag>>() {
-        @Override
-        public List<Tag> call(List<Tag> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<Tag>() {
-            @Override
-            public boolean apply(Tag item) {
-              return pattern.matches(item.getValue());
-            }
-          });
-        }
-      });
+      res = res.filter(
+          (toFilter) -> Collects.filterAsList(toFilter, (tag) -> pattern.matches(tag.getValue())),
+          (err) -> ctx.getConsole().println(err.getLocalizedMessage()));
     }
 
     while (res.hasNext()) {
@@ -513,17 +504,9 @@ public class Conf extends CorusCliCommand {
     }
     if (nameFilter != null) {
       final org.sapia.corus.client.common.ArgMatcher pattern = ArgMatchers.parse(nameFilter);
-      res = res.filter(new Func<List<Property>, List<Property>>() {
-        @Override
-        public List<Property> call(List<Property> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<Property>() {
-            @Override
-            public boolean apply(Property item) {
-              return pattern.matches(item.getName());
-            }
-          });
-        }
-      });
+      res = res.filter(
+              (toFilter) -> Collects.filterAsList(toFilter, (property) -> pattern.matches(property.getName())),
+              (err) -> ctx.getConsole().println(err.getLocalizedMessage()));
     }
 
     while (res.hasNext()) {
@@ -601,17 +584,10 @@ public class Conf extends CorusCliCommand {
         pattern.add(new Matcheable.DefaultPattern(ArgMatchers.parse(p)));
       }
       Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));
-      results = results.filter(new Func<List<Property>, List<Property>>() {
-        @Override
-        public List<Property> call(List<Property> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<Property>() {
-            @Override
-            public boolean apply(Property property) {
-              return property.matches(pattern);
-            }
-          });
-        }
-      });
+      results = results.filter(
+        (toFilter) -> Collects.filterAsList(toFilter, (property) -> property.matches(pattern)),
+        (err) -> ctx.getConsole().println(err.getLocalizedMessage())
+      );
       return Sorting.sortList(results, Property.class, ctx.getSortSwitches());
     } else {
       Results<List<Property>> results = ctx.getCorus().getConfigFacade().getAllProperties(scope, categoryArgSet(ctx), getClusterInfo(ctx));

@@ -29,8 +29,6 @@ import org.sapia.corus.client.services.database.RevId;
 import org.sapia.corus.client.services.port.PortRange;
 import org.sapia.corus.client.sort.Sorting;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Condition;
-import org.sapia.ubik.util.Func;
 
 /**
  * Allows port management.
@@ -200,17 +198,9 @@ public class Port extends CorusCliCommand {
     String nameFilter = getOptValue(ctx, OPT_NAME.getName());
     if (nameFilter != null) {
       final org.sapia.corus.client.common.ArgMatcher pattern = ArgMatchers.parse(nameFilter);
-      res = res.filter(new Func<List<PortRange>, List<PortRange>>() {
-        @Override
-        public List<PortRange> call(List<PortRange> toFilter) {
-          return Collects.filterAsList(toFilter, new Condition<PortRange>() {
-            @Override
-            public boolean apply(PortRange item) {
-              return pattern.matches(item.getName());
-            }
-          });
-        }
-      });
+      res = res.filter(
+          (toFilter) -> Collects.filterAsList(toFilter, (portRange) -> pattern.matches(portRange.getName())),
+          (err) -> ctx.getConsole().println(err.getLocalizedMessage()));
     }
     while (res.hasNext()) {
       Result<List<PortRange>> result = res.next();

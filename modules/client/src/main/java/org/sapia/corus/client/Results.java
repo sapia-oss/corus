@@ -1,5 +1,6 @@
 package org.sapia.corus.client;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -11,6 +12,7 @@ import org.sapia.corus.client.common.Delay;
 import org.sapia.ubik.net.ThreadInterruptedException;
 import org.sapia.ubik.util.Assertions;
 import org.sapia.ubik.util.Func;
+import org.sapia.ubik.util.VoidFunc;
 
 /**
  * An instance of this class aggregates {@link Result} instances.
@@ -160,15 +162,25 @@ public class Results<T> implements Iterable<Result<T>> {
   }
 
   /**
-   * @param filter
-   *          the filter {@link Func} to use.
+   * @param filter the filter {@link Func} to use.
+   * @param errorHandler the handler {@link VoidFunc} of error 
    * @return the filtered {@link Results}.
    */
-  public Results<T> filter(Func<T, T> filter) {
+  public Results<T> filter(Func<T, T> filter, VoidFunc<Throwable> errorHandler) {
     Results<T> filtered = new Results<T>();
     while (hasNext()) {
-      Result<T> result = next();
-      filtered.addResult(new Result<T>(result.getOrigin(), filter.call(result.getData()), result.getType()));
+      try {
+        Result<T> result = next();
+        filtered.addResult(new Result<T>(result.getOrigin(), filter.call(result.getData()), result.getType()));
+      } catch (UndeclaredThrowableException ute) {
+        if (ute.getCause() != null) {
+          errorHandler.call(ute.getCause());
+        } else {
+          errorHandler.call(ute);
+        }
+      } catch (Exception e) {
+        errorHandler.call(e);
+      }
     }
     filtered.invocationFinished = true;
     return filtered;

@@ -18,7 +18,6 @@ import org.sapia.corus.client.rest.Output;
 import org.sapia.corus.client.rest.Path;
 import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.services.port.PortRange;
-import org.sapia.ubik.util.Func;
 
 /**
  * A REST resources that gives access to {@link PortRange}s.
@@ -71,19 +70,17 @@ public class PortResource {
     final ArgMatcher filter = ArgMatchers.parse(context.getRequest().getValue("n", "*").asString());
     Results<List<PortRange>> results = context.getConnector()
         .getPortManagementFacade()
-        .getPortRanges(cluster).filter(new Func<List<PortRange>, List<PortRange>>() {
-          
-          @Override
-          public List<PortRange> call(List<PortRange> ranges) {
-            List<PortRange> filtered = new ArrayList<>();
-            for (PortRange r : ranges) {
-              if (filter.matches(r.getName())) {
-                filtered.add(r);
+        .getPortRanges(cluster).filter(
+            (ranges) -> {
+              List<PortRange> filtered = new ArrayList<>();
+              for (PortRange r : ranges) {
+                if (filter.matches(r.getName())) {
+                  filtered.add(r);
+                }
               }
-            }
-            return filtered;
-          }
-        });
+              return filtered;
+            },
+            (err) -> {});
     
     return doProcessPortRangeResults(context, results);
   }

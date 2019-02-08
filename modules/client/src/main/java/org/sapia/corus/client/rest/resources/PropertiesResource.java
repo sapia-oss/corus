@@ -23,7 +23,6 @@ import org.sapia.corus.client.rest.RequestContext;
 import org.sapia.corus.client.services.configurator.Configurator.PropertyScope;
 import org.sapia.corus.client.services.configurator.Property;
 import org.sapia.ubik.util.Collects;
-import org.sapia.ubik.util.Func;
 
 /**
  * A REST resources that gives access to process and server properties.
@@ -99,18 +98,17 @@ public class PropertiesResource {
     Set<ArgMatcher>  catFilters     = catFilter == null ? new HashSet<ArgMatcher>() : Collects.arrayToSet(catFilter);
     Results<List<Property>> results = context.getConnector()
         .getConfigFacade().getAllProperties(scope, catFilters, cluster);
-    results = results.filter(new Func<List<Property>, List<Property>>() {
-      @Override
-      public List<Property> call(List<Property> toFilter) {
-        List<Property> toReturn = new ArrayList<>();
-        for (Property p : toFilter) {
-          if (propNameFilter.matches(p.getName())) {
-            toReturn.add(p);
+    results = results.filter(
+        (toFilter) -> {
+          List<Property> toReturn = new ArrayList<>();
+          for (Property p : toFilter) {
+            if (propNameFilter.matches(p.getName())) {
+              toReturn.add(p);
+            }
           }
-        }
-        return toReturn;
-      }
-    });
+          return toReturn;
+        },
+        (err) -> {});
     return doProcessResults(context, results);
   }
   

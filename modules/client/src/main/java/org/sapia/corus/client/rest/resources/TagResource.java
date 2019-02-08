@@ -80,18 +80,17 @@ public class TagResource {
     
     final ArgMatcher filter = ArgMatchers.parse(context.getRequest().getValue("t", "*").asString());
     
-    results = results.filter(new Func<Set<Tag>, Set<Tag>>() {
-      @Override
-      public Set<Tag> call(Set<Tag> toFilter) {
-        Set<Tag> toReturn = new HashSet<>();
-        for (Tag t : toFilter) {
-          if (filter.matches(t.getValue())) {
-            toReturn.add(t);
+    results = results.filter(
+        (toFilter) -> {
+          Set<Tag> toReturn = new HashSet<>();
+          for (Tag t : toFilter) {
+            if (filter.matches(t.getValue())) {
+              toReturn.add(t);
+            }
           }
-        }
-        return toReturn;
-      }
-    });
+          return toReturn;
+        },
+        (err) -> {});
     
     return doProcessResults(context, results);
   }
