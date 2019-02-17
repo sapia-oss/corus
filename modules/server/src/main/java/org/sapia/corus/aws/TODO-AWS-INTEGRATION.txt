@@ -1,0 +1,20 @@
+AWS INTEGRATION
+
+1) Manage AWS lifecycle hook
+- on startup will wait for diagnostic to return OK to send continue message
+- on shutdown will ensure corus node will leave cluster with success
+
+
+2) Management of spot termination 2 minute notice
+- Upon reception of warning:
+    i.   start a 2 minute timer (maybe less give buffer for completion)
+    ii.  initiate process shutdown (with elb/consul unregistration)
+    iii. corus to safely leave cluster 
+
+
+3) Process lifecycle synchronization with publish on startup
+
+3) Process lifecycle synchronization with unpublish on kill
+
+
+status

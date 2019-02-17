@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClientBuilder;
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingInstancesRequest;
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingInstancesResult;
 import com.amazonaws.util.EC2MetadataUtils;
 
 /**
@@ -175,6 +178,19 @@ public class AwsConfigBean implements AwsConfiguration {
   protected String retrieveRegion() {
     String toReturn = EC2MetadataUtils.getEC2InstanceRegion();
     Assertions.notNull(toReturn, "AWS region could not be determined");
+    return toReturn;
+  }
+  
+  protected String retrieveAutoScalingGroupName() {
+    String toReturn = "";
+    DescribeAutoScalingInstancesRequest rq = new DescribeAutoScalingInstancesRequest().
+        withSdkClientExecutionTimeout(5000).
+        withSdkRequestTimeout(5000);
+    rq.withInstanceIds(getInstanceId());
+    rq.setMaxRecords(1);
+    DescribeAutoScalingInstancesResult rs = AmazonAutoScalingClientBuilder.defaultClient().describeAutoScalingInstances(rq);
+    toReturn = rs.getAutoScalingInstances().get(0).getAutoScalingGroupName();
+    
     return toReturn;
   }
   

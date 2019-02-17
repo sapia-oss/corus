@@ -13,7 +13,7 @@
 		<sapia-ubik.version>5.1-rc12</sapia-ubik.version>
 		<sapia-corus-iop.version>3.0</sapia-corus-iop.version>
 		<magnet.version>3.1</magnet.version>
-		<aws-sdk.version>1.11.163</aws-sdk.version>
+		<aws-sdk.version>1.11.495</aws-sdk.version>
 	</properties>
 
 	<parent>
@@ -370,6 +370,11 @@
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk-elasticloadbalancingv2</artifactId>
+				<version>${aws-sdk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>aws-java-sdk-autoscaling</artifactId>
 				<version>${aws-sdk.version}</version>
 			</dependency>
 

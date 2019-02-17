@@ -219,6 +219,10 @@
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-elasticloadbalancing</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-autoscaling</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>com.spotify</groupId>
